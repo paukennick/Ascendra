@@ -3,7 +3,8 @@
 // mastery, seed v2) through exactly the code production runs.
 import type { Pool } from "pg";
 import type { SeedTrack, SeedCredential } from "./data";
-import { activeUnits } from "./catalog";
+import { activeUnits, objectiveRetiredAt } from "./catalog";
+import { toUsSpelling } from "../../lib/us-spelling";
 import type { SeedLabSet } from "./labs/types";
 import { labContentHash, labContentProblems, type LabContent } from "../../lib/lab-content";
 
@@ -155,7 +156,9 @@ export async function seedCredentialExam(
        on conflict (exam_id, sort_order) do update
          set name = excluded.name,
              weight_percent = excluded.weight_percent`,
-      [examId, units[i].title, units[i].weight ?? null, i]
+      // REQ-220: weights that are only our study emphasis are not a vendor
+      // blueprint, so they are not recorded as one.
+      [examId, units[i].title, cred.domainWeights === "study_emphasis" ? null : units[i].weight ?? null, i]
     );
   }
   // REQ-102: a blueprint that loses a domain must not keep the old row --
@@ -188,6 +191,38 @@ export async function seedCredentialExam(
   return examId;
 }
 
+// FAIL-893: units and objectives are matched by sort_order, so an objective
+// retitled in place keeps its row id -- and with it a stored lesson, review
+// questions and exam items written for the OLD title, served under the new
+// one. When the title changes, the generated content for that objective is
+// invalidated: the shared and learner lessons are deleted (the next visit
+// generates them again; a lesson a person corrected, model 'corrected:...',
+// is kept for that person to look at), and the shared review, Quiz-me and
+// exam items (a lesson check copied into the exam bank included) are pulled
+// from rotation with an item_status row, not deleted, so past sessions and
+// their answers stay readable. Learner history (attempts, mastery) is kept.
+export async function invalidateGeneratedContent(pool: Pool, objectiveId: string): Promise<{ lessons: number; pulled: number }> {
+  const lessons =
+    ((await pool.query(`delete from lesson_content where objective_id = $1 and model not like 'corrected:%' returning 1`, [objectiveId])).rowCount ?? 0) +
+    ((await pool.query(`delete from lesson_content_overrides where objective_id = $1 returning 1`, [objectiveId])).rowCount ?? 0);
+  let pulled = 0;
+  for (const [kind, table, question] of [
+    ["review", "review_items", "question"],
+    ["quiz", "coach_quiz_items", "question"],
+    ["exam", "exam_items", "stem"],
+  ] as const) {
+    const r = await pool.query(
+      `insert into item_status (item_kind, item_id, objective_id, question, status, reason, resolved_note)
+       select $1, t.id::text, t.objective_id, t.${question}, 'quarantined', 'objective_retitled', 'the objective was retitled in the seed'
+         from ${table} t where t.objective_id = $2
+       on conflict (item_kind, item_id) do nothing`,
+      [kind, objectiveId]
+    );
+    pulled += r.rowCount ?? 0;
+  }
+  return { lessons, pulled };
+}
+
 export async function seedTrack(pool: Pool, legacyUserId: string | null, track: SeedTrack) {
   const credentialExamId = track.credential
     ? await seedCredentialExam(pool, track.credential, activeUnits(track))
@@ -208,6 +243,8 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
     track.requiresAcknowledgement ?? false,
     track.disclaimerKey ?? null,
     track.disclaimerVersion ?? 1,
+    // REQ-194 (065): assigned outright, so deleting hiddenAt un-hides.
+    track.hiddenAt ?? null,
   ];
 
   // Shared row first; failing that, the legacy owner's private copy, which
@@ -240,20 +277,22 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
               requires_acknowledgement = $11,
               disclaimer_key = $12,
               disclaimer_version = $13,
+              hidden_at = $14::timestamptz,
               user_id = null
         where id = $4`,
       [track.title, track.description, track.trackType, trackId, ...alignment]
     );
     const adopted = existing.rows[0].user_id ? " (adopted into shared catalog)" : "";
-    console.log(`subject_tracks: ${track.code} already exists -> ${trackId} (updated)${adopted}`);
+    const hidden = track.hiddenAt ? ` (hidden from the catalog since ${track.hiddenAt})` : "";
+    console.log(`subject_tracks: ${track.code} already exists -> ${trackId} (updated)${adopted}${hidden}`);
   } else {
     const res = await pool.query(
       `insert into subject_tracks
          (user_id, code, title, description, track_type,
           subcategory_id, freshness_model, credential_exam_id,
           source_url, source_verified_at, content_review_due_at,
-          requires_acknowledgement, disclaimer_key, disclaimer_version)
-       values (null,$1,$2,$3,$4,$5,$6::content_freshness_model,$7,$8,$9::timestamptz,$10::timestamptz,$11,$12,$13)
+          requires_acknowledgement, disclaimer_key, disclaimer_version, hidden_at)
+       values (null,$1,$2,$3,$4,$5,$6::content_freshness_model,$7,$8,$9::timestamptz,$10::timestamptz,$11,$12,$13,$14::timestamptz)
        returning id`,
       [track.code, track.title, track.description, track.trackType, ...alignment]
     );
@@ -266,6 +305,7 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
   // re-seed. retired_at is assigned outright from the seed (a unit the seed
   // marks retired gets that timestamp, on itself and all its objectives;
   // anything else is un-retired), so the seed file stays the authority.
+  let retitled = 0;
   for (let i = 0; i < track.units.length; i++) {
     const unit = track.units[i];
     const retiredAt = unit.retiredAt ?? null;
@@ -295,19 +335,31 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
     for (let j = 0; j < unit.objectives.length; j++) {
       const objTitle = unit.objectives[j];
       const lab = unit.labs?.[j] ?? null;
+      // REQ-195: an objective can be retired on its own in a unit that stays.
+      const objRetiredAt = objectiveRetiredAt(unit, j);
       const existingObj = await pool.query(
-        `select id from objectives where unit_id = $1 and sort_order = $2`,
+        `select id, title from objectives where unit_id = $1 and sort_order = $2`,
         [unitId, j]
       );
       if (existingObj.rows[0]) {
         await pool.query(
           `update objectives set title = $1, lab_prompt = $2, retired_at = $4::timestamptz where id = $3`,
-          [objTitle, lab, existingObj.rows[0].id, retiredAt]
+          [objTitle, lab, existingObj.rows[0].id, objRetiredAt]
         );
+        // REQ-220: a retitle that only changes British to US spelling is the
+        // same objective; its stored lessons stay (they are regenerated or
+        // corrected on their own schedule, not thrown away for spelling).
+        if (existingObj.rows[0].title !== objTitle && toUsSpelling(existingObj.rows[0].title) !== toUsSpelling(objTitle)) {
+          const gone = await invalidateGeneratedContent(pool, existingObj.rows[0].id);
+          retitled++;
+          console.log(
+            `  retitled "${existingObj.rows[0].title}" -> "${objTitle}": ${gone.lessons} stored lesson(s) deleted, ${gone.pulled} item(s) pulled`
+          );
+        }
       } else {
         await pool.query(
           `insert into objectives (unit_id, title, sort_order, lab_prompt, retired_at) values ($1,$2,$3,$4,$5::timestamptz)`,
-          [unitId, objTitle, j, lab, retiredAt]
+          [unitId, objTitle, j, lab, objRetiredAt]
         );
       }
     }
@@ -334,9 +386,22 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
     [trackId, track.units.length]
   );
 
+  // FAIL-890: a learner's unresolved review entries (error_log) for objectives
+  // and units that are now retired are resolved, so the Review queue does not
+  // keep asking about content that is no longer taught. The rows are kept.
+  const resolved = await pool.query(
+    `update error_log e set resolved = true, next_review_at = null
+      where e.resolved = false
+        and (e.unit_id in (select id from course_units where track_id = $1 and retired_at <= now())
+             or e.objective_id in (select o.id from objectives o join course_units cu on cu.id = o.unit_id
+                                    where cu.track_id = $1 and (o.retired_at <= now() or cu.retired_at <= now())))`,
+    [trackId]
+  );
+  if (resolved.rowCount) console.log(`  resolved ${resolved.rowCount} review entr${resolved.rowCount === 1 ? "y" : "ies"} for retired content in ${track.code}`);
+
   const retired = track.units.length - activeUnits(track).length;
   console.log(
-    `  seeded ${track.units.length} units for ${track.code}${retired ? ` (${retired} retired, history kept)` : ""}`
+    `  seeded ${track.units.length} units for ${track.code}${retired ? ` (${retired} retired, history kept)` : ""}${retitled ? ` (${retitled} retitled, generated content invalidated)` : ""}`
   );
 }
 
@@ -353,7 +418,15 @@ export function seedLabContent(lab: SeedLabSet["labs"][number]): LabContent {
     brief: lab.brief,
     safetyNote: lab.safetyNote ?? null,
     steps: lab.steps.map((s) => ({ text: s.text, ask: s.ask })),
-    rubric: lab.steps.map((s) => ({ parts: s.parts.map((p) => ({ label: p.label, criteria: p.criteria, modelAnswer: p.modelAnswer })) })),
+    rubric: lab.steps.map((s) => ({
+      parts: s.parts.map((p) => ({
+        label: p.label,
+        criteria: p.criteria,
+        modelAnswer: p.modelAnswer,
+        // REQ-189: only when set, so a written part's hash is unchanged.
+        ...(p.interactive ? { interactive: p.interactive } : {}),
+      })),
+    })),
   };
 }
 

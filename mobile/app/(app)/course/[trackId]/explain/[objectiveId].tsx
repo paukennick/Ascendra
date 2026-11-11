@@ -8,6 +8,8 @@ import { friendlyError } from "@/lib/errorMessage";
 import { useAnswerDraft } from "@/lib/useAnswerDraft";
 import { Body, Button, Card, ErrorBanner, H1, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
 import { MisconceptionNote, RefresherOffer } from "@/components/Understanding";
+import { DictationHint } from "@/components/DictationHint";
+import { lengthCounter, lengthProblem } from "@/lib/dictation";
 import { colors, radius, spacing } from "@/lib/theme";
 import {
   EXPLAIN_MIN_WORDS,
@@ -18,6 +20,9 @@ import {
   type Diagnosis,
   type ExplainRubric,
 } from "@/lib/understanding";
+import { useGoBack } from "@/lib/useGoBack";
+import { isNotFound } from "@/lib/notFound";
+import { LoadError } from "@/components/LoadError";
 
 // REQ-111 explain-it-back: once an objective is at Guided or above, the
 // learner explains it to a beginner in their own words. Graded on the server
@@ -39,6 +44,10 @@ interface Result {
   assistReason: string | null;
 }
 
+// The server's cap (app/api/objectives/[id]/explain-back MAX_ANSWER). Not a
+// maxLength: REQ-197 keeps dictated text whole and holds the send instead.
+const EXPLAIN_MAX_CHARS = 4000;
+
 export default function ExplainBackScreen() {
   const { trackId, objectiveId, objectiveTitle } = useLocalSearchParams<{
     trackId: string;
@@ -46,6 +55,8 @@ export default function ExplainBackScreen() {
     objectiveTitle?: string;
   }>();
   const router = useRouter();
+  const goBackToLesson = useGoBack(`/course/${encodeURIComponent(trackId)}/lesson/${encodeURIComponent(objectiveId)}`);
+  const [notFound, setNotFound] = useState(false);
   const [info, setInfo] = useState<Info | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
@@ -59,10 +70,14 @@ export default function ExplainBackScreen() {
 
   const load = useCallback(() => {
     setLoadError(null);
+    setNotFound(false);
     api
       .get<Info>(`/api/objectives/${objectiveId}/explain-back`)
       .then(setInfo)
-      .catch((err) => setLoadError(friendlyError(err)));
+      .catch((err) => {
+        setLoadError(friendlyError(err));
+        setNotFound(isNotFound(err));
+      });
   }, [objectiveId]);
 
   useEffect(load, [load]);
@@ -89,13 +104,13 @@ export default function ExplainBackScreen() {
     <Screen>
       <H1>Explain it back</H1>
       {objectiveTitle ? <Muted style={{ color: colors.link }}>{objectiveTitle}</Muted> : null}
-      {loadError ? <ErrorBanner message={loadError} onRetry={load} /> : null}
+      {loadError ? <LoadError message={loadError} notFound={notFound} onRetry={load} /> : null}
       {error ? <ErrorBanner message={error} /> : null}
       {!info && !loadError ? <Loading /> : null}
       {info && !info.eligible ? (
         <Card>
           <Body>{explainBackLockedNote(info.status)}</Body>
-          <Button label="Back to the lesson" variant="ghost" icon="arrow-left" onPress={() => router.back()} />
+          <Button label="Back to the lesson" variant="ghost" icon="arrow-left" onPress={goBackToLesson} />
         </Card>
       ) : null}
       {info?.eligible ? (
@@ -108,6 +123,7 @@ export default function ExplainBackScreen() {
           </Card>
           {!result ? (
             <Card>
+              <DictationHint />
               <TextInput
                 multiline
                 accessibilityLabel="Your explanation"
@@ -115,7 +131,6 @@ export default function ExplainBackScreen() {
                 placeholderTextColor={colors.mutedDim}
                 value={answer}
                 onChangeText={setAnswer}
-                maxLength={4000}
                 style={{
                   borderWidth: 1,
                   borderColor: colors.inputBorder,
@@ -131,11 +146,16 @@ export default function ExplainBackScreen() {
               {words > 0 && words < EXPLAIN_MIN_WORDS ? (
                 <Muted>A few sentences is plenty — keep going.</Muted>
               ) : null}
+              {lengthProblem(answer, EXPLAIN_MAX_CHARS) ? (
+                <ErrorBanner message={lengthProblem(answer, EXPLAIN_MAX_CHARS)!} />
+              ) : lengthCounter(answer, EXPLAIN_MAX_CHARS) ? (
+                <Muted style={{ textAlign: "right" }}>{lengthCounter(answer, EXPLAIN_MAX_CHARS)}</Muted>
+              ) : null}
               <Button
                 label="Check my explanation"
                 icon="send"
                 loading={busy}
-                disabled={busy || words < EXPLAIN_MIN_WORDS}
+                disabled={busy || words < EXPLAIN_MIN_WORDS || answer.length > EXPLAIN_MAX_CHARS}
                 onPress={submit}
               />
             </Card>

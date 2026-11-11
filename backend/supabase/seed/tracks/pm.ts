@@ -52,9 +52,9 @@ const OUTLINE_CHECKED_AT = "2026-11-08T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const CAPM_TRACK: SeedTrack = {
   code: "CAPM",
-  title: "CAPM Coach",
+  title: "Prep for the CAPM® Certification Exam",
   description:
-    "PMI Certified Associate in Project Management (CAPM) exam prep across 4 weighted domains -- PM fundamentals, predictive/plan-based methods, agile methods, and business analysis frameworks.",
+    "PMI Certified Associate in Project Management (CAPM) exam prep across 4 weighted domains -- PM fundamentals, predictive/plan-based methods, agile methods, and business analysis frameworks. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and CAPM are marks of Project Management Institute, Inc.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
@@ -145,10 +145,11 @@ export const CAPM_TRACK: SeedTrack = {
 // PMP -- Project Management Professional. Confirmed current: July 2026 ECO
 // update (rebalanced 3-domain weights, consolidated to 26 tasks from the
 // prior 35 -- see this file's header note on why the pre-2026 ECO would have
-// been stale). Requires either a secondary credential + 5 years/60 months
-// leading projects, or a bachelor's/GAC-accredited degree + 2-3 years leading
-// projects (scaled by credential level), plus 35 hours of PM-specific
-// training (waived if the candidate already holds an active CAPM).
+// been stale). Eligibility (July 2026 ECO, "PMP Certification Eligibility
+// Requirements", re-read 2026-11-09) has four tiers of experience leading
+// projects in the past 10 years: secondary 60 months, associate's-level
+// (EQF 5) 48 months, bachelor's (EQF 6) 36 months, GAC-accredited degree
+// 24 months; plus 35 hours of PM training (waived for an active CAPM).
 //
 // 180 questions (170 scored, 10 unscored pretest): multiple choice,
 // multiple-response, drag-and-drop, matching, point-and-click, and new for
@@ -160,9 +161,9 @@ export const CAPM_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMP_TRACK: SeedTrack = {
   code: "PMP",
-  title: "PMP Coach",
+  title: "Prep for the PMP® Certification Exam",
   description:
-    "PMI Project Management Professional (PMP) exam prep across 3 weighted domains -- people, process, and business environment -- spanning predictive, agile, and hybrid ways of working.",
+    "PMI Project Management Professional (PMP) exam prep across 3 weighted domains -- people, process, and business environment -- spanning predictive, agile, and hybrid ways of working. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMP are marks of Project Management Institute, Inc.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
@@ -181,7 +182,7 @@ export const PMP_TRACK: SeedTrack = {
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/new-pmp-examination-content-outline-2026.pdf",
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
-      "Secondary credential (HS diploma/GED-equivalent) + 60 months leading projects, or bachelor's/GAC-accredited degree + 24-36 months leading projects (scaled by credential level), all within the prior 10 years, plus 35 hours of PM-specific training (waived if the candidate holds an active CAPM).",
+      "One of four paths, with non-overlapping experience leading projects in the past 10 years: secondary diploma/GED + 60 months; associate's-level or higher-certificate program + 48 months; bachelor's degree or higher + 36 months; or a degree from a GAC-accredited program + 24 months. Plus 35 hours of project management training (waived for an active CAPM holder).",
     durationMinutes: 240,
     questionFormat:
       "180 questions (170 scored, 10 unscored pretest); multiple choice, multiple response, drag-and-drop, matching, point-and-click, case/scenario, and graphic-based questions",
@@ -252,9 +253,9 @@ export const PMP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMIACP_TRACK: SeedTrack = {
   code: "PMIACP",
-  title: "PMI-ACP Coach",
+  title: "Prep for the PMI-ACP® Certification Exam",
   description:
-    "PMI Agile Certified Practitioner (PMI-ACP) exam prep across 4 weighted domains -- agile mindset, leadership, product, and delivery -- reframed by PMI's 2026 update around Enterprise Agility.",
+    "PMI Agile Certified Practitioner (PMI-ACP) exam prep across 4 weighted domains -- agile mindset, leadership, product, and delivery -- reframed by PMI's 2026 update around Enterprise Agility. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-ACP are marks of Project Management Institute, Inc.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
@@ -355,9 +356,9 @@ export const PMIACP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PGMP_TRACK: SeedTrack = {
   code: "PGMP",
-  title: "PgMP Coach",
+  title: "Prep for the PgMP® Certification Exam",
   description:
-    "PMI Program Management Professional (PgMP) exam prep across 5 weighted domains -- strategic alignment, program life cycle management, benefits management, stakeholder engagement, and governance.",
+    "PMI Program Management Professional (PgMP) exam prep across 5 weighted domains -- strategic alignment, program life cycle management, benefits management, stakeholder engagement, and governance. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PgMP are marks of Project Management Institute, Inc.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
@@ -473,9 +474,9 @@ export const PGMP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PFMP_TRACK: SeedTrack = {
   code: "PFMP",
-  title: "PfMP Coach",
+  title: "Prep for the PfMP® Certification Exam",
   description:
-    "PMI Portfolio Management Professional (PfMP) exam prep across 5 weighted domains -- strategic alignment, governance, portfolio performance, portfolio risk management, and communications management.",
+    "PMI Portfolio Management Professional (PfMP) exam prep across 5 weighted domains -- strategic alignment, governance, portfolio performance, portfolio risk management, and communications management. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PfMP are marks of Project Management Institute, Inc.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
@@ -592,9 +593,9 @@ export const PFMP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMIRMP_TRACK: SeedTrack = {
   code: "PMIRMP",
-  title: "PMI-RMP Coach",
+  title: "Prep for the PMI-RMP® Certification Exam",
   description:
-    "PMI Risk Management Professional (PMI-RMP) exam prep across 5 weighted domains -- risk strategy and planning, identification, analysis, response, and monitoring/closing risks.",
+    "PMI Risk Management Professional (PMI-RMP) exam prep across 5 weighted domains -- risk strategy and planning, identification, analysis, response, and monitoring/closing risks. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-RMP are marks of Project Management Institute, Inc.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
@@ -696,9 +697,9 @@ export const PMIRMP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMISP_TRACK: SeedTrack = {
   code: "PMISP",
-  title: "PMI-SP Coach",
+  title: "Prep for the PMI-SP® Certification Exam",
   description:
-    "PMI Scheduling Professional (PMI-SP) exam prep across 5 weighted domains -- schedule strategy, planning/development, monitoring/controlling, closeout, and stakeholder communications.",
+    "PMI Scheduling Professional (PMI-SP) exam prep across 5 weighted domains -- schedule strategy, planning/development, monitoring/controlling, closeout, and stakeholder communications. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-SP are marks of Project Management Institute, Inc.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
@@ -810,9 +811,9 @@ export const PMISP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMICP_TRACK: SeedTrack = {
   code: "PMICP",
-  title: "PMI-CP Coach",
+  title: "Prep for the PMI-CP™ Certification Exam",
   description:
-    "PMI Construction Professional (PMI-CP) exam prep across 4 weighted domains -- contracts management, stakeholder engagement, strategy/scope management, and project governance for built-environment and capital projects.",
+    "PMI Construction Professional (PMI-CP) exam prep across 4 weighted domains -- contracts management, stakeholder engagement, strategy/scope management, and project governance for built-environment and capital projects. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-CP are marks of Project Management Institute, Inc.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
@@ -902,9 +903,9 @@ export const PMICP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMIPMOCP_TRACK: SeedTrack = {
   code: "PMIPMOCP",
-  title: "PMI-PMOCP Coach",
+  title: "Prep for the PMI-PMOCP™ Certification Exam",
   description:
-    "PMI PMO Certified Professional (PMI-PMOCP) exam prep across 6 weighted domains -- organizational alignment, PMO strategy, design, operations, enhancement, and the people skills a PMO practitioner needs.",
+    "PMI PMO Certified Professional (PMI-PMOCP) exam prep across 6 weighted domains -- organizational alignment, PMO strategy, design, operations, enhancement, and the people skills a PMO practitioner needs. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-PMOCP are marks of Project Management Institute, Inc.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
@@ -1017,9 +1018,9 @@ export const PMIPMOCP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMIPBA_TRACK: SeedTrack = {
   code: "PMIPBA",
-  title: "PMI-PBA Coach",
+  title: "Prep for the PMI-PBA® Certification Exam",
   description:
-    "PMI Professional in Business Analysis (PMI-PBA) exam prep across 5 weighted domains -- needs assessment, planning, analysis, traceability/monitoring, and evaluation.",
+    "PMI Professional in Business Analysis (PMI-PBA) exam prep across 5 weighted domains -- needs assessment, planning, analysis, traceability/monitoring, and evaluation. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-PBA are marks of Project Management Institute, Inc.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
@@ -1137,9 +1138,9 @@ export const PMIPBA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMICPMAI_TRACK: SeedTrack = {
   code: "PMICPMAI",
-  title: "PMI-CPMAI Coach",
+  title: "Prep for the PMI-CPMAI™ Certification Exam",
   description:
-    "PMI Certified Professional in Managing AI (PMI-CPMAI) exam prep across 5 weighted domains -- responsible AI, identifying business and data needs, model development/evaluation, and operationalizing AI solutions.",
+    "PMI Certified Professional in Managing AI (PMI-CPMAI) exam prep across 5 weighted domains -- responsible AI, identifying business and data needs, model development/evaluation, and operationalizing AI solutions. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-CPMAI are marks of Project Management Institute, Inc.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
@@ -1257,9 +1258,9 @@ export const PMICPMAI_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CSPP_TRACK: SeedTrack = {
   code: "CSPP",
-  title: "CSPP Coach",
+  title: "Prep for the CSPP™ Certification Exam",
   description:
-    "PMI & GPM Certified Sustainable Project Professional (CSPP) exam prep across 5 weighted domains -- sustainability foundations, the PRiSM life cycle, P5 impact analysis, sustainability management planning, and ESG reporting/governance. Modeled on the Certified Practitioner pathway (for candidates who already hold a qualifying PM credential); the Non-Certified Practitioner pathway adds a sixth domain and different weights for candidates without one.",
+    "PMI & GPM Certified Sustainable Project Professional (CSPP) exam prep across 5 weighted domains -- sustainability foundations, the PRiSM life cycle, P5 impact analysis, sustainability management planning, and ESG reporting/governance. Modeled on the Certified Practitioner pathway (for candidates who already hold a qualifying PM credential); the Non-Certified Practitioner pathway adds a sixth domain and different weights for candidates without one. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI is a mark of Project Management Institute, Inc.; CSPP is a mark of its owner.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",

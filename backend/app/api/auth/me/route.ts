@@ -1,8 +1,9 @@
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { pendingAcceptance } from "@/lib/legal";
+import { pendingAcceptance, legalContext } from "@/lib/legal";
 import { accessSummary } from "@/lib/account-access";
+import { aiAccessSummary } from "@/lib/ai-access";
 
 export const dynamic = "force-dynamic";
 
@@ -51,16 +52,20 @@ function toUserResponse(row: ProfileRow) {
 // silent refresh into a full user object (refresh itself only returns tokens).
 export async function GET(req: Request) {
   try {
-    const authUser = await requireUser(req);
+    const authUser = await requireUser(req, { termsOptional: true });
     const row = await queryOne<ProfileRow>(PROFILE_SELECT, [authUser.id]);
     if (!row) return notFound("Account no longer exists.");
     // REQ-093: documents whose current version this user hasn't accepted.
-    const legalPending = await pendingAcceptance(authUser.id);
+    const legalPending = await pendingAcceptance(authUser.id, legalContext(req));
     // REQ-144: { level: "owner" | "unrestricted", grantedBy, expiresAt } or
     // null. The app shows Settings > Access to owners only; the server
     // checks again on every Access request.
     const access = await accessSummary(authUser.id);
-    return ok({ user: { ...toUserResponse(row), legalPending, access } });
+    // REQ-201: { mode, full } when AI_ACCESS_MODE limits AI to invited pilot
+    // accounts, so the app can show the coach and "Regenerate lesson" as
+    // limited preview before they are tried. Absent in the default mode.
+    const ai = await aiAccessSummary(authUser.id).catch(() => null);
+    return ok({ user: { ...toUserResponse(row), legalPending, access, ...(ai ? { ai } : {}) } });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

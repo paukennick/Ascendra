@@ -17,7 +17,8 @@ import {
   type LabStepGradeOutput,
   type LabStepModel,
 } from "./lab-grading";
-import { judgeLabCheck, toLabContent } from "./lab-generation";
+import { describeSaveOutcome, isRetryableOutcome, judgeLabCheck, labCheckVerdict, labGenerationPrompt, toLabContent } from "./lab-generation";
+import { verdictHolds, verdictUnchecked } from "./fact-check";
 import { STUDY_NOTICE_VERSION, studyNoticeAcceptedSql } from "./study-notice";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -66,7 +67,7 @@ describe("lab content rules (REQ-123)", () => {
     assert.ok(labContentProblems({ ...CASE, steps: CASE.steps.slice(0, 1), rubric: CASE.rubric.slice(0, 1) }).some((p) => p.includes("2-4 steps")));
     assert.ok(labContentProblems({ ...CASE, rubric: CASE.rubric.slice(0, 1) }).some((p) => p.includes("one entry per step")));
     const dup = { ...BUILD, rubric: [{ parts: [BUILD.rubric[0].parts[0], BUILD.rubric[0].parts[0]] }] };
-    assert.ok(labContentProblems(dup).some((p) => p.includes("two parts labelled")));
+    assert.ok(labContentProblems(dup).some((p) => p.includes("two parts labeled")));
     assert.ok(labContentProblems({ ...BUILD, title: "x\u0000y z" }).some((p) => p.includes("can't be stored")));
   });
   test("the hash moves with anything a learner sees or is graded against, and only then", () => {
@@ -134,6 +135,7 @@ const stepParams = (answers: string[]) => ({
   parts: BUILD.rubric[0].parts,
   answers,
   family: "general" as const,
+  userId: null,
 });
 
 describe("lab step grading (model mocked)", () => {
@@ -200,6 +202,39 @@ describe("generated labs: the independent check fails closed", () => {
     assert.equal(judgeLabCheck(null).publish, false);
     assert.equal(judgeLabCheck({}).publish, false);
   });
+  // REQ-216 (FAIL-1026): the gate reads the checker for disagreement only.
+  test("the gate holds a lab only on a wrong answer, something unsafe or a listed problem", () => {
+    const ok = { referenceAnswersCorrect: true, safe: true, problems: [], unsupportedClaims: [] };
+    assert.equal(labCheckVerdict(ok).outcome, "agree");
+    const unconfirmed = labCheckVerdict({ ...ok, unsupportedClaims: ["a quota"] });
+    assert.equal(unconfirmed.outcome, "unsupported");
+    assert.equal(verdictHolds(unconfirmed), false, "a claim it could not support is logged, not held");
+    for (const bad of [{ ...ok, referenceAnswersCorrect: false }, { ...ok, safe: false }, { ...ok, problems: ["step 2 depends on step 1"] }]) {
+      const v = labCheckVerdict(bad);
+      assert.equal(verdictHolds(v), true);
+      assert.ok(v.unsupportedClaims.length > 0, "the reasons steer the retry");
+    }
+    assert.deepEqual(labCheckVerdict({ ...ok, problems: ["P"] }).unsupportedClaims, ["P"]);
+  });
+  test("no verdict at all is unchecked (retryable), not a disagreement", () => {
+    for (const none of [null, undefined, {}, { safe: true }, { referenceAnswersCorrect: true }]) {
+      const v = labCheckVerdict(none as never);
+      assert.equal(verdictUnchecked(v), true);
+      assert.equal(verdictHolds(v), false);
+    }
+  });
+  test("the operator is told why in plain words, and only a failed check call is retryable", () => {
+    assert.match(describeSaveOutcome("held_uncertain"), /confidence low/);
+    assert.match(describeSaveOutcome("held_check"), /wrong reference answer/);
+    assert.match(describeSaveOutcome("held_check_error"), /retryable/);
+    assert.equal(isRetryableOutcome("held_check_error"), true);
+    for (const o of ["saved", "exists", "held_uncertain", "held_invalid", "held_check"] as const) assert.equal(isRetryableOutcome(o), false, o);
+  });
+  test("the steered retry prompt carries what held the first draft back", () => {
+    const p = { trackTitle: "T", unitTitle: "U", objectiveTitle: "O", kind: "build" as const, family: "general" as const };
+    assert.ok(!labGenerationPrompt(p).user.includes("previous draft"));
+    assert.match(labGenerationPrompt({ ...p, steer: "A previous draft was not used: X" }).user, /previous draft was not used: X/);
+  });
   test("toLabContent splits steps and rubric", () => {
     const c = toLabContent(
       {
@@ -237,7 +272,14 @@ describe("authored pilot content (supabase/seed/labs)", () => {
     }
   });
   test("every clinical and fitness lab names what its values rest on, or why it names nothing (REQ-142)", () => {
-    for (const set of LAB_SETS.filter((s) => /^(NCLEX|CCRN|NASM)/.test(s.trackCode))) {
+    // Widened 2026-11-09 (content audit): the pattern used to stop at NASM, so
+    // the other fitness courses and every PT course had no per-lab sources and
+    // nothing failed.
+    const covered = /^(NCLEX|CCRN|NASM|ACECPT|ACSMCPT|NCCPTCPT|NSCACPT|NSCACSCS|ABPTS|DPT$|NPTEPT)/;
+    for (const code of ["ACECPT", "ACSMCPT", "NCCPTCPT", "NSCACPT", "NSCACSCS", "NASMCPT", "NPTEPT", "NPTEPTA", "DPT", "ABPTSCCS"]) {
+      assert.ok(LAB_SETS.some((s) => s.trackCode === code && covered.test(code)), `${code} is covered by the value-source rule`);
+    }
+    for (const set of LAB_SETS.filter((s) => covered.test(s.trackCode))) {
       for (const lab of set.labs) {
         const own = lab.sources ?? [];
         assert.ok(own.length > 0 || (lab.noValueSource ?? "").length > 20, `${set.trackCode}/${lab.slug}: cite a source or say why not`);
@@ -302,22 +344,25 @@ describe("authored pilot content (supabase/seed/labs)", () => {
       assert.deepEqual(got, want, code);
     }
   });
-  // REQ-161: CMPCBS is a degree plan. Its course units (titled with a course
-  // code) follow the hybrid plan; its advising units (elective blocks, free
-  // electives, graduation checklist) have no skill to practise and get none.
-  test("CMPCBS course units follow the hybrid density; advising units have no lab", () => {
+  // REQ-161/195: CMPCBS's twenty major course units follow the hybrid plan.
+  // Its reframed general-education surveys have no lab yet, and its retired
+  // degree-plan units and objectives (electives, free electives, the
+  // graduation checklist) never get one.
+  test("CMPCBS course units follow the hybrid density; gen-ed surveys and retired lines have no lab", () => {
     const t = tracks.get("CMPCBS")!;
     const set = LAB_SETS.find((s) => s.trackCode === "CMPCBS")!;
     const units = activeUnits(t);
-    const isCourse = (title: string) => /^[A-Z]{4} \d{3}:/.test(title);
-    const course = units.filter((u) => isCourse(u.title));
-    assert.ok(course.length >= 20, "course units found");
+    const genEd = new Set(["College Composition I", "Religion Surveys: The Bible and Christian Thought"]);
+    const course = units.filter((u) => !genEd.has(u.title));
+    assert.equal(course.length, 20, "course units found");
     const want = unitPlan({ code: "CMPCBS", family: "general", units: course.map((u) => ({ title: u.title, weight: u.weight ?? null, objectives: u.objectives })) }, "hybrid");
     const got = course.map((u) => set.labs.filter((l) => u.objectives.includes(l.objective)).length);
     assert.deepEqual(got, want, "course units");
-    for (const u of units.filter((u) => !isCourse(u.title))) {
+    for (const u of units.filter((u) => genEd.has(u.title))) {
       assert.equal(set.labs.filter((l) => u.objectives.includes(l.objective)).length, 0, u.title);
     }
+    const active = new Set(units.flatMap((u) => u.objectives));
+    for (const l of set.labs) assert.ok(active.has(l.objective), `${l.slug} is on an active objective`);
   });
 });
 
@@ -333,14 +378,59 @@ describe("labs under the study notice (REQ-165)", () => {
       assert.doesNotMatch(src, /lab-disclaimer|labDisclaimer\(|disclaimer:/, f);
     }
   });
-  test("clinical and fitness lab starts and grading require the study notice", () => {
+  test("clinical and fitness lab starts require the study notice; every lab step's grading does (REQ-205)", () => {
     const here = join(__dirname);
-    for (const f of ["lab-routes.ts", "../app/api/labs/[id]/runs/route.ts"]) {
-      assert.match(readFileSync(join(here, f), "utf8"), /safety_family !== "general"\) await requireStudyNotice\(/, f);
-    }
+    assert.match(readFileSync(join(here, "../app/api/labs/[id]/runs/route.ts"), "utf8"), /safety_family !== "general"\) await requireStudyNotice\(/);
+    // FAIL-907: grading sends the learner's answers to the model, whatever the lab's family.
+    const routes = readFileSync(join(here, "lab-routes.ts"), "utf8");
+    assert.match(routes, /\n  await requireStudyNotice\(userId\);/);
+    assert.doesNotMatch(routes, /safety_family !== "general"\) await requireStudyNotice/);
   });
   test("the inline SQL check names the current version", () => {
     assert.ok(studyNoticeAcceptedSql("$1").includes(`'${STUDY_NOTICE_VERSION}'`));
     assert.match(studyNoticeAcceptedSql("$2"), /sn\.user_id = \$2 and sn\.document = 'study_notice'/);
+  });
+});
+
+// Content audit fixes, 2026-11-09. Each assertion pins a corrected value so
+// the old one cannot come back unnoticed.
+describe("content audit corrections (2026-11-09)", () => {
+  const labText = (code: string, slug: string) => {
+    const lab = LAB_SETS.find((s) => s.trackCode === code)?.labs.find((l) => l.slug === slug);
+    assert.ok(lab, `${code}/${slug}`);
+    return JSON.stringify(seedLabContent(lab!));
+  };
+  const objectives = (code: string) => {
+    const t = CATALOG_TRACKS.find((x) => x.code === code);
+    assert.ok(t, code);
+    return t!.units.flatMap((u) => u.objectives).join("\n");
+  };
+  test("CCRN dka-case follows the 2024 hyperglycemic crises consensus (FAIL-594)", () => {
+    const text = labText("CCRNADULT", "dka-case");
+    assert.match(text, /above 3\.5/);
+    assert.doesNotMatch(text, /3\.3/);
+    assert.match(text, /below 0\.6 mmol\/L/);
+    assert.match(text, /below 250/);
+    assert.doesNotMatch(text, /until the anion gap closes|anion gap closed/);
+  });
+  test("NCS ISNCSCI lab records the motor zone of partial preservation at C8 (FAIL-596)", () => {
+    const text = labText("ABPTSNCS", "ncs-isncsci-classification");
+    assert.match(text, /motor to C8/);
+    assert.doesNotMatch(text, /motor to C7|C7 motor\)/);
+  });
+  test("objectives carry the corrected clinical facts (FAIL-598)", () => {
+    const rn = objectives("NCLEXRN") + objectives("NCLEXPN") + objectives("LPNVN") + objectives("ADNRN") + objectives("BSNRN");
+    assert.doesNotMatch(rn, /more than three in a row/);
+    assert.doesNotMatch(rn, /under an FDA REMS program that requires|under a REMS program"/);
+    assert.doesNotMatch(rn, /graham crackers/);
+    const pt = CATALOG_TRACKS.filter((t) => /^(ABPTS|NPTE|DPT$)/.test(t.code)).map((t) => t.units.flatMap((u) => u.objectives).join("\n")).join("\n");
+    assert.doesNotMatch(pt, /ANC below 1500/);
+    assert.doesNotMatch(pt, /92% to 98%/);
+    assert.match(pt, /94% to 98%/);
+  });
+  test("NSCA CSCS and NSCA-CPT outlines are dated July 1, 2025 (FAIL-598)", () => {
+    for (const code of ["NSCACSCS", "NSCACPT"]) {
+      assert.equal(CATALOG_TRACKS.find((t) => t.code === code)?.credential?.effectiveDate, "2025-07-01", code);
+    }
   });
 });

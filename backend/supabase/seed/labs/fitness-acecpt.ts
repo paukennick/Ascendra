@@ -51,7 +51,7 @@ export const ACECPT_LABS: SeedLabSet = {
     source("https://www.acefitness.org/education-and-resources/professional/expert-articles/7531/implementing-the-ace-mover-method-using-the-ace-abc-approach", "reference", "2026-11-07"),
     source("https://digitalcommons.uri.edu/kinesiology_facpubs/180", "reference", "2026-11-07"),
     source("https://read.qxmd.com/read/32217980/physical-activity-and-exercise-during-pregnancy-and-the-postpartum-period-acog-committee-opinion-number-804", "clinical_guideline", "2026-11-07"),
-    source("https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf", "clinical_guideline", "2026-11-07"),
+    source("https://doi.org/10.4085/1062-6050-50.9.07", "clinical_guideline", "2026-11-09"),
   ],
   labs: [
     // -----------------------------------------------------------------------
@@ -214,7 +214,7 @@ export const ACECPT_LABS: SeedLabSet = {
       kind: "build",
       title: "One program, four settings",
       brief:
-        "A fictional client, cleared to exercise and in ACE IFT Movement Training, now travels for work every other week. Each week they can do one in-club session with you, one virtual session from a hotel room (a resistance band and their bodyweight only), and one session on their own in a public park near home. Their program centres on the five primary movements and moderate-intensity cardio.",
+        "A fictional client, cleared to exercise and in ACE IFT Movement Training, now travels for work every other week. Each week they can do one in-club session with you, one virtual session from a hotel room (a resistance band and their bodyweight only), and one session on their own in a public park near home. Their program centers on the five primary movements and moderate-intensity cardio.",
       safetyNote: FITNESS_SAFETY,
       steps: [
         {
@@ -291,7 +291,7 @@ export const ACECPT_LABS: SeedLabSet = {
       kind: "case",
       title: "A lapse with barriers outside the gym",
       brief:
-        "A fictional client, Sam, trained with you twice a week for three months and was meeting their goals. For the past four weeks Sam has cancelled most sessions. Sam is a hospital cleaner whose shifts moved to nights, and the bus that reached the gym no longer runs at the times Sam is free.",
+        "A fictional client, Sam, trained with you twice a week for three months and was meeting their goals. For the past four weeks Sam has canceled most sessions. Sam is a hospital cleaner whose shifts moved to nights, and the bus that reached the gym no longer runs at the times Sam is free.",
       safetyNote: FITNESS_SAFETY,
       steps: [
         {
@@ -444,7 +444,7 @@ export const ACECPT_LABS: SeedLabSet = {
             part(
               "Emergency action plan",
               "Writes an emergency action plan for this site: exact location to give dispatch, nearest access point for an ambulance, a charged phone, first-aid kit, the nearest AED, and who does what.",
-              "EAP for the park: the street address and lawn location for dispatch, where an ambulance can drive in, my charged phone, first-aid kit, the AED at the community centre 100 m away, and a participant assigned to meet responders."
+              "EAP for the park: the street address and lawn location for dispatch, where an ambulance can drive in, my charged phone, first-aid kit, the AED at the community center 100 m away, and a participant assigned to meet responders."
             ),
             part(
               "Confidential information",
@@ -454,7 +454,7 @@ export const ACECPT_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "On the day it is 33 °C (91 °F) and humid at 6 p.m. Twenty minutes in, one participant is confused, unsteady and stops sweating normally; another says they feel fine.",
+          text: "On the day it is 33 °C (91 °F) and humid at 6 p.m. Twenty minutes in, one participant is confused and unsteady though still sweating heavily; another says they feel fine.",
           ask: "What do you do?",
           parts: [
             part(
@@ -469,7 +469,7 @@ export const ACECPT_LABS: SeedLabSet = {
             ),
             part(
               "The rest of the group and afterwards",
-              "Ends the session for everyone, documents the incident, and changes future plans for heat (for example cooler times, shorter work, more rest and water, cancelling in high heat).",
+              "Ends the session for everyone, documents the incident, and changes future plans for heat (for example cooler times, shorter work, more rest and water, canceling in high heat).",
               "End the session; write an incident report; in future, move sessions earlier, shorten the work, add water breaks, and cancel on very hot, humid days."
             ),
           ],

@@ -11,13 +11,18 @@ on:
     - cron: "30 9 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: read
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
       - name: Hit production health endpoint
         run: |
-          code=$(curl -sS -o /tmp/health.json -w '%{http_code}' --max-time 60 \
+          # REQ-207 (FAIL-949): the body is not printed. It is public and
+          # the run log is world-readable on a public repo; the status code is
+          # the signal, and details need the cron token (see /api/health).
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 60 \
             https://backend-mauve-mu-18.vercel.app/api/health)
-          cat /tmp/health.json; echo
+          echo "health status: $code"
           test "$code" = "200"

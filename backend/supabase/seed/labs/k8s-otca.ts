@@ -21,6 +21,7 @@ export const OTCA_LABS: SeedLabSet = {
     source("https://training.linuxfoundation.org/certification/opentelemetry-certified-associate-otca/", "exam_outline", "2026-11-08"),
     source("https://opentelemetry.io/docs/specs/otel/", "reference", "2026-11-08"),
     source("https://opentelemetry.io/docs/collector/configuration/", "reference", "2026-11-08"),
+    source("https://pkg.go.dev/github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector", "reference", "2026-11-09"),
   ],
   labs: [
     // ----------------------------------------------------------------- 18%
@@ -50,7 +51,7 @@ export const OTCA_LABS: SeedLabSet = {
             part(
               "Go fulfilment worker: manual with libraries",
               "Go has no runtime agent; use the OpenTelemetry Go SDK with contrib instrumentation libraries (otelkafka/otelsarama or the Kafka client's instrumentation, otelhttp for any HTTP) and manual consumer spans that extract context from Kafka message headers, so the trace continues from the producer.",
-              "Go cannot be instrumented by an agent; instrumentation libraries are the automatic layer. Initialise the SDK in main (TracerProvider with an OTLP exporter and BatchSpanProcessor, MeterProvider), wrap the Kafka consumer with the contrib instrumentation so each message starts a consumer span whose parent is extracted from the message headers the Java producer injected, and add manual spans for the fulfilment steps. Without header extraction the Go spans would start a new trace, breaking the order flow in two."
+              "Go cannot be instrumented by an agent; instrumentation libraries are the automatic layer. Initialize the SDK in main (TracerProvider with an OTLP exporter and BatchSpanProcessor, MeterProvider), wrap the Kafka consumer with the contrib instrumentation so each message starts a consumer span whose parent is extracted from the message headers the Java producer injected, and add manual spans for the fulfilment steps. Without header extraction the Go spans would start a new trace, breaking the order flow in two."
             ),
             part(
               "What automatic gives and what it cannot",
@@ -81,7 +82,7 @@ export const OTCA_LABS: SeedLabSet = {
             ),
             part(
               "search: old conventions",
-              "The search span uses the pre-stabilisation HTTP names (http.method, http.target, http.status_code) and the old deployment.environment; the stable HTTP semantic conventions renamed them to http.request.method, url.path/url.query (or url.full on clients), http.response.status_code, and deployment.environment.name, and it lacks http.route; rewrite accordingly and add the route.",
+              "The search span uses the pre-stabilization HTTP names (http.method, http.target, http.status_code) and the old deployment.environment; the stable HTTP semantic conventions renamed them to http.request.method, url.path/url.query (or url.full on clients), http.response.status_code, and deployment.environment.name, and it lacks http.route; rewrite accordingly and add the route.",
               "search is on the old HTTP conventions from before they were declared stable. Mapping: http.method -> http.request.method; http.target -> url.path (/search) plus url.query (q=rock); http.status_code -> http.response.status_code; deployment.environment -> deployment.environment.name. Add http.route: /search so route-level grouping works. During migration the Go SDK's instrumentation can emit both old and new names via OTEL_SEMCONV_STABILITY_OPT_IN=http/dup so dashboards can switch without a gap."
             ),
             part(
@@ -98,7 +99,7 @@ export const OTCA_LABS: SeedLabSet = {
             part(
               "Spans and logs: yes, as an attribute",
               "customer.id (or the enduser.* / user.id convention) is fine as a span attribute on the server span and in logs, because traces and logs are per-event and searchable; recommends putting it on the entry span (and propagating via baggage only if downstream spans need it), mindful of privacy requirements.",
-              "On the trace: set user.id (the semantic convention for an authenticated end user) or a domain attribute customer.id on the checkout server span -- traces are per-request, so a high-cardinality value costs nothing structurally and makes 'show me this customer's slow checkout' a one-click search. Propagate it to downstream spans with baggage only if they need it (the baggage span processor can copy it). Treat it as personal data: pseudonymise if policy requires."
+              "On the trace: set user.id (the semantic convention for an authenticated end user) or a domain attribute customer.id on the checkout server span -- traces are per-request, so a high-cardinality value costs nothing structurally and makes 'show me this customer's slow checkout' a one-click search. Propagate it to downstream spans with baggage only if they need it (the baggage span processor can copy it). Treat it as personal data: pseudonymize if policy requires."
             ),
             part(
               "Metrics: no",
@@ -275,7 +276,7 @@ export const OTCA_LABS: SeedLabSet = {
             part(
               "Connector for span metrics",
               "The spanmetrics connector declared under connectors, used as an exporter at the end of the traces pipeline and as a receiver at the start of a metrics pipeline, producing calls and duration metrics per service/span name/status; explains connectors join two pipelines and that these metrics reflect the spans the Collector sees (so sampling upstream affects them -- tail sampling after the connector does not).",
-              "connectors:\n  spanmetrics:\n    histogram:\n      explicit:\n        buckets: [100ms, 250ms, 500ms, 1s, 2.5s]\n    dimensions:\n    - name: http.request.method\n    - name: http.response.status_code\nA connector is both an exporter (in one pipeline) and a receiver (in another): traces flow into spanmetrics, which emits calls_total and duration histograms per service.name, span.name, span.kind and status.code plus the listed dimensions, into the metrics pipeline. It counts the spans it receives, so head sampling in the SDK still thins it; if tail sampling is wanted, put the tail_sampling processor in a separate traces pipeline after the connector so metrics stay complete."
+              "connectors:\n  spanmetrics:\n    histogram:\n      explicit:\n        buckets: [100ms, 250ms, 500ms, 1s, 2.5s]\n    dimensions:\n    - name: http.request.method\n    - name: http.response.status_code\nA connector is both an exporter (in one pipeline) and a receiver (in another): traces flow into spanmetrics, which emits traces.span.metrics.calls and traces.span.metrics.duration (the connector's default namespace is traces.span.metrics; in Prometheus they appear as traces_span_metrics_calls_total and traces_span_metrics_duration_* series) per service.name, span.name, span.kind and status.code plus the listed dimensions, into the metrics pipeline. It counts the spans it receives, so head sampling in the SDK still thins it; if tail sampling is wanted, put the tail_sampling processor in a separate traces pipeline after the connector so metrics stay complete."
             ),
             part(
               "Service pipelines and extensions",
@@ -317,7 +318,7 @@ export const OTCA_LABS: SeedLabSet = {
           parts: [
             part(
               "Topology: agents plus gateway",
-              "A DaemonSet agent Collector on every node (receives OTLP from local Pods, collects kubelet/host metrics with kubeletstats/hostmetrics receivers, adds k8s metadata with k8sattributes, batches, forwards to the gateway) and a horizontally scaled gateway Deployment behind a Service (multiple replicas, HPA) that does the heavy processing and exports to backends; explains agents keep network local and add node context, gateways centralise policy and credentials.",
+              "A DaemonSet agent Collector on every node (receives OTLP from local Pods, collects kubelet/host metrics with kubeletstats/hostmetrics receivers, adds k8s metadata with k8sattributes, batches, forwards to the gateway) and a horizontally scaled gateway Deployment behind a Service (multiple replicas, HPA) that does the heavy processing and exports to backends; explains agents keep network local and add node context, gateways centralize policy and credentials.",
               "Agent tier: a DaemonSet Collector per node. Pods send OTLP to the node-local agent (via the node IP from the Downward API), which also runs the kubeletstats and hostmetrics receivers for node telemetry, k8sattributes to stamp pod/namespace/deployment on everything, memory_limiter and batch, then exports to the gateway Service. Gateway tier: a Deployment with 3+ replicas and an HPA behind a ClusterIP Service, holding backend credentials, redaction, spanmetrics and the exporters. Agents scale with nodes automatically; the gateway scales with load; the single point of failure is gone."
             ),
             part(
@@ -376,8 +377,8 @@ export const OTCA_LABS: SeedLabSet = {
             ),
             part(
               "Per-service liveness without per-service rules",
-              "A single query over a metric every service emits (e.g. the SDK's target_info / otel_scope_info or a spanmetrics calls_total) grouped by service.name, comparing recent presence to a longer window -- series present over 1h but absent in the last 5m -- so a service that goes silent is detected generically; plus a synthetic 'heartbeat' span from each Collector tier to prove the end-to-end path.",
-              "Use a metric every instrumented service produces -- target_info (the OTLP resource metric) or spanmetrics' calls_total -- and alert on silence generically: count by (service_name) (count_over_time(target_info[1h])) unless count by (service_name) (count_over_time(target_info[5m])) lists services seen in the past hour but not in the last five minutes; one rule covers every service, present and future. Add a heartbeat: a tiny telemetrygen CronJob sends a known span and metric through the agent tier every minute, and an alert fires if the heartbeat is missing from the backend -- the only check that proves the whole path end to end."
+              "A single query over a metric every service emits (e.g. the SDK's target_info / otel_scope_info or spanmetrics' traces_span_metrics_calls_total) grouped by service.name, comparing recent presence to a longer window -- series present over 1h but absent in the last 5m -- so a service that goes silent is detected generically; plus a synthetic 'heartbeat' span from each Collector tier to prove the end-to-end path.",
+              "Use a metric every instrumented service produces -- target_info (the OTLP resource metric) or spanmetrics' traces_span_metrics_calls_total -- and alert on silence generically: count by (service_name) (count_over_time(target_info[1h])) unless count by (service_name) (count_over_time(target_info[5m])) lists services seen in the past hour but not in the last five minutes; one rule covers every service, present and future. Add a heartbeat: a tiny telemetrygen CronJob sends a known span and metric through the agent tier every minute, and an alert fires if the heartbeat is missing from the backend -- the only check that proves the whole path end to end."
             ),
           ],
         },
@@ -385,7 +386,7 @@ export const OTCA_LABS: SeedLabSet = {
     },
     {
       slug: "schema-and-error-handling",
-      objective: "Error handling: exporter failures, retries and queue behaviour, backpressure, and what is dropped when",
+      objective: "Error handling: exporter failures, retries and queue behavior, backpressure, and what is dropped when",
       kind: "build",
       title: "Decide what happens to telemetry when the backend is down",
       brief:

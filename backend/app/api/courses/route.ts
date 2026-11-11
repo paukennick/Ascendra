@@ -1,9 +1,9 @@
 import { query } from "@/lib/db";
 import { ok, serverError, badRequest, unauthorized, tooManyRequests, readJson } from "@/lib/http";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
-import { textField } from "@/lib/text-input";
+import { isCalendarDate, textField } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { isFavoriteSelect, ownedOrCatalog, trackProgressLateral } from "@/lib/progress-sql";
+import { isFavoriteSelect, listedOrStarted, ownedOrCatalog, trackProgressLateral } from "@/lib/progress-sql";
 
 export const dynamic = "force-dynamic";
 
@@ -56,7 +56,10 @@ export async function GET(req: Request) {
        left join view_content_freshness vcf on vcf.track_id = st.id
        left join education_subcategories esc on esc.id = st.subcategory_id
        left join education_categories ec on ec.id = esc.category_id
-       where ${ownedOrCatalog("$1")}
+       -- REQ-194: hidden courses (hidden_at) stay listed only for learners
+       -- who already studied them. Every course search in the app filters
+       -- this list, so they drop out of search too.
+       where ${ownedOrCatalog("$1")} and ${listedOrStarted("$1")}
        order by st.created_at asc`,
       [user.id],
     );
@@ -133,6 +136,17 @@ export async function POST(req: Request) {
       if (!checked.ok) return badRequest(checked.error);
     }
 
+    // REQ-216 (low, FAIL-1019): a date that is not a date reached the INSERT and
+    // came back as a 500 (Postgres 22007). 400 with the field named.
+    for (const [value, name] of [
+      [sourceVerifiedAt, "sourceVerifiedAt"],
+      [contentReviewDueAt, "contentReviewDueAt"],
+    ] as const) {
+      if (value !== undefined && value !== null && value !== "" && !isCalendarDate(value)) {
+        return badRequest(`${name} must be a date such as 2026-11-10`);
+      }
+    }
+
     const user = await requireUser(req);
     try {
       await consumeRateLimit("course_create", user.id, COURSE_CREATE_LIMIT, { userId: user.id });
@@ -167,8 +181,8 @@ export async function POST(req: Request) {
         technologyVersion ?? null,
         curriculumStandard ?? null,
         sourceUrl ?? null,
-        sourceVerifiedAt ?? null,
-        contentReviewDueAt ?? null,
+        sourceVerifiedAt || null,
+        contentReviewDueAt || null,
         contentFormat ?? null,
       ],
     );

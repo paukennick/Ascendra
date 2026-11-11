@@ -26,6 +26,7 @@ export const PYTHON_LABS: SeedLabSet = {
     source("https://docs.python.org/3/reference/index.html", "reference", "2026-11-07"),
     source("https://docs.python.org/3/library/index.html", "reference", "2026-11-07"),
     source("https://docs.pytest.org/en/stable/", "reference", "2026-11-07"),
+    source("https://peps.python.org/pep-0779/", "reference", "2026-11-09"),
   ],
   labs: [
     {
@@ -159,7 +160,7 @@ export const PYTHON_LABS: SeedLabSet = {
               "import json\n\nclass ConfigError(Exception):\n    \"\"\"The config file is present but unusable.\"\"\"\n\ndef load_port(path, default=8080):\n    try:\n        f = open(path)\n    except FileNotFoundError:\n        return default\n    try:\n        cfg = json.load(f)\n        port = int(cfg[\"server\"][\"port\"])\n    except json.JSONDecodeError as e:\n        raise ConfigError(f\"{path} is not valid JSON: {e}\") from e\n    except (KeyError, TypeError, ValueError) as e:\n        raise ConfigError(f\"{path} has no usable server.port: {e!r}\") from e\n    else:\n        return port\n    finally:\n        f.close()\n\n(A with-block around json.load is an equally good way to guarantee the close.)"
             ),
             part(
-              "Behaviour on the four inputs",
+              "Behavior on the four inputs",
               "Valid file -> 9000; missing file -> 8080; '{not json' -> raises ConfigError (wrapping JSONDecodeError) so startup stops; {\"server\": {}} -> raises ConfigError (wrapping KeyError 'port'). No input silently returns the default except the missing file.",
               "config.json with port 9000 -> 9000. Missing file -> 8080 (the only silent fallback). '{not json' -> ConfigError: 'broken.json is not valid JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'. {\"server\": {}} -> ConfigError: \"nokey.json has no usable server.port: KeyError('port')\". The chained 'from e' keeps the original traceback for whoever reads the log."
             ),
@@ -178,7 +179,7 @@ export const PYTHON_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Write the methods and explain the behaviour each one gives.",
+          ask: "Write the methods and explain the behavior each one gives.",
           parts: [
             part(
               "__eq__ (and what it needs alongside it)",
@@ -315,8 +316,8 @@ export const PYTHON_LABS: SeedLabSet = {
             ),
             part(
               "Workload B (4 CPU-bound loops)",
-              "Multiprocessing (ProcessPoolExecutor), because pure-Python bytecode holds the GIL so threads cannot run it in parallel -- consistent with 0.33 s vs 0.35 s; notes the speedup is bounded by cores (2 here, so at most ~2x, and process start-up may eat it for short jobs) and that NumPy/C extensions that release the GIL change the picture.",
-              "ProcessPoolExecutor. The loop is pure Python, so each thread needs the GIL to execute bytecode and only one runs at a time -- the threaded run (0.35 s) was no faster than sequential (0.33 s). Separate processes each have their own interpreter and GIL, so they can use both cores; on this 2-core box the ceiling is about 2x, and for a 0.3 s job process start-up and pickling can cancel the gain, so measure. If the work moves into NumPy or a C extension that releases the GIL, threads become viable again."
+              "Multiprocessing (ProcessPoolExecutor), because pure-Python bytecode holds the GIL so threads cannot run it in parallel -- consistent with 0.33 s vs 0.35 s; notes the speedup is bounded by cores (2 here, so at most ~2x, and process start-up may eat it for short jobs) and that NumPy/C extensions that release the GIL, or the free-threaded build supported since Python 3.14, change the picture.",
+              "ProcessPoolExecutor. The loop is pure Python, so each thread needs the GIL to execute bytecode and only one runs at a time -- the threaded run (0.35 s) was no faster than sequential (0.33 s). Separate processes each have their own interpreter and GIL, so they can use both cores; on this 2-core box the ceiling is about 2x, and for a 0.3 s job process start-up and pickling can cancel the gain, so measure. If the work moves into NumPy or a C extension that releases the GIL, threads become viable again. One more option since Python 3.14: the free-threaded build (python3.14t, officially supported under PEP 779) has no GIL, so pure-Python threads can use both cores there. It is a separate build rather than the default, and some C extensions are not ready for it yet, so on the standard interpreter ProcessPoolExecutor is still the answer."
             ),
             part(
               "Workload C (5,000 idle connections)",

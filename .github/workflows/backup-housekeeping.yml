@@ -1,0 +1,66 @@
+# REQ-168: rolling clean-up of release backups in PRODUCTION.
+#
+# A release backup is a table public.backup_release_YYYYMMDD or a schema
+# backup_release_YYYYMMDD (the 2026-11-07 backup is a schema of 32 tables).
+# It is dropped once its date is more than 30 days before the run date (UTC).
+# Nothing else is touched: not mastery_backup_* or error_log_backup_*, not a
+# name with anything before or after the 8 digits, not a malformed or future
+# date, not a backup-named table in another schema. Tables are dropped
+# without CASCADE; a matching schema is dropped with CASCADE after each of its
+# tables is logged with its row count, and is refused (the run fails) if
+# anything outside it depends on it. The filter lives in
+# backend/scripts/backup-housekeeping-lib.ts (unit and integration tested).
+#
+# Weekly, Tuesdays at 09:17 UTC, so a backup is kept 30 days and dropped
+# within 7 days after that. backup_release_20261107 is kept by the runs on
+# 2026-11-10, -17, -24 and 2026-12-01 (2026-11-07 + 30 days = 2026-12-07)
+# and dropped by the run on Tuesday 2026-12-08.
+#
+# Run by hand from the Actions tab: dry_run defaults to true, which logs what
+# would be dropped (name, date, age, row counts) and drops nothing. Untick it
+# to drop. Connects like migrate-production.yml (the PROD_DATABASE_URL secret,
+# Supabase Session pooler) but runs in the production-backup environment, which
+# has no required reviewer; migrate-production.yml uses production-database.
+# The script only logs names, dates and counts, never the URL.
+name: Release backup housekeeping
+on:
+  schedule:
+    - cron: "17 9 * * 2"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run: only log what would be dropped"
+        type: boolean
+        default: true
+concurrency:
+  group: backup-housekeeping
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  housekeeping:
+    runs-on: ubuntu-latest
+    environment: production-backup
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+      # Scheduled runs drop; manual runs drop only when dry_run is unticked.
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: test -n "$DATABASE_URL" || { echo "PROD_DATABASE_URL secret is not set"; exit 1; }
+      - run: npm ci
+      - name: Drop release backups (tables and schemas) older than 30 days
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            npm run backups:housekeeping -- --dry-run
+          else
+            npm run backups:housekeeping -- --apply
+          fi

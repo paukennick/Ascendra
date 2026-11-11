@@ -1,0 +1,157 @@
+{
+  "id": "endings-explicit-order",
+  "spec": "5.3 Settle step 2 with `endingOrder` (engine minor 2): endings with a `when` are evaluated in the listed order, not the key order of `endings`; the first true one is reached",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 2
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "20s"
+    },
+    "params": {},
+    "state": {
+      "x": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 10
+      }
+    },
+    "derived": {},
+    "processes": [
+      {
+        "id": "grow",
+        "update": {
+          "x": "x + 1"
+        }
+      }
+    ],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {},
+    "timers": {},
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "done": {
+        "label": "Done",
+        "class": "target",
+        "when": "x >= 4",
+        "narrative": "Done.",
+        "terminal": true
+      },
+      "never": {
+        "label": "Listed first",
+        "class": "harm",
+        "when": "x >= 4",
+        "narrative": "Listed first, so it wins.",
+        "terminal": true
+      },
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    },
+    "endingOrder": [
+      "never",
+      "done"
+    ]
+  },
+  "seed": 1,
+  "script": [
+    {
+      "advance": 10
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 3,
+        "phase": "main"
+      }
+    ],
+    "final": {
+      "tick": 4,
+      "ended": "never",
+      "class": "harm"
+    }
+  }
+}

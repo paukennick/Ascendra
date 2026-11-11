@@ -15,7 +15,7 @@ import {
 } from "./examPractice.ts";
 
 describe("ordering by buttons", () => {
-  test("move up and down swap neighbours, ends are no-ops", () => {
+  test("move up and down swap neighbors, ends are no-ops", () => {
     assert.deepEqual(moveStep([0, 1, 2], 1, -1), [1, 0, 2]);
     assert.deepEqual(moveStep([0, 1, 2], 1, 1), [0, 2, 1]);
     const o = [0, 1, 2];

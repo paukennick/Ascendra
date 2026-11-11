@@ -64,7 +64,7 @@ export const SECPLUSV8_LABS: SeedLabSet = {
             part(
               "Ownership, stakeholders, approval",
               "Names a change owner, the stakeholders to notify (e-commerce/business, DBA, on-call), and that the CAB must approve before implementation rather than an engineer patching ad hoc.",
-              "Change owner: the database administrator. Stakeholders: e-commerce business owner, application team, on-call lead, customer support. The CAB reviews and approves before any change; an urgent patch can go through an emergency change process, but it is still authorised and recorded, not applied on a whim."
+              "Change owner: the database administrator. Stakeholders: e-commerce business owner, application team, on-call lead, customer support. The CAB reviews and approves before any change; an urgent patch can go through an emergency change process, but it is still authorized and recorded, not applied on a whim."
             ),
             part(
               "Impact analysis and maintenance window",
@@ -130,12 +130,12 @@ export const SECPLUSV8_LABS: SeedLabSet = {
       kind: "build",
       title: "Score a vulnerability with CVSS v4.0",
       brief:
-        "A CVE affects the web admin console of a device deployed at Rampart Systems (fictional). Facts, confirmed by the vendor advisory: an unauthenticated attacker who can reach the console over the network can run commands as root on the device with a single crafted request (no user interaction, no special preconditions). The device itself is fully compromised; the flaw does not, by itself, give access to other systems. A working exploit has been published. You must produce a CVSS v4.0 Base and Base+Threat score and the vector.",
+        "A CVE affects the web admin console of a device deployed at Rampart Systems (fictional). Facts, confirmed by the vendor advisory: an unauthenticated attacker who can reach the console over the network can run commands as root on the device with a single crafted request (no user interaction, no special preconditions). The device itself is fully compromised; the flaw does not, by itself, give access to other systems. A working exploit has been published, and exploitation in the wild has been reported. You must produce a CVSS v4.0 Base and Base+Threat score and the vector.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Write the CVSS v4.0 base metric values with a one-line reason each, the resulting Base score and severity, and how the published exploit changes the Base+Threat score.",
+          ask: "Write the CVSS v4.0 base metric values with a one-line reason each, the resulting Base score and severity, and how the published exploit and the reported attacks change the Base+Threat score.",
           parts: [
             part(
               "Exploitability metrics",
@@ -154,8 +154,8 @@ export const SECPLUSV8_LABS: SeedLabSet = {
             ),
             part(
               "Threat metric",
-              "Explains the Exploit Maturity (E) metric: a published exploit sets E:Attacked, and that the default E:X (Not Defined) is already treated as the worst case (Attacked), so here Base and Base+Threat are both 9.3; a value like E:U (Unreported) would lower it.",
-              "The published working exploit sets Exploit Maturity E:A (Attacked). Note CVSS v4.0 treats the default E:X as equivalent to E:A (worst case) when scoring, so the Base+Threat score is also 9.3 here. If no exploitation were known (E:U, Unreported) the Base+Threat score would drop below the base -- the threat metric can only lower, never raise, the base."
+              "Explains the Exploit Maturity (E) metric: reported exploitation in the wild sets E:A (Attacked), and the default E:X (Not Defined) is already treated as the worst case (Attacked), so here Base and Base+Threat are both 9.3; a published proof-of-concept with no reported attacks (E:P) or E:U (Unreported) would lower it.",
+              "Reported exploitation in the wild sets Exploit Maturity E:A (Attacked). Note CVSS v4.0 treats the default E:X as equivalent to E:A (worst case) when scoring, so the Base+Threat score is also 9.3 here. The published exploit alone, with no reported attacks, would be E:P (POC) and score 8.9 (High); with no known exploit code or attacks (E:U, Unreported) it would be 8.1 (High) -- the threat metric can only lower, never raise, the base."
             ),
           ],
         },
@@ -167,7 +167,7 @@ export const SECPLUSV8_LABS: SeedLabSet = {
       kind: "case",
       title: "Investigate a prompt-injection incident in an AI assistant",
       brief:
-        "Solace Software (fictional) built an internal AI assistant that answers staff questions and can call two tools: a document-search tool over the company wiki and an email-send tool. A support engineer reports the assistant emailed a summary of an internal salary document to an outside address after they asked it to 'summarise the latest HR policy page'. You investigate using the OWASP Top 10 for LLM Applications and MITRE ATLAS as references. No real salary data is reproduced here.",
+        "Solace Software (fictional) built an internal AI assistant that answers staff questions and can call two tools: a document-search tool over the company wiki and an email-send tool. A support engineer reports the assistant emailed a summary of an internal salary document to an outside address after they asked it to 'summarize the latest HR policy page'. You investigate using the OWASP Top 10 for LLM Applications and MITRE ATLAS as references. No real salary data is reproduced here.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -203,7 +203,7 @@ export const SECPLUSV8_LABS: SeedLabSet = {
             part(
               "Guardrails and monitoring",
               "Adds input/output guardrails (filter or flag instructions in retrieved content, scan outputs for sensitive data) and logs/monitors tool use so an anomalous external send is caught.",
-              "Add guardrails that detect and neutralise instruction-like text in retrieved documents and that screen outputs for sensitive data before sending, and log every tool call so an external email of an HR document raises an alert. Defence in depth, since no single filter is perfect against injection."
+              "Add guardrails that detect and neutralize instruction-like text in retrieved documents and that screen outputs for sensitive data before sending, and log every tool call so an external email of an HR document raises an alert. Defense in depth, since no single filter is perfect against injection."
             ),
           ],
         },
@@ -231,7 +231,7 @@ export const SECPLUSV8_LABS: SeedLabSet = {
             ),
             part(
               "Attack surface and diversity",
-              "Minimises attack surface (only the web app exposed, admin interfaces off the internet) and may note defense diversity (not relying on one vendor/one control to catch everything).",
+              "Minimizes attack surface (only the web app exposed, admin interfaces off the internet) and may note defense diversity (not relying on one vendor/one control to catch everything).",
               "Only the web application is internet-exposed; management interfaces are on an internal/out-of-band path. Reducing exposed services shrinks the attack surface, and layering different control types (firewall plus IPS plus segmentation) means one bypass does not defeat everything."
             ),
             part(
@@ -241,8 +241,8 @@ export const SECPLUSV8_LABS: SeedLabSet = {
             ),
             part(
               "Badge-door failure mode",
-              "Reasons about the server-room door: life-safety usually requires fail-open (people can exit) on egress, while security wants fail-secure on entry; names the safety-vs-security trade-off.",
-              "The badge door must not trap people: egress should fail-safe (unlock) for life safety, even though entry security would prefer fail-secure (stay locked). Resolve it so people can always get out while entry stays controlled -- here safety outranks security, the opposite default from the IPS."
+              "Reasons about the server-room door: security wants it fail-secure (stays locked from outside on power loss), and life safety requires that people can always get out; notes that a fail-secure lock with mechanical free egress (handle or panic bar inside) satisfies both, while a lock that blocks exit itself, such as a maglock, must fail-safe.",
+              "The badge door must not trap people, and entry should stay controlled. A fail-secure electric strike or lock stays locked from the outside when power fails, but the inside handle or panic bar still opens it mechanically, so people can get out: free egress is a life-safety code requirement either way. A maglock has no mechanical release, so if one is used it must fail-safe (unlock) on power loss or fire alarm. Choose fail-secure hardware with mechanical free egress -- and where the two do conflict, life safety outranks security."
             ),
           ],
         },
@@ -301,8 +301,8 @@ export const SECPLUSV8_LABS: SeedLabSet = {
           parts: [
             part(
               "SPF",
-              "Publishes an SPF TXT record listing the authorised sending sources (Google Workspace include, the marketing platform include) ending in a fail/softfail; explains SPF authorises sending servers for the envelope domain.",
-              "Publish one SPF TXT record naming every legitimate source, e.g. v=spf1 include:_spf.google.com include:<marketing-platform> -all. SPF lets receivers check the sending server is authorised for the domain; -all tells them to reject other sources. (One SPF record only; keep DNS lookups under 10.)"
+              "Publishes an SPF TXT record listing the authorized sending sources (Google Workspace include, the marketing platform include) ending in a fail/softfail; explains SPF authorizes sending servers for the envelope domain.",
+              "Publish one SPF TXT record naming every legitimate source, e.g. v=spf1 include:_spf.google.com include:<marketing-platform> -all. SPF lets receivers check the sending server is authorized for the domain; -all tells them to reject other sources. (One SPF record only; it may cause at most 10 DNS lookups, per RFC 7208.)"
             ),
             part(
               "DKIM",
@@ -328,9 +328,9 @@ export const SECPLUSV8_LABS: SeedLabSet = {
       objective:
         "Password concepts: passkey, password managers, passwordless, and password best practices -- length, complexity, reuse, expiration, age, compromised credential monitoring, account auditing, policy report",
       kind: "build",
-      title: "Modernise a password policy to current guidance",
+      title: "Modernize a password policy to current guidance",
       brief:
-        "Fieldstone University (fictional) IT runs this policy: passwords are exactly 8 characters, must include upper, lower, number and symbol, expire every 60 days, and cannot be written down. Helpdesk is flooded with reset calls, and users cycle Password1!, Password2!, and so on. Leadership asks you to modernise the policy in line with current NIST guidance (SP 800-63B) and to improve real-world security.",
+        "Fieldstone University (fictional) IT runs this policy: passwords are exactly 8 characters, must include upper, lower, number and symbol, expire every 60 days, and cannot be written down. Helpdesk is flooded with reset calls, and users cycle Password1!, Password2!, and so on. Leadership asks you to modernize the policy in line with current NIST guidance (SP 800-63B) and to improve real-world security.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {

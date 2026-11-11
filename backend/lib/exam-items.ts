@@ -10,8 +10,9 @@ import {
   type ItemDraft,
   type StoredExamItem,
 } from "@/lib/exam-formats";
-import { factCheckGate, type CheckItem } from "@/lib/fact-check";
-import { examCheckItem, recordHoldback, servableSql, uncertaintyOf } from "@/lib/item-quality";
+import { factCheckGate, verdictClaims, verdictHolds, verdictUnchecked, type CheckItem } from "@/lib/fact-check";
+import { examCheckItem, lessonCopyServableSql, lowConfidenceOf, noteListedClaims, recordHoldback, servableSql } from "@/lib/item-quality";
+import { steerText } from "@/lib/generation-gate";
 
 // REQ-109: the shared exam_items bank (migration 038).
 //
@@ -65,6 +66,8 @@ export async function bankItems(userId: string, objectiveIds: string[], formats:
     `select ${ITEM_COLUMNS} from exam_items i
       where i.objective_id = any($1::uuid[]) and i.item_format = any($2::text[])
         and ${servableSql("exam", "i.id")}
+        -- FAIL-885: a copy of a lesson check is pulled with the check it copies.
+        and (i.source <> 'lesson' or ${lessonCopyServableSql("i")})
         and (i.source = 'generated'
              or exists (select 1 from attempts a where a.user_id = $3 and a.objective_id = i.objective_id
                           and a.stage in ('fade', 'solo') and a.question = i.stem))
@@ -112,6 +115,9 @@ export async function copyAnsweredLessonChecks(userId: string, objectiveIds: str
                     s(stage, q, c, i, why)
         where lc.objective_id = any($2::uuid[])
           and s.q is not null and jsonb_typeof(s.c) = 'array' and jsonb_array_length(s.c) = 4 and s.i between 0 and 3
+          -- FAIL-885: never copy a check that has been pulled (quarantined or
+          -- confirmed wrong) into the exam bank.
+          and ${servableSql("lesson", "lc.objective_id::text || ':' || s.stage || ':' || md5(s.q)")}
           and exists (select 1 from attempts a where a.user_id = $1 and a.objective_id = lc.objective_id
                         and a.stage = s.stage and a.question = s.q)
      ), ins as (
@@ -137,7 +143,7 @@ export async function generateForObjective(opts: {
   exhibits: boolean;
   allowed: ExamFormat[];
   userId: string;
-}): Promise<{ stored: ExamItemRow[]; rejected: string[] }> {
+}): Promise<{ stored: ExamItemRow[]; rejected: string[]; held: number; unchecked: number }> {
   const meta = await queryOne<{ objective: string; unit: string; track: string; teach: string | null }>(
     `select o.title as objective, cu.title as unit, st.title as track, lc.teach
        from objectives o
@@ -147,7 +153,7 @@ export async function generateForObjective(opts: {
       where o.id = $1`,
     [opts.objectiveId]
   );
-  if (!meta) return { stored: [], rejected: ["objective not found"] };
+  if (!meta) return { stored: [], rejected: ["objective not found"], held: 0, unchecked: 0 };
   const existing = await query<{ stem: string }>(
     `select stem from exam_items where objective_id = $1 and source = 'generated' order by created_at desc limit 12`,
     [opts.objectiveId]
@@ -164,58 +170,80 @@ export async function generateForObjective(opts: {
     ctx: ctx ?? undefined,
   });
   const model = getModel();
-  const out = await callClaudeStructured({
-    system,
-    messages: [{ role: "user", content: user }],
-    schema: examItemsSchema,
-    maxTokens: 900 * Math.max(1, opts.formats.length),
-    model,
-    effort: "medium",
-    thinking: "off",
-    purpose: "exam_items",
-    userId: opts.userId,
-  });
   const stored: ExamItemRow[] = [];
   const rejected: string[] = [];
-  // REQ-114 (Audit 3 H1 + recommendation 1): an item whose writer listed
-  // uncertain claims is held back; the rest go through the second-model
-  // fact-check (one call for the batch) and only those it agrees with are
-  // published to the shared bank.
-  const candidates: { key: string; draft: ItemDraft }[] = [];
-  for (const [i, raw] of (out.items ?? []).entries()) {
-    const d = validateItemDraft(raw, opts.allowed, opts.exhibits);
-    if (typeof d === "string") {
-      rejected.push(d);
-      continue;
+  let held = 0;
+  let unchecked = 0;
+  // One writer call, the key-free check, and the stores. Returns the claims
+  // that held items back (for the steer of a retry).
+  const round = async (steer: string | null): Promise<string[]> => {
+    const out = await callClaudeStructured({
+      system,
+      messages: [{ role: "user", content: steer ? `${user}\n\n${steer}` : user }],
+      schema: examItemsSchema,
+      maxTokens: 900 * Math.max(1, opts.formats.length),
+      model,
+      effort: "medium",
+      thinking: "off",
+      purpose: "exam_items",
+      userId: opts.userId,
+    });
+    const claims: string[] = [];
+    // REQ-114 (Audit 3 H1 + recommendation 1), changed by REQ-216: an item the
+    // writer rated LOW is held back; the rest go through the second-model
+    // fact-check (one call for the batch) and only a DISAGREEMENT with the key
+    // holds one back. Listed claims are logged. An item the check could not
+    // answer is neither stored nor logged as a holdback.
+    const candidates: { key: string; draft: ItemDraft }[] = [];
+    for (const [i, raw] of (out.items ?? []).entries()) {
+      const d = validateItemDraft(raw, opts.allowed, opts.exhibits);
+      if (typeof d === "string") {
+        rejected.push(d);
+        continue;
+      }
+      const unsure = lowConfidenceOf(raw);
+      if (unsure) {
+        rejected.push("held back: the writer was not confident");
+        held++;
+        claims.push(...unsure);
+        await recordHoldback({ kind: "exam", objectiveId: opts.objectiveId, reason: "uncertain", claims: unsure, content: raw, model });
+        continue;
+      }
+      noteListedClaims(`exam (${opts.objectiveId})`, raw);
+      candidates.push({ key: `e${i + 1}`, draft: d });
     }
-    const unsure = uncertaintyOf(raw);
-    if (unsure) {
-      rejected.push("held back: uncertain claims");
-      await recordHoldback({ kind: "exam", objectiveId: opts.objectiveId, reason: "uncertain", claims: unsure, content: raw, model });
-      continue;
+    const checks = candidates
+      .map((c) => examCheckItem(c.key, meta.objective, c.draft.format, c.draft.stem, c.draft.body as { choices?: string[]; steps?: string[]; prompts?: string[]; responses?: string[] }, c.draft.answerKey))
+      .filter((c): c is CheckItem => !!c);
+    const gate = await factCheckGate(checks, { ctx: ctx ?? undefined, userId: opts.userId });
+    for (const c of candidates) {
+      const v = gate.verdicts.get(c.key);
+      if (gate.error || verdictUnchecked(v)) {
+        rejected.push(`not published: fact check ${gate.error ? "error" : "gave no result"}`);
+        unchecked++;
+        continue;
+      }
+      if (verdictHolds(v)) {
+        rejected.push("held back: fact check disagreed with the key");
+        held++;
+        const why = verdictClaims(v);
+        claims.push(...why);
+        await recordHoldback({ kind: "exam", objectiveId: opts.objectiveId, reason: "fact_check", claims: why, content: { draft: c.draft, checker: v ?? null }, model });
+        continue;
+      }
+      if (v?.unsupportedClaims.length) {
+        console.warn(`[item-quality] exam (${opts.objectiveId}) agreed with the key; checker could not confirm: ${v.unsupportedClaims.join(" | ").slice(0, 500)}`);
+      }
+      stored.push(await insertDraft(opts.objectiveId, c.draft, model));
     }
-    candidates.push({ key: `e${i + 1}`, draft: d });
-  }
-  const checks = candidates
-    .map((c) => examCheckItem(c.key, meta.objective, c.draft.format, c.draft.stem, c.draft.body as { choices?: string[]; steps?: string[]; prompts?: string[]; responses?: string[] }, c.draft.answerKey))
-    .filter((c): c is CheckItem => !!c);
-  const gate = await factCheckGate(checks, { ctx: ctx ?? undefined, userId: opts.userId });
-  for (const c of candidates) {
-    const v = gate.verdicts.get(c.key);
-    if (!v?.publish) {
-      rejected.push(`held back: fact check ${gate.error ? "error" : v?.outcome ?? "missing"}`);
-      await recordHoldback({
-        kind: "exam",
-        objectiveId: opts.objectiveId,
-        reason: gate.error ? "fact_check_error" : "fact_check",
-        claims: gate.error ? [gate.error] : v?.unsupportedClaims ?? [],
-        content: { draft: c.draft, checker: v ?? null },
-        model,
-      });
-      continue;
-    }
-    stored.push(await insertDraft(opts.objectiveId, c.draft, model));
-  }
+    return claims;
+  };
+  const firstClaims = await round(null);
+  // REQ-216: when nothing was stored and something was held back, write once
+  // more, steered with the claims. (Not when only the checker failed; and not
+  // when some items were stored: the bank has material and a mock is built
+  // from it, so a second call per objective would only add time and cost.)
+  if (!stored.length && held && !unchecked) await round(steerText(firstClaims));
   if (rejected.length) console.warn(`[exam-items] rejected ${rejected.length} generated item(s): ${rejected.join("; ")}`);
-  return { stored, rejected };
+  return { stored, rejected, held, unchecked };
 }

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SheetModal } from "@/components/SheetModal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Body, Button } from "@/components/ui";
 import {
@@ -67,7 +68,7 @@ export function StudyNoticeSheet({
     onCancel();
   };
   return (
-    <Modal transparent visible animationType={reduced ? "none" : "slide"} onRequestClose={close}>
+    <SheetModal transparent visible animationType={reduced ? "none" : "slide"} onRequestClose={close}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityRole="button" accessibilityLabel="Close without sending" />
         <View style={[styles.sheet, { paddingBottom: spacing.xl + insets.bottom }]} accessibilityViewIsModal>
@@ -95,7 +96,7 @@ export function StudyNoticeSheet({
           </View>
         </View>
       </View>
-    </Modal>
+    </SheetModal>
   );
 }
 

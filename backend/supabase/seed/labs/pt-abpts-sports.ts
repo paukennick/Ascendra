@@ -58,11 +58,11 @@ export const ABPTSSCS_LABS: SeedLabSet = {
       steps: [
         {
           text: "Examination: focal tenderness over the posteromedial tibial border at the junction of the middle and distal thirds, pain on single-leg hop, no swelling, normal alignment, hip abductor weakness on the left.",
-          ask: "What pattern do you recognise, and who else needs to be involved before you plan her rehabilitation?",
+          ask: "What pattern do you recognize, and who else needs to be involved before you plan her rehabilitation?",
           parts: [
             part(
               "Pattern recognition",
-              "Recognises the female athlete triad: low energy availability (intake not matching training load, with weight loss and rising mileage, with or without disordered eating), menstrual dysfunction (secondary amenorrhea for seven months) and likely low bone mineral density expressed as recurrent bone stress injury; frames the shin pain as a bone stress injury on the MTSS-to-stress-fracture continuum rather than an isolated overuse problem.",
+              "Recognizes the female athlete triad: low energy availability (intake not matching training load, with weight loss and rising mileage, with or without disordered eating), menstrual dysfunction (secondary amenorrhea for seven months) and likely low bone mineral density expressed as recurrent bone stress injury; frames the shin pain as a bone stress injury on the MTSS-to-stress-fracture continuum rather than an isolated overuse problem.",
               "Three linked findings: energy intake that no longer covers 70 km a week (4 kg lost, 'eating clean'), seven months without a period, and a second bone stress injury in a year -- the female athlete triad. The shin pain is a bone stress injury somewhere on the continuum from medial tibial stress syndrome to stress fracture, and the underlying problem is the energy deficit, not her shins."
             ),
             part(
@@ -78,13 +78,13 @@ export const ABPTSSCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Rehabilitation and load",
-              "Plans a non-impact conditioning programme (deep-water running, cycling, swimming) to protect fitness, hip and calf strengthening, graded return to impact only when pain-free and after medical and nutritional progress, with load progression governed by symptoms and bone healing rather than the race calendar; adds gait and footwear review.",
+              "Plans a non-impact conditioning program (deep-water running, cycling, swimming) to protect fitness, hip and calf strengthening, graded return to impact only when pain-free and after medical and nutritional progress, with load progression governed by symptoms and bone healing rather than the race calendar; adds gait and footwear review.",
               "Keep her fit without loading the tibia: deep-water running and cycling at matched effort, hip abductor and calf strengthening, trunk work. Impact returns in a graded walk-jog ladder only when she is pain-free on hop testing and the physician and dietitian report progress; each step up is earned, not scheduled. Review footwear and running cadence."
             ),
             part(
               "Communication",
               "Communicates with the athlete about the triad as a health issue with long-term bone consequences, avoiding blame or weight talk, and with the coach (with consent) about load, energy and the reason the season changes; anticipates pressure to return early and holds the line on medical clearance.",
-              "I explain to her that this is about her bones for the next fifty years, not about willpower or weight, and that eating enough is training. With her permission I meet the coach: the mileage increase outran her fuelling, the stress reaction is the warning, and return follows medical clearance and pain-free testing, not the fixture list."
+              "I explain to her that this is about her bones for the next fifty years, not about willpower or weight, and that eating enough is training. With her permission I meet the coach: the mileage increase outran her fueling, the stress reaction is the warning, and return follows medical clearance and pain-free testing, not the fixture list."
             ),
           ],
         },
@@ -115,8 +115,8 @@ export const ABPTSSCS_LABS: SeedLabSet = {
             ),
             part(
               "Child 3 (elbow)",
-              "Names little league elbow (medial epicondyle apophysitis) from repeated valgus stress in throwing, made likely by pitching in two leagues; manages with a throwing shutdown until pain-free, then a graded interval throwing programme, kinetic-chain and mechanics work, and education on pitch counts and rest; refers for imaging if there is a locking/catching history, loss of extension, acute pop or persistent pain (to exclude avulsion or lateral-side osteochondritis dissecans).",
-              "Little league elbow: valgus stress on the medial epicondyle apophysis every pitch, with two leagues' worth of pitches and no rest. Stop throwing until he is pain-free and the epicondyle is not tender, work the shoulder, trunk and legs and his mechanics, then an interval throwing programme and strict pitch-count and rest rules across both leagues. Locking, catching, lost extension, a pop or pain that does not settle means imaging to rule out an avulsion or osteochondritis dissecans."
+              "Names little league elbow (medial epicondyle apophysitis) from repeated valgus stress in throwing, made likely by pitching in two leagues; manages with a throwing shutdown until pain-free, then a graded interval throwing program, kinetic-chain and mechanics work, and education on pitch counts and rest; refers for imaging if there is a locking/catching history, loss of extension, acute pop or persistent pain (to exclude avulsion or lateral-side osteochondritis dissecans).",
+              "Little league elbow: valgus stress on the medial epicondyle apophysis every pitch, with two leagues' worth of pitches and no rest. Stop throwing until he is pain-free and the epicondyle is not tender, work the shoulder, trunk and legs and his mechanics, then an interval throwing program and strict pitch-count and rest rules across both leagues. Locking, catching, lost extension, a pop or pain that does not settle means imaging to rule out an avulsion or osteochondritis dissecans."
             ),
           ],
         },
@@ -201,7 +201,7 @@ export const ABPTSSCS_LABS: SeedLabSet = {
     },
     {
       slug: "scs-bone-stress-site-triage",
-      objective: "Recognize stress fractures as overload injuries, about 20% of sports medicine injuries; flag high-risk sites (femoral neck, anterior tibia, tarsal navicular, talus, sesamoids, 5th metatarsal) where non-union risk is high",
+      objective: "Recognize stress fractures as overload injuries, 0.7% to 20% of sports medicine clinic injuries; flag high-risk sites (femoral neck, anterior tibia, tarsal navicular, talus, sesamoids, 5th metatarsal) where non-union risk is high",
       kind: "case",
       title: "Groin pain in a marathoner: low risk or high risk?",
       brief:
@@ -225,7 +225,7 @@ export const ABPTSSCS_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "MRI shows a femoral neck stress fracture on the compression (inferior) side without a visible fracture line through the cortex. The orthopaedic surgeon chooses non-operative care: protected weight bearing for six weeks and \"PT to manage the return\".",
+          text: "MRI shows a femoral neck stress fracture on the compression (inferior) side without a visible fracture line through the cortex. The orthopedic surgeon chooses non-operative care: protected weight bearing for six weeks and \"PT to manage the return\".",
           ask: "Plan the rehabilitation and return to running.",
           parts: [
             part(
@@ -235,7 +235,7 @@ export const ABPTSSCS_LABS: SeedLabSet = {
             ),
             part(
               "Return to running",
-              "Progresses only on imaging and clinical clearance: pain-free walking, then single-leg loading and hop tolerance, then a walk-run programme with conservative weekly increases, addressing the training error (volume increase), gait and strength deficits, and bone health; sets realistic expectations about the marathon.",
+              "Progresses only on imaging and clinical clearance: pain-free walking, then single-leg loading and hop tolerance, then a walk-run program with conservative weekly increases, addressing the training error (volume increase), gait and strength deficits, and bone health; sets realistic expectations about the marathon.",
               "After clearance and pain-free full weight bearing: restore single-leg strength and hop tolerance, then a walk-run ladder with small weekly increases and no back-to-back hard days, rebuilding over months rather than weeks. Fix what caused it -- a near-doubling of volume -- with a written progression rule. The first marathon moves to a later date."
             ),
           ],
@@ -311,8 +311,8 @@ export const ABPTSSCS_LABS: SeedLabSet = {
             ),
             part(
               "What to change",
-              "Recommends prevention and preparedness changes: a wet-bulb globe temperature policy with start-time or cancellation thresholds, acclimatisation and hydration education that warns against over-drinking (drink to thirst), more cooling capacity and shade at the finish, point-of-care sodium testing, sweep teams on the course, and an annual rehearsal of the EAP including spine-injury and cardiac-arrest scenarios.",
-              "For next year: a wet-bulb globe temperature policy with an earlier start or cancellation threshold; pre-race messaging on acclimatisation and drinking to thirst rather than at every station; a second tub and shade at the finish; point-of-care sodium in the tent; roving teams on the last 5 km; and a full rehearsal of the emergency action plan each season covering heat stroke, cardiac arrest with the AED, and a suspected spinal injury."
+              "Recommends prevention and preparedness changes: a wet-bulb globe temperature policy with start-time or cancellation thresholds, acclimatization and hydration education that warns against over-drinking (drink to thirst), more cooling capacity and shade at the finish, point-of-care sodium testing, sweep teams on the course, and an annual rehearsal of the EAP including spine-injury and cardiac-arrest scenarios.",
+              "For next year: a wet-bulb globe temperature policy with an earlier start or cancellation threshold; pre-race messaging on acclimatization and drinking to thirst rather than at every station; a second tub and shade at the finish; point-of-care sodium in the tent; roving teams on the last 5 km; and a full rehearsal of the emergency action plan each season covering heat stroke, cardiac arrest with the AED, and a suspected spinal injury."
             ),
           ],
         },
@@ -354,22 +354,22 @@ export const ABPTSSCS_LABS: SeedLabSet = {
       slug: "scs-acl-prevention-program-design",
       objective: "Injury prevention programs and the epidemiology that justifies them",
       kind: "build",
-      title: "Design an ACL injury-prevention programme for a girls' soccer club",
+      title: "Design an ACL injury-prevention program for a girls' soccer club",
       brief:
-        "A fictional girls' soccer club (ages 14-18, four teams, two coaches per team, no medical staff) had three non-contact ACL ruptures last season. The board asks a sports physical therapist for a prevention programme that coaches can run themselves, and wants to know why it should work and whether they should instead buy every player a prophylactic knee brace.",
+        "A fictional girls' soccer club (ages 14-18, four teams, two coaches per team, no medical staff) had three non-contact ACL ruptures last season. The board asks a sports physical therapist for a prevention program that coaches can run themselves, and wants to know why it should work and whether they should instead buy every player a prophylactic knee brace.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Write the programme proposal: the evidence case, the programme itself, and how you will implement and measure it.",
+          ask: "Write the program proposal: the evidence case, the program itself, and how you will implement and measure it.",
           parts: [
             part(
               "Evidence case",
-              "States that neuromuscular injury-prevention training programmes reduce primary ACL injuries in high-risk sports such as soccer (AAOS 2023), that adolescent female athletes in cutting and landing sports are a high-risk group and most ACL ruptures are non-contact, and that prophylactic knee bracing is not a preferred prevention option.",
-              "Injury-prevention training programmes cut primary ACL injuries in high-risk sports like soccer -- that is the AAOS guideline's recommendation -- and adolescent girls in a cutting, landing sport are exactly the population they were built for; most ruptures are non-contact, which is what training can change. Prophylactic braces are not a preferred option, so the money goes into the programme, not braces."
+              "States that neuromuscular injury-prevention training programs reduce primary ACL injuries in high-risk sports such as soccer (AAOS 2023), that adolescent female athletes in cutting and landing sports are a high-risk group and most ACL ruptures are non-contact, and that prophylactic knee bracing is not a preferred prevention option.",
+              "Injury-prevention training programs cut primary ACL injuries in high-risk sports like soccer -- that is the AAOS guideline's recommendation -- and adolescent girls in a cutting, landing sport are exactly the population they were built for; most ruptures are non-contact, which is what training can change. Prophylactic braces are not a preferred option, so the money goes into the program, not braces."
             ),
             part(
-              "Programme content and dose",
+              "Program content and dose",
               "Specifies a coach-led structured warm-up of about 15-20 minutes, 2-3 times a week across the whole season, with running, strength (hamstrings, hips, trunk), plyometric and landing training, balance, and cutting technique with feedback on knee alignment (avoid dynamic knee valgus), progressed in levels.",
               "A structured warm-up replacing the current jog-and-stretch: about 15-20 minutes before every training session and match (2-3 times a week minimum), with running drills, strength for hamstrings, glutes and trunk (Nordic hamstring, single-leg bridges, planks), jumping and landing with soft, knees-over-toes technique, single-leg balance, and cutting drills, progressed through three levels over the season. Coaches cue 'knees over toes, land soft' and correct knee-in landings."
             ),

@@ -22,6 +22,8 @@ export const CKAD_LABS: SeedLabSet = {
     source("https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/", "exam_outline", "2026-11-07"),
     source("https://kubernetes.io/docs/concepts/security/pod-security-standards/", "reference", "2026-11-07"),
     source("https://kubernetes.io/docs/reference/using-api/deprecation-guide/", "reference", "2026-11-07"),
+    source("https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/", "reference", "2026-11-09"),
+    source("https://helm.sh/docs/helm/helm_upgrade/", "reference", "2026-11-09"),
   ],
   labs: [
     // ----------------------------------------------------------------- 20%
@@ -69,7 +71,7 @@ export const CKAD_LABS: SeedLabSet = {
       kind: "build",
       title: "Schedule a nightly export that never overlaps itself",
       brief:
-        "Fictional museum network Alder Trust needs a nightly job in namespace collections that exports the day's catalogue changes using image registry.alder.example/exporter:1.9 with the command exporter --since=24h. It must run at 02:30 every night in the cluster's time zone (Europe/London), must never run two copies at once (a late run should simply be skipped), must give up after 3 retries, must be killed if a single run exceeds 45 minutes, and the team wants to be able to see the last 5 successful and last 3 failed runs with kubectl. They also want a one-off backfill of the last 30 days run by hand tonight without waiting for the schedule.",
+        "Fictional museum network Alder Trust needs a nightly job in namespace collections that exports the day's catalog changes using image registry.alder.example/exporter:1.9 with the command exporter --since=24h. It must run at 02:30 every night in the cluster's time zone (Europe/London), must never run two copies at once (a late run should simply be skipped), must give up after 3 retries, must be killed if a single run exceeds 45 minutes, and the team wants to be able to see the last 5 successful and last 3 failed runs with kubectl. They also want a one-off backfill of the last 30 days run by hand tonight without waiting for the schedule.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -83,8 +85,8 @@ export const CKAD_LABS: SeedLabSet = {
             ),
             part(
               "No overlap, bounded retries, bounded duration",
-              "concurrencyPolicy: Forbid on the CronJob; backoffLimit: 3 and activeDeadlineSeconds: 2700 on the jobTemplate.spec; explains Forbid skips a run while the previous is still active (Replace would kill it), backoffLimit counts failed Pods before the Job is marked failed, and activeDeadlineSeconds caps wall-clock time for the whole Job including retries.",
-              "  concurrencyPolicy: Forbid\n  jobTemplate:\n    spec:\n      backoffLimit: 3\n      activeDeadlineSeconds: 2700\nForbid: if the 02:30 run is still going at the next tick, the new run is skipped (Replace would terminate the running one; Allow would overlap). backoffLimit: 3 means up to three failed Pods and then the Job fails. activeDeadlineSeconds: 2700 (45 min) terminates the Job and its Pods when exceeded, and takes precedence over backoffLimit."
+              "concurrencyPolicy: Forbid on the CronJob; backoffLimit: 3 and activeDeadlineSeconds: 2700 on the jobTemplate.spec; explains Forbid skips a run while the previous is still active (Replace would kill it), backoffLimit is the number of retries before the Job is marked failed (with restartPolicy OnFailure, container restarts count too), and activeDeadlineSeconds caps wall-clock time for the whole Job including retries.",
+              "  concurrencyPolicy: Forbid\n  jobTemplate:\n    spec:\n      backoffLimit: 3\n      activeDeadlineSeconds: 2700\nForbid: if the 02:30 run is still going at the next tick, the new run is skipped (Replace would terminate the running one; Allow would overlap). backoffLimit: 3 allows three retries: the Job is marked failed at the fourth failure (with restartPolicy OnFailure, container restarts in a Pod count toward it as well). activeDeadlineSeconds: 2700 (45 min) terminates the Job and its Pods when exceeded, and takes precedence over backoffLimit."
             ),
             part(
               "History and the Pod template",
@@ -160,8 +162,8 @@ export const CKAD_LABS: SeedLabSet = {
             ),
             part(
               "Upgrade keeping overrides",
-              "helm upgrade metrics wrenfield/metrics-stack --version 3.6.0 -n observability with --reuse-values (or re-supplying the values file) and --set retention=30d, ideally with --atomic or --wait so a failed upgrade rolls itself back; warns that without --reuse-values or -f the user-supplied values are dropped.",
-              "helm -n observability upgrade metrics wrenfield/metrics-stack --version 3.6.0 \\\n  --reuse-values --set retention=30d --atomic --timeout 5m\n--reuse-values carries forward storage.size and storage.className; plain helm upgrade resets everything to chart defaults, which would reprovision storage. --atomic waits for resources to be ready and rolls back automatically if they are not. Pinning --version avoids silently taking a newer chart later."
+              "helm upgrade metrics wrenfield/metrics-stack --version 3.6.0 -n observability with --reset-then-reuse-values (or re-supplying the values file with -f) and --set retention=30d, ideally with --atomic or --wait so a failed upgrade rolls itself back; warns that without one of these the user-supplied values are dropped, and that plain --reuse-values across a chart version also reuses the old chart's defaults, so keys new in 3.6.0 lose theirs.",
+              "helm -n observability upgrade metrics wrenfield/metrics-stack --version 3.6.0 \\\n  --reset-then-reuse-values --set retention=30d --atomic --timeout 5m\n--reset-then-reuse-values starts from 3.6.0's own defaults, then carries forward storage.size and storage.className; plain helm upgrade resets everything to chart defaults, which would reprovision storage. Plain --reuse-values is the wrong tool across a chart version: it reuses the last release's values including the old chart's defaults, so any key new in 3.6.0 loses its default. (helm get values metrics -o yaml > values.yaml, then -f values.yaml, is the equivalent on older Helm.) --atomic waits for resources to be ready and rolls back automatically if they are not. Pinning --version avoids silently taking a newer chart later."
             ),
           ],
         },
@@ -176,8 +178,8 @@ export const CKAD_LABS: SeedLabSet = {
             ),
             part(
               "Redo correctly",
-              "Re-runs the upgrade with the retention expressed the way 3.6.0 expects (e.g. 720h, found from helm show values), --reuse-values and --atomic, then verifies with kubectl and helm status; optionally tests first with helm upgrade --dry-run or helm template.",
-              "helm -n observability upgrade metrics wrenfield/metrics-stack --version 3.6.0 \\\n  --reuse-values --set retention=720h --atomic --timeout 5m\nhelm -n observability status metrics\nkubectl -n observability logs metrics-server-0 | tail\nA --dry-run (or helm template ... | less) beforehand shows the rendered ConfigMap so the retention format can be checked before anything is applied."
+              "Re-runs the upgrade with the retention expressed the way 3.6.0 expects (e.g. 720h, found from helm show values), --reset-then-reuse-values and --atomic, then verifies with kubectl and helm status; optionally tests first with helm upgrade --dry-run or helm template.",
+              "helm -n observability upgrade metrics wrenfield/metrics-stack --version 3.6.0 \\\n  --reset-then-reuse-values --set retention=720h --atomic --timeout 5m\nhelm -n observability status metrics\nkubectl -n observability logs metrics-server-0 | tail\nA --dry-run (or helm template ... | less) beforehand shows the rendered ConfigMap so the retention format can be checked before anything is applied."
             ),
             part(
               "Retire cleanly",
@@ -304,7 +306,7 @@ export const CKAD_LABS: SeedLabSet = {
             part(
               "Seccomp",
               "seccompProfile type RuntimeDefault at Pod (or container) level; explains restricted requires a seccomp profile of RuntimeDefault or Localhost and that Unconfined is forbidden.",
-              "  securityContext:\n    seccompProfile:\n      type: RuntimeDefault\nThe restricted profile requires seccompProfile.type to be RuntimeDefault or Localhost (Unconfined, or unset on older clusters, is rejected). RuntimeDefault applies the container runtime's default syscall allowlist, which almost all web apps run under without change."
+              "  securityContext:\n    seccompProfile:\n      type: RuntimeDefault\nThe restricted profile requires seccompProfile.type to be RuntimeDefault or Localhost (Unconfined is rejected, and so is leaving it unset: it must be set at Pod level or on every container). RuntimeDefault applies the container runtime's default syscall allowlist, which almost all web apps run under without change."
             ),
             part(
               "Container hardening",
@@ -428,7 +430,7 @@ export const CKAD_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Write the Ingress (and the Secret it needs) and explain the routing and TLS behaviour.",
+          ask: "Write the Ingress (and the Secret it needs) and explain the routing and TLS behavior.",
           parts: [
             part(
               "TLS Secret",
@@ -447,8 +449,8 @@ export const CKAD_LABS: SeedLabSet = {
             ),
             part(
               "Plain HTTP",
-              "States that with a tls section most controllers redirect HTTP to HTTPS by default for that host (nginx does), and names the controller annotation that makes it explicit (nginx.ingress.kubernetes.io/ssl-redirect: \"true\") while noting redirect behaviour is controller-specific, not part of the Ingress API.",
-              "The Ingress API itself only says 'terminate TLS for this host'; whether port 80 redirects is up to the controller. ingress-nginx redirects to HTTPS automatically when a host has TLS configured; adding the annotation nginx.ingress.kubernetes.io/ssl-redirect: \"true\" makes the intent explicit. Verify with curl -I http://online.harrowgate.example/ (expect 308) and curl -k https://.../api/health."
+              "States that with a tls section most controllers redirect HTTP to HTTPS by default for that host (nginx does), and names the controller annotation that makes it explicit (nginx.ingress.kubernetes.io/ssl-redirect: \"true\") while noting redirect behavior is controller-specific, not part of the Ingress API.",
+              "The Ingress API itself only says 'terminate TLS for this host'; whether port 80 redirects is up to the controller. ingress-nginx redirects to HTTPS automatically when a host has TLS configured; adding the annotation nginx.ingress.kubernetes.io/ssl-redirect: \"true\" makes the intent explicit. Verify with curl -I http://online.harrowgate.example/ (expect 308) and curl -k https://.../api/health. (The community ingress-nginx controller was retired in March 2026 -- no further releases or security fixes -- so a new cluster would pick a maintained Ingress controller or Gateway API; the Ingress resource itself is unchanged.)"
             ),
           ],
         },
@@ -460,7 +462,7 @@ export const CKAD_LABS: SeedLabSet = {
       kind: "case",
       title: "Find out why the frontend lost its backend overnight",
       brief:
-        "The fictional ticketing cooperative Northfield runs Pods labelled app=frontend and app=backend (port 9090) in namespace box-office. The security team applied a NetworkPolicy last night and this morning the frontend shows 'backend unavailable'. The cluster's network plugin enforces NetworkPolicy.",
+        "The fictional ticketing cooperative Northfield runs Pods labeled app=frontend and app=backend (port 9090) in namespace box-office. The security team applied a NetworkPolicy last night and this morning the frontend shows 'backend unavailable'. The cluster's network plugin enforces NetworkPolicy.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -469,7 +471,7 @@ export const CKAD_LABS: SeedLabSet = {
           parts: [
             part(
               "Why it is blocked",
-              "Explains that once any NetworkPolicy selects the backend Pods they are isolated for ingress and only listed sources may connect; the rule allows Pods labelled role=frontend, but the frontend Pod carries app=frontend and no role label, so it matches nothing and is denied; the timeout (not a refusal) is typical of a dropped packet.",
+              "Explains that once any NetworkPolicy selects the backend Pods they are isolated for ingress and only listed sources may connect; the rule allows Pods labeled role=frontend, but the frontend Pod carries app=frontend and no role label, so it matches nothing and is denied; the timeout (not a refusal) is typical of a dropped packet.",
               "backend-ingress selects app=backend, so backend is now isolated for ingress: everything not matched by a from rule is dropped. The from rule asks for label role=frontend; the frontend Pod only has app=frontend, so it is not matched. A policy's intent does not matter -- only label matches do. A timeout rather than 'connection refused' is the signature of a policy drop."
             ),
             part(
@@ -479,7 +481,7 @@ export const CKAD_LABS: SeedLabSet = {
             ),
             part(
               "Fix option 2: change the policy, and the choice",
-              "Changes the policy's from podSelector to app: frontend; explains the choice: follow whichever labelling convention the organisation standardises on, and prefer the fix that does not widen access; rejects deleting the policy or adding an empty from (which would allow all Pods in the namespace).",
+              "Changes the policy's from podSelector to app: frontend; explains the choice: follow whichever labeling convention the organization standardizes on, and prefer the fix that does not widen access; rejects deleting the policy or adding an empty from (which would allow all Pods in the namespace).",
               "kubectl -n box-office edit networkpolicy backend-ingress  -> from: - podSelector: {matchLabels: {app: frontend}}\nEither fix restores only frontend -> backend:9090. Choose based on convention: if the security team's policies all key on role, label the Deployment; if app is the house label, fix the policy. Never 'fix' it by deleting the policy or by using from: [{podSelector: {}}], which opens backend to every Pod in the namespace."
             ),
           ],
@@ -490,7 +492,7 @@ export const CKAD_LABS: SeedLabSet = {
           parts: [
             part(
               "Why DNS broke",
-              "Recognises 'bad address' as a DNS failure: the egress policy isolates the frontend for egress and allows only TCP 9090 to backend Pods, so UDP/TCP 53 to CoreDNS in kube-system is now dropped and the Service name cannot resolve, even though the backend path itself is allowed.",
+              "Recognizes 'bad address' as a DNS failure: the egress policy isolates the frontend for egress and allows only TCP 9090 to backend Pods, so UDP/TCP 53 to CoreDNS in kube-system is now dropped and the Service name cannot resolve, even though the backend path itself is allowed.",
               "Once a policy with policyTypes Egress selects frontend, every outbound connection not listed is dropped -- including DNS to CoreDNS (kube-dns Service in kube-system on port 53). The name 'backend' no longer resolves, so wget fails before it ever tries port 9090. The allowed path to backend is fine; the lookup that precedes it is not."
             ),
             part(

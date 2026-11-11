@@ -166,7 +166,7 @@ describe("finding 1: email change needs re-authentication and alerts the old add
     assert.equal(changed.status, 200);
     const late = await confirmEmailChangeToken(tokenIn(lastMail(second)!.html, "confirm-email-change"));
     assert.equal(late.ok, false);
-    assert.match(late.message, /sign-in details changed|cancelled/);
+    assert.match(late.message, /sign-in details changed|canceled/);
   });
 
   test("the audit's takeover chain now stops at the first step", async () => {
@@ -235,10 +235,13 @@ describe("finding 2: replacing or adding an authenticator when MFA is on needs a
   });
 
   test("a pending secret started before MFA was on can't be enabled once it is", async () => {
+    // REQ-203: setup asks the owner to confirm from the start, so a pending
+    // secret like this one is what an older build or a direct write leaves.
     const v = await mkUser();
     const s = await session(v);
-    const setup = await call(mfaSetup, { headers: s.auth });
+    const setup = await call(mfaSetup, { body: { reauth: v.pw }, headers: s.auth });
     assert.equal(setup.status, 200);
+    await query(`update app_users set totp_pending_reauth_at = null where id=$1`, [v.id]);
     await query(`update app_users set mfa_enabled = true, email_mfa_enabled = true where id=$1`, [v.id]);
     const en = await call(mfaEnable, { body: { code: await totpGenerate({ secret: setup.body.secret }) }, headers: s.auth });
     assert.equal(en.status, 401);
@@ -326,11 +329,11 @@ describe("finding 8: pre-registration squatting", () => {
   test("the owner's sign-up sends a set-password link; following it removes the squatter's password", async () => {
     const victimEmail = `victim-${run}@gmail.test`;
     emails.push(victimEmail);
-    const r = await call(register, { body: { email: victimEmail, password: testPw("Attacker-Pw-123") }, headers: { "x-forwarded-for": "7.7.7.7" } });
+    const r = await call(register, { body: { email: victimEmail, password: testPw("Attacker-Pw-123"), ageConfirmed: true }, headers: { "x-forwarded-for": "7.7.7.7" } });
     assert.equal(r.status, 201);
     created.push((await queryOne<{ id: string }>(`select id from app_users where email=$1`, [victimEmail]))!.id);
     const squatterLink = tokenIn(lastMail(victimEmail)!.html, "verify-email");
-    const again = await call(register, { body: { email: victimEmail, password: testPw("Victim-Pw-12345") }, headers: { "x-forwarded-for": "6.6.6.6" } });
+    const again = await call(register, { body: { email: victimEmail, password: testPw("Victim-Pw-12345"), ageConfirmed: true }, headers: { "x-forwarded-for": "6.6.6.6" } });
     assert.equal(again.status, 201, "same answer as a fresh registration (no enumeration)");
     assert.match(lastMail(victimEmail)!.subject, /Finish setting up/);
     // The owner follows the FIRST mail (sent at the squatter's sign-up): it was flagged too.
@@ -344,7 +347,7 @@ describe("finding 8: pre-registration squatting", () => {
   test("an ordinary first registration still verifies without touching the password", async () => {
     const email = `plain-${run}@x.test`;
     emails.push(email);
-    assert.equal((await call(register, { body: { email, password: testPw("Plain-Pass-123") }, headers: { "x-forwarded-for": "5.5.5.1" } })).status, 201);
+    assert.equal((await call(register, { body: { email, password: testPw("Plain-Pass-123"), ageConfirmed: true }, headers: { "x-forwarded-for": "5.5.5.1" } })).status, 201);
     created.push((await queryOne<{ id: string }>(`select id from app_users where email=$1`, [email]))!.id);
     const v = await verifyEmailToken(tokenIn(lastMail(email)!.html, "verify-email"));
     assert.equal(v.setPasswordUrl, undefined);
@@ -355,7 +358,7 @@ describe("finding 8: pre-registration squatting", () => {
     const u = await mkUser({ verified: false });
     const sub = `g-${randomUUID()}`;
     __setGoogleVerifierForTest(async () => ({ providerAccountId: sub, email: u.email, emailVerified: true, name: null, issuedAt: Math.floor(Date.now() / 1000) }));
-    const r = await call(googleSignIn, { body: { idToken: "stub" } });
+    const r = await call(googleSignIn, { body: { idToken: "stub", ageConfirmed: true } });
     __setGoogleVerifierForTest(null);
     assert.equal(r.status, 200);
     const row = await queryOne<{ password_hash: string | null; email_verified_at: string | null }>(

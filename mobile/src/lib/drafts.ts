@@ -15,6 +15,10 @@ export const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 // Bounds applied when reading, so a corrupted or tampered entry can't push
 // an enormous string into a text field. They match the form's maxLength.
 export const CHAT_DRAFT_MAX = 10_000;
+// REQ-197: what a restored draft may hold. Larger than the send limit, so a
+// dictated message that ran over is kept whole for the learner to shorten,
+// never cut; still bounded against a corrupted entry.
+export const CHAT_DRAFT_KEEP_MAX = 4 * CHAT_DRAFT_MAX;
 export const SUPPORT_LIMITS = { subject: 200, body: 5000, courseName: 200, courseSourceUrl: 2000 } as const;
 
 export type SupportDraftKind = "ticket" | "course_request";
@@ -65,7 +69,7 @@ export function chatDraftPayload(text: string, prefill?: string | null): string 
 }
 
 export function chatDraftText(payload: string): string | null {
-  const t = payload.slice(0, CHAT_DRAFT_MAX);
+  const t = payload.slice(0, CHAT_DRAFT_KEEP_MAX);
   return t.trim() ? t : null;
 }
 
@@ -131,6 +135,27 @@ export type AnswerDraftThread = "review" | "unitcheck" | "explain";
 export function answerDraftKey(thread: AnswerDraftThread, userId: string, id: string): string {
   // Dots would split the key into extra segments; ids are UUIDs, positions numbers.
   return `ascendra.draft.${thread}.${userId}.${id.replace(/\./g, "_")}`;
+}
+
+// REQ-206 (FAIL-939): the "Dispute or ask about this verdict" text lived only
+// in React state, so a reload after a long message lost it. Same envelope, and
+// the same key shape the logout sweep removes. One per objective and check.
+export function followUpDraftKey(userId: string, objectiveId: string, kind: string): string {
+  return `ascendra.draft.followup.${userId}.${`${objectiveId}_${kind}`.replace(/\./g, "_")}`;
+}
+
+// REQ-206 (FAIL-939): the guess typed before a lesson is taught. The lesson
+// position is not saved at "guess" (nothing to resume), so a reload emptied
+// the box. The text itself is now kept, per objective.
+export function guessDraftKey(userId: string, objectiveId: string): string {
+  return `ascendra.draft.guess.${userId}.${objectiveId.replace(/\./g, "_")}`;
+}
+
+// REQ-217 (FAIL-1050): the written reasoning a learner is typing in a
+// simulation, kept on the device (same envelope; the logout sweep removes it).
+// One per run and moment; cleared once the answer is graded.
+export function reasoningDraftKey(userId: string, runId: string, momentId: string): string {
+  return `ascendra.draft.simreason.${userId}.${`${runId}_${momentId}`.replace(/\./g, "_")}`;
 }
 
 export interface AnswerDraft {

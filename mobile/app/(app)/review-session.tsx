@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
 import { ReportProblem } from "@/components/ReportProblem";
@@ -17,6 +17,7 @@ import {
 } from "@/lib/reviewSession";
 import { friendlyError } from "@/lib/errorMessage";
 import { useAnswerDraft } from "@/lib/useAnswerDraft";
+import { useGoBack } from "@/lib/useGoBack";
 
 // REQ-108: Today's review, one question at a time. Each question is new
 // (written for the objective, not the lesson's own Guided/Solo item) and is
@@ -25,10 +26,12 @@ import { useAnswerDraft } from "@/lib/useAnswerDraft";
 // answer after it does not count as recall. "Stop for today" is on every
 // screen: what is left stays due, nothing is lost.
 export default function ReviewSessionScreen() {
-  const router = useRouter();
+  const goBack = useGoBack("/review");
   const { trackId } = useLocalSearchParams<{ trackId?: string }>();
   const [session, setSession] = useState<ReviewSession | null>(null);
   const [unavailable, setUnavailable] = useState(0);
+  // REQ-216: the server's words when reviews are due but none could be prepared.
+  const [unpreparedMessage, setUnpreparedMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [empty, setEmpty] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,12 +59,13 @@ export default function ReviewSessionScreen() {
     setLoadError(null);
     setEmpty(false);
     return api
-      .post<{ session: ReviewSession | null; unavailable: number }>("/api/review/sessions", trackId ? { trackId } : {})
+      .post<{ session: ReviewSession | null; unavailable: number; message?: string }>("/api/review/sessions", trackId ? { trackId } : {})
       .then((res) => {
         if (!alive.current) return;
         if (!res.session) setEmpty(true);
         setSession(res.session);
         setUnavailable(res.unavailable ?? 0);
+        setUnpreparedMessage(!res.session && (res.unavailable ?? 0) > 0 ? res.message ?? "Your reviews couldn't be prepared just now. They're still due; try again in a few minutes." : null);
       })
       .catch((err) => alive.current && setLoadError(friendlyError(err)))
       .finally(() => alive.current && setLoading(false));
@@ -101,7 +105,7 @@ export default function ReviewSessionScreen() {
       // Best effort: the session closes at the end of the day anyway.
       await api.patch(`/api/review/sessions/${session.id}`, { action: "finish" }).catch(() => undefined);
     }
-    router.back();
+    goBack();
   }
 
   async function revealChoices() {
@@ -172,12 +176,17 @@ export default function ReviewSessionScreen() {
       <Screen>
         <Stack.Screen options={{ title: "Today's review" }} />
         {loadError ? <ErrorBanner message={loadError} onRetry={load} /> : null}
-        {empty && !loadError ? (
+        {empty && !loadError && unpreparedMessage ? (
+        <Card>
+          <EmptyState icon="info" title="Your review couldn't be prepared" message={unpreparedMessage} action={{ label: "Try again", onPress: load }} />
+        </Card>
+        ) : null}
+        {empty && !loadError && !unpreparedMessage ? (
         <Card>
           <EmptyState icon="check-circle" title="Nothing to review right now" message="Come back when something is due." />
         </Card>
         ) : null}
-        <Button label="Back to Review" variant="ghost" onPress={() => router.back()} />
+        <Button label="Back to Review" variant="ghost" onPress={goBack} />
       </Screen>
     );
   }
@@ -205,7 +214,7 @@ export default function ReviewSessionScreen() {
         <Card elevated>
           <H2>Done for today</H2>
           <Body>{sessionDoneLabel(session.items)}</Body>
-          <Button label="Back to Review" onPress={() => router.back()} />
+          <Button label="Back to Review" onPress={goBack} />
         </Card>
       ) : (
         <Card elevated>

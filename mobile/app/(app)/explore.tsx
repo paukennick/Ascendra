@@ -3,6 +3,7 @@ import { SectionList, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/api/client";
+import { useMatureContent } from "@/auth/MatureContentContext";
 import type { Track } from "@/types";
 import { Button, Card, Chip, EmptyState, ErrorBanner, Loading, Muted, SectionHeader, TextField } from "@/components/ui";
 import { courseRequestPrefill, exploreEmpty } from "@/lib/emptyStates";
@@ -65,6 +66,9 @@ export default function Explore() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [categorySlug, setCategorySlug] = useState<string | null>(null);
+  // REQ-224: picking the Mental Health category asks for the 18+
+  // confirmation first; closing the notice leaves the filter as it was.
+  const mature = useMatureContent();
   const [freshnessFilter, setFreshnessFilter] = useState<FreshnessFilter>("all");
 
   const load = useCallback(() => {
@@ -137,7 +141,7 @@ export default function Explore() {
   const empty = exploreEmpty(query);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
+    <SafeAreaView style={styles.safeArea} edges={["bottom"]} role="main">
       <Stack.Screen options={{ title: "Explore" }} />
       <SectionList
         sections={sections}
@@ -152,22 +156,25 @@ export default function Explore() {
             <TextField label="Search" placeholder="Course name or code" value={query} onChangeText={setQuery} icon="search" />
 
             {categories.length ? (
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                <Chip label="All" active={!categorySlug} onPress={() => setCategorySlug(null)} />
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }} role="group" aria-label="Filter by category">
+                <Chip label="All" accessibilityLabel="All categories" active={!categorySlug} onPress={() => setCategorySlug(null)} />
                 {categories.map((c) => (
                   <Chip
                     key={c.slug}
                     label={c.name}
                     active={categorySlug === c.slug}
-                    onPress={() => setCategorySlug(categorySlug === c.slug ? null : c.slug)}
+                    onPress={async () => {
+                      if (categorySlug === c.slug) return setCategorySlug(null);
+                      if (await mature.ensure(c.slug, "catalog")) setCategorySlug(c.slug);
+                    }}
                   />
                 ))}
               </View>
             ) : null}
 
             {tracks && tracks.length ? (
-              <View style={{ flexDirection: "row", gap: spacing.sm }}>
-                <Chip label="All" active={freshnessFilter === "all"} onPress={() => setFreshnessFilter("all")} />
+              <View style={{ flexDirection: "row", gap: spacing.sm }} role="group" aria-label="Filter by verification">
+                <Chip label="All" accessibilityLabel="All verification states" active={freshnessFilter === "all"} onPress={() => setFreshnessFilter("all")} />
                 <Chip
                   label="Verified"
                   active={freshnessFilter === "current"}

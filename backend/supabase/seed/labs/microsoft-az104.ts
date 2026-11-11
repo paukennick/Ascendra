@@ -18,10 +18,12 @@ import { source } from "../sources";
 // plan. CLI is shown in reference answers; the criteria accept the portal or
 // PowerShell equivalent, because the exam does.
 //
-// Two objectives in the seed track are NOT in the official guide
-// ("Configuring encryption at host for Azure virtual machines" -- the guide
-// says "Configure Azure Disk Encryption" -- and "Configuring soft delete for
-// blobs and containers"); no lab is placed on them (reported to the lead).
+// Two objectives in the seed track were NOT in the official guide. "Configuring
+// encryption at host" now reads "Configuring Azure Disk Encryption for virtual
+// machines", as the guide does (content audit fix, 2026-11-09). "Configuring
+// soft delete for blobs and containers" is still extra: objectives are matched
+// by sort order, so removing it would shift learners' mastery; it stays until
+// a per-objective retirement exists. No lab is placed on either.
 //
 // Sources behind the figures (learn.microsoft.com, checked 2026-11-07):
 //   built-in roles and their descriptions: /azure/role-based-access-control/built-in-roles
@@ -128,7 +130,7 @@ export const AZ104_LABS: SeedLabSet = {
               'Assign the built-in "Allowed locations" definition at the subscription scope with the listOfAllowedLocations parameter set to westeurope and northeurope. Its effect is Deny: any create or update outside those regions fails. No remediation task -- Deny does nothing to existing resources; the compliance view lists them.'
             ),
             part(
-              "Cost-centre tag inheritance",
+              "Cost-center tag inheritance",
               "Uses a Modify effect policy (for example the built-in 'Inherit a tag from the resource group if missing') assigned at the subscription, with a managed identity, plus a remediation task so the 400 existing resources get the tag; may pair it with a Deny or Audit for the resource groups themselves.",
               'Two assignments: a "Require a tag on resource groups" (Deny) for costCentre, and the built-in "Inherit a tag from the resource group if missing" with the Modify effect, parameter costCentre, assigned at the subscription with a system-assigned managed identity holding the rights to tag resources. Modify adds the tag to new and updated resources on the way in; a remediation task applies it to the 400 existing ones.'
             ),
@@ -172,13 +174,13 @@ export const AZ104_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "The budget alert fires on day 12. In cost analysis you group by the team tag and see the data-platform team is responsible for 70 percent of spend. Azure Advisor's cost recommendations list eleven VMs as under-utilised, twenty unattached managed disks, and two SQL databases suitable for a reservation.",
+          text: "The budget alert fires on day 12. In cost analysis you group by the team tag and see the data-platform team is responsible for 70 percent of spend. Azure Advisor's cost recommendations list eleven VMs as under-utilized, twenty unattached managed disks, and two SQL databases suitable for a reservation.",
           ask: "What do you do with each Advisor recommendation, and how do you find out who owns the eleven VMs?",
           parts: [
             part(
               "Acting on the recommendations",
-              "Right-sizes or shuts down (deallocates, or schedules auto-shutdown for) the under-utilised VMs after confirming with their owners; deletes the unattached disks after checking they are not needed; and considers a reservation or savings plan for the steady SQL usage; notes Advisor recommendations can be postponed or dismissed if judged wrong.",
-              "Under-utilised VMs: resize them to the smaller SKU Advisor proposes, or set auto-shutdown for dev machines that run overnight unused; deallocate rather than stop from inside the OS so compute billing ends. Unattached disks: confirm with owners, snapshot if in doubt, then delete -- they bill while attached to nothing. SQL reservation: the two databases run steadily, so buy a reserved capacity term (or a savings plan for databases) for them. Recommendations you disagree with can be postponed or dismissed in Advisor."
+              "Right-sizes or shuts down (deallocates, or schedules auto-shutdown for) the under-utilized VMs after confirming with their owners; deletes the unattached disks after checking they are not needed; and considers a reservation or savings plan for the steady SQL usage; notes Advisor recommendations can be postponed or dismissed if judged wrong.",
+              "Under-utilized VMs: resize them to the smaller SKU Advisor proposes, or set auto-shutdown for dev machines that run overnight unused; deallocate rather than stop from inside the OS so compute billing ends. Unattached disks: confirm with owners, snapshot if in doubt, then delete -- they bill while attached to nothing. SQL reservation: the two databases run steadily, so buy a reserved capacity term (or a savings plan for databases) for them. Recommendations you disagree with can be postponed or dismissed in Advisor."
             ),
             part(
               "Finding the owners",
@@ -209,7 +211,7 @@ export const AZ104_LABS: SeedLabSet = {
       kind: "build",
       title: "Design SAS access for a partner and an app",
       brief:
-        "Greywater Studios, a fictional animation house, has a storage account gwstudiosprod with a blob container renders. Two needs: (1) an external colour-grading partner must be able to download (read and list) the files under renders/episode-07/ for the next 14 days, from their office only, and the studio must be able to cut the access off at once if the contract ends early -- without rotating the account keys that other systems depend on. (2) The studio's own web app, which signs in with a managed identity, must hand browsers a short-lived link to download a single render file; the security team has banned storing account keys in the app. For each need, say which kind of SAS to use, how it is created and constrained, and how it would be revoked. State the general rules you apply to every SAS you issue.",
+        "Greywater Studios, a fictional animation house, has a storage account gwstudiosprod with a blob container renders. Two needs: (1) an external color-grading partner must be able to download (read and list) the files under renders/episode-07/ for the next 14 days, from their office only, and the studio must be able to cut the access off at once if the contract ends early -- without rotating the account keys that other systems depend on. (2) The studio's own web app, which signs in with a managed identity, must hand browsers a short-lived link to download a single render file; the security team has banned storing account keys in the app. For each need, say which kind of SAS to use, how it is created and constrained, and how it would be revoked. State the general rules you apply to every SAS you issue.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -241,12 +243,12 @@ export const AZ104_LABS: SeedLabSet = {
       kind: "build",
       title: "Write a blob lifecycle policy for raw footage",
       brief:
-        "Greywater Studios stores raw camera footage as block blobs in the container footage of a general-purpose v2 account. Editors work on a shoot's files heavily for about a month after upload, occasionally for the next six months, and after that the files are kept for legal reasons for seven years and almost never opened; when they are, a wait of several hours is acceptable. Finance wants storage cost minimised; the legal team insists nothing is deleted before seven years. Some blobs are rehydrated for a documentary now and then, and those must not be sent straight back to the archive the next day. Write the lifecycle rule (the actual JSON or an exact description of each action and its condition), then explain two things the team must know about how the policy behaves.",
+        "Greywater Studios stores raw camera footage as block blobs in the container footage of a general-purpose v2 account. Editors work on a shoot's files heavily for about a month after upload, occasionally for the next six months, and after that the files are kept for legal reasons for seven years and almost never opened; when they are, a wait of several hours is acceptable. Finance wants storage cost minimized; the legal team insists nothing is deleted before seven years. Some blobs are rehydrated for a documentary now and then, and those must not be sent straight back to the archive the next day. Write the lifecycle rule (the actual JSON or an exact description of each action and its condition), then explain two things the team must know about how the policy behaves.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Write the lifecycle rule and the two behaviour notes.",
+          ask: "Write the lifecycle rule and the two behavior notes.",
           parts: [
             part(
               "The rule",
@@ -254,12 +256,12 @@ export const AZ104_LABS: SeedLabSet = {
               '{"rules":[{"name":"footage-tiering","enabled":true,"type":"Lifecycle","definition":{"filters":{"blobTypes":["blockBlob"],"prefixMatch":["footage/"]},"actions":{"baseBlob":{"tierToCool":{"daysAfterModificationGreaterThan":30},"tierToArchive":{"daysAfterModificationGreaterThan":210,"daysAfterLastTierChangeGreaterThan":30},"delete":{"daysAfterModificationGreaterThan":2555}}}}}]} -- hot for the first month of editing, cool for the six months of occasional use, archive after that, deleted at seven years. The daysAfterLastTierChangeGreaterThan clause keeps a blob rehydrated for the documentary online for at least 30 days before it can be archived again.'
             ),
             part(
-              "Behaviour note: tiers and minimums",
+              "Behavior note: tiers and minimums",
               "States the early-deletion minimums the tiers carry (cool 30 days, cold 90 days, archive 180 days) and that archive is offline -- reads need rehydration, which can take up to 15 hours at standard priority -- so the policy's day counts should not move data to a tier it will leave before the minimum.",
               "Each tier below hot has a minimum stay: 30 days in cool, 90 in cold, 180 in archive; moving or deleting earlier incurs an early-deletion charge for the remaining days. Archive is offline: a blob cannot be read until it is rehydrated to an online tier, which can take up to 15 hours (standard priority), so the seven-year legal copies are only right for archive because a wait of hours is acceptable. Archive cannot be the account's default tier; it is set per blob or by a rule like this one."
             ),
             part(
-              "Behaviour note: how and when it runs",
+              "Behavior note: how and when it runs",
               "Explains that the policy runs on a schedule (not instantly), that it cannot rehydrate blobs from archive (a Set Blob Tier or copy is needed for that), that filters combine with AND and prefixMatch must start with the container name, and that if several actions apply the least expensive wins.",
               "The policy is evaluated on a schedule, so a blob crossing a threshold today may move in a later run, not at once. It will never move a blob out of archive -- rehydration is a Set Blob Tier or Copy Blob operation you run yourself. prefixMatch entries must begin with the container name (footage/...), multiple filters are ANDed, and if two actions match the same blob the cheaper tier wins."
             ),
@@ -542,8 +544,8 @@ export const AZ104_LABS: SeedLabSet = {
             ),
             part(
               "Afterwards: reprotect and failback",
-              "Explains the VMs in West Europe are now unprotected and must be re-protected (replication reversed to North Europe) once that region is back, that only differences are synchronised if the source disks still exist, and that failback is then another failover in the opposite direction.",
-              "After failover the VMs running in West Europe are unprotected. When North Europe is healthy again, Re-protect them: Site Recovery reverses replication to North Europe, synchronising only the changed data if the original disks still exist (usually a few hours). Once in sync, failback is simply a planned failover back to North Europe, followed by re-protecting again toward West Europe so the design is whole."
+              "Explains the VMs in West Europe are now unprotected and must be re-protected (replication reversed to North Europe) once that region is back, that only differences are synchronized if the source disks still exist, and that failback is then another failover in the opposite direction.",
+              "After failover the VMs running in West Europe are unprotected. When North Europe is healthy again, Re-protect them: Site Recovery reverses replication to North Europe, synchronizing only the changed data if the original disks still exist (usually a few hours). Once in sync, failback is simply a planned failover back to North Europe, followed by re-protecting again toward West Europe so the design is whole."
             ),
           ],
         },

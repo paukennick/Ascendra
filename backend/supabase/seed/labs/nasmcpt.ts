@@ -9,7 +9,10 @@ import { source } from "../sources";
 // Behavioral Coaching 15%, Professional Development and Responsibility 10%)
 // and the Optimum Performance Training (OPT) model the exam is written
 // around.
-//   https://www.nasm.org/docs/pdf/cpt7-nasm-exam-blueprint.pdf
+//   https://www.nasm.org/content/dam/nasm/docs/nasmlibraries/pdf/cpt7-nasm-exam-blueprint.pdf
+//   (the old /docs/pdf/ link now lands on NASM's home page; this one is
+//   linked from NASM's exam-information page and was read 2026-11-09:
+//   "UPDATED: 2.10.2021", 2019 Job Analysis Study, 15/15/16/20/24/10%)
 //   NASM candidate handbook (seed credential officialObjectivesUrl)
 // Density ("hybrid"): 2/2/2/2/2/1 = 11.
 //
@@ -22,7 +25,7 @@ import { source } from "../sources";
 export const NASMCPT_LABS: SeedLabSet = {
   trackCode: "NASMCPT",
   sources: [
-    source("https://www.nasm.org/docs/pdf/cpt7-nasm-exam-blueprint.pdf", "exam_outline", "2026-11-07"),
+    source("https://www.nasm.org/content/dam/nasm/docs/nasmlibraries/pdf/cpt7-nasm-exam-blueprint.pdf", "exam_outline", "2026-11-09"),
     source("https://www.nasm.org/certified-personal-trainer/exam-information", "exam_outline", "2026-11-07"),
   ],
   labs: [
@@ -39,7 +42,7 @@ export const NASMCPT_LABS: SeedLabSet = {
           text: "",
           ask: "Name the main energy system for each and what it means for rest between efforts.",
           parts: [
-            part("8-second sprints", "Names the ATP-PC (phosphagen) system as primary for maximal efforts of roughly 10 seconds or less.", "ATP-PC (phosphagen) system: it supplies maximal effort for about the first 10 seconds."),
+            part("8-second sprints", "Names the ATP-PC (phosphagen) system as primary for maximal efforts of up to about 15 seconds.", "ATP-PC (phosphagen) system: stored ATP and creatine phosphate supply maximal effort for about the first 15 seconds."),
             part("60-second intervals", "Names anaerobic glycolysis (the glycolytic system) as primary for hard efforts of roughly 30 seconds to 2 minutes.", "Anaerobic glycolysis: the main supplier for hard efforts lasting from about 30 seconds to 2 minutes."),
             part("40-minute jog", "Names the oxidative (aerobic) system as primary for sustained lower-intensity work.", "The oxidative (aerobic) system: long, steady, lower-intensity work."),
             part("Rest implication", "Explains that maximal short efforts need relatively long rest to restore phosphocreatine (around several minutes for full recovery), while aerobic work needs little or none.", "Maximal sprints need long rest between efforts so phosphocreatine can be restored (full recovery takes a few minutes); the steady jog needs no rest intervals."),
@@ -81,7 +84,7 @@ export const NASMCPT_LABS: SeedLabSet = {
           ask: "Write the goals and how you will track them.",
           parts: [
             part("Long-term goal", "Writes one long-term goal that is specific, measurable, attainable, relevant and time-bound, built from the assessment rather than an arbitrary weight number.", "By the wedding in 20 weeks, train three times a week and average 7,000 steps a day, and hold a 60-second plank with good form."),
-            part("Short-term goals", "Writes at least two short-term (for example 2-4 week) goals that step toward it, including at least one process (behaviour) goal.", "Weeks 1-4: complete 3 sessions a week and add a 10-minute walk after lunch on 5 days (about 4,500 steps a day). By week 4: plank 30 seconds with good form."),
+            part("Short-term goals", "Writes at least two short-term (for example 2-4 week) goals that step toward it, including at least one process (behavior) goal.", "Weeks 1-4: complete 3 sessions a week and add a 10-minute walk after lunch on 5 days (about 4,500 steps a day). By week 4: plank 30 seconds with good form."),
             part("Tracking and review", "Names how progress is measured (step counts, plank time, session attendance, energy rating) and when goals are reviewed and adjusted with the client.", "Track steps from the client's phone, sessions completed and a weekly 1-10 afternoon energy rating; reassess plank time every 4 weeks and adjust the goals together."),
           ],
         },
@@ -102,7 +105,7 @@ export const NASMCPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Stage of change",
-              "Recognises a lapse/relapse from the action stage (or maintenance) in the transtheoretical model, not a client who was never ready.",
+              "Recognizes a lapse/relapse from the action stage (or maintenance) in the transtheoretical model, not a client who was never ready.",
               "They were in the action stage for four months and have lapsed with the job change -- a normal part of change, not proof they're unsuited."
             ),
             part(
@@ -239,7 +242,7 @@ export const NASMCPT_LABS: SeedLabSet = {
           text: "",
           ask: "Write the key elements of the program.",
           parts: [
-            part("Emphasis", "Prioritises balance, functional strength and stabilization (Phase 1 of OPT) with progression at a pace the client tolerates.", "Stabilization-focused training (Phase 1) centred on balance, leg strength and everyday movements like getting up from a chair and turning."),
+            part("Emphasis", "Prioritizes balance, functional strength and stabilization (Phase 1 of OPT) with progression at a pace the client tolerates.", "Stabilization-focused training (Phase 1) centered on balance, leg strength and everyday movements like getting up from a chair and turning."),
             part("Balance work and progression", "Names at least two balance exercises with a safe progression (support -> less support -> unstable/dynamic) and a nearby support or spotter.", "Two-leg stance near a counter -> tandem stance -> single-leg stance with fingertip support -> single-leg reach; walking with head turns later. Always near something to hold and with me alongside."),
             part("Safety and monitoring", "Covers environment (clear floor, stable support, non-slip surface), monitoring with RPE/talk test, and watching for dizziness or new symptoms and referral if they occur.", "Clear, non-slip space with a sturdy chair or rail within reach; monitor effort with the talk test or RPE; stop and refer if dizziness, chest symptoms or new pain appear."),
           ],

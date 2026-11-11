@@ -7,6 +7,50 @@ and regular upkeep. Deploy order stays in
 [deploy-runbook-integration.md](deploy-runbook-integration.md); restoring
 from a backup is in [restore-drill.md](restore-drill.md).
 
+## Production status
+
+As of 2026-11-11. "Observed" means checked from this repo or a public
+endpoint; "reported" means Nick said so and it was not checked here.
+
+- **Running:** `master` d7304d3, releases 2026-11-10 and 2026-11-11.
+  Observed: `/api/health` answered `"status":"ok","schema":"current"` with
+  that commit.
+- **Deploying:** per batch, release branch -> `ops/migrate-production` ->
+  PR merge -> `ops/post-deploy-production`. Steps and the no-`--force` rule
+  for the ops branches:
+  [deploy-runbook-integration.md](deploy-runbook-integration.md#per-batch-as-run-for-releases-2026-11-10-and-2026-11-11).
+- **Settings (reported):** `APP_BASE_URL` is `https://www.ascendra-learn.com`,
+  `SIMS_ENABLED=true`, `AI_ACCESS_MODE=granted`,
+  `AI_GLOBAL_DAILY_CEILING_USD=5`, `BILLING_ENABLED` off.
+  `ERROR_TRACKER_DSN` is supported but **not set** (see "Error tracker").
+
+### Lockdown and password rotation (REQ-207)
+
+Guide: [ops/2026-11-10-lockdown-and-db-rotation.md](ops/2026-11-10-lockdown-and-db-rotation.md).
+
+| Step | What | State |
+|---|---|---|
+| 0 | New database password and the two pooler strings | **Done 2026-11-10** (reported) |
+| 1.1 | `production-backup` environment with `PROD_DATABASE_URL` | **Done 2026-11-10** (reported) |
+| 1.2 | `PROD_DATABASE_URL` in `production-database` | **Done 2026-11-10** (reported) |
+| 1.3 | Branch rule on `production-database` (`ops/*`, `master`) | **Done 2026-11-10** (reported) |
+| 1.4 | Rulesets `protect-master` and `protect-ops` | **To do.** Observed 2026-11-11: the repository's rulesets API returned an empty list |
+| 1.5 | Prove the rulesets | To do |
+| 2 | Fix branch released (migration 071, backup workflows on `production-backup`) | **Done 2026-11-10** (reported; 071 is in the deployed commit) |
+| 3 | Reset the password; Vercel `DATABASE_URL` on the transaction pooler, port 6543; redeploy | **Done 2026-11-10** (reported) |
+| 4 | Required reviewer on `production-database`, prove it, delete the repository-level `PROD_DATABASE_URL` | **To do** |
+| 5 | Optional: run the app as `app_runtime` | Not started |
+
+Until step 4 is done, anyone who can push an `ops/*` branch can start a
+production migration without approval, and the repository-level secret is
+still readable by any workflow. Until `protect-ops` exists, ops branches can
+still be force-pushed.
+
+One check worth doing: lockdown step 3.4 item 5 runs the nightly backup by
+hand. The Actions API listed no runs of "Nightly database backup" on
+2026-11-11 at about 03:00 UTC, so confirm the first scheduled run (11:23
+UTC) is green.
+
 ## Postgres settings
 
 ### JIT off for the app role (Audit 3 HIGH-1)
@@ -123,23 +167,194 @@ nothing. To turn it on:
    5 minutes".
 
 What is sent: error type, message (500 chars), stack, request id, route,
-environment. Never request bodies, headers, tokens or learner ids. The
+environment. Never request bodies, headers, tokens or learner ids. Sentry is
+named as a processor in the Privacy Policy (REQ-205), which is correct once
+this is on; in Sentry set the project's data retention to what you want to
+stand behind, since the policy only says it follows Sentry's own schedule. The
 transport is a plain `fetch` to Sentry's store endpoint; replacing it with
 `@sentry/nextjs` later changes only that file. Errors a route does not catch
 reach Next's `onRequestError` hook in `instrumentation.ts`, which passes them
 to the same tracker with the route path only.
+
+## After SQL applied by hand (FAIL-1162)
+
+Use `npm run migrate` for schema changes: it records each file in the ledger
+and sets a lock timeout. Migrations are not all safe to run twice, so never
+re-run one on the assumption that they are. If SQL has to be applied by hand
+anyway (a re-run, a file pasted into the Supabase SQL editor, a one-off fix),
+finish with both of these, in this order, against the same database:
+
+```sql
+select app_runtime_sync();
+```
+
+then `npm run migrate -- --status` (it must end with "Schema is current").
+`app_runtime_sync()` gives the app's least-privilege role (`app_runtime`) the
+grants and policies for any table, view, sequence or function the hand-applied
+SQL added, and puts back the `search_path` and the revoked PUBLIC EXECUTE on
+any function it replaced; without it the app can fail on the new object while
+checks run as the owner look fine.
 
 ## Health check: required settings
 
 `GET /api/health` now also checks that the settings the backend needs are
 present (names only, never values): `DATABASE_URL`, `AUTH_JWT_SECRET`,
 `AUTH_ENCRYPTION_KEY` (and that it decodes to 32 bytes), `APP_BASE_URL`,
-`RESEND_API_KEY`, `CHOICE_ORDER_SECRET` (production), and Anthropic
-credentials (an API key, or both federation ids). In production a missing one
+`RESEND_API_KEY`, `CHOICE_ORDER_SECRET` and `CRON_SECRET` (both production;
+without `CRON_SECRET` every `/api/cron/*` route answers 503 and the daily
+jobs stop, FAIL-1161), and Anthropic credentials (an API key, or both
+federation ids). In production a missing one
 answers 503 `{ status: "misconfigured", env: [...] }`, so a bad deploy turns
 the health check red straight away instead of failing on a learner's first
 sign-in. Outside production it is a `warnings` entry. Open `/api/health`
 once after every deploy (the daily cron only runs at 09:00 UTC).
+
+## Optional settings (FAIL-1163)
+
+Each is read by the code, optional, and listed with its default in
+`backend/.env.example`. Set them in Vercel -> Project Settings ->
+Environment Variables and redeploy: Vercel applies a changed value to the
+next deployment only.
+
+- `AI_ACCESS_MODE` (`all`, `granted`, `paid`; unset = `all`). Who gets full AI
+  (REQ-201). A typo is treated as `granted`, the cheapest safe mode, and
+  reported.
+- `AI_GLOBAL_DAILY_CEILING_USD` (unset or `off` = none). Total model spend per
+  UTC day; at it coach chat and lesson regenerate pause for everyone but
+  owners.
+- `ERROR_TRACKER_DSN`: see "Error tracker" above. Unset = nothing is sent.
+- `MIN_APP_VERSION` (semver; unset = no minimum). App builds below it get a
+  426 "update required". `IOS_APP_STORE_URL` (an `https://apps.apple.com/`
+  link) is the iOS update screen's button; unset = no button. Android uses the
+  Play Store link in code.
+- `DATABASE_CA_CERT` or `PGSSLROOTCERT`: pin the database's CA so TLS is
+  verified, not only encrypted ([ops/db-tls.md](ops/db-tls.md)). A value that
+  cannot be read is an error, never a silent fall back. `PGSSLMODE=disable`
+  turns TLS off: a throwaway local or CI Postgres only.
+- `DB_STATEMENT_TIMEOUT_MS` (0 = off, at most 600000). Unset = 25 s on a direct
+  or local connection and none sent through the pooler, where the
+  `app_runtime` role carries its own 25 s limit.
+- `MIGRATION_LOCK_TIMEOUT` (default `5s`; `0` = off). The lock wait
+  `npm run migrate` allows before a migration fails and rolls back.
+- `SIMS_ENABLED` (off unless set), `SIMS_RENDERERS` (default
+  `bedside,board,session`), `SIMS_SERVE_UNREVIEWED` (on unless `off`): simulations.
+  `LABS_SERVE_UNREVIEWED` (on unless `off`): labs waiting for expert review.
+- `ITEM_FACT_CHECK` (on unless `off`): the second-model check before generated
+  items publish. Off lets them publish unchecked.
+- `CSP_REPORT_ONLY=true`: send the Content-Security-Policy as report-only
+  (browser console logs, nothing blocked). Use it to trial a stricter policy;
+  leave it unset in production.
+- `APP_URL`: only a fallback for `BILLING_WEB_RETURN_URL` (Stripe Checkout and
+  the discount verification return address). `APP_BASE_URL` builds email
+  links.
+
+## Email sender (REQ-191)
+
+All mail (verification, password reset, email change, MFA codes, alerts)
+goes through Resend from `EMAIL_FROM`. Unset, it falls back to
+`onboarding@resend.dev`, which Resend delivers only to the address of the
+Resend account itself; every other recipient's send is refused with a 403
+(https://resend.com/docs/knowledge-base/403-error-resend-dev-domain). To
+send to real users:
+
+1. In the Resend dashboard, add and verify the sending domain (DNS records).
+2. In Vercel -> Project Settings -> Environment Variables, set `EMAIL_FROM`
+   for Production to an address on that domain, e.g.
+   `Ascendra <no-reply@ascendra-learn.com>`, and redeploy.
+3. Open `/api/health`: it should say `"email":"ok"`.
+
+`/api/health` reports `"email":"unconfigured"` (with a `warnings` entry) in
+production while `EMAIL_FROM` is unset or ends in `@resend.dev`. It stays a
+200 like the jit warning, so the keepalive does not go red.
+
+**Finding failed sends.** Resend answers a refused send with an error
+instead of throwing; `lib/email.ts` now turns that into `EmailSendError`.
+Each failure logs one JSON line in Vercel's logs:
+
+```
+{"event":"email_send_failed","route":"auth/register","kind":"verification","code":"validation_error","statusCode":403}
+```
+
+Search the logs for `email_send_failed`. The line never carries the
+address, the token or Resend's message text (which can name an address).
+Sign-up, resend-verification and forgot-password still answer their usual
+generic message (they must not reveal which addresses have accounts);
+signed-in actions whose mail fails (an MFA code, an email-change
+confirmation) answer 503 "We couldn't send the email just now."
+
+**Email links are scanner-safe.** `/verify-email`, `/confirm-email-change`
+and `/cancel-email-change` only read the token when opened; the person
+presses a button (a POST) to use it. Mail scanners that open links before
+the person does no longer use them up. A link already used on a verified
+account says "Your email is already verified. You can log in."
+
+**Stuck unverified accounts.** A learner who never got the verification
+mail can use "Resend verification email" (on the "Check your email" screen,
+also shown when login answers 403), or "Forgot password": a completed reset
+now also verifies the address. Do not hand-verify accounts in production.
+
+## Support inbox (REQ-205)
+
+People are told to write to one address (the Privacy Policy, Terms and the
+delete-account page): `SUPPORT_EMAIL` if set, else `support@ascendra-learn.com`
+(`lib/support-contact.ts`, and `OWNER.contactEmail` in
+`mobile/src/content/legal.ts`; a test fails if the two differ). Nick has not
+confirmed the address. To change it: edit both constants, or set
+`SUPPORT_EMAIL` in Vercel (the pages on the web follow the variable; the
+app's text follows the constant, so edit both for a lasting change).
+
+How mail reaches Nick: Resend receives it for the domain, calls
+`POST /api/inbound/email` with an `email.received` webhook, and the route
+checks the signature, fetches the message through Resend's API and forwards it
+to `SUPPORT_FORWARD_TO` as plain text. The sender's own HTML is not passed on
+and attachments are only listed by name. The forward comes `From:`
+`EMAIL_FROM` with `Reply-To:` the original sender, so replying in Gmail answers
+the learner. Nothing from a message is written to the logs.
+
+The root domain `ascendra-learn.com` already has its MX record pointing at
+Resend (`receive.forge.rmta.net`), so receiving goes on the root domain. No
+`mail.` subdomain is needed.
+
+**One-time setup (Nick):**
+
+1. Receiving is already ON for `ascendra-learn.com` in Resend (Nick turned it
+   on 2026-11-09; Domains -> `ascendra-learn.com` -> Receiving shows it
+   verified). Nothing to do here unless it is ever turned off.
+2. Resend dashboard -> Webhooks -> Add Webhook. URL:
+   `https://<the production domain>/api/inbound/email`. Event: `email.received`
+   only. Click Add, then open the webhook and copy its **Signing Secret**
+   (`whsec_...`).
+3. In Vercel -> Project Settings -> Environment Variables (Production), set:
+   - `RESEND_WEBHOOK_SECRET` = the signing secret;
+   - `SUPPORT_FORWARD_TO` = the mailbox that should receive support mail (your
+     Gmail address). It must not be an `@ascendra-learn.com` address (that
+     would loop; the route refuses it);
+   - `RESEND_API_KEY` must already be set, and be a key that can read received
+     email (a "Full access" key; a sending-only key is refused with 401/403);
+   - optional: `SUPPORT_EMAIL` to point the delete-account page and support
+     ticket notifications at the same address.
+   Redeploy.
+4. Test: send an email to the support address from another account. It should
+   arrive in `SUPPORT_FORWARD_TO` within a minute, subject `[Support] ...`.
+   In Resend -> Webhooks -> the webhook -> Logs, the delivery should be 200.
+
+**Troubleshooting.** The route answers: 503 when `RESEND_WEBHOOK_SECRET`,
+`RESEND_API_KEY` or `SUPPORT_FORWARD_TO` is missing or the forward address is on
+the support address's domain (nothing is forwarded; the message stays in
+Resend's Emails -> Receiving tab); 401 when the signature is wrong (wrong
+secret, or the secret was rotated); 429 above 120 messages an hour; 502 when
+Resend's API or the forward failed. Resend retries 429/502/503 for a while. A
+log line `inbound email <id>: fetch failed (401)` means the API key cannot read
+received mail.
+
+**Where else mail goes.** Support tickets and course requests made in the app
+are emailed to `SUPPORT_EMAIL` (`lib/email.ts`), falling back to `EMAIL_FROM`
+when unset. If `SUPPORT_EMAIL` is the support address, those notifications also
+pass through this route.
+
+**Where received mail is kept.** Resend keeps received messages under its own
+schedule and in `SUPPORT_FORWARD_TO`'s mailbox until deleted. There is no fixed
+retention period (the Privacy Policy says so); decide one if you want one.
 
 ## Caches and their limits
 
@@ -153,6 +368,12 @@ once after every deploy (the daily cron only runs at 09:00 UTC).
 - **Exam blueprint**: per course, 60 s, same in-process limits. A catalog
   edit shows within a minute.
 - **Health**: 30 s (unchanged).
+- **Global AI spend** (REQ-201, `lib/ai-access.ts`): the day's total from
+  `ai_calls`, 60 s per instance, read only when `AI_GLOBAL_DAILY_CEILING_USD`
+  is set. Each instance may run up to a minute behind, so spend can pass the
+  ceiling by about a minute of traffic before chat and regenerate pause.
+  Switching modes and the ceiling: docs/billing.md, "AI access modes and the
+  global AI ceiling".
 
 ## Upkeep
 
@@ -161,17 +382,262 @@ once after every deploy (the daily cron only runs at 09:00 UTC).
   flags those past 30 days. Drop them as in deploy-runbook-integration.md
   "Cleanup", in the same change that removes their probes from
   `backend/lib/schema-status.ts`.
-- **Restore drill**: quarterly, [restore-drill.md](restore-drill.md).
+- **Nightly backup** (REQ-200): a failed "Nightly database backup" run
+  emails the repo owner; see "Backups" below.
+- **Restore drill**: quarterly, starting with the latest nightly backup, [restore-drill.md](restore-drill.md).
 - **Content review queue** (REQ-143): `npm run review-queue -- list`
   shows what learners' reports or a correct-rate drop put in front of a
   person; resolve each entry there or through `npm run items`
   ([content-review.md](content-review.md)). The daily cron
   `/api/cron/content-signals` (10:40 UTC, `CRON_SECRET`) fills it.
+- **Service emails** (REQ-197): the daily cron `/api/cron/service-emails`
+  (16:10 UTC, `CRON_SECRET`) sends exam change notices, the 14- and 3-day
+  exam countdown and the opt-in weekly digest, each at most once per learner
+  and period (`service_email_log`). Off until `SERVICE_EMAILS_ENABLED=true`
+  (switch on with the Privacy Policy update). Batches of
+  `SERVICE_EMAIL_BATCH` (default 25) with a 0.6 s gap, at most 3 service
+  mails per address a day; the rest wait for the next run. The digest is
+  refused (reported as `refused` in the cron response) until
+  `MAIL_POSTAL_ADDRESS` and `DIGEST_EMAIL_FROM` are set. Failed sends show
+  as `status = 'failed'` and are retried up to 3 tries; a new exam change is
+  added to `backend/lib/exam-changes.ts` (its test checks the dates against
+  the seed).
 - **Source currency** (REQ-142): `npm run currency:report` lists exam
   outlines and lab sources overdue or due within 60 days
   ([source-reliability-standard.md](source-reliability-standard.md)).
 - **`auth_events` retention**: owned by the security branch (daily purge
   cron).
+
+## Backups
+
+REQ-200. The Supabase Free plan keeps no backup we can download or restore
+on our own, so `.github/workflows/db-backup.yml` ("Nightly database backup")
+takes one every day at 11:23 UTC (03:23 PST), and on demand from the Actions
+tab. It runs `pg_dump --format=custom --no-owner --no-privileges` of the whole
+database through the `PROD_DATABASE_URL` secret (the same Session pooler
+secret and `production-database` environment as `migrate-production.yml`),
+streams it straight into `age`, and uploads the encrypted `.age` file with
+two small files as an artifact kept 30 days. The plaintext dump never touches
+disk. The repo is public, so anyone signed in to GitHub can download the
+artifact; without the private key it is noise.
+
+The artifact holds three files:
+
+- `ascendra-db-<UTC time>.dump.age`: the dump, encrypted.
+- `manifest.json.age`: the manifest, encrypted to the same key. It holds the
+  file size, the sha256 of the dump `.age` file, the server version, the
+  time, the number of tables in `public` and the row counts of `app_users`,
+  `attempts` and `mastery`. No user data. The counts and the dump come from
+  one database snapshot, so a restore must match them exactly. It is piped
+  from `jq` into `age`, so it is never plaintext on disk.
+- `checksums.json`: the only plaintext. A format number (2) and the sha256 of
+  the two `.age` files, nothing else, so a corrupt download is caught before
+  decrypting. No counts, no table names, no versions.
+
+The workflow log shows no counts, versions or sizes either (the log is as
+public as the artifact). To read the manifest:
+`age -d -i ascendra-backup.key manifest.json.age | jq`.
+Backups made before this change (format 1) have a plaintext `manifest.json`
+and cannot be drilled by the current `restore-drill.sh`; they expire after 30
+days. The privacy policy tells people the backups are kept 30 days: change
+`retention-days` and the policy together.
+
+The job fails, and GitHub emails the repo owner, if `PROD_DATABASE_URL` or
+`BACKUP_AGE_RECIPIENT` is missing, the recipient is not an age public key,
+`pg_dump` is older than the server, or the encrypted file is under 1 MB
+(production is about 29 MB). The logic is `backend/scripts/db-backup.sh`.
+
+### One-time setup (Nick)
+
+1. Install age on your own computer: `brew install age`, `apt install age`,
+   or a release from github.com/FiloSottile/age.
+2. Make the key: `age-keygen -o ascendra-backup.key`. It prints
+   `Public key: age1...`.
+3. Save `ascendra-backup.key` in your password manager (as a file
+   attachment or a secure note with the whole file), then delete the local
+   copy. Without it no backup can ever be read, so check the saved copy
+   opens before deleting.
+4. In GitHub: Settings -> Secrets and variables -> Actions -> Variables ->
+   New repository variable, name `BACKUP_AGE_RECIPIENT`, value the `age1...`
+   public key only. (A secret of the same name also works.)
+5. Actions -> "Nightly database backup" -> Run workflow, once. Check the run
+   is green and the artifact is there, then do the restore drill below with
+   it.
+
+The private key (`AGE-SECRET-KEY-1...`) is never pasted anywhere: not into
+GitHub, Vercel, Supabase, a chat or an issue. The workflow refuses a value
+that starts with it. If it ever leaks, make a new key, change the variable,
+and treat every artifact from the last 30 days as exposed.
+
+### Restoring
+
+1. Actions -> "Nightly database backup" -> the run you want -> download the
+   artifact and unzip it (the dump `.age` file, `manifest.json.age` and
+   `checksums.json`; keep them in one folder).
+2. Put the key file from your password manager somewhere temporary.
+3. Prove the backup first, on a local Postgres 17 (never production):
+   `backend/scripts/restore-drill.sh <file>.dump.age ascendra-backup.key`
+   (details in [restore-drill.md](restore-drill.md)).
+4. To restore for real into a new Supabase project (it already has the
+   `extensions` schema with uuid-ossp that the tables' defaults call), in
+   this order (FAIL-1160; a dump holds no roles and no grants, and its
+   policies are written `TO app_runtime` and `TO content_recheck`, so a
+   restore into a cluster without those roles fails with about 120 errors):
+   1. Create the two roles, NOLOGIN, before the restore:
+      `psql "$TARGET_DIRECT_URL" -f backend/scripts/restore/01-roles-before-restore.sql`
+      (safe to run twice; a new Supabase project does not
+      have them).
+   2. `age -d -i ascendra-backup.key <file>.dump.age | pg_restore --no-owner
+      --no-privileges --schema=public --dbname="$TARGET_DIRECT_URL"`. It must
+      finish with no errors.
+   3. Re-apply migration 071 (`app_runtime`'s grants and settings, PUBLIC's
+      revoked EXECUTE): `psql "$TARGET_DIRECT_URL" --single-transaction -f
+      backend/supabase/migrations/071_app_runtime_role.sql` (safe to run
+      twice; `npm run migrate -- 071...` would skip it, the restored ledger
+      says it is applied).
+   4. Re-apply `content_recheck`'s grants, which are migration 064's grant
+      block: `psql "$TARGET_DIRECT_URL" --single-transaction -f
+      backend/scripts/restore/02-recheck-grants-after-restore.sql`. Do not
+      re-run the whole of 064 instead: its policies would undo 071's
+      narrowing of what `content_recheck` can read.
+   The roles are new and cannot log in: set `app_runtime`'s password again
+   if the app is to connect as it (docs/ops/2026-11-10-lockdown-and-db-rotation.md,
+   step 5), and create the LOGIN user for the re-check jobs again
+   (docs/content-review.md, "Re-check database user"). Then `npm run migrate
+   -- --status` against it and the checks in [restore-drill.md](restore-drill.md).
+   Point Vercel's `DATABASE_URL` at it last. The drill runs those four steps in
+   the same order, and CI runs it on a second Postgres server that has never
+   had the roles (`backend/scripts/ci/backup-drill-test.sh`).
+5. Delete the key file copy and the downloaded files when done.
+
+### What this does not cover
+
+- No point-in-time recovery. A restore goes back to the last nightly
+  snapshot, so up to 24 hours of answers, accounts and payments since then
+  are lost (more if a night's run failed: check the Actions tab).
+- 30 days of history only; nothing older survives.
+- Supabase's own schemas (`auth`, `storage`, ...) are in the dump but the
+  drill restores `public` only, which holds all of Ascendra's data.
+- If GitHub Actions or the repo is unavailable, so are the backups.
+
+### When to move to Supabase Pro
+
+Switch on Supabase Pro (daily platform backups, and point-in-time recovery
+as an add-on) when any of these is true: billing is on and people are paying,
+about 50 active users, the database is over about 300 MB, or losing a day of
+data is no longer acceptable (point-in-time recovery needed). Keep this
+workflow running after the switch; it is a copy off Supabase.
+
+## Pre-generating lessons
+
+Shared catalog lessons are normally written the first time a learner opens an
+objective (a 13-20 second wait for that learner). **Pre-generation** writes
+them ahead of time for chosen courses, through the Message Batches API at half
+price. It runs only from the **Pre-generate lessons** workflow
+(`.github/workflows/pregenerate.yml`, Actions tab, run by hand); nobody handles
+the API key or the database URL. Code: `lib/pregen.ts`, `scripts/pregenerate.ts`,
+`scripts/pregenerate-lib.ts` (REQ-132, REQ-208).
+
+**How a lesson is made.** Exactly as the app makes one on demand, in two
+batches because the practice questions are written from the teaching text:
+
+1. `submit` creates the **intro batch** (guess prompt + teaching cards).
+2. `collect <intro batch>`, once it has ended, applies the app's checks to each
+   teaching text (content lint; teaching text the writer is unsure of is held
+   back) and creates the **practice batch**, whose prompts carry that text and,
+   for Python/JavaScript/academic courses, ask for a verification program.
+3. `collect <practice batch>` with `intro_batch_id`, once it has ended, shuffles
+   the stored answer position, runs the content lint, the second-model fact-check
+   (one live call per lesson, not discounted), the holdbacks and the exec-check
+   queue, then saves **insert-if-absent**: it never replaces a lesson, a lesson
+   a content fix voided or corrected, an authored lesson or a learner's own
+   version. A lesson that fails a check is logged in `item_holdbacks` (review
+   with `npm run items`) and not saved; its first learner visit makes it through
+   the full pipeline, retry included.
+
+Left out always: retired objectives and units, hidden courses (`hidden_at`
+passed), private courses, authored lessons, and any objective that already has
+a lesson row of any kind.
+
+**The money.** `max_usd` is checked against an **upper bound**, not a guess:
+every request priced at its full `max_tokens` with the Batches discount, plus
+the fact-check at its full `max_tokens` (thinking included). At the 2026-11-09
+prices (Sonnet 5.5, $2 in / $10 out per million tokens; batches $1 / $5) that is
+about **$0.118 a lesson, so about 84 lessons per $10** of cap. The real cost is
+expected to be well under that (collect prints the actual figure), so a run
+usually leaves cap unspent; run estimate again afterwards for what is left.
+`--tracks` is a **priority order**: a track is filled before the next, a unit at
+a time, and the first unit that would pass `max_usd` ends the list, so the
+lowest-priority track loses its later units. Estimate prints per-track counts
+and cost and where the cutoff falls. Submit refuses if even the first unit does
+not fit, if a batch is already running (a second click would pay twice), or
+without `tracks` and `max_usd`.
+
+**Where the spend shows.** Each batch's usage is one `ai_calls` row, purpose
+`pregen`, dated when the batch ended (collecting it twice does not count it
+twice); the live fact-checks are purpose `pregen_fact_check`. Neither counts
+toward `AI_GLOBAL_DAILY_CEILING_USD` (docs/billing.md): a run this size would reach the
+recommended $5 ceiling at once and pause chat and regenerate for learners. The
+rows are in `ai_calls`, so any total over the table includes them; the app's
+price table prices tokens at list price, so such a total shows a batch at twice
+its real cost. The real cost is what collect prints and the artifact holds.
+
+### Steps
+
+**(a) One-time setup (Nick).** In the Claude Console create a workspace named
+**pregen** with a **$110 spend limit**, and create an API key in it. In
+GitHub: repository Settings -> Environments -> **production-database** -> add
+the secret **`ANTHROPIC_PREGEN_API_KEY`** with that key. It is a separate secret
+from the app's key, which this job never has; in GitHub Actions the script
+refuses any other key. (If production pins `ANTHROPIC_MODEL`, set the same as a
+repository variable named `ANTHROPIC_MODEL`; blank uses the default.) The
+workflow stops at once, naming the secret, if `PROD_DATABASE_URL` or
+`ANTHROPIC_PREGEN_API_KEY` is missing.
+
+**(b) Estimate.** Actions -> Pre-generate lessons -> Run workflow, mode
+`estimate`. `tracks` defaults to the launch set in priority order:
+`DPT,PTPREREQ,CCRNADULT,AWSSAA,AWSMLA,SECPLUS,CNA`; `max_usd` 110. On the
+batch-10 seed this is 845 lessons and an upper bound of $100.23 (DPT 110,
+PTPREREQ 95, CCRNADULT 271, AWSSAA 99, AWSMLA 107, SECPLUS 36, CNA 127), so the
+whole set fits with $9.77 to spare. Read the log:
+lessons and upper-bound cost per track and the line "Cut off at ...". Change
+the order or drop courses until the cutoff is where you want it. No model call,
+no write.
+
+**(b2) Trial first.** Before the full run, spend a few dollars to prove the
+whole path on real API responses (the request shapes are untested against the
+live API). Run `submit` with the same `tracks`, **`limit` 25 and `max_usd` 5**
+(25 lessons are about $3 at the upper bound), then collect both stages as in
+(d). Check the counts and the Console usage page (e). Then run **estimate
+again**: the 25 saved lessons drop out, and the new total and cutoff are what
+the full submit will use. Only then run (c) without `limit`.
+
+**(c) Submit.** Mode `submit`, the agreed `tracks` (priority order) and
+`max_usd` (110), no `limit`. The log prints the intro batch id (`msgbatch_...`). Most batches
+finish within an hour.
+
+**(d) Collect, until it ends.** Mode `collect`, `batch_id` = the intro batch id,
+the same `tracks` and `max_usd`. "Not finished yet" means run it later. When it
+has ended it starts the **practice batch** and prints its id. Wait again, then
+run `collect` with `batch_id` = the practice batch id and `intro_batch_id` = the
+intro batch id. That run saves the lessons and prints the counts (saved,
+already had one, held back, failed) and the actual cost. Run each collect once
+per ended batch: a repeat of the first starts nothing (the workflow refuses
+when a newer batch exists), and a repeat of the second only re-checks lessons
+still unsaved. To cover what was cut off, go back to (b): saved lessons drop out
+of the estimate, so use `max_usd` = $110 minus what has been spent.
+
+**(e) Check.** The job summary and the `pregen-summary` artifact hold counts
+only. Then: `npm run items -- list` shows lessons held back for review;
+`select purpose, count(*), sum(output_tokens) from ai_calls where purpose like
+'pregen%' group by 1;` shows the usage; open a pre-generated objective in the
+app and confirm the lesson appears at once; the Console workspace's usage page
+should agree with the actual cost collect printed. Failed and held objectives are
+not a problem: they are simply still missing and are made on first visit.
+
+The log never contains prompts, lesson text or claims (the held-back claims are in
+`item_holdbacks`). To rehearse without cost, `npm run pregen -- --submit
+--tracks ... --max-usd 110 --dry-run` builds every request and sends nothing.
 
 ## CI
 

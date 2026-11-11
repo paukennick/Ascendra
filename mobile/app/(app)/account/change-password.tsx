@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { useRouter } from "expo-router";
 import { api } from "@/api/client";
 import { Button, Card, ErrorBanner, Muted, Screen, TextField } from "@/components/ui";
+import { useGoBack } from "@/lib/useGoBack";
 
 export default function ChangePassword() {
-  const router = useRouter();
+  const goBack = useGoBack("/account");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -41,7 +41,7 @@ export default function ChangePassword() {
             Password changed. Other devices have been signed out and will need to sign in again with your new
             password.
           </Muted>
-          <Button label="Back to account" onPress={() => router.back()} />
+          <Button label="Back to account" onPress={goBack} />
         </Card>
       </Screen>
     );

@@ -170,7 +170,7 @@ export function dueStatus(recheckBy: string, asOf: string, windowDays = DUE_WIND
 }
 
 export interface DueSource {
-  what: "outline" | "lab_source";
+  what: "outline" | "lab_source" | "unit_source";
   url: string;
   kind: string;
   checkedAt: string;
@@ -224,6 +224,21 @@ export function currencyReport(
     // An undated outline is overdue: nobody can say when it was checked.
     const status = o.recheckBy ? dueStatus(o.recheckBy, asOf, windowDays) : "overdue";
     if (status) entry(t.code, t.title).due.push({ what: "outline", url: o.url, kind: "exam_outline", checkedAt: o.checkedAt, recheckBy: o.recheckBy, status });
+  }
+  // REQ-195: a unit's own references (the open textbook a general course is
+  // taught from), each dated like a lab source.
+  for (const t of tracks) {
+    const seen = new Set<string>();
+    for (const u of t.units) {
+      if (u.retiredAt) continue;
+      for (const r of u.sources ?? []) {
+        if (seen.has(r.url)) continue;
+        seen.add(r.url);
+        const recheckBy = sourceRecheckBy(r);
+        const status = dayOf(r.checkedAt) ? dueStatus(recheckBy, asOf, windowDays) : "overdue";
+        if (status) entry(t.code, t.title).due.push({ what: "unit_source", url: r.url, kind: r.kind, checkedAt: r.checkedAt, recheckBy, status });
+      }
+    }
   }
   const titles = new Map(tracks.map((t) => [t.code, t.title]));
   for (const set of labSets) {

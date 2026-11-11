@@ -36,32 +36,32 @@ export const CLOUDNETX_LABS: SeedLabSet = {
       kind: "build",
       title: "Design hybrid connectivity for a retailer",
       brief:
-        "Kingsmead Retail has a head office, a data centre 30 km away, 140 stores, and is moving its core applications to a public cloud. Requirements: the data centre needs a private, high-bandwidth, predictable-latency path to the cloud for database replication (about 4 Gbps sustained) and must keep working if any single link or device fails; stores need secure access to cloud applications over cheap local internet circuits with a backup path when the circuit fails, and tills must keep working; the existing MPLS contract for stores costs five times the internet circuits and renews in six months; forty engineers work from home and need access to internal systems. Design the connectivity.",
+        "Kingsmead Retail has a head office, a data center 30 km away, 140 stores, and is moving its core applications to a public cloud. Requirements: the data center needs a private, high-bandwidth, predictable-latency path to the cloud for database replication (about 4 Gbps sustained) and must keep working if any single link or device fails; stores need secure access to cloud applications over cheap local internet circuits with a backup path when the circuit fails, and tills must keep working; the existing MPLS contract for stores costs five times the internet circuits and renews in six months; forty engineers work from home and need access to internal systems. Design the connectivity.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Design the connectivity for the data centre, the stores and the remote engineers, with the failure modes each design survives.",
+          ask: "Design the connectivity for the data center, the stores and the remote engineers, with the failure modes each design survives.",
           parts: [
             part(
-              "Data centre to cloud",
+              "Data center to cloud",
               "Uses a dedicated or partner cloud interconnect (Direct Connect / ExpressRoute class) sized above 4 Gbps, made redundant with two circuits to two provider edge locations (or interconnect plus VPN backup), with dynamic routing (BGP) so failover is automatic.",
               "Two dedicated cloud interconnect circuits (10 Gbps each is the common step above 4 Gbps sustained) terminating at two different provider edge locations and on two customer routers, with BGP on each so a failed link or router withdraws its routes and traffic moves to the other within seconds. A site-to-site VPN over the internet stays configured as a last-resort path at reduced bandwidth."
             ),
             part(
               "Stores",
-              "Replaces MPLS at renewal with SD-WAN over local broadband internet circuits, with cellular (4G/5G) as the backup path per store, encrypted tunnels to the cloud and data centre, application-aware path selection, and local survivability for tills.",
-              "Let the MPLS contract lapse and deploy SD-WAN edge devices in each store: the primary WAN is the local broadband circuit, the backup is a cellular (4G/5G) connection, both carrying encrypted tunnels to the cloud and the data centre. The SD-WAN controller steers till and payment traffic over the healthier path and fails over automatically. Tills keep a local store-and-forward capability so a total WAN loss delays, rather than stops, sales."
+              "Replaces MPLS at renewal with SD-WAN over local broadband internet circuits, with cellular (4G/5G) as the backup path per store, encrypted tunnels to the cloud and data center, application-aware path selection, and local survivability for tills.",
+              "Let the MPLS contract lapse and deploy SD-WAN edge devices in each store: the primary WAN is the local broadband circuit, the backup is a cellular (4G/5G) connection, both carrying encrypted tunnels to the cloud and the data center. The SD-WAN controller steers till and payment traffic over the healthier path and fails over automatically. Tills keep a local store-and-forward capability so a total WAN loss delays, rather than stops, sales."
             ),
             part(
               "Remote engineers",
               "Gives remote engineers point-to-site (client) VPN access, or preferably a Zero Trust Network Access service, with MFA and device checks, rather than exposing internal systems.",
-              "Forty engineers get a point-to-site client VPN (or, better, a Zero Trust network access service) that authenticates with SSO and MFA and checks device health before granting access to specific internal applications, with split tunnelling so only internal traffic goes through the tunnel."
+              "Forty engineers get a point-to-site client VPN (or, better, a Zero Trust network access service) that authenticates with SSO and MFA and checks device health before granting access to specific internal applications, with split tunneling so only internal traffic goes through the tunnel."
             ),
             part(
               "Why not the alternatives",
-              "Explains a rejected option for at least one tier: dark fibre or satellite for stores (cost / latency), MPLS for cloud access (cost, no cloud-native path), or a single interconnect (single point of failure).",
-              "Dark fibre is right for the 30 km data-centre-to-head-office hop if they ever need it but not for 140 stores; satellite has latency and cost that hurt payments; keeping MPLS buys predictable latency the stores no longer need at five times the price; and a single interconnect, however fast, is a single point of failure for the database replication."
+              "Explains a rejected option for at least one tier: dark fiber or satellite for stores (cost / latency), MPLS for cloud access (cost, no cloud-native path), or a single interconnect (single point of failure).",
+              "Dark fiber is right for the 30 km data-center-to-head-office hop if they ever need it but not for 140 stores; satellite has latency and cost that hurt payments; keeping MPLS buys predictable latency the stores no longer need at five times the price; and a single interconnect, however fast, is a single point of failure for the database replication."
             ),
           ],
         },
@@ -84,11 +84,11 @@ export const CLOUDNETX_LABS: SeedLabSet = {
             part(
               "Address plan",
               "Allocates non-overlapping RFC 1918 space outside 10.0.0.0/12 and 192.168.0.0/16 (for example 10.64.0.0/16 for the hub and a /16 or /18 per spoke, each split into three /22 or larger subnets for 1,000+ hosts), summarisable for routing.",
-              "Avoid 10.0.0.0-10.15.255.255 and 192.168.0.0/16, which on-premises owns. Carve 10.64.0.0/14 for the cloud: hub 10.64.0.0/16; spokes 10.65.0.0/16 (production), 10.66.0.0/16 (test), 10.67.0.0/16 (data), 10.68.0.0/16 (partner zone, from the next /14 if you want 10.64.0.0/14 to stay internal-only). Within each spoke, three /22 subnets (1,022 usable addresses each) leave room to grow, and the whole cloud estate summarises as a couple of routes toward on-premises."
+              "Avoid 10.0.0.0-10.15.255.255 and 192.168.0.0/16, which on-premises owns. Carve 10.64.0.0/14 for the cloud: hub 10.64.0.0/16; spokes 10.65.0.0/16 (production), 10.66.0.0/16 (test), 10.67.0.0/16 (data), 10.68.0.0/16 (partner zone, from the next /14 if you want 10.64.0.0/14 to stay internal-only). Within each spoke, three /22 subnets (1,019 usable addresses each, since the major clouds reserve five addresses per subnet) leave room to grow, and the whole cloud estate summarizes as a couple of routes toward on-premises."
             ),
             part(
               "Routing",
-              "Peers each spoke to the hub only (no spoke-to-spoke peering), with user-defined routes sending spoke traffic to the hub firewall for inspection, and the hub advertising summarised cloud prefixes to on-premises over BGP via the VPN or interconnect gateway.",
+              "Peers each spoke to the hub only (no spoke-to-spoke peering), with user-defined routes sending spoke traffic to the hub firewall for inspection, and the hub advertising summarized cloud prefixes to on-premises over BGP via the VPN or interconnect gateway.",
               "Hub-and-spoke peering: each spoke peers with the hub only, and a default route (or on-premises and other-spoke prefixes) in every spoke points at the hub firewall's internal address so east-west and north-south traffic is inspected. The hub gateway speaks BGP with on-premises, advertising the cloud summary (10.64.0.0/14) and learning 10.0.0.0/12 and 192.168.0.0/16. Spokes never route directly to each other."
             ),
             part(
@@ -113,7 +113,7 @@ export const CLOUDNETX_LABS: SeedLabSet = {
       kind: "build",
       title: "Move a company from VPN-everything to Zero Trust",
       brief:
-        "Calloway Insurance has 3,000 staff, two-thirds remote. Today everyone connects to a full-tunnel VPN that drops them onto a flat internal network where any laptop can reach any server; SaaS traffic is backhauled through the data centre; a recent incident saw a compromised contractor laptop scan and reach the HR database over the VPN; the business has adopted 40 SaaS applications, half of them never approved by IT. Design the move to a Zero Trust architecture and explain how each principle changes what the contractor's laptop could have done.",
+        "Calloway Insurance has 3,000 staff, two-thirds remote. Today everyone connects to a full-tunnel VPN that drops them onto a flat internal network where any laptop can reach any server; SaaS traffic is backhauled through the data center; a recent incident saw a compromised contractor laptop scan and reach the HR database over the VPN; the business has adopted 40 SaaS applications, half of them never approved by IT. Design the move to a Zero Trust architecture and explain how each principle changes what the contractor's laptop could have done.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -123,17 +123,17 @@ export const CLOUDNETX_LABS: SeedLabSet = {
             part(
               "Identity and device as the perimeter",
               "Makes identity the control point: SSO with MFA for every access decision, and device trust (managed device, posture checks such as disk encryption, patch level, EDR running) evaluated per request, so an unmanaged or unhealthy device gets no access.",
-              "Every access request is authenticated with SSO and MFA and authorised against the user's role and the device's posture (company-managed, encrypted, patched, EDR healthy), re-evaluated continuously. The contractor's compromised laptop would have failed posture (or been unmanaged) and received nothing, regardless of where it connected from."
+              "Every access request is authenticated with SSO and MFA and authorized against the user's role and the device's posture (company-managed, encrypted, patched, EDR healthy), re-evaluated continuously. The contractor's compromised laptop would have failed posture (or been unmanaged) and received nothing, regardless of where it connected from."
             ),
             part(
               "Access model",
-              "Replaces the full-tunnel VPN with Zero Trust Network Access via a SASE/SSE platform: users get brokered, per-application connections to only the applications they are authorised for, never network-level access; least privilege by role.",
+              "Replaces the full-tunnel VPN with Zero Trust Network Access via a SASE/SSE platform: users get brokered, per-application connections to only the applications they are authorized for, never network-level access; least privilege by role.",
               "Retire the full-tunnel VPN and deliver access through an SSE/SASE service: the user's device connects to the service, which brokers a connection to each specific application (the claims portal, the HR app) after policy passes. Users never get an IP on the internal network, so there is nothing to scan; the contractor would have reached only the one application in their entitlement."
             ),
             part(
               "Microsegmentation",
               "Segments the internal network and workloads so servers can reach only what they need (identity- or tag-based policies, host or hypervisor firewalls), isolating the HR database from everything but its application tier.",
-              "Inside the data centre and cloud, apply microsegmentation: policies based on workload identity or tags allow the HR application servers to reach the HR database on its port and nothing else can. A compromised host, even one already inside, cannot pivot to the database because the lateral path does not exist."
+              "Inside the data center and cloud, apply microsegmentation: policies based on workload identity or tags allow the HR application servers to reach the HR database on its port and nothing else can. A compromised host, even one already inside, cannot pivot to the database because the lateral path does not exist."
             ),
             part(
               "SaaS and internet traffic",
@@ -169,13 +169,13 @@ export const CLOUDNETX_LABS: SeedLabSet = {
             ),
             part(
               "Geolocation and URL filtering",
-              "Applies geolocation filtering at the edge (WAF / load balancer / CDN) to allow only UK and Ireland (with an exception path for legitimate travellers, such as step-up authentication), and URL filtering on server egress via a proxy or egress firewall allowing only the update repository domains.",
-              "At the edge WAF or CDN, apply a geolocation rule that allows traffic from the UK and Ireland and challenges or blocks the rest, which cuts most credential-stuffing at the door; keep a path for customers travelling abroad, such as a challenge or step-up MFA rather than a hard block. For server egress, route outbound through an egress firewall or proxy with URL filtering that allows only the OS vendor's repository domains and the monitoring endpoints, denying general web browsing."
+              "Applies geolocation filtering at the edge (WAF / load balancer / CDN) to allow only UK and Ireland (with an exception path for legitimate travelers, such as step-up authentication), and URL filtering on server egress via a proxy or egress firewall allowing only the update repository domains.",
+              "At the edge WAF or CDN, apply a geolocation rule that allows traffic from the UK and Ireland and challenges or blocks the rest, which cuts most credential-stuffing at the door; keep a path for customers traveling abroad, such as a challenge or step-up MFA rather than a hard block. For server egress, route outbound through an egress firewall or proxy with URL filtering that allows only the OS vendor's repository domains and the monitoring endpoints, denying general web browsing."
             ),
             part(
               "DLP",
-              "Adds data loss prevention inspection on outbound web traffic and uploads (and in the web application's form handling) for payment card patterns with checksum validation, blocking or alerting, and ensures card data is tokenised rather than stored.",
-              "Enable DLP inspection on the egress proxy and on the application's upload path for primary account number patterns validated with the Luhn check, blocking the transfer and alerting compliance; add the same detector to the WAF for form posts leaving to third parties. Reduce the problem at source by tokenising card numbers with the payment provider so the application never holds them."
+              "Adds data loss prevention inspection on outbound web traffic and uploads (and in the web application's form handling) for payment card patterns with checksum validation, blocking or alerting, and ensures card data is tokenized rather than stored.",
+              "Enable DLP inspection on the egress proxy and on the application's upload path for primary account number patterns validated with the Luhn check, blocking the transfer and alerting compliance; add the same detector to the WAF for form posts leaving to third parties. Reduce the problem at source by tokenizing card numbers with the payment provider so the application never holds them."
             ),
           ],
         },
@@ -213,14 +213,14 @@ export const CLOUDNETX_LABS: SeedLabSet = {
           parts: [
             part(
               "Response",
-              "Identifies a BGP prefix hijack (a more-specific announcement stealing traffic) and responds immediately by announcing equally specific /24s itself, contacting upstream providers to filter the rogue announcement, and warning customers; permanently by creating RPKI Route Origin Authorizations for its prefixes, registering IRR route objects, and monitoring announcements.",
-              "A BGP hijack: the attacker announces a more-specific /24, which wins over the /22 everywhere it propagates. Immediately announce your own /24s so you are at least as specific, open tickets with your upstreams and the attacker's upstream to filter the rogue route, and alert customers about the fake site. Permanently: publish RPKI Route Origin Authorizations so networks doing route origin validation drop announcements not from your AS, keep IRR route objects current so upstream filters are built correctly, and subscribe to a BGP monitoring service that alerts on any announcement of your space."
+              "Identifies a BGP prefix hijack (a more-specific announcement stealing traffic) and responds immediately by announcing equally specific /24s itself, contacting upstream providers to filter the rogue announcement, and warning customers; permanently by creating RPKI Route Origin Authorizations for its prefixes (with a maximum length of /24 so its own emergency /24 announcements stay valid), registering IRR route objects, and monitoring announcements.",
+              "A BGP hijack: the attacker announces a more-specific /24, which wins over the /22 everywhere it propagates. Immediately announce your own /24s so you are at least as specific, open tickets with your upstreams and the attacker's upstream to filter the rogue route, and alert customers about the fake site. Permanently: publish RPKI Route Origin Authorizations for the /22 with a maximum length of 24 -- a ROA with max length 22 would make your own emergency /24s invalid -- so networks doing route origin validation drop announcements not from your AS, keep IRR route objects current so upstream filters are built correctly, and subscribe to a BGP monitoring service that alerts on any announcement of your space."
             ),
           ],
         },
         {
           text: "Week 11: a critical zero-day is published for the exact model of edge firewall at the colocation site; exploitation is observed in the wild and the vendor says a patch is 'coming within days'. The firewall terminates the site-to-site VPNs and fronts the management network.",
-          ask: "What do you do before the patch exists, and what does a patch and vulnerability management programme look like so this is routine?",
+          ask: "What do you do before the patch exists, and what does a patch and vulnerability management program look like so this is routine?",
           parts: [
             part(
               "Compensating controls",
@@ -228,9 +228,9 @@ export const CLOUDNETX_LABS: SeedLabSet = {
               "Follow the vendor's interim guidance: disable or restrict the vulnerable feature, remove the management interface from any internet exposure and allow-list administrative sources, and if the exploit targets the VPN service, limit it to known peer addresses. Watch logs and traffic for the published indicators of compromise, take a configuration backup, and be ready to fail over the VPNs to the cloud-side gateway and isolate the device if you see signs of exploitation."
             ),
             part(
-              "The programme",
-              "Describes an ongoing programme: an asset inventory of network devices and versions, vulnerability feeds and scanning, risk-based SLAs for patching (for example critical within days), test and change windows, verification scans, and an emergency change path.",
-              "A programme, not a scramble: a maintained inventory of every network device, model and firmware; subscriptions to vendor and national advisories plus regular authenticated scans; a risk-based policy (critical and exploited within days, high within two weeks, others on the monthly cycle); a test device or lab, standard change windows, and a pre-approved emergency change path; and a verification scan after patching. Report compliance against the SLAs monthly."
+              "The program",
+              "Describes an ongoing program: an asset inventory of network devices and versions, vulnerability feeds and scanning, risk-based SLAs for patching (for example critical within days), test and change windows, verification scans, and an emergency change path.",
+              "A program, not a scramble: a maintained inventory of every network device, model and firmware; subscriptions to vendor and national advisories plus regular authenticated scans; a risk-based policy (critical and exploited within days, high within two weeks, others on the monthly cycle); a test device or lab, standard change windows, and a pre-approved emergency change path; and a verification scan after patching. Report compliance against the SLAs monthly."
             ),
           ],
         },
@@ -385,8 +385,8 @@ export const CLOUDNETX_LABS: SeedLabSet = {
             ),
             part(
               "B: loss at one hop only",
-              "Interprets loss at an intermediate hop that does not continue to later hops as ICMP rate limiting or de-prioritisation on that router, not real packet loss; concludes the path is healthy and looks elsewhere (Wi-Fi, QoS, codec, the far-end) for the call quality issue.",
-              "If hop 4 were really dropping 60% of packets, every hop after it would show at least that loss; they show 0%. Hop 4's router is rate-limiting or de-prioritising the ICMP/TTL-expired replies it generates, which is normal and harmless. The WAN path is fine. Look at the user's local network (Wi-Fi interference, congestion), QoS marking for voice and video, and the call platform's own quality statistics instead."
+              "Interprets loss at an intermediate hop that does not continue to later hops as ICMP rate limiting or de-prioritization on that router, not real packet loss; concludes the path is healthy and looks elsewhere (Wi-Fi, QoS, codec, the far-end) for the call quality issue.",
+              "If hop 4 were really dropping 60% of packets, every hop after it would show at least that loss; they show 0%. Hop 4's router is rate-limiting or de-prioritizing the ICMP/TTL-expired replies it generates, which is normal and harmless. The WAN path is fine. Look at the user's local network (Wi-Fi interference, congestion), QoS marking for voice and video, and the call platform's own quality statistics instead."
             ),
             part(
               "C: fast link, slow transfer",
@@ -395,8 +395,8 @@ export const CLOUDNETX_LABS: SeedLabSet = {
             ),
             part(
               "D: SYN in, nothing out",
-              "Reads SYNs arriving with no SYN-ACK as a host-level block: a host firewall dropping inbound 443, or the service bound to the wrong interface/address (listening on localhost only), or a return-route problem; checks the listening socket's bind address and the host firewall rules.",
-              "The packets reach the server, so the cloud network and security groups are passing them; the host is not answering. Either the host firewall is dropping inbound 443, or the web service is listening on 127.0.0.1:443 rather than the server's address, or the server has no route back to the client. Check the listening socket's bind address (ss -ltnp), the host firewall rules, and the routing table; fix the bind address or add the firewall allow, then watch tcpdump for the SYN-ACK."
+              "Reads SYNs arriving with no reply at all as a host-level drop: a host firewall silently dropping inbound 443, or a return-route problem (replies leaving by another path); notes that a service bound only to localhost would answer with a RST rather than silence; checks the host firewall rules, the routing table and the listening socket.",
+              "The packets reach the server, so the cloud network and security groups are passing them; the host is not answering. Silence means something is discarding the SYN or the reply: most likely the host firewall dropping inbound 443, or the server has no route back to the client (or replies leave by another interface). A service listening only on 127.0.0.1:443 would not cause silence -- the kernel would answer the SYN with a RST, which tcpdump would show. Check the host firewall rules and the routing table, and confirm the listener with ss -ltnp; add the firewall allow or fix the route, then watch tcpdump for the SYN-ACK."
             ),
           ],
         },

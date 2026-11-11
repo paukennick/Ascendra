@@ -53,7 +53,7 @@ const OUTLINE_CHECKED_AT = "2026-11-08T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const GCP_CDL_TRACK: SeedTrack = {
   code: "GCPCDL",
-  title: "Google Cloud Digital Leader Coach",
+  title: "Prep for the Google Cloud Digital Leader Exam",
   description:
     "Google Cloud Digital Leader: a working, non-technical fluency in Google Cloud -- digital and data transformation, AI, modern infrastructure, trust and security, and how organizations actually run and pay for cloud operations.",
   trackType: "certification",
@@ -200,7 +200,7 @@ export const GCP_CDL_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_ACE_TRACK: SeedTrack = {
   code: "GCPACE",
-  title: "Google Cloud Associate Cloud Engineer Coach",
+  title: "Prep for the Google Cloud Associate Cloud Engineer Exam",
   description:
     "Google Cloud Associate Cloud Engineer: deploying, securing, and operating applications and infrastructure on Google Cloud -- environment setup, compute/storage/networking implementation, day-2 operations, and access/security configuration.",
   trackType: "certification",
@@ -357,7 +357,7 @@ export const GCP_ACE_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_PCA_TRACK: SeedTrack = {
   code: "GCPPCA",
-  title: "Google Cloud Professional Cloud Architect Coach",
+  title: "Prep for the Google Cloud Professional Cloud Architect Exam",
   description:
     "Google Cloud Professional Cloud Architect: designing, building, and managing secure, scalable, cost-effective solutions on Google Cloud, anchored in the Well-Architected Framework's six pillars, plus the exam's own recurring case studies (Altostrat Media, Cymbal Retail, EHR Healthcare, KnightMotives Automotive).",
   trackType: "certification",
@@ -540,13 +540,13 @@ export const GCP_PCA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_PDE_TRACK: SeedTrack = {
   code: "GCPPDE",
-  title: "Google Cloud Professional Data Engineer Coach",
+  title: "Prep for the Google Cloud Professional Data Engineer Exam",
   description:
     "Google Cloud Professional Data Engineer: designing, building, and securing data processing systems on Google Cloud -- ingestion pipelines, storage system selection, data warehouses and lakes, preparing data for analysis and AI/ML, and keeping data workloads running reliably.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
-  sourceUrl: "https://cloud.google.com/learn/certification/guides/data-engineer",
+  sourceUrl: "https://services.google.com/fh/files/misc/professional_data_engineer_exam_guide_english.pdf",
   sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
@@ -560,7 +560,7 @@ export const GCP_PDE_TRACK: SeedTrack = {
     // its section names and weights match the units below.
     // Version from the PDF's title: "v4.2 Professional Data Engineer Exam Guide".
     objectivesRevision: "Exam guide v4.2",
-    officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/data-engineer",
+    officialObjectivesUrl: "https://services.google.com/fh/files/misc/professional_data_engineer_exam_guide_english.pdf",
     lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing data solutions using Google Cloud.",
@@ -680,19 +680,42 @@ export const GCP_PDE_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 // Professional: Google Cloud Professional Cloud DevOps Engineer
 // 120 minutes, 50-60 questions, $200.
-// Sections: 20% / 25% / 18% / 25% / 12%.
+// Sections: 18% / 30% / 18% / 22% / 12% (exam guide live on 2026-11-23;
+// the guide before it was 20% / 25% / 18% / 25% / 12%).
+//
+// Content audit fix (2026-11-09), modelled the way AWSSAP moved to SAP-C03:
+//   - The five units written to the old guide stay at sort_order 0-4 with
+//     retiredAt set, so learners' mastery, attempts and cached lessons on
+//     them are kept. retiredAt is 2026-11-23T12:00Z: the old guide applies
+//     to exams taken before November 23, so a learner sitting the exam on
+//     November 22 keeps those units until that day has ended in every time
+//     zone.
+//     Their titles carry "(guide before November 23, 2026)": three section
+//     names are unchanged in the new guide and unit titles must be unique.
+//   - The five sections of the new guide are new units at sort_order 5-9,
+//     written from its numbered considerations
+//     (https://services.google.com/fh/files/misc/112326_professional_cloud_devops_engineer_exam_guide_english.pdf,
+//     read 2026-11-09). Mastery is not copied across: the sections were
+//     renamed, reweighted and given new topics (agent reliability and
+//     sandboxing, MCP servers, Network Connectivity Center, short-lived
+//     credentials, feedback loops, agent telemetry, token costs).
+//   - Exam domains, weights and readiness use the new units only; until the
+//     old units' retiredAt passes both sets are listed, as for SAP-C03.
+//   - Authored labs point at the new units' objectives (labs/gcp-devops.ts).
 // ---------------------------------------------------------------------------
+const GCP_DEVOPS_OLD_GUIDE_RETIRED_AT = "2026-11-23T12:00:00Z";
+const GCP_DEVOPS_CHECKED_AT = "2026-11-09T00:00:00Z";
+
 export const GCP_DEVOPS_TRACK: SeedTrack = {
   code: "GCPDEVOPS",
-  title: "Google Cloud Professional Cloud DevOps Engineer Coach",
+  title: "Prep for the Google Cloud Professional Cloud DevOps Engineer Exam",
   description:
     "Google Cloud Professional Cloud DevOps Engineer: bootstrapping a Google Cloud organization, building CI/CD pipelines for applications/infrastructure/ML workloads, applying SRE practices, implementing observability, and optimizing performance and cost.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
-  sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-devops-engineer",
-  contentReviewDueAt: "2026-11-23T00:00:00Z",
-  sourceVerifiedAt: OUTLINE_CHECKED_AT,
+  sourceUrl: "https://services.google.com/fh/files/misc/112326_professional_cloud_devops_engineer_exam_guide_english.pdf",
+  sourceVerifiedAt: GCP_DEVOPS_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "cloud-devops-engineer",
@@ -700,17 +723,14 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
     credentialUrl: "https://cloud.google.com/learn/certification/cloud-devops-engineer",
     basis: "vendor_exam_unpublished_code",
     status: "active",
-    // REQ-142: OUTDATED FROM 2026-11-23. Read 2026-11-08: the certification page links
-    // two guides. The current one (professional_cloud_devops_engineer_exam_guide_english.pdf,
-    // "take the exam before November 23") matches the units below (20/25/18/25/12). The new
-    // one, https://services.google.com/fh/files/misc/112326_professional_cloud_devops_engineer_exam_guide_english.pdf
-    // ("live on November 23"), renames section 1 ("Establishing and bootstrapping
-    // foundational infrastructure and organizational governance"), adds "maintaining" and
-    // ML workloads to section 2, and reweights to 18/30/18/22/12. Not rewritten here; the
-    // review is due on the switch date.
-    objectivesRevision: "Exam guide in effect until November 22, 2026",
-    officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-devops-engineer",
-    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
+    // REQ-142 found this outline OUTDATED FROM 2026-11-23 (the certification page links
+    // the guide for exams before November 23 and the new one, "live on November 23").
+    // Re-authored 2026-11-09 to the new guide (see the block comment above); the old
+    // guide's units are kept, retired from 2026-11-23T12:00Z.
+    objectivesRevision: "Exam guide live on November 23, 2026",
+    effectiveDate: "2026-11-23",
+    officialObjectivesUrl: "https://services.google.com/fh/files/misc/112326_professional_cloud_devops_engineer_exam_guide_english.pdf",
+    lastVendorVerifiedAt: GCP_DEVOPS_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing solutions using Google Cloud.",
     durationMinutes: 120,
@@ -719,7 +739,8 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
   },
   units: [
     {
-      title: "Bootstrapping and Maintaining a Google Cloud Organization",
+      title: "Bootstrapping and Maintaining a Google Cloud Organization (guide before November 23, 2026)",
+      retiredAt: GCP_DEVOPS_OLD_GUIDE_RETIRED_AT, // guide before 2026-11-23; see block comment
       weight: 20,
       gate: "Given a new organization to stand up, say which layer a decision belongs to -- resource hierarchy, infrastructure tooling, CI/CD, environment management, or dev environment -- and the specific Google Cloud mechanism for it.",
       objectives: [
@@ -747,7 +768,8 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Building and Implementing CI/CD Pipelines",
+      title: "Building and Implementing CI/CD Pipelines (guide before November 23, 2026)",
+      retiredAt: GCP_DEVOPS_OLD_GUIDE_RETIRED_AT, // guide before 2026-11-23; see block comment
       weight: 25,
       gate: "Given a deployment scenario, name the specific pipeline mechanism -- trigger, approval flow, deployment strategy, or secret-management approach -- that governs it.",
       objectives: [
@@ -768,7 +790,8 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Applying Site Reliability Engineering Practices",
+      title: "Applying Site Reliability Engineering Practices (guide before November 23, 2026)",
+      retiredAt: GCP_DEVOPS_OLD_GUIDE_RETIRED_AT, // guide before 2026-11-23; see block comment
       weight: 18,
       gate: "Given a reliability-versus-velocity trade-off, name the specific SRE mechanism -- SLI, SLO, error budget -- that governs the decision, not just 'be more careful.'",
       objectives: [
@@ -784,7 +807,8 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Implementing Observability Practices and Troubleshooting Issues",
+      title: "Implementing Observability Practices and Troubleshooting Issues (guide before November 23, 2026)",
+      retiredAt: GCP_DEVOPS_OLD_GUIDE_RETIRED_AT, // guide before 2026-11-23; see block comment
       weight: 25,
       gate: "Given a production issue, say which observability signal -- log, metric, or trace -- actually answers the question being asked, and the specific tool that surfaces it.",
       objectives: [
@@ -814,7 +838,8 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Optimizing Performance and Cost",
+      title: "Optimizing Performance and Cost (guide before November 23, 2026)",
+      retiredAt: GCP_DEVOPS_OLD_GUIDE_RETIRED_AT, // guide before 2026-11-23; see block comment
       weight: 12,
       gate: "Given a cost or performance problem, name the specific Google Cloud tool or practice that addresses it -- not a generic 'right-size it' answer.",
       objectives: [
@@ -828,6 +853,139 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
         "Optimizing individual workload costs: GKE, Cloud Run, Compute Engine",
       ],
     },
+    // ----- Exam guide live on 2026-11-23 (sections 1-5) -----
+    {
+      title: "Establishing and Bootstrapping Foundational Infrastructure and Organizational Governance",
+      weight: 18,
+      gate: "Given a new organization or platform team to stand up, say which layer a decision belongs to -- resource hierarchy, infrastructure tooling, CI/CD stack, runtime environments, or development environments -- and the specific Google Cloud mechanism for it, including where agents run and how they reach tools.",
+      objectives: [
+        // 1.1
+        "Organizing resources: application-centric structure, projects, folders",
+        "Designing shared networking: Shared VPC, VPC Network Peering, Network Connectivity Center, Private Service Connect",
+        "Designing multi-project monitoring and logging",
+        "Designing IAM roles and organization-level policies",
+        "Creating and managing service accounts",
+        "Designing for data residency",
+        // 1.2
+        "Choosing infrastructure-as-code tooling and managed services: Application Design Center, Infrastructure Manager, Config Connector, GitOps, Terraform, Helm",
+        "Making infrastructure changes using Google-recommended practices and blueprints, such as Terraform modules",
+        "Automating infrastructure tasks with scripting: Python, Go",
+        "Implementing Provisioned Throughput for agent reliability",
+        // 1.3
+        "Designing continuous integration with Cloud Build",
+        "Designing continuous delivery with Cloud Deploy, including Kustomize and Skaffold",
+        "Configuring Artifact Registry",
+        "Choosing widely used third-party CI/CD tooling: Git, Argo CD, Flux, kpt",
+        "Securing CI/CD tooling",
+        // 1.4
+        "Managing ephemeral environments",
+        "Managing configuration and policy across runtime environments",
+        "Managing GKE clusters across an enterprise: fleets",
+        "Managing serverless runtime environments",
+        "Applying safe and secure patching and upgrading practices",
+        "Isolating agent execution environments: GKE Agent Sandbox",
+        // 1.5
+        "Configuring and managing cloud development environments: Cloud Workstations, Cloud Shell",
+        "Bootstrapping a development environment with required tooling: custom images, IDE, Google Cloud SDK",
+        "Using AI to assist development and operations: Antigravity, Gemini Cloud Assist",
+        "Configuring and using Model Context Protocol (MCP) servers",
+      ],
+    },
+    {
+      title: "Building, Implementing, and Maintaining CI/CD Pipelines",
+      weight: 30,
+      gate: "Given a deployment scenario for an application, infrastructure or ML workload, name the specific pipeline mechanism -- trigger, approval flow, deployment strategy, credential or secret approach, or supply-chain control -- that governs it.",
+      objectives: [
+        // 2.1
+        "Designing CI/CD for applications and infrastructure",
+        "Managing artifacts with Artifact Registry",
+        "Designing deployment to hybrid and multicloud environments, including GKE",
+        "Designing CI/CD pipeline triggers",
+        "Configuring deployment processes: approval flows",
+        // 2.2
+        "Auditing and tracking deployments: Artifact Registry, Cloud Build, Cloud Deploy, Cloud Audit Logs",
+        "Choosing a deployment strategy -- canary, blue/green, rolling, traffic splitting, feature flags -- and defining success metrics from application or ML pipeline telemetry",
+        // 2.3
+        "Managing keys with Cloud Key Management Service",
+        "Managing configuration and secrets: Secret Manager, Certificate Manager, Parameter Manager, Workload Identity Federation",
+        "Choosing build-time versus runtime secret injection",
+        "Managing short-lived credentials",
+        // 2.4
+        "Applying Artifact Analysis and vulnerability scanning",
+        "Applying software supply chain security: Binary Authorization, the SLSA framework",
+        "Scoping IAM policy by environment for pipeline security",
+      ],
+    },
+    {
+      title: "Applying Site Reliability Engineering Practices",
+      weight: 18,
+      gate: "Given a reliability-versus-velocity trade-off, name the specific SRE mechanism -- SLI, SLO, error budget, capacity plan or feedback loop -- that governs the decision, not just 'be more careful.'",
+      objectives: [
+        // 3.1
+        "Defining SLIs (availability, latency), SLOs, and SLAs",
+        "Defining error budgets: Cloud Service Mesh, Cloud Run and Cloud Monitoring definitions",
+        "Weighing the opportunity cost of risk against reliability, including the number of \"nines\"",
+        // 3.2
+        "Managing a service's lifecycle: planning, deployment, maintenance, retirement",
+        "Planning capacity: quotas, limits, reservations, Dynamic Workload Scheduler",
+        "Designing autoscaling: managed instance groups, Cloud Run, GKE",
+        "Implementing feedback loops for continuous improvement",
+        // 3.3
+        "Draining or redirecting traffic to mitigate an incident",
+        "Adding capacity to mitigate an incident",
+        "Choosing a rollback strategy during an incident",
+      ],
+    },
+    {
+      title: "Implementing Observability Practices and Troubleshooting Issues",
+      weight: 22,
+      gate: "Given a production issue, say which observability signal -- log, metric, or trace -- actually answers the question being asked, and the specific tool that surfaces it, for services and agents alike.",
+      objectives: [
+        // 4.1
+        "Collecting and importing logs: Ops Agent, OpenTelemetry, Cloud Audit Logs, VPC Flow Logs, Cloud Service Mesh",
+        "Optimizing logs: filtering, sampling, exclusions, cost management, source considerations",
+        "Collecting metrics from applications, platforms, networking, Cloud Service Mesh, Managed Service for Prometheus, and hybrid/multicloud environments",
+        "Creating synthetic monitors to proactively probe application endpoints and workflows",
+        "Creating custom metrics, including log-based metrics",
+        "Emitting metrics and logs from services and agents: GKE, Cloud Run, Gemini Enterprise Agent Platform, Agent Development Kit, Antigravity",
+        // 4.2
+        "Analyzing logs with the Logs Explorer, including AI-assisted analysis",
+        "Exporting and retaining logs: routing to BigQuery, Pub/Sub, Cloud Storage",
+        "Redacting sensitive data (PII, PHI) from logs with log processors",
+        "Capturing and analyzing distributed traces: OpenTelemetry, trace waterfalls, span analysis, correlating trace IDs with structured logs, AI-assisted analysis",
+        // 4.3
+        "Analyzing metrics with the Metrics Explorer",
+        "Managing dashboards: creating, filtering, sharing, playbooks, PromQL",
+        "Configuring alerting policies: SLIs, SLOs, cost control",
+        "Integrating third-party alerting tools: webhooks, PagerDuty, Slack, Discord",
+        "Using AI-assisted metrics interpretation",
+        // 4.4
+        "Troubleshooting infrastructure issues",
+        "Troubleshooting CI/CD pipeline issues",
+        "Troubleshooting application issues",
+        "Troubleshooting observability issues themselves",
+        "Troubleshooting performance and latency issues",
+      ],
+    },
+    {
+      title: "Optimizing Performance and Cost",
+      weight: 12,
+      gate: "Given a cost or performance problem, name the specific Google Cloud tool or practice that addresses it -- not a generic 'right-size it' answer -- including what agents and model calls cost.",
+      objectives: [
+        // 5.1
+        "Monitoring application and agent performance",
+        "Using Active Assist insights and recommendations",
+        // 5.2
+        "Accounting for observability costs",
+        "Using Spot VMs to reduce cost",
+        "Optimizing resource usage for cost and efficiency",
+        "Planning infrastructure cost: committed-use discounts, sustained-use discounts, network tiers",
+        "Using Google Cloud recommenders: cost, security, performance, manageability, reliability",
+        "Optimizing individual workload costs: GKE, Cloud Run, Compute Engine",
+        "Using Provisioned Throughput to control costs",
+        "Optimizing token consumption",
+      ],
+    },
   ],
 };
 
@@ -838,13 +996,13 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_SEC_TRACK: SeedTrack = {
   code: "GCPSEC",
-  title: "Google Cloud Professional Cloud Security Engineer Coach",
+  title: "Prep for the Google Cloud Professional Cloud Security Engineer Exam",
   description:
     "Google Cloud Professional Cloud Security Engineer: configuring identity and access, securing communications and network boundaries, protecting data at rest/in transit/in use, automating security operations, and supporting regulatory compliance on Google Cloud.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
-  sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-security-engineer",
+  sourceUrl: "https://services.google.com/fh/files/misc/professional_cloud_security_engineer_exam_guide_english.pdf",
   sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
@@ -858,7 +1016,7 @@ export const GCP_SEC_TRACK: SeedTrack = {
     // its section names and weights match the units below.
     versionNote:
       "Google prints no version or date on this exam guide (page or PDF, read 2026-11-08); section names and weights match the units, so it is the current guide.",
-    officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-security-engineer",
+    officialObjectivesUrl: "https://services.google.com/fh/files/misc/professional_cloud_security_engineer_exam_guide_english.pdf",
     lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing solutions using Google Cloud.",
@@ -983,13 +1141,13 @@ export const GCP_SEC_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_NET_TRACK: SeedTrack = {
   code: "GCPNET",
-  title: "Google Cloud Professional Cloud Network Engineer Coach",
+  title: "Prep for the Google Cloud Professional Cloud Network Engineer Exam",
   description:
     "Google Cloud Professional Cloud Network Engineer: designing, implementing, and troubleshooting VPC networks, hybrid/multicloud interconnectivity, managed network services, and cloud network security on Google Cloud.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
-  sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-network-engineer",
+  sourceUrl: "https://services.google.com/fh/files/misc/042426_professional_cloud_network_engineer_exam_guide_english.pdf",
   sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
@@ -1004,7 +1162,7 @@ export const GCP_NET_TRACK: SeedTrack = {
     // "042426" is Google's date-coded file prefix (the DevOps guide that goes live
     // on November 23 is "112326"), i.e. the April 24, 2026 guide.
     objectivesRevision: "Exam guide 042426",
-    officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-network-engineer",
+    officialObjectivesUrl: "https://services.google.com/fh/files/misc/042426_professional_cloud_network_engineer_exam_guide_english.pdf",
     lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing solutions using Google Cloud.",
@@ -1195,13 +1353,13 @@ export const GCP_NET_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_DBE_TRACK: SeedTrack = {
   code: "GCPDBE",
-  title: "Google Cloud Professional Cloud Database Engineer Coach",
+  title: "Prep for the Google Cloud Professional Cloud Database Engineer Exam",
   description:
     "Google Cloud Professional Cloud Database Engineer: designing scalable, highly available database solutions, managing solutions across multiple database technologies, migrating data into Google Cloud, and deploying and scaling databases in production.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
-  sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-database-engineer",
+  sourceUrl: "https://services.google.com/fh/files/misc/professional_cloud_database_engineer_exam_guide_english.pdf",
   sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
@@ -1215,7 +1373,7 @@ export const GCP_DBE_TRACK: SeedTrack = {
     // its section names and weights match the units below.
     // Version from the PDF's title: "Professional Cloud Database Engineer Exam Guide v1.2".
     objectivesRevision: "Exam guide v1.2",
-    officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-database-engineer",
+    officialObjectivesUrl: "https://services.google.com/fh/files/misc/professional_cloud_database_engineer_exam_guide_english.pdf",
     lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "5+ years of overall IT/database experience, including 2+ years of hands-on experience with Google Cloud database solutions.",
@@ -1308,13 +1466,13 @@ export const GCP_DBE_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_DEV_TRACK: SeedTrack = {
   code: "GCPDEV",
-  title: "Google Cloud Professional Cloud Developer Coach",
+  title: "Prep for the Google Cloud Professional Cloud Developer Exam",
   description:
     "Google Cloud Professional Cloud Developer: designing scalable, secure cloud-native applications, building and testing them with Google-recommended tools, configuring deployment to Cloud Run/GKE, and integrating applications with Google Cloud data and API services.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
-  sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-developer",
+  sourceUrl: "https://services.google.com/fh/files/misc/professional_cloud_developer_exam_guide_english.pdf",
   sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
@@ -1328,7 +1486,7 @@ export const GCP_DEV_TRACK: SeedTrack = {
     // its section names and weights match the units below.
     versionNote:
       "Google prints no version or date on this exam guide (page or PDF, read 2026-11-08); section names and weights match the units, so it is the current guide.",
-    officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-developer",
+    officialObjectivesUrl: "https://services.google.com/fh/files/misc/professional_cloud_developer_exam_guide_english.pdf",
     lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing solutions using Google Cloud.",
@@ -1437,13 +1595,13 @@ export const GCP_DEV_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_MLE_TRACK: SeedTrack = {
   code: "GCPMLE",
-  title: "Google Cloud Professional Machine Learning Engineer Coach",
+  title: "Prep for the Google Cloud Professional Machine Learning Engineer Exam",
   description:
     "Google Cloud Professional Machine Learning Engineer: architecting low-code AI solutions, managing data and models with a team, scaling prototypes into production ML models, serving and scaling models, automating ML pipelines, and monitoring AI solutions.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
-  sourceUrl: "https://cloud.google.com/learn/certification/guides/machine-learning-engineer",
+  sourceUrl: "https://services.google.com/fh/files/misc/professional_machine_learning_engineer_exam_guide_english_new.pdf",
   sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
@@ -1457,7 +1615,7 @@ export const GCP_MLE_TRACK: SeedTrack = {
     // its section names and weights match the units below.
     // The PDF's heading: "Certification exam guide as of June 1, 2026".
     objectivesRevision: "Exam guide as of June 1, 2026",
-    officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/machine-learning-engineer",
+    officialObjectivesUrl: "https://services.google.com/fh/files/misc/professional_machine_learning_engineer_exam_guide_english_new.pdf",
     lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year using Google Cloud. The exam does not directly test coding, but assumes minimum Python/SQL proficiency to interpret code snippets in questions.",
@@ -1579,7 +1737,7 @@ export const GCP_MLE_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_GAIL_TRACK: SeedTrack = {
   code: "GCPGAIL",
-  title: "Google Cloud Generative AI Leader Coach",
+  title: "Prep for the Google Cloud Generative AI Leader Exam",
   description:
     "Google Cloud Generative AI Leader: a business-level, no-code fluency in generative AI -- core concepts, Google Cloud's gen AI product landscape, techniques that improve model output, and the business strategy and security/responsible-AI considerations behind a successful gen AI initiative.",
   trackType: "certification",

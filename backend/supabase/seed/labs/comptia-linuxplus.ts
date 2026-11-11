@@ -34,7 +34,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
       kind: "case",
       title: "Get a web service back up from its unit status and journal",
       brief:
-        "You administer web01, an Ubuntu server at Fernhill Books that serves the company catalogue with nginx. After a reboot for kernel patches, the catalogue is down. A colleague says they 'installed Apache yesterday to test something' and then left for the week. Work the problem with systemctl, journalctl and ss, and leave the box in a state that survives the next reboot.",
+        "You administer web01, an Ubuntu server at Fernhill Books that serves the company catalog with nginx. After a reboot for kernel patches, the catalog is down. A colleague says they 'installed Apache yesterday to test something' and then left for the week. Work the problem with systemctl, journalctl and ss, and leave the box in a state that survives the next reboot.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -57,7 +57,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
         {
           text:
             "$ sudo ss -tlnp 'sport = :80'\nState   Recv-Q  Send-Q  Local Address:Port  Peer Address:Port  Process\nLISTEN  0       511           0.0.0.0:80         0.0.0.0:*      users:((\"apache2\",pid=1012,fd=4),(\"apache2\",pid=1011,fd=4),(\"apache2\",pid=1009,fd=4))\n\n$ systemctl is-enabled apache2\nenabled",
-          ask: "Fix it so the catalogue is served now and stays served after the next reboot, and show how you confirm each step.",
+          ask: "Fix it so the catalog is served now and stays served after the next reboot, and show how you confirm each step.",
           parts: [
             part(
               "Clearing the port and starting nginx",
@@ -72,7 +72,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "The catalogue is back. Your manager asks for two things: proof that nginx will restart on its own if it crashes, and a way to check the service's recent errors quickly during the next incident.",
+          text: "The catalog is back. Your manager asks for two things: proof that nginx will restart on its own if it crashes, and a way to check the service's recent errors quickly during the next incident.",
           ask: "What do you configure and which commands do you hand over?",
           parts: [
             part(
@@ -104,7 +104,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Adding the disk to LVM",
-              "Confirms the device (lsblk, no existing data), initialises it as a physical volume (pvcreate /dev/sdc, optionally on a partition), extends the volume group (vgextend vg_data /dev/sdc), and checks with pvs/vgs that vg_data now has roughly 500 GB free.",
+              "Confirms the device (lsblk, no existing data), initializes it as a physical volume (pvcreate /dev/sdc, optionally on a partition), extends the volume group (vgextend vg_data /dev/sdc), and checks with pvs/vgs that vg_data now has roughly 500 GB free.",
               "lsblk -f /dev/sdc to confirm it is empty. sudo pvcreate /dev/sdc (or partition it first with parted and use /dev/sdc1). sudo vgextend vg_data /dev/sdc. sudo vgs vg_data should show VSize about 700 GB with about 500 GB VFree (200 GB in use by lv_data)."
             ),
             part(
@@ -181,8 +181,8 @@ export const LINUXPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Create the group and the account",
-              "groupadd devops, then useradd with a home directory, bash shell, supplementary group and expiry: sudo useradd -m -s /bin/bash -G devops -e 2027-01-31 jmorales, followed by setting an initial password (passwd jmorales) or forcing a change on first login (chage -d 0).",
-              "sudo groupadd devops\nsudo useradd -m -s /bin/bash -G devops -e 2027-01-31 jmorales\nsudo passwd jmorales (set a temporary password) and sudo chage -d 0 jmorales so Jalen must change it at first login. -m creates /home/jmorales from /etc/skel, -s sets the shell, -G adds the supplementary group (the primary group defaults to a private group jmorales), -e sets the account expiry date."
+              "groupadd devops, then useradd with a home directory, bash shell, supplementary group and expiry: sudo useradd -m -s /bin/bash -G devops -e 2027-02-01 jmorales (the account is disabled on the -e date itself, so the day after the last working day; -e 2027-01-31 is accepted if the learner notes it cuts off the final day), followed by setting an initial password (passwd jmorales) or forcing a change on first login (chage -d 0).",
+              "sudo groupadd devops\nsudo useradd -m -s /bin/bash -G devops -e 2027-02-01 jmorales\nsudo passwd jmorales (set a temporary password) and sudo chage -d 0 jmorales so Jalen must change it at first login. -m creates /home/jmorales from /etc/skel, -s sets the shell, -G adds the supplementary group (the primary group defaults to a private group jmorales), -e sets the account expiry date; the account is disabled from the start of that date, so 2027-02-01 lets Jalen work through 31 January."
             ),
             part(
               "Add the docker group later without losing devops",
@@ -196,8 +196,8 @@ export const LINUXPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Verification",
-              "Verifies with id jmorales (uid, gid, groups), getent group devops docker (members), getent passwd jmorales (home and shell), chage -l jmorales (account expires 31 Jan 2027), and ls -ld /home/jmorales (owner and 750/700 mode).",
-              "id jmorales -> uid, gid=jmorales, groups=jmorales,devops,docker. getent group devops -> devops:x:1005:jmorales. getent passwd jmorales -> .../home/jmorales:/bin/bash. sudo chage -l jmorales -> 'Account expires: Jan 31, 2027' and 'Password must be changed' at first login. ls -ld /home/jmorales -> drwxr-x--- (or drwx------) jmorales jmorales. passwd -S jmorales shows L while locked, P when usable."
+              "Verifies with id jmorales (uid, gid, groups), getent group devops docker (members), getent passwd jmorales (home and shell), chage -l jmorales (account expires 1 Feb 2027, so the last usable day is 31 Jan), and ls -ld /home/jmorales (owner and 750/700 mode).",
+              "id jmorales -> uid, gid=jmorales, groups=jmorales,devops,docker. getent group devops -> devops:x:1005:jmorales. getent passwd jmorales -> .../home/jmorales:/bin/bash. sudo chage -l jmorales -> 'Account expires: Feb 01, 2027' and 'Password must be changed' at first login. ls -ld /home/jmorales -> drwxr-x--- (or drwx------) jmorales jmorales. passwd -S jmorales shows L while locked, P when usable."
             ),
           ],
         },
@@ -233,7 +233,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Why passwd needs SUID and a script must not have it",
-              "Explains that passwd must write /etc/shadow, which only root can modify, so it runs with the owner's (root's) effective UID; a set-UID shell script is ignored by the kernel on Linux (the bit is not honoured for interpreted scripts) and would be dangerous if honoured because the interpreter and its environment can be manipulated -- use sudo with a specific rule instead.",
+              "Explains that passwd must write /etc/shadow, which only root can modify, so it runs with the owner's (root's) effective UID; a set-UID shell script is ignored by the kernel on Linux (the bit is not honored for interpreted scripts) and would be dangerous if honored because the interpreter and its environment can be manipulated -- use sudo with a specific rule instead.",
               "/usr/bin/passwd lets an ordinary user change their own password, which means writing to /etc/shadow (mode 640, root-owned). The SUID bit makes passwd run with root's effective UID just for that, and the program itself checks that you only change your own entry. A SUID shell script is different: Linux ignores SUID on interpreted scripts because the interpreter is started separately and could be fed a different script or environment (PATH, IFS) between the check and the run. If someone 'needs' it, give them a precise sudoers rule for the one command instead."
             ),
           ],
@@ -414,7 +414,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
             part(
               "The script",
               "A working Bash script with a shebang, set -euo pipefail (or equivalent error handling), variables for the two directories with defaults, a --dry-run flag, a directory existence check with a non-zero exit, find -mtime +7 piped safely (-print0 / read -d '' or find -exec), gzip of each file into the archive directory followed by removal of the original only on success, a counter, and a summary line.",
-              "#!/usr/bin/env bash\nset -euo pipefail\n\nSRC=\"${1:-/var/log/payroll}\"\nDEST=\"${2:-/var/archive/payroll}\"\nDRY_RUN=0\nfor arg in \"$@\"; do [[ \"$arg\" == \"--dry-run\" ]] && DRY_RUN=1; done\n\ndie() { echo \"archive-logs: $*\" >&2; exit 1; }\n\n[[ -d \"$SRC\" ]]  || die \"source directory $SRC does not exist\"\n[[ -d \"$DEST\" ]] || die \"archive directory $DEST does not exist\"\n\ncount=0\nwhile IFS= read -r -d '' file; do\n  name=$(basename \"$file\")\n  if (( DRY_RUN )); then\n    echo \"would archive: $file -> $DEST/$name.gz\"\n  else\n    gzip -c \"$file\" > \"$DEST/$name.gz\" && rm -f \"$file\"\n  fi\n  count=$((count + 1))\ndone < <(find \"$SRC\" -maxdepth 1 -type f -name '*.log' -mtime +7 -print0)\n\necho \"archived $count file(s) from $SRC to $DEST\"\n\n(The positional defaults mean './archive-logs.sh --dry-run' would treat --dry-run as SRC; parsing flags before positionals, or using getopts, is the cleaner version.)"
+              "#!/usr/bin/env bash\nset -euo pipefail\n\nSRC=\"${1:-/var/log/payroll}\"\nDEST=\"${2:-/var/archive/payroll}\"\nDRY_RUN=0\nfor arg in \"$@\"; do [[ \"$arg\" == \"--dry-run\" ]] && DRY_RUN=1; done\n\ndie() { echo \"archive-logs: $*\" >&2; exit 1; }\n\n[[ -d \"$SRC\" ]]  || die \"source directory $SRC does not exist\"\n[[ -d \"$DEST\" ]] || die \"archive directory $DEST does not exist\"\n\ncount=0\nwhile IFS= read -r -d '' file; do\n  name=$(basename \"$file\")\n  if (( DRY_RUN )); then\n    echo \"would archive: $file -> $DEST/$name.gz\"\n  else\n    if ! gzip -c \"$file\" > \"$DEST/$name.gz\"; then\n      rm -f \"$DEST/$name.gz\"\n      die \"could not compress $file; original kept\"\n    fi\n    rm -f \"$file\"\n  fi\n  count=$((count + 1))\ndone < <(find \"$SRC\" -maxdepth 1 -type f -name '*.log' -mtime +7 -print0)\n\necho \"archived $count file(s) from $SRC to $DEST\"\n\n(The positional defaults mean './archive-logs.sh --dry-run' would treat --dry-run as SRC; parsing flags before positionals, or using getopts, is the cleaner version.)"
             ),
             part(
               "Strict mode and argument handling",
@@ -423,13 +423,13 @@ export const LINUXPLUS_LABS: SeedLabSet = {
             ),
             part(
               "The file loop",
-              "Uses find ... -mtime +7 -print0 with while read -r -d '' (or find -exec) so names with spaces or newlines are handled, quotes every expansion, limits to -maxdepth 1 -type f, and removes the original only if gzip succeeded (&&).",
-              "find with -print0 and read -d '' passes filenames NUL-separated, so 'app 2026-10-30.log' is one file, not three words; every \"$file\" is quoted for the same reason. -mtime +7 selects files last modified more than 7 days ago; -maxdepth 1 -type f avoids descending into subdirectories or touching directories. gzip -c writes the compressed copy to the archive directory; only if that returns success does && rm -f delete the original, so a full archive disk never loses a log."
+              "Uses find ... -mtime +7 -print0 with while read -r -d '' (or find -exec) so names with spaces or newlines are handled, quotes every expansion, limits to -maxdepth 1 -type f, and removes the original only if gzip succeeded, with an explicit if ! gzip ...; then ... fi check, because set -e ignores a failure on the left of && and the script would exit 0.",
+              "find with -print0 and read -d '' passes filenames NUL-separated, so 'app 2026-10-30.log' is one file, not three words; every \"$file\" is quoted for the same reason. -mtime +7 selects files last modified more than 7 days ago; -maxdepth 1 -type f avoids descending into subdirectories or touching directories. gzip -c writes the compressed copy to the archive directory; only if that returns success does rm -f delete the original, so a full archive disk never loses a log. The check is an explicit if ! gzip ...; then: a bare gzip ... && rm would also keep the original, but set -e does not fire on a command that fails on the left of &&, so the loop would carry on, count the file as archived and exit 0. On failure the script removes the partial .gz and stops with exit 1."
             ),
             part(
               "Exit codes and testing",
-              "States exit 0 on success and 1 on a failed precondition (set -e makes any failed command non-zero too); tests with --dry-run, with a missing directory (expects exit 1), with a file containing a space, and checks shellcheck; verifies with echo $? and ls of the archive.",
-              "Success prints the summary and exits 0; a missing directory exits 1 via die; any gzip or rm failure exits non-zero through set -e, so a scheduler can alert on it. Test: run with --dry-run and confirm the list; run with a bogus source and check echo $? prints 1; create 'touch -d \"10 days ago\" \"/var/log/payroll/app 2026-10-28.log\"' and confirm it archives as one file; run shellcheck archive-logs.sh for quoting mistakes."
+              "States exit 0 on success and 1 on a failed precondition or a failed compression (the explicit gzip check; set -e makes other failed commands non-zero too); tests with --dry-run, with a missing directory (expects exit 1), with a file containing a space, and checks shellcheck; verifies with echo $? and ls of the archive.",
+              "Success prints the summary and exits 0; a missing directory or a failed gzip exits 1 via die, and an rm failure exits non-zero through set -e, so a scheduler can alert on it. Test: run with --dry-run and confirm the list; run with a bogus source and check echo $? prints 1; create 'touch -d \"10 days ago\" \"/var/log/payroll/app 2026-10-28.log\"' and confirm it archives as one file; run shellcheck archive-logs.sh for quoting mistakes."
             ),
           ],
         },
@@ -455,8 +455,8 @@ export const LINUXPLUS_LABS: SeedLabSet = {
             ),
             part(
               "systemd service and timer with catch-up",
-              "Creates archive-logs.service (Type=oneshot, ExecStart=/usr/local/bin/archive-logs.sh) and archive-logs.timer with OnCalendar=Mon..Fri 02:30 and Persistent=true (runs at next boot if the last scheduled run was missed), enables the timer not the service, and explains that cron has no such catch-up (anacron only handles daily/weekly/monthly).",
-              "/etc/systemd/system/archive-logs.service:\n[Unit]\nDescription=Archive payroll logs older than 7 days\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/archive-logs.sh\n\n/etc/systemd/system/archive-logs.timer:\n[Unit]\nDescription=Run archive-logs on weekdays at 02:30\n[Timer]\nOnCalendar=Mon..Fri 02:30\nPersistent=true\n[Install]\nWantedBy=timers.target\n\nsudo systemctl daemon-reload && sudo systemctl enable --now archive-logs.timer. Persistent=true records the last run on disk and, if the machine was off at 02:30, fires the service shortly after the next boot -- cron would simply skip it (anacron only covers daily/weekly/monthly cadences). The timer's output lands in the journal automatically: journalctl -u archive-logs.service."
+              "Creates archive-logs.service (Type=oneshot, ExecStart=/usr/local/bin/archive-logs.sh) and archive-logs.timer with OnCalendar=Mon..Fri 02:30 and Persistent=true (runs at next boot if the last scheduled run was missed), enables the timer not the service, and explains that cron has no such catch-up (anacron catches up, but only on a period of whole days, with no fixed time of day).",
+              "/etc/systemd/system/archive-logs.service:\n[Unit]\nDescription=Archive payroll logs older than 7 days\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/archive-logs.sh\n\n/etc/systemd/system/archive-logs.timer:\n[Unit]\nDescription=Run archive-logs on weekdays at 02:30\n[Timer]\nOnCalendar=Mon..Fri 02:30\nPersistent=true\n[Install]\nWantedBy=timers.target\n\nsudo systemctl daemon-reload && sudo systemctl enable --now archive-logs.timer. Persistent=true records the last run on disk and, if the machine was off at 02:30, fires the service shortly after the next boot -- cron would simply skip it (anacron catches up only on periods of whole days, set in /etc/anacrontab, with no fixed time of day, so it cannot express 'weekdays at 02:30'). The timer's output lands in the journal automatically: journalctl -u archive-logs.service."
             ),
             part(
               "The one-off job",
@@ -466,7 +466,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
             part(
               "Verifying the schedules",
               "crontab -l to read back the entries; systemctl list-timers --all showing archive-logs.timer with NEXT and LAST columns; systemd-analyze calendar 'Mon..Fri 02:30' to check the expression and see the next elapse; atq for the one-off; journalctl -u archive-logs.service after the first run; and a manual systemctl start archive-logs.service to test the service without waiting.",
-              "crontab -l shows the two cron lines. systemd-analyze calendar 'Mon..Fri 02:30' prints the normalised form and 'Next elapse', proving the expression means what you think. systemctl list-timers --all shows archive-logs.timer with its NEXT time and, after the first run, LAST and the service it activates. sudo systemctl start archive-logs.service runs the job now as a test, and journalctl -u archive-logs.service shows its 'archived N file(s)' line. atq confirms the key-rotation job is queued for two hours out."
+              "crontab -l shows the two cron lines. systemd-analyze calendar 'Mon..Fri 02:30' prints the normalized form and 'Next elapse', proving the expression means what you think. systemctl list-timers --all shows archive-logs.timer with its NEXT time and, after the first run, LAST and the service it activates. sudo systemctl start archive-logs.service runs the job now as a test, and journalctl -u archive-logs.service shows its 'archived N file(s)' line. atq confirms the key-rotation job is queued for two hours out."
             ),
           ],
         },

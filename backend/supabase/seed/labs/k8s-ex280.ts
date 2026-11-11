@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, commandPart } from "./types";
 import { source } from "../sources";
 
 // REQ-164: Red Hat Certified System Administrator in OpenShift (EX280).
@@ -40,11 +40,7 @@ export const EX280_LABS: SeedLabSet = {
           text: "",
           ask: "Give the oc command for each question with its output and explain the selector or format used.",
           parts: [
-            part(
-              "Pods not Running (field selector)",
-              "oc get pods -n booking --field-selector status.phase!=Running, explaining field selectors operate server-side on a small set of fields (metadata.name, metadata.namespace, status.phase, spec.nodeName).",
-              "$ oc get pods -n booking --field-selector status.phase!=Running\nNAME                       READY   STATUS             RESTARTS   AGE\npricing-7c9d5f8b6-xk2lp    0/1     CrashLoopBackOff   9          31m\nseatmap-db-0               0/1     Pending            0          12m\nField selectors filter server-side on a handful of fields -- status.phase, metadata.name, metadata.namespace, spec.nodeName -- unlike label selectors, which work on any label. Combine them: --field-selector spec.nodeName=worker-2,status.phase=Running."
-            ),
+            commandPart("Pods not Running (field selector)", "oc get pods in project booking with --field-selector status.phase!=Running. Flag order, = or a space before the value, -n or --namespace, and pods or po are all accepted. Right command with the wrong filter or project is partly there.", "$ oc get pods -n booking --field-selector status.phase!=Running\nNAME                       READY   STATUS             RESTARTS   AGE\npricing-7c9d5f8b6-xk2lp    0/1     CrashLoopBackOff   9          31m\nseatmap-db-0               0/1     Pending            0          12m\nField selectors filter server-side on a handful of fields -- status.phase, metadata.name, metadata.namespace, spec.nodeName -- unlike label selectors, which work on any label. Combine them: --field-selector spec.nodeName=worker-2,status.phase=Running.", { accepted: ["oc get pods -n booking --field-selector status.phase!=Running", "oc get po -n booking --field-selector status.phase!=Running", "oc get pod -n booking --field-selector status.phase!=Running"], valueFlags: ["-n", "--field-selector"], optionAliases: { "--namespace": "-n" } }),
             part(
               "Node IPs and versions (custom-columns)",
               "oc get nodes -o custom-columns with jsonpath-style expressions, selecting the InternalIP address from the addresses array by type and status.nodeInfo.kubeletVersion.",
@@ -230,7 +226,7 @@ export const EX280_LABS: SeedLabSet = {
     },
     {
       slug: "service-with-no-endpoints",
-      objective: "Apply labels and selectors to connect Services, Deployments and Routes and to organise resources",
+      objective: "Apply labels and selectors to connect Services, Deployments and Routes and to organize resources",
       kind: "case",
       title: "A Route returns 503 after a label clean-up",
       brief:
@@ -244,17 +240,17 @@ export const EX280_LABS: SeedLabSet = {
             part(
               "Selector mismatch",
               "The Service selects app=storefront AND tier=web, but the tidy-up renamed the pod label tier to component; the Service matches no pods, so its Endpoints are empty and the router returns 503; Route -> Service -> Endpoints -> Pods is the chain, and labels are the joins.",
-              "A Route sends traffic to a Service; the Service forwards to the pods whose labels match all of its selector; the match is materialised as Endpoints (EndpointSlices). Here the Service wants app=storefront and tier=web, but the pods now carry component=web -- the tidy-up renamed the key in the Deployment's pod template. No pod matches, Endpoints is <none>, and the router has nowhere to send the request: 503 'Application is not available'. The pods are healthy; the join is broken."
+              "A Route sends traffic to a Service; the Service forwards to the pods whose labels match all of its selector; the match is materialized as Endpoints (EndpointSlices). Here the Service wants app=storefront and tier=web, but the pods now carry component=web -- the tidy-up renamed the key in the Deployment's pod template. No pod matches, Endpoints is <none>, and the router has nowhere to send the request: 503 'Application is not available'. The pods are healthy; the join is broken."
             ),
             part(
               "Least-disruptive fix",
-              "Change the Service's selector to the new label (oc patch svc) rather than re-labelling pods or rolling the Deployment; verify Endpoints populate and the Route returns 200; note the Deployment's own selector (app only) still matches so no new ReplicaSet was needed.",
+              "Change the Service's selector to the new label (oc patch svc) rather than re-labeling pods or rolling the Deployment; verify Endpoints populate and the Route returns 200; note the Deployment's own selector (app only) still matches so no new ReplicaSet was needed.",
               "$ oc patch svc storefront -n shop --type merge -p '{\"spec\":{\"selector\":{\"app\":\"storefront\",\"component\":\"web\"}}}'\nservice/storefront patched\n$ oc get endpoints storefront -n shop\nNAME         ENDPOINTS                            AGE\nstorefront   10.128.2.14:8080,10.131.0.22:8080    210d\n$ curl -sI https://storefront-shop.apps.ellery.example | head -1\nHTTP/1.1 200 OK\nEditing the Service is instant and touches no pods. The Deployment's selector (app=storefront) still matches its pods, which is why the tidy-up rolled new pods without error -- Deployment selectors are immutable, so had they changed that key, the apply would have failed."
             ),
             part(
               "Preventing it",
               "Keep one consistent label set (app.kubernetes.io/name, instance, component) across Deployment selector, pod template, Service selector and Route; use oc get endpoints or oc describe svc as the first check for a 503; oc get all -l app=... to see the whole set; labels in a Kustomize base so they cannot drift.",
-              "Standardise on the recommended labels (app.kubernetes.io/name=storefront, app.kubernetes.io/component=web, app.kubernetes.io/instance=shop) and set them once in the Kustomize base so Deployment selector, pod template and Service selector are generated together. First check for any 503: oc get endpoints <svc> -- empty means a selector or readiness problem, not a router problem. oc get all -l app.kubernetes.io/name=storefront shows the whole application as one set."
+              "Standardize on the recommended labels (app.kubernetes.io/name=storefront, app.kubernetes.io/component=web, app.kubernetes.io/instance=shop) and set them once in the Kustomize base so Deployment selector, pod template and Service selector are generated together. First check for any 503: oc get endpoints <svc> -- empty means a selector or readiness problem, not a router problem. oc get all -l app.kubernetes.io/name=storefront shows the whole application as one set."
             ),
           ],
         },
@@ -420,7 +416,7 @@ export const EX280_LABS: SeedLabSet = {
             ),
             part(
               "Egress to the database and DNS",
-              "An egress policy for pods labelled app=orders-api to the orders-db namespace on 5432, plus egress to DNS (openshift-dns namespace, port 5353 UDP/TCP -- OpenShift's CoreDNS listens on 5353) for all pods; explains that once Egress is in policyTypes, DNS must be explicitly allowed.",
+              "An egress policy for pods labeled app=orders-api to the orders-db namespace on 5432, plus egress to DNS (openshift-dns namespace, port 5353 UDP/TCP -- OpenShift's CoreDNS listens on 5353) for all pods; explains that once Egress is in policyTypes, DNS must be explicitly allowed.",
               "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata: {name: allow-egress-db-and-dns, namespace: orders}\nspec:\n  podSelector: {}\n  policyTypes: [Egress]\n  egress:\n  - to:\n    - namespaceSelector:\n        matchLabels: {kubernetes.io/metadata.name: openshift-dns}\n    ports: [{protocol: UDP, port: 5353}, {protocol: TCP, port: 5353}]\n  - to:\n    - namespaceSelector:\n        matchLabels: {kubernetes.io/metadata.name: orders-db}\n      podSelector:\n        matchLabels: {app: postgres}\n    ports: [{protocol: TCP, port: 5432}]\nOpenShift's DNS pods listen on 5353 (the Service maps 53 to it), so egress rules must allow 5353 to openshift-dns or every name lookup fails. The database rule names both the namespace and the pod label -- the tightest form. A matching ingress policy is also needed in orders-db allowing from orders."
             ),
             part(
@@ -456,7 +452,7 @@ export const EX280_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Write the ResourceQuota and LimitRange, put them into the project request template, create the ClusterResourceQuota, and verify the behaviour a developer sees.",
+          ask: "Write the ResourceQuota and LimitRange, put them into the project request template, create the ClusterResourceQuota, and verify the behavior a developer sees.",
           parts: [
             part(
               "ResourceQuota and LimitRange",
@@ -600,7 +596,7 @@ export const EX280_LABS: SeedLabSet = {
               "$ oc apply -f exporter.yaml -n pharmacy\n$ oc create job --from=cronjob/nightly-export manual-export-1 -n pharmacy\njob.batch/manual-export-1 created\n$ oc get jobs -n pharmacy -w\nNAME              STATUS     COMPLETIONS   DURATION   AGE\nmanual-export-1   Running    0/1           12s        12s\nmanual-export-1   Complete   1/1           4m31s      4m31s\n$ oc logs job/manual-export-1 -n pharmacy | tail -3\nidle check: 0 other running pods in pharmacy\nexported 2,418,301 rows to /export/2026-11-09.sql.gz\ndone\nThe manual Job copies the CronJob's jobTemplate; it is independent of the schedule and the history limits do not prune it (it is not owned by the CronJob)."
             ),
             part(
-              "Verify permissions and behaviour",
+              "Verify permissions and behavior",
               "oc auth can-i --as=system:serviceaccount:pharmacy:exporter list pods -n pharmacy (yes) and in another project (no); oc get cronjob showing LAST SCHEDULE; test Forbid by suspending/unsuspending or shortening the schedule in a test project; oc patch to suspend during maintenance.",
               "$ oc auth can-i list pods -n pharmacy --as=system:serviceaccount:pharmacy:exporter\nyes\n$ oc auth can-i list pods -n finance --as=system:serviceaccount:pharmacy:exporter\nno\n$ oc auth can-i get secrets -n pharmacy --as=system:serviceaccount:pharmacy:exporter\nno\n$ oc get cronjob nightly-export -n pharmacy\nNAME             SCHEDULE     TIMEZONE       SUSPEND   ACTIVE   LAST SCHEDULE   AGE\nnightly-export   30 2 * * *   Europe/London  False     0        <none>          6m\nDuring a maintenance window: oc patch cronjob nightly-export -n pharmacy -p '{\"spec\":{\"suspend\":true}}' and set it back afterwards. Note the Secret is read by the kubelet when creating the pod, not by the service account -- which is why the SA needs no permission on secrets."
             ),

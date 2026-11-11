@@ -4,7 +4,8 @@
 //
 //   1. Owner from OWNER_EMAILS (verified addresses only) and /api/auth/me.
 //   2. Gating bypass on representative gated routes, BILLING_ENABLED on and
-//      off; no allowance rows, no monthly cap; disclaimers and rate limits
+//      off; no allowance rows, no per-tier monthly cap for a grant, the
+//      owner's $35 monthly safety cap; disclaimers and rate limits
 //      still apply.
 //   3. The AI safety ceiling.
 //   4. Early access: unreviewed labs with LABS_SERVE_UNREVIEWED off.
@@ -12,6 +13,7 @@
 //      pending grant applied on verification, expiry, revoke, audit rows,
 //      the export, and the CLI.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
@@ -50,7 +52,7 @@ const track2 = randomUUID(), unit2 = randomUUID(), objB = randomUUID();
 const ackTrack = randomUUID(), ackUnit = randomUUID(), ackObj = randomUUID();
 const lab = randomUUID();
 const users: string[] = [];
-const ENV = ["BILLING_ENABLED", "OWNER_EMAILS", "AI_DAILY_BUDGET_USD", "AI_UNRESTRICTED_DAILY_CEILING_USD", "LABS_SERVE_UNREVIEWED"];
+const ENV = ["BILLING_ENABLED", "OWNER_EMAILS", "AI_DAILY_BUDGET_USD", "AI_UNRESTRICTED_DAILY_CEILING_USD", "LABS_SERVE_UNREVIEWED", "OWNER_MONTHLY_AI_CAP_USD"];
 const OWNER = `owner-${run}@example.test`;
 
 const usage = { input_tokens: 100, output_tokens: 20, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
@@ -77,6 +79,7 @@ async function newUser(opts: { email?: string; verified?: boolean; name?: string
     opts.name ?? null,
     opts.verified === false ? null : new Date(),
   ]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const emailOf = async (u: string) => (await queryOne<{ email: string }>(`select email from app_users where id = $1`, [u]))!.email;
@@ -226,12 +229,65 @@ describe("unrestricted lifts the plan gates", () => {
     assert.equal(bm.entitlement, null);
   });
 
-  test("BILLING_ENABLED on: no per-tier monthly AI cap (Pro's is $2.21)", async () => {
+  // REQ-170 (Nick, 2026-11-09): was "no monthly cap". A granted account now
+  // has the highest cap a paying learner can hold (all-access plus the
+  // clinical add-on, $20.16). Owners have their own $35 safety cap (REQ-181,
+  // tested below), so $21 of owner spend is still under it.
+  test("BILLING_ENABLED on: unrestricted is capped at all-access plus the clinical add-on ($20.16); owners are not paused at $21", async () => {
     process.env.BILLING_ENABLED = "true";
+    // Spend is dated up to 3 days back but never before the 1st, so early in a
+    // month it can fall inside the 24-hour safety ceiling; raise it here.
+    process.env.AI_UNRESTRICTED_DAILY_CEILING_USD = "1000";
     const u = await unrestrictedUser();
-    await query(`insert into ai_calls (user_id, purpose, model, input_tokens, output_tokens, latency_ms, ok, created_at) values ($1,'chat','claude-haiku-5-5',0,$2,1,true, now() - interval '3 days')`, [u, Math.round(5 / PER_TOKEN)]); // $5 this month, outside 24h
+    const monthSpend = async (who: string, usd: number) =>
+      query(
+        `insert into ai_calls (user_id, purpose, model, input_tokens, output_tokens, latency_ms, ok, created_at)
+         values ($1,'chat','claude-haiku-5-5',0,$2,1,true, greatest(date_trunc('month', now()), now() - interval '3 days'))`,
+        [who, Math.round(usd / PER_TOKEN)]
+      );
+    await monthSpend(u, 5); // $5 this month: above any single category plan's cap, under $20.16
     assert.equal((await chat(u)).status, 200);
+    await monthSpend(u, 16); // $21 this month
+    const paused = await json(await chat(u), 429);
+    assert.ok(paused.aiPaused?.resetsAt, JSON.stringify(paused));
+    assert.equal((await json(await call(billingMeGet, "/api/billing/me", u))).aiPaused.paused, true);
+    await monthSpend(ownerId, 21);
+    assert.equal((await chat(ownerId)).status, 200, "$21 is under the owner's $35 safety cap");
+    delete process.env.AI_UNRESTRICTED_DAILY_CEILING_USD;
   });
+
+  // Nick, 2026-11-09: owners get a $35 monthly safety cap. Coach chat and
+  // regenerate pause at it like a plan's cap; grading never stops. It applies
+  // with the billing switch on or off. A granted account (above) has #73's
+  // $20.16 cap instead.
+  for (const billing of ["true", "off"]) {
+    test(`owner monthly AI safety cap ($35), BILLING_ENABLED ${billing}`, async () => {
+      process.env.BILLING_ENABLED = billing;
+      process.env.AI_UNRESTRICTED_DAILY_CEILING_USD = "1000"; // keep the daily ceiling out of the way
+      const email = `owner2-${billing}-${run}@example.test`;
+      process.env.OWNER_EMAILS = `${OWNER}, ${email}`;
+      const o = await newUser({ email });
+      assert.equal((await accessFor(o))?.level, "owner");
+      // $34 this month, written at the start of the month (UTC): under the cap.
+      const monthSpend = (usd: number) =>
+        query(
+          `insert into ai_calls (user_id, purpose, model, input_tokens, output_tokens, latency_ms, ok, created_at)
+           values ($1,'chat','claude-haiku-5-5',0,$2,1,true, date_trunc('month', now() at time zone 'utc') at time zone 'utc')`,
+          [o, Math.round(usd / PER_TOKEN)]
+        );
+      await monthSpend(34);
+      assert.equal((await chat(o)).status, 200, "under $35 the coach answers");
+      await monthSpend(1.5);
+      const res = await json(await chat(o), 429);
+      assert.ok(res.aiPaused?.resetsAt, "paused like a plan's monthly cap");
+      assert.equal(new Date(res.aiPaused.resetsAt).getUTCDate(), 1);
+      assert.match(res.error, /You've used this month's AI coaching/);
+      assert.equal((await gradeOpen(o, "CTR turns a block cipher into a stream cipher with a counter.")).status, 200, "grading never stops");
+      if (billing === "true") assert.equal((await json(await call(billingMeGet, "/api/billing/me", o))).aiPaused.paused, true);
+      process.env.OWNER_MONTHLY_AI_CAP_USD = "50";
+      assert.equal((await chat(o)).status, 200, "the cap is a setting");
+    });
+  }
 
   test("BILLING_ENABLED off: the $0.50 daily budget is raised for unrestricted, not for others", async () => {
     const free = await newUser();
@@ -242,13 +298,15 @@ describe("unrestricted lifts the plan gates", () => {
     assert.equal((await chat(ownerId)).status, 200);
   });
 
-  test("not lifted: the course disclaimer acknowledgement and the chat rate limit", async () => {
+  test("not lifted: the course disclaimer acknowledgment and the chat rate limit", async () => {
     const u = await unrestrictedUser();
-    assert.equal((await chat(u, ackTrack)).status, 403, "acknowledgement still required");
+    await query(`delete from legal_acceptances where user_id = $1 and document = 'study_notice'`, [u]); // this test is about not having accepted it
+    assert.equal((await chat(u, ackTrack)).status, 403, "acknowledgment still required");
     await query(
       `insert into auth_events (event_type, identifier, user_id) select 'chat_message', $1, $2::uuid from generate_series(1, 30)`,
       [u, u]
     );
+    await recordStudyNoticeAcceptance(u); // the notice check (403) comes before the rate limit (429)
     assert.equal((await chat(u)).status, 429, "30 messages in 10 minutes is still the limit");
     assert.equal(modelCalls, 0);
   });
@@ -454,5 +512,42 @@ describe("granting (owner only)", () => {
     const ev = await query<{ action: string; via: string; actor_id: string | null }>(`select action, via, actor_id from account_access_events where email = $1 order by id`, [email]);
     assert.deepEqual(ev.map((e) => [e.action, e.via, e.actor_id]), [["grant", "cli", null], ["claim", "system", null], ["revoke", "cli", null]]);
     await assert.rejects(runAccessCli(parseAccessArgs(["--email", OWNER])), /owner already/);
+  });
+});
+
+// REQ-211: Settings > Access "Send a test error" (owner only, five a day).
+describe("error-tracker test button (owner only)", () => {
+  test("anyone but the owner gets 403; the owner gets a result; the sixth call in a day is a 429", async () => {
+    const { POST: testPost } = await import("../app/api/access/error-tracker-test/route");
+    const { setErrorTransport } = await import("./error-tracker");
+    const dsn = process.env.ERROR_TRACKER_DSN;
+    let sent = 0;
+    setErrorTransport(async () => {
+      sent++;
+      return new Response("{}", { status: 200 });
+    });
+    try {
+      for (const who of [await unrestrictedUser(), await newUser()]) {
+        assert.equal((await call(testPost, "/api/access/error-tracker-test", who, "POST")).status, 403);
+      }
+      assert.equal(sent, 0, "nothing sent for a non-owner");
+      delete process.env.ERROR_TRACKER_DSN;
+      const off = await call(testPost, "/api/access/error-tracker-test", ownerId, "POST");
+      assert.equal(off.status, 200);
+      assert.deepEqual(await off.json(), { configured: false, delivered: false, status: null });
+      process.env.ERROR_TRACKER_DSN = "https://publickey@o1.ingest.example.test/42";
+      for (let i = 0; i < 4; i++) {
+        const r = await call(testPost, "/api/access/error-tracker-test", ownerId, "POST");
+        assert.deepEqual(await r.json(), { configured: true, delivered: true, status: 200 });
+      }
+      assert.equal(sent, 4);
+      assert.equal((await call(testPost, "/api/access/error-tracker-test", ownerId, "POST")).status, 429);
+      assert.equal(sent, 4, "the limited call sends nothing");
+    } finally {
+      setErrorTransport(null);
+      if (dsn === undefined) delete process.env.ERROR_TRACKER_DSN;
+      else process.env.ERROR_TRACKER_DSN = dsn;
+      await query(`delete from auth_events where event_type = 'error_tracker_test' and identifier = $1`, [ownerId]);
+    }
   });
 });

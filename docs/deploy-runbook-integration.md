@@ -26,6 +26,8 @@ the 1.9-million-attempt fixture timings further down are for scale only.
 Every step was rehearsed end to end on a copy of that state
 (`backend/scripts/rehearse-production-migration.sh`, CI job "Database
 (production-state rehearsal and rollback)") before it ran in production.
+That rehearsal and `scripts/rollback-release-2026-11-07.sql` are historical
+since 2026-11-10 (REQ-214): they apply only to the 11-07 release.
 
 `$DATABASE_URL` is the production database over the Supabase **Session
 pooler** (`postgres.<project-ref>@aws-...pooler.supabase.com:5432`). The
@@ -145,7 +147,7 @@ the seed.
    release's data).** After a fresh `pg_dump` (step 1 again, new file name):
    `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rollback-release-2026-11-07.sql`.
    One transaction: restores levels, puts B's 025 columns and master's two
-   rollup views back, drops the release's triggers, functions, 59 tables (055's review queue, 056's two access tables and 058's two discount tables included) and
+   rollup views back, drops the release's triggers, functions, 63 tables (055's review queue, 056's two access tables, 058's two discount tables and 060's two intake tables included) and
    the columns it added to pre-release tables, and removes 027a-054 from the
    ledger. Rehearsed: afterwards the schema equals the pre-release one apart
    from three enum values Postgres cannot drop (`attempt_kind` review and
@@ -186,6 +188,12 @@ so leaving it in place is always safe for the old code):
 | 057 | education_categories row cloud-native-certifications and its three education_subcategories rows (cncf-certifications, container-tooling, red-hat-openshift) | nothing learner-owned: the taxonomy rows the containers and Kubernetes tracks hang off |
 | 058 | verified_discounts, discount_offer_codes | verified-discount results and the App Store offer-code pool (codes already handed out stay valid in the App Store; re-import the unissued ones after rolling forward) |
 | 059 | `study_notice` rows in legal_acceptances; the document check returns to 027's `terms`/`privacy` | which learners accepted the study notice (they accept it again after rolling forward) |
+| 060 | learner_intake, learner_intake_targets; entitlements.family and entitlements.scope (dropped with entitlements) | study-profile answers |
+| 061 | education_subcategories row emergency-medical-services (delete the four NREMT tracks first: their subject_tracks rows point at it) | nothing learner-owned beyond the EMS courses' own progress: the taxonomy row the NREMT tracks hang off |
+| 062 | sim tables (sims, sim_versions, sim_reviews, sim_runs, sim_run_commands, sim_run_reasoning), attempts.sim_id and attempts_simtask_shape, the sim_run assessment type (enum value `simtask` stays). Normal rollback is SIMS_ENABLED off and the schema left in place (docs/sims.md 6.1) | sim runs, their commands, reasoning grades and sim attempts |
+| 065 | `subject_tracks.hidden_at` (`alter table subject_tracks drop column if exists hidden_at;`) | which courses are hidden: EX188, EX280 and DCA show in the catalog again for everyone until the column is back and `npm run seed` runs. The courses' content is untouched either way |
+| 067 | the `sim` item kind on item_flags / item_status / item_holdbacks (050's checks come back as `*_item_kind_050`) and item_flags.context; 'sim' rows must be deleted first. Normal rollback is SIMS_ENABLED off and the schema left in place | learner reports on sims, sim versions pulled from rotation and the reports' context |
+| 077 | mature_content_confirmations (`drop table if exists mature_content_confirmations;`), then the mental-health education_categories row and its three subcategories (delete the EPPP track first: its subject_tracks row points at psychology-licensure). The code before 077 never reads either | who confirmed they are 18+ for mental health courses (they confirm again after rolling forward); EPPP course progress if the track is deleted |
 
 Every command runs from `backend/` with `DATABASE_URL` pointing at the
 production database over the Session pooler (port 5432), not the
@@ -280,6 +288,13 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 057 | REQ-164: the Cloud Native & Kubernetes category and its `cncf-certifications`, `container-tooling` and `red-hat-openshift` subcategories (upserts into education_categories and education_subcategories, same shape as 019). Apply BEFORE `npm run seed`: the containers and Kubernetes tracks resolve `container-tooling` / `cncf-certifications` / `red-hat-openshift` by slug and the seed fails without them. Nothing is backfilled | instant | no | taxonomy rows only |
 | 058 | REQ-166: `verified_discounts` (only the result of a group verification: account, group, provider, verified, expires, the provider's opaque subject id) and `discount_offer_codes` (the App Store one-time offer-code pool), RLS on. Additive; apply BEFORE the backend deploy: the account export reads both and `/api/health` probes them, even while `VERIFIED_DISCOUNTS_ENABLED` is off. 057 is the Kubernetes taxonomy migration (#66); either order applies cleanly | instant (empty tables) | no | none |
 | 059 | REQ-165: widens the `legal_acceptances` document check to add `study_notice` (named `legal_acceptances_document_059`, added NOT VALID then validated). Apply BEFORE the backend deploy: the launch flow records the notice and `/api/health` probes the constraint. Nothing is backfilled | instant | no | ACCESS EXCLUSIVE on legal_acceptances for the constraint swap only (5 s lock_timeout) |
+| 060 | REQ-169/REQ-170: `learner_intake` and `learner_intake_targets` (the study-profile answers: goal, experience, weekly hours, use; up to five courses with exam dates), and two nullable columns `entitlements.family` / `entitlements.scope` (which category plan a subscription is for; null = every course, as for grants), RLS on. Additive; apply BEFORE the backend deploy: the first run and Settings > Study profile write the intake tables whatever `BILLING_ENABLED` says, the account export reads both, and `/api/health` probes them. 059 (study notice, #67) and 061/062 (reserved) are independent; any order applies cleanly | instant (empty tables; two ADD COLUMN without defaults) | no | instant ACCESS EXCLUSIVE on entitlements for the ADD COLUMNs (5 s lock_timeout; the table is empty while billing is off) |
+| 061 | REQ-174: the `emergency-medical-services` subcategory under Healthcare & Nursing (one upsert into education_subcategories, same shape as 020). Apply BEFORE `npm run seed`: the NREMT tracks (EMR, EMT, AEMT, Paramedic) resolve it by slug and the seed fails without it; `/api/health` probes it. 060 (#73, pricing) and 062 (#64, sim engine) are other branches' numbers; any order applies cleanly. Nothing is backfilled | instant | no | taxonomy row only |
+| 062 | REQ-190: sim engine -- `sims`, `sim_versions`, `sim_reviews`, `sim_runs`, `sim_run_commands`, `sim_run_reasoning`, attempt kind `simtask`, assessment type `sim_run` (family `simulation`, weight 1.5), `attempts.sim_id` (no foreign key) with the NOT VALID check `attempts_simtask_shape`, RLS on the new tables. No rule change, no recompute. Idempotent; rollback notes in its header. Apply before a backend that serves sims; `/api/health` probes it. `npm run seed` then loads the sims | not timed on the fixture (new tables; one partial index on attempts) | no, if its index is built CONCURRENTLY first: `create index concurrently if not exists idx_attempts_user_sim on attempts (user_id, sim_id) where sim_id is not null;` | the partial index `idx_attempts_user_sim` blocks attempt inserts while it builds inside the migration |
+| 063 | REQ-197: `email_preferences` (one row per learner once they change a switch: `exam_changes` default true, `exam_countdown` default true, `weekly_digest` default false, `updated_at`; `user_id` PK, on delete cascade) and `service_email_log` (learner, `kind` in exam_change/exam_countdown/weekly_digest, `period_key`, `status` sending/sent/failed, `attempts`, `created_at`, `sent_at`; unique (`user_id`, `kind`, `period_key`) is the once-per-period guard; on delete cascade). RLS on, anon/authenticated revoked. Additive, safe to run twice. Apply BEFORE the backend deploy: Settings > Email, the unsubscribe links, the account export and `/api/health` read them. 060-062 are taken by other branches; 063 applies cleanly before or after them. The daily `/api/cron/service-emails` (16:10 UTC, `CRON_SECRET`) does nothing until `SERVICE_EMAILS_ENABLED=true`, which ships with the Privacy Policy update; the digest also needs `MAIL_POSTAL_ADDRESS` and `DIGEST_EMAIL_FROM`. Rollback: Vercel Instant Rollback; the tables can stay (older code ignores them). To remove them, `drop table if exists service_email_log, email_preferences;` in the same change that removes the 063 probe from `lib/schema-status.ts` (also listed in `scripts/rollback-release-2026-11-07.sql` step 4) | instant (empty tables) | no | none |
+| 065 | REQ-194: `subject_tracks.hidden_at` (nullable timestamptz, no default, no rewrite, column comment gives the reason). A course whose `hidden_at` has passed is not listed by `GET /api/courses` and can't be newly started (free-course pick, new study session, first-run pick, setting a plan); learners with activity on it keep it. Apply BEFORE the backend deploy: the course list and start routes read it and `/api/health` probes it; the seed refuses to run without it. Nothing is backfilled: `npm run seed` sets it on EX188, EX280 and DCA. Safe to run twice (`add column if not exists`). The number 065 was assigned for this branch; 060-064 are not in this tree | instant | no | instant ACCESS EXCLUSIVE on subject_tracks (5 s lock_timeout) |
+| 067 | REQ-199: "Report a problem" on a sim -- adds `sim` to the item_kind checks on `item_flags`, `item_status` and `item_holdbacks` (replaced by `*_item_kind_067`, added NOT VALID then validated) and the nullable `item_flags.context` jsonb (at most 2000 bytes, check `item_flags_context_067`) for the report's machine data. A sim report's item id is the `sim_versions.id`, so a pulled report takes that version out of rotation. Number 067 because 066 is held for the PT study-path work. Apply BEFORE a backend that serves sims with reporting; `/api/health` probes it. Idempotent; rollback notes in its header | instant (small tables) | no | ACCESS EXCLUSIVE on item_flags, item_status and item_holdbacks for the check swap and validation (5 s lock_timeout) |
+| 077 | REQ-224: the `mental-health` category with `psychology-licensure`, `counseling-licensure` and `social-work-licensure` subcategories (upserts, same shape as 057), and `mature_content_confirmations` (per account, category and notice version: confirmed_at, min_age 18, source; PK led by user_id, cascade on account delete, RLS on, ends with `select app_runtime_sync();`). Apply BEFORE the backend deploy and BEFORE `npm run seed`: the EPPP track needs the subcategory, the mental-health course routes read the table, and `/api/health` probes both. Safe to run twice | instant | no | none beyond a new table (5 s lock_timeout) |
 
 All of 029 through 041b on the fixture: about 8.5 minutes, nearly all of it
 029b, 031b and 041b; 042 to 045b add about 6.3 minutes.
@@ -423,7 +438,7 @@ drop table if exists error_log_backup_029;
 drop table if exists mastery_backup_031;   -- probe: 031b_weighted_mastery_backfill.sql (checks the table too)
 drop table if exists mastery_backup_041;   -- probe: 041b_mastery_rule_backfill.sql
 drop table if exists mastery_backup_045;   -- probe: 045b_mastery_honesty_backfill.sql
-drop schema if exists backup_release_20261107 cascade;   -- the pre-release copy (no probe); due 2026-12-08
+drop schema if exists backup_release_20261107 cascade;   -- the pre-release copy (no probe); REQ-168's weekly job drops it on 2026-12-08
 ```
 
 Confirmed by the 2026-11-07 release: production's size (3 accounts, ~25
@@ -453,19 +468,98 @@ new. Three steps, all from GitHub, no laptop and no database password:
    recompute_mastery_batched()` and `--status`. The seed takes 15+
    minutes from GitHub (network round trips); it is safe to re-run.
 
-Both branches only trigger the workflow; nothing merges them. The workflow
-reads the repository secret **`PROD_DATABASE_URL`** (Settings -> Secrets and
-variables -> Actions -> Secrets tab -> Repository secrets): the Session
-pooler URI from Supabase -> Connect -> Direct -> Session pooler, with the
-database password in place of `[YOUR-PASSWORD]` (no brackets). Vercel's
-`DATABASE_URL` holds the same string. When the password changes, update
-both, then redeploy the current production deployment in Vercel so it picks
-the new value up -- the live app is down from the reset until that redeploy
-is Ready. Vercel's Sensitive variables cannot be read back, so Supabase is
-the only place to get the string again.
+Both branches only trigger the workflow; nothing merges them.
+
+### Per batch, as run for releases 2026-11-10 and 2026-11-11
+
+A release is cut into batches, one pull request each, shipped in order.
+For every batch:
+
+1. **Release branch.** The batch's work is merged into the release branch
+   (for example `release/2026-11-11`); CI must be green on its head.
+2. **`ops/migrate-production`** (only if the batch adds a migration): push
+   the release branch head, approve the run once the reviewer gate exists,
+   and wait for "Schema is current".
+3. **Merge the PR** into `master` with a merge commit (not squash), so the
+   release head stays an ancestor of `master`. Vercel deploys; check
+   `/api/health` answers `"status":"ok","schema":"current"` and the new
+   `commit`.
+4. **`ops/post-deploy-production`** (only if the seed or the mastery rule
+   changed): push the merge commit on `master`. It re-runs migrate (a
+   no-op), then the seed and the mastery recompute.
+
+The release notes list which batches needed steps 2 and 4
+([release-2026-11-10.md](release-2026-11-10.md),
+[release-2026-11-11.md](release-2026-11-11.md)).
+
+**Pushing the ops branches.** Until the `protect-ops` ruleset exists the
+`--force` form above works. Once it exists (lockdown guide step 1.4), force
+pushes are blocked: push without `--force`,
+`git push origin <commit>:refs/heads/ops/migrate-production`. That is a
+fast-forward whenever `<commit>` descends from the branch's last commit,
+which holds when you deploy forward from `master` with merge commits (on
+2026-11-11 both ops branches pointed at ancestors of `master`). If a push is
+refused as non-fast-forward, push a newer commit that contains the old one;
+don't disable the ruleset.
+
+### Where the database secret lives
+
+The workflows read **`PROD_DATABASE_URL`** from the GitHub environment
+`production-database` (migrate, seed, lesson fixes, pre-generation) or
+`production-backup` (nightly backup, weekly clean-up), since the
+2026-11-10 lockdown ([ops/2026-11-10-lockdown-and-db-rotation.md](ops/2026-11-10-lockdown-and-db-rotation.md)).
+Both hold the Session pooler URI (port 5432). Vercel's `DATABASE_URL` holds
+the Transaction pooler URI (port 6543) with the same password. The old
+repository-level `PROD_DATABASE_URL` still exists until lockdown step 4
+deletes it.
+
+When the password changes, update all three, then redeploy the current
+production deployment in Vercel so it picks the new value up -- the live
+app is down from the reset until that redeploy is Ready. Vercel's Sensitive
+variables cannot be read back, so Supabase and the password manager are the
+only places to get the string again.
 
 Rollback stays as in step 7 above: Vercel Instant Rollback for code,
 migrations are additive so the database can stay.
+
+### Release backups: kept 30 days (REQ-168)
+
+A release backup taken inside the database is either a table
+`public.backup_release_YYYYMMDD` or a whole schema `backup_release_YYYYMMDD`
+(the date the backup was taken, UTC; the 2026-11-07 backup is the schema
+`backup_release_20261107`, 32 tables). It is kept 30 days and dropped within
+7 days after that by the "Release backup housekeeping" workflow
+(`.github/workflows/backup-housekeeping.yml`), which runs
+`npm run backups:housekeeping -- --apply` every Tuesday at 09:17 UTC with
+the same `PROD_DATABASE_URL` secret and `production-database` environment as
+the migrate workflow. `backup_release_20261107` is dropped by the run on
+Tuesday 2026-12-08; the runs before it keep it.
+
+- It drops a backup only if its name is exactly `backup_release_` plus 8
+  digits (a table must be in `public`), the digits are a real date, and that
+  date is more than 30 days before the run date (UTC). Exactly 30 days old
+  is kept; a future date is kept. Everything else -- `mastery_backup_*`,
+  `error_log_backup_*`, `backup_release_20261107_old`, a malformed date, a
+  backup-named table in another schema -- is never touched.
+- Tables are dropped without `CASCADE`. A matching schema is dropped with
+  `DROP SCHEMA ... CASCADE` after each of its tables is logged with its row
+  count. If anything outside the schema depends on it (a view, a foreign
+  key), the schema is refused, left in place, and the run fails so it shows
+  red in Actions.
+- Each backup it drops (or would drop) is logged with its date, age and row
+  counts. Nothing else is printed.
+- To see what the next run will do, run the workflow by hand from the
+  Actions tab: `dry_run` is ticked by default and drops nothing. Untick it
+  to drop now. Locally: `npm run backups:housekeeping` (dry run) or
+  `-- --apply`.
+- A backup you still need past 30 days: rename it out of the pattern before
+  the next Tuesday run (for example `alter schema backup_release_20261201
+  rename to keep_backup_release_20261201;`).
+- The Supabase advisor lists the 32 tables in `backup_release_20261107` as
+  "RLS disabled". Checked on production 2026-11-09: `anon`, `authenticated`,
+  `authenticator` and `service_role` have no `USAGE` on the schema and no
+  grants on its tables, so they are not reachable through the API; the flag
+  is a false positive.
 
 ## Migration 050: verifiable labs (REQ-123)
 

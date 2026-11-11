@@ -17,7 +17,7 @@ import {
   reminderError,
   reminderKey,
   reminderSchedule,
-  REMINDER_MESSAGES,
+  GENERIC_REMINDER,
   shiftTime,
 } from "./reminders.ts";
 import { outcomeDateError, outcomeResponse, parseScore } from "./examOutcome.ts";
@@ -137,11 +137,22 @@ describe("vendor disclaimers (M6)", () => {
   });
 });
 
+const NOW = new Date(2026, 10, 8, 9, 0);
+const PLAN = ["2026-11-08", "2026-11-09", "2026-11-10", "2026-11-11"].map((date) => ({
+  date,
+  trackId: "t",
+  course: "Security+",
+  topic: "Incident response",
+  questionCount: 6,
+  minutes: 5,
+  examInDays: null,
+}));
+
 describe("study reminders (M7)", () => {
   test("off by default", () => {
     assert.equal(DEFAULT_REMINDERS.enabled, false);
     assert.equal(parseReminderPrefs(null).enabled, false);
-    assert.deepEqual(reminderSchedule(DEFAULT_REMINDERS), []);
+    assert.deepEqual(reminderSchedule(DEFAULT_REMINDERS, PLAN, NOW), []);
   });
   test("quiet hours wrap past midnight and a reminder can't be set inside them", () => {
     assert.equal(inQuietHours(23 * 60, 21 * 60, 8 * 60), true);
@@ -151,18 +162,20 @@ describe("study reminders (M7)", () => {
     assert.equal(inQuietHours(12 * 60, 12 * 60, 12 * 60), false);
     const p = { ...DEFAULT_REMINDERS, enabled: true, time: 22 * 60 };
     assert.match(reminderError(p)!, /quiet hours/);
-    assert.deepEqual(reminderSchedule(p), []);
+    assert.deepEqual(reminderSchedule(p, PLAN, NOW), []);
     assert.match(reminderError({ ...DEFAULT_REMINDERS, enabled: true, days: [] })!, /at least one day/);
   });
-  test("one weekly reminder per chosen day, at the chosen time (expo weekday 1 = Sunday)", () => {
-    const slots = reminderSchedule({ ...DEFAULT_REMINDERS, enabled: true, days: [0, 3], time: 18 * 60 + 45 });
-    assert.deepEqual(slots.map((s) => [s.weekday, s.hour, s.minute]), [[1, 18, 45], [4, 18, 45]]);
+  test("REQ-197: one reminder on each chosen day that has something due, at the chosen time", () => {
+    // 2026-11-08 is a Sunday; the plan covers Sun-Wed, the learner chose Sun and Wed.
+    const slots = reminderSchedule({ ...DEFAULT_REMINDERS, enabled: true, days: [0, 3], time: 18 * 60 + 45 }, PLAN, NOW);
+    assert.deepEqual(
+      slots.map((s) => [s.at.getDay(), s.at.getHours(), s.at.getMinutes()]),
+      [[0, 18, 45], [3, 18, 45]]
+    );
   });
-  test("every message is kind: no streaks, no 'you missed', no pressure", () => {
-    for (const m of REMINDER_MESSAGES) {
-      for (const bad of GUILT_PATTERNS) {
-        assert.doesNotMatch(`${m.title} ${m.body}`, bad, `${m.title}: ${bad}`);
-      }
+  test("the generic message is kind: no streaks, no 'you missed', no pressure", () => {
+    for (const bad of GUILT_PATTERNS) {
+      assert.doesNotMatch(`${GENERIC_REMINDER.title} ${GENERIC_REMINDER.body}`, bad, String(bad));
     }
   });
   test("stored settings that don't parse, or are invalid, come back off", () => {
@@ -176,10 +189,12 @@ describe("study reminders (M7)", () => {
     assert.equal(shiftTime(0, -15), 24 * 60 - 15);
     assert.equal(shiftTime(24 * 60 - 15, 15), 0);
   });
-  test("the settings are per user and swept by Log out", () => {
+  test("the settings are per user, and Log out keeps them (REQ-217, FAIL-1057)", () => {
     const key = reminderKey("user-1");
-    assert.equal(localDataOwner(key), "user-1");
-    assert.deepEqual(userLocalDataKeys([key, reminderKey("user-2"), "ascendra.reminders"], "user-1"), [key]);
+    assert.equal(localDataOwner(key), "user-1", "still owned, so a signed-out user's write is blocked");
+    assert.deepEqual(userLocalDataKeys([key, reminderKey("user-2"), "ascendra.reminders"], "user-1"), [], "the setting is not swept");
+    const plan = "ascendra.reminderPlan.user-1";
+    assert.deepEqual(userLocalDataKeys([key, plan], "user-1"), [plan], "the plan names topics and is swept");
   });
 });
 
@@ -259,7 +274,7 @@ describe("privacy policy AI facts (H3)", () => {
     }
     assert.match(page, /may not train its models/);
     assert.match(page, /within 30 days/);
-    assert.match(page, /status: DRAFT/);
-    assert.match(content, /const DRAFT = "Draft for legal review/);
+    // REQ-205: Nick removed the draft banner on 2026-11-09; no document carries a status any more.
+    assert.doesNotMatch(content, /status: DRAFT|const DRAFT|Draft for legal review/);
   });
 });

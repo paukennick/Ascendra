@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-150: CAPM (PMI Certified Associate in Project Management, 2023 Exam
@@ -82,8 +82,8 @@ export const CAPM_LABS: SeedLabSet = {
             ),
             part(
               "Code value",
-              "Names fairness (avoiding conflicts of interest and favouritism, impartial decisions) and may also cite responsibility (following organisational policy) or honesty.",
-              "Fairness: I must make decisions impartially and disclose any real or potential conflict of interest. It also touches responsibility, since I must follow my organisation's policies."
+              "Names fairness (avoiding conflicts of interest and favouritism, impartial decisions) and may also cite responsibility (following organizational policy) or honesty.",
+              "Fairness: I must make decisions impartially and disclose any real or potential conflict of interest. It also touches responsibility, since I must follow my organization's policies."
             ),
           ],
         },
@@ -99,7 +99,7 @@ export const CAPM_LABS: SeedLabSet = {
             part(
               "Code value and why it matters",
               "Names honesty (truthful, accurate reporting, not deceiving stakeholders) and explains that hiding the defect would undermine the change the project exists to deliver (fewer mispicks).",
-              "Honesty: we provide accurate information in a timely way. The project's purpose is fewer mispicks; going live with a 5% wrong-order rate would make picking worse, so a false green would defeat the change the organisation is paying for."
+              "Honesty: we provide accurate information in a timely way. The project's purpose is fewer mispicks; going live with a 5% wrong-order rate would make picking worse, so a false green would defeat the change the organization is paying for."
             ),
           ],
         },
@@ -154,18 +154,14 @@ export const CAPM_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Analyse the network and the status.",
+          ask: "Analyze the network and the status.",
           parts: [
             part(
               "Critical path and duration",
               "Lists both paths with totals (A-B-E-F = 15 days; A-C-D-E-F = 17 days) and identifies A-C-D-E-F as the critical path with a duration of 17 days.",
               "A-B-E-F = 4 + 6 + 2 + 3 = 15 days. A-C-D-E-F = 4 + 3 + 5 + 2 + 3 = 17 days. The critical path is A-C-D-E-F and the project takes 17 days."
             ),
-            part(
-              "Float on B",
-              "Calculates total float of 2 days for B (early start 4, early finish 10; late finish 12, late start 6).",
-              "Forward pass: B starts day 4 and finishes day 10. Backward pass: F must start by 14, so E must finish by 14 and start by 12; B must finish by 12, so it can start as late as 6. Float = 6 - 4 = 2 days."
-            ),
+            numericPart("Float on B (days)", "Total float of 2 days for B (early start 4, early finish 10; late finish 12, late start 6). Met at exactly 2.", "Forward pass: B starts day 4 and finishes day 10. Backward pass: F must start by 14, so E must finish by 14 and start by 12; B must finish by 12, so it can start as late as 6. Float = 6 - 4 = 2 days.", { answer: 2, tolerance: 0, unit: "days" }),
             part(
               "Delay to B",
               "States that a 3-day slip on B uses its 2 days of float and delays the project by 1 day (to day 18), making B critical.",
@@ -233,7 +229,7 @@ export const CAPM_LABS: SeedLabSet = {
           parts: [
             part(
               "From WBS to backlog",
-              "Turns the WBS deliverables into a prioritised product backlog of user stories (or features/epics), ordered by value rather than by WBS number, with application and payment stories first.",
+              "Turns the WBS deliverables into a prioritized product backlog of user stories (or features/epics), ordered by value rather than by WBS number, with application and payment stories first.",
               "Each WBS deliverable becomes an epic and its work becomes user stories in one product backlog, ordered by value: the thinnest apply-and-pay path first (apply for a permit, pay by card), then the rest of application and payment, then renewals and reminders."
             ),
             part(
@@ -260,7 +256,7 @@ export const CAPM_LABS: SeedLabSet = {
       objective:
         "Preparing and executing task-management steps: interpreting success criteria and prioritizing tasks in an adaptive project",
       kind: "case",
-      title: "Interpret done and prioritise mid-iteration",
+      title: "Interpret done and prioritize mid-iteration",
       brief:
         "You support a Scrum team at Ottercreek Outdoor Gear building a store-locator feature. The team's definition of done: code reviewed, automated tests passing, deployed to the test environment. The story \"As a shopper, I want to find stores within 10 km so I can check stock nearby\" has acceptance criteria: shows stores within 10 km sorted by distance; shows each store's opening hours; works on mobile.",
       safetyNote: GENERAL_SAFETY,
@@ -276,7 +272,7 @@ export const CAPM_LABS: SeedLabSet = {
             ),
             part(
               "What happens to it",
-              "Says the story is not counted toward velocity or shown as complete; the remaining work returns to the product backlog for the product owner to prioritise.",
+              "Says the story is not counted toward velocity or shown as complete; the remaining work returns to the product backlog for the product owner to prioritize.",
               "It isn't demonstrated as complete or counted in velocity. The unfinished story goes back to the product backlog and the product owner decides when the opening-hours work is done."
             ),
           ],
@@ -292,7 +288,7 @@ export const CAPM_LABS: SeedLabSet = {
             ),
             part(
               "How the decision is made",
-              "Explains that the product owner prioritises the backlog by value (with input from stakeholders and the team on cost, risk and dependencies), and that technical work like refactoring is weighed on its value too, not ignored.",
+              "Explains that the product owner prioritizes the backlog by value (with input from stakeholders and the team on cost, risk and dependencies), and that technical work like refactoring is weighed on its value too, not ignored.",
               "The product owner orders the backlog by business value, informed by stakeholders and the team's estimates and risks. Refactoring (d) stays visible in the backlog; the team should explain its value so it can be scheduled soon."
             ),
           ],
@@ -345,26 +341,8 @@ export const CAPM_LABS: SeedLabSet = {
           text: "",
           ask: "Choose a technique for each situation and justify it.",
           parts: [
-            part(
-              "Large customer base (A)",
-              "Chooses a survey (questionnaire) because it reaches many people quickly and cheaply and gives quantifiable results.",
-              "A survey: it reaches thousands of customers at low cost and gives numbers we can rank (for example, rate each feature 1-5)."
-            ),
-            part(
-              "Conflicting stakeholders (B)",
-              "Chooses a facilitated requirements workshop (or joint session) to reach agreement among the conflicting stakeholders in one place; one-to-one interviews beforehand may be added.",
-              "A facilitated workshop with the three of them, so they hear each other's needs and agree the refund rules together; short interviews beforehand can surface each position."
-            ),
-            part(
-              "Previous project (C)",
-              "Chooses lessons learned (review of the lessons-learned register and archived documents, i.e. document analysis) to reuse knowledge and avoid repeating problems.",
-              "Review the earlier project's lessons learned and archived documents to find what caused the overrun and which requirements were missed."
-            ),
-            part(
-              "Step-by-step interaction (D)",
-              "Chooses a use case (main flow plus alternative/exception flows) because it describes the interaction step by step including exceptions; may mention a user story with acceptance criteria as a lighter alternative.",
-              "A use case \"Dispute a bill\": actor, preconditions, the main success flow, and an exception flow for missing evidence. It shows each step and what happens when things go wrong."
-            ),
+            matchPart("Technique for each situation", "Matches A to a survey, B to a facilitated workshop, C to lessons learned and document analysis, and D to a use case. Every pair right is met; at least half is partly there.", "A (40,000 customers) -> survey. B (three leaders disagree on refunds) -> facilitated workshop. C (the earlier project's archive) -> lessons learned and document analysis. D (step-by-step dispute, with exceptions) -> use case. Benchmarking fits none of these.", { leftHeading: "Situation", rightHeading: "Technique", left: ["A: 40,000 customers, which features they value", "B: three leaders disagree on refunds", "C: the earlier portal project's archived documents", "D: step by step, how a customer disputes a bill"], right: ["Survey (questionnaire)", "Facilitated requirements workshop", "Lessons learned and document analysis", "Use case with exception flows", "Benchmarking against other utilities"], pairs: [0, 1, 2, 3] }),
+            part("Why each fits", "Gives a reason for each choice: a survey reaches many people cheaply with countable results (A); a workshop gets the conflicting stakeholders to agree together (B); lessons learned reuse what went wrong before (C); a use case shows each step including what happens when evidence is missing (D).", "A: a survey reaches thousands of customers at low cost and gives numbers we can rank. B: a facilitated workshop lets the three hear each other and agree the refund rules together; short interviews beforehand can surface each position. C: the earlier project's lessons learned and archive show what caused the overrun and which requirements were missed. D: a use case \"Dispute a bill\" sets out the main flow and an exception flow for missing evidence."),
           ],
         },
       ],
@@ -400,8 +378,8 @@ export const CAPM_LABS: SeedLabSet = {
           ask: "Is the release ready? What do you recommend?",
           parts: [
             part(
-              "Readiness judgement",
-              "Calculates or notes that 36 of 40 (90%) passed and judges the release not ready while R12 (a serious functional defect) is unresolved and R7/R30 are untested; recognises that R19 is minor.",
+              "Readiness judgment",
+              "Calculates or notes that 36 of 40 (90%) passed and judges the release not ready while R12 (a serious functional defect) is unresolved and R7/R30 are untested; recognizes that R19 is minor.",
               "Not yet: 36 of 40 requirements (90%) are verified, but R12 allows double-booking, which breaks the core purpose, and R7 and R30 have not been tested. R19 (old logo) is cosmetic."
             ),
             part(

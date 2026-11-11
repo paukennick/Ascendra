@@ -68,28 +68,28 @@ export const ABPTSNCS_LABS: SeedLabSet = {
       slug: "ncs-localize-three-lesions",
       objective: "Neuroanatomy and lesion localization: cortical, subcortical, brainstem, cerebellar, spinal and peripheral patterns",
       kind: "build",
-      title: "Localise three lesions from the bedside",
+      title: "Localize three lesions from the bedside",
       brief:
         "Three fictional patients on an acute neurology ward. Patient 1: sudden right face and arm weakness worse than the leg, right-sided sensory loss, non-fluent speech with intact comprehension, eyes deviate to the left. Patient 2: sudden vertigo, hoarse voice and difficulty swallowing, loss of pain and temperature on the LEFT face and the RIGHT arm and leg, left-sided limb ataxia, left ptosis and a small left pupil; strength is normal. Patient 3: after a stab wound to the back, right leg weakness with brisk right knee and ankle reflexes and an upgoing right toe, loss of vibration and position sense in the right leg, and loss of pain and temperature in the LEFT leg from about the waist down. Fictional patients; exam practice, not clinical guidance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "For each patient name the lesion site (side and structure or vascular territory) and explain which findings localise it.",
+          ask: "For each patient name the lesion site (side and structure or vascular territory) and explain which findings localize it.",
           parts: [
             part(
               "Patient 1",
-              "Localises a left cerebral hemisphere lesion in the middle cerebral artery territory (left frontal-parietal cortex): contralateral face and arm more than leg weakness and sensory loss (MCA somatotopy), expressive (Broca-type) aphasia placing it in the dominant hemisphere, and gaze deviation toward the lesion.",
+              "Localizes a left cerebral hemisphere lesion in the middle cerebral artery territory (left frontal-parietal cortex): contralateral face and arm more than leg weakness and sensory loss (MCA somatotopy), expressive (Broca-type) aphasia placing it in the dominant hemisphere, and gaze deviation toward the lesion.",
               "Left middle cerebral artery territory (dominant frontal-parietal cortex): face and arm weaker than the leg is the MCA pattern, the non-fluent aphasia with preserved comprehension is a Broca-type lesion in the dominant hemisphere, and the eyes deviate toward the side of a cortical lesion."
             ),
             part(
               "Patient 2",
-              "Localises a left lateral medullary (Wallenberg) syndrome, usually from vertebral or posterior inferior cerebellar artery occlusion: crossed sensory loss (ipsilateral face, contralateral body), ipsilateral Horner syndrome, ipsilateral cerebellar ataxia, vertigo and bulbar signs (dysphagia, hoarseness) with spared corticospinal tracts.",
+              "Localizes a left lateral medullary (Wallenberg) syndrome, usually from vertebral or posterior inferior cerebellar artery occlusion: crossed sensory loss (ipsilateral face, contralateral body), ipsilateral Horner syndrome, ipsilateral cerebellar ataxia, vertigo and bulbar signs (dysphagia, hoarseness) with spared corticospinal tracts.",
               "Left lateral medulla (Wallenberg syndrome, typically vertebral or PICA territory): the crossed pattern -- left face and right body pain/temperature loss -- is the medullary signature; add left Horner (ptosis, miosis), left limb ataxia from the inferior cerebellar peduncle, vertigo from the vestibular nuclei and hoarseness and dysphagia from the nucleus ambiguus, with motor pathways spared because the lesion is lateral."
             ),
             part(
               "Patient 3",
-              "Localises a right-sided spinal cord hemisection (Brown-Sequard) in the thoracic cord: ipsilateral upper motor neuron weakness and ipsilateral dorsal column loss (vibration and proprioception) with contralateral spinothalamic loss (pain and temperature) a level or two below the lesion; places the level roughly at the low thoracic cord from the sensory level near the waist.",
+              "Localizes a right-sided spinal cord hemisection (Brown-Sequard) in the thoracic cord: ipsilateral upper motor neuron weakness and ipsilateral dorsal column loss (vibration and proprioception) with contralateral spinothalamic loss (pain and temperature) a level or two below the lesion; places the level roughly at the low thoracic cord from the sensory level near the waist.",
               "Right thoracic cord hemisection (Brown-Sequard): the corticospinal and dorsal column tracts have already crossed, so right leg weakness with upper motor neuron signs and right-sided vibration/position loss are ipsilateral to the lesion, while the spinothalamic tract crosses within a few segments of entry, so pain and temperature are lost on the LEFT below the lesion. A sensory level at the waist puts it around the low thoracic cord."
             ),
           ],
@@ -121,7 +121,7 @@ export const ABPTSNCS_LABS: SeedLabSet = {
             ),
             part(
               "Practice structure and feedback",
-              "Chooses motor-learning variables deliberately: variable and random-order practice across tasks once the skill is partly acquired (to aid transference), reduced and summary extrinsic feedback with knowledge of results more than knowledge of performance, an external focus of attention, and the avoidance of interference from practising compensatory patterns.",
+              "Chooses motor-learning variables deliberately: variable and random-order practice across tasks once the skill is partly acquired (to aid transference), reduced and summary extrinsic feedback with knowledge of results more than knowledge of performance, an external focus of attention, and the avoidance of interference from practicing compensatory patterns.",
               "Start each new task blocked, then mix the three florist tasks in random order so learning transfers to the shop floor. Give feedback after every third or fourth attempt, mostly about the result ('the stem is in the vase') rather than her elbow angle, and cue externally ('reach for the ribbon'). Do not drill a trunk-lean compensation for reach -- that pattern would interfere with recovering the arm."
             ),
           ],
@@ -138,7 +138,7 @@ export const ABPTSNCS_LABS: SeedLabSet = {
       kind: "build",
       title: "Which setting after the stroke, and how to argue for it",
       brief:
-        "A fictional 71-year-old man is on day 4 after a right MCA ischaemic stroke in an acute hospital. He has left hemiparesis (sits unsupported, stands with moderate assistance of one, takes a few steps with maximal assistance), left neglect that is improving, mild dysphagia on a modified diet, and intact communication. Before the stroke he lived with his wife in a single-storey home and was independent. He is medically stable; his wife is willing and able to help at home after rehabilitation. The case manager says the insurer 'is leaning toward a skilled nursing facility' and asks for your recommendation and justification. Fictional patient; exam practice, not clinical guidance.",
+        "A fictional 71-year-old man is on day 4 after a right MCA ischemic stroke in an acute hospital. He has left hemiparesis (sits unsupported, stands with moderate assistance of one, takes a few steps with maximal assistance), left neglect that is improving, mild dysphagia on a modified diet, and intact communication. Before the stroke he lived with his wife in a single-story home and was independent. He is medically stable; his wife is willing and able to help at home after rehabilitation. The case manager says the insurer 'is leaning toward a skilled nursing facility' and asks for your recommendation and justification. Fictional patient; exam practice, not clinical guidance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -147,8 +147,8 @@ export const ABPTSNCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Recommendation and justification",
-              "Recommends an inpatient rehabilitation facility (IRF) over a skilled nursing facility, justifying it with: he can participate in and benefit from intensive, interdisciplinary rehabilitation (improving neglect, intact communication, medical stability, high prior function), he needs at least two therapy disciplines (PT, OT, and speech for dysphagia), ongoing physician oversight, and a realistic goal of discharge home with his wife; notes that guidelines favour IRF-level care for eligible stroke survivors.",
-              "Recommend an inpatient rehabilitation facility. He meets the case: medically stable, able to tolerate and benefit from intensive therapy (neglect already improving, communication intact, motivated, high pre-stroke function), needs PT, OT and speech-language pathology together, needs rehabilitation physician and nursing oversight (dysphagia, blood pressure, skin), and has a realistic discharge home with an able spouse in a single-level house. Stroke rehabilitation guidance favours IRF-level care over a skilled nursing facility for survivors who qualify, because of the intensity and coordination it provides."
+              "Recommends an inpatient rehabilitation facility (IRF) over a skilled nursing facility, justifying it with: he can participate in and benefit from intensive, interdisciplinary rehabilitation (improving neglect, intact communication, medical stability, high prior function), he needs at least two therapy disciplines (PT, OT, and speech for dysphagia), ongoing physician oversight, and a realistic goal of discharge home with his wife; notes that guidelines favor IRF-level care for eligible stroke survivors.",
+              "Recommend an inpatient rehabilitation facility. He meets the case: medically stable, able to tolerate and benefit from intensive therapy (neglect already improving, communication intact, motivated, high pre-stroke function), needs PT, OT and speech-language pathology together, needs rehabilitation physician and nursing oversight (dysphagia, blood pressure, skin), and has a realistic discharge home with an able spouse in a single-level house. Stroke rehabilitation guidance favors IRF-level care over a skilled nursing facility for survivors who qualify, because of the intensity and coordination it provides."
             ),
             part(
               "Documentation",
@@ -188,7 +188,7 @@ export const ABPTSNCS_LABS: SeedLabSet = {
             ),
             part(
               "Action",
-              "Treats it as a stroke emergency: no vestibular rehabilitation or repositioning manoeuvres, immediate emergency referral (emergency services) with a clear handover of the findings and time of onset, and keeps the patient safe from falls while waiting.",
+              "Treats it as a stroke emergency: no vestibular rehabilitation or repositioning maneuvers, immediate emergency referral (emergency services) with a clear handover of the findings and time of onset, and keeps the patient safe from falls while waiting.",
               "Stop the examination and call emergency services: 64-year-old with vascular risk factors, 36 hours of acute vestibular syndrome and a central HINTS exam needs urgent stroke evaluation and imaging. Hand over the three findings and the onset time, keep him seated or lying with someone beside him, and do not attempt repositioning or exercises."
             ),
           ],
@@ -204,8 +204,8 @@ export const ABPTSNCS_LABS: SeedLabSet = {
             ),
             part(
               "Treatment and progression",
-              "Treats with a canalith repositioning manoeuvre (Epley or Semont) for the right posterior canal as first-line care, re-tests, repeats if needed, gives post-manoeuvre advice without unnecessary restrictions, and plans vestibular/balance rehabilitation for residual imbalance from the cerebellar infarct, with precautions given the recent stroke and a check that nothing has changed centrally.",
-              "Perform a right Epley (or Semont) manoeuvre now, re-test, and repeat at the next visit if still positive; vestibular suppressant medicines are not effective treatment for BPPV. Then address the residual unsteadiness from the cerebellar infarct with a balance and gait programme (standing with narrowing base, head turns while walking, dynamic tasks) and reassess the central examination at each visit."
+              "Treats with a canalith repositioning maneuver (Epley or Semont) for the right posterior canal as first-line care, re-tests, repeats if needed, gives post-maneuver advice without unnecessary restrictions, and plans vestibular/balance rehabilitation for residual imbalance from the cerebellar infarct, with precautions given the recent stroke and a check that nothing has changed centrally.",
+              "Perform a right Epley (or Semont) maneuver now, re-test, and repeat at the next visit if still positive; vestibular suppressant medicines are not effective treatment for BPPV. Then address the residual unsteadiness from the cerebellar infarct with a balance and gait program (standing with narrowing base, head turns while walking, dynamic tasks) and reassess the central examination at each visit."
             ),
           ],
         },
@@ -231,13 +231,13 @@ export const ABPTSNCS_LABS: SeedLabSet = {
             ),
             part(
               "Completeness and AIS grade",
-              "Classifies the injury as complete, AIS A, because there is no sacral sparing: S4-5 light touch and pin prick absent, no deep anal pressure and no voluntary anal contraction; notes the zone of partial preservation (C7-C8 sensory, C7 motor) that is recorded only in complete injuries.",
-              "No sacral sparing -- S4-5 sensation absent, no deep anal pressure, no voluntary anal contraction -- so the injury is complete: AIS A. Because it is complete, record the zones of partial preservation: sensory to C8 and motor to C7 on both sides."
+              "Classifies the injury as complete, AIS A, because there is no sacral sparing: S4-5 light touch and pin prick absent, no deep anal pressure and no voluntary anal contraction; notes the zones of partial preservation (sensory to C8, motor to C8 because the C8 finger flexors are 1/5) that are recorded only in complete injuries.",
+              "No sacral sparing -- S4-5 sensation absent, no deep anal pressure, no voluntary anal contraction -- so the injury is complete: AIS A. Because it is complete, record the zones of partial preservation: sensory to C8 and motor to C8 on both sides (the finger flexors, C8, still have a flicker at 1/5)."
             ),
             part(
               "What it means for planning",
-              "Translates the classification into early rehabilitation priorities for a C6 AIS A tetraplegia: expected functional potential (wrist extension for tenodesis grasp, independence with adapted equipment for many tasks, transfers possibly with a board, manual wheelchair on level surfaces), high priority on respiratory care, skin and pressure injury prevention, bladder and bowel programmes, orthostatic tolerance, and autonomic dysreflexia education because the lesion is above T6, while recognising that early neurological change can still occur and the exam is repeated.",
-              "C6 AIS A tetraplegia: he has wrist extension, so tenodesis grasp is the key skill to protect (do not over-stretch the finger flexors); realistic goals include feeding and grooming with adaptive equipment, pressure relief, transfers with a slide board, and a manual wheelchair with modified rims on level ground. Early priorities: respiratory muscle training and secretion clearance, skin checks and pressure relief schedule, bladder and bowel programmes, graded sitting for orthostatic tolerance, and autonomic dysreflexia education for him and his family because the lesion is above T6. Repeat the ISNCSCI, since early change is still possible."
+              "Translates the classification into early rehabilitation priorities for a C6 AIS A tetraplegia: expected functional potential (wrist extension for tenodesis grasp, independence with adapted equipment for many tasks, transfers possibly with a board, manual wheelchair on level surfaces), high priority on respiratory care, skin and pressure injury prevention, bladder and bowel programs, orthostatic tolerance, and autonomic dysreflexia education because the lesion is above T6, while recognizing that early neurological change can still occur and the exam is repeated.",
+              "C6 AIS A tetraplegia: he has wrist extension, so tenodesis grasp is the key skill to protect (do not over-stretch the finger flexors); realistic goals include feeding and grooming with adaptive equipment, pressure relief, transfers with a slide board, and a manual wheelchair with modified rims on level ground. Early priorities: respiratory muscle training and secretion clearance, skin checks and pressure relief schedule, bladder and bowel programs, graded sitting for orthostatic tolerance, and autonomic dysreflexia education for him and his family because the lesion is above T6. Repeat the ISNCSCI, since early change is still possible."
             ),
           ],
         },
@@ -258,7 +258,7 @@ export const ABPTSNCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition",
-              "Recognises autonomic dysreflexia: a lesion at or above T6, systolic blood pressure more than 20 mm Hg above her baseline (152 versus about 98), pounding headache, flushing and sweating above the lesion, piloerection and bradycardia; treats it as a medical emergency because of the risk of stroke and seizure.",
+              "Recognizes autonomic dysreflexia: a lesion at or above T6, systolic blood pressure more than 20 mm Hg above her baseline (152 versus about 98), pounding headache, flushing and sweating above the lesion, piloerection and bradycardia; treats it as a medical emergency because of the risk of stroke and seizure.",
               "Autonomic dysreflexia. She is at T4 (above T6), her systolic pressure has jumped more than 20 mm Hg over her baseline of about 98, and she has the classic signs: pounding headache, blurred vision, flushing and sweating above the lesion, goose bumps and a slow heart rate. For her, 152/96 is a hypertensive emergency."
             ),
             part(
@@ -311,7 +311,7 @@ export const ABPTSNCS_LABS: SeedLabSet = {
             part(
               "What to stop and why",
               "Stops low-intensity body-weight-supported treadmill training and static/dynamic balance exercise as the primary intervention for walking speed and distance, because the CPG's strong evidence says these should not be performed for that goal in this population, while keeping balance work only as a secondary or safety component.",
-              "Stop the slow body-weight-supported treadmill walking and the balance drills as the main programme: the CPG says, with strong evidence, that body-weight-supported treadmill training, robotic-assisted training and sitting or standing balance training without virtual reality should not be performed to improve walking speed or distance in people more than 6 months after stroke -- which matches his 3 months without change. Balance work stays only as a small safety add-on."
+              "Stop the slow body-weight-supported treadmill walking and the balance drills as the main program: the CPG says, with strong evidence, that body-weight-supported treadmill training, robotic-assisted training and sitting or standing balance training without virtual reality should not be performed to improve walking speed or distance in people more than 6 months after stroke -- which matches his 3 months without change. Balance work stays only as a small safety add-on."
             ),
             part(
               "Dose, progression and safety",
@@ -328,16 +328,16 @@ export const ABPTSNCS_LABS: SeedLabSet = {
       kind: "case",
       title: "Parkinson disease: prescribing now and adapting later",
       brief:
-        "A fictional 68-year-old woman with Parkinson disease (Hoehn and Yahr stage 2, diagnosed 4 years ago) is referred for an exercise programme. Fictional patient; exam practice, not clinical guidance.",
+        "A fictional 68-year-old woman with Parkinson disease (Hoehn and Yahr stage 2, diagnosed 4 years ago) is referred for an exercise program. Fictional patient; exam practice, not clinical guidance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
           text: "She has mild bilateral bradykinesia and rigidity, no falls, walks 1.1 m/s, has a Mini-BESTest of 24/28, and reports she has stopped her twice-weekly gym classes because she 'does not know what is safe'. Cognition is intact. Her medications are stable and she has no orthostatic symptoms.",
-          ask: "Prescribe her programme for the next 3 months using the APTA Parkinson disease guideline.",
+          ask: "Prescribe her program for the next 3 months using the APTA Parkinson disease guideline.",
           parts: [
             part(
-              "Programme components",
-              "Prescribes the guideline's strongly recommended components: moderate- to high-intensity aerobic exercise, progressive resistance training and balance training, plus gait and task-specific training and community-based exercise with behaviour-change strategies to keep her active, framed within an integrated care approach.",
+              "Program components",
+              "Prescribes the guideline's strongly recommended components: moderate- to high-intensity aerobic exercise, progressive resistance training and balance training, plus gait and task-specific training and community-based exercise with behavior-change strategies to keep her active, framed within an integrated care approach.",
               "All three strong recommendations: aerobic exercise at moderate to high intensity (brisk treadmill walking or cycling 3 times a week, progressing to 30-40 minutes), progressive resistance training twice a week for legs, trunk and arms, and balance training (dynamic, multi-directional stepping, dual-task) 2-3 times a week, with gait training using big amplitude steps. Get her back into community classes -- boxing, dance or Tai Chi-type groups -- and use goal-setting and self-monitoring so it sticks."
             ),
             part(
@@ -349,16 +349,16 @@ export const ABPTSNCS_LABS: SeedLabSet = {
         },
         {
           text: "Two years later she returns (Hoehn and Yahr stage 3). She now has freezing of gait in doorways and when turning, two falls in 6 months, a gait speed of 0.7 m/s, and her blood pressure falls 28 mm Hg systolic on standing with light-headedness (new since a medication change). She still wants to exercise.",
-          ask: "Adapt the programme to the new problems.",
+          ask: "Adapt the program to the new problems.",
           parts: [
             part(
               "Freezing and falls",
               "Adds external cueing (visual lines, auditory metronome, attentional strategies) for freezing of gait and task-specific practice of turning and doorway transitions, continues balance and resistance training with falls precautions, and considers cycling over treadmill walking for aerobic work given freezing and fall risk, as the guideline suggests.",
-              "Add external cues: floor lines at the kitchen doorway, a metronome or counting for turns, and 'stop, stand tall, shift weight, big step' as her freeze strategy, practised in real doorways and turning tasks. Keep progressive resistance and balance training with a spotter or rail. For aerobic work move from treadmill to a stationary or recumbent bike, which the guideline says to consider for people with freezing or high fall risk."
+              "Add external cues: floor lines at the kitchen doorway, a metronome or counting for turns, and 'stop, stand tall, shift weight, big step' as her freeze strategy, practiced in real doorways and turning tasks. Keep progressive resistance and balance training with a spotter or rail. For aerobic work move from treadmill to a stationary or recumbent bike, which the guideline says to consider for people with freezing or high fall risk."
             ),
             part(
               "Orthostatic hypotension",
-              "Recognises orthostatic hypotension (a 28 mm Hg systolic drop with symptoms, a fall of 20 mm Hg systolic or 10 diastolic within 3 minutes meets the definition), refers back to the physician for medication review, and adapts sessions: staged position changes, avoid prolonged standing immediately after exercise, hydration per physician advice, compression garments if prescribed, and monitor blood pressure before and after sessions.",
+              "Recognizes orthostatic hypotension (a 28 mm Hg systolic drop with symptoms, a fall of 20 mm Hg systolic or 10 diastolic within 3 minutes meets the definition), refers back to the physician for medication review, and adapts sessions: staged position changes, avoid prolonged standing immediately after exercise, hydration per physician advice, compression garments if prescribed, and monitor blood pressure before and after sessions.",
               "A 28 mm Hg systolic fall with light-headedness is orthostatic hypotension (the definition is 20 systolic or 10 diastolic within 3 minutes) -- send the physician the numbers and the timing with the medication change. In sessions: sit before standing, pause and count to 20, ankle pumps, no long standing right after exercise, check BP before and after, and ask about compression stockings and fluid advice from her physician."
             ),
           ],
@@ -391,7 +391,7 @@ export const ABPTSNCS_LABS: SeedLabSet = {
             part(
               "Recommendation and plan",
               "Makes a defensible recommendation either way with mitigation: for example discharge home with intensive outpatient or home-based therapy only if daytime supervision or a safe routine can be arranged (equipment, home assessment, husband trained, emergency plan), or a short, goal-specific extension (independence in household ambulation, FGA above the fall-risk cut-off) with continued measurement; names the measures to carry into the next setting.",
-              "Recommend a short, goal-specific extension of up to 2 weeks with explicit targets -- independent household walking with the cane, FGA of 22 or more, ABC trending up -- and a home visit to set up equipment and a daytime safety routine, then home with outpatient therapy. If the payer declines, discharge home is defensible only with a trained husband, a morning carer or neighbour check, a bedside commode and no stairs alone. Either way, carry the same core measures (10 m walk, 6MWT, Berg, FGA, ABC, 5xSTS) into the next setting so progress is measured against today."
+              "Recommend a short, goal-specific extension of up to 2 weeks with explicit targets -- independent household walking with the cane, FGA of 22 or more, ABC trending up -- and a home visit to set up equipment and a daytime safety routine, then home with outpatient therapy. If the payer declines, discharge home is defensible only with a trained husband, a morning carer or neighbor check, a bedside commode and no stairs alone. Either way, carry the same core measures (10 m walk, 6MWT, Berg, FGA, ABC, 5xSTS) into the next setting so progress is measured against today."
             ),
           ],
         },

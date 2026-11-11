@@ -22,6 +22,7 @@ import {
 } from "@/components/ui";
 import { Sidebar } from "@/components/Sidebar";
 import { CoursePlanPanel } from "@/components/CoursePlanPanel";
+import { StudyPathPanel } from "@/components/StudyPathPanel";
 import { colors, fonts, masteryColor, spacing } from "@/lib/theme";
 import { readinessSummary } from "@/lib/progress";
 import { nextCourseStep } from "@/lib/nextStep";
@@ -29,7 +30,12 @@ import { vendorDisclaimer } from "@/lib/vendor";
 import { COURSE_NO_UNITS } from "@/lib/emptyStates";
 import { ExamOutcomePrompt } from "@/components/ExamOutcomePrompt";
 import { labCountsByUnit, type LabListItem } from "@/lib/labs";
+import { capsHeaders } from "@/sim/runtime/caps.ts";
 import { readinessLockedLine } from "@/lib/billing";
+import { isNotFound } from "@/lib/notFound";
+import { LoadError } from "@/components/LoadError";
+import { HOME } from "@/lib/goBack";
+import { useGoBack } from "@/lib/useGoBack";
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
@@ -43,6 +49,8 @@ const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label
 export default function CourseDashboard() {
   const { trackId } = useLocalSearchParams<{ trackId: string }>();
   const router = useRouter();
+  const goBack = useGoBack(HOME);
+  const [notFound, setNotFound] = useState(false);
   const [track, setTrack] = useState<Track | null>(null);
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [readinessData, setReadinessData] = useState<CourseReadiness | null>(null);
@@ -56,6 +64,9 @@ export default function CourseDashboard() {
   // REQ-123: verifiable labs per unit; empty (and nothing shown) for a
   // course without labs or if the request fails.
   const [labCounts, setLabCounts] = useState<Record<string, number>>({});
+  // REQ-190: simulations in this course; 0 (and nothing shown) when sims are
+  // switched off (404 sims_disabled) or the request fails.
+  const [simCount, setSimCount] = useState(0);
   // REQ-075: which units are expanded to show their objective list. Nothing
   // on this screen let a learner pick a specific objective before -- only
   // "continue" into whatever came next.
@@ -87,6 +98,7 @@ export default function CourseDashboard() {
 
   const load = useCallback(() => {
     setError(null);
+    setNotFound(false);
     api
       .get<{ track: Track; units: Unit[]; readiness?: CourseReadiness; readinessLocked?: { message: string } | null; exam?: { providerName?: string | null; credentialName?: string | null } | null }>(
         `/api/courses/${trackId}`
@@ -98,7 +110,10 @@ export default function CourseDashboard() {
         setReadinessLocked(res.readinessLocked ? readinessLockedLine(res.readinessLocked) : null); // REQ-122 / REQ-124
         setExam(res.exam ?? null);
       })
-      .catch((err) => setError(err.message));
+      .catch((err) => {
+        setError(err.message);
+        setNotFound(isNotFound(err));
+      });
     // REQ-165: no per-course disclaimer any more. The one study notice is
     // asked at launch (app/(app)/notice.tsx) and the server requires it
     // before teaching a clinical course.
@@ -106,6 +121,10 @@ export default function CourseDashboard() {
       .get<{ labs: LabListItem[] }>(`/api/labs?trackId=${encodeURIComponent(trackId)}`)
       .then((res) => setLabCounts(labCountsByUnit(res.labs)))
       .catch(() => setLabCounts({}));
+    api
+      .get<{ sims: unknown[] }>(`/api/sims?trackId=${encodeURIComponent(trackId)}`, { headers: capsHeaders() })
+      .then((res) => setSimCount(Array.isArray(res.sims) ? res.sims.length : 0))
+      .catch(() => setSimCount(0));
   }, [trackId]);
   const totalLabs = Object.values(labCounts).reduce((a, b) => a + b, 0);
 
@@ -134,14 +153,14 @@ export default function CourseDashboard() {
           title: track?.title ?? "Course",
           headerLeft: () => (
             <View style={{ flexDirection: "row" }}>
-              <IconButton icon="chevron-left" accessibilityLabel="Back" onPress={() => router.back()} size={34} />
+              <IconButton icon="chevron-left" accessibilityLabel="Back" onPress={goBack} size={34} />
               <IconButton icon="menu" accessibilityLabel="Open course menu" onPress={() => setSidebarOpen(true)} size={34} />
             </View>
           ),
         }}
       />
       <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} trackId={trackId} track={track} units={units} />
-      {error ? <ErrorBanner message={error} onRetry={load} /> : null}
+      {error ? <LoadError message={error} notFound={notFound} onRetry={load} /> : null}
       {!track && !error ? <Loading label="Loading course..." /> : null}
 
       {track ? (
@@ -219,6 +238,17 @@ export default function CourseDashboard() {
               />
             ) : null}
 
+            {/* REQ-190: simulations, only on courses that have them. */}
+            {simCount > 0 ? (
+              <Button
+                label={`Simulations (${simCount})`}
+                accessibilityLabel={`Simulations: ${simCount} interactive ${simCount === 1 ? "case" : "cases"} that respond over time`}
+                icon="activity"
+                variant="ghost"
+                onPress={() => router.push({ pathname: `/course/${trackId}/sims`, params: { trackTitle: track.title } })}
+              />
+            ) : null}
+
             {/* REQ-113 (Audit 3 mobile H3, H4): five fixed 72 dp items needed
                 360 dp but a 360 dp phone has about 294 here, so "Compare" sat
                 mostly off-screen. Each item now takes a fifth of the row
@@ -253,6 +283,9 @@ export default function CourseDashboard() {
 
           {/* REQ-110: placement offer, session choice, plan and kept summary. */}
           <CoursePlanPanel trackId={trackId} trackTitle={track.title} />
+
+          {/* REQ-198: "Recommended before / after" when the course is on a study path. */}
+          <StudyPathPanel trackId={trackId} />
 
           <SectionHeader label="Units" />
           {units?.map((u) => {

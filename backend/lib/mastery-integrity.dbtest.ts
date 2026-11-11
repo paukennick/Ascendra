@@ -3,6 +3,7 @@
 // PBQ route handlers are called directly; the model is a fake client that
 // records what it was sent and answers with a fixed verdict.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -38,6 +39,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `mi-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const auth = (u: string) => ({
@@ -153,13 +155,18 @@ after(async () => {
 });
 
 describe("1. Guided work does not earn Independent or Transfer-ready", () => {
-  test("a correct free-response Guided answer is Guided; Guided + Solo in one sitting is Independent, not Transfer-ready", async () => {
+  test("a correct free-response Guided answer is Guided; Guided + Solo in one sitting is still Guided (REQ-218: a later sitting confirms Independent)", async () => {
     const u = await newUser();
     const o = objs[0];
     const fade = await grade(u, { format: "open", stage: "fade", objectiveId: o, answer: "f-right" });
     assert.equal(fade.status, 200);
     assert.equal((await mastery(u, o))?.status, "Guided");
     await grade(u, { format: "open", stage: "solo", objectiveId: o, answer: "s-right" });
+    assert.equal((await mastery(u, o))?.status, "Guided", "one sitting is not confirmation");
+    // The next day a different Solo item (the learner regenerated), unassisted: confirmed.
+    await backdate(u, o, "2 days");
+    await useOverride(u, o, "Solo v2: a different question");
+    await grade(u, { format: "open", stage: "solo", objectiveId: o, answer: "right again" });
     assert.equal((await mastery(u, o))?.status, "Independent");
   });
 
@@ -169,11 +176,12 @@ describe("1. Guided work does not earn Independent or Transfer-ready", () => {
     const u = await newUser();
     const o = objs[1];
     await grade(u, { format: "open", stage: "solo", objectiveId: o, answer: "s-right" });
-    // A second, different Solo item (the learner regenerated) an hour later: still Independent.
+    // A second, different Solo item (the learner regenerated) an hour later: the same
+    // sitting, so REQ-218's confirmation is not met yet.
     await backdate(u, o, "1 hour");
     await useOverride(u, o, "Solo v2: a different question");
     await grade(u, { format: "open", stage: "solo", objectiveId: o, answer: "right again" });
-    assert.equal((await mastery(u, o))?.status, "Independent");
+    assert.equal((await mastery(u, o))?.status, "Guided");
     // Spacing the two free responses two days apart is still one format: Independent.
     await query(
       `update attempts set created_at = created_at - interval '2 days'
@@ -624,13 +632,17 @@ describe("9b. Old app builds get the Solo choices, with the hint recorded (FAIL-
     assert.equal((await mastery(u, o))?.status, "Guided");
   });
 
-  test("the current app (header present): the same answer is unassisted and earns Independent", async () => {
+  test("the current app (header present): the same answer is unassisted (Independent once a later sitting confirms it)", async () => {
     const u = await newUser();
     const o = objs[15];
     await lesson(u, o);
     assert.equal(await hintRows(u, o), 0);
     const open = await grade(u, { format: "open", stage: "solo", objectiveId: o, answer: "s-right" });
     assert.equal(open.body.assistReason ?? null, null);
+    assert.equal((await mastery(u, o))?.status, "Guided", "REQ-218: one sitting");
+    await backdate(u, o, "2 days");
+    await useOverride(u, o, "Solo v2: a different question");
+    await grade(u, { format: "open", stage: "solo", objectiveId: o, answer: "s-right" });
     assert.equal((await mastery(u, o))?.status, "Independent");
   });
 });
@@ -678,8 +690,9 @@ describe("10. Attempts written by pre-029 code during the deploy gap (FAIL-110)"
     // REQ-117 (045, FAIL-344): help lowers a repeat's weight, not its credit,
     // so a correct repeat no longer drags accuracy down: one unassisted
     // success (format evidence) at 100% is Independent. Still never
-    // Transfer-ready: the repeat is not a second format.
-    assert.equal((await mastery(u, o))?.status, "Independent", "one item answered twice is one success; the repeat is not a second format");
+    // Transfer-ready: the repeat is not a second format. REQ-218: and one
+    // success is not confirmation, so it is Guided until a later answer.
+    assert.equal((await mastery(u, o))?.status, "Guided", "one item answered twice is one success; the repeat is not a second sitting");
   });
 
   test("a hint recorded before the answer counts even when the attempt says unassisted", async () => {
@@ -694,6 +707,7 @@ describe("10. Attempts written by pre-029 code during the deploy gap (FAIL-110)"
     assert.equal(await rule(u, o), "Guided");
     // A hint opened only after answering doesn't reach back.
     const u2 = await newUser();
+    await oldCodeAttempt(u2, o, "solo", "an earlier solo item", "correct", "3 days"); // REQ-218: confirmation
     await oldCodeAttempt(u2, o, "solo", SOLO_Q, "correct", "1 hour");
     await query(`insert into lesson_hint_reveals (user_id, objective_id, item_key) values ($1, $2, $3)`, [u2, o, lessonItemKey("solo", SOLO_Q)]);
     assert.equal(await rule(u2, o), "Independent");

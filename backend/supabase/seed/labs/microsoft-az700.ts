@@ -105,7 +105,7 @@ export const AZ700_LABS: SeedLabSet = {
             part(
               "Choosing the Azure range",
               "Picks a private range that does not overlap 10.0.0.0/12, 192.168.0.0/16 or 172.16.0.0/16 -- for example a block inside 10.16.0.0/12 or the remainder of 10.0.0.0/8 above 10.15.255.255 -- allocates a per-region block large enough for hub and spokes with headroom (for example a /16 per region), and reserves the next block for the second region; cites RFC 1918 (and optionally 100.64.0.0/10) as allowed space.",
-              "On-premises owns 10.0.0.0-10.15.255.255 (the /12), 192.168.0.0/16 and the partner 172.16.0.0/16, so Azure takes 10.16.0.0/12 for all regions: UK South gets 10.16.0.0/16 and next year's region is reserved 10.17.0.0/16, with the rest of the /12 for future regions. All of it is RFC 1918 space (100.64.0.0/10 is also usable in Azure if private space ever runs out). Non-overlap is checked against every connected network, not just the datacentre, because a VPN-connected partner range that overlaps a spoke would route wrongly or silently drop."
+              "On-premises owns 10.0.0.0-10.15.255.255 (the /12), 192.168.0.0/16 and the partner 172.16.0.0/16, so Azure takes 10.16.0.0/12 for all regions: UK South gets 10.16.0.0/16 and next year's region is reserved 10.17.0.0/16, with the rest of the /12 for future regions. All of it is RFC 1918 space (100.64.0.0/10 is also usable in Azure if private space ever runs out). Non-overlap is checked against every connected network, not just the datacenter, because a VPN-connected partner range that overlaps a spoke would route wrongly or silently drop."
             ),
             part(
               "Spoke sizing",
@@ -119,7 +119,7 @@ export const AZ700_LABS: SeedLabSet = {
             ),
             part(
               "Rules applied",
-              "States the rules: no overlap with any connected network; dedicated subnets for platform services that require them (gateway, firewall, Bastion, resolver) with their exact names; subnet sizes allow for the five reserved addresses and growth; leave contiguous unallocated space per region so summarisation to on-premises stays one prefix per region; keep spokes the same size for repeatability in the second region.",
+              "States the rules: no overlap with any connected network; dedicated subnets for platform services that require them (gateway, firewall, Bastion, resolver) with their exact names; subnet sizes allow for the five reserved addresses and growth; leave contiguous unallocated space per region so summarization to on-premises stays one prefix per region; keep spokes the same size for repeatability in the second region.",
               "No overlap with any network Azure will ever connect to. Platform services that require their own subnet get it, with the exact names Azure expects (GatewaySubnet, AzureFirewallSubnet, AzureFirewallManagementSubnet, AzureBastionSubnet) and at least the documented minimum size. Every subnet is sized after subtracting Azure's five reserved addresses. One contiguous /16 per region means on-premises learns a single summary route per region. The same template (hub /20, spokes /22) is stamped into the second region next year, which keeps firewall rules and route tables predictable."
             ),
           ],
@@ -132,7 +132,7 @@ export const AZ700_LABS: SeedLabSet = {
       kind: "build",
       title: "Design hybrid name resolution with Azure DNS Private Resolver",
       brief:
-        "Thornfield Insurance's hub-and-spoke is connected to the datacentre over VPN. Three problems: on-premises servers cannot resolve the private endpoints in Azure (for example claims-sql.database.windows.net should resolve to its private IP 10.16.4.10, but on-premises gets the public address); Azure VMs cannot resolve on-premises names under corp.thornfield.internal, served by two domain controllers at 10.2.0.10 and 10.2.0.11; and the team currently runs two Windows DNS forwarder VMs in the hub for this, which they want to retire. Design the solution with Azure DNS Private Resolver: what is deployed where, how each direction of resolution flows, and what changes on the VNets and on the on-premises DNS servers.",
+        "Thornfield Insurance's hub-and-spoke is connected to the datacenter over VPN. Three problems: on-premises servers cannot resolve the private endpoints in Azure (for example claims-sql.database.windows.net should resolve to its private IP 10.16.4.10, but on-premises gets the public address); Azure VMs cannot resolve on-premises names under corp.thornfield.internal, served by two domain controllers at 10.2.0.10 and 10.2.0.11; and the team currently runs two Windows DNS forwarder VMs in the hub for this, which they want to retire. Design the solution with Azure DNS Private Resolver: what is deployed where, how each direction of resolution flows, and what changes on the VNets and on the on-premises DNS servers.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -155,7 +155,7 @@ export const AZ700_LABS: SeedLabSet = {
               "A DNS forwarding ruleset attached to the outbound endpoint with one rule: domain corp.thornfield.internal., targets 10.2.0.10:53 and 10.2.0.11:53 (UDP). Link the ruleset to the hub VNet and to each spoke VNet. The VNets keep the default Azure-provided DNS setting, so a VM asking for fileserver.corp.thornfield.internal has the query matched by the ruleset and sent out through the outbound endpoint across the VPN to the domain controllers, while every other name still resolves through Azure DNS and the linked private zones. A ruleset can hold up to 1,000 rules if more on-premises domains appear."
             ),
             part(
-              "Spoke behaviour and gotchas",
+              "Spoke behavior and gotchas",
               "Explains that spokes need either a ruleset VNet link (for outbound rules) and their own private zone links or must point DNS at the hub inbound endpoint; warns that a custom DNS server setting on a VNet overrides Azure-provided resolution of private zones unless that server forwards back to Azure; and that the inbound endpoint must be reachable from on-premises (routing/NSG/VPN).",
               "Spokes: link the privatelink zones to each spoke VNet (or to the hub only and set the spoke VNets' DNS servers to the inbound endpoint 10.16.3.4, which then resolves on their behalf), and link the forwarding ruleset to each spoke so the corp rule applies there too. Do not point a VNet at the old Windows forwarders or at the domain controllers directly: a custom DNS server setting means Azure private zones are no longer consulted unless that server forwards back to Azure. Finally, make sure the VPN advertises the hub range and no NSG blocks UDP/TCP 53 to snet-dns-inbound, or the on-premises conditional forwarders will time out."
             ),
@@ -226,7 +226,7 @@ export const AZ700_LABS: SeedLabSet = {
       kind: "build",
       title: "Design a highly available site-to-site VPN",
       brief:
-        "Marlowe Freight, a fictional carrier, connects its two datacentres (each with its own internet link and VPN device supporting IKEv2 and BGP) to Azure. Today one VPN gateway with a single tunnel to one datacentre carries all traffic; when that datacentre's link flapped last month, Azure was unreachable for 40 minutes. Requirements: no single point of failure on the Azure side or on-premises; failover without anyone editing routes; about 800 Mbps aggregate throughput headroom; and the solution must survive a datacentre (availability zone) failure in Azure. The team asks whether the Basic gateway SKU they used for the pilot can stay. Design the gateway, the connections and the routing.",
+        "Marlowe Freight, a fictional carrier, connects its two datacenters (each with its own internet link and VPN device supporting IKEv2 and BGP) to Azure. Today one VPN gateway with a single tunnel to one datacenter carries all traffic; when that datacenter's link flapped last month, Azure was unreachable for 40 minutes. Requirements: no single point of failure on the Azure side or on-premises; failover without anyone editing routes; about 800 Mbps aggregate throughput headroom; and the solution must survive a datacenter (availability zone) failure in Azure. The team asks whether the Basic gateway SKU they used for the pilot can stay. Design the gateway, the connections and the routing.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -245,13 +245,13 @@ export const AZ700_LABS: SeedLabSet = {
             ),
             part(
               "On-premises redundancy and tunnels",
-              "Builds dual redundancy: each of the two datacentre VPN devices (two local network gateways) connects to both Azure gateway instances, giving four IPsec/IKEv2 tunnels, so the loss of a datacentre, a device, a link or an Azure instance leaves at least one path.",
-              "Two local network gateways, one per datacentre device, each holding that device's public IP and BGP peer address. Each device establishes tunnels to both active-active public IPs: four route-based IKEv2 tunnels in total. Any one datacentre, device, internet link or Azure gateway instance can fail and traffic continues on the remaining tunnels."
+              "Builds dual redundancy: each of the two datacenter VPN devices (two local network gateways) connects to both Azure gateway instances, giving four IPsec/IKEv2 tunnels, so the loss of a datacenter, a device, a link or an Azure instance leaves at least one path.",
+              "Two local network gateways, one per datacenter device, each holding that device's public IP and BGP peer address. Each device establishes tunnels to both active-active public IPs: four route-based IKEv2 tunnels in total. Any one datacenter, device, internet link or Azure gateway instance can fail and traffic continues on the remaining tunnels."
             ),
             part(
               "Routing and failover",
               "Uses BGP on every tunnel (gateway ASN and BGP peer IPs, APIPA or the device's BGP address) so prefixes are exchanged dynamically and a failed tunnel's routes are withdrawn automatically, with ECMP across live tunnels; explains that static routes in local network gateways would require manual change on failure, which the requirement forbids.",
-              "BGP on all four tunnels: the Azure gateway advertises the VNet prefixes with its ASN, each datacentre device advertises its prefixes, and the local network gateways carry only the BGP peer addresses, not static address prefixes. When a tunnel drops, its routes are withdrawn in seconds and traffic shifts to the surviving tunnels with equal-cost multipath across the live ones; nobody edits anything. Static prefixes in the local network gateways would have meant hand-editing routes during last month's outage. Route-based gateway, IKEv2, and a custom IPsec/IKE policy only if the devices need specific algorithms."
+              "BGP on all four tunnels: the Azure gateway advertises the VNet prefixes with its ASN, each datacenter device advertises its prefixes, and the local network gateways carry only the BGP peer addresses, not static address prefixes. When a tunnel drops, its routes are withdrawn in seconds and traffic shifts to the surviving tunnels with equal-cost multipath across the live ones; nobody edits anything. Static prefixes in the local network gateways would have meant hand-editing routes during last month's outage. Route-based gateway, IKEv2, and a custom IPsec/IKE policy only if the devices need specific algorithms."
             ),
           ],
         },
@@ -263,7 +263,7 @@ export const AZ700_LABS: SeedLabSet = {
       kind: "case",
       title: "Design ExpressRoute for a growing enterprise",
       brief:
-        "Marlowe Freight's VPN is saturating. The company's main datacentre is in Amsterdam; its Azure estate is in West Europe (12 VNets today, growing), with a disaster-recovery footprint planned in North Europe. It wants private, predictable connectivity of at least 2 Gbps, a path to Microsoft 365 that avoids the public internet for compliance reasons, and later a link from Amsterdam to a sister datacentre in Dublin without buying another WAN circuit. Finance wants to know what each decision costs and where the money goes.",
+        "Marlowe Freight's VPN is saturating. The company's main datacenter is in Amsterdam; its Azure estate is in West Europe (12 VNets today, growing), with a disaster-recovery footprint planned in North Europe. It wants private, predictable connectivity of at least 2 Gbps, a path to Microsoft 365 that avoids the public internet for compliance reasons, and later a link from Amsterdam to a sister datacenter in Dublin without buying another WAN circuit. Finance wants to know what each decision costs and where the money goes.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -293,19 +293,19 @@ export const AZ700_LABS: SeedLabSet = {
             ),
             part(
               "Microsoft 365",
-              "Enables Microsoft peering on the circuit with a route filter selecting the Microsoft 365 service communities, explains Microsoft 365 over ExpressRoute requires the Premium add-on and authorisation from Microsoft 365, and that Microsoft peering uses public (NAT) addresses from the customer side; keeps private peering for the VNets.",
-              "Upgrade the circuit to Premium (required for Microsoft 365 over ExpressRoute), request authorisation from Microsoft 365 -- without it the service routes are not advertised -- then configure Microsoft peering alongside the existing private peering and attach a route filter that selects the Microsoft 365 BGP communities you want (Exchange, SharePoint, Teams). Microsoft peering needs public IP addresses owned by Marlowe or its provider for NAT. Private peering keeps carrying the VNet traffic; the two peerings coexist on one circuit."
+              "Enables Microsoft peering on the circuit with a route filter selecting the Microsoft 365 service communities, explains Microsoft 365 over ExpressRoute requires the Premium add-on and authorization from Microsoft 365, and that Microsoft peering uses public (NAT) addresses from the customer side; keeps private peering for the VNets.",
+              "Upgrade the circuit to Premium (required for Microsoft 365 over ExpressRoute), request authorization from Microsoft 365 -- without it the service routes are not advertised -- then configure Microsoft peering alongside the existing private peering and attach a route filter that selects the Microsoft 365 BGP communities you want (Exchange, SharePoint, Teams). Microsoft peering needs public IP addresses owned by Marlowe or its provider for NAT. Private peering keeps carrying the VNet traffic; the two peerings coexist on one circuit."
             ),
           ],
         },
         {
-          text: "Finally the Amsterdam-to-Dublin datacentre link, and finance's question about where the money goes.",
-          ask: "How do you connect the two datacentres using what you already have, and what are the main cost lines of the whole design?",
+          text: "Finally the Amsterdam-to-Dublin datacenter link, and finance's question about where the money goes.",
+          ask: "How do you connect the two datacenters using what you already have, and what are the main cost lines of the whole design?",
           parts: [
             part(
               "Datacentre-to-datacentre",
-              "Recommends ExpressRoute Global Reach linking the Amsterdam and Dublin circuits so the two datacentres exchange traffic over the Microsoft backbone, noting both circuits are in the same geopolitical region so Premium is not required for that, it is not transitive, bandwidth is bounded by the smaller circuit and shared with premises-to-Azure traffic, and it is a separately billed add-on.",
-              "ExpressRoute Global Reach between the Amsterdam and Dublin circuits: on-premises prefixes learned on one circuit are advertised to the other, so the two datacentres talk across the Microsoft backbone with no new WAN circuit. Both peering locations are in Europe, so Premium is not needed for Global Reach itself (it would be if they were in different geopolitical regions). It is not transitive, its throughput is capped by the smaller circuit and shares that bandwidth with Azure-bound traffic, and Local circuits cannot use it. Finance should know it is billed as a separate add-on per circuit plus egress."
+              "Recommends ExpressRoute Global Reach linking the Amsterdam and Dublin circuits so the two datacenters exchange traffic over the Microsoft backbone, noting both circuits are in the same geopolitical region so Premium is not required for that, it is not transitive, bandwidth is bounded by the smaller circuit and shared with premises-to-Azure traffic, and it is a separately billed add-on.",
+              "ExpressRoute Global Reach between the Amsterdam and Dublin circuits: on-premises prefixes learned on one circuit are advertised to the other, so the two datacenters talk across the Microsoft backbone with no new WAN circuit. Both peering locations are in Europe, so Premium is not needed for Global Reach itself (it would be if they were in different geopolitical regions). It is not transitive, its throughput is capped by the smaller circuit and shares that bandwidth with Azure-bound traffic, and Local circuits cannot use it. Finance should know it is billed as a separate add-on per circuit plus egress."
             ),
             part(
               "Cost lines",
@@ -349,7 +349,7 @@ export const AZ700_LABS: SeedLabSet = {
             ),
             part(
               "Caching, redirects and rewrites",
-              "Enables caching on the routes for static assets and the video storage origin (query-string behaviour, compression), configures HTTP-to-HTTPS redirect on the route, and uses the rules engine (rule set) with a URL redirect action for /courses/old/* to /catalog/*; may mention URL rewrite for origin paths.",
+              "Enables caching on the routes for static assets and the video storage origin (query-string behavior, compression), configures HTTP-to-HTTPS redirect on the route, and uses the rules engine (rule set) with a URL redirect action for /courses/old/* to /catalog/*; may mention URL rewrite for origin paths.",
               "A separate route for /assets/* and the video storage origin with caching enabled (ignore or include query strings as the app needs, compression on) so repeat requests are served from the edge. On the main route tick redirect all traffic to use HTTPS. Add a rule set with a rule: if request path begins with /courses/old/, URL redirect (301) to /catalog/ preserving the remainder. A URL rewrite action would change the path sent to the origin instead, which is not what this requirement asks."
             ),
             part(
@@ -536,7 +536,7 @@ export const AZ700_LABS: SeedLabSet = {
             part(
               "What to watch",
               "Queries the WAF logs for rules triggered against legitimate traffic (by rule ID, URI and request parameter), focusing on the rich-text editor and search paths, and distinguishes true attacks from false positives; explains anomaly scoring (Critical 5, Error 4, Warning 3, Notice 2; a request is blocked at a score of 5 or more in Prevention) so it knows which detections would have blocked.",
-              "Over two weeks, query the AzureDiagnostics (ApplicationGatewayFirewallLog) records: group by ruleId, requestUri and the matched parameter, and look hardest at /editor/save and /search. Each matched rule adds its severity to an anomaly score -- Critical 5, Error 4, Warning 3, Notice 2 -- and in Prevention mode a request totalling 5 or more is blocked, so a lone Warning on the search box would pass but a Critical SQL-injection match on the editor body would not. Separate real probes (random paths, known scanner signatures) from the editor's legitimate HTML that trips the XSS rules."
+              "Over two weeks, query the AzureDiagnostics (ApplicationGatewayFirewallLog) records: group by ruleId, requestUri and the matched parameter, and look hardest at /editor/save and /search. Each matched rule adds its severity to an anomaly score -- Critical 5, Error 4, Warning 3, Notice 2 -- and in Prevention mode a request totaling 5 or more is blocked, so a lone Warning on the search box would pass but a Critical SQL-injection match on the editor body would not. Separate real probes (random paths, known scanner signatures) from the editor's legitimate HTML that trips the XSS rules."
             ),
           ],
         },

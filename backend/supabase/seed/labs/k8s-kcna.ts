@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-164: Kubernetes and Cloud Native Associate (KCNA).
@@ -60,11 +60,7 @@ export const KCNA_LABS: SeedLabSet = {
               "CronJob with schedule 0 1 * * * for the invoices (it creates a Job each night, which runs Pods to completion) and a plain Job for the migration; explains a Deployment would restart a finished container forever because it expects a long-running process.",
               "Invoices: a CronJob (batch/v1) with schedule \"0 1 * * *\" creating a Job each night; the Job runs the container to completion (restartPolicy OnFailure or Never) and retries up to backoffLimit. Migration: a Job run once before release. A Deployment treats exit as failure and restarts the container in a loop -- wrong for anything that is meant to finish."
             ),
-            part(
-              "Why not Deployments for everything",
-              "Summarises the distinguishing needs: identity and per-Pod storage (StatefulSet), one-per-node (DaemonSet), run-to-completion (Job/CronJob); Deployments are for stateless, interchangeable, long-running Pods.",
-              "Deployments suit interchangeable, stateless, long-running Pods. The database needs identity and its own storage, the agent needs node coverage, and the batch work needs to finish -- each a different controller with different guarantees. Picking the right controller is what makes the cluster self-heal correctly."
-            ),
+            matchPart("Object for each workload", "Web API -> Deployment; database -> StatefulSet; per-node log agent -> DaemonSet; nightly invoice run -> CronJob; one-off migration -> Job. A bare ReplicaSet fits none. All five right is met; at least three is partly there.", "Deployments suit interchangeable, stateless, long-running Pods (the web API). The database needs identity and its own storage (StatefulSet), the agent needs one Pod per node (DaemonSet), the nightly run needs a schedule that creates a Job (CronJob), and the migration runs once to completion (Job). A bare ReplicaSet has no rollout logic, so it is not the answer for any of them.", { leftHeading: "Workload", rightHeading: "Object", left: ["(1) Stateless web API, several copies, zero-downtime updates", "(2) PostgreSQL with a stable name and its own disk", "(3) Log agent, exactly once on every node", "(4) Nightly invoice run at 01:00 that finishes", "(5) One-off data migration before the first release"], right: ["Deployment", "StatefulSet", "DaemonSet", "CronJob", "Job", "ReplicaSet"], pairs: [0, 1, 2, 3, 4] }),
           ],
         },
       ],
@@ -86,7 +82,7 @@ export const KCNA_LABS: SeedLabSet = {
             part(
               "Decoding the message",
               "Explains that the scheduler filtered all four nodes: the control plane node is excluded by its taint (the Pod has no toleration), two workers lack 24Gi of allocatable memory for the request, and one worker lacks the label disktype=nvme required by the nodeSelector; the preemption note means evicting lower-priority Pods would not free a fitting node.",
-              "0/4 available because every node failed a filter: the control plane carries the taint node-role.kubernetes.io/control-plane and the Pod tolerates nothing, so it is out; two workers have less than 24Gi free of allocatable memory against the Pod's request; the remaining worker is not labelled disktype=nvme, so the nodeSelector rules it out. 'Preemption is not helpful' means even evicting other Pods would not make a node fit (the label and taint cannot be fixed by eviction)."
+              "0/4 available because every node failed a filter: the control plane carries the taint node-role.kubernetes.io/control-plane and the Pod tolerates nothing, so it is out; two workers have less than 24Gi free of allocatable memory against the Pod's request; the remaining worker is not labeled disktype=nvme, so the nodeSelector rules it out. 'Preemption is not helpful' means even evicting other Pods would not make a node fit (the label and taint cannot be fixed by eviction)."
             ),
             part(
               "Requests, not usage",
@@ -170,6 +166,7 @@ export const KCNA_LABS: SeedLabSet = {
           text: "",
           ask: "Pick a Service type for each need with the key spec fields, explain how traffic reaches the Pods in each case, and say why NodePort is the wrong default.",
           parts: [
+            matchPart("Service type for each need", "A is ClusterIP, B is LoadBalancer and C is ExternalName; NodePort fits none of them. All three right is met; two is partly there.", "A (internal, stable name) -> ClusterIP. B (public on 443 at a stable address) -> LoadBalancer. C (an external host under an internal name) -> ExternalName. NodePort opens a high port on every node and suits none of the three.", { leftHeading: "Need", rightHeading: "Service type", left: ["A: checkout calls inventory, inside the cluster only", "B: public web front end on 443 at a stable address", "C: refer to ledger.oriel-corp.example as ledger"], right: ["ClusterIP", "LoadBalancer", "ExternalName", "NodePort"], pairs: [0, 1, 2] }),
             part(
               "A: internal only",
               "ClusterIP (the default) with a selector on the inventory Pods; explains the virtual IP and DNS name inventory.<ns>.svc.cluster.local, and that kube-proxy (or the CNI's replacement) forwards to a ready endpoint.",
@@ -245,7 +242,7 @@ export const KCNA_LABS: SeedLabSet = {
     {
       slug: "triage-pod-status",
       objective:
-        "Troubleshooting: Pod phases and container states, reading kubectl get, describe, logs, events and exec, and recognising CrashLoopBackOff, ImagePullBackOff, Pending and OOMKilled",
+        "Troubleshooting: Pod phases and container states, reading kubectl get, describe, logs, events and exec, and recognizing CrashLoopBackOff, ImagePullBackOff, Pending and OOMKilled",
       kind: "case",
       title: "Triage four unhealthy Pods from one kubectl listing",
       brief:
@@ -256,6 +253,7 @@ export const KCNA_LABS: SeedLabSet = {
           text: "$ kubectl -n apps get pods\nNAME                          READY   STATUS             RESTARTS        AGE\ndonations-5f7c9d-2kq8w        1/1     Running            0               9d\nmailer-7b8d6c-xv4lp           0/1     ImagePullBackOff   0               25m\nvolunteers-6c9f8b-m3ntz       0/1     CrashLoopBackOff   12 (3m ago)     41m\nreports-0                     0/1     Pending            0               2h\nevents-sync-84d9c-q7rst       0/1     Running            6 (90s ago)     14m\n\n$ kubectl -n apps get pod events-sync-84d9c-q7rst -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}'\nOOMKilled",
           ask: "For mailer, volunteers, reports and events-sync: say what the status tells you, what the most likely category of cause is, and the single next command you would run.",
           parts: [
+            matchPart("Cause category for each Pod", "mailer: the image can't be pulled; volunteers: the app exits after starting; reports-0: the scheduler can't place it; events-sync: it exceeds its memory limit. All four right is met; two or three is partly there.", "mailer (ImagePullBackOff) -> the image can't be pulled. volunteers (CrashLoopBackOff) -> the container keeps exiting after it starts. reports-0 (Pending) -> the scheduler has not placed it (resources, selector or taint, or an unbound claim). events-sync (Running, OOMKilled) -> killed for exceeding its memory limit. Nothing here shows a failing readiness probe alone.", { leftHeading: "Pod", rightHeading: "Most likely category", left: ["mailer: ImagePullBackOff", "volunteers: CrashLoopBackOff", "reports-0: Pending", "events-sync: Running, 6 restarts, OOMKilled"], right: ["The image can't be pulled", "The container exits after it starts", "The scheduler can't place it", "It exceeds its memory limit", "Only its readiness probe is failing"], pairs: [0, 1, 2, 3] }),
             part(
               "mailer: ImagePullBackOff",
               "The kubelet cannot pull the image (wrong name or tag, private registry without a pull secret, or registry down) and is backing off between attempts; next command kubectl describe pod to read the Failed/BackOff events with the registry's error text.",
@@ -415,7 +413,7 @@ export const KCNA_LABS: SeedLabSet = {
             part(
               "Signals and tools",
               "Metrics (Prometheus, shown in Grafana) answer 'is something wrong and how much'; logs (Fluent Bit shipping container stdout to a store) answer 'what exactly happened'; traces (OpenTelemetry SDK/Collector to Jaeger) answer 'where in the request path time or errors come from'; explains observability as being able to ask new questions of this data, versus monitoring's fixed checks.",
-              "Metrics -- Prometheus scrapes the checkout Pods' /metrics (request counts and latency histograms) and Grafana shows the SLOs and burn rate: detect and size the problem. Logs -- Fluent Bit as a DaemonSet ships each container's stdout with Pod labels to the log store: see the exact error. Traces -- the service instruments requests with OpenTelemetry, the Collector exports to Jaeger: see which downstream call (payment, inventory) is slow or failing. Monitoring is the fixed alerts; observability is being able to ask a question you did not predict, which needs labelled, correlated signals."
+              "Metrics -- Prometheus scrapes the checkout Pods' /metrics (request counts and latency histograms) and Grafana shows the SLOs and burn rate: detect and size the problem. Logs -- Fluent Bit as a DaemonSet ships each container's stdout with Pod labels to the log store: see the exact error. Traces -- the service instruments requests with OpenTelemetry, the Collector exports to Jaeger: see which downstream call (payment, inventory) is slow or failing. Monitoring is the fixed alerts; observability is being able to ask a question you did not predict, which needs labeled, correlated signals."
             ),
             part(
               "Cost and volume",
@@ -442,7 +440,7 @@ export const KCNA_LABS: SeedLabSet = {
           parts: [
             part(
               "Resilience and scalability",
-              "A single replica with in-memory sessions and hostPath storage cannot be rescheduled or scaled: a node failure loses sessions and files, and replicas: 2 would break pinned users; recommends externalising sessions (a cache or signed cookies) and state (PVC or an external database/object store) before anything else so the Pod becomes replaceable and the Deployment can run several replicas behind a Service.",
+              "A single replica with in-memory sessions and hostPath storage cannot be rescheduled or scaled: a node failure loses sessions and files, and replicas: 2 would break pinned users; recommends externalizing sessions (a cache or signed cookies) and state (PVC or an external database/object store) before anything else so the Pod becomes replaceable and the Deployment can run several replicas behind a Service.",
               "replicas: 1 plus hostPath ties the application to one node -- if it dies the Pod cannot move and its files are gone; in-memory sessions mean any restart logs everyone out and a second replica would corrupt the experience. Phase 1 should make the monolith stateless at the Pod level: sessions in Redis or a signed cookie, files on a PersistentVolumeClaim or object storage, and then replicas: 3 behind a Service with readiness probes. That is what buys self-healing and scaling, with or without microservices."
             ),
             part(
@@ -464,12 +462,12 @@ export const KCNA_LABS: SeedLabSet = {
         },
         {
           text: "The CTO accepts the phase-1 changes and asks a final question: 'How do we choose tools without betting on the wrong horse? The landscape has hundreds of projects.'",
-          ask: "Explain how you would use the CNCF's structure to make tool choices for this programme.",
+          ask: "Explain how you would use the CNCF's structure to make tool choices for this program.",
           parts: [
             part(
               "Maturity levels as a risk signal",
               "Explains the CNCF maturity levels -- sandbox, incubating, graduated -- with graduated projects (e.g. Kubernetes, Prometheus, Helm, Argo, Flux, containerd) having demonstrated adoption, governance and security practices; recommends graduated or incubating projects for foundational choices and sandbox only for experiments.",
-              "CNCF projects move through sandbox (early, experimental), incubating (used in production by several adopters, growing governance) and graduated (broad adoption, neutral governance, security audits, the TOC's due diligence). For this programme's foundations -- orchestration, metrics, delivery, runtime -- choose graduated projects: Kubernetes, Prometheus, Helm, Argo or Flux, containerd. Incubating projects are reasonable where the need is clear; sandbox projects are for trials, not the policy-admin system."
+              "CNCF projects move through sandbox (early, experimental), incubating (used in production by several adopters, growing governance) and graduated (broad adoption, neutral governance, security audits, the TOC's due diligence). For this program's foundations -- orchestration, metrics, delivery, runtime -- choose graduated projects: Kubernetes, Prometheus, Helm, Argo or Flux, containerd. Incubating projects are reasonable where the need is clear; sandbox projects are for trials, not the policy-admin system."
             ),
             part(
               "Landscape, conformance and community",

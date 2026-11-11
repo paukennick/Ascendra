@@ -123,6 +123,35 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and to_regclass('public.discount_offer_codes') is not null as ok`,
   },
   {
+    // REQ-169/170: the intake form and Settings > Study profile read and
+    // write the intake tables whatever the billing switch says; category
+    // plans read entitlements.scope once billing is on.
+    migration: "060_intake_and_category_plans.sql",
+    what: "learner_intake and learner_intake_targets tables, entitlements.family and entitlements.scope",
+    sql: `select to_regclass('public.learner_intake') is not null
+             and to_regclass('public.learner_intake_targets') is not null
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'entitlements' and column_name = 'scope')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'entitlements' and column_name = 'family') as ok`,
+  },
+  {
+    // REQ-194: GET /api/courses and the start routes read it; the seed writes it.
+    migration: "065_track_hidden_at.sql",
+    what: "subject_tracks.hidden_at (course list, starting a course, seed)",
+    sql: `select exists(select 1 from information_schema.columns
+                     where table_schema = 'public' and table_name = 'subject_tracks' and column_name = 'hidden_at') as ok`,
+  },
+  {
+    // REQ-205: sign-up writes it; the account export reads it.
+    migration: "070_age_confirmation.sql",
+    what: "app_users.age_confirmed_at and age_confirmed_min (16+ confirmation at sign-up, account export)",
+    sql: `select exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'app_users' and column_name = 'age_confirmed_at')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'app_users' and column_name = 'age_confirmed_min') as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,
@@ -311,13 +340,14 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and exists(select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
                          where t.typname = 'attempt_kind' and e.enumlabel = 'labtask')
              and (select count(*) from assessment_types where type_name in ('lab_build', 'lab_case')) = 2
-             and exists(select 1 from pg_constraint where conname = 'item_flags_item_kind_050') as ok`,
+             -- 067 replaces 050's item_kind check with one that also allows 'sim'.
+             and exists(select 1 from pg_constraint where conname in ('item_flags_item_kind_050', 'item_flags_item_kind_067')) as ok`,
   },
   {
     // REQ-125: starting or grading a clinical or fitness lab, the lab view
     // and the export read it.
     migration: "051_lab_disclaimer_ack.sql",
-    what: "lab_disclaimer_acknowledgements (the one-time clinical / fitness lab disclaimer acknowledgement)",
+    what: "lab_disclaimer_acknowledgments (the one-time clinical / fitness lab disclaimer acknowledgment)",
     sql: `select to_regclass('public.lab_disclaimer_acknowledgements') is not null
              and exists(select 1 from pg_constraint where conname = 'lab_disclaimer_ack_family_051') as ok`,
   },
@@ -326,6 +356,107 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     migration: "059_study_notice.sql",
     what: "legal_acceptances accepts the 'study_notice' document (the one-time study notice)",
     sql: `select exists(select 1 from pg_constraint where conname = 'legal_acceptances_document_059') as ok`,
+  },
+  {
+    // REQ-174: the NREMT (EMR, EMT, AEMT, Paramedic) tracks hang off this
+    // row; the seed resolves it by slug and fails without it.
+    migration: "061_ems_taxonomy.sql",
+    what: "Emergency Medical Services subcategory under Healthcare & Nursing (seed)",
+    sql: `select exists(select 1 from education_subcategories s join education_categories c on c.id = s.category_id
+                     where c.slug = 'healthcare-nursing' and s.slug = 'emergency-medical-services') as ok`,
+  },
+  {
+    // REQ-190 (docs/sims.md 6): the sim routes (app/api/sims/**, lib/sims.ts).
+    migration: "062_sim_engine.sql",
+    what: "sims / sim_versions / sim_runs / sim_run_commands / sim_run_reasoning, attempts.sim_id, kind 'simtask' and the sim_run type (sim labs)",
+    sql: `select to_regclass('public.sims') is not null
+             and to_regclass('public.sim_versions') is not null
+             and to_regclass('public.sim_runs') is not null
+             and to_regclass('public.sim_run_commands') is not null
+             and to_regclass('public.sim_run_reasoning') is not null
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'attempts' and column_name = 'sim_id')
+             and exists(select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
+                         where t.typname = 'attempt_kind' and e.enumlabel = 'simtask')
+             and exists(select 1 from assessment_types where type_name = 'sim_run')
+             and exists(select 1 from pg_constraint where conname = 'attempts_simtask_shape') as ok`,
+  },
+  {
+    // REQ-197: Settings > Email, the unsubscribe links, the daily
+    // /api/cron/service-emails run and the account export read these.
+    migration: "063_service_emails.sql",
+    what: "email_preferences and service_email_log (service email choices and the once-per-period send log)",
+    sql: `select to_regclass('public.email_preferences') is not null
+             and to_regclass('public.service_email_log') is not null
+             and to_regclass('public.service_email_log_once') is not null as ok`,
+  },
+  {
+    // REQ-196: lesson generation queues a writer's verification program in
+    // exec_checks (fail closed: no table, the lesson is held back), and the
+    // sandbox / re-check jobs connect as a member of content_recheck.
+    migration: "064_recheck_role.sql",
+    what: "exec_checks / exec_check_runs (sandboxed verify-by-execution) and the content_recheck role",
+    sql: `select to_regclass('public.exec_checks') is not null
+             and to_regclass('public.exec_check_runs') is not null
+             and exists(select 1 from pg_roles where rolname = 'content_recheck') as ok`,
+  },
+  {
+    // REQ-199: "Report a problem" on a sim (lib/item-report.ts kind 'sim').
+    migration: "067_sim_item_kind.sql",
+    what: "the 'sim' item kind on item_flags / item_status / item_holdbacks and item_flags.context (reporting a sim)",
+    sql: `select exists(select 1 from pg_constraint where conname = 'item_flags_item_kind_067')
+             and exists(select 1 from pg_constraint where conname = 'item_status_item_kind_067')
+             and exists(select 1 from pg_constraint where conname = 'item_holdbacks_item_kind_067')
+             and exists(select 1 from pg_constraint where conname = 'item_flags_context_067')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'item_flags' and column_name = 'context') as ok`,
+  },
+  {
+    // REQ-204 (FAIL-882, FAIL-890): the holdback cooldown is per learner
+    // (item_holdbacks.scope_user_id), and the review enrolment trigger leaves
+    // retired objectives out.
+    migration: "069_learning_data_f3.sql",
+    what: "item_holdbacks.scope_user_id (per-learner holdback cooldown) and review_schedule_enrol() skipping retired objectives",
+    sql: `select exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'item_holdbacks' and column_name = 'scope_user_id')
+             and exists(select 1 from pg_proc where proname = 'review_schedule_enrol' and prosrc like '%retired_at%') as ok`,
+  },
+  {
+    // REQ-209: pace, begin, teach and chapter are logged sim commands.
+    migration: "073_sim_pacing_commands.sql",
+    what: "the pace, begin, teach and chapter command types on sim_run_commands (pacing, focused start, teaching answers, chapter breaks)",
+    sql: `select exists(select 1 from pg_constraint where conrelid = 'sim_run_commands'::regclass and conname = 'sim_run_commands_type_073') as ok`,
+  },
+  {
+    // REQ-219: the last authenticator step used (no replay of a code inside its
+    // window) and the inbound-email webhook's delivery ids (no replayed forward).
+    migration: "075_accounts_security_g4.sql",
+    what: "app_users.totp_last_step and the inbound_email_events table (authenticator codes used once, webhook replays dropped)",
+    sql: `select exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'app_users' and column_name = 'totp_last_step')
+             and to_regclass('public.inbound_email_events') is not null as ok`,
+  },
+  {
+    // REQ-224: every mental health course route reads the 18+ confirmation
+    // table, and the seed resolves the EPPP course's subcategory by slug.
+    migration: "077_mental_health_mature_content.sql",
+    what: "mature_content_confirmations (18+ gate on mental health courses, account export) and the mental-health category with psychology-licensure (seed)",
+    sql: `select to_regclass('public.mature_content_confirmations') is not null
+             and exists(select 1 from pg_constraint where conname = 'mature_content_confirmations_category_077')
+             and exists(select 1 from education_subcategories s join education_categories c on c.id = s.category_id
+                         where c.slug = 'mental-health' and s.slug = 'psychology-licensure') as ok`,
+  },
+  {
+    // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
+    migration: "074_independent_confirmation.sql",
+    what: "the 074 mastery_detail() (Independent needs a second unassisted correct answer 24 h after the first)",
+    sql: `select exists(select 1 from pg_proc where proname = 'mastery_detail' and prosrc like '%last_open_win%') as ok`,
+  },
+  {
+    // Remove this probe when the backup is dropped (runbook).
+    migration: "074b_independent_confirmation_backfill.sql",
+    what: "mastery_backup_074 table (074b backup and recompute under the 074 rule ran)",
+    sql: `select to_regclass('public.mastery_backup_074') is not null as ok`,
   },
   {
     migration: "032_lesson_progress_tombstone.sql",
@@ -528,6 +659,27 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and to_regclass('public.review_session_items_attempt') is not null
              and to_regclass('public.exam_session_items_attempt') is not null
              and to_regclass('public.placement_items_attempt') is not null as ok`,
+  },
+  {
+    // REQ-207: the least-privilege runtime role and the hardened functions.
+    // The app still works while connected as the owner, but a database
+    // without this has no role to switch to and PUBLIC may still execute
+    // (and a mutable search_path may still apply to) its functions.
+    migration: "071_app_runtime_role.sql",
+    what: "app_runtime role and app_runtime_sync(); no PUBLIC execute and a fixed search_path on the project's functions; the 064 read policies limited to catalog tracks",
+    sql: `select exists(select 1 from pg_roles where rolname = 'app_runtime')
+             and to_regprocedure('public.app_runtime_sync()') is not null
+             and not exists(
+               select 1 from pg_proc p
+                where p.pronamespace = 'public'::regnamespace
+                  and p.prokind in ('f', 'p')
+                  and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')
+                  and (exists (select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+                              where a.grantee = 0 and a.privilege_type = 'EXECUTE')
+                       or (p.prokind = 'f' and not coalesce(p.proconfig::text ~ 'search_path=', false))))
+             and exists(select 1 from pg_policies
+                         where schemaname = 'public' and tablename = 'objectives' and policyname = 'recheck_read'
+                           and qual like '%subject_tracks%') as ok`,
   },
 ];
 

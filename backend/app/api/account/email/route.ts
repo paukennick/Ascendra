@@ -6,6 +6,7 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { checkReauth, reauthFailure } from "@/lib/auth/reauth";
 import { mayEmail } from "@/lib/auth/mailLimit";
 import { sendEmailChangeConfirmation, sendEmailChangeRequestedAlert } from "@/lib/email";
+import { emailFailureHandler } from "@/lib/email-errors";
 
 export const dynamic = "force-dynamic";
 const TOKEN_TTL_HOURS = 1;
@@ -68,7 +69,7 @@ export async function POST(req: Request) {
     });
 
     // The old address is told whatever happens to the new one's mail.
-    await sendEmailChangeRequestedAlert(authUser.email, newEmail, cancelToken).catch(() => undefined);
+    await sendEmailChangeRequestedAlert(authUser.email, newEmail, cancelToken).catch(emailFailureHandler("account/email"));
     if (await mayEmail(newEmail)) await sendEmailChangeConfirmation(newEmail, rawToken);
 
     return ok({ message: "Check your new email address for a confirmation link." });

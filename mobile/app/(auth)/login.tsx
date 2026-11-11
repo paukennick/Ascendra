@@ -2,20 +2,28 @@ import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { BrandMark, Screen, Card, Divider, H1, Muted, TextField, Button, ErrorBanner } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
-import { ApiError } from "@/api/client";
 import { useGoogleAuthRequest } from "@/auth/googleSignIn";
 import { Text } from "react-native";
+import { ageCheckError, isAgeConfirmationRequired } from "@/lib/ageConfirmation";
+import { AgeCheckbox } from "@/components/AgeCheckbox";
 import { colors } from "@/lib/theme";
+import { mfaHandoffFrom, setMfaHandoff, setVerifyEmailHandoff } from "@/lib/handoff";
+import { messageOr } from "@/lib/errorMessage";
 
 export default function Login() {
   const router = useRouter();
-  const { login, loginWithGoogle, biometricAvailable, biometricEnabled, biometricLabel, unlockWithBiometric } = useAuth();
+  const { login, loginWithGoogle, biometricSignInReady, biometricLabel, unlockWithBiometric } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [biometricSubmitting, setBiometricSubmitting] = useState(false);
+  // REQ-205: a first-time Google sign-up needs "I am 16 or older". The server
+  // says so (and creates nothing); the Google sign-in is kept here and sent
+  // again with the confirmation.
+  const [googleToken, setGoogleToken] = useState<string | null>(null);
+  const [ageOk, setAgeOk] = useState(false);
   const { clientId, request, signInAsync } = useGoogleAuthRequest();
 
   const onBiometricPress = async () => {
@@ -27,6 +35,7 @@ export default function Login() {
   };
 
   const onSubmit = async () => {
+    if (submitting) return;
     setError(null);
     if (!email || !password) {
       setError("Enter your email and password.");
@@ -36,22 +45,32 @@ export default function Login() {
     try {
       const result = await login(email.trim(), password);
       if (result.emailVerificationRequired) {
-        router.replace({ pathname: "/verify-email-pending", params: { email: email.trim() } });
-      } else if (result.mfaRequired && result.challengeToken) {
-        router.push({
-          pathname: "/mfa-challenge",
-          params: {
-            challengeToken: result.challengeToken,
-            totp: result.mfaMethods?.totp ? "1" : "0",
-            email: result.mfaMethods?.email ? "1" : "0",
-          },
-        });
+        // REQ-206: the email is handed over in memory, not in the URL.
+        setVerifyEmailHandoff(email.trim());
+        router.replace({ pathname: "/verify-email-pending", params: { from: "login" } });
+      } else {
+        const mfa = mfaHandoffFrom(result);
+        if (mfa) {
+          setMfaHandoff(mfa);
+          router.push("/mfa-challenge");
+        }
       }
       // Otherwise the root layout's own redirect effect (driven by auth status) handles navigation.
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+      setError(messageOr(err, "Something went wrong. Try again."));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const finishGoogle = async (idToken: string, ageConfirmed: boolean) => {
+    const result = await loginWithGoogle(idToken, ageConfirmed);
+    setGoogleToken(null);
+    // REQ-206: the challenge is handed over in memory, not in the URL.
+    const mfa = mfaHandoffFrom(result);
+    if (mfa) {
+      setMfaHandoff(mfa);
+      router.push("/mfa-challenge");
     }
   };
 
@@ -61,19 +80,32 @@ export default function Login() {
     try {
       const idToken = await signInAsync();
       if (!idToken) return;
-      const result = await loginWithGoogle(idToken);
-      if (result.mfaRequired && result.challengeToken) {
-        router.push({
-          pathname: "/mfa-challenge",
-          params: {
-            challengeToken: result.challengeToken,
-            totp: result.mfaMethods?.totp ? "1" : "0",
-            email: result.mfaMethods?.email ? "1" : "0",
-          },
-        });
+      try {
+        await finishGoogle(idToken, false);
+      } catch (err) {
+        if (!isAgeConfirmationRequired(err)) throw err;
+        setGoogleToken(idToken);
+        setAgeOk(false);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Google sign-in failed. Try again.");
+      setError(messageOr(err, "Google sign-in failed. Try again."));
+    } finally {
+      setGoogleSubmitting(false);
+    }
+  };
+
+  const onGoogleAgeContinue = async () => {
+    setError(null);
+    const ageError = ageCheckError(ageOk);
+    if (ageError || !googleToken) {
+      setError(ageError ?? "Google sign-in failed. Try again.");
+      return;
+    }
+    setGoogleSubmitting(true);
+    try {
+      await finishGoogle(googleToken, true);
+    } catch (err) {
+      setError(messageOr(err, "Google sign-in failed. Try again."));
     } finally {
       setGoogleSubmitting(false);
     }
@@ -104,6 +136,8 @@ export default function Login() {
           autoComplete="username"
           importantForAutofill="yes"
           icon="mail"
+          returnKeyType="go"
+          onSubmitEditing={onSubmit}
         />
         <TextField
           label="Password"
@@ -115,8 +149,13 @@ export default function Login() {
           autoComplete="current-password"
           importantForAutofill="yes"
           icon="lock"
+          returnKeyType="go"
+          onSubmitEditing={onSubmit}
         />
-        {biometricAvailable && biometricEnabled ? (
+        {/* REQ-212 (FAIL-1003): only while a sealed session is on the device.
+            After a logout there is nothing to unlock, and a tap used to read
+            the empty key and switch biometrics off. */}
+        {biometricSignInReady ? (
           <Button
             label={`Use ${biometricLabel}`}
             variant="ghost"
@@ -137,6 +176,15 @@ export default function Login() {
               disabled={!request}
               onPress={onGooglePress}
             />
+            {googleToken ? (
+              <>
+                <Muted style={{ fontSize: 13 }}>
+                  This Google account doesn&apos;t have an Ascendra account yet. To create one, confirm your age.
+                </Muted>
+                <AgeCheckbox checked={ageOk} onToggle={() => setAgeOk((v) => !v)} />
+                <Button label="Create account with Google" icon="user-plus" loading={googleSubmitting} onPress={onGoogleAgeContinue} />
+              </>
+            ) : null}
             {/* REQ-119 (H5): Google sign-up used to create an account without
                 the Terms ever being shown. A new account made here records
                 this agreement (version and time). */}

@@ -1,13 +1,18 @@
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { bumpTokenVersion, revokeOtherSessions } from "@/lib/auth/sessionControl";
-import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
-import { verifyGoogleIdToken } from "@/lib/auth/oauth";
+import { ok, badRequest, unauthorized, tooManyRequests, serverError, readJson } from "@/lib/http";
+import { verifyGoogleIdToken, GoogleTokenError } from "@/lib/auth/oauth";
 import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
+import { mfaStepRequired } from "@/lib/auth/mfaMethodOff";
 import { completeLogin } from "@/lib/auth/session";
-import { recordAuthEvent } from "@/lib/auth/rateLimit";
+import { sessionResponse } from "@/lib/auth/refreshCookie";
+import { recordAuthEvent, consumeRateLimit, RateLimitError, GOOGLE_SIGNIN_IP_LIMIT, ipCounterKey } from "@/lib/auth/rateLimit";
+import { sendSecurityAlertEmail } from "@/lib/email";
+import { emailFailureHandler } from "@/lib/email-errors";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
-import { recordSignupTermsAcceptance, signupAcceptedVersion } from "@/lib/legal";
+import { recordSignupTermsAcceptance, signupAcceptedVersion, legalContext } from "@/lib/legal";
 import { LATEST_RELEASE_NOTE_ID } from "@/lib/release-notes";
+import { ageConfirmationRequired, isAgeConfirmed, MINIMUM_AGE } from "@/lib/age-confirmation";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +25,11 @@ interface UserRow {
   email_mfa_enabled: boolean;
 }
 
-// POST /api/auth/oauth/google — { idToken, deviceLabel?, acceptedTermsVersion? }. The mobile app
+// POST /api/auth/oauth/google — { idToken, deviceLabel?, acceptedTermsVersion?, ageConfirmed? }.
+// REQ-205: a NEW account needs ageConfirmed: true ("I am 16 or older"); without
+// it nothing is created and the answer is 400 { code: "age_confirmation_required" },
+// which the app turns into the confirmation and a retry. Signing in to an
+// existing or linked account never asks. The mobile app
 // gets idToken client-side via Expo AuthSession's Google provider; this
 // route only ever trusts a *verified* token, never client-supplied claims.
 //
@@ -35,17 +44,38 @@ export async function POST(req: Request) {
   try {
     const body = await readJson(req);
     const { idToken, deviceLabel } = body ?? {};
-    const acceptedTermsVersion = signupAcceptedVersion(body);
+    // REQ-175: a legacy client (no X-Ascendra-App) may have shown the previous text.
+    const termsCtx = legalContext(req);
+    const acceptedTermsVersion = signupAcceptedVersion(body, termsCtx);
     if (!idToken || typeof idToken !== "string") {
       return badRequest("idToken is required");
     }
 
-    const identity = await verifyGoogleIdToken(idToken);
+    // REQ-219 (FAIL-1102): per-IP limit like register's, ahead of the token
+    // check, so one address can't hammer it (or the account lookups behind
+    // it). Sized for shared networks: a legitimate sign-in is one call.
+    const ip = getClientIp(req);
+    if (ip) {
+      try {
+        await consumeRateLimit("oauth_google", ipCounterKey(ip), GOOGLE_SIGNIN_IP_LIMIT);
+      } catch (err) {
+        if (err instanceof RateLimitError) return tooManyRequests("Too many sign-in attempts from this network. Try again in a few minutes.");
+        throw err;
+      }
+    }
+
+    let identity;
+    try {
+      identity = await verifyGoogleIdToken(idToken);
+    } catch (err) {
+      // A rejected token is the caller's, not a fault of ours: 401, not reported.
+      if (err instanceof GoogleTokenError) return unauthorized("Google sign-in couldn't be confirmed. Try again.");
+      throw err;
+    }
     if (!identity.emailVerified) {
       return unauthorized("Google account email is not verified.");
     }
     const normalizedEmail = identity.email.toLowerCase().trim();
-    const ip = getClientIp(req);
     const meta = { deviceLabel: typeof deviceLabel === "string" ? deviceLabel : null, userAgent: getUserAgent(req), ip };
 
     const linked = await queryOne<UserRow>(
@@ -56,6 +86,7 @@ export async function POST(req: Request) {
     );
 
     let user: UserRow;
+    let existingVerified = false;
     if (linked) {
       user = linked;
     } else {
@@ -66,6 +97,7 @@ export async function POST(req: Request) {
       );
       if (existing) {
         user = existing;
+        existingVerified = !!existing.email_verified_at;
         // REQ-116 (audit 3, finding 8): an account nobody has verified may
         // have been registered by someone other than the inbox owner, who
         // chose its password. Google has just proved the inbox, so the
@@ -95,28 +127,43 @@ export async function POST(req: Request) {
           });
         }
       } else {
+        if (!isAgeConfirmed(body)) return ageConfirmationRequired();
         // REQ-140: a new account has seen every release note so far.
         const created = await queryOne<UserRow>(
-          `insert into app_users (email, display_name, email_verified_at, whats_new_seen_id)
-           values ($1, $2, now(), $3)
+          `insert into app_users (email, display_name, email_verified_at, whats_new_seen_id, age_confirmed_at, age_confirmed_min)
+           values ($1, $2, now(), $3, now(), $4)
            returning id, email, display_name, mfa_enabled, totp_secret_enc, email_mfa_enabled`,
-          [normalizedEmail, identity.name, LATEST_RELEASE_NOTE_ID]
+          [normalizedEmail, identity.name, LATEST_RELEASE_NOTE_ID, MINIMUM_AGE]
         );
         if (!created) throw new Error("Failed to create account.");
         user = created;
         // REQ-119: a new account made here saw "By continuing you agree..."
         // under the Google button; existing accounts are asked on launch.
-        await recordSignupTermsAcceptance(user.id, acceptedTermsVersion, "google_signup");
+        await recordSignupTermsAcceptance(user.id, acceptedTermsVersion, "google_signup", termsCtx);
       }
-      await query(
+      const attached = await query<{ id: string }>(
         `insert into oauth_accounts (user_id, provider, provider_account_id, email)
          values ($1, 'google', $2, $3)
-         on conflict (provider, provider_account_id) do nothing`,
+         on conflict (provider, provider_account_id) do nothing
+         returning id`,
         [user.id, identity.providerAccountId, normalizedEmail]
       );
+      // REQ-219 (FAIL-1103, Nick's decision): Google sign-in that attaches to
+      // an account that already existed (and was verified, so it may have a
+      // password) is a new way into it, so the account's address is told, as
+      // the explicit link route does. A brand-new account, and an unverified
+      // one this sign-in just claimed (whose address Google proved), mail
+      // nothing.
+      if (attached.length > 0 && existingVerified) {
+        await sendSecurityAlertEmail(
+          user.email,
+          "Google sign-in connected to your Ascendra account",
+          `Someone just signed in to your Ascendra account with the Google account ${normalizedEmail}, which uses the same email address. Google sign-in is now connected to your account.`
+        ).catch(emailFailureHandler("auth/oauth/google"));
+      }
     }
 
-    if (user.mfa_enabled) {
+    if (mfaStepRequired(user)) {
       await recordAuthEvent("login_mfa_challenge", normalizedEmail, { ip, userId: user.id });
       const challengeToken = await createLoginChallenge(user.id, meta);
       return ok({
@@ -128,7 +175,7 @@ export async function POST(req: Request) {
 
     await recordAuthEvent("login_success", normalizedEmail, { ip, userId: user.id });
     const session = await completeLogin(user, meta);
-    return ok(session);
+    return sessionResponse(req, session);
   } catch (err) {
     return serverError(err);
   }

@@ -9,6 +9,7 @@ import { MisconceptionNote, RefresherOffer, UnderstandingActions } from "@/compo
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import type { GradeResult, LessonContent, MasteryStatus, NextObjective } from "@/types";
+import { masteryAdvice, SOLO_HINT_NOTE, SOLO_OPEN_NOTE } from "@/lib/masteryAdvice";
 import { ReportProblem } from "@/components/ReportProblem";
 import { ReportLessonProblem } from "@/components/ReportLessonProblem";
 import {
@@ -18,10 +19,12 @@ import {
   Card,
   ErrorBanner,
   H2,
+  LiveAnnouncement,
   Loading,
   Muted,
   Screen,
   SectionHeader,
+  VERDICT_LABEL,
   VerdictBadge,
 } from "@/components/ui";
 import { colors, fonts, masteryColor, masteryIcon, radius, spacing } from "@/lib/theme";
@@ -51,6 +54,7 @@ import {
   type TeachState,
 } from "@/lib/lessonProgress";
 import { regenerateErrorMessage } from "@/lib/regenerateError";
+import { hasFullAi, REGENERATE_PREVIEW_NOTE } from "@/lib/aiAccess";
 import { planCourseReturn } from "@/lib/courseReturn";
 import { routePath } from "@/lib/navPlan";
 import {
@@ -83,6 +87,8 @@ import {
   type LearnerHistory,
   type TeachCards as TeachCardsData,
 } from "@/lib/lessonExperience";
+import { useStoredDraft } from "@/lib/useStoredDraft";
+import { followUpDraftKey, guessDraftKey } from "@/lib/drafts";
 
 // REQ-101 (FAIL-093): device copies once written under "anon" are removed
 // the first time a lesson opens in this app run.
@@ -102,6 +108,8 @@ export default function LessonFlow() {
   const router = useRouter();
   const navigation = useNavigation();
   const { user } = useAuth();
+  // REQ-201: false when AI_ACCESS_MODE keeps new lesson versions to the AI pilot.
+  const fullAi = hasFullAi(user);
   // REQ-101 (FAIL-093): no "anon" fallback. Logging out re-renders this
   // screen with no user before it is navigated away; with the fallback it
   // wrote a device copy under "anon" and sent a save that 401'd. Nothing is
@@ -114,6 +122,16 @@ export default function LessonFlow() {
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("guess");
   const [guess, setGuess] = useState("");
+  // REQ-206 (FAIL-939): the guess box survives a reload (see guessDraftKey).
+  useStoredDraft(
+    user && objectiveId ? guessDraftKey(user.id, objectiveId) : null,
+    step === "guess" && guess.trim() ? guess : null,
+    (stored) => {
+      // Only while still at the guess: a guess restored into a lesson already
+      // past it would count as one the learner made.
+      if (stored && step === "guess") setGuess((current) => current || stored.slice(0, OPEN_ANSWER_MAX));
+    }
+  );
   const [confidence, setConfidence] = useState<number | null>(null);
   // Feedback on the guess itself, generated once it's submitted (never for
   // "I don't know -- just teach me", since there's nothing to compare then).
@@ -780,16 +798,19 @@ export default function LessonFlow() {
                 // offers "Try again" (offerTryAgain).
                 onPress={() => setStep("teach")}
               />
-              <Button
-                label="Try a different question"
-                variant="ghost"
-                icon="refresh-cw"
-                accessibilityLabel="Try a different question (regenerates this lesson)"
-                loading={regenerating}
-                disabled={regenerating}
-                // Same guarded handler as "Regenerate lesson" below.
-                onPress={regenerateLesson}
-              />
+              {/* REQ-201: regenerating is limited preview outside the AI pilot. */}
+              {fullAi ? (
+                <Button
+                  label="Try a different question"
+                  variant="ghost"
+                  icon="refresh-cw"
+                  accessibilityLabel="Try a different question (regenerates this lesson)"
+                  loading={regenerating}
+                  disabled={regenerating}
+                  // Same guarded handler as "Regenerate lesson" below.
+                  onPress={regenerateLesson}
+                />
+              ) : null}
             </>
           ) : null}
           {next ? (
@@ -833,7 +854,7 @@ export default function LessonFlow() {
                 })
               }
             />
-            {notYet ? null : (
+            {notYet || !fullAi ? null : (
               <Button
                 label="Regenerate lesson"
                 variant="ghost"
@@ -846,6 +867,8 @@ export default function LessonFlow() {
             )}
           </View>
           {regenError ? <ErrorBanner message={regenError} /> : null}
+          {/* REQ-201: say why there is no "Regenerate lesson", without a plan or price. */}
+          {!fullAi && !notYet ? <Muted>{REGENERATE_PREVIEW_NOTE}</Muted> : null}
           {/* REQ-106 (research #7): optional lab and lab report. */}
           <LabCard objectiveId={objectiveId} userId={userId} />
         </Card>
@@ -856,28 +879,6 @@ export default function LessonFlow() {
       <ReportLessonProblem objectiveId={objectiveId} objectiveTitle={headerTitle} stage={step} />
     </Screen>
   );
-}
-
-// What the status just reached means, and the one concrete thing that
-// moves it up. The rubric lives in backend/lib/mastery.ts; nothing in the
-// app explained it before, so a learner answering multiple choice forever
-// would never find out why they were stuck at Guided.
-function masteryAdvice(status: MasteryStatus | null): string {
-  switch (status) {
-    // REQ-134: matches mastery_from_attempts (backend migration 029).
-    case "Transfer-ready":
-      return "Top of the rubric: you've answered on your own, correctly, on separate days. Spaced review will still bring it back if you ever miss it.";
-    case "Independent":
-      return "You answered the solo check on your own. Come back tomorrow or later and answer a fresh question (\"Regenerate lesson\") on your own to make it Transfer-ready.";
-    case "Guided":
-      return "Guided practice, the choices hint, or a question you'd answered before tops out here. Answer a solo check in free response, without the hint, to earn Independent.";
-    case "Introduced":
-      return "Not there yet -- the explanation is one tap back, and this objective will come up for review.";
-    case "Needs review":
-      return "This one is flagged for review. Re-read the explanation and try the solo check in free response.";
-    default:
-      return "Pick up the next objective, or revisit this one.";
-  }
 }
 
 const STEP_META: Record<Step, { label: string; icon: React.ComponentProps<typeof Feather>["name"] }> = {
@@ -1108,6 +1109,15 @@ function CheckStep({
   const setOpenAnswer = (t: string) => update({ openAnswer: t });
   const [followUp, setFollowUp] = useState("");
   const [followUpSent, setFollowUpSent] = useState(false);
+  // REQ-206 (FAIL-939): kept on the device until sent.
+  const { user: followUpUser } = useAuth();
+  useStoredDraft(
+    followUpUser ? followUpDraftKey(followUpUser.id, objectiveId, kind) : null,
+    followUp.trim() ? followUp : null,
+    (stored) => {
+      if (stored) setFollowUp((current) => current || stored.slice(0, OPEN_ANSWER_MAX));
+    }
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // A failed submit leaves the answer as it was and offers "Retry", which
@@ -1279,8 +1289,8 @@ function CheckStep({
             // (open/mc) is the saved state, so a revealed hint survives resume.
             <Muted style={{ fontSize: 12 }}>
               {mode === "mc"
-                ? "Choices are a hint: a correct multiple-choice answer caps mastery at Guided."
-                : "Answer in your own words -- a correct free-response answer earns Independent."}
+                ? SOLO_HINT_NOTE
+                : SOLO_OPEN_NOTE}
             </Muted>
           )}
 
@@ -1359,6 +1369,7 @@ function CheckStep({
         </>
       )}
 
+      <LiveAnnouncement message={result ? `${VERDICT_LABEL[result.verdict] ?? result.verdict}. ${result.feedback}` : null} />
       {result && (
         <View style={{ gap: 8 }}>
           {/* REQ-133: the options stay on screen after grading so the learner

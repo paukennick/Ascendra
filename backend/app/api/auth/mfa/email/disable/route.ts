@@ -1,9 +1,11 @@
-import { query, queryOne } from "@/lib/db";
-import { ok, unauthorized, tooManyRequests, serverError, readJson } from "@/lib/http";
+import { queryOne } from "@/lib/db";
+import { ok, unauthorized, tooManyRequests, conflict, serverError, readJson } from "@/lib/http";
 import { consumeRateLimit, RateLimitError, MFA_DISABLE_EVENT, MFA_DISABLE_LIMIT } from "@/lib/auth/rateLimit";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { mfaDisableGate } from "@/lib/auth/mfaDisableGate";
+import { turnOffMfaMethod, MFA_CHANGED_MESSAGE } from "@/lib/auth/mfaMethodOff";
 import { sendSecurityAlertEmail } from "@/lib/email";
+import { emailFailureHandler } from "@/lib/email-errors";
 
 export const dynamic = "force-dynamic";
 
@@ -31,21 +33,16 @@ export async function POST(req: Request) {
     const gate = await mfaDisableGate(user, body, "email", "email verification codes", !totpStillEnabled);
     if (gate !== "proceed") return gate;
 
-    await query(
-      `update app_users set email_mfa_enabled = false, email_mfa_pending_code_hash = null,
-         email_mfa_pending_expires_at = null, mfa_enabled = $1
-       where id = $2`,
-      [totpStillEnabled, user.id]
-    );
-    // Email MFA's own backup codes are always cleared on disable -- scoped
-    // to this method now, independent of TOTP's.
-    await query(`delete from mfa_backup_codes where user_id = $1 and method = 'email'`, [user.id]);
+    // REQ-219 (FAIL-1100): decided and written under a row lock, so two
+    // requests turning off the two methods at once can't both skip the
+    // last-method confirmation (lib/auth/mfaMethodOff.ts).
+    if ((await turnOffMfaMethod(user.id, "email", !totpStillEnabled)) === "changed") return conflict(MFA_CHANGED_MESSAGE);
 
     await sendSecurityAlertEmail(
       user.email,
       "Two-factor authentication settings changed",
       "Email verification codes were just turned off as a sign-in step on your Ascendra account."
-    ).catch(() => undefined);
+    ).catch(emailFailureHandler("auth/mfa/email/disable"));
 
     return ok({ enabled: false });
   } catch (err) {

@@ -2,10 +2,12 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import {
+  DEFAULT_OWNER_MONTHLY_CAP_USD,
   DEFAULT_UNRESTRICTED_CEILING_USD,
   grantIsLive,
   isOwnerEmail,
   ownerEmails,
+  ownerMonthlyCapUsd,
   parseAccessArgs,
   parseGrantInput,
   parseUntil,
@@ -64,6 +66,15 @@ describe("the AI safety ceiling", () => {
   });
 });
 
+describe("the owner's monthly AI safety cap", () => {
+  test("$35 by default (Nick, 2026-11-09); overridable; never off", () => {
+    assert.equal(DEFAULT_OWNER_MONTHLY_CAP_USD, 35);
+    assert.equal(ownerMonthlyCapUsd({}), 35);
+    assert.equal(ownerMonthlyCapUsd({ OWNER_MONTHLY_AI_CAP_USD: "50" }), 50);
+    for (const v of ["off", "0", "-3", "lots", ""]) assert.equal(ownerMonthlyCapUsd({ OWNER_MONTHLY_AI_CAP_USD: v }), 35, v);
+  });
+});
+
 describe("early access switches", () => {
   test("labs_unreviewed reads LABS_SERVE_UNREVIEWED exactly as lib/labs.ts does for everyone", () => {
     for (const v of [undefined, "", "on", "1", "true", "nope", "off", "OFF", "0", "false", "no"]) {
@@ -81,7 +92,7 @@ describe("plans", () => {
 });
 
 describe("grant input", () => {
-  test("email is required and normalised; until is a future date; note is optional and bounded", () => {
+  test("email is required and normalized; until is a future date; note is optional and bounded", () => {
     assert.deepEqual(parseGrantInput({ email: "  Friend@Example.COM " }, NOW), { email: "friend@example.com", until: null, note: null });
     const g = parseGrantInput({ email: "a@b.co", until: "2027-06-30", note: " founding tester " }, NOW);
     assert.ok(typeof g !== "string");

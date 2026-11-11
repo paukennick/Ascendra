@@ -63,3 +63,13 @@ export function cleanText(s: string, max: number): string {
   }
   return out.replace(LONE_SURROGATE_G, "�");
 }
+
+// REQ-216: a calendar date: YYYY-MM-DD, optionally with a time, that exists (no 31 February).
+export function isCalendarDate(v: unknown): boolean {
+  if (typeof v !== "string") return false;
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ][0-9:.]+(?:Z|[+-]\d{2}:?\d{2})?)?$/.exec(v.trim());
+  if (!m) return false;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === mo - 1 && dt.getUTCDate() === d && !Number.isNaN(Date.parse(v));
+}

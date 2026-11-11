@@ -1,0 +1,3851 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ticketburst-launch-day",
+  "title": "TicketBurst launch day",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "edge",
+          "label": "Edge",
+          "spokenLabel": "Edge services",
+          "items": [
+            {
+              "label": "CloudFront",
+              "when": "cf"
+            },
+            {
+              "label": "Route 53",
+              "when": "r53"
+            },
+            {
+              "label": "AWS WAF",
+              "when": "waf"
+            }
+          ]
+        },
+        {
+          "id": "pubA",
+          "label": "Public subnet, AZ a",
+          "spokenLabel": "Public subnet in availability zone A",
+          "items": [
+            {
+              "label": "Application Load Balancer node",
+              "when": "alb"
+            },
+            {
+              "label": "NAT gateway",
+              "when": "natA"
+            }
+          ]
+        },
+        {
+          "id": "pubB",
+          "label": "Public subnet, AZ b",
+          "spokenLabel": "Public subnet in availability zone B",
+          "items": [
+            {
+              "label": "Application Load Balancer node",
+              "when": "alb"
+            },
+            {
+              "label": "NAT gateway",
+              "when": "natB"
+            }
+          ]
+        },
+        {
+          "id": "appA",
+          "label": "App subnet, AZ a",
+          "spokenLabel": "Application subnet in availability zone A",
+          "items": [
+            {
+              "label": "Auto Scaling group ({asgSize}, min {asgMin|int}, max {asgMax|int})",
+              "when": "compute == \"asg\" and asgA"
+            },
+            {
+              "label": "EC2 instance (m6i.xlarge)",
+              "when": "compute == \"ec2\" and ec2A"
+            }
+          ]
+        },
+        {
+          "id": "appB",
+          "label": "App subnet, AZ b",
+          "spokenLabel": "Application subnet in availability zone B",
+          "items": [
+            {
+              "label": "Auto Scaling group ({asgSize}, min {asgMin|int}, max {asgMax|int})",
+              "when": "compute == \"asg\" and asgB"
+            },
+            {
+              "label": "EC2 instance (m6i.xlarge)",
+              "when": "compute == \"ec2\" and ec2B"
+            }
+          ]
+        },
+        {
+          "id": "dataA",
+          "label": "Data subnet, AZ a",
+          "spokenLabel": "Data subnet in availability zone A",
+          "items": [
+            {
+              "label": "RDS MySQL Single-AZ",
+              "when": "db == \"rdsSingle\" and dbAz == \"a\""
+            },
+            {
+              "label": "RDS MySQL Multi-AZ primary",
+              "when": "db == \"rdsMulti\" and dbAz == \"a\""
+            },
+            {
+              "label": "RDS MySQL Multi-AZ standby",
+              "when": "db == \"rdsMulti\" and dbAz == \"b\""
+            },
+            {
+              "label": "Aurora MySQL writer",
+              "when": "db == \"aurora\" and dbAz == \"a\""
+            },
+            {
+              "label": "Aurora MySQL replica",
+              "when": "db == \"aurora\" and dbAz == \"b\""
+            },
+            {
+              "label": "ElastiCache Redis primary",
+              "when": "cache and cacheAz == \"a\""
+            },
+            {
+              "label": "ElastiCache Redis replica",
+              "when": "cache and cacheAz == \"b\""
+            }
+          ]
+        },
+        {
+          "id": "dataB",
+          "label": "Data subnet, AZ b",
+          "spokenLabel": "Data subnet in availability zone B",
+          "items": [
+            {
+              "label": "RDS MySQL Single-AZ",
+              "when": "db == \"rdsSingle\" and dbAz == \"b\""
+            },
+            {
+              "label": "RDS MySQL Multi-AZ primary",
+              "when": "db == \"rdsMulti\" and dbAz == \"b\""
+            },
+            {
+              "label": "RDS MySQL Multi-AZ standby",
+              "when": "db == \"rdsMulti\" and dbAz == \"a\""
+            },
+            {
+              "label": "Aurora MySQL writer",
+              "when": "db == \"aurora\" and dbAz == \"b\""
+            },
+            {
+              "label": "Aurora MySQL replica",
+              "when": "db == \"aurora\" and dbAz == \"a\""
+            },
+            {
+              "label": "ElastiCache Redis primary",
+              "when": "cache and cacheAz == \"b\""
+            },
+            {
+              "label": "ElastiCache Redis replica",
+              "when": "cache and cacheAz == \"a\""
+            }
+          ]
+        },
+        {
+          "id": "regional",
+          "label": "Regional (us-east-1)",
+          "spokenLabel": "Regional services in us-east-1",
+          "items": [
+            {
+              "label": "Lambda + API Gateway",
+              "when": "compute == \"lambda\""
+            },
+            {
+              "label": "DynamoDB on-demand",
+              "when": "db == \"dynamo\""
+            },
+            {
+              "label": "SQS queue",
+              "when": "sqs"
+            },
+            {
+              "label": "S3 bucket",
+              "when": "s3"
+            },
+            {
+              "label": "Automated backups + PITR",
+              "when": "backup"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "cost",
+          "label": "Monthly cost",
+          "value": "{cost|usd}"
+        },
+        {
+          "id": "budget",
+          "label": "Budget",
+          "value": "{budget|usd}"
+        },
+        {
+          "id": "avail",
+          "label": "Availability today",
+          "value": "{avail|3dp}%"
+        }
+      ]
+    }
+  },
+  "objective": "Designing out single points of failure",
+  "secondaryObjectives": [
+    "Amazon EC2 Auto Scaling and AWS Auto Scaling: the metrics and conditions that trigger scaling",
+    "RTO and RPO, and letting them choose the DR strategy rather than the other way round",
+    "Scaling methods that cut spend, including EC2 hibernation"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certified Solutions Architect - Associate (SAA-C03) exam guide: the four design domains",
+      "checkedAt": "2026-11-09"
+    },
+    {
+      "cite": "AWS documentation: Well-Architected Framework, Reliability and Cost Optimization pillars",
+      "checkedAt": "2026-11-09",
+      "note": "Error-budget method: 99.9% of a 30-day month is 43.2 minutes."
+    },
+    {
+      "cite": "Prototype cloud.html (revised 2026-11-07), the rules this port reproduces",
+      "checkedAt": "2026-11-09"
+    }
+  ],
+  "brief": {
+    "situation": "TicketBurst sells concert tickets. A tour goes on sale at 10:00 today. Design the AWS architecture before the doors open at 09:00: about 200 requests per second normally, 10x for the 40-minute rush, orders with RPO 5 minutes and RTO 15 minutes, card data never stored, about $2,500 a month.",
+    "howItWorks": [
+      "Place components into the edge, the public and private subnets of two Availability Zones, or the regional services, and configure the Auto Scaling group.",
+      "Then advance the clock event by event: doors open, the on-sale spike, an AZ power loss, a database host failure, then finance asks for a 30% cut.",
+      "Each event is decided by the same first-matching rule tables the AWS timings feed; the debrief scores the four SAA-C03 design domains."
+    ]
+  },
+  "clock": {
+    "start": "08:55",
+    "tick": "5min",
+    "maxDuration": "9h",
+    "calendar": "clock"
+  },
+  "params": {
+    "budget": {
+      "value": 2500,
+      "unit": "$",
+      "source": {
+        "cite": "Prototype cloud.html (revised 2026-11-07), the rules this port reproduces",
+        "checkedAt": "2026-11-09"
+      }
+    },
+    "monthMin": {
+      "value": 43200,
+      "unit": "min",
+      "source": {
+        "cite": "AWS documentation: Well-Architected Reliability pillar",
+        "checkedAt": "2026-11-09",
+        "note": "A 30-day month."
+      }
+    },
+    "natFixMin": {
+      "value": 45,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype cloud.html TIMING)",
+        "checkedAt": "2026-11-09",
+        "note": "On-call adds a NAT gateway about 45 min after checkout fails."
+      }
+    },
+    "peakMin": {
+      "value": 40,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype cloud.html TIMING)",
+        "checkedAt": "2026-11-09",
+        "note": "The on-sale rush lasts about 40 minutes."
+      }
+    },
+    "azOutMin": {
+      "value": 60,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype cloud.html TIMING)",
+        "checkedAt": "2026-11-09",
+        "note": "AZ power back after 45 min, instances running again about 60 min after the loss."
+      }
+    },
+    "pitrRestoreMin": {
+      "value": 40,
+      "unit": "min",
+      "source": {
+        "cite": "AWS documentation: RDS point-in-time recovery",
+        "checkedAt": "2026-11-09",
+        "note": "Restore to a new instance about 40 min for this size (authored estimate)."
+      }
+    },
+    "pitrLagMin": {
+      "value": 5,
+      "unit": "min",
+      "source": {
+        "cite": "AWS documentation: RDS backups",
+        "checkedAt": "2026-11-09",
+        "note": "Transaction logs are uploaded every 5 minutes; the latest restorable time is about 5 minutes old."
+      }
+    },
+    "dumpRebuildMin": {
+      "value": 80,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype cloud.html TIMING)",
+        "checkedAt": "2026-11-09",
+        "note": "Rebuild from the 02:00 manual dump about 80 min."
+      }
+    },
+    "rampMin": {
+      "value": 7.5,
+      "unit": "min",
+      "source": {
+        "cite": "AWS documentation: EC2 Auto Scaling target tracking; ELB health checks",
+        "checkedAt": "2026-11-09",
+        "note": "Scale-out in service 510 s after the spike: 60 s to cross the target, 180 s alarm (3 one-minute datapoints), 90 s launch, 60 s app start, 4 more 30 s health checks; degraded for 510 s - 60 s."
+      }
+    },
+    "replaceMin": {
+      "value": 6,
+      "unit": "min",
+      "source": {
+        "cite": "AWS documentation: ELB health checks; EC2 Auto Scaling",
+        "checkedAt": "2026-11-09",
+        "note": "Replacement 330 s: 2 failed 30 s checks, 90 s launch, 60 s start, 4 more checks; rounded to 6 min."
+      }
+    },
+    "financeTarget": {
+      "value": 0.3,
+      "source": {
+        "cite": "Prototype cloud.html (revised 2026-11-07), the rules this port reproduces",
+        "checkedAt": "2026-11-09"
+      }
+    }
+  },
+  "catalogs": {
+    "sizes": {
+      "fields": {
+        "rps": {
+          "type": "number"
+        },
+        "cost": {
+          "type": "number",
+          "unit": "$"
+        },
+        "smaller": {
+          "type": "string",
+          "max": 16
+        }
+      },
+      "entries": [
+        {
+          "id": "t3.medium",
+          "rps": 60,
+          "cost": 30,
+          "smaller": ""
+        },
+        {
+          "id": "m6i.large",
+          "rps": 150,
+          "cost": 70,
+          "smaller": "t3.medium"
+        },
+        {
+          "id": "c6i.xlarge",
+          "rps": 400,
+          "cost": 125,
+          "smaller": "m6i.large"
+        },
+        {
+          "id": "c6i.2xlarge",
+          "rps": 800,
+          "cost": 250,
+          "smaller": "c6i.xlarge"
+        }
+      ],
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype cloud.html TIMING)",
+        "checkedAt": "2026-11-09",
+        "note": "Illustrative on-demand monthly price and req/s per instance for this app."
+      }
+    },
+    "components": {
+      "fields": {
+        "name": {
+          "type": "string",
+          "max": 40
+        },
+        "cost": {
+          "type": "number",
+          "unit": "$"
+        },
+        "slots": {
+          "type": "list",
+          "of": "string"
+        }
+      },
+      "entries": [
+        {
+          "id": "cloudfront",
+          "name": "CloudFront",
+          "cost": 85,
+          "slots": [
+            "edge"
+          ]
+        },
+        {
+          "id": "route53",
+          "name": "Route 53",
+          "cost": 5,
+          "slots": [
+            "edge"
+          ]
+        },
+        {
+          "id": "waf",
+          "name": "AWS WAF",
+          "cost": 35,
+          "slots": [
+            "edge"
+          ]
+        },
+        {
+          "id": "alb",
+          "name": "Application Load Balancer",
+          "cost": 45,
+          "slots": [
+            "pub-a",
+            "pub-b"
+          ]
+        },
+        {
+          "id": "nat",
+          "name": "NAT gateway",
+          "cost": 45,
+          "slots": [
+            "pub-a",
+            "pub-b"
+          ]
+        },
+        {
+          "id": "asg",
+          "name": "EC2 Auto Scaling group",
+          "cost": 0,
+          "slots": [
+            "app-a",
+            "app-b"
+          ]
+        },
+        {
+          "id": "ec2",
+          "name": "Single EC2 instance (m6i.xlarge)",
+          "cost": 140,
+          "slots": [
+            "app-a",
+            "app-b"
+          ]
+        },
+        {
+          "id": "lambda",
+          "name": "Lambda + API Gateway",
+          "cost": 900,
+          "slots": [
+            "regional"
+          ]
+        },
+        {
+          "id": "rdsSingle",
+          "name": "RDS MySQL Single-AZ",
+          "cost": 200,
+          "slots": [
+            "data-a",
+            "data-b"
+          ]
+        },
+        {
+          "id": "rdsMulti",
+          "name": "RDS MySQL Multi-AZ",
+          "cost": 400,
+          "slots": [
+            "data-a",
+            "data-b"
+          ]
+        },
+        {
+          "id": "aurora",
+          "name": "Aurora MySQL + replica",
+          "cost": 470,
+          "slots": [
+            "data-a",
+            "data-b"
+          ]
+        },
+        {
+          "id": "dynamo",
+          "name": "DynamoDB on-demand",
+          "cost": 120,
+          "slots": [
+            "regional"
+          ]
+        },
+        {
+          "id": "redis",
+          "name": "ElastiCache Redis + replica",
+          "cost": 290,
+          "slots": [
+            "data-a",
+            "data-b"
+          ]
+        },
+        {
+          "id": "sqs",
+          "name": "SQS queue",
+          "cost": 15,
+          "slots": [
+            "regional"
+          ]
+        },
+        {
+          "id": "s3",
+          "name": "S3 bucket",
+          "cost": 25,
+          "slots": [
+            "regional"
+          ]
+        }
+      ],
+      "source": {
+        "cite": "AWS documentation: pricing pages (illustrative monthly costs, us-east-1)",
+        "checkedAt": "2026-11-09",
+        "note": "Authored round numbers from the prototype."
+      }
+    }
+  },
+  "state": {
+    "cf": {
+      "type": "bool",
+      "init": false
+    },
+    "r53": {
+      "type": "bool",
+      "init": false
+    },
+    "waf": {
+      "type": "bool",
+      "init": false
+    },
+    "alb": {
+      "type": "bool",
+      "init": false
+    },
+    "natA": {
+      "type": "bool",
+      "init": false
+    },
+    "natB": {
+      "type": "bool",
+      "init": false
+    },
+    "compute": {
+      "type": "enum",
+      "values": [
+        "none",
+        "asg",
+        "ec2",
+        "lambda"
+      ],
+      "init": "none"
+    },
+    "asgA": {
+      "type": "bool",
+      "init": false
+    },
+    "asgB": {
+      "type": "bool",
+      "init": false
+    },
+    "asgMin": {
+      "type": "number",
+      "init": 2,
+      "min": 1,
+      "max": 20
+    },
+    "asgMax": {
+      "type": "number",
+      "init": 4,
+      "min": 1,
+      "max": 30
+    },
+    "asgSize": {
+      "type": "enum",
+      "values": [
+        "t3.medium",
+        "m6i.large",
+        "c6i.xlarge",
+        "c6i.2xlarge"
+      ],
+      "init": "m6i.large"
+    },
+    "ec2A": {
+      "type": "bool",
+      "init": false
+    },
+    "ec2B": {
+      "type": "bool",
+      "init": false
+    },
+    "db": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rdsSingle",
+        "rdsMulti",
+        "aurora",
+        "dynamo"
+      ],
+      "init": "none"
+    },
+    "dbAz": {
+      "type": "enum",
+      "values": [
+        "none",
+        "a",
+        "b"
+      ],
+      "init": "none"
+    },
+    "cache": {
+      "type": "bool",
+      "init": false
+    },
+    "cacheAz": {
+      "type": "enum",
+      "values": [
+        "none",
+        "a",
+        "b"
+      ],
+      "init": "none"
+    },
+    "sqs": {
+      "type": "bool",
+      "init": false
+    },
+    "s3": {
+      "type": "bool",
+      "init": false
+    },
+    "backup": {
+      "type": "bool",
+      "init": false
+    },
+    "rank": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "down": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2000
+    },
+    "deg": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2000
+    },
+    "impact": {
+      "type": "number",
+      "init": 0,
+      "unit": "min",
+      "min": 0,
+      "max": 100000
+    },
+    "rto": {
+      "type": "number",
+      "init": 0,
+      "unit": "min",
+      "min": 0,
+      "max": 100000
+    },
+    "rpo": {
+      "type": "number",
+      "init": 0,
+      "unit": "min",
+      "min": 0,
+      "max": 100000
+    },
+    "lucky": {
+      "type": "bool",
+      "init": false
+    },
+    "normalRank": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "spikeRank": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "azRank": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "dbRank": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "azDeg": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2000
+    },
+    "dbDeg": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2000
+    },
+    "designCost": {
+      "type": "number",
+      "init": 0,
+      "unit": "$",
+      "min": 0,
+      "max": 100000
+    },
+    "finDone": {
+      "type": "bool",
+      "init": false
+    },
+    "finSave": {
+      "type": "number",
+      "init": 0,
+      "unit": "$",
+      "min": 0,
+      "max": 100000
+    },
+    "riskRes": {
+      "type": "bool",
+      "init": false
+    },
+    "riskPerf": {
+      "type": "bool",
+      "init": false
+    },
+    "riskSec": {
+      "type": "bool",
+      "init": false
+    },
+    "finRisks": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    }
+  },
+  "derived": {
+    "natCount": {
+      "expr": "(natA ? 1 : 0) + (natB ? 1 : 0)"
+    },
+    "ec2Count": {
+      "expr": "(ec2A ? 1 : 0) + (ec2B ? 1 : 0)"
+    },
+    "rps": {
+      "expr": "sizes[asgSize].rps"
+    },
+    "computeA": {
+      "expr": "compute == \"lambda\" or (compute == \"asg\" and asgA) or (compute == \"ec2\" and ec2A)"
+    },
+    "computeB": {
+      "expr": "compute == \"lambda\" or (compute == \"asg\" and asgB) or (compute == \"ec2\" and ec2B)"
+    },
+    "computeAzs": {
+      "expr": "(computeA ? 1 : 0) + (computeB ? 1 : 0)"
+    },
+    "baseCap": {
+      "expr": "compute == \"asg\" ? asgMin * rps : compute == \"lambda\" ? 1000000000 : compute == \"ec2\" ? ec2Count * 300 : 0"
+    },
+    "maxCap": {
+      "expr": "compute == \"asg\" ? asgMax * rps : compute == \"lambda\" ? 1000000000 : compute == \"ec2\" ? ec2Count * 300 : 0"
+    },
+    "relational": {
+      "expr": "db == \"rdsSingle\" or db == \"rdsMulti\" or db == \"aurora\""
+    },
+    "needsNat": {
+      "expr": "compute == \"asg\" or compute == \"ec2\" or (compute == \"lambda\" and relational)"
+    },
+    "loadBase": {
+      "expr": "round(200 * (cf ? 1 : 1.5))"
+    },
+    "loadPeak": {
+      "expr": "round(2000 * (cf ? 1 : 1.5) * (waf ? 1 : 1.15))"
+    },
+    "loadAfter": {
+      "expr": "round(600 * (cf ? 1 : 1.5))"
+    },
+    "asgAtPeak": {
+      "expr": "min(asgMax, max(asgMin, ceil(loadPeak / rps)))"
+    },
+    "asgCost": {
+      "expr": "round((asgMin + 0.1 * (asgMax - asgMin)) * sizes[asgSize].cost)",
+      "unit": "$"
+    },
+    "dbCost": {
+      "expr": "db == \"none\" ? 0 : components[db].cost",
+      "unit": "$"
+    },
+    "cost": {
+      "expr": "(cf ? 85 : 0) + (r53 ? 5 : 0) + (waf ? 35 : 0) + (alb ? 45 : 0) + 45 * natCount + (compute == \"asg\" ? asgCost : 0) + (compute == \"ec2\" ? 140 * ec2Count : 0) + (compute == \"lambda\" ? 900 : 0) + dbCost + (cache ? 290 : 0) + (sqs ? 15 : 0) + (s3 ? 25 : 0) + (backup ? 40 : 0)",
+      "unit": "$"
+    },
+    "avail": {
+      "expr": "(1 - impact / monthMin) * 100",
+      "unit": "%",
+      "precision": 3
+    }
+  },
+  "processes": [],
+  "phases": {
+    "build": {
+      "label": "Design",
+      "clock": "stopped",
+      "actions": [
+        "place",
+        "remove",
+        "configure",
+        "toggleBackup",
+        "start"
+      ]
+    },
+    "run": {
+      "label": "Launch day",
+      "clock": "turns",
+      "actions": []
+    },
+    "finance": {
+      "label": "Finance review",
+      "clock": "stopped",
+      "actions": [
+        "review"
+      ]
+    }
+  },
+  "initialPhase": "build",
+  "actions": {
+    "place": {
+      "label": "Place a component",
+      "group": "Design",
+      "params": [
+        {
+          "id": "place",
+          "kind": "slot",
+          "label": "Component and slot",
+          "catalog": "components",
+          "slots": [
+            "edge",
+            "pub-a",
+            "pub-b",
+            "app-a",
+            "app-b",
+            "data-a",
+            "data-b",
+            "regional"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "place.id == \"cloudfront\" and not (place.slot in [\"edge\"])",
+              "then": [
+                {
+                  "log": "CloudFront cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"route53\" and not (place.slot in [\"edge\"])",
+              "then": [
+                {
+                  "log": "Route 53 cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"waf\" and not (place.slot in [\"edge\"])",
+              "then": [
+                {
+                  "log": "AWS WAF cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"alb\" and not (place.slot in [\"pub-a\", \"pub-b\"])",
+              "then": [
+                {
+                  "log": "Application Load Balancer cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"nat\" and not (place.slot in [\"pub-a\", \"pub-b\"])",
+              "then": [
+                {
+                  "log": "NAT gateway cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"asg\" and not (place.slot in [\"app-a\", \"app-b\"])",
+              "then": [
+                {
+                  "log": "EC2 Auto Scaling group cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"ec2\" and not (place.slot in [\"app-a\", \"app-b\"])",
+              "then": [
+                {
+                  "log": "Single EC2 instance (m6i.xlarge) cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"lambda\" and not (place.slot in [\"regional\"])",
+              "then": [
+                {
+                  "log": "Lambda + API Gateway cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"rdsSingle\" and not (place.slot in [\"data-a\", \"data-b\"])",
+              "then": [
+                {
+                  "log": "RDS MySQL Single-AZ cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"rdsMulti\" and not (place.slot in [\"data-a\", \"data-b\"])",
+              "then": [
+                {
+                  "log": "RDS MySQL Multi-AZ cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"aurora\" and not (place.slot in [\"data-a\", \"data-b\"])",
+              "then": [
+                {
+                  "log": "Aurora MySQL + replica cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"dynamo\" and not (place.slot in [\"regional\"])",
+              "then": [
+                {
+                  "log": "DynamoDB on-demand cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"redis\" and not (place.slot in [\"data-a\", \"data-b\"])",
+              "then": [
+                {
+                  "log": "ElastiCache Redis + replica cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"sqs\" and not (place.slot in [\"regional\"])",
+              "then": [
+                {
+                  "log": "SQS queue cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"s3\" and not (place.slot in [\"regional\"])",
+              "then": [
+                {
+                  "log": "S3 bucket cannot go there.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"cloudfront\"",
+              "then": [
+                {
+                  "set": "cf",
+                  "to": "true"
+                },
+                {
+                  "log": "Placed CloudFront.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"route53\"",
+              "then": [
+                {
+                  "set": "r53",
+                  "to": "true"
+                },
+                {
+                  "log": "Placed Route 53.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"waf\"",
+              "then": [
+                {
+                  "set": "waf",
+                  "to": "true"
+                },
+                {
+                  "log": "Placed AWS WAF.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"alb\"",
+              "then": [
+                {
+                  "set": "alb",
+                  "to": "true"
+                },
+                {
+                  "log": "Placed Application Load Balancer.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"nat\"",
+              "then": [
+                {
+                  "if": "place.slot == \"pub-a\"",
+                  "then": [
+                    {
+                      "set": "natA",
+                      "to": "true"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "set": "natB",
+                      "to": "true"
+                    }
+                  ]
+                },
+                {
+                  "log": "Placed NAT gateway.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"asg\"",
+              "then": [
+                {
+                  "if": "compute != \"asg\"",
+                  "then": [
+                    {
+                      "set": "compute",
+                      "to": "\"asg\""
+                    },
+                    {
+                      "set": "asgA",
+                      "to": "place.slot == \"app-a\""
+                    },
+                    {
+                      "set": "asgB",
+                      "to": "place.slot == \"app-b\""
+                    },
+                    {
+                      "set": "asgMin",
+                      "to": "2"
+                    },
+                    {
+                      "set": "asgMax",
+                      "to": "4"
+                    },
+                    {
+                      "set": "asgSize",
+                      "to": "\"m6i.large\""
+                    },
+                    {
+                      "set": "ec2A",
+                      "to": "false"
+                    },
+                    {
+                      "set": "ec2B",
+                      "to": "false"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "if": "place.slot == \"app-a\"",
+                      "then": [
+                        {
+                          "set": "asgA",
+                          "to": "true"
+                        }
+                      ],
+                      "else": [
+                        {
+                          "set": "asgB",
+                          "to": "true"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "log": "Placed EC2 Auto Scaling group.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"ec2\"",
+              "then": [
+                {
+                  "if": "compute != \"ec2\"",
+                  "then": [
+                    {
+                      "set": "compute",
+                      "to": "\"ec2\""
+                    },
+                    {
+                      "set": "asgA",
+                      "to": "false"
+                    },
+                    {
+                      "set": "asgB",
+                      "to": "false"
+                    }
+                  ]
+                },
+                {
+                  "if": "place.slot == \"app-a\"",
+                  "then": [
+                    {
+                      "set": "ec2A",
+                      "to": "true"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "set": "ec2B",
+                      "to": "true"
+                    }
+                  ]
+                },
+                {
+                  "log": "Placed Single EC2 instance (m6i.xlarge).",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"lambda\"",
+              "then": [
+                {
+                  "set": "compute",
+                  "to": "\"lambda\""
+                },
+                {
+                  "set": "asgA",
+                  "to": "false"
+                },
+                {
+                  "set": "asgB",
+                  "to": "false"
+                },
+                {
+                  "set": "ec2A",
+                  "to": "false"
+                },
+                {
+                  "set": "ec2B",
+                  "to": "false"
+                },
+                {
+                  "log": "Placed Lambda + API Gateway.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"rdsSingle\"",
+              "then": [
+                {
+                  "set": "db",
+                  "to": "\"rdsSingle\""
+                },
+                {
+                  "set": "dbAz",
+                  "to": "(place.slot == \"pub-a\" or place.slot == \"app-a\" or place.slot == \"data-a\") ? \"a\" : \"b\""
+                },
+                {
+                  "log": "Placed RDS MySQL Single-AZ.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"rdsMulti\"",
+              "then": [
+                {
+                  "set": "db",
+                  "to": "\"rdsMulti\""
+                },
+                {
+                  "set": "dbAz",
+                  "to": "(place.slot == \"pub-a\" or place.slot == \"app-a\" or place.slot == \"data-a\") ? \"a\" : \"b\""
+                },
+                {
+                  "log": "Placed RDS MySQL Multi-AZ.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"aurora\"",
+              "then": [
+                {
+                  "set": "db",
+                  "to": "\"aurora\""
+                },
+                {
+                  "set": "dbAz",
+                  "to": "(place.slot == \"pub-a\" or place.slot == \"app-a\" or place.slot == \"data-a\") ? \"a\" : \"b\""
+                },
+                {
+                  "log": "Placed Aurora MySQL + replica.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"dynamo\"",
+              "then": [
+                {
+                  "set": "db",
+                  "to": "\"dynamo\""
+                },
+                {
+                  "set": "dbAz",
+                  "to": "\"none\""
+                },
+                {
+                  "log": "Placed DynamoDB on-demand.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"redis\"",
+              "then": [
+                {
+                  "set": "cache",
+                  "to": "true"
+                },
+                {
+                  "set": "cacheAz",
+                  "to": "(place.slot == \"pub-a\" or place.slot == \"app-a\" or place.slot == \"data-a\") ? \"a\" : \"b\""
+                },
+                {
+                  "log": "Placed ElastiCache Redis + replica.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"sqs\"",
+              "then": [
+                {
+                  "set": "sqs",
+                  "to": "true"
+                },
+                {
+                  "log": "Placed SQS queue.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "place.id == \"s3\"",
+              "then": [
+                {
+                  "set": "s3",
+                  "to": "true"
+                },
+                {
+                  "log": "Placed S3 bucket.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": []
+            }
+          ]
+        }
+      ]
+    },
+    "remove": {
+      "label": "Remove a component",
+      "group": "Design",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Component",
+          "options": [
+            {
+              "value": "cloudfront",
+              "label": "cloudfront"
+            },
+            {
+              "value": "route53",
+              "label": "route53"
+            },
+            {
+              "value": "waf",
+              "label": "waf"
+            },
+            {
+              "value": "alb",
+              "label": "alb"
+            },
+            {
+              "value": "natA",
+              "label": "natA"
+            },
+            {
+              "value": "natB",
+              "label": "natB"
+            },
+            {
+              "value": "compute",
+              "label": "compute"
+            },
+            {
+              "value": "db",
+              "label": "db"
+            },
+            {
+              "value": "redis",
+              "label": "redis"
+            },
+            {
+              "value": "sqs",
+              "label": "sqs"
+            },
+            {
+              "value": "s3",
+              "label": "s3"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "what == \"cloudfront\"",
+              "then": [
+                {
+                  "set": "cf",
+                  "to": "false"
+                }
+              ]
+            },
+            {
+              "when": "what == \"route53\"",
+              "then": [
+                {
+                  "set": "r53",
+                  "to": "false"
+                }
+              ]
+            },
+            {
+              "when": "what == \"waf\"",
+              "then": [
+                {
+                  "set": "waf",
+                  "to": "false"
+                }
+              ]
+            },
+            {
+              "when": "what == \"alb\"",
+              "then": [
+                {
+                  "set": "alb",
+                  "to": "false"
+                }
+              ]
+            },
+            {
+              "when": "what == \"natA\"",
+              "then": [
+                {
+                  "set": "natA",
+                  "to": "false"
+                }
+              ]
+            },
+            {
+              "when": "what == \"natB\"",
+              "then": [
+                {
+                  "set": "natB",
+                  "to": "false"
+                }
+              ]
+            },
+            {
+              "when": "what == \"compute\"",
+              "then": [
+                {
+                  "set": "compute",
+                  "to": "\"none\""
+                },
+                {
+                  "set": "asgA",
+                  "to": "false"
+                },
+                {
+                  "set": "asgB",
+                  "to": "false"
+                },
+                {
+                  "set": "ec2A",
+                  "to": "false"
+                },
+                {
+                  "set": "ec2B",
+                  "to": "false"
+                }
+              ]
+            },
+            {
+              "when": "what == \"db\"",
+              "then": [
+                {
+                  "set": "db",
+                  "to": "\"none\""
+                },
+                {
+                  "set": "dbAz",
+                  "to": "\"none\""
+                }
+              ]
+            },
+            {
+              "when": "what == \"redis\"",
+              "then": [
+                {
+                  "set": "cache",
+                  "to": "false"
+                },
+                {
+                  "set": "cacheAz",
+                  "to": "\"none\""
+                }
+              ]
+            },
+            {
+              "when": "what == \"sqs\"",
+              "then": [
+                {
+                  "set": "sqs",
+                  "to": "false"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "s3",
+                  "to": "false"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "configure": {
+      "label": "Configure the Auto Scaling group",
+      "group": "Design",
+      "available": "compute == \"asg\"",
+      "why": "Place an Auto Scaling group first.",
+      "params": [
+        {
+          "id": "cfg",
+          "kind": "form",
+          "label": "Auto Scaling group",
+          "fields": [
+            {
+              "id": "azs",
+              "label": "AZs",
+              "options": [
+                {
+                  "value": "a",
+                  "label": "AZ a"
+                },
+                {
+                  "value": "b",
+                  "label": "AZ b"
+                },
+                {
+                  "value": "ab",
+                  "label": "AZ a and AZ b"
+                }
+              ]
+            },
+            {
+              "id": "mn",
+              "label": "Minimum",
+              "options": [
+                {
+                  "value": "1",
+                  "label": "1"
+                },
+                {
+                  "value": "2",
+                  "label": "2"
+                },
+                {
+                  "value": "3",
+                  "label": "3"
+                },
+                {
+                  "value": "4",
+                  "label": "4"
+                },
+                {
+                  "value": "5",
+                  "label": "5"
+                },
+                {
+                  "value": "6",
+                  "label": "6"
+                },
+                {
+                  "value": "7",
+                  "label": "7"
+                },
+                {
+                  "value": "8",
+                  "label": "8"
+                },
+                {
+                  "value": "9",
+                  "label": "9"
+                },
+                {
+                  "value": "10",
+                  "label": "10"
+                }
+              ]
+            },
+            {
+              "id": "mx",
+              "label": "Maximum",
+              "options": [
+                {
+                  "value": "1",
+                  "label": "1"
+                },
+                {
+                  "value": "2",
+                  "label": "2"
+                },
+                {
+                  "value": "3",
+                  "label": "3"
+                },
+                {
+                  "value": "4",
+                  "label": "4"
+                },
+                {
+                  "value": "5",
+                  "label": "5"
+                },
+                {
+                  "value": "6",
+                  "label": "6"
+                },
+                {
+                  "value": "7",
+                  "label": "7"
+                },
+                {
+                  "value": "8",
+                  "label": "8"
+                },
+                {
+                  "value": "9",
+                  "label": "9"
+                },
+                {
+                  "value": "10",
+                  "label": "10"
+                },
+                {
+                  "value": "11",
+                  "label": "11"
+                },
+                {
+                  "value": "12",
+                  "label": "12"
+                },
+                {
+                  "value": "13",
+                  "label": "13"
+                },
+                {
+                  "value": "14",
+                  "label": "14"
+                },
+                {
+                  "value": "15",
+                  "label": "15"
+                },
+                {
+                  "value": "16",
+                  "label": "16"
+                },
+                {
+                  "value": "17",
+                  "label": "17"
+                },
+                {
+                  "value": "18",
+                  "label": "18"
+                },
+                {
+                  "value": "19",
+                  "label": "19"
+                },
+                {
+                  "value": "20",
+                  "label": "20"
+                }
+              ]
+            },
+            {
+              "id": "size",
+              "label": "Instance size",
+              "options": [
+                {
+                  "value": "t3.medium",
+                  "label": "t3.medium"
+                },
+                {
+                  "value": "m6i.large",
+                  "label": "m6i.large"
+                },
+                {
+                  "value": "c6i.xlarge",
+                  "label": "c6i.xlarge"
+                },
+                {
+                  "value": "c6i.2xlarge",
+                  "label": "c6i.2xlarge"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "asgA",
+          "to": "azs != \"b\""
+        },
+        {
+          "set": "asgB",
+          "to": "azs != \"a\""
+        },
+        {
+          "set": "asgMin",
+          "to": "num(mn)"
+        },
+        {
+          "set": "asgMax",
+          "to": "max(num(mn), num(mx))"
+        },
+        {
+          "set": "asgSize",
+          "to": "size"
+        },
+        {
+          "log": "Auto Scaling group: min {asgMin}, max {asgMax}, {asgSize}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "toggleBackup": {
+      "label": "Automated backups + PITR",
+      "group": "Design",
+      "effects": [
+        {
+          "set": "backup",
+          "to": "not backup"
+        },
+        {
+          "log": "Backups and PITR {backup|yesno}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start launch day",
+      "group": "Run",
+      "available": "compute != \"none\" and db != \"none\" and (compute == \"lambda\" or alb)",
+      "why": "Add compute, an orders database, and an ALB in front of instances.",
+      "effects": [
+        {
+          "set": "designCost",
+          "to": "cost"
+        },
+        {
+          "reason": "design"
+        },
+        {
+          "phase": "run"
+        },
+        {
+          "schedule": "normalT",
+          "after": "5min"
+        },
+        {
+          "log": "Design locked at ${designCost} a month. Doors open at 09:00.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "review": {
+      "label": "Submit the finance review",
+      "group": "Finance",
+      "params": [
+        {
+          "id": "fin",
+          "kind": "form",
+          "label": "Cuts",
+          "fields": [
+            {
+              "id": "sched",
+              "label": "Lower the ASG minimum to 2 and schedule scaling before each on-sale",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            },
+            {
+              "id": "rightsize",
+              "label": "Right-size app instances one size down (average CPU 18%)",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            },
+            {
+              "id": "httpapi",
+              "label": "Move API Gateway from REST API to HTTP API",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            },
+            {
+              "id": "sp",
+              "label": "Buy a 1-year Compute Savings Plan",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            },
+            {
+              "id": "ri",
+              "label": "Reserved instances for the database and cache nodes",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            },
+            {
+              "id": "s3life",
+              "label": "S3 lifecycle rule for logs and past-event images",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            },
+            {
+              "id": "cfttl",
+              "label": "Raise CloudFront cache TTLs for versioned assets",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            },
+            {
+              "id": "natunused",
+              "label": "Delete NAT gateways that nothing uses",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            },
+            {
+              "id": "nat1",
+              "label": "Remove the NAT gateway in AZ b",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            },
+            {
+              "id": "dbsingle",
+              "label": "Switch the database to Single-AZ",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            },
+            {
+              "id": "dynprov",
+              "label": "Switch DynamoDB to provisioned capacity",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            },
+            {
+              "id": "nowaf",
+              "label": "Drop AWS WAF",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            },
+            {
+              "id": "nobackup",
+              "label": "Turn off automated backups and PITR",
+              "options": [
+                {
+                  "value": "keep",
+                  "label": "No"
+                },
+                {
+                  "value": "cut",
+                  "label": "Yes"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "finSave",
+          "to": "0"
+        },
+        {
+          "if": "sched == \"cut\" and (compute == \"asg\" and asgMin > 2)",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "asgCost - round((2 + 0.1 * (asgMax - 2)) * sizes[asgSize].cost)"
+            }
+          ]
+        },
+        {
+          "if": "rightsize == \"cut\" and (compute == \"asg\" and asgSize != \"t3.medium\")",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "asgCost - round((asgMin + 0.1 * (asgMax - asgMin)) * sizes[sizes[asgSize].smaller].cost)"
+            },
+            {
+              "if": "asgMax * sizes[sizes[asgSize].smaller].rps < loadPeak",
+              "then": [
+                {
+                  "set": "riskPerf",
+                  "to": "true"
+                },
+                {
+                  "add": "finRisks",
+                  "by": "1"
+                },
+                {
+                  "log": "Risk: right-size app instances one size down (average cpu 18%).",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "httpapi == \"cut\" and (compute == \"lambda\")",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "385"
+            }
+          ]
+        },
+        {
+          "if": "ri == \"cut\" and (relational or cache)",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "round(0.35 * ((relational ? dbCost : 0) + (cache ? 290 : 0)))"
+            }
+          ]
+        },
+        {
+          "if": "s3life == \"cut\" and (s3)",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "12"
+            }
+          ]
+        },
+        {
+          "if": "cfttl == \"cut\" and (cf)",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "25"
+            }
+          ]
+        },
+        {
+          "if": "natunused == \"cut\" and (not needsNat and natCount > 0)",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "45 * natCount"
+            }
+          ]
+        },
+        {
+          "if": "nat1 == \"cut\" and (needsNat and natCount == 2)",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "45"
+            },
+            {
+              "if": "true",
+              "then": [
+                {
+                  "set": "riskRes",
+                  "to": "true"
+                },
+                {
+                  "add": "finRisks",
+                  "by": "1"
+                },
+                {
+                  "log": "Risk: remove the nat gateway in az b.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "dbsingle == \"cut\" and (db == \"rdsMulti\" or db == \"aurora\")",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "dbCost - 200"
+            },
+            {
+              "if": "true",
+              "then": [
+                {
+                  "set": "riskRes",
+                  "to": "true"
+                },
+                {
+                  "add": "finRisks",
+                  "by": "1"
+                },
+                {
+                  "log": "Risk: switch the database to single-az.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "dynprov == \"cut\" and (db == \"dynamo\")",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "50"
+            },
+            {
+              "if": "true",
+              "then": [
+                {
+                  "set": "riskPerf",
+                  "to": "true"
+                },
+                {
+                  "add": "finRisks",
+                  "by": "1"
+                },
+                {
+                  "log": "Risk: switch dynamodb to provisioned capacity.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "nowaf == \"cut\" and (waf)",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "35"
+            },
+            {
+              "if": "true",
+              "then": [
+                {
+                  "set": "riskSec",
+                  "to": "true"
+                },
+                {
+                  "add": "finRisks",
+                  "by": "1"
+                },
+                {
+                  "log": "Risk: drop aws waf.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "nobackup == \"cut\" and (backup)",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "40"
+            },
+            {
+              "if": "true",
+              "then": [
+                {
+                  "set": "riskRes",
+                  "to": "true"
+                },
+                {
+                  "add": "finRisks",
+                  "by": "1"
+                },
+                {
+                  "log": "Risk: turn off automated backups and pitr.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "sp == \"cut\" and compute != \"none\"",
+          "then": [
+            {
+              "add": "finSave",
+              "by": "round(compute == \"asg\" ? round(((sched == \"cut\" and asgMin > 2 ? 2 : asgMin) + 0.1 * (asgMax - (sched == \"cut\" and asgMin > 2 ? 2 : asgMin))) * sizes[(rightsize == \"cut\" and asgSize != \"t3.medium\" ? sizes[asgSize].smaller : asgSize)].cost) * 0.28 : compute == \"ec2\" ? ec2Count * 140 * 0.28 : compute == \"lambda\" ? 360 * 0.17 : 0)"
+            }
+          ]
+        },
+        {
+          "set": "finDone",
+          "to": "true"
+        },
+        {
+          "log": "Finance: saves ${finSave} a month ({(designCost == 0 ? 0 : finSave / designCost * 100)|0dp}% of ${designCost}).",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "normalT": {
+      "label": "09:00 doors open",
+      "wait": {
+        "skipLabel": "09:00 doors open"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Prototype cloud.html (revised 2026-11-07), the rules this port reproduces",
+        "checkedAt": "2026-11-09"
+      },
+      "effects": [
+        {
+          "set": "rank",
+          "to": "0"
+        },
+        {
+          "set": "down",
+          "to": "0"
+        },
+        {
+          "set": "deg",
+          "to": "0"
+        },
+        {
+          "log": "09:00 doors open",
+          "kind": "sys"
+        },
+        {
+          "cases": [
+            {
+              "when": "needsNat and natCount == 0",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 2)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, natFixMin)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Network: checkout calls to the payment processor time out: private subnets have no NAT gateway, until on-call adds one about 45 minutes later.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "needsNat",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Network: payment calls leave through the NAT gateway.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Network: nothing sits in a VPC, so payment calls need no NAT gateway.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "compute == \"lambda\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Compute: Lambda handles {loadBase} req/s with room to spare.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "baseCap >= loadBase",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Compute: baseline capacity {baseCap} req/s covers {loadBase} req/s.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 60)"
+                },
+                {
+                  "log": "Compute: baseline capacity {baseCap} req/s is below normal traffic ({loadBase} req/s); pages are slow all morning.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "cf",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Edge: CloudFront serves static assets from the edge.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Edge: no CloudFront: distant fans wait and origin load is {loadBase} req/s instead of 200.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "add": "impact",
+          "by": "down + 0.5 * deg"
+        },
+        {
+          "set": "normalRank",
+          "to": "rank"
+        },
+        {
+          "schedule": "spikeT",
+          "after": "1h"
+        }
+      ]
+    },
+    "spikeT": {
+      "label": "10:00 on-sale spike",
+      "wait": {
+        "skipLabel": "10:00 on-sale spike"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Prototype cloud.html (revised 2026-11-07), the rules this port reproduces",
+        "checkedAt": "2026-11-09"
+      },
+      "effects": [
+        {
+          "set": "rank",
+          "to": "0"
+        },
+        {
+          "set": "down",
+          "to": "0"
+        },
+        {
+          "set": "deg",
+          "to": "0"
+        },
+        {
+          "log": "10:00 on-sale spike",
+          "kind": "sys"
+        },
+        {
+          "cases": [
+            {
+              "when": "waf and cf",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Edge: WAF dropped the scalper bots; CloudFront absorbed the static flood.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "cf",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Edge: CloudFront absorbed static assets, but without WAF the bots got through: peak {loadPeak} req/s.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 10)"
+                },
+                {
+                  "log": "Edge: no CloudFront: the origin served every asset; peak {loadPeak} req/s.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "compute == \"lambda\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Compute: Lambda scaled in seconds.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "compute == \"ec2\" and maxCap >= loadPeak",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Compute: fixed capacity happened to cover the peak.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "compute == \"ec2\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 2)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 40)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Compute: {ec2Count} fixed instance(s) = {maxCap} req/s against {loadPeak} req/s; 503s for the whole rush.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "baseCap >= loadPeak",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Compute: the minimum of {asgMin} already covers the peak (paid 24/7).",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "maxCap >= loadPeak and sqs",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Compute: the ASG scaled from {asgMin} to {asgAtPeak}; new capacity in service 8 m 30 s after the spike began, and orders waited in SQS meanwhile.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "maxCap >= loadPeak",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, rampMin)"
+                },
+                {
+                  "log": "Compute: the ASG scaled from {asgMin} to {asgAtPeak}, but with nothing buffering requests some orders failed for about 8 minutes.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "maxCap >= loadPeak * 0.6",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 40)"
+                },
+                {
+                  "log": "Compute: the ASG hit its maximum of {asgMax} ({maxCap} req/s) against {loadPeak} req/s; many requests got a 503 until 10:40.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 2)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 40)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Compute: the ASG maxed out at {asgMax} ({maxCap} req/s) against {loadPeak} req/s; most fans saw errors for the whole rush.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "db == \"dynamo\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Database: DynamoDB on-demand absorbed the write burst.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "relational and (cache or sqs)",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Database: the cache and/or queue kept database connections flat.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "db == \"aurora\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 10)"
+                },
+                {
+                  "log": "Database: every order still hit the Aurora writer; checkout slowed for about 10 minutes.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "compute == \"lambda\" and relational",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 2)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 20)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Database: connection storm: every Lambda environment opened its own MySQL connection.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "relational",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 20)"
+                },
+                {
+                  "log": "Database: each new instance opened its own pool; the database hit max_connections for about 20 minutes.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "add": "impact",
+          "by": "down + 0.5 * deg"
+        },
+        {
+          "set": "spikeRank",
+          "to": "rank"
+        },
+        {
+          "schedule": "azT",
+          "after": "50min"
+        }
+      ]
+    },
+    "azT": {
+      "label": "10:50 AZ a power loss",
+      "wait": {
+        "skipLabel": "10:50 AZ a power loss"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Prototype cloud.html (revised 2026-11-07), the rules this port reproduces",
+        "checkedAt": "2026-11-09"
+      },
+      "effects": [
+        {
+          "set": "rank",
+          "to": "0"
+        },
+        {
+          "set": "down",
+          "to": "0"
+        },
+        {
+          "set": "deg",
+          "to": "0"
+        },
+        {
+          "log": "10:50 AZ a power loss",
+          "kind": "sys"
+        },
+        {
+          "cases": [
+            {
+              "when": "compute == \"lambda\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Compute: Lambda runs across AZs.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "compute == \"asg\" and asgA and asgB and floor(asgAtPeak / 2) * rps >= loadAfter",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 1)"
+                },
+                {
+                  "log": "Compute: lost half the instances; health checks pulled AZ a out within about a minute and AZ b carried the load.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "compute == \"asg\" and asgA and asgB",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, replaceMin)"
+                },
+                {
+                  "log": "Compute: half the fleet went dark; the survivors were overloaded until replacements passed health checks.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "compute == \"asg\" and asgA",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 2)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, azOutMin)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Compute: the ASG only had subnets in AZ a; the site was down until AZ a came back.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "compute == \"asg\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "set": "lucky",
+                  "to": "true"
+                },
+                {
+                  "log": "Compute: the fleet lives only in AZ b. Lucky: had AZ b failed, the site would have been down.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "compute == \"ec2\" and not ec2B",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 2)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, azOutMin)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Compute: the only instance was in AZ a; down until power returned.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "compute == \"ec2\" and ec2A",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, azOutMin)"
+                },
+                {
+                  "log": "Compute: the instance in AZ b survived alone against {loadAfter} req/s, slow for an hour.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "compute == \"ec2\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "set": "lucky",
+                  "to": "true"
+                },
+                {
+                  "log": "Compute: the instance is in AZ b. Lucky: had AZ b failed, the site would have been down.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": []
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "db == \"dynamo\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Database: DynamoDB replicates across three AZs.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "db == \"aurora\" and dbAz == \"a\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 1)"
+                },
+                {
+                  "set": "rto",
+                  "to": "max(rto, 1)"
+                },
+                {
+                  "set": "rpo",
+                  "to": "max(rpo, 0)"
+                },
+                {
+                  "log": "Database: Aurora promoted the replica in AZ b in about 30 s.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "db == \"aurora\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Database: the Aurora writer is in AZ b.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "db == \"rdsMulti\" and dbAz == \"a\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 2)"
+                },
+                {
+                  "set": "rto",
+                  "to": "max(rto, 2)"
+                },
+                {
+                  "set": "rpo",
+                  "to": "max(rpo, 0)"
+                },
+                {
+                  "log": "Database: Multi-AZ failed over to the standby in AZ b in 1 m 40 s, no committed data lost.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "db == \"rdsMulti\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Database: the RDS primary is in AZ b.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "db == \"rdsSingle\" and dbAz == \"a\" and backup",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 2)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, pitrRestoreMin)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "set": "rto",
+                  "to": "max(rto, pitrRestoreMin)"
+                },
+                {
+                  "set": "rpo",
+                  "to": "max(rpo, pitrLagMin)"
+                },
+                {
+                  "log": "Database: no standby: restored from PITR into AZ b, about 40 minutes with orders stopped.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "db == \"rdsSingle\" and dbAz == \"a\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 2)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, azOutMin)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "set": "rto",
+                  "to": "max(rto, azOutMin)"
+                },
+                {
+                  "set": "rpo",
+                  "to": "max(rpo, 0)"
+                },
+                {
+                  "log": "Database: no standby and no backups: orders stopped until AZ a came back.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "db == \"rdsSingle\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "set": "lucky",
+                  "to": "true"
+                },
+                {
+                  "log": "Database: the Single-AZ database is in AZ b. Lucky this time.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": []
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "not needsNat or natCount == 0",
+              "then": []
+            },
+            {
+              "when": "natB or not computeB",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Network: AZ b kept its route to the payment processor.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 2)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, azOutMin)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Network: the only NAT gateway was in AZ a; checkout failed everywhere for the whole outage.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "cache and cacheAz == \"a\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Cache: ElastiCache promoted the replica in AZ b in about 10 s.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": []
+            }
+          ]
+        },
+        {
+          "add": "impact",
+          "by": "down + 0.5 * deg"
+        },
+        {
+          "set": "azRank",
+          "to": "rank"
+        },
+        {
+          "set": "azDeg",
+          "to": "deg"
+        },
+        {
+          "schedule": "dbT",
+          "after": "200min"
+        }
+      ]
+    },
+    "dbT": {
+      "label": "14:10 database host failure",
+      "wait": {
+        "skipLabel": "14:10 database host failure"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Prototype cloud.html (revised 2026-11-07), the rules this port reproduces",
+        "checkedAt": "2026-11-09"
+      },
+      "effects": [
+        {
+          "set": "rank",
+          "to": "0"
+        },
+        {
+          "set": "down",
+          "to": "0"
+        },
+        {
+          "set": "deg",
+          "to": "0"
+        },
+        {
+          "log": "14:10 database host failure",
+          "kind": "sys"
+        },
+        {
+          "cases": [
+            {
+              "when": "db == \"dynamo\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 0)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "log": "Database: DynamoDB has no single primary host to lose.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "db == \"aurora\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 1)"
+                },
+                {
+                  "set": "rto",
+                  "to": "max(rto, 1)"
+                },
+                {
+                  "set": "rpo",
+                  "to": "max(rpo, 0)"
+                },
+                {
+                  "log": "Database: Aurora promoted the replica in about 30 s; RPO 0, RTO under 1 minute.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "db == \"rdsMulti\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 1)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, 0)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 2)"
+                },
+                {
+                  "set": "rto",
+                  "to": "max(rto, 2)"
+                },
+                {
+                  "set": "rpo",
+                  "to": "max(rpo, 0)"
+                },
+                {
+                  "log": "Database: RDS failed over to the standby; RPO 0, RTO about 2 minutes.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "db == \"rdsSingle\" and backup",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 2)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, pitrRestoreMin)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "set": "rto",
+                  "to": "max(rto, pitrRestoreMin)"
+                },
+                {
+                  "set": "rpo",
+                  "to": "max(rpo, pitrLagMin)"
+                },
+                {
+                  "log": "Database: no standby: PITR restore took about 40 minutes and lost up to 5 minutes of orders.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "db == \"rdsSingle\"",
+              "then": [
+                {
+                  "set": "rank",
+                  "to": "max(rank, 2)"
+                },
+                {
+                  "set": "down",
+                  "to": "max(down, dumpRebuildMin)"
+                },
+                {
+                  "set": "deg",
+                  "to": "max(deg, 0)"
+                },
+                {
+                  "set": "rto",
+                  "to": "max(rto, dumpRebuildMin)"
+                },
+                {
+                  "set": "rpo",
+                  "to": "max(rpo, 730)"
+                },
+                {
+                  "log": "Database: no standby and no backups: rebuilt from the 02:00 dump, every order since then lost.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "add": "impact",
+          "by": "down + 0.5 * deg"
+        },
+        {
+          "set": "dbRank",
+          "to": "rank"
+        },
+        {
+          "set": "dbDeg",
+          "to": "deg"
+        },
+        {
+          "schedule": "financeT",
+          "after": "140min"
+        }
+      ]
+    },
+    "financeT": {
+      "label": "16:30 finance review",
+      "wait": {
+        "skipLabel": "16:30 finance review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Prototype cloud.html (revised 2026-11-07), the rules this port reproduces",
+        "checkedAt": "2026-11-09"
+      },
+      "effects": [
+        {
+          "phase": "finance"
+        },
+        {
+          "log": "Finance: the sale went out; cut the monthly bill 30% without hurting the next one.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "design": {
+      "question": "Before launch day: how does this design survive losing an AZ and a 10x spike, and how do you meet RPO 5 minutes and RTO 15 minutes?",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Resilience and scale",
+          "criteria": "Explains a copy of every tier in two AZs (ALB, compute, NAT per AZ, Multi-AZ database) and how the spike is absorbed (ASG max, the ramp time, SQS or a cache shielding the database); names backups/PITR for corruption.",
+          "modelAnswer": "Every tier has a copy in two AZs: the ALB spans both public subnets, the ASG launches into private subnets in AZ a and AZ b, each AZ has its own NAT gateway, and RDS Multi-AZ keeps a synchronous standby. The minimum of 4 m6i.large covers normal load and the maximum of 16 covers 10x; scale-out takes about 8 minutes, so SQS buffers orders and ElastiCache absorbs reads. Automated backups with PITR cover corruption failover cannot."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "availabilityTarget": {
+        "value": 99.9,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-09",
+          "note": "SLA over the day by the error-budget method (43.2 min a month)."
+        }
+      },
+      "availabilityRecovered": {
+        "value": 99.85,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-09",
+          "note": "A small miss."
+        }
+      },
+      "rpoMinutes": {
+        "value": 5,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-09",
+          "note": "RPO"
+        }
+      },
+      "rtoMinutes": {
+        "value": 15,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-09",
+          "note": "RTO"
+        }
+      },
+      "costRecoveredPct": {
+        "value": 110,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-09",
+          "note": "Cost up to 110% of budget is a small miss."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "finDone and finSave == 0 and designCost > budget",
+      "class": "recovered",
+      "rationale": "A design that held every event but was over budget and found no savings is a cost miss, recovered or harm by the cost rule alone; it is never target.",
+      "source": {
+        "cite": "docs/sims.md 3.1 (cloud)",
+        "checkedAt": "2026-11-09"
+      }
+    }
+  },
+  "endings": {
+    "harm": {
+      "label": "A failure broke the promise",
+      "class": "harm",
+      "terminal": true,
+      "when": "finDone and (rpo > rpoMinutes or rto > rtoMinutes or avail < availabilityRecovered or designCost > budget * costRecoveredPct / 100)",
+      "narrative": "Launch day missed a hard requirement: RTO {rto} min, RPO {rpo} min, availability {avail|3dp}%, ${designCost} a month."
+    },
+    "target": {
+      "label": "TicketBurst sold out and stayed up",
+      "class": "target",
+      "terminal": true,
+      "when": "finDone and avail >= availabilityTarget and designCost <= budget",
+      "narrative": "Availability {avail|3dp}% for the day, RPO {rpo} min, RTO {rto} min, ${designCost} a month."
+    },
+    "recovered": {
+      "label": "Survived, with a small miss",
+      "class": "recovered",
+      "terminal": true,
+      "when": "finDone and true",
+      "narrative": "Every recovery target met, but availability ({avail|3dp}%) or cost (${designCost}) missed by a small margin."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The day ended before the finance review."
+    }
+  },
+  "endingOrder": [
+    "harm",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "resilient",
+        "label": "Design resilient architectures",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "azRank == 2 or dbRank == 2 or rto > 15 or rpo > 5",
+            "score": "missed",
+            "why": "A failure took the service down. Recovery: RTO {rto} min, RPO {rpo} min."
+          },
+          {
+            "when": "lucky",
+            "score": "partial",
+            "why": "Survived only because the outage hit the other AZ. A design should survive either AZ failing."
+          },
+          {
+            "when": "not backup",
+            "score": "partial",
+            "why": "Failover worked, but with no backups/PITR there is no way back from corruption or a bad deploy."
+          },
+          {
+            "when": "azDeg > 5 or dbDeg > 5",
+            "score": "partial",
+            "why": "Survived, but with more than 5 minutes of degradation during a failure."
+          },
+          {
+            "when": "riskRes",
+            "score": "partial",
+            "why": "Lost an AZ and a database host with only brief failovers, then a finance cut removed some of that resilience."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Lost an AZ and a database host with only brief failovers. RPO and RTO targets met."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "performing",
+        "label": "Design high-performing architectures",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "spikeRank == 2",
+            "score": "missed",
+            "why": "The on-sale overwhelmed the design."
+          },
+          {
+            "when": "spikeRank == 1 or normalRank == 1",
+            "score": "partial",
+            "why": "Degraded under load (see the event log)."
+          },
+          {
+            "when": "riskPerf",
+            "score": "partial",
+            "why": "Scaled through the spike, but a finance cut put the next on-sale at risk."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Scaled through a 10x spike without errors, assets served from the edge."
+          }
+        ]
+      },
+      {
+        "id": "secure",
+        "label": "Design secure architectures",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "(waf and not riskSec) and (not s3 or cf)",
+            "score": "met",
+            "why": "WAF at the edge; the S3 bucket stays private behind CloudFront."
+          },
+          {
+            "when": "(waf and not riskSec) or (not s3 or cf)",
+            "score": "partial",
+            "why": "One of WAF at the edge or a private bucket behind CloudFront is missing."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No WAF, and the S3 bucket must be public to serve assets."
+          }
+        ]
+      },
+      {
+        "id": "cost",
+        "label": "Design cost-optimized architectures",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "designCost > budget",
+            "score": "missed",
+            "why": "The design cost ${designCost} a month, over budget before finance even asked."
+          },
+          {
+            "when": "finSave >= financeTarget * designCost and finRisks == 0",
+            "score": "met",
+            "why": "Under budget, then cut {finSave / designCost * 100|0dp}% without weakening anything."
+          },
+          {
+            "when": "finSave >= financeTarget * designCost",
+            "score": "partial",
+            "why": "Hit the 30% cut, but by removing things the requirements need."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Under budget, but the review found {(designCost == 0 ? 0 : finSave / designCost * 100)|0dp}% of the 30% target."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "design",
+        "label": "Written reasoning: resilience, scale, RPO/RTO",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "availability",
+        "label": "Availability for the day",
+        "value": "avail",
+        "format": "number",
+        "expert": "99.9% or more"
+      },
+      {
+        "id": "rto",
+        "label": "Worst RTO (min)",
+        "value": "rto",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "rpo",
+        "label": "Worst RPO (min)",
+        "value": "rpo",
+        "format": "number",
+        "expert": "5 or less"
+      },
+      {
+        "id": "cost",
+        "label": "Monthly cost",
+        "value": "designCost",
+        "format": "usd",
+        "expert": "$2,500 or less"
+      },
+      {
+        "id": "savings",
+        "label": "Finance savings a month",
+        "value": "finSave",
+        "format": "usd",
+        "expert": "30% without new risks"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Design",
+        "text": "Route 53, CloudFront and WAF at the edge; an ALB across both public subnets with a NAT gateway in each; an ASG in both AZs (min 4, max 16, m6i.large); RDS Multi-AZ, ElastiCache, SQS and S3; backups with PITR."
+      },
+      {
+        "at": "Finance",
+        "text": "Scheduled scaling with a lower minimum, a Compute Savings Plan, reserved database and cache nodes, an S3 lifecycle rule and longer CloudFront TTLs: about 30% without removing anything a requirement needs."
+      }
+    ],
+    "debrief": {
+      "target": {
+        "headline": "TicketBurst sold out and stayed up",
+        "body": "All four requirements held through the spike, the AZ loss and the database failure, inside the budget."
+      },
+      "recovered": {
+        "headline": "Survived, with a small miss",
+        "body": "The recovery targets held; the day's availability or the bill missed by a small margin."
+      },
+      "harm": {
+        "headline": "A rough launch, and a useful one",
+        "body": "A failure broke a recovery target, availability fell well below the SLA, or the bill ran more than 10% over. The event log shows which tier was the single point."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The day ended."
+      }
+    },
+    "modelReasoning": "Every tier has a copy in two AZs. The ALB has nodes in both public subnets, the Auto Scaling group launches instances into private subnets in AZ a and AZ b, each AZ has its own NAT gateway for payment calls, and RDS Multi-AZ keeps a synchronous standby in the other AZ. For the spike, the minimum of 4 m6i.large covers normal load and the maximum of 16 covers 10x; scale-out takes about 8 minutes, so SQS buffers order writes and ElastiCache absorbs reads. CloudFront serves static assets from S3, WAF strips bot traffic, and backups with PITR cover corruption failover cannot."
+  }
+}

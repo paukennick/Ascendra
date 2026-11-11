@@ -72,7 +72,7 @@ export const AWSMLA_LABS: SeedLabSet = {
             part(
               "Chunking for long structured documents",
               "Chooses hierarchical chunking for the sectioned PDFs (small child chunks for precise retrieval, larger parent chunks returned for context, with an overlap in tokens), or semantic chunking (sentence-boundary chunks split where meaning shifts, with a buffer size and breakpoint percentile threshold) and explains why default fixed-size cuts sections.",
-              "Hierarchical chunking for the policy PDFs: child chunks of a few hundred tokens are what gets matched, and the larger parent chunk (say 1,500 tokens) is what gets returned, so a matched sentence comes back with its whole section; set overlap tokens between neighbours. Default chunking is roughly 300-token pieces that respect sentences but not sections, which is why clauses were being cut in half. Semantic chunking is the alternative when sections are not clearly marked."
+              "Hierarchical chunking for the policy PDFs: child chunks of a few hundred tokens are what gets matched, and the larger parent chunk (say 1,500 tokens) is what gets returned, so a matched sentence comes back with its whole section; set overlap tokens between neighbors. Default chunking is roughly 300-token pieces that respect sentences but not sections, which is why clauses were being cut in half. Semantic chunking is the alternative when sections are not clearly marked."
             ),
             part(
               "Chunking for FAQs and tables",
@@ -161,8 +161,8 @@ export const AWSMLA_LABS: SeedLabSet = {
           parts: [
             part(
               "Pseudonymisation",
-              "Replaces the customer identifier with a consistent pseudonym produced by a keyed hash (HMAC with a secret in AWS Secrets Manager or a KMS-backed key) or a tokenisation table kept in a separate restricted store, so the same customer always maps to the same token while the mapping is not derivable from the data; explains why a plain hash of a phone number is reversible by brute force.",
-              "Derive a customer token with an HMAC (SHA-256) of the account id using a secret held in Secrets Manager (or a KMS-protected key) -- the same customer always gets the same token, but without the secret nobody can recompute it. A plain SHA-256 of a phone number is not anonymisation: the input space is small enough to brute-force. If the mapping must ever be reversed under legal process, use a tokenisation table in a locked-down DynamoDB table instead."
+              "Replaces the customer identifier with a consistent pseudonym produced by a keyed hash (HMAC with a secret in AWS Secrets Manager or a KMS-backed key) or a tokenization table kept in a separate restricted store, so the same customer always maps to the same token while the mapping is not derivable from the data; explains why a plain hash of a phone number is reversible by brute force.",
+              "Derive a customer token with an HMAC (SHA-256) of the account id using a secret held in Secrets Manager (or a KMS-protected key) -- the same customer always gets the same token, but without the secret nobody can recompute it. A plain SHA-256 of a phone number is not anonymization: the input space is small enough to brute-force. If the mapping must ever be reversed under legal process, use a tokenization table in a locked-down DynamoDB table instead."
             ),
             part(
               "Audit",
@@ -191,9 +191,9 @@ export const AWSMLA_LABS: SeedLabSet = {
       slug: "select-foundation-model-evaluation",
       objective: "Evaluating and selecting foundation models in Amazon Bedrock against task requirements and performance criteria",
       kind: "build",
-      title: "Run a model bake-off for a claims summarisation assistant",
+      title: "Run a model bake-off for a claims summarization assistant",
       brief:
-        "Marchbank Insurance wants a Bedrock-hosted assistant that summarises 20-page claim files into a one-page brief for adjusters. Requirements: summaries must not invent facts; the 95th-percentile response time must stay under 8 seconds for a 15,000-token input; cost per summary must fit a stated budget; French and English files are both common; outputs must follow a fixed section template. Three candidate models are available in Bedrock. Design the evaluation that chooses one.",
+        "Marchbank Insurance wants a Bedrock-hosted assistant that summarizes 20-page claim files into a one-page brief for adjusters. Requirements: summaries must not invent facts; the 95th-percentile response time must stay under 8 seconds for a 15,000-token input; cost per summary must fit a stated budget; French and English files are both common; outputs must follow a fixed section template. Three candidate models are available in Bedrock. Design the evaluation that chooses one.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -239,17 +239,17 @@ export const AWSMLA_LABS: SeedLabSet = {
           parts: [
             part(
               "Objective and ranges",
-              "Sets the objective metric to validation AUC (maximise, the metric the algorithm emits, for example validation:auc), declares integer ranges for max_depth, min_child_weight and num_round and continuous ranges for eta and subsample, and uses logarithmic scaling for eta because its sensible values span orders of magnitude.",
-              "Objective: maximise validation:auc. Ranges: max_depth integer 3-10, min_child_weight integer 1-10, num_round integer 100-1000, subsample continuous 0.5-1.0, eta continuous 0.01-0.3 with logarithmic scaling (0.01 and 0.1 should be explored as evenly as 0.1 and 0.3)."
+              "Sets the objective metric to validation AUC (maximize, the metric the algorithm emits, for example validation:auc), declares integer ranges for max_depth, min_child_weight and num_round and continuous ranges for eta and subsample, and uses logarithmic scaling for eta because its sensible values span orders of magnitude.",
+              "Objective: maximize validation:auc. Ranges: max_depth integer 3-10, min_child_weight integer 1-10, num_round integer 100-1000, subsample continuous 0.5-1.0, eta continuous 0.01-0.3 with logarithmic scaling (0.01 and 0.1 should be explored as evenly as 0.1 and 0.3)."
             ),
             part(
               "Strategy",
-              "Chooses Bayesian optimisation for a 60-job budget (it learns from completed jobs to pick promising combinations), or Hyperband if the algorithm reports the metric per iteration (num_round makes XGBoost iterative) to stop poor configurations early; explains why grid search is impractical over five dimensions and random search wastes budget.",
-              "Bayesian optimisation: with ~60 jobs it models the metric as a function of the hyperparameters and concentrates later jobs where AUC is likely to improve. Hyperband is the alternative here because XGBoost reports validation AUC each round, so Hyperband can stop weak configurations early and spend the saved time on more candidates. Grid search over five ranges would need far more than 60 jobs; random search ignores what earlier jobs learned."
+              "Chooses Bayesian optimization for a 60-job budget (it learns from completed jobs to pick promising combinations), or Hyperband if the algorithm reports the metric per iteration (num_round makes XGBoost iterative) to stop poor configurations early; explains why grid search is impractical over five dimensions and random search wastes budget.",
+              "Bayesian optimization: with ~60 jobs it models the metric as a function of the hyperparameters and concentrates later jobs where AUC is likely to improve. Hyperband is the alternative here because XGBoost reports validation AUC each round, so Hyperband can stop weak configurations early and spend the saved time on more candidates. Grid search over five ranges would need far more than 60 jobs; random search ignores what earlier jobs learned."
             ),
             part(
               "Budget and parallelism",
-              "Sets max training jobs around 60 and max parallel jobs small enough that Bayesian optimisation can learn between rounds (for example 4-6), explaining the trade-off: more parallel jobs finish sooner but each round has less information; enables early stopping (Auto) for Bayesian, or leaves TrainingJobEarlyStoppingType OFF when using Hyperband's internal early stopping.",
+              "Sets max training jobs around 60 and max parallel jobs small enough that Bayesian optimization can learn between rounds (for example 4-6), explaining the trade-off: more parallel jobs finish sooner but each round has less information; enables early stopping (Auto) for Bayesian, or leaves TrainingJobEarlyStoppingType OFF when using Hyperband's internal early stopping.",
               "MaxNumberOfTrainingJobs 60, MaxParallelTrainingJobs 5: ten rounds of five, each round informed by the last; running all 60 at once would be plain random search. With Bayesian, set TrainingJobEarlyStoppingType to Auto so jobs whose AUC is tracking badly are stopped. If using Hyperband, set it to OFF and let Hyperband's own early stopping work."
             ),
             part(
@@ -276,13 +276,13 @@ export const AWSMLA_LABS: SeedLabSet = {
           parts: [
             part(
               "Diagnosis",
-              "Identifies overfitting: the model keeps fitting the training set after it stops generalising, shown by diverging training and validation loss from epoch 9.",
-              "Classic overfitting. From epoch 9 the network is memorising training images -- training loss keeps dropping while validation loss rises -- so later epochs make the model worse on new data."
+              "Identifies overfitting: the model keeps fitting the training set after it stops generalizing, shown by diverging training and validation loss from epoch 9.",
+              "Classic overfitting. From epoch 9 the network is memorizing training images -- training loss keeps dropping while validation loss rises -- so later epochs make the model worse on new data."
             ),
             part(
               "Remedies",
-              "Applies early stopping on validation loss (keep the epoch-9 checkpoint), regularisation (dropout, weight decay/L2), data augmentation (flips, crops, colour jitter), possibly a smaller model or more data; and avoids tuning on the test set.",
-              "Stop early on validation loss with patience and keep the best checkpoint (epoch 9 here). Add dropout and weight decay, and augment the images (random crops, flips, colour jitter) so each epoch sees varied inputs. If it still overfits, reduce model capacity or get more labelled data. Tune all of this on the validation set, never the test set."
+              "Applies early stopping on validation loss (keep the epoch-9 checkpoint), regularization (dropout, weight decay/L2), data augmentation (flips, crops, color jitter), possibly a smaller model or more data; and avoids tuning on the test set.",
+              "Stop early on validation loss with patience and keep the best checkpoint (epoch 9 here). Add dropout and weight decay, and augment the images (random crops, flips, color jitter) so each epoch sees varied inputs. If it still overfits, reduce model capacity or get more labeled data. Tune all of this on the validation set, never the test set."
             ),
           ],
         },
@@ -292,7 +292,7 @@ export const AWSMLA_LABS: SeedLabSet = {
           parts: [
             part(
               "Diagnosis and fix",
-              "Identifies underfitting (the model cannot fit even the training data: high bias from too little capacity and too much regularisation) and fixes it by restoring capacity (more layers/filters), reducing dropout, training longer or with a better learning rate, checking the input pipeline/labels, or using a pretrained backbone (transfer learning).",
+              "Identifies underfitting (the model cannot fit even the training data: high bias from too little capacity and too much regularization) and fixes it by restoring capacity (more layers/filters), reducing dropout, training longer or with a better learning rate, checking the input pipeline/labels, or using a pretrained backbone (transfer learning).",
               "Underfitting: a two-layer network with heavy dropout cannot represent the task, so training accuracy is stuck at 62% -- the remedies for Run 1 were overapplied. Restore depth (or use a pretrained image backbone and fine-tune it), cut dropout to a modest level, check the learning rate (too low also plateaus), verify labels and preprocessing, and train until the validation loss stops improving."
             ),
           ],
@@ -431,7 +431,7 @@ export const AWSMLA_LABS: SeedLabSet = {
             ),
             part(
               "Action",
-              "Investigates the upstream change (new product or market, a schema change), fixes the encoding for the new category, and triggers retraining on recent data via the pipeline once enough labelled examples exist; meanwhile applies a human-review threshold band and a model-quality monitor once labels arrive.",
+              "Investigates the upstream change (new product or market, a schema change), fixes the encoding for the new category, and triggers retraining on recent data via the pipeline once enough labeled examples exist; meanwhile applies a human-review threshold band and a model-quality monitor once labels arrive.",
               "Find the upstream cause (a new channel or product explains both shifts), fix the encoder to handle the new employment type explicitly, and queue a retraining run on recent data through the pipeline. Until the retrained model is validated, route borderline scores to manual review. Set up a model-quality monitor that merges captured predictions with the 90-day-later labels so accuracy/AUC on real outcomes is tracked too."
             ),
           ],
@@ -470,7 +470,7 @@ export const AWSMLA_LABS: SeedLabSet = {
             part(
               "Sensitive information",
               "Configures sensitive information filters: PII types such as credit/debit card number and national identification number set to BLOCK (or MASK on the output so they are never echoed), bank account number set to MASK rather than block so the conversation can continue; adds a regex for the bank's internal account format; applies to both input and output.",
-              "Sensitive information filters: CREDIT_DEBIT_CARD_NUMBER and national ID types -> block (the bot should never process them at all); bank account number -> mask, so the model sees and replies with {ACCOUNT_NUMBER} and the conversation continues without echoing the digits. Add a regex entity for Fairholme's internal account format with mask behaviour. Filters apply to user inputs and model responses."
+              "Sensitive information filters: CREDIT_DEBIT_CARD_NUMBER and national ID types -> block (the bot should never process them at all); bank account number -> mask, so the model sees and replies with {ACCOUNT_NUMBER} and the conversation continues without echoing the digits. Add a regex entity for Fairholme's internal account format with mask behavior. Filters apply to user inputs and model responses."
             ),
             part(
               "Prompt attacks and grounding",

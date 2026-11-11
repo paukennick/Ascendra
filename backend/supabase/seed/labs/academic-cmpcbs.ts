@@ -1,20 +1,18 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
-// REQ-161: Computational Math: CS Degree Coach (CMPCBS) -- Liberty
-// University's BS in Computational Mathematics: Computer Science degree
-// completion plan as mirrored in seed/data.ts.
+// REQ-161: Computer Science Degree Foundations (CMPCBS). REQ-195 reframed
+// the track as general courses taught from open textbooks (seed/data.ts);
+// these labs sit on its course units and were already general skills, so
+// only their sources and the course codes in three briefs changed.
 //
-// Density (docs/labs.md, "hybrid") over the twenty COURSE units (the units
-// titled with a course code, CSIS 110 through CSIS 340): one lab per course
-// plus one extra in CSIS 110, the only course unit with a second performance
-// objective and room -> 21 labs. The eight advising units (gen-ed elective
-// blocks, Christianity & Contexts, Free Electives, Graduation Requirements)
-// get no lab: their objectives are "choose 3 credits from ..." and
-// credit-count checklists -- planning facts, not skills a course assesses
-// by doing -- and docs/labs.md says a lab goes only on a skill. The content
-// test (`lib/labs.test.ts`) checks the course units against the hybrid plan
-// and the advising units against zero.
+// Density (docs/labs.md, "hybrid") over the twenty major course units
+// (Introduction to Computer Science through Information Security): one lab
+// per course plus one extra in Introduction to Computer Science, the only
+// course unit with a second performance objective and room -> 21 labs. The
+// removed general-education courses (College Composition I, Religion
+// Surveys) have no lab, and the retired degree-plan units never get one.
+// The content test (`lib/labs.test.ts`) checks both.
 //
 // Each lab is a task the course itself grades by doing: design an
 // algorithm, tell compile-time from run-time errors, optimise with a
@@ -26,9 +24,10 @@ import { source } from "../sources";
 // write-up, weigh a technology decision, fix pass-by-value and recursion
 // bugs in C++, implement a stack ADT, and write a security policy.
 //
-// Sources: Liberty's course catalog (the course descriptions the track is
-// built from), cppreference for C++ semantics, MIT OCW single-variable
-// calculus and linear algebra as standard references, and NIST CSF 2.0 for
+// Sources: the open textbooks each unit is taught from (OpenStax Calculus
+// and Introductory Statistics, Levin's Discrete Mathematics, Judson's
+// Abstract Algebra, Open Data Structures), cppreference for C++ semantics,
+// MIT OCW single-variable calculus and linear algebra, and NIST CSF 2.0 for
 // the policy lab's framing. Every number was computed with SymPy 1.14 or
 // CPython 3.13's statistics module and every C++ snippet compiled and ran
 // with g++ (C++17, -Wall -Wextra; the stack lab also under
@@ -37,14 +36,19 @@ import { source } from "../sources";
 export const CMPCBS_LABS: SeedLabSet = {
   trackCode: "CMPCBS",
   sources: [
-    source("https://catalog.liberty.edu/", "reference", "2026-11-07"),
+    source("https://openstax.org/books/calculus-volume-1/pages/preface", "reference", "2026-11-09"),
+    source("https://openstax.org/books/introductory-statistics-2e/pages/preface", "reference", "2026-11-09"),
+    source("https://discrete.openmathbooks.org/", "reference", "2026-11-09"),
+    source("https://judsonbooks.org/abstract-algebra-theory-and-applications/", "reference", "2026-11-09"),
+    source("https://opendatastructures.org/ods-cpp/", "reference", "2026-11-09"),
     source("https://en.cppreference.com/w/cpp/language", "reference", "2026-11-07"),
     source("https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/", "reference", "2026-11-07"),
     source("https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/", "reference", "2026-11-07"),
     source("https://www.nist.gov/cyberframework", "reference", "2026-11-07"),
+    source("https://www.law.cornell.edu/cfr/text/45/appendix-A_to_subpart_C_of_part_164", "reference", "2026-11-09"),
   ],
   labs: [
-    // CSIS 110 -------------------------------------------------------------
+    // Introduction to Computer Science -------------------------------------
     {
       slug: "design-duplicate-finder",
       objective: "Algorithm design and problem-solving strategies",
@@ -61,7 +65,7 @@ export const CMPCBS_LABS: SeedLabSet = {
             part(
               "Problem statement",
               "Input: a list of n ID values (n up to 200,000); output: yes/no (optionally the first repeated ID); edge cases named: empty list and single element (no duplicate), all identical, the duplicate at the very end, IDs of different formatting (leading zeros) treated as the same or not -- a decision to state.",
-              "Input: a sequence of n ID values, n about 200,000. Output: true if any value appears more than once, else false (and, usefully, which one). Edge cases: n = 0 or 1 -> false; every entry identical -> true; the only repeat is the last element -> must still be found; and a decision about format -- '0012345' and '12345' are the same student, so normalise IDs before comparing."
+              "Input: a sequence of n ID values, n about 200,000. Output: true if any value appears more than once, else false (and, usefully, which one). Edge cases: n = 0 or 1 -> false; every entry identical -> true; the only repeat is the last element -> must still be found; and a decision about format -- '0012345' and '12345' are the same student, so normalize IDs before comparing."
             ),
             part(
               "Brute force and its cost",
@@ -71,7 +75,7 @@ export const CMPCBS_LABS: SeedLabSet = {
             part(
               "A better approach and its cost",
               "Either sort then scan adjacent pairs (O(n log n) time, O(1) or O(n) space depending on the sort) or insert into a hash set and stop on the first hit (O(n) expected time, O(n) space); states the trade (memory vs guaranteed bound) and picks one for this size.",
-              "Option A: sort the list, then walk it once comparing each entry with its neighbour -- duplicates are adjacent after sorting. O(n log n) time, in place if the sort is. Option B: walk the list once, keeping a hash set of IDs seen; if an ID is already in the set, stop. O(n) expected time, O(n) extra memory -- trivial for 200,000 numbers. For this size B is the natural choice: one pass, done in a fraction of a second; A is the fallback if memory were tight or a worst-case guarantee mattered more than average speed."
+              "Option A: sort the list, then walk it once comparing each entry with its neighbor -- duplicates are adjacent after sorting. O(n log n) time, in place if the sort is. Option B: walk the list once, keeping a hash set of IDs seen; if an ID is already in the set, stop. O(n) expected time, O(n) extra memory -- trivial for 200,000 numbers. For this size B is the natural choice: one pass, done in a fraction of a second; A is the fallback if memory were tight or a worst-case guarantee mattered more than average speed."
             ),
             part(
               "Correctness argument",
@@ -102,31 +106,31 @@ export const CMPCBS_LABS: SeedLabSet = {
             ),
             part(
               "File two",
-              "Compiles cleanly (integer division by a zero held in a variable is not a compile error); at run time it prints 'about to divide' and then crashes -- on Linux a floating point exception (SIGFPE), exit status 136 -- because integer division by zero is undefined behaviour; names it a run-time error that the compiler cannot catch because the value is only known when the program runs. Fix: check denom before dividing.",
-              "This compiles with no errors or warnings -- the compiler sees 10 / denom and denom is just an int variable. Running it prints 'about to divide' and then dies: integer division by zero is undefined behaviour, and on Linux the CPU traps it as a floating point exception (SIGFPE), exit code 136. It is a run-time error; the compiler could not know denom would be zero because the value exists only when the program runs. Fix: if (denom == 0) { report it } else { divide }."
+              "Compiles cleanly (integer division by a zero held in a variable is not a compile error); at run time it prints 'about to divide' and then crashes -- on Linux a floating point exception (SIGFPE), exit status 136 -- because integer division by zero is undefined behavior; names it a run-time error that the compiler cannot catch because the value is only known when the program runs. Fix: check denom before dividing.",
+              "This compiles with no errors or warnings -- the compiler sees 10 / denom and denom is just an int variable. Running it prints 'about to divide' and then dies: integer division by zero is undefined behavior, and on Linux the CPU traps it as a floating point exception (SIGFPE), exit code 136. It is a run-time error; the compiler could not know denom would be zero because the value exists only when the program runs. Fix: if (denom == 0) { report it } else { divide }."
             ),
             part(
               "What the phases are",
-              "Describes the pipeline: preprocessing (#include), lexical analysis (tokens), parsing (syntax -- catches the missing semicolon), semantic analysis (names, types -- catches undeclared cout, type mismatches), code generation and optimisation, then linking; run-time errors (division by zero, out-of-range access, logic errors) happen after all of that. Contrasts briefly with an interpreter, which reports syntax errors at load and others as it executes.",
-              "The preprocessor expands #include; the lexer turns characters into tokens; the parser checks the grammar -- that is where the lost semicolon dies; semantic analysis resolves names and types -- that is where the bare cout dies; then code generation, optimisation and linking produce the executable. Everything the compiler can prove from the text it catches there. What depends on data -- a zero divisor, an index past the end, a wrong formula -- surfaces only at run time, which is why file two compiles and crashes. An interpreter moves the line: syntax errors at load, most of the rest as each statement executes."
+              "Describes the pipeline: preprocessing (#include), lexical analysis (tokens), parsing (syntax -- catches the missing semicolon), semantic analysis (names, types -- catches undeclared cout, type mismatches), code generation and optimization, then linking; run-time errors (division by zero, out-of-range access, logic errors) happen after all of that. Contrasts briefly with an interpreter, which reports syntax errors at load and others as it executes.",
+              "The preprocessor expands #include; the lexer turns characters into tokens; the parser checks the grammar -- that is where the lost semicolon dies; semantic analysis resolves names and types -- that is where the bare cout dies; then code generation, optimization and linking produce the executable. Everything the compiler can prove from the text it catches there. What depends on data -- a zero divisor, an index past the end, a wrong formula -- surfaces only at run time, which is why file two compiles and crashes. An interpreter moves the line: syntax errors at load, most of the rest as each statement executes."
             ),
           ],
         },
       ],
     },
-    // MATH 131 -------------------------------------------------------------
+    // Calculus I -----------------------------------------------------------
     {
       slug: "open-box-optimisation-and-lhopital",
       objective: "Applications of derivatives, including L'Hopital's Rule",
       kind: "build",
-      title: "Maximise a box, then evaluate two indeterminate limits",
+      title: "Maximize a box, then evaluate two indeterminate limits",
       brief:
-        "A fictional packaging exercise: an open-top box is made from a 24 in by 24 in sheet by cutting equal squares of side x from the corners and folding up the sides. Find the x that maximises the volume and the maximum volume, with a justification that it is a maximum. Then evaluate two limits, stating why L'Hopital's Rule applies (or does not): (a) lim x->0 (e^x - 1 - x) / x^2, and (b) lim x->0+ x ln x.",
+        "A fictional packaging exercise: an open-top box is made from a 24 in by 24 in sheet by cutting equal squares of side x from the corners and folding up the sides. Find the x that maximizes the volume and the maximum volume, with a justification that it is a maximum. Then evaluate two limits, stating why L'Hopital's Rule applies (or does not): (a) lim x->0 (e^x - 1 - x) / x^2, and (b) lim x->0+ x ln x.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Solve the optimisation with its justification, then the two limits.",
+          ask: "Solve the optimization with its justification, then the two limits.",
           parts: [
             part(
               "Volume function and domain",
@@ -152,7 +156,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 132 -------------------------------------------------------------
+    // Calculus II ----------------------------------------------------------
     {
       slug: "classify-four-series",
       objective: "Sequences, infinite series, and convergence tests",
@@ -185,7 +189,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 211 -------------------------------------------------------------
+    // Introduction to Statistical Analysis ---------------------------------
     {
       slug: "proportion-hypothesis-test",
       objective: "Statistical inference: estimation and hypothesis testing",
@@ -218,7 +222,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 250 -------------------------------------------------------------
+    // Discrete Mathematics -------------------------------------------------
     {
       slug: "truth-tables-and-argument-forms",
       objective: "Logic and formal proof techniques",
@@ -251,7 +255,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 345 -------------------------------------------------------------
+    // History of Mathematics -----------------------------------------------
     {
       slug: "euclid-primes-and-archimedes-pi",
       objective: "Greek geometry: Euclid, Pythagoras, and Archimedes",
@@ -277,21 +281,21 @@ export const CMPCBS_LABS: SeedLabSet = {
             ),
             part(
               "Why they matter",
-              "Euclid: a model of proof by contradiction/construction that establishes an infinite fact with a finite argument, and a theorem still proved the same way; Archimedes: the method of exhaustion -- bounding an unknown quantity between computable ones and systematically squeezing -- the ancestor of limits, numerical approximation and error bounds; both show rigour (a result is a proof, with its hypotheses) rather than measurement.",
+              "Euclid: a model of proof by contradiction/construction that establishes an infinite fact with a finite argument, and a theorem still proved the same way; Archimedes: the method of exhaustion -- bounding an unknown quantity between computable ones and systematically squeezing -- the ancestor of limits, numerical approximation and error bounds; both show rigor (a result is a proof, with its hypotheses) rather than measurement.",
               "Euclid's argument is a template: it proves something about an endless collection with a finite construction and a contradiction, and every student still proves it his way. Archimedes' is the method of exhaustion at work -- when you cannot compute a quantity, trap it between two you can, and show the trap can be made as tight as you like. That is the idea behind limits, numerical methods and every error bound in computational mathematics. Together they fix what 'knowing' means in mathematics: not a measurement, but an argument from stated assumptions that anyone can check."
             ),
           ],
         },
       ],
     },
-    // MATH 410 -------------------------------------------------------------
+    // Linear Algebra -------------------------------------------------------
     {
       slug: "gaussian-elimination-3x3",
       objective: "Systems of linear equations and Gaussian elimination",
       kind: "build",
       title: "Solve a 3 x 3 system by elimination and read the result",
       brief:
-        "A fictional circuit analysis yields the system:\n\n 2x +  y -  z =  8\n-3x -  y + 2z = -11\n-2x +  y + 2z = -3\n\nSolve it by Gaussian elimination on the augmented matrix, showing each row operation. Then explain how you would recognise, from the reduced matrix, a system with no solution and one with infinitely many, and what each would mean for a circuit.",
+        "A fictional circuit analysis yields the system:\n\n 2x +  y -  z =  8\n-3x -  y + 2z = -11\n-2x +  y + 2z = -3\n\nSolve it by Gaussian elimination on the augmented matrix, showing each row operation. Then explain how you would recognize, from the reduced matrix, a system with no solution and one with infinitely many, and what each would mean for a circuit.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -310,14 +314,14 @@ export const CMPCBS_LABS: SeedLabSet = {
             ),
             part(
               "No solution and infinitely many",
-              "No solution: a row of the form [0 0 0 | c] with c != 0 (inconsistent, 0 = c); for a circuit, contradictory constraints -- a modelling error. Infinitely many: consistent but a column without a pivot (a free variable), so a family of solutions with one or more parameters; for a circuit, an underdetermined network -- a missing equation or a redundant one, e.g. a loop whose current is not fixed by the others. States the rank conditions (rank A < rank [A|b] vs rank A = rank [A|b] < number of unknowns).",
-              "Inconsistent system: elimination produces a row [0 0 0 | c] with c nonzero -- the equation 0 = c -- so no (x, y, z) works; rank of the coefficient matrix is less than rank of the augmented matrix. In a circuit that means the equations contradict each other, which points at a modelling mistake (a sign error, a misapplied law). Infinitely many solutions: no contradictory row, but a column without a pivot, so one variable is free and the solution is a line or plane of values; rank equals the augmented rank but is less than 3. For a circuit, the network is underdetermined -- a loop or node equation is missing or one of the three is a combination of the others -- so the model needs another independent constraint before it predicts anything."
+              "No solution: a row of the form [0 0 0 | c] with c != 0 (inconsistent, 0 = c); for a circuit, contradictory constraints -- a modeling error. Infinitely many: consistent but a column without a pivot (a free variable), so a family of solutions with one or more parameters; for a circuit, an underdetermined network -- a missing equation or a redundant one, e.g. a loop whose current is not fixed by the others. States the rank conditions (rank A < rank [A|b] vs rank A = rank [A|b] < number of unknowns).",
+              "Inconsistent system: elimination produces a row [0 0 0 | c] with c nonzero -- the equation 0 = c -- so no (x, y, z) works; rank of the coefficient matrix is less than rank of the augmented matrix. In a circuit that means the equations contradict each other, which points at a modeling mistake (a sign error, a misapplied law). Infinitely many solutions: no contradictory row, but a column without a pivot, so one variable is free and the solution is a line or plane of values; rank equals the augmented rank but is less than 3. For a circuit, the network is underdetermined -- a loop or node equation is missing or one of the three is a combination of the others -- so the model needs another independent constraint before it predicts anything."
             ),
           ],
         },
       ],
     },
-    // MATH 412 -------------------------------------------------------------
+    // Numerical Methods ----------------------------------------------------
     {
       slug: "newton-method-with-error-analysis",
       objective: "Root-finding methods",
@@ -355,7 +359,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 423 -------------------------------------------------------------
+    // Abstract Algebra -----------------------------------------------------
     {
       slug: "verify-z6-is-a-group",
       objective: "Groups and their properties",
@@ -393,7 +397,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 430 -------------------------------------------------------------
+    // Multivariable Calculus -----------------------------------------------
     {
       slug: "classify-critical-points-two-variables",
       objective: "Optimization in several variables",
@@ -418,20 +422,20 @@ export const CMPCBS_LABS: SeedLabSet = {
               "Second partials: f_xx = 6x, f_yy = 2, f_xy = 0, so the discriminant D = f_xx f_yy - (f_xy)^2 = 12x. At (1, 0): D = 12 > 0 with f_xx = 6 > 0 -- a local minimum, value f(1, 0) = 1 - 3 = -2. At (-1, 0): D = -12 < 0 -- a saddle point, value f(-1, 0) = -1 + 3 = 2 (a maximum along the x-direction, a minimum along y)."
             ),
             part(
-              "Global behaviour on R^2",
+              "Global behavior on R^2",
               "No global extrema: along the x-axis f(x, 0) = x^3 - 3x -> +infinity as x -> +infinity and -> -infinity as x -> -infinity, so f is unbounded above and below; the local minimum at (1, 0) is not global.",
               "None. On the x-axis f(x, 0) = x^3 - 3x, which goes to +infinity as x -> +infinity and to -infinity as x -> -infinity, so f is unbounded in both directions. The point (1, 0) is only a local minimum -- f takes values far below -2 for large negative x -- and there is no maximum anywhere."
             ),
             part(
               "On the closed disk",
-              "By the extreme value theorem a continuous f on a closed bounded set attains a max and a min; candidates are interior critical points -- (1, 0) and (-1, 0), both inside since 1 < 4 -- plus extrema on the boundary x^2 + y^2 = 4, found by parametrising (x = 2 cos t, y = 2 sin t) or Lagrange multipliers (grad f = lambda grad g with g = x^2 + y^2 - 4); compare all candidate values and pick the largest and smallest. The saddle becomes a legitimate candidate on a closed domain.",
-              "Now the extreme value theorem guarantees a global maximum and minimum, because the disk is closed and bounded and f is continuous. The procedure: (1) interior critical points -- both (1, 0) and (-1, 0) lie inside, so f = -2 and f = 2 are candidates (the saddle counts as a candidate here; the test only says it is not a local extremum in the open plane); (2) the boundary circle x^2 + y^2 = 4, handled either by substituting x = 2 cos t, y = 2 sin t and optimising the one-variable function of t, or by Lagrange multipliers: solve grad f = lambda grad g with g = x^2 + y^2 - 4 alongside g = 0; (3) evaluate f at every candidate and take the largest and smallest. The answer lives at whichever candidate wins -- on a closed domain the boundary is as important as the critical points."
+              "By the extreme value theorem a continuous f on a closed bounded set attains a max and a min; candidates are interior critical points -- (1, 0) and (-1, 0), both inside since 1 < 4 -- plus extrema on the boundary x^2 + y^2 = 4, found by parametrizing (x = 2 cos t, y = 2 sin t) or Lagrange multipliers (grad f = lambda grad g with g = x^2 + y^2 - 4); compare all candidate values and pick the largest and smallest. The saddle becomes a legitimate candidate on a closed domain.",
+              "Now the extreme value theorem guarantees a global maximum and minimum, because the disk is closed and bounded and f is continuous. The procedure: (1) interior critical points -- both (1, 0) and (-1, 0) lie inside, so f = -2 and f = 2 are candidates (the saddle counts as a candidate here; the test only says it is not a local extremum in the open plane); (2) the boundary circle x^2 + y^2 = 4, handled either by substituting x = 2 cos t, y = 2 sin t and optimizing the one-variable function of t, or by Lagrange multipliers: solve grad f = lambda grad g with g = x^2 + y^2 - 4 alongside g = 0; (3) evaluate f at every candidate and take the largest and smallest. The answer lives at whichever candidate wins -- on a closed domain the boundary is as important as the critical points."
             ),
           ],
         },
       ],
     },
-    // MATH 432 -------------------------------------------------------------
+    // Differential Equations -----------------------------------------------
     {
       slug: "newtons-law-of-cooling-ivp",
       objective: "First-order differential equations",
@@ -469,7 +473,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 441 -------------------------------------------------------------
+    // Probability ----------------------------------------------------------
     {
       slug: "expected-value-of-a-dice-game",
       objective: "Expected value and discrete probability distributions",
@@ -502,7 +506,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 460 -------------------------------------------------------------
+    // Mathematical Modeling and Simulation ---------------------------------
     {
       slug: "formulate-a-logistic-population-model",
       objective: "Formulating mathematical models from real-world scenarios",
@@ -519,7 +523,7 @@ export const CMPCBS_LABS: SeedLabSet = {
             part(
               "Model choice and formulation",
               "Rejects pure exponential growth (ignores the 1,000 limit) and picks the logistic equation dP/dt = r P (1 - P/K) with P(0) = 50, K = 1000, r ~ 0.5 per year; explains each term: r P is the small-population growth, (1 - P/K) throttles growth toward zero as P nears K.",
-              "Exponential growth, P' = rP, fits the early 50% a year but ignores the ceiling and predicts elk without end. The logistic model keeps the early behaviour and adds the limit: dP/dt = r P (1 - P/K), with r = 0.5 per year (the low-density growth rate), K = 1,000 (carrying capacity) and P(0) = 50. When P is small the bracket is near 1 and growth is almost exponential; as P approaches K the bracket goes to 0 and growth stops; above K it turns negative."
+              "Exponential growth, P' = rP, fits the early 50% a year but ignores the ceiling and predicts elk without end. The logistic model keeps the early behavior and adds the limit: dP/dt = r P (1 - P/K), with r = 0.5 per year (the low-density growth rate), K = 1,000 (carrying capacity) and P(0) = 50. When P is small the bracket is near 1 and growth is almost exponential; as P approaches K the bracket goes to 0 and growth stops; above K it turns negative."
             ),
             part(
               "Predictions",
@@ -535,14 +539,14 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // STAT 420 -------------------------------------------------------------
+    // Regression and Forecasting -------------------------------------------
     {
       slug: "fit-and-interpret-a-regression-line",
       objective: "Simple and multiple linear regression",
       kind: "build",
       title: "Fit a line, interpret it, and check its residuals",
       brief:
-        "A fictional study-skills centre records hours studied and exam score for six students: (1, 52), (2, 58), (3, 61), (4, 70), (5, 74), (6, 79). Fit the least-squares line, interpret the slope and intercept in context, report and interpret R^2, give the residuals, predict the score for 8 hours of study and say how much to trust it. Then explain what would change if a second predictor (hours of sleep) were added, and name one assumption of the model you would check.",
+        "A fictional study-skills center records hours studied and exam score for six students: (1, 52), (2, 58), (3, 61), (4, 70), (5, 74), (6, 79). Fit the least-squares line, interpret the slope and intercept in context, report and interpret R^2, give the residuals, predict the score for 8 hours of study and say how much to trust it. Then explain what would change if a second predictor (hours of sleep) were added, and name one assumption of the model you would check.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -573,7 +577,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 491 -------------------------------------------------------------
+    // Computational Mathematics Capstone -----------------------------------
     {
       slug: "plan-a-capstone-write-up",
       objective: "Written and oral presentation of results",
@@ -594,8 +598,8 @@ export const CMPCBS_LABS: SeedLabSet = {
             ),
             part(
               "Which results, and how",
-              "From 40 plots choose 3-5 that answer the question: a distribution (histogram or box plot) of waiting time under each schedule; a plot of mean wait with confidence intervals as replications grow (convergence); a sensitivity plot (wait vs arrival rate) for each schedule; one table of the key statistics (mean, median, 90th percentile, P(wait > 30 min)) with intervals. Each figure has a caption that states the takeaway, labelled axes with units, and the same scale for the two schedules. Reports uncertainty everywhere and avoids 'schedule B is better' without the interval.",
-              "Pick the plots that answer the question and cut the rest. (1) Side-by-side distributions of waiting time for the two schedules -- box plots or overlaid histograms -- on the same axis, in minutes. (2) Mean waiting time against number of replications with its confidence band, to show the estimate has settled. (3) Sensitivity: mean and 90th-percentile wait against arrival rate for both schedules, because the clinic will ask 'what if we get busier?'. (4) One table: mean, median, 90th percentile and the share waiting over 30 minutes, each with a 95% interval, for both schedules. Every figure carries a caption that states what to see ('Schedule B cuts the 90th-percentile wait from 41 to 28 minutes'), labelled axes with units, and identical scales so the eye compares fairly. Never a bare 'B is better' -- always the interval beside the difference."
+              "From 40 plots choose 3-5 that answer the question: a distribution (histogram or box plot) of waiting time under each schedule; a plot of mean wait with confidence intervals as replications grow (convergence); a sensitivity plot (wait vs arrival rate) for each schedule; one table of the key statistics (mean, median, 90th percentile, P(wait > 30 min)) with intervals. Each figure has a caption that states the takeaway, labeled axes with units, and the same scale for the two schedules. Reports uncertainty everywhere and avoids 'schedule B is better' without the interval.",
+              "Pick the plots that answer the question and cut the rest. (1) Side-by-side distributions of waiting time for the two schedules -- box plots or overlaid histograms -- on the same axis, in minutes. (2) Mean waiting time against number of replications with its confidence band, to show the estimate has settled. (3) Sensitivity: mean and 90th-percentile wait against arrival rate for both schedules, because the clinic will ask 'what if we get busier?'. (4) One table: mean, median, 90th percentile and the share waiting over 30 minutes, each with a 95% interval, for both schedules. Every figure carries a caption that states what to see ('Schedule B cuts the 90th-percentile wait from 41 to 28 minutes'), labeled axes with units, and identical scales so the eye compares fairly. Never a bare 'B is better' -- always the interval beside the difference."
             ),
             part(
               "The talk and the hard question",
@@ -606,7 +610,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // CSIS 100 -------------------------------------------------------------
+    // Introduction to Information Systems ----------------------------------
     {
       slug: "weighted-decision-matrix-for-a-system",
       objective: "Evaluating and choosing business technology solutions",
@@ -627,26 +631,26 @@ export const CMPCBS_LABS: SeedLabSet = {
             ),
             part(
               "Recommendation and sensitivity",
-              "Recommends Alpha on the stated weights but flags the 0.1 margin as inside the noise of 1-5 judgements; shows the sensitivity: if fit rises to 50% and cost falls to 20%, Beta (0.4 + 2.5 + 0.6 + 0.5 = 4.0) beats Alpha (0.8 + 1.5 + 1.0 + 0.4 = 3.7); Gamma never wins under reasonable weights. Suggests resolving by re-scoring fit with a hands-on trial or asking the owners whether fit really outweighs cost.",
-              "On the owners' weights Alpha wins, but 3.8 to 3.7 is a coin toss when the inputs are whole-number judgements. Shift ten points of weight from cost to fit (cost 20%, fit 50%) and Beta scores 0.4 + 2.5 + 0.6 + 0.5 = 4.0 against Alpha's 0.8 + 1.5 + 1.0 + 0.4 = 3.7 -- the ranking flips. Gamma is last under any plausible weighting because it is weak on the heaviest criterion. So the real decision is between Alpha and Beta, and it hinges on how much workflow fit matters relative to price: put both in front of the front-desk staff for a scripted half-day trial and re-score fit before deciding."
+              "Recommends Alpha on the stated weights but flags the 0.1 margin as inside the noise of 1-5 judgments; shows the sensitivity: if fit rises to 50% and cost falls to 20%, Beta (0.4 + 2.5 + 0.6 + 0.5 = 4.0) beats Alpha (0.8 + 1.5 + 1.0 + 0.4 = 3.7); Gamma never wins under reasonable weights. Suggests resolving by re-scoring fit with a hands-on trial or asking the owners whether fit really outweighs cost.",
+              "On the owners' weights Alpha wins, but 3.8 to 3.7 is a coin toss when the inputs are whole-number judgments. Shift ten points of weight from cost to fit (cost 20%, fit 50%) and Beta scores 0.4 + 2.5 + 0.6 + 0.5 = 4.0 against Alpha's 0.8 + 1.5 + 1.0 + 0.4 = 3.7 -- the ranking flips. Gamma is last under any plausible weighting because it is weak on the heaviest criterion. So the real decision is between Alpha and Beta, and it hinges on how much workflow fit matters relative to price: put both in front of the front-desk staff for a scripted half-day trial and re-score fit before deciding."
             ),
             part(
               "What the matrix leaves out",
               "Total cost of ownership over the contract (migration, training, per-clinic fees, exit costs), not a 1-5 'cost'; references and vendor viability; data ownership and export on exit; integration with the practice-management/billing system; compliance and uptime commitments in the contract; implementation timeline and who does the work; and the risk that scorers were anchored by a demo. Recommends a pilot or reference checks before signing.",
-              "A score of 4 for cost hides the number that matters: total cost over the contract -- licences per clinic, migration of three years of appointments, training time, and what it costs to leave. The matrix also says nothing about whether the vendor will exist in five years (check references and financials), whether the practice owns its data and can export it on exit, whether the system integrates with billing and the patient-record system, what uptime and support response the contract actually promises, and who does the implementation work and when. Finally, 1-5 scores given after a polished demo are anchored; a pilot with real staff and a written exit clause are the checks that protect the owners."
+              "A score of 4 for cost hides the number that matters: total cost over the contract -- licenses per clinic, migration of three years of appointments, training time, and what it costs to leave. The matrix also says nothing about whether the vendor will exist in five years (check references and financials), whether the practice owns its data and can export it on exit, whether the system integrates with billing and the patient-record system, what uptime and support response the contract actually promises, and who does the implementation work and when. Finally, 1-5 scores given after a polished demo are anchored; a pilot with real staff and a written exit clause are the checks that protect the owners."
             ),
           ],
         },
       ],
     },
-    // CSIS 111 -------------------------------------------------------------
+    // Programming in C++ I -------------------------------------------------
     {
       slug: "pass-by-value-swap-bug",
       objective: "Writing and using functions",
       kind: "build",
       title: "Fix two functions that return the wrong thing",
       brief:
-        "A fictional CSIS 111 submission:\n\n#include <iostream>\nvoid swapValues(int a, int b) {\n    int temp = a;\n    a = b;\n    b = temp;\n}\ndouble average(int total, int count) {\n    return total / count;\n}\nint main() {\n    int x = 3, y = 9;\n    swapValues(x, y);\n    std::cout << x << \" \" << y << \"\\n\";\n    std::cout << average(7, 2) << \"\\n\";\n    return 0;\n}\n\nIt compiles with -Wall -Wextra and no warnings, and prints '3 9' and '3'. The student expected '9 3' and '3.5'. Explain both results, fix both functions, and state the rule for choosing a parameter-passing style.",
+        "A fictional student submission for a first C++ course:\n\n#include <iostream>\nvoid swapValues(int a, int b) {\n    int temp = a;\n    a = b;\n    b = temp;\n}\ndouble average(int total, int count) {\n    return total / count;\n}\nint main() {\n    int x = 3, y = 9;\n    swapValues(x, y);\n    std::cout << x << \" \" << y << \"\\n\";\n    std::cout << average(7, 2) << \"\\n\";\n    return 0;\n}\n\nIt compiles with -Wall -Wextra and no warnings, and prints '3 9' and '3'. The student expected '9 3' and '3.5'. Explain both results, fix both functions, and state the rule for choosing a parameter-passing style.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -672,14 +676,14 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // CSIS 112 -------------------------------------------------------------
+    // Programming in C++ II ------------------------------------------------
     {
       slug: "recursion-missing-base-case",
       objective: "Recursive programming",
       kind: "build",
       title: "Find the missing base case and bound the stack",
       brief:
-        "A fictional CSIS 112 function is meant to return the sum of a number's digits, so digitSum(493) is 16:\n\nint digitSum(int n) {\n    return n % 10 + digitSum(n / 10);\n}\n\nCompiled at -O0 and run, digitSum(493) crashes with a segmentation fault. Explain why, trace the fixed function on 493, state what inputs it should handle (negatives, zero), and explain why a different recursive function that works for n = 1,000 might still crash for n = 10,000,000 even though it has a correct base case.",
+        "A fictional student function is meant to return the sum of a number's digits, so digitSum(493) is 16:\n\nint digitSum(int n) {\n    return n % 10 + digitSum(n / 10);\n}\n\nCompiled at -O0 and run, digitSum(493) crashes with a segmentation fault. Explain why, trace the fixed function on 493, state what inputs it should handle (negatives, zero), and explain why a different recursive function that works for n = 1,000 might still crash for n = 10,000,000 even though it has a correct base case.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -703,21 +707,21 @@ export const CMPCBS_LABS: SeedLabSet = {
             ),
             part(
               "Why a correct recursion can still crash at 10,000,000",
-              "Recursion depth equals the number of nested calls; a function like countDown(n) that recurses n times uses n stack frames, so depth 1,000 is fine but 10,000,000 frames exceed the default stack (8 MB here -- 100,000 frames ran fine; millions would not); digitSum is safe because its depth is the number of digits (~10), i.e. logarithmic in n. Remedies: convert to a loop, use tail recursion only where the compiler is known to optimise it (not guaranteed in C++), or raise the stack limit.",
-              "Depth, not correctness, is what the stack limits. A function such as countDown(n) that calls itself n times needs n frames on the stack at once: 1,000 frames is nothing, 100,000 ran fine on this machine, but 10,000,000 frames at tens of bytes each blows past an 8 MB stack and segfaults with a perfectly correct base case. digitSum is safe at any int because its depth is the number of digits -- at most 10 -- so it grows with log n. When depth grows linearly with the input, rewrite it as a loop; C++ does not promise to optimise tail calls, so do not rely on that; raising the stack limit is a last resort."
+              "Recursion depth equals the number of nested calls; a function like countDown(n) that recurses n times uses n stack frames, so depth 1,000 is fine but 10,000,000 frames exceed the default stack (8 MB here -- 100,000 frames ran fine; millions would not); digitSum is safe because its depth is the number of digits (~10), i.e. logarithmic in n. Remedies: convert to a loop, use tail recursion only where the compiler is known to optimize it (not guaranteed in C++), or raise the stack limit.",
+              "Depth, not correctness, is what the stack limits. A function such as countDown(n) that calls itself n times needs n frames on the stack at once: 1,000 frames is nothing, 100,000 ran fine on this machine, but 10,000,000 frames at tens of bytes each blows past an 8 MB stack and segfaults with a perfectly correct base case. digitSum is safe at any int because its depth is the number of digits -- at most 10 -- so it grows with log n. When depth grows linearly with the input, rewrite it as a loop; C++ does not promise to optimize tail calls, so do not rely on that; raising the stack limit is a last resort."
             ),
           ],
         },
       ],
     },
-    // CSIS 215 -------------------------------------------------------------
+    // Data Structures and Algorithms ---------------------------------------
     {
       slug: "fix-an-int-stack-adt",
       objective: "Implementing abstract data types with C++ classes",
       kind: "build",
       title: "Make a stack class safe",
       brief:
-        "A fictional CSIS 215 submission of a fixed-capacity integer stack:\n\nclass IntStack {\npublic:\n    IntStack(int capacity) { data = new int[capacity]; cap = capacity; top = 0; }\n    void push(int v) { data[top] = v; top++; }\n    int pop() { top--; return data[top]; }\n    bool isEmpty() { return top == 0; }\nprivate:\n    int* data; int cap; int top;\n};\n\nA test does IntStack s(2); s.push(1); s.push(2); s.push(3); then pops four times. Under AddressSanitizer the third push reports 'heap-buffer-overflow ... WRITE of size 4 ... in IntStack::push'. List every defect, rewrite the class so its operations are safe and the ADT's contract is explicit, and explain what 'abstract data type' means for how a client may use it.",
+        "A fictional student submission of a fixed-capacity integer stack:\n\nclass IntStack {\npublic:\n    IntStack(int capacity) { data = new int[capacity]; cap = capacity; top = 0; }\n    void push(int v) { data[top] = v; top++; }\n    int pop() { top--; return data[top]; }\n    bool isEmpty() { return top == 0; }\nprivate:\n    int* data; int cap; int top;\n};\n\nA test does IntStack s(2); s.push(1); s.push(2); s.push(3); then pops four times. Under AddressSanitizer the third push reports 'heap-buffer-overflow ... WRITE of size 4 ... in IntStack::push'. List every defect, rewrite the class so its operations are safe and the ADT's contract is explicit, and explain what 'abstract data type' means for how a client may use it.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -743,7 +747,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // CSIS 340 -------------------------------------------------------------
+    // Information Security -------------------------------------------------
     {
       slug: "write-an-access-control-policy",
       objective: "Security policy development and application",
@@ -759,8 +763,8 @@ export const CMPCBS_LABS: SeedLabSet = {
           parts: [
             part(
               "Scope and principles",
-              "Scope: all systems holding patient, financial or staff data, all workforce members and contractors, all devices used to access them. Principles stated and defined: least privilege, need-to-know, individual accountability (unique accounts), separation of duties, defence in depth; names a framework the policy aligns with (e.g. NIST CSF 2.0 functions, with this section under Protect and Govern).",
-              "Scope: every system that stores or processes patient, payment or staff information at any Pinewood clinic; every employee, dentist, contractor and vendor who touches them; every device used to reach them, owned by the practice or not. Principles: least privilege -- each account has only the access its role needs; need-to-know -- access to a record requires a work reason; individual accountability -- every action traces to one named person; separation of duties -- no one person can both grant themselves access and approve it; defence in depth -- no single control is relied on alone. This section sits under the Govern and Protect functions of NIST CSF 2.0, which the practice adopts as its framework."
+              "Scope: all systems holding patient, financial or staff data, all workforce members and contractors, all devices used to access them. Principles stated and defined: least privilege, need-to-know, individual accountability (unique accounts), separation of duties, defense in depth; names a framework the policy aligns with (e.g. NIST CSF 2.0 functions, with this section under Protect and Govern); notes that a US dental practice that bills insurers electronically is a HIPAA covered entity, so the HIPAA Security Rule applies as law, not just as a framework.",
+              "Scope: every system that stores or processes patient, payment or staff information at any Pinewood clinic; every employee, dentist, contractor and vendor who touches them; every device used to reach them, owned by the practice or not. Principles: least privilege -- each account has only the access its role needs; need-to-know -- access to a record requires a work reason; individual accountability -- every action traces to one named person; separation of duties -- no one person can both grant themselves access and approve it; defense in depth -- no single control is relied on alone. This section sits under the Govern and Protect functions of NIST CSF 2.0, which the practice adopts as its framework. Because a US dental practice that bills insurers electronically is a HIPAA covered entity, the section also meets the HIPAA Security Rule, which is a legal requirement rather than a choice: unique user identification (45 CFR 164.312(a)), termination procedures (164.308(a)(3)), audit controls (164.312(b)), person or entity authentication (164.312(d)) and a data backup plan (164.308(a)(7)) -- R1, R2, R7, R5 and R6 below."
             ),
             part(
               "Concrete rules",

@@ -36,20 +36,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if (objectiveId && !isUuid(objectiveId)) return badRequest("objectiveId must be an id");
     // REQ-122: not in this learner's plan -- no cards, said gently, and no
     // generation started on their behalf.
-    const locked = await featureLock(user.id, "comparison");
+    const locked = await featureLock(user.id, "comparison", id);
     if (locked) return ok({ pending: false, failed: false, sets: [], locked });
 
     const state = await insightStatus(id, "concept_sets");
     if (state !== "ready") {
-      inBackground(() => ensureConceptSets(id));
+      inBackground(() => ensureConceptSets(id, user.id));
     } else {
-      inBackground(() => generateLearnedSets(id));
+      inBackground(() => generateLearnedSets(id, user.id));
     }
     const sets = await conceptSetsForTrack(id, user.id, objectiveId);
     return ok({ pending: state !== "ready" && state !== "failed", failed: state === "failed" && sets.length === 0, sets });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

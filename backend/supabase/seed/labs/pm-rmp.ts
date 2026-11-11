@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, orderPart } from "./types";
 import { source } from "../sources";
 
 // REQ-150: PMI-RMP (PMI Risk Management Professional; ECO "updated January
@@ -49,8 +49,8 @@ export const PMIRMP_LABS: SeedLabSet = {
             ),
             part(
               "Risk categories",
-              "Gives a set of categories suited to the project (for example a risk breakdown structure with technical, external, organisational and project-management branches with relevant sub-categories such as suppliers, regulation, site access).",
-              "RBS level 1: Technical (telemetry hardware, communications network, integration with SCADA); External (suppliers, regulator, weather, site access); Organisational (operations staff availability, funding); Project management (estimates, planning, communication)."
+              "Gives a set of categories suited to the project (for example a risk breakdown structure with technical, external, organizational and project-management branches with relevant sub-categories such as suppliers, regulation, site access).",
+              "RBS level 1: Technical (telemetry hardware, communications network, integration with SCADA); External (suppliers, regulator, weather, site access); Organizational (operations staff availability, funding); Project management (estimates, planning, communication)."
             ),
             part(
               "Process and metrics",
@@ -77,13 +77,13 @@ export const PMIRMP_LABS: SeedLabSet = {
           parts: [
             part(
               "RACI",
-              "Builds a RACI for at least three risk activities (for example identify, analyse, plan responses, approve reserve use, monitor) with exactly one Accountable per activity and sensible R/C/I assignments for the named roles.",
+              "Builds a RACI for at least three risk activities (for example identify, analyze, plan responses, approve reserve use, monitor) with exactly one Accountable per activity and sensible R/C/I assignments for the named roles.",
               "Identify risks: R project manager, risk analyst, supplier lead; A project manager; C safety manager; I sponsor. Quantitative analysis: R risk analyst; A project manager; C supplier lead. Approve contingency reserve use: R project manager; A sponsor; C risk review board. Report to airlines: R project manager; A sponsor; I airline operators' committee."
             ),
             part(
               "Risk breakdown structure",
               "Gives an RBS with at least three level-1 categories and two level-2 sub-categories under one of them, relevant to the project (for example Technical > software integration, data migration; External > airlines, regulator).",
-              "1 Technical: 1.1 software defects, 1.2 integration with conveyors and scanners, 1.3 data migration. 2 External: 2.1 airline schedules and peak season, 2.2 regulator and safety approvals, 2.3 supplier performance. 3 Organisational: 3.1 staff training, 3.2 operations availability for cutover. 4 Project management: 4.1 estimating, 4.2 planning."
+              "1 Technical: 1.1 software defects, 1.2 integration with conveyors and scanners, 1.3 data migration. 2 External: 2.1 airline schedules and peak season, 2.2 regulator and safety approvals, 2.3 supplier performance. 3 Organizational: 3.1 staff training, 3.2 operations availability for cutover. 4 Project management: 4.1 estimating, 4.2 planning."
             ),
             part(
               "Risk communication plan",
@@ -110,7 +110,7 @@ export const PMIRMP_LABS: SeedLabSet = {
             part(
               "Techniques and participants",
               "Chooses at least two complementary techniques matched to sources (for example SME interviews with lab managers and IT, a facilitated workshop or focus group with lab staff, document analysis of past moves/lessons learned and equipment manuals, checklists or a prompt list from the RBS).",
-              "Interview the lab manager, biomedical engineering and IT one-to-one (they hold specialist knowledge); run a facilitated workshop with senior scientists and logistics using an RBS prompt list; and analyse lessons learned from the trust's last department move and the analysers' relocation manuals."
+              "Interview the lab manager, biomedical engineering and IT one-to-one (they hold specialist knowledge); run a facilitated workshop with senior scientists and logistics using an RBS prompt list; and analyze lessons learned from the trust's last department move and the analysers' relocation manuals."
             ),
             part(
               "Well-formed risk statements",
@@ -149,11 +149,11 @@ export const PMIRMP_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Analyse the assumptions and constraints.",
+          ask: "Analyze the assumptions and constraints.",
           parts: [
             part(
               "Assumption validity",
-              "Tests each assumption for how likely it is to be false and how much it would matter, identifying A1 and A2 as weak given the facts (7-month certification elsewhere; 95% capacity) and A3 as needing a check (quality/legal labelling).",
+              "Tests each assumption for how likely it is to be false and how much it would matter, identifying A1 and A2 as weak given the facts (7-month certification elsewhere; 95% capacity) and A3 as needing a check (quality/legal labeling).",
               "A1: weak -- certification took 7 months next door, so month 3 is doubtful; high impact on launch. A2: weak -- picking is at 95% at peak, so 30% more volume won't fit; high impact. A3: plausible but unverified -- product safety text may need professional translation; medium impact."
             ),
             part(
@@ -217,14 +217,14 @@ export const PMIRMP_LABS: SeedLabSet = {
       slug: "rmp-qualitative-matrix-prioritise",
       objective: "Performing qualitative analysis: classifying risks in an RBS, applying risk matrices, and prioritizing by impact/urgency",
       kind: "build",
-      title: "Score and prioritise risks on a matrix",
+      title: "Score and prioritize risks on a matrix",
       brief:
         "Marlow Stadium's roof-replacement project uses 1-5 scales and Score = P x I, with High = 15-25, Medium = 8-14, Low = 1-7. Risks: R1 crane hire unavailable in the summer window (P 3, I 5; trigger point in 4 months); R2 minor rework of steel connections (P 4, I 2); R3 asbestos found in the old roof (P 2, I 4); R4 the local planning authority adds noise-hour restrictions (P 5, I 3; decision due in 2 weeks); R5 a total structural failure during lifting (P 1, I 5).",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Score, categorise and prioritise the risks.",
+          ask: "Score, categorize and prioritize the risks.",
           parts: [
             part(
               "Scores and bands",
@@ -236,15 +236,11 @@ export const PMIRMP_LABS: SeedLabSet = {
               "Places each risk in a sensible RBS category (for example R1 external/supplier or resources; R2 technical/quality; R3 technical/site conditions; R4 external/regulatory; R5 technical/safety).",
               "R1 External > suppliers; R2 Technical > quality and design; R3 Technical > site conditions; R4 External > regulatory; R5 Technical > structural and safety."
             ),
-            part(
-              "Priority order",
-              "Orders R4 before R1 (same score, R4 more urgent -- decision in 2 weeks), then R3 before R2 or justifies otherwise, and does not ignore R5 just because its score is low (very high impact, low probability: keep watching or treat via safety controls).",
-              "1 R4 (High, decision in 2 weeks); 2 R1 (High, 4 months to trigger); 3 R3 (Medium, higher impact than R2); 4 R2 (Medium); 5 R5 (Low score, but catastrophic impact -- it stays on the register under the lifting plan's safety controls, not ignored)."
-            ),
+            orderPart("Priority order", "Highest priority first: R4, R1, R3, R2, R5. R4 before R1 (same score of 15, but the planning decision is due in 2 weeks); R3 before R2 (same score of 8, higher impact). One risk out of place is partly there.", "1 R4 (High, decision in 2 weeks); 2 R1 (High, 4 months to trigger); 3 R3 (Medium, higher impact than R2); 4 R2 (Medium); 5 R5 (Low score, but catastrophic impact -- it stays on the register under the lifting plan's safety controls, not ignored).", ["R4 noise-hour restrictions", "R1 crane hire unavailable", "R3 asbestos in the old roof", "R2 rework of steel connections", "R5 structural failure during lifting"]),
             part(
               "Limits of the matrix",
-              "Notes a limitation of P x I scoring (ordinal scales, equal scores hiding different profiles, low-probability/high-impact risks) and what to do (urgency, quantitative analysis for the top risks).",
-              "Equal scores can hide very different risks (R2 and R3 both score 8), and ordinal scales can't be multiplied precisely. Use urgency and impact as tie-breakers, and quantify the top risks (EMV or schedule simulation) before committing reserve."
+              "Notes a limitation of P x I scoring (ordinal scales, equal scores hiding different profiles, low-probability/high-impact risks) and what to do (urgency, quantitative analysis for the top risks), including that R5's low score does not mean it can be dropped (catastrophic impact).",
+              "Equal scores can hide very different risks (R2 and R3 both score 8), and ordinal scales can't be multiplied precisely. Use urgency and impact as tie-breakers, and quantify the top risks (EMV or schedule simulation) before committing reserve. R5 scores low but its impact is catastrophic, so it stays on the register under safety controls."
             ),
           ],
         },
@@ -261,18 +257,10 @@ export const PMIRMP_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Analyse the decision.",
+          ask: "Analyze the decision.",
           parts: [
-            part(
-              "Expected value of A",
-              "Calculates EMV/expected cost of A = 400,000 + 0.3 x 150,000 = $445,000.",
-              "Expected cost of A = 400,000 + (0.3 x 150,000) = 400,000 + 45,000 = $445,000."
-            ),
-            part(
-              "Expected value of B",
-              "Calculates expected cost of B = 450,000 + 0.1 x 80,000 - 0.2 x 50,000 = $448,000, treating the rebate as an opportunity that reduces cost.",
-              "Expected cost of B = 450,000 + (0.1 x 80,000) - (0.2 x 50,000) = 450,000 + 8,000 - 10,000 = $448,000."
-            ),
+            numericPart("Expected cost of A", "Expected cost of A = 400,000 + 0.3 x 150,000 = $445,000. Met within $1.", "Expected cost of A = 400,000 + (0.3 x 150,000) = 400,000 + 45,000 = $445,000.", { answer: 445000, tolerance: 1, unit: "USD" }),
+            numericPart("Expected cost of B", "Expected cost of B = 450,000 + 0.1 x 80,000 - 0.2 x 50,000 = $448,000, the rebate being an opportunity that reduces cost. Met within $1.", "Expected cost of B = 450,000 + (0.1 x 80,000) - (0.2 x 50,000) = 450,000 + 8,000 - 10,000 = $448,000.", { answer: 448000, tolerance: 1, unit: "USD" }),
             part(
               "Decision and risk attitude",
               "States that A has the lower expected cost by $3,000, but compares worst cases (A $550,000; B $530,000) and notes that a risk-averse organisation might still choose B; the difference is small relative to the uncertainty.",
@@ -314,7 +302,7 @@ export const PMIRMP_LABS: SeedLabSet = {
             part(
               "Strategies, owners and dates",
               "Names the strategies (mitigate for T1, enhance for O1) and gives each action an owner and a due date, plus a trigger or contingency for the residual threat.",
-              "T1 mitigate: commission the independent pre-assessment; owner signalling design manager; complete by end of month 3. O1 enhance: appoint a coordinator to agree the shared possession; owner planning lead; agreement by week 6. Residual T1 (0.1): contingency of one extra assessment cycle, triggered if the pre-assessment raises more than five major findings."
+              "T1 mitigate: commission the independent pre-assessment; owner signaling design manager; complete by end of month 3. O1 enhance: appoint a coordinator to agree the shared possession; owner planning lead; agreement by week 6. Residual T1 (0.1): contingency of one extra assessment cycle, triggered if the pre-assessment raises more than five major findings."
             ),
           ],
         },
@@ -378,16 +366,8 @@ export const PMIRMP_LABS: SeedLabSet = {
           text: "",
           ask: "Reconcile the reserve and report.",
           parts: [
-            part(
-              "Reserve position",
-              "Calculates reserve drawn 55,000 + 40,000 = $95,000 and remaining 180,000 - 95,000 = $85,000.",
-              "Drawn: 55,000 + 40,000 = $95,000. Remaining: 180,000 - 95,000 = $85,000."
-            ),
-            part(
-              "Exposure vs remaining reserve",
-              "Calculates open exposure 40,000 + 25,000 + 18,000 + 12,000 = $95,000 (excluding the expired risk) and a shortfall of 95,000 - 85,000 = $10,000.",
-              "Open exposure: 40,000 + 25,000 + 18,000 + 12,000 = $95,000. Against $85,000 remaining, the reserve is $10,000 short."
-            ),
+            numericPart("Reserve remaining", "Drawn 55,000 + 40,000 = $95,000, so 180,000 - 95,000 = $85,000 remains. Met within $1.", "Drawn: 55,000 + 40,000 = $95,000. Remaining: 180,000 - 95,000 = $85,000.", { answer: 85000, tolerance: 1, unit: "USD" }),
+            numericPart("Shortfall against open exposure", "Open exposure, without the expired risk, is 40,000 + 25,000 + 18,000 + 12,000 = $95,000, so the reserve is $10,000 short (95,000 - 85,000). Met within $1.", "Open exposure: 40,000 + 25,000 + 18,000 + 12,000 = $95,000. Against $85,000 remaining, the reserve is $10,000 short.", { answer: 10000, tolerance: 1, unit: "USD" }),
             part(
               "Expired risk",
               "Closes the expired $30,000 risk (its trigger date passed) and explains that leaving it open would overstate exposure (it would show $125,000 against $85,000).",
@@ -438,8 +418,8 @@ export const PMIRMP_LABS: SeedLabSet = {
             ),
             part(
               "Communication",
-              "Recommends keeping the promised date unchanged for now (or adopting the new P80 only after the new risks are modelled) and shows the trend to stakeholders, for example as a chart of P50/P80 over time.",
-              "Keep the 4 August commitment for now and report the improving trend with a simple chart of P50 and P80 by month. Once the vendor risks are modelled, the sponsor can decide whether to bring the date forward."
+              "Recommends keeping the promised date unchanged for now (or adopting the new P80 only after the new risks are modeled) and shows the trend to stakeholders, for example as a chart of P50/P80 over time.",
+              "Keep the 4 August commitment for now and report the improving trend with a simple chart of P50 and P80 by month. Once the vendor risks are modeled, the sponsor can decide whether to bring the date forward."
             ),
           ],
         },

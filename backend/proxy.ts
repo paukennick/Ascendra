@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { minAppVersion, needsUpdate, updateRequiredBody } from "./lib/client-version";
 
-// The mobile app authenticates with a bearer token, never cookies, so a
-// wildcard origin couldn't actually leak a session -- but scoping it means a
+// The app authenticates with a bearer token; since REQ-192 the web app's
+// refresh token is also an httpOnly cookie on /api/auth/refresh only
+// (lib/auth/refreshCookie.ts), so credentials are allowed for the listed
+// origins (the Expo web dev server is cross-origin). Scoping also means a
 // typo'd or unexpected frontend origin fails loudly instead of silently
 // working from anywhere. ALLOWED_ORIGINS (.env.local / Vercel env) is a
 // comma-separated list of extra origins on top of the defaults below --
@@ -27,11 +30,13 @@ function corsHeaders(origin: string | null): Record<string, string> {
   const headers: Record<string, string> = {
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
     // REQ-146: X-Ascendra-Client is the app protocol (lib/client-protocol.ts).
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Ascendra-Client",
+    // REQ-175: X-Ascendra-App / -Platform are the app build (lib/client-version.ts).
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Ascendra-Client, X-Ascendra-App, X-Ascendra-Platform, X-Ascendra-Legal",
     Vary: "Origin",
   };
   if (origin && allowedOrigins.includes(origin)) {
     headers["Access-Control-Allow-Origin"] = origin;
+    headers["Access-Control-Allow-Credentials"] = "true";
   }
   return headers;
 }
@@ -41,6 +46,14 @@ export function proxy(request: NextRequest) {
 
   if (request.method === "OPTIONS") {
     return NextResponse.json({}, { headers });
+  }
+
+  // REQ-175: MIN_APP_VERSION (unset = no minimum). An app build below it is
+  // answered 426 { code: "update_required" } and shows "Update required";
+  // read per request so changing the env needs no code change.
+  const min = minAppVersion(process.env as Record<string, string | undefined>);
+  if (min && needsUpdate(request, min)) {
+    return NextResponse.json(updateRequiredBody(request, min, process.env as Record<string, string | undefined>), { status: 426, headers });
   }
 
   const response = NextResponse.next();

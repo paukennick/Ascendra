@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-159: CompTIA SecAI+ CY0-001 (V1) -- verifiable labs beside the
@@ -50,22 +50,23 @@ export const SECAIPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Classify the AI technique behind four security tools",
       brief:
-        "Securing AI starts with naming what you are dealing with. A SOC at Vantage Grid (fictional) uses four AI-driven capabilities. (1) A spam filter trained on millions of labelled good/spam emails that outputs a spam probability. (2) A chat assistant that writes incident summaries from analyst notes. (3) A system that flags logins that deviate from a user's learned normal behaviour, trained only on unlabeled activity. (4) A retrieval-augmented assistant that answers policy questions by pulling from the company wiki. For each, name the AI type/technique and one security consideration.",
+        "Securing AI starts with naming what you are dealing with. A SOC at Vantage Grid (fictional) uses four AI-driven capabilities. (1) A spam filter trained on millions of labeled good/spam emails that outputs a spam probability. (2) A chat assistant that writes incident summaries from analyst notes. (3) A system that flags logins that deviate from a user's learned normal behavior, trained only on unlabeled activity. (4) A retrieval-augmented assistant that answers policy questions by pulling from the company wiki. For each, name the AI type/technique and one security consideration.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
           ask: "Classify each capability and give a security consideration for each.",
           parts: [
+            matchPart("Technique for each capability", "(1) supervised machine learning; (2) generative AI, a large language model; (3) unsupervised learning / anomaly detection; (4) an LLM with retrieval-augmented generation. Reinforcement learning fits none. All four right is met; two or three is partly there.", "(1) Spam filter -> supervised learning (labeled good/spam examples, a classifier). (2) Incident summarizer -> generative AI, an LLM. (3) Login anomaly system -> unsupervised learning / anomaly detection (no labels). (4) Policy assistant -> an LLM with retrieval-augmented generation (RAG) over the wiki. None of them learns from rewards, so reinforcement learning is not one of them.", { leftHeading: "Capability", rightHeading: "AI type", left: ["(1) Spam filter trained on labeled good/spam email", "(2) Chat assistant that writes incident summaries", "(3) Flags logins that deviate from learned normal, no labels", "(4) Answers policy questions by pulling from the wiki"], right: ["Supervised machine learning", "Generative AI (a large language model)", "Unsupervised learning / anomaly detection", "LLM with retrieval-augmented generation", "Reinforcement learning"], pairs: [0, 1, 2, 3] }),
             part(
               "Supervised vs. unsupervised learning",
-              "Identifies (1) the spam filter as supervised machine learning (labelled training data, classification) and (3) the behaviour-anomaly system as unsupervised/anomaly detection (no labels), distinguishing the two.",
-              "(1) Spam filter: supervised machine learning -- trained on labelled good/spam examples to classify new mail; consideration: label/training-data poisoning could skew it. (3) Login anomaly system: unsupervised learning / anomaly detection -- learns normal from unlabeled activity with no 'attack' labels; consideration: it flags deviations, so it is prone to false positives and to 'normal drift' being learned as acceptable."
+              "Identifies (1) the spam filter as supervised machine learning (labeled training data, classification) and (3) the behavior-anomaly system as unsupervised/anomaly detection (no labels), distinguishing the two.",
+              "(1) Spam filter: supervised machine learning -- trained on labeled good/spam examples to classify new mail; consideration: label/training-data poisoning could skew it. (3) Login anomaly system: unsupervised learning / anomaly detection -- learns normal from unlabeled activity with no 'attack' labels; consideration: it flags deviations, so it is prone to false positives and to 'normal drift' being learned as acceptable."
             ),
             part(
               "Generative AI and LLMs",
-              "Identifies (2) the summariser as generative AI / an LLM and names a consideration (hallucination, sensitive-data exposure in prompts).",
-              "(2) Incident summariser: generative AI, a large language model. Consideration: it can hallucinate details not in the notes, and analyst notes pasted into it may expose sensitive data, so outputs need checking and inputs need care."
+              "Identifies (2) the summarizer as generative AI / an LLM and names a consideration (hallucination, sensitive-data exposure in prompts).",
+              "(2) Incident summarizer: generative AI, a large language model. Consideration: it can hallucinate details not in the notes, and analyst notes pasted into it may expose sensitive data, so outputs need checking and inputs need care."
             ),
             part(
               "Retrieval-augmented generation",
@@ -74,8 +75,8 @@ export const SECAIPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Why classification matters for security",
-              "Explains that the AI type determines its threats and controls -- a supervised classifier's risk (poisoning) differs from an LLM's (prompt injection, data leakage) -- so naming it correctly drives the right defence.",
-              "Naming the technique drives the defence: a supervised classifier's main risk is training-data poisoning; an LLM's are prompt injection, hallucination and sensitive-data leakage; a RAG system adds its retrieval corpus as attack surface. You cannot secure an AI system without first knowing what kind it is."
+              "Explains that the AI type determines its threats and controls -- a supervised classifier's risk (poisoning) differs from an LLM's (prompt injection, data leakage) -- so naming it correctly drives the right defense.",
+              "Naming the technique drives the defense: a supervised classifier's main risk is training-data poisoning; an LLM's are prompt injection, hallucination and sensitive-data leakage; a RAG system adds its retrieval corpus as attack surface. You cannot secure an AI system without first knowing what kind it is."
             ),
           ],
         },
@@ -140,8 +141,8 @@ export const SECAIPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Model-level guardrails",
-              "Specifies model guardrails: system-prompt hardening, output filtering/moderation, refusal of out-of-scope requests, and grounding -- while noting guardrails are defence-in-depth, not a single barrier.",
-              "At the model: guardrails that constrain behaviour (hardened system instructions, output moderation/filters, refusal of out-of-scope or unsafe requests) and grounding to approved sources. Treat these as one layer -- guardrails can be bypassed, so they sit behind gateway controls and server-side enforcement, not instead of them."
+              "Specifies model guardrails: system-prompt hardening, output filtering/moderation, refusal of out-of-scope requests, and grounding -- while noting guardrails are defense-in-depth, not a single barrier.",
+              "At the model: guardrails that constrain behavior (hardened system instructions, output moderation/filters, refusal of out-of-scope or unsafe requests) and grounding to approved sources. Treat these as one layer -- guardrails can be bypassed, so they sit behind gateway controls and server-side enforcement, not instead of them."
             ),
             part(
               "Data protection in prompts",
@@ -210,7 +211,7 @@ export const SECAIPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Use AI tools in the SOC without being misled",
       brief:
-        "A SOC at Crestwood Mutual (fictional) wants to adopt AI assistants: a chatbot to summarise alerts, an IDE/CLI plug-in to help write detection rules, and a tool that drafts vulnerability analyses. The SOC lead worries about hallucinations, data exposure and over-reliance. You must recommend how to use these tools effectively and safely.",
+        "A SOC at Crestwood Mutual (fictional) wants to adopt AI assistants: a chatbot to summarize alerts, an IDE/CLI plug-in to help write detection rules, and a tool that drafts vulnerability analyses. The SOC lead worries about hallucinations, data exposure and over-reliance. You must recommend how to use these tools effectively and safely.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -220,7 +221,7 @@ export const SECAIPLUS_LABS: SeedLabSet = {
             part(
               "Good use cases",
               "Identifies where AI assists well: summarising/triaging alerts, drafting detection rules and queries, enriching and explaining findings -- as a force-multiplier for analyst time.",
-              "Use AI where it accelerates analysts: summarising and triaging high-volume alerts, drafting detection rules/queries and regex, and explaining or enriching findings. These are force-multipliers that cut toil and speed investigation."
+              "Use AI where it accelerates analysts: summarizing and triaging high-volume alerts, drafting detection rules/queries and regex, and explaining or enriching findings. These are force-multipliers that cut toil and speed investigation."
             ),
             part(
               "Verify outputs (hallucination)",
@@ -248,28 +249,28 @@ export const SECAIPLUS_LABS: SeedLabSet = {
       kind: "case",
       title: "Defend against an AI-enhanced social-engineering attack",
       brief:
-        "Granite Trust (fictional), a finance firm, is targeted by attackers using AI to enhance their methods. You must recognise the AI-enabled elements and recommend defences. No instructions for conducting any attack are needed -- this is a defender's analysis.",
+        "Granite Trust (fictional), a finance firm, is targeted by attackers using AI to enhance their methods. You must recognize the AI-enabled elements and recommend defenses. No instructions for conducting any attack are needed -- this is a defender's analysis.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "Finance staff receive highly convincing, personalised phishing emails at scale, each referencing real projects and written in flawless company style -- far more tailored than past campaigns.",
+          text: "Finance staff receive highly convincing, personalized phishing emails at scale, each referencing real projects and written in flawless company style -- far more tailored than past campaigns.",
           ask: "What AI capability enabled this, and how do you defend?",
           parts: [
             part(
               "Automated, AI-generated phishing",
-              "Identifies generative AI enabling scaled, personalised, well-written phishing (automated attack generation + automated reconnaissance) and recommends defences not reliant on spotting bad grammar: MFA, email authentication, reporting culture, and link/attachment controls.",
-              "Generative AI enables mass-produced, highly personalised phishing (automated reconnaissance to gather the project references, automated generation for flawless tailored text). Defence cannot rely on 'spot the typo' anymore: enforce phishing-resistant MFA, email authentication (SPF/DKIM/DMARC), strong reporting culture and link/attachment protections, so a convincing email still fails to achieve account takeover."
+              "Identifies generative AI enabling scaled, personalized, well-written phishing (automated attack generation + automated reconnaissance) and recommends defenses not reliant on spotting bad grammar: MFA, email authentication, reporting culture, and link/attachment controls.",
+              "Generative AI enables mass-produced, highly personalized phishing (automated reconnaissance to gather the project references, automated generation for flawless tailored text). Defense cannot rely on 'spot the typo' anymore: enforce phishing-resistant MFA, email authentication (SPF/DKIM/DMARC), strong reporting culture and link/attachment protections, so a convincing email still fails to achieve account takeover."
             ),
           ],
         },
         {
-          text: "Days later, the finance director receives a video call that looks and sounds like the CEO, urgently authorising a large wire transfer to a new account.",
+          text: "Days later, the finance director receives a video call that looks and sounds like the CEO, urgently authorizing a large wire transfer to a new account.",
           ask: "Name the technique and the controls that stop the fraud.",
           parts: [
             part(
               "Deepfake impersonation",
-              "Identifies deepfake audio/video impersonation and recommends process controls that do not depend on recognising the fake: out-of-band verification, multi-person authorization, call-back on known numbers, and payment controls.",
-              "This is deepfake impersonation -- AI-generated video/voice of the CEO. The defence is process, not fake-spotting: require out-of-band verification of any payment or banking-detail change through a known channel, multi-person authorization for large/urgent transfers, call-back on a pre-established number, and a policy that urgency never bypasses controls. A convincing deepfake then still cannot move money alone."
+              "Identifies deepfake audio/video impersonation and recommends process controls that do not depend on recognizing the fake: out-of-band verification, multi-person authorization, call-back on known numbers, and payment controls.",
+              "This is deepfake impersonation -- AI-generated video/voice of the CEO. The defense is process, not fake-spotting: require out-of-band verification of any payment or banking-detail change through a known channel, multi-person authorization for large/urgent transfers, call-back on a pre-established number, and a policy that urgency never bypasses controls. A convincing deepfake then still cannot move money alone."
             ),
             part(
               "Awareness and verification culture",

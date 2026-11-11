@@ -1,3 +1,8 @@
+-- HISTORICAL (2026-11-10, REQ-214): valid only while production was at the
+-- 2026-11-07 release. Later releases (migrations 055 onward) are rolled back
+-- by code rollback (Vercel) and, per migration, scripts/rollback-064.sql and
+-- scripts/rollback-071.sql. Do not run this on today's database.
+--
 -- Release 2026-11-07: return the database to the PRE-RELEASE schema
 -- (master @ c3e13ab's 001-024 plus line B's 025-027, which production ran
 -- before this release). docs/release-2026-11-07.md, "Rollback", says when.
@@ -126,7 +131,12 @@ drop table if exists
   placement_items, prerequisite_refreshers, review_items, review_log, review_schedule, review_session_items,
   review_sessions, study_plans, unit_check_items, terms_acceptances,
   -- REQ-166 (058): verified group discounts and the App Store offer-code pool
-  verified_discounts
+  verified_discounts,
+  -- REQ-169/170 (060): intake answers (060's family and scope columns go
+  -- with entitlements, also in this list)
+  learner_intake, learner_intake_targets,
+  -- REQ-197 (063): service email choices and the send log
+  email_preferences, service_email_log
   cascade;
 
 -- 4b. The two rollup views 033 redefined, back to master's definitions

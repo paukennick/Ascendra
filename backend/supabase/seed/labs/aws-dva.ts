@@ -190,8 +190,8 @@ export const AWSDVA_LABS: SeedLabSet = {
             ),
             part(
               "Visibility timeout and retention",
-              "Sets the visibility timeout longer than the worst-case processing time (noting the 30-second default and 12-hour maximum, and that for a Lambda consumer it should exceed the function timeout) and a retention period that covers an outage (default 4 days, up to 14).",
-              "Visibility timeout well above the longest provider call, for example 2 minutes when the function timeout is 30 seconds (default is 30 seconds, maximum 12 hours; with a Lambda consumer it must be longer than the function's timeout). Message retention raised from the 4-day default toward the 14-day maximum so a long provider outage loses nothing."
+              "Sets the visibility timeout longer than the worst-case processing time (noting the 30-second default and 12-hour maximum, and that for a Lambda consumer AWS recommends at least six times the function timeout, plus any batching window) and a retention period that covers an outage (default 4 days, up to 14).",
+              "Visibility timeout well above the longest provider call: with a 30-second function timeout, set at least 3 minutes, because AWS recommends at least six times the function timeout (plus the batching window, if one is set) so retries after throttling do not make a message visible again while it is still being processed (default is 30 seconds, maximum 12 hours). Message retention raised from the 4-day default toward the 14-day maximum so a long provider outage loses nothing."
             ),
           ],
         },
@@ -202,7 +202,7 @@ export const AWSDVA_LABS: SeedLabSet = {
             part(
               "Cause",
               "Explains at-least-once delivery on a standard queue plus a visibility timeout that expired before processing finished, so the message became visible again and was processed twice.",
-              "Standard queues deliver at least once, and here the invocation took longer than the visibility timeout, so SQS made the message visible again and a second consumer processed it. Duplicates are expected behaviour, not a bug in SQS."
+              "Standard queues deliver at least once, and here the invocation took longer than the visibility timeout, so SQS made the message visible again and a second consumer processed it. Duplicates are expected behavior, not a bug in SQS."
             ),
             part(
               "Fix",
@@ -320,11 +320,11 @@ export const AWSDVA_LABS: SeedLabSet = {
             part(
               "Prompt construction",
               "Identifies that user text was concatenated into the same context as instructions with nothing marking it as untrusted; fixes it by using the model's message roles (system versus user), delimiting and tagging user input as data, and instructing the model to treat anything inside as content only.",
-              "User input was pasted into the prompt as if it were instructions. Send the system prompt in the system role and the customer text in the user role, wrap untrusted text in clearly labelled delimiters, and tell the model that content inside them is data to answer about, never instructions to follow."
+              "User input was pasted into the prompt as if it were instructions. Send the system prompt in the system role and the customer text in the user role, wrap untrusted text in clearly labeled delimiters, and tell the model that content inside them is data to answer about, never instructions to follow."
             ),
             part(
               "Tool authority",
-              "Fixes the tool so authorisation is enforced in code, not by the model: the reroute function checks the parcel belongs to the authenticated customer and the application, not the model, decides what the tool may touch.",
+              "Fixes the tool so authorization is enforced in code, not by the model: the reroute function checks the parcel belongs to the authenticated customer and the application, not the model, decides what the tool may touch.",
               "The tool trusted the model's arguments. The reroute function must verify in code that the parcel ID belongs to the signed-in customer (and refuse otherwise), use a Lambda execution role with only that permission, and treat the model's tool request as a suggestion to validate."
             ),
           ],
@@ -435,12 +435,12 @@ export const AWSDVA_LABS: SeedLabSet = {
       kind: "build",
       title: "Tune a Lambda function's memory from measurements",
       brief:
-        "Riverbend Reports, a fictional company, has a Lambda function that renders PDF statements; it is CPU-bound and runs 2 million times a month. It is configured with 512 MB and times out occasionally. The team measured it: at 512 MB the average duration is 3,000 ms; at 1,024 MB it is 1,500 ms; at 1,769 MB it is 900 ms; at 3,008 MB it is 850 ms. Reported memory use never exceeds 300 MB. Cold starts of about 1.2 seconds are a further complaint; the function initialises a large font library inside the handler on every invocation.",
+        "Riverbend Reports, a fictional company, has a Lambda function that renders PDF statements; it is CPU-bound and runs 2 million times a month. It is configured with 512 MB and times out occasionally. The team measured it: at 512 MB the average duration is 3,000 ms; at 1,024 MB it is 1,500 ms; at 1,769 MB it is 900 ms; at 3,008 MB it is 850 ms. Reported memory use never exceeds 300 MB. Cold starts of about 1.2 seconds are a further complaint; the function initializes a large font library inside the handler on every invocation.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Choose a memory setting with reasoning, explain the billing effect, fix the cold-start behaviour, and name the tooling you would use next time.",
+          ask: "Choose a memory setting with reasoning, explain the billing effect, fix the cold-start behavior, and name the tooling you would use next time.",
           parts: [
             part(
               "Why more memory made it faster",
@@ -454,8 +454,8 @@ export const AWSDVA_LABS: SeedLabSet = {
             ),
             part(
               "Cold starts",
-              "Moves the font-library initialisation outside the handler so it runs once per execution environment and is reused on warm invocations, and considers provisioned concurrency only if cold starts still hurt a latency-sensitive path.",
-              "Load the font library at module scope, outside the handler, so it is initialised once per execution environment during init and reused by every warm invocation. If the statements are served interactively and the remaining cold start still matters, add provisioned concurrency for the expected baseline."
+              "Moves the font-library initialization outside the handler so it runs once per execution environment and is reused on warm invocations, and considers provisioned concurrency only if cold starts still hurt a latency-sensitive path.",
+              "Load the font library at module scope, outside the handler, so it is initialized once per execution environment during init and reused by every warm invocation. If the statements are served interactively and the remaining cold start still matters, add provisioned concurrency for the expected baseline."
             ),
             part(
               "Tooling",

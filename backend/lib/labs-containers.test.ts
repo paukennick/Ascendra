@@ -29,7 +29,7 @@ const TOOLING: Record<string, { answers: RegExp; shown: RegExp }> = {
   CAPA: { answers: /argoproj\.io|argo |argocd|kubectl argo rollouts|workflowTemplateRef|AnalysisTemplate|EventSource|Sensor/, shown: /\$ argo|\$ kubectl|\$ argocd/ },
   CCA: { answers: /cilium|hubble|CiliumNetworkPolicy|eBPF|helm (install|upgrade) cilium/, shown: /\$ cilium|\$ hubble|\$ kubectl|\$ helm/ },
   ICA: { answers: /istioctl|istio\.io|PeerAuthentication|AuthorizationPolicy|VirtualService|DestinationRule|Gateway/, shown: /\$ istioctl|\$ kubectl/ },
-  KCA: { answers: /kyverno|ClusterPolicy|PolicyException|CleanupPolicy|validate:|mutate:|generate:/, shown: /\$ kubectl|\$ kyverno|\$ helm|kind: ClusterPolicy|validationFailureAction/ },
+  KCA: { answers: /kyverno|ClusterPolicy|PolicyException|CleanupPolicy|validate:|mutate:|generate:/, shown: /\$ kubectl|\$ kyverno|\$ helm|kind: ClusterPolicy|failureAction/ },
   CBA: { answers: /yarn |backstage|app-config|catalog-info|createPlugin|EntityLayout|Dockerfile|FROM /, shown: /\$ yarn|\$ kubectl|\$ git|catalog-info|apiVersion: backstage|Pull request|\/\/ plugins\// },
   // CNPA is multiple-choice about platform engineering as a practice; its labs apply the practice to a fictional platform.
   CNPA: { answers: /Argo CD|Flux|Kyverno|Crossplane|Backstage|OpenTelemetry|Prometheus|ResourceQuota|NetworkPolicy|CustomResourceDefinition|CRD|PolicyReport|DORA|SLO|golden path/, shown: /\$ |Timeline from|Inventory gathered|Proposals:|Catalog audit:|^#!\/bin\/bash/m },
@@ -49,6 +49,14 @@ const REMOVED = [
   /\bdocker-shim\b/i,
   /kubectl run .*--generator/i,
   /--record\b(?! flag is deprecated)/,
+  // Audit 2026-11-09: etcd 3.6 removed snapshot status/restore from etcdctl
+  // (etcdutl only); Kyverno 1.13 moved failureAction onto each rule; Cilium's
+  // BGP and LB IPAM APIs are cilium.io/v2; Crossplane v2's CLI is
+  // `crossplane resource trace`.
+  /etcdctl snapshot (status|restore)(?! was removed)/,
+  /validationFailureAction:/,
+  /cilium\.io\/v2alpha1/,
+  /crossplane beta trace(?! was)/,
 ];
 
 describe("container and Kubernetes lab wave (REQ-164)", () => {
@@ -338,11 +346,11 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
     assert.match(text, /legacy devicemapper/);
   });
 
-  test("every lab carries the general safety note, a fictional organisation, and the right shape for its kind", () => {
+  test("every lab carries the general safety note, a fictional organization, and the right shape for its kind", () => {
     for (const code of CODES) {
       for (const lab of setFor(code).labs) {
         assert.equal(lab.safetyNote, GENERAL_SAFETY, `${code}/${lab.slug}`);
-        assert.match(lab.brief, /fictional/i, `${code}/${lab.slug}: the brief says the organisation is fictional`);
+        assert.match(lab.brief, /fictional/i, `${code}/${lab.slug}: the brief says the organization is fictional`);
         if (lab.kind === "build") {
           assert.equal(lab.steps.length, 1, `${code}/${lab.slug}`);
           assert.equal(lab.steps[0].text, "", `${code}/${lab.slug}: a build lab's step has no text`);

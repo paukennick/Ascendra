@@ -1,6 +1,7 @@
 // Release 2026-11-07: the places where line A and line B met, against a real
 // Postgres with every migration applied (052 and 053 included). No model is
 // called. See docs/release-2026-11-07.md for what each resolution keeps.
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { createHash, randomUUID } from "node:crypto";
@@ -24,6 +25,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `rm-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const req = (u: string, url: string, method = "POST") =>

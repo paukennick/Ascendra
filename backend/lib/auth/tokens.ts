@@ -61,6 +61,28 @@ export function verifyAccessToken(token: string): Required<Pick<AccessTokenPaylo
   };
 }
 
+// REQ-203 (FAIL-866): sign-out accepts an access token that is validly signed
+// but past its 15 minutes, because the app signs out after being away and the
+// token is then stale. It still has to be a token this server signed, and not
+// older than a refresh token can live. It only ever names a session to end.
+const LOGOUT_TOKEN_MAX_AGE_SECONDS = REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60;
+
+export function verifyAccessTokenForLogout(token: string): { sub: string; fam: string | null } | null {
+  let decoded: jwt.JwtPayload;
+  try {
+    decoded = jwt.verify(token, getJwtSecret(), { ignoreExpiration: true }) as jwt.JwtPayload;
+  } catch (err) {
+    // A bad signature or a malformed token names nothing. Anything else (the
+    // signing secret missing) is a server fault and propagates.
+    if (err instanceof jwt.JsonWebTokenError) return null;
+    throw err;
+  }
+  if (typeof decoded.sub !== "string" || !decoded.sub) return null;
+  if (typeof decoded.iat !== "number" || Date.now() / 1000 - decoded.iat > LOGOUT_TOKEN_MAX_AGE_SECONDS) return null;
+  const fam = (decoded as { fam?: unknown }).fam;
+  return { sub: decoded.sub, fam: typeof fam === "string" ? fam : null };
+}
+
 function hashToken(raw: string): string {
   return crypto.createHash("sha256").update(raw).digest("hex");
 }
@@ -98,6 +120,17 @@ export async function createRefreshToken(
 }
 
 export class RefreshTokenError extends Error {}
+
+// REQ-203 (FAIL-865): two tabs refreshing at the same moment each present
+// the same token. One wins; the other used to look like a stolen-token replay
+// and revoked the whole family, signing the learner out everywhere. A token
+// replayed within this many seconds of its own rotation is that race, not
+// theft, and gets its own live token in the same family. Later replays still
+// revoke the family.
+export const REFRESH_REUSE_GRACE_SECONDS = 10;
+// A rotated token's successor plus this many grace replays; more than any tab
+// count, small enough that a replayed stolen token can't mint without limit.
+const REFRESH_GRACE_MAX_TOKENS = 6;
 
 // Verifies + rotates a presented refresh token. Reuse of an already-revoked
 // token is treated as a theft signal: the entire family is revoked and this
@@ -160,6 +193,35 @@ export async function rotateRefreshToken(
     throw new RefreshTokenError("Refresh token not recognized.");
   }
   if (row.revoked_at) {
+    // REQ-203 (FAIL-865): a token rotated moments ago, whose session is still
+    // live, is a cross-tab race. One guarded statement checks all of that and
+    // mints the replay's own token, so it can't interleave with a logout.
+    const graced = await queryOne<{ user_id: string; family_id: string }>(
+      `insert into refresh_tokens (user_id, family_id, token_hash, device_label, user_agent, ip, expires_at)
+       select o.user_id, o.family_id, $2, coalesce($3::text, o.device_label), coalesce($4::text, o.user_agent), $5, $6
+         from refresh_tokens o
+        where o.token_hash = $1
+          and o.replaced_by_id is not null
+          and o.revoked_at > now() - make_interval(secs => $7::int)
+          and o.expires_at > now()
+          and exists (select 1 from refresh_tokens l
+                       where l.family_id = o.family_id and l.revoked_at is null and l.expires_at > now())
+          and (select count(*) from refresh_tokens s
+                where s.family_id = o.family_id and s.created_at >= o.revoked_at) < $8::int
+       returning user_id, family_id`,
+      [
+        tokenHash,
+        hashToken(newRaw),
+        meta.deviceLabel ?? null,
+        meta.userAgent ?? null,
+        meta.ip ?? null,
+        expiresAt,
+        REFRESH_REUSE_GRACE_SECONDS,
+        REFRESH_GRACE_MAX_TOKENS,
+      ]
+    );
+    if (graced) return { userId: graced.user_id, raw: newRaw, familyId: graced.family_id };
+
     await query(`update refresh_tokens set revoked_at = now() where family_id = $1 and revoked_at is null`, [
       row.family_id,
     ]);
@@ -169,10 +231,28 @@ export async function rotateRefreshToken(
   throw new RefreshTokenError("Refresh token expired.");
 }
 
+// Ends the session a refresh token belongs to. REQ-203 (FAIL-867): this used
+// to revoke only the presented token, so a token that had already rotated
+// (the app signed out holding the previous one, or a second tab did) left its
+// successor live. It revokes every live token of the token's family.
 export async function revokeRefreshToken(rawToken: string): Promise<void> {
-  await query(`update refresh_tokens set revoked_at = now() where token_hash = $1 and revoked_at is null`, [
-    hashToken(rawToken),
-  ]);
+  await query(
+    `update refresh_tokens set revoked_at = now()
+      where revoked_at is null
+        and family_id = (select family_id from refresh_tokens where token_hash = $1)`,
+    [hashToken(rawToken)]
+  );
+}
+
+// REQ-192: ends one session -- every live token of the family -- for the
+// signed-in caller. Scoped by user so a family id alone revokes nothing.
+export async function revokeRefreshFamily(userId: string, familyId: string): Promise<number> {
+  const rows = await query(
+    `update refresh_tokens set revoked_at = now()
+     where user_id = $1 and family_id = $2 and revoked_at is null returning id`,
+    [userId, familyId]
+  );
+  return rows.length;
 }
 
 export async function revokeAllRefreshTokens(userId: string): Promise<void> {

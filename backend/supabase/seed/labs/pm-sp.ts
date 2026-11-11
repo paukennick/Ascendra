@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart } from "./types";
 import { source } from "../sources";
 
 // REQ-150: PMI-SP (PMI Scheduling Professional; current ECO when checked on
@@ -33,7 +33,7 @@ export const PMISP_LABS: SeedLabSet = {
       objective:
         "Setting scheduling policies and procedures: tool selection, activity granularity, EVM implementation, and approval requirements",
       kind: "build",
-      title: "Write the scheduling policies for a new programme of work",
+      title: "Write the scheduling policies for a new program of work",
       brief:
         "Grayson Medical Devices is starting a 20-month project to build a new sterilisation-unit production line, with a $14 million budget, three subcontractors who each run their own scheduling tools, and monthly reporting to the board. Earned value management is required by the main customer's contract. The last project's schedule had activities ranging from 2 hours to 9 months long and was changed by anyone with access.",
       safetyNote: GENERAL_SAFETY,
@@ -81,7 +81,7 @@ export const PMISP_LABS: SeedLabSet = {
           parts: [
             part(
               "Problem",
-              "Explains that the baseline was changed without authorisation, destroying the ability to measure variance, and that baseline changes require formal change control.",
+              "Explains that the baseline was changed without authorization, destroying the ability to measure variance, and that baseline changes require formal change control.",
               "The baseline is the approved reference for measuring performance. Resetting it to hide a delay erases the two-week variance and breaks change control -- only an approved change request can alter it."
             ),
             part(
@@ -132,11 +132,7 @@ export const PMISP_LABS: SeedLabSet = {
               "Calculates triangular means (O + M + P) / 3: A = 8, B = 12, C = 5, path = 25 days, and explains why it is higher (it weights the pessimistic tail more than PERT's beta, which weights the most likely value 4 times).",
               "Triangular: A = (4 + 6 + 14) / 3 = 8; B = (8 + 10 + 18) / 3 = 12; C = (3 + 5 + 7) / 3 = 5; path = 25 days. It is 2 days higher because PERT weights the most likely value four times, pulling the mean away from the long pessimistic tails of A and B."
             ),
-            part(
-              "Path standard deviation",
-              "Calculates each SD (P - O) / 6 (A 1.67, B 1.67, C 0.67), sums variances (25/9 + 25/9 + 4/9 = 6.0), and takes the square root for the path SD (about 2.45 days) -- not adding the SDs.",
-              "SDs: A = 10 / 6 = 1.67; B = 10 / 6 = 1.67; C = 4 / 6 = 0.67. Variances: 2.78 + 2.78 + 0.44 = 6.0 (exactly 54/9). Path SD = sqrt(6) = 2.45 days. Add variances, not standard deviations."
-            ),
+            numericPart("Path standard deviation (days)", "Adds the variances, not the standard deviations: SDs (P - O) / 6 are 1.67, 1.67 and 0.67; variances 25/9 + 25/9 + 4/9 = 6.0; path SD = sqrt(6) = 2.45 days. Met within 0.01; within 0.1 is partly there (a rounding slip). Adding the SDs (4.0) is not.", "SDs: A = 10 / 6 = 1.67; B = 10 / 6 = 1.67; C = 4 / 6 = 0.67. Variances: 2.78 + 2.78 + 0.44 = 6.0 (exactly 54/9). Path SD = sqrt(6) = 2.45 days. Add variances, not standard deviations.", { answer: 2.45, tolerance: 0.01, partialTolerance: 0.1, unit: "days" }),
             part(
               "Confidence dates",
               "States 23 days is about 50% confidence, about 25.4 days is roughly 84% (mean + 1 SD), and about 27 days is roughly 95% (mean + 1.645 SD), and notes a limitation (merge bias from parallel paths, or correlated activities, is ignored).",
@@ -153,7 +149,7 @@ export const PMISP_LABS: SeedLabSet = {
       kind: "build",
       title: "Level a schedule around one specialist",
       brief:
-        "Oakhurst Bank is upgrading a data centre. Activities (duration in working days, predecessors, resource): A Survey 2 (none, Ann); B Install racks 4 (A, Ben); C Install cabling 3 (A, Ben); D Commission 2 (B and C, Ann). Finish-to-start links, start on day 0. Ben is the only certified installer and can work on one activity at a time. Ann and Ben are internal staff; a contractor could do cabling but needs 5 days' notice.",
+        "Oakhurst Bank is upgrading a data center. Activities (duration in working days, predecessors, resource): A Survey 2 (none, Ann); B Install racks 4 (A, Ben); C Install cabling 3 (A, Ben); D Commission 2 (B and C, Ann). Finish-to-start links, start on day 0. Ben is the only certified installer and can work on one activity at a time. Ann and Ben are internal staff; a contractor could do cabling but needs 5 days' notice.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -168,16 +164,16 @@ export const PMISP_LABS: SeedLabSet = {
             part(
               "Over-allocation",
               "Identifies that Ben is assigned to B and C at the same time (days 2-5), which cannot be resolved by smoothing within C's 1 day of float.",
-              "Ben is on B (days 2-6) and C (days 2-5) at once -- three days of overlap. C has only 1 day of float, so resource smoothing (moving work only within float) can't fix it; levelling is needed."
+              "Ben is on B (days 2-6) and C (days 2-5) at once -- three days of overlap. C has only 1 day of float, so resource smoothing (moving work only within float) can't fix it; leveling is needed."
             ),
             part(
-              "Levelled schedule",
+              "Leveled schedule",
               "Levels by sequencing B and C for Ben (for example B 2-6, C 6-9, D 9-11 or C 2-5, B 5-9, D 9-11), giving 11 days, a 3-day extension, with the critical path now running through both of Ben's activities (a resource-driven path).",
               "Sequence Ben's work: B 2-6, then C 6-9, then D 9-11. Duration 11 days, 3 days longer than the unconstrained 8. Doing C first (C 2-5, B 5-9, D 9-11) also gives 11. The longest path is now A-B-C-D, driven by Ben, not by logic alone."
             ),
             part(
               "Option to recover",
-              "Proposes giving cabling (C) to the contractor so B and C run in parallel, and works through the 5-day notice: booked at least 5 days before day 2, C runs 2-5 and the finish returns to day 8; booked on day 0, C can start only on day 5 (5-8), D runs 8-10 and the finish is day 10 -- still 1 day better than levelling. Notes the contractor's cost needs approval.",
+              "Proposes giving cabling (C) to the contractor so B and C run in parallel, and works through the 5-day notice: booked at least 5 days before day 2, C runs 2-5 and the finish returns to day 8; booked on day 0, C can start only on day 5 (5-8), D runs 8-10 and the finish is day 10 -- still 1 day better than leveling. Notes the contractor's cost needs approval.",
               "Give cabling to the contractor so Ben only does B. If they are booked at least 5 days before day 2, C runs 2-5 in parallel with B and the schedule returns to 8 days. If we only book on day 0, C runs 5-8, D runs 8-10 and we finish on day 10 -- better than 11. Either way the contractor's cost needs the sponsor's approval, so ask now."
             ),
           ],
@@ -232,14 +228,14 @@ export const PMISP_LABS: SeedLabSet = {
       slug: "sp-earned-schedule-status",
       objective: "Performing schedule analyses to identify and report status, changes, impacts, and issues",
       kind: "build",
-      title: "Analyse status with earned value and earned schedule",
+      title: "Analyze status with earned value and earned schedule",
       brief:
         "Brackenridge Utilities' six-month metering project has a cumulative planned value of: month 1 $50k; month 2 $120k; month 3 $200k; month 4 $280k; month 5 $340k; month 6 $400k. At the end of month 4 the earned value is $230k and the actual cost is $250k.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Analyse the schedule status.",
+          ask: "Analyze the schedule status.",
           parts: [
             part(
               "Cost-based schedule metrics",
@@ -251,11 +247,7 @@ export const PMISP_LABS: SeedLabSet = {
               "Calculates ES = 3 + (230 - 200) / (280 - 200) = 3.375 months, SV(t) = 3.375 - 4 = -0.625 months, and SPI(t) = 3.375 / 4 = 0.84.",
               "EV of $230k falls between month 3 ($200k) and month 4 ($280k). ES = 3 + (230 - 200) / (280 - 200) = 3 + 30 / 80 = 3.375 months. SV(t) = ES - actual time = 3.375 - 4 = -0.625 months (about 2.7 weeks). SPI(t) = 3.375 / 4 = 0.84."
             ),
-            part(
-              "Duration forecast",
-              "Forecasts completion with earned schedule (planned duration / SPI(t) = 6 / 0.84375 = about 7.1 months), stating the assumption that current schedule performance continues.",
-              "If schedule performance continues, the forecast duration = 6 / 0.84375 = 7.1 months, about one month late."
-            ),
+            numericPart("Duration forecast (months)", "Forecasts completion with earned schedule: planned duration / SPI(t) = 6 / 0.84375 = 7.1 months, assuming current schedule performance continues. Met within 0.05 months.", "If schedule performance continues, the forecast duration = 6 / 0.84375 = 7.1 months, about one month late.", { answer: 7.11, tolerance: 0.05, unit: "months" }),
             part(
               "Why earned schedule",
               "Explains that SV and SPI in money converge to 0 and 1.0 as the project finishes regardless of lateness, while earned schedule measures time and stays meaningful to the end; recommends checking the critical path too.",
@@ -288,6 +280,7 @@ export const PMISP_LABS: SeedLabSet = {
               "For the fourth day, with both paths critical, compares options (A $3,000; E $4,000; B + C together $1,500 + $1,000 = $2,500) and chooses B + C, giving total cost $7,000 and a 36-day duration.",
               "Now both paths are critical, so one more day needs a cut on both: A ($3,000), E ($4,000), or B and C one day each ($1,500 + $1,000 = $2,500). Choose B + C. Total = 4,500 + 2,500 = $7,000. Result: B crashed 4 days, C 1 day; both paths 36 days."
             ),
+          numericPart("Total crash cost", "The cheapest way to 36 days costs $7,000: B for three days ($4,500), then B and C one day each ($2,500). Met within $1.", "3 x $1,500 (B) = $4,500 to reach 37 days on both paths; then B + C one day each = $1,500 + $1,000 = $2,500. Total = $7,000.", { answer: 7000, tolerance: 1, unit: "USD" }),
           ],
         },
         {
@@ -362,7 +355,7 @@ export const PMISP_LABS: SeedLabSet = {
             part(
               "Headline status",
               "Leads with the milestone status in plain terms (forecast 26 March, 11 days late against 15 March), the cause, and the effect on the 1 April launch.",
-              "Line validation is forecast for 26 March, 11 days behind baseline, because the labelling machine arrived late. The 1 April launch is still possible but has little margin."
+              "Line validation is forecast for 26 March, 11 days behind baseline, because the labeling machine arrived late. The 1 April launch is still possible but has little margin."
             ),
             part(
               "Corrective options and impact",
@@ -410,8 +403,8 @@ export const PMISP_LABS: SeedLabSet = {
           parts: [
             part(
               "Scope option",
-              "Proposes a reduced-scope go-live on 1 September (for example course content and enrolment without the records integration, using a manual or file-based interim upload) with the rest in a later release.",
-              "Go live on 1 September with courses, content and logins, loading enrolments from a nightly file export instead of the live integration; switch to the full integration in October after testing."
+              "Proposes a reduced-scope go-live on 1 September (for example course content and enrollment without the records integration, using a manual or file-based interim upload) with the rest in a later release.",
+              "Go live on 1 September with courses, content and logins, loading enrollments from a nightly file export instead of the live integration; switch to the full integration in October after testing."
             ),
             part(
               "Formal update",

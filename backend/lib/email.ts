@@ -1,4 +1,7 @@
 import { Resend } from "resend";
+import { EmailSendError, type EmailKind } from "./email-errors";
+
+export { EmailSendError } from "./email-errors";
 
 let client: Resend | null = null;
 
@@ -15,6 +18,42 @@ function getClient(): Resend {
   return client;
 }
 
+export interface EmailPayload {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+  replyTo?: string;
+  headers?: Record<string, string>;
+}
+export interface EmailSendResult {
+  error: { name: string; statusCode: number | null } | null;
+}
+type Transport = (payload: EmailPayload) => Promise<EmailSendResult>;
+
+// REQ-191: tests capture mail here instead of stubbing fetch; production
+// always uses Resend.
+let testTransport: Transport | null = null;
+export function __setEmailTransportForTest(next: Transport | null): void {
+  testTransport = next;
+}
+
+// REQ-191: Resend returns { data, error } and does not throw on a refused
+// send (bad sender, unverified domain, quota), so the result is checked
+// here and every failure becomes an EmailSendError (lib/email-errors.ts).
+async function send(kind: EmailKind, payload: EmailPayload): Promise<void> {
+  let result: EmailSendResult;
+  try {
+    result = testTransport ? await testTransport(payload) : await getClient().emails.send(payload);
+  } catch (err) {
+    if (err instanceof EmailSendError) throw err;
+    const notConfigured = !testTransport && !process.env.RESEND_API_KEY;
+    throw new EmailSendError(kind, notConfigured ? "not_configured" : "transport_error", null);
+  }
+  if (result?.error) throw new EmailSendError(kind, String(result.error.name ?? "unknown"), result.error.statusCode ?? null);
+}
+
 function getFrom(): string {
   return process.env.EMAIL_FROM || "onboarding@resend.dev";
 }
@@ -29,7 +68,7 @@ function getAppBaseUrl(): string {
 export async function sendVerificationEmail(to: string, token: string, opts: { setPassword?: boolean } = {}): Promise<void> {
   const url = `${getAppBaseUrl()}/verify-email?token=${encodeURIComponent(token)}`;
   if (opts.setPassword) {
-    await getClient().emails.send({
+    await send("verification_set_password", {
       from: getFrom(),
       to,
       subject: "Finish setting up your Ascendra account",
@@ -37,7 +76,7 @@ export async function sendVerificationEmail(to: string, token: string, opts: { s
     });
     return;
   }
-  await getClient().emails.send({
+  await send("verification", {
     from: getFrom(),
     to,
     subject: "Verify your Ascendra account",
@@ -47,7 +86,7 @@ export async function sendVerificationEmail(to: string, token: string, opts: { s
 
 export async function sendPasswordResetEmail(to: string, token: string): Promise<void> {
   const url = `${getAppBaseUrl()}/reset-password?token=${encodeURIComponent(token)}`;
-  await getClient().emails.send({
+  await send("password_reset", {
     from: getFrom(),
     to,
     subject: "Reset your Ascendra password",
@@ -57,7 +96,7 @@ export async function sendPasswordResetEmail(to: string, token: string): Promise
 
 export async function sendEmailChangeConfirmation(newEmail: string, token: string): Promise<void> {
   const url = `${getAppBaseUrl()}/confirm-email-change?token=${encodeURIComponent(token)}`;
-  await getClient().emails.send({
+  await send("email_change_confirmation", {
     from: getFrom(),
     to: newEmail,
     subject: "Confirm your new Ascendra email address",
@@ -69,7 +108,7 @@ export async function sendEmailChangeConfirmation(newEmail: string, token: strin
 // account no longer says so on screen (that told anyone which addresses are
 // registered); the owner is told here instead.
 export async function sendAlreadyRegisteredEmail(to: string): Promise<void> {
-  await getClient().emails.send({
+  await send("already_registered", {
     from: getFrom(),
     to,
     subject: "You already have an Ascendra account",
@@ -82,7 +121,7 @@ export async function sendAlreadyRegisteredEmail(to: string): Promise<void> {
 // cancels it and signs out every device.
 export async function sendEmailChangeRequestedAlert(oldEmail: string, newEmail: string, cancelToken: string): Promise<void> {
   const url = `${getAppBaseUrl()}/cancel-email-change?token=${encodeURIComponent(cancelToken)}`;
-  await getClient().emails.send({
+  await send("email_change_requested_alert", {
     from: getFrom(),
     to: oldEmail,
     subject: "Someone asked to change your Ascendra email address",
@@ -91,7 +130,7 @@ export async function sendEmailChangeRequestedAlert(oldEmail: string, newEmail: 
 }
 
 export async function sendMfaEmailCode(to: string, code: string): Promise<void> {
-  await getClient().emails.send({
+  await send("mfa_code", {
     from: getFrom(),
     to,
     subject: `${code} is your Ascendra verification code`,
@@ -100,7 +139,7 @@ export async function sendMfaEmailCode(to: string, code: string): Promise<void> 
 }
 
 export async function sendMfaDisableConfirmationEmail(to: string, code: string, methodLabel: string): Promise<void> {
-  await getClient().emails.send({
+  await send("mfa_disable_confirmation", {
     from: getFrom(),
     to,
     subject: `${code} — confirm turning off ${methodLabel}`,
@@ -147,7 +186,7 @@ export async function sendSupportRequestNotification(params: {
       : "",
     `<p style="white-space:pre-wrap">${escapeHtml(params.body)}</p>`,
   ].join("");
-  await getClient().emails.send({
+  await send("support_notification", {
     from: getFrom(),
     to,
     replyTo: params.fromEmail,
@@ -164,7 +203,7 @@ export async function sendSupportRequestNotification(params: {
 // requester typed (the email-change alert), which used to be pasted into the
 // HTML as markup.
 export async function sendSecurityAlertEmail(to: string, subject: string, message: string): Promise<void> {
-  await getClient().emails.send({
+  await send("security_alert", {
     from: getFrom(),
     to,
     subject,
@@ -176,7 +215,7 @@ export async function sendSecurityAlertEmail(to: string, subject: string, messag
 // the AI safety ceiling (lib/account-access-config.ts). At most once a day
 // per account. `accountEmail` is escaped.
 export async function sendAiCeilingNotice(to: string, accountEmail: string, spentUsd: number, ceilingUsd: number): Promise<void> {
-  await getClient().emails.send({
+  await send("ai_ceiling_notice", {
     from: getFrom(),
     to,
     subject: "Ascendra: an unrestricted account reached the AI safety ceiling",
@@ -187,4 +226,17 @@ export async function sendAiCeilingNotice(to: string, accountEmail: string, spen
       `<p>If this is unexpected, revoke the account's access in Settings &gt; Access (or <code>npm run access:grant -- --email ... --revoke</code>), and check <code>ai_calls</code>. ` +
       `The ceiling is <code>AI_UNRESTRICTED_DAILY_CEILING_USD</code>.</p>`,
   });
+}
+
+// REQ-197: the service emails (exam change notice, exam countdown, weekly
+// digest). lib/service-emails.ts renders them, checks the preference, the
+// verified address and the send log first, and passes the sender: EMAIL_FROM
+// for the two service notices, DIGEST_EMAIL_FROM for the digest (so it can
+// move to its own subdomain). `headers` carries List-Unsubscribe and
+// List-Unsubscribe-Post (RFC 8058 one-click).
+export async function sendServiceEmail(
+  kind: "exam_change" | "exam_countdown" | "weekly_digest",
+  payload: Omit<EmailPayload, "from"> & { from?: string }
+): Promise<void> {
+  await send(kind, { ...payload, from: payload.from ?? getFrom() });
 }

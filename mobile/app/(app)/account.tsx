@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Pressable, Share, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, Share, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import Feather from "@expo/vector-icons/Feather";
 import { useRouter } from "expo-router";
@@ -22,7 +22,16 @@ import { Alert } from "@/lib/alert";
 import { withBackgroundHold } from "@/lib/backgroundHold";
 import { isShareDismissal } from "@/lib/mfaLeaveGuard";
 import { colors } from "@/lib/theme";
-import { fetchFullExport } from "@/lib/accountExport";
+import {
+  browserDownloadEnv,
+  downloadJson,
+  exportFileName,
+  exportFitsShareSheet,
+  fetchFullExport,
+  LARGE_EXPORT_MESSAGE,
+} from "@/lib/accountExport";
+import { friendlyError } from "@/lib/errorMessage";
+import { deleteAccountBody, linkGoogleBody, reauthPromptFor } from "@/lib/reauth";
 
 import { useAuth } from "@/auth/AuthContext";
 
@@ -45,6 +54,12 @@ export default function Account() {
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  // REQ-203 (FAIL-861): connecting Google asks the learner to confirm it's
+  // them first, in a form shown under the Sign-in card.
+  const [linking, setLinking] = useState(false);
+  const [linkSecret, setLinkSecret] = useState("");
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const prompt = reauthPromptFor(user);
 
   async function uploadAvatar(asset: ImagePicker.ImagePickerAsset) {
     if (!asset.base64) return;
@@ -140,15 +155,39 @@ export default function Account() {
     }
   }
 
+  // Tapping "Connect" first asks for the password (or a code) when the account
+  // has one to give; an account with neither goes straight to Google and the
+  // server says what it needs.
+  function startConnectGoogle() {
+    setLinkError(null);
+    setLinkSecret("");
+    if (prompt.kind === "secret") {
+      setLinking(true);
+      return;
+    }
+    void connectGoogle();
+  }
+
   async function connectGoogle() {
+    if (prompt.kind === "secret" && !linkSecret) {
+      setLinkError(prompt.hint);
+      return;
+    }
     setGoogleBusy(true);
+    setLinkError(null);
     try {
-      const idToken = await signInAsync();
+      // REQ-217 (FAIL-1056): the Google tab reports "background" on Android; the
+      // hold keeps it from locking the app on return (FAIL-062).
+      const idToken = await withBackgroundHold(() => signInAsync());
       if (!idToken) return;
-      await api.post("/api/auth/oauth/google/link", { idToken });
+      await api.post("/api/auth/oauth/google/link", linkGoogleBody(idToken, prompt, linkSecret));
+      setLinking(false);
+      setLinkSecret("");
       await refreshUser();
     } catch (err) {
-      Alert.alert("Couldn't connect Google", (err as Error).message);
+      // A wrong password or code stays on the form so it can be retried.
+      if (linking) setLinkError((err as Error).message);
+      else Alert.alert("Couldn't connect Google", (err as Error).message);
     } finally {
       setGoogleBusy(false);
     }
@@ -184,9 +223,20 @@ export default function Account() {
       const data = await fetchFullExport((path) =>
         api.get<Record<string, unknown>>(path, { timeoutMs: LARGE_REQUEST_TIMEOUT_MS })
       );
-      await withBackgroundHold(() =>
-        Share.share({ message: JSON.stringify(data, null, 2), title: "Ascendra data export" })
-      );
+      if (Platform.OS === "web") {
+        // REQ-205: a file download, not the share sheet.
+        downloadJson(data, exportFileName(), browserDownloadEnv());
+        return;
+      }
+      // REQ-217 (FAIL-1055): the share sheet carries the text through the
+      // system's Binder, which refuses a large one (the app closed or nothing
+      // opened). A big export is pointed at the web download instead.
+      const text = JSON.stringify(data, null, 2);
+      if (!exportFitsShareSheet(text)) {
+        Alert.alert("Export is too large to share from the phone", LARGE_EXPORT_MESSAGE);
+        return;
+      }
+      await withBackgroundHold(() => Share.share({ message: text, title: "Ascendra data export" }));
     } catch (err) {
       if (isShareDismissal(err)) return;
       Alert.alert("Couldn't export data", (err as Error).message);
@@ -195,15 +245,49 @@ export default function Account() {
     }
   }
 
+  // REQ-206: one tap used to end every session, this device's included.
+  function confirmLogoutAll() {
+    Alert.alert("Sign out of all devices?", "This ends every session, including this one. You'll need to sign in again everywhere.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign out everywhere",
+        style: "destructive",
+        // REQ-217 (FAIL-1043): this device is signed out only once the server
+        // has ended every session; otherwise it says so and stays signed in.
+        onPress: async () => {
+          const res = await logoutAll();
+          if (!res.ok) Alert.alert("Couldn't sign out everywhere", `${res.error ?? friendlyError(null)} Other devices are still signed in. Try again.`);
+        },
+      },
+    ]);
+  }
+
+  // REQ-203 (FAIL-870): every account confirms before deleting. A password
+  // account types its password (as before); a Google-only account types a
+  // code if it has two-factor, or signs in with Google again.
   async function confirmDelete() {
-    if (user?.hasPassword && !deletePassword) {
-      setDeleteError("Enter your password to confirm.");
+    let value = deletePassword;
+    if (prompt.kind === "google" && !user?.hasPassword) {
+      setDeleteError(null);
+      let idToken: string | null = null;
+      try {
+        idToken = await withBackgroundHold(() => signInAsync());
+      } catch {
+        idToken = null;
+      }
+      if (!idToken) {
+        setDeleteError("Google sign-in didn't finish. Try again.");
+        return;
+      }
+      value = idToken;
+    } else if (!deletePassword) {
+      setDeleteError(user?.hasPassword ? "Enter your password to confirm." : prompt.hint);
       return;
     }
     setDeleteBusy(true);
     setDeleteError(null);
     try {
-      await api.delete("/api/account", user?.hasPassword ? { password: deletePassword } : undefined);
+      await api.delete("/api/account", deleteAccountBody(user, prompt, value));
       await logout();
     } catch (err) {
       setDeleteError((err as Error).message);
@@ -215,11 +299,18 @@ export default function Account() {
   return (
     <Screen>
       <Card style={{ alignItems: "center", gap: 4, paddingVertical: 24 }}>
-        <Pressable onPress={editAvatar} disabled={avatarBusy} style={{ position: "relative" }}>
+        <Pressable
+          onPress={editAvatar}
+          disabled={avatarBusy}
+          style={{ position: "relative" }}
+          accessibilityRole="button"
+          accessibilityLabel="Change profile photo"
+          accessibilityState={{ disabled: avatarBusy, busy: avatarBusy }}
+        >
           <Avatar name={user?.displayName ?? user?.email} imageUri={user?.avatarDataUrl} size={72} />
           <View style={styles.avatarBadge}>
             {avatarBusy ? (
-              <ActivityIndicator size="small" color={colors.accentText} />
+              <ActivityIndicator size="small" color={colors.accentText} aria-hidden />
             ) : (
               <Feather name="camera" size={13} color={colors.accentText} />
             )}
@@ -260,7 +351,9 @@ export default function Account() {
               setNameError(null);
               setEditingName(true);
             }}
-            style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}
+            style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8, minHeight: 48 }}
+            accessibilityRole="button"
+            accessibilityLabel={`Display name: ${user?.displayName ?? "not set"}. Edit`}
           >
             <H2>{user?.displayName ?? "Signed in"}</H2>
             <Feather name="edit-2" size={14} color={colors.mutedDim} />
@@ -289,9 +382,42 @@ export default function Account() {
             onPress={user?.hasPassword ? disconnectGoogle : undefined}
           />
         ) : (
-          <ListRow icon="globe" label="Google" value={clientId ? "Connect" : "Unavailable"} onPress={clientId ? connectGoogle : undefined} />
+          <ListRow icon="globe" label="Google" value={clientId ? "Connect" : "Unavailable"} onPress={clientId ? startConnectGoogle : undefined} />
         )}
       </Card>
+
+      {linking ? (
+        <Card>
+          <Muted>Connecting a Google account changes how you can sign in, so confirm it's you first. Your other devices will be signed out; this one stays signed in.</Muted>
+          <Muted>{prompt.hint}</Muted>
+          {linkError ? <ErrorBanner message={linkError} /> : null}
+          {prompt.kind === "secret" ? (
+            <TextField
+              label={prompt.label}
+              value={linkSecret}
+              onChangeText={setLinkSecret}
+              secureTextEntry={prompt.secure}
+              placeholder={prompt.secure ? "••••••••" : "123456"}
+              textContentType={prompt.secure ? "password" : "oneTimeCode"}
+              autoComplete={prompt.secure ? "current-password" : "one-time-code"}
+              icon="lock"
+            />
+          ) : null}
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Button label="Continue with Google" onPress={connectGoogle} loading={googleBusy} size="sm" disabled={!linkSecret} />
+            <Button
+              label="Cancel"
+              variant="ghost"
+              size="sm"
+              onPress={() => {
+                setLinking(false);
+                setLinkSecret("");
+                setLinkError(null);
+              }}
+            />
+          </View>
+        </Card>
+      ) : null}
 
       <SectionHeader label="Devices" />
       <Card style={{ gap: 0 }}>
@@ -316,9 +442,9 @@ export default function Account() {
 
       <SectionHeader label="Session" />
       <Card style={{ gap: 0 }}>
-        <ListRow icon="log-out" label="Log out" onPress={() => logout()} />
+        <ListRow icon="log-out" label="Sign out" onPress={() => logout()} />
         <Divider />
-        <ListRow icon="shield-off" label="Log out of all devices" onPress={() => logoutAll()} danger />
+        <ListRow icon="shield-off" label="Sign out of all devices" onPress={confirmLogoutAll} danger />
       </Card>
 
       <SectionHeader label="Danger zone" />
@@ -330,17 +456,34 @@ export default function Account() {
               can't be undone.
             </Muted>
             {deleteError ? <ErrorBanner message={deleteError} /> : null}
-            {user?.hasPassword ? (
-              <TextField
-                label="Password"
-                value={deletePassword}
-                onChangeText={setDeletePassword}
-                secureTextEntry
-                icon="lock"
-              />
-            ) : null}
+            {user?.hasPassword || prompt.kind === "secret" ? (
+              <>
+                {user?.hasPassword ? null : <Muted>{prompt.hint}</Muted>}
+                <TextField
+                  label={user?.hasPassword ? "Password" : prompt.label}
+                  value={deletePassword}
+                  onChangeText={setDeletePassword}
+                  secureTextEntry={user?.hasPassword ? true : prompt.kind === "secret" && prompt.secure}
+                  textContentType={user?.hasPassword ? "password" : "oneTimeCode"}
+                  autoComplete={user?.hasPassword ? "current-password" : "one-time-code"}
+                  icon="lock"
+                />
+              </>
+            ) : (
+              <>
+                <Muted>{prompt.hint}</Muted>
+                {!clientId ? <Muted>Google sign-in isn't available here. Use the app on your phone to delete your account.</Muted> : null}
+              </>
+            )}
             <View style={{ flexDirection: "row", gap: 8 }}>
-              <Button label="Permanently delete" variant="danger" onPress={confirmDelete} loading={deleteBusy} size="sm" />
+              <Button
+                label={prompt.kind === "google" && !user?.hasPassword ? "Confirm with Google and delete" : "Permanently delete"}
+                variant="danger"
+                onPress={confirmDelete}
+                loading={deleteBusy}
+                size="sm"
+                disabled={prompt.kind === "google" && !user?.hasPassword && !clientId}
+              />
               <Button label="Cancel" variant="ghost" size="sm" onPress={() => { setDeleting(false); setDeletePassword(""); setDeleteError(null); }} />
             </View>
           </>

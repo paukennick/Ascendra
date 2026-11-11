@@ -3,6 +3,7 @@
 // are written straight into attempts with chosen timestamps, then scored by
 // mastery_detail / mastery_from_attempts -- the functions live grading uses.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -36,6 +37,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `mm-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 
@@ -123,7 +125,8 @@ describe("weighted mastery model (031)", () => {
     await answer(spaced, objsA[1], { verdict: "correct", ago: "1 hour", type: "explain_back" });
     assert.equal(await level(spaced, objsA[1]), "Transfer-ready");
     const withPbq = await newUser();
-    await answer(withPbq, objsA[1], { verdict: "correct", ago: "3 days" });
+    await answer(withPbq, objsA[1], { verdict: "correct", ago: "4 days" });
+    await answer(withPbq, objsA[1], { verdict: "correct", ago: "3 days" }); // REQ-218: the later-sitting confirmation
     await pbq(withPbq, "correct", "1 hour");
     assert.deepEqual((await detail(withPbq, objsA[1]))?.formats, ["free_response"], "a unit PBQ is accuracy only");
     assert.equal(await level(withPbq, objsA[1]), "Independent");
@@ -132,7 +135,8 @@ describe("weighted mastery model (031)", () => {
     await answer(sitting, objsA[1], { verdict: "correct", ago: "20 minutes" });
     await answer(sitting, objsA[1], { verdict: "correct", ago: "10 minutes", type: "explain_back" });
     assert.deepEqual((await detail(sitting, objsA[1]))?.formats, ["free_response"], "an explain-back straight after counts only when spaced");
-    assert.equal(await level(sitting, objsA[1]), "Independent", "one sitting stays below the top");
+    // REQ-218: one sitting is not confirmation -- Guided until a later day.
+    assert.equal(await level(sitting, objsA[1]), "Guided", "one sitting stays below the top");
   });
 
   test("assisted answers earn reduced credit and never count as a format", async () => {
@@ -173,6 +177,8 @@ describe("weighted mastery model (031)", () => {
     const newMiss = await newUser();
     await answer(oldMiss, objsA[4], { verdict: "incorrect", ago: "180 days" });
     await answer(newMiss, objsA[4], { verdict: "incorrect", ago: "1 day" });
+    // REQ-218: Independent needs the confirming answer from a later day.
+    for (const u of [oldMiss, newMiss]) await answer(u, objsA[4], { verdict: "correct", ago: "2 days" });
     for (const u of [oldMiss, newMiss]) await answer(u, objsA[4], { verdict: "correct", ago: "1 hour" });
     const a = await detail(oldMiss, objsA[4]);
     const b = await detail(newMiss, objsA[4]);
@@ -210,13 +216,15 @@ describe("weighted mastery model (031)", () => {
     const u = await newUser();
     await pbq(u, "correct", "1 hour");
     assert.equal(await detail(u, objsA[8]), null);
-    await answer(u, objsA[8], { verdict: "correct", ago: "3 days" });
+    await answer(u, objsA[8], { verdict: "correct", ago: "4 days" });
+    await answer(u, objsA[8], { verdict: "correct", ago: "3 days" }); // REQ-218: confirmed on a later day
     await query(`select recompute_mastery($1)`, [u]);
     // REQ-117 (FAIL-340): it counts toward accuracy, not as a second format.
     assert.equal(await stored(u, objsA[8]), "Independent", "the earlier PBQ counts once there is direct evidence");
     assert.match((await queryOne<{ evidence: string }>(`select evidence from mastery where user_id = $1 and objective_id = $2`, [u, objsA[8]]))!.evidence, /1 unit-wide/);
 
     const v = await newUser();
+    await answer(v, objsA[9], { verdict: "correct", ago: "3 days" });
     await answer(v, objsA[9], { verdict: "correct", ago: "2 days" });
     await query(`select recompute_mastery($1)`, [v]);
     assert.equal(await stored(v, objsA[9]), "Independent");
@@ -240,6 +248,7 @@ describe("weighted mastery model (031)", () => {
 describe("031 re-run", () => {
   test("is idempotent, keeps tuned values and the original 031 backup, and never touches the 029 backup", async () => {
     const u = await newUser();
+    await answer(u, objsB[0], { verdict: "correct", ago: "4 days" });
     await answer(u, objsB[0], { verdict: "correct", ago: "2 days" });
     await query(`select recompute_mastery($1)`, [u]);
     // Runs on its own connection inside a transaction that is rolled back, so
@@ -351,6 +360,7 @@ describe("031 keeps 029's guarantees", () => {
     await reveal(before, "2 hours");
     await answer(before, objsA[2], { verdict: "correct", ago: "1 hour", question: "hinted q" });
     await answer(afterwards, objsA[2], { verdict: "correct", ago: "1 hour", question: "hinted q" });
+    await answer(afterwards, objsA[2], { verdict: "correct", ago: "3 days" }); // REQ-218: confirmation
     await reveal(afterwards, "0 seconds");
     assert.equal(await level(before, objsA[2]), "Guided");
     assert.deepEqual((await detail(before, objsA[2]))?.formats, []);
@@ -424,6 +434,11 @@ describe("031 keeps 029's guarantees", () => {
     // FAIL-232: was kind 'lab', which migration 035 now refuses with an
     // objective_id (lab reports are never mastery evidence).
     await other(named, objsA[7], "unitcheck", "correct", "free_response");
+    await query(
+      `insert into attempts (user_id, unit_id, objective_id, kind, stage, format, question, answer, verdict, assessment_type, created_at)
+       values ($1, $2, $3, 'unitcheck', null, 'open', 'earlier named', 'a', 'correct', 'free_response', now() - interval '3 days')`,
+      [named, unitA, objsA[7]]
+    ); // REQ-218: the confirming answer from a later day
     assert.equal(await level(named, objsA[7]), "Independent");
   });
 
@@ -536,6 +551,9 @@ describe("031 keeps 029's guarantees", () => {
       await c.query(`create or replace function mastery_from_attempts(p_user uuid, p_objective uuid)
         returns table (status mastery_status, score int, evidence text) language sql stable as $$
           select d.status, d.score, d.evidence from mastery_detail(p_user, p_objective) d $$`);
+      // CREATE OR REPLACE drops the function's search_path (071's probe notices:
+      // a migration that restates a function ends with app_runtime_sync()).
+      await c.query(`select app_runtime_sync()`);
       const s = await checkSchema(run);
       assert.deepEqual(migrationsToApply(s), ["031_weighted_mastery.sql"], JSON.stringify(s.missing));
     } finally {

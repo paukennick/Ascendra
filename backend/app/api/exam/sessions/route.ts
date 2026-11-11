@@ -8,12 +8,22 @@ import { examError } from "@/lib/exam-route-errors";
 import { requireCourseAccess, requireFeature, withAllowance } from "@/lib/entitlements";
 import { queryOne } from "@/lib/db";
 
+// REQ-202: seconds this route may run (up to 4 writer calls and fact-checks, 4 at a time). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 300;
+
 export const dynamic = "force-dynamic";
 
 // REQ-122: a resend of a session this learner already started (same
 // clientSessionId) is a replay, never a second counted mock.
 async function sessionExists(userId: string, clientSessionId: string): Promise<boolean> {
   return (await queryOne(`select 1 from exam_sessions where user_id = $1 and client_session_id = $2`, [userId, clientSessionId])) !== null;
+}
+
+// Carries a start that turned out to be a replay out of withAllowance, which
+// gives its use back when the callback throws (FAIL-880).
+class ReplayedStart {
+  constructor(readonly created: Awaited<ReturnType<typeof createSession>>) {}
 }
 
 // REQ-109: timed sprints and mock exams.
@@ -55,8 +65,26 @@ export async function POST(req: Request) {
     const start = () => createSession({ userId: user.id, trackId, mode, timed, clientSessionId });
     let created: Awaited<ReturnType<typeof createSession>>;
     if (mode === "mock" && !(clientSessionId && (await sessionExists(user.id, clientSessionId)))) {
-      const tier = await requireFeature(user.id, "mock_exam");
-      created = await withAllowance(user.id, "mock_exam", start, tier);
+      const tier = await requireFeature(user.id, "mock_exam", trackId); // REQ-170: the tier on this course
+      try {
+        created = await withAllowance(
+          user.id,
+          "mock_exam",
+          async () => {
+            const c = await start();
+            // FAIL-880: a twin of this start (same clientSessionId, sent at
+            // the same moment) made the session while this one built its
+            // questions. Throwing gives this one's counted use back; the
+            // session is returned below, counted once.
+            if (c.replayed) throw new ReplayedStart(c);
+            return c;
+          },
+          tier
+        );
+      } catch (err) {
+        if (!(err instanceof ReplayedStart)) throw err;
+        created = err.created;
+      }
     } else {
       created = await start();
     }

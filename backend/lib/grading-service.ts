@@ -27,7 +27,7 @@ export interface AttemptInput {
   unitId?: string | null;
   objectiveId?: string | null;
   pbqScenarioId?: string | null;
-  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab" | "review" | "labtask";
+  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab" | "review" | "labtask" | "simtask";
   stage?: string | null;
   format: "mc" | "open" | "pbq";
   question: string;
@@ -84,6 +84,11 @@ export interface AttemptInput {
   // repeat rule (see labAssistReason).
   labId?: string | null;
   labRunId?: string | null;
+  // REQ-190: a finished sim run (kind 'simtask', migration 062): the sim
+  // (attempts.sim_id) and the run. A run after an earlier revealed run of
+  // the same sim is a repeat (see simAssistReason, docs/sims.md 9.4).
+  simId?: string | null;
+  simRunId?: string | null;
 }
 
 // "retry" (REQ-105): a revision written with the first answer's feedback and
@@ -406,6 +411,10 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   if (input.kind === "labtask" && (!input.labId || !input.objectiveId)) {
     throw new Error("A labtask attempt names its lab (labId) and its objective (objectiveId)");
   }
+  // REQ-190: the same for a sim run (attempts.sim_id has no foreign key either).
+  if (input.kind === "simtask" && (!input.simId || !input.objectiveId)) {
+    throw new Error("A simtask attempt names its sim (simId) and its objective (objectiveId)");
+  }
 
   // Serialise grades for the same learner and objective, so two at once
   // can't each compute accuracy without the other's attempt and have the
@@ -414,6 +423,14 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // grade_lock_key(), so a recompute never overwrites a grade (FAIL-118).
   if (input.objectiveId) {
     await query(`select pg_advisory_xact_lock(hashtext($1))`, [gradeLockName(userId, input.objectiveId)]);
+  } else {
+    // REQ-218: a unit-wide answer (PBQ, unit check) has no objective to lock,
+    // so two first answers to one scenario both saw "nothing answered yet"
+    // and both counted as the first. The same learner's answers to one
+    // scenario or item take turns; the unit's objectives are locked later in
+    // id order, so the order is always scenario lock first.
+    const keys = [input.pbqScenarioId, input.unitCheckItemId].filter((k): k is string => !!k).map((k) => k.toLowerCase()).sort();
+    for (const k of keys) await query(`select pg_advisory_xact_lock(hashtext($1))`, [`grade-unit:${userId.toLowerCase()}:${k}`]);
   }
 
   // REQ-134: was this answer given with help? Decided here, under the lock
@@ -429,6 +446,8 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   if (input.partScores && input.partScores.length) extraCols.push({ col: "part_scores", value: JSON.stringify(cleanDeep(input.partScores)) });
   // REQ-123: lab_id (migration 050), only named when set.
   if (input.labId) extraCols.push({ col: "lab_id", value: input.labId });
+  // REQ-190: sim_id (migration 062), only named when set.
+  if (input.simId) extraCols.push({ col: "sim_id", value: input.simId });
   const attemptRows = await query(
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,
@@ -520,7 +539,11 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
     // REQ-105: a revision written with the model answer on screen is
     // practice, not evidence the item has been kept.
     assistReason !== "retry" &&
-    ((input.kind === "lesson" && input.stage === "solo" && !!input.objectiveId) || !!input.pbqScenarioId);
+    // FAIL-891: and not a lesson item this learner has already answered. Its
+    // answer was shown the first time, so a second answer is memory, not
+    // retrieval ("repeat", as for a lab or exam answer). A PBQ keeps counting:
+    // answering the same scenario again IS its spaced review.
+    ((input.kind === "lesson" && input.stage === "solo" && !!input.objectiveId && assistReason !== "repeat") || !!input.pbqScenarioId);
   // REQ-124 (Nick, 2026-11-07, decision 14): a finished lab run, first try
   // (not a repeat after seeing the model answers), is a retrieval of the
   // objective: correct, it moves the objective's due review on as a correct
@@ -528,7 +551,9 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // schedule when one is due, as a spaced exam answer does; missed or
   // partly there, it is a miss -- an error_log entry (below) and, when the
   // schedule is due, a step back. A repeat run changes neither.
-  const labReview = input.kind === "labtask" && !!input.labId && !!input.objectiveId && assistReason === null;
+  // REQ-190 (docs/sims.md 9.4): a first-run sim moves the schedule the same way.
+  const labReview =
+    ((input.kind === "labtask" && !!input.labId) || (input.kind === "simtask" && !!input.simId)) && !!input.objectiveId && assistReason === null;
   if (labReview) {
     await advanceDueSchedule(tx, userId, input.objectiveId!, attempt.id as string, new Date(), input.verdict);
   }
@@ -589,7 +614,7 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // Review instead).
   // REQ-124: a lab run's miss is logged only on a first try (labReview); a
   // repeat is practice.
-  const labMiss = input.kind === "labtask" ? labReview : true;
+  const labMiss = input.kind === "labtask" || input.kind === "simtask" ? labReview : true;
   if (input.verdict !== "correct" && assistReason !== "retry" && input.kind !== "lab" && input.errorLog !== false && labMiss) {
     // FAIL-529: "tomorrow" is the database's current_date + 1, the same clock
     // every due check (next_review_at <= current_date) reads. A date built
@@ -647,6 +672,8 @@ async function assistReasonFor(
   if (input.assist) return input.assist;
   // REQ-123: a finished lab run (kind 'labtask').
   if (input.labId) return labAssistReason(query, input);
+  // REQ-190: a finished sim run (kind 'simtask').
+  if (input.simId) return simAssistReason(query, input);
   // REQ-117 (Audit 3 A1, FAIL-356): a unit-wide answer (PBQ or unit check)
   // to a scenario or item this learner already answered -- and so saw graded,
   // with the model answer -- is a repeat, as a lesson item is. It used to be
@@ -701,6 +728,23 @@ async function labAssistReason(query: TxClient["query"], input: AttemptInput): P
      select 1 from attempts a where a.user_id = $1 and a.lab_id = $2 and a.verdict is not null
      limit 1`,
     [input.userId, input.labId, input.labRunId ?? null]
+  );
+  return seen.length ? "repeat" : null;
+}
+
+// REQ-190 (docs/sims.md 9.4): a sim run is a 'repeat' when this learner has
+// another run of the same sim (any version) marked revealed -- they acted in
+// it or something was revealed -- or an earlier recorded attempt on it. So
+// abandoning a run before its debrief and starting again does not make the
+// next run a first run. Runs under the grade lock.
+async function simAssistReason(query: TxClient["query"], input: AttemptInput): Promise<AssistReason | null> {
+  const seen = await query(
+    `select 1 from sim_runs r
+      where r.user_id = $1 and r.sim_id = $2 and r.id is distinct from $3::uuid and r.revealed
+     union all
+     select 1 from attempts a where a.user_id = $1 and a.sim_id = $2 and a.verdict is not null
+     limit 1`,
+    [input.userId, input.simId, input.simRunId ?? null]
   );
   return seen.length ? "repeat" : null;
 }

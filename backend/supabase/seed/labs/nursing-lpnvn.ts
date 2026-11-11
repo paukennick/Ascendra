@@ -1,5 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
-import { ACOG_PB222, CDC_HAND_HYGIENE, ISMP_ABBREVIATIONS, ISMP_HIGH_ALERT, NCSBN_ANA_DELEGATION, NCSBN_PN_2026, SSC_2021 } from "./nursing-sources";
+import { ACOG_PB222, CDC_HAND_HYGIENE, ISMP_ABBREVIATIONS, ISMP_HIGH_ALERT, NCSBN_ANA_DELEGATION, NCSBN_PN_2026, SSC_ADULT_2026 } from "./nursing-sources";
 
 // REQ-148: Practical Nursing (LPN/LVN) program course.
 //
@@ -16,14 +16,14 @@ import { ACOG_PB222, CDC_HAND_HYGIENE, ISMP_ABBREVIATIONS, ISMP_HIGH_ALERT, NCSB
 //
 // Values quoted come from nursing-sources.ts, read 2026-11-07: ISMP "U" for
 // units and high-alert status of insulin; ACOG Practice Bulletin 222 for the
-// 140/90 mm Hg threshold in pregnancy; Surviving Sepsis Campaign 2021 for
-// antimicrobials within an hour (the PN's part is the specimen and the
+// 140/90 mm Hg threshold in pregnancy; Surviving Sepsis Campaign 2026 (same
+// value as 2021) for antimicrobials within an hour (the PN's part is the specimen and the
 // report, not the order). Every calculation gives its numbers and uses a
 // fictional drug. All needs_expert_review (docs/labs.md).
 
 export const LPNVN_LABS: SeedLabSet = {
   trackCode: "LPNVN",
-  sources: [NCSBN_PN_2026, NCSBN_ANA_DELEGATION, ISMP_ABBREVIATIONS, ISMP_HIGH_ALERT, ACOG_PB222, SSC_2021, CDC_HAND_HYGIENE],
+  sources: [NCSBN_PN_2026, NCSBN_ANA_DELEGATION, ISMP_ABBREVIATIONS, ISMP_HIGH_ALERT, ACOG_PB222, SSC_ADULT_2026, CDC_HAND_HYGIENE],
   labs: [
     // ---- Foundations of practical nursing (2) ----
     {
@@ -99,7 +99,7 @@ export const LPNVN_LABS: SeedLabSet = {
             ),
             part(
               "Emergency response",
-              "Recognises a possible cardiac or respiratory emergency and activates the facility's emergency response (911/EMS per policy) if the RN directs or the resident deteriorates, checking the resident's code status.",
+              "Recognizes a possible cardiac or respiratory emergency and activates the facility's emergency response (911/EMS per policy) if the RN directs or the resident deteriorates, checking the resident's code status.",
               "This could be a heart or lung emergency. If the RN says so or the resident gets worse, call 911 per policy, check the code status, and get the transfer paperwork ready."
             ),
           ],
@@ -133,7 +133,7 @@ export const LPNVN_LABS: SeedLabSet = {
           parts: [
             part(
               "Interpretation",
-              "Recognises an exacerbation of chronic heart failure (fluid retention: 2.3 kg gain in 3 days, orthopnea, edema) rather than a new illness, with a likely trigger (high-sodium food), and that it meets the order's reporting criteria.",
+              "Recognizes an exacerbation of chronic heart failure (fluid retention: 2.3 kg gain in 3 days, orthopnea, edema) rather than a new illness, with a likely trigger (high-sodium food), and that it meets the order's reporting criteria.",
               "This is the chronic heart failure getting worse -- fluid building up: 2.3 kg in 3 days, needing more pillows to breathe, swollen legs -- probably triggered by salty food. It meets the provider's report criteria."
             ),
             part(
@@ -160,9 +160,9 @@ export const LPNVN_LABS: SeedLabSet = {
       slug: "lpn-fluid-deficit",
       objective: "Fluid, electrolyte and acid-base balance in plain terms",
       kind: "build",
-      title: "Two days of vomiting and diarrhoea",
+      title: "Two days of vomiting and diarrhea",
       brief:
-        "A fictional 81-year-old resident in long-term care has had vomiting and watery diarrhoea for two days. Data: pulse 106 /min, blood pressure 102/64 mm Hg lying and 86/54 mm Hg sitting with dizziness; mouth dry; urine output small and dark; weight down 1.8 kg since last week; new confusion. Lab results the provider ordered: potassium 3.1 mEq/L (lab reference 3.5-5.0), sodium 146 mEq/L (reference 135-145).",
+        "A fictional 81-year-old resident in long-term care has had vomiting and watery diarrhea for two days. Data: pulse 106 /min, blood pressure 102/64 mm Hg lying and 86/54 mm Hg sitting with dizziness; mouth dry; urine output small and dark; weight down 1.8 kg since last week; new confusion. Lab results the provider ordered: potassium 3.1 mEq/L (lab reference 3.5-5.0), sodium 146 mEq/L (reference 135-145).",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -172,16 +172,16 @@ export const LPNVN_LABS: SeedLabSet = {
             part(
               "Fluid status",
               "Identifies fluid volume deficit (dehydration) from GI losses, citing tachycardia, low and orthostatic blood pressure, dry mouth, dark low urine, weight loss and confusion.",
-              "Fluid volume deficit: fast pulse, blood pressure dropping when sitting up, dry mouth, small dark urine, a 1.8 kg weight loss and new confusion -- from two days of vomiting and diarrhoea."
+              "Fluid volume deficit: fast pulse, blood pressure dropping when sitting up, dry mouth, small dark urine, a 1.8 kg weight loss and new confusion -- from two days of vomiting and diarrhea."
             ),
             part(
               "Electrolytes",
               "Identifies low potassium (3.1, below 3.5) from GI losses, with risks of weakness and heart rhythm problems, and the high sodium as consistent with water loss.",
-              "Potassium 3.1 is low (lost in diarrhoea and vomit) and can cause weakness and heart rhythm problems; sodium 146 is a little high, which fits losing more water than salt."
+              "Potassium 3.1 is low (lost in diarrhea and vomit) and can cause weakness and heart rhythm problems; sodium 146 is a little high, which fits losing more water than salt."
             ),
             part(
               "Safety and data",
-              "Puts fall precautions in place (orthostatic dizziness), monitors intake and output and weight, offers fluids as ordered, uses contact precautions and soap-and-water hand hygiene per facility policy for suspected infectious diarrhoea.",
+              "Puts fall precautions in place (orthostatic dizziness), monitors intake and output and weight, offers fluids as ordered, uses contact precautions and soap-and-water hand hygiene per facility policy for suspected infectious diarrhea.",
               "Fall precautions -- help to sit and stand slowly; strict intake and output and daily weight; offer the fluids the plan allows; contact precautions and soap-and-water hand washing until an infectious cause is ruled out."
             ),
             part(
@@ -284,7 +284,7 @@ export const LPNVN_LABS: SeedLabSet = {
             ),
             part(
               "Is the order safe?",
-              "Recognises that 250 mg per dose (750 mg/day) is above the safe range, so the dose is not given and the order is clarified with the prescriber (through the RN per policy).",
+              "Recognizes that 250 mg per dose (750 mg/day) is above the safe range, so the dose is not given and the order is clarified with the prescriber (through the RN per policy).",
               "250 mg per dose (750 mg a day) is above the 240 mg per dose maximum. I don't give it; I hold it and get the order clarified with the prescriber, telling the RN."
             ),
             part(
@@ -327,7 +327,7 @@ export const LPNVN_LABS: SeedLabSet = {
           parts: [
             part(
               "Anticipate and act",
-              "Recognises the risk of hypoglycemia when rapid-acting insulin has been given without food, offers an alternative carbohydrate per the plan, monitors for signs of hypoglycemia and rechecks glucose per protocol, and reports to the RN/provider (nausea and not eating after insulin).",
+              "Recognizes the risk of hypoglycemia when rapid-acting insulin has been given without food, offers an alternative carbohydrate per the plan, monitors for signs of hypoglycemia and rechecks glucose per protocol, and reports to the RN/provider (nausea and not eating after insulin).",
               "With fast insulin on board and no food, a low is likely. Offer something they can manage (juice, crackers) per the plan, watch for shakiness, sweating or confusion, recheck the glucose per protocol, and tell the RN so the provider knows about the nausea and missed meal."
             ),
           ],
@@ -338,7 +338,7 @@ export const LPNVN_LABS: SeedLabSet = {
           parts: [
             part(
               "Error-prone notation",
-              "Recognises '4U' as error-prone (U can be read as 0 or 4: 40 or 44 units), checks the dose against the original order (4 units), gives only after the double check, and reports the transcription so it is corrected to 'units'.",
+              "Recognizes '4U' as error-prone (U can be read as 0 or 4: 40 or 44 units), checks the dose against the original order (4 units), gives only after the double check, and reports the transcription so it is corrected to 'units'.",
               "'4U' could be read as 40 units. Check the original order (4 units for 201-250), give 4 units after the second-nurse check, and report the MAR entry so it's rewritten as '4 units'."
             ),
           ],
@@ -348,7 +348,7 @@ export const LPNVN_LABS: SeedLabSet = {
     // ---- Medical-surgical nursing across the lifespan (2) ----
     {
       slug: "lpn-early-sepsis",
-      objective: "Infection, sepsis and recognising early deterioration",
+      objective: "Infection, sepsis and recognizing early deterioration",
       kind: "case",
       title: "Is it just a UTI?",
       brief:
@@ -361,7 +361,7 @@ export const LPNVN_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognise",
-              "Recognises a possible sepsis picture (fever, tachycardia, fast breathing, low blood pressure, new confusion, low urine output) likely from a urinary source, as an early deterioration and an emergency, not 'just a UTI'.",
+              "Recognizes a possible sepsis picture (fever, tachycardia, fast breathing, low blood pressure, new confusion, low urine output) likely from a urinary source, as an early deterioration and an emergency, not 'just a UTI'.",
               "Fever, fast pulse and breathing, low blood pressure, new confusion and little urine, with a catheter -- this could be sepsis from a urinary infection. That's an emergency."
             ),
             part(
@@ -403,8 +403,8 @@ export const LPNVN_LABS: SeedLabSet = {
           ask: "What do you do in the first minutes?",
           parts: [
             part(
-              "Recognise and call",
-              "Recognises signs of a possible stroke as a time-critical emergency, calls for the RN and activates emergency services per policy without delay.",
+              "Recognize and call",
+              "Recognizes signs of a possible stroke as a time-critical emergency, calls for the RN and activates emergency services per policy without delay.",
               "Facial droop, slurred speech and arm weakness are stroke signs -- every minute counts. Call the RN and get 911 called per policy now."
             ),
             part(
@@ -458,8 +458,8 @@ export const LPNVN_LABS: SeedLabSet = {
             ),
             part(
               "Report and safety",
-              "Reports to the RN/provider immediately (not at the end of clinic), keeps the client resting with someone checking on her, and prepares for same-day evaluation or transfer to labour and delivery per protocol.",
-              "Tell the RN and provider immediately; keep her lying on her side resting with someone nearby; get her ready for same-day assessment or transfer to labour and delivery as the provider directs."
+              "Reports to the RN/provider immediately (not at the end of clinic), keeps the client resting with someone checking on her, and prepares for same-day evaluation or transfer to labor and delivery per protocol.",
+              "Tell the RN and provider immediately; keep her lying on her side resting with someone nearby; get her ready for same-day assessment or transfer to labor and delivery as the provider directs."
             ),
             part(
               "What not to do",
@@ -485,7 +485,7 @@ export const LPNVN_LABS: SeedLabSet = {
           parts: [
             part(
               "Cues",
-              "Recognises warning signs of depression and possible suicide risk: recent losses (spouse, independence, home), withdrawal, poor intake, and giving away possessions.",
+              "Recognizes warning signs of depression and possible suicide risk: recent losses (spouse, independence, home), withdrawal, poor intake, and giving away possessions.",
               "Big losses -- his wife, his independence and his home -- plus withdrawing, eating less and giving away his watch with 'I won't need it' are warning signs of depression and possible suicide risk."
             ),
             part(

@@ -2,6 +2,7 @@
 // The model is a fake client: it records every request and replies with
 // whatever the test queues. No API key is involved.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -39,6 +40,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `cg-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   // This learner has opened the lesson, so its Guided and Solo items are on their screen.
   await query(`insert into lesson_progress (user_id, objective_id, step, lesson_key) values ($1, $2, 'fade', 'k')`, [u, objective]);
   return u;

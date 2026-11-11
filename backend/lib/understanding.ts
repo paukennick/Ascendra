@@ -28,7 +28,7 @@ export function isWeakPrerequisite(status: string | null | undefined): boolean {
 // The explain-it-back prompt is fixed per objective, so a second explanation
 // is recognisably the same item (the repeat rule keys on the question text).
 export function explainBackQuestion(objectiveTitle: string): string {
-  return `Explain "${objectiveTitle}" in your own words to someone who is new to it: what it is, why it matters, and how you would recognise it.`;
+  return `Explain "${objectiveTitle}" in your own words to someone who is new to it: what it is, why it matters, and how you would recognize it.`;
 }
 
 // Same-sitting re-explanations count as repeats (the feedback just named the

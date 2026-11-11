@@ -1,6 +1,7 @@
 import { AnthropicError, APIError } from "@anthropic-ai/sdk";
 import { query } from "@/lib/db";
 import { after } from "next/server";
+import type { CallEstimate } from "@/lib/ai-spend-ledger";
 
 // Phase 0: one ai_calls row per model call (migration 028), so cost, latency,
 // failure rate and prompt-cache hit rate can be read from the database instead
@@ -48,6 +49,9 @@ export type AiPurpose =
   // generation batch) and the one automated re-check of a flagged item.
   | "fact_check"
   | "item_recheck"
+  // REQ-187: did the coach agree in chat that a graded answer was marked
+  // wrongly? (lib/chat-dispute.ts; only on a dispute message.)
+  | "chat_dispute"
   // REQ-123: verifiable labs -- one grading call per lab step answered, and
   // the generator's batch writes plus its fact-check (scripts/generate-labs.ts).
   | "lab_step_grade"
@@ -64,12 +68,33 @@ export type AiPurpose =
   | "eval_explain_back"
   | "eval_lab"
   | "eval_generation"
-  | "eval_cache";
+  | "eval_cache"
+  // REQ-196: the fact-checker eval (scripts/factcheck-eval.ts).
+  | "eval_factcheck"
+  // REQ-208: shared-lesson pre-generation (scripts/pregenerate.ts, run by the
+  // "Pre-generate lessons" workflow). `pregen` is one row per batch request,
+  // from the usage the Batches API returns; `pregen_fact_check` is the
+  // fact-check call made while saving. Neither counts toward the global
+  // daily AI ceiling (lib/ai-budget.ts globalSpendSinceUsd; see PREGEN_PURPOSE_PREFIX).
+  | "pregen"
+  | "pregen_fact_check";
+
+// REQ-208: the prefix every pre-generation purpose starts with, so the global
+// ceiling's sum can leave them out with one predicate.
+export const PREGEN_PURPOSE_PREFIX = "pregen";
 
 export interface AiCallMeta {
   purpose: AiPurpose;
   model: string;
+  // The learner the call is for. REQ-202: with one, the call is held to that
+  // learner's spend gate (lib/ai-spend-gate.ts) before it is sent. null means
+  // no learner (an offline script, an unattributed shared job).
   userId?: string | null;
+  // Worst-case cost of the request (estimateCall on the body). Omitted, the
+  // gate assumes a call with no prompt and a full-size answer.
+  estimate?: CallEstimate;
+  // A provider that costs nothing (AI_PROVIDER=local) skips the money gate.
+  free?: boolean;
 }
 
 export interface AiUsage {
@@ -179,6 +204,14 @@ async function insertAiCall(r: AiCallRecord): Promise<void> {
 
 let sink: AiCallSink = insertAiCall;
 
+// REQ-208: writes started outside a request are not awaited by the model
+// call, so a script that closes the pool right after its last call could lose
+// the row. flushAiCallLog() lets it wait for them.
+const inFlight = new Set<Promise<unknown>>();
+export async function flushAiCallLog(): Promise<void> {
+  while (inFlight.size) await Promise.allSettled([...inFlight]);
+}
+
 // Test seam: replace where records go (null restores the database insert).
 export function setAiCallSink(next: AiCallSink | null): void {
   sink = next ?? insertAiCall;
@@ -209,7 +242,11 @@ export function logAiCall(record: AiCallRecord): void {
       return Promise.resolve();
     }
   };
-  if (!scheduleAfterResponse(write)) void write();
+  if (!scheduleAfterResponse(write)) {
+    const p = write();
+    inFlight.add(p);
+    void p.finally(() => inFlight.delete(p));
+  }
 }
 
 // after() when there is a request to attach to; false when there is not.
@@ -227,17 +264,39 @@ function warnLogFailure(err: unknown): void {
   console.warn(`[ai_calls] could not record model call (ignored): ${msg.slice(0, 200)}`);
 }
 
+// The gate and the ledger import lib/http.ts (for UserFacingError), and
+// lib/http.ts imports this file (for isTransientModelFailure), so they are
+// loaded on first use rather than at the top: a static import makes a cycle
+// that fails with "Cannot access 'UserFacingError' before initialization".
+async function reserveSpend(meta: AiCallMeta) {
+  const [{ reserveAiSpend }, { estimateCall }] = await Promise.all([import("@/lib/ai-spend-gate"), import("@/lib/ai-spend-ledger")]);
+  return reserveAiSpend({
+    userId: meta.userId ?? null,
+    purpose: meta.purpose,
+    model: meta.model,
+    estimate: meta.estimate ?? estimateCall(meta.model, {}),
+  });
+}
+
 /**
  * Runs `send`, then `check` on its result, and records the outcome. Returns
  * what `send` returned; rethrows whatever `send` or `check` threw. Usage is
  * recorded even when `check` rejects an otherwise-delivered response, since
  * those tokens were billed.
+ *
+ * REQ-202: before `send`, the spend gate (lib/ai-spend-gate.ts) runs for every
+ * call, and for one with a userId it refuses the call (AiBudgetError, or
+ * AiSpendUnavailableError when the database cannot say) or reserves its
+ * worst-case cost. The reservation is settled with the real usage below, in
+ * the same ai_calls row, so a gated call writes one row, not two.
  */
 export async function loggedCall<R>(
   meta: AiCallMeta,
   send: () => Promise<R>,
   check?: (result: R) => void
 ): Promise<R> {
+  // Refused here means no model call and no ai_calls row of its own.
+  const reservation = meta.free ? null : await reserveSpend(meta);
   const started = Date.now();
   let usage: AiUsage | undefined;
   let ok = false;
@@ -252,7 +311,7 @@ export async function loggedCall<R>(
     errorCode = errorCodeOf(err);
     throw err;
   } finally {
-    logAiCall({
+    const record: AiCallRecord = {
       userId: meta.userId ?? null,
       purpose: meta.purpose,
       model: meta.model,
@@ -263,6 +322,10 @@ export async function loggedCall<R>(
       latencyMs: Math.max(0, Date.now() - started),
       ok,
       errorCode,
-    });
+    };
+    // The reservation row IS this call's record; it is written whether or not
+    // AI_CALL_LOG is on, because the spend cap reads it.
+    if (reservation) await reservation.settle(record);
+    else logAiCall(record);
   }
 }

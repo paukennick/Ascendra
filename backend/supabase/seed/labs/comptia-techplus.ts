@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, orderPart } from "./types";
 import { source } from "../sources";
 
 // REQ-172: CompTIA Tech+ (FC0-U71).
@@ -55,6 +55,7 @@ export const TECHPLUS_LABS: SeedLabSet = {
           text: "The Wi-Fi icon shows airplane mode is on. You turn it off and connect to the library network, and web pages load.",
           ask: "What do you do to finish the job?",
           parts: [
+            orderPart("The methodology in order", "The troubleshooting methodology in order: identify the problem; research the knowledge base or internet; establish a theory of probable cause; test the theory; establish a plan of action; implement the solution or escalate; verify full system functionality; document findings, actions and outcomes. Up to two steps out of place is partly there.", "1 Identify the problem. 2 Research the knowledge base or internet. 3 Establish a theory of probable cause. 4 Test the theory to determine the cause. 5 Establish a plan of action. 6 Implement the solution or escalate. 7 Verify full system functionality (and prevent a repeat). 8 Document findings, actions and outcomes. Here: you identified the problem and a theory, tested it by checking the Wi-Fi icon, fixed it, and now verify and document.", ["Identify the problem", "Research the knowledge base or internet", "Establish a theory of probable cause", "Test the theory to determine the cause", "Establish a plan of action", "Implement the solution or escalate", "Verify full system functionality", "Document findings, actions and outcomes"]),
             part(
               "Verify and prevent",
               "Verifies full functionality with the user (opens the sites they need) and, if relevant, explains how to avoid a repeat (the airplane mode key or shortcut).",
@@ -107,7 +108,7 @@ export const TECHPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Make a shared browser safe and working again",
       brief:
-        "At Elmstead Community Centre (fictional), one computer is shared by everyone. Problems: users log in to webmail and the next person finds them still logged in; the browser has three toolbars nobody remembers installing and pop-ups appear; and the centre's own booking website shows last month's timetable even though the site was updated.",
+        "At Elmstead Community Center (fictional), one computer is shared by everyone. Problems: users log in to webmail and the next person finds them still logged in; the browser has three toolbars nobody remembers installing and pop-ups appear; and the center's own booking website shows last month's timetable even though the site was updated.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -239,7 +240,7 @@ export const TECHPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "CIA mapping",
-              "1 confidentiality (data seen by someone not allowed), 2 integrity (data changed without authorisation), 3 availability (system not usable when needed).",
+              "1 confidentiality (data seen by someone not allowed), 2 integrity (data changed without authorization), 3 availability (system not usable when needed).",
               "1 -- confidentiality. 2 -- integrity. 3 -- availability."
             ),
           ],
@@ -277,7 +278,7 @@ export const TECHPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Length and complexity",
-              "Recommends long passwords or passphrases (length matters most) that avoid names, dates and words linked to the organisation, with complexity where systems require it.",
+              "Recommends long passwords or passphrases (length matters most) that avoid names, dates and words linked to the organization, with complexity where systems require it.",
               "Use a passphrase of at least 15 characters, such as four random unrelated words; avoid the charity's name, pet names, years or 'Password1'-style patterns."
             ),
             part(

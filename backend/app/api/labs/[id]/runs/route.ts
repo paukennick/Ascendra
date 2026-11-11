@@ -5,6 +5,7 @@ import { requireAcknowledgementForObjective } from "@/lib/auth/requireAcknowledg
 import { LabError, labView, openRun, visibleLab } from "@/lib/labs";
 import { gateLab, labRouteError } from "@/lib/lab-routes";
 import { requireStudyNotice } from "@/lib/study-notice";
+import { rendersInteractiveLabs } from "@/lib/client-protocol";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // progress may be finished); a new run needs Pro or the sample.
     const access = await gateLab(user.id, lab, restart ? "start" : "resume");
     const run = await openRun(user.id, lab.id, restart);
-    return ok(await labView(lab, user.id, run.id, access));
+    return ok(await labView(lab, user.id, run.id, access, { interactive: rendersInteractiveLabs(req) }));
   } catch (err) {
     return labRouteError(err);
   }

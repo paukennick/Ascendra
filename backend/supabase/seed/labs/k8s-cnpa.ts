@@ -23,6 +23,7 @@ export const CNPA_LABS: SeedLabSet = {
     source("https://training.linuxfoundation.org/certification/certified-cloud-native-platform-engineering-associate-cnpa/", "exam_outline", "2026-11-08"),
     source("https://tag-app-delivery.cncf.io/whitepapers/platforms/", "reference", "2026-11-08"),
     source("https://dora.dev/guides/dora-metrics-four-keys/", "reference", "2026-11-08"),
+    source("https://docs.crossplane.io/v2.2/whats-new/", "reference", "2026-11-09"),
   ],
   labs: [
     // ----------------------------------------------------------------- 36%
@@ -48,7 +49,7 @@ export const CNPA_LABS: SeedLabSet = {
             part(
               "Layers",
               "Describes layering: cloud infrastructure at the bottom; a Kubernetes-based runtime layer with cluster add-ons; platform services (delivery, observability, policy, secrets) as declarative capabilities; and the developer interface on top (portal, templates, CLI, documentation); explains that teams consume the top layer and the platform team owns the layers beneath.",
-              "Bottom: cloud accounts, networks and managed Kubernetes clusters (or Cluster API), provisioned declaratively. Runtime: cluster add-ons the platform installs everywhere -- CNI, ingress controller, cert-manager, external-dns, metrics and logging agents, policy engine. Platform services: GitOps reconciler (Argo CD or Flux), CI (Tekton or the organisation's CI with standard pipelines), observability stack (Prometheus/Grafana, Loki, Tempo or Jaeger via OpenTelemetry), secrets (External Secrets Operator to a vault), policy (Kyverno). Developer interface: a Backstage portal with a service catalog, golden-path templates, a CLI/CRDs for self-service, and docs. Product teams live on the top layer; everything beneath is the platform team's product."
+              "Bottom: cloud accounts, networks and managed Kubernetes clusters (or Cluster API), provisioned declaratively. Runtime: cluster add-ons the platform installs everywhere -- CNI, ingress controller, cert-manager, external-dns, metrics and logging agents, policy engine. Platform services: GitOps reconciler (Argo CD or Flux), CI (Tekton or the organization's CI with standard pipelines), observability stack (Prometheus/Grafana, Loki, Tempo or Jaeger via OpenTelemetry), secrets (External Secrets Operator to a vault), policy (Kyverno). Developer interface: a Backstage portal with a service catalog, golden-path templates, a CLI/CRDs for self-service, and docs. Product teams live on the top layer; everything beneath is the platform team's product."
             ),
             part(
               "Implementations and defaults",
@@ -57,8 +58,8 @@ export const CNPA_LABS: SeedLabSet = {
             ),
             part(
               "Developer interface",
-              "Describes what a team member does: creates a service from a template in the portal, which scaffolds the repo, pipeline, config and catalog entry; views the service's deployments, docs, alerts and cost in one place; requests infrastructure (a database, a bucket) by committing a claim; and gets support through a defined channel with SLAs -- platform as a product with a roadmap and feedback loop.",
-              "A developer opens the portal, picks 'Go service' and fills in a form; the template creates the repository, pipeline, Kubernetes config, Argo CD Application and catalog-info.yaml. Within minutes the service builds, deploys to dev and appears in the catalog with its dashboards and runbook links. Needing a database, they commit a PostgreSQLInstance claim to their config repo and the platform provisions it and delivers connection details as a Secret. The portal shows deployments, alerts, cost and docs for their services. The platform team runs it as a product: a roadmap, office hours, a feedback channel and measured adoption."
+              "Describes what a team member does: creates a service from a template in the portal, which scaffolds the repo, pipeline, config and catalog entry; views the service's deployments, docs, alerts and cost in one place; requests infrastructure (a database, a bucket) by committing a short platform resource; and gets support through a defined channel with SLAs -- platform as a product with a roadmap and feedback loop.",
+              "A developer opens the portal, picks 'Go service' and fills in a form; the template creates the repository, pipeline, Kubernetes config, Argo CD Application and catalog-info.yaml. Within minutes the service builds, deploys to dev and appears in the catalog with its dashboards and runbook links. Needing a database, they commit a namespaced PostgreSQLInstance resource to their config repo and the platform provisions it and delivers connection details as a Secret. The portal shows deployments, alerts, cost and docs for their services. The platform team runs it as a product: a roadmap, office hours, a feedback channel and measured adoption."
             ),
           ],
         },
@@ -123,7 +124,7 @@ export const CNPA_LABS: SeedLabSet = {
             part(
               "One reconciler, one model",
               "A single GitOps reconciler (Argo CD or Flux) across clusters with a config repository per team following a shared structure (base plus environment overlays), CI that produces artifacts and commits desired state, and promotion by pull request; explains why one model with different policies beats three systems.",
-              "Standardise on one reconciler -- Argo CD with ApplicationSets across the clusters -- and one repository shape: each team owns a config repo with a Kustomize base and overlays per environment, and CI only builds, tests, signs and pushes images, then commits the digest to the dev overlay. Promotion is a pull request copying the digest to the next overlay. One model means one set of dashboards, one audit trail, one onboarding template; tenant differences become branch-protection rules and sync policies, not separate tools."
+              "Standardize on one reconciler -- Argo CD with ApplicationSets across the clusters -- and one repository shape: each team owns a config repo with a Kustomize base and overlays per environment, and CI only builds, tests, signs and pushes images, then commits the digest to the dev overlay. Promotion is a pull request copying the digest to the next overlay. One model means one set of dashboards, one audit trail, one onboarding template; tenant differences become branch-protection rules and sync policies, not separate tools."
             ),
             part(
               "Web teams",
@@ -218,7 +219,7 @@ export const CNPA_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "Six months later the shared stack is in place. The platform's own metrics show ingest at 40 million active series and a monthly cost 3x the estimate; one team's service emits a metric labelled by order_id. Teams ask for 'unlimited retention of everything'.",
+          text: "Six months later the shared stack is in place. The platform's own metrics show ingest at 40 million active series and a monthly cost 3x the estimate; one team's service emits a metric labeled by order_id. Teams ask for 'unlimited retention of everything'.",
           ask: "Explain the cost problem and the governance you would add without taking the capability away.",
           parts: [
             part(
@@ -299,7 +300,7 @@ export const CNPA_LABS: SeedLabSet = {
             part(
               "On-call, runbooks and escalation",
               "A platform on-call rota with a paging channel tenants can reach, response-time targets, runbooks for the top platform components (Kyverno, Argo CD, ingress, observability) with 'how to tell', 'how to mitigate', 'how to roll back'; a status page or channel for platform incidents; tenants told how to escalate.",
-              "The platform is a product and products have support: a rota with a pager, a clearly published escalation path (a channel and a page button, not a ticket queue), a 15-minute acknowledgement target for 'deployments blocked' class incidents, and runbooks per component with symptoms, checks, mitigations and rollbacks. A platform status channel announces incidents and upgrades. The payments team's ticket would have been a page at 10:40, or -- with the alerts -- the platform's own page at 10:06."
+              "The platform is a product and products have support: a rota with a pager, a clearly published escalation path (a channel and a page button, not a ticket queue), a 15-minute acknowledgment target for 'deployments blocked' class incidents, and runbooks per component with symptoms, checks, mitigations and rollbacks. A platform status channel announces incidents and upgrades. The payments team's ticket would have been a page at 10:40, or -- with the alerts -- the platform's own page at 10:06."
             ),
             part(
               "Shared error budgets and the review's outcome",
@@ -314,13 +315,13 @@ export const CNPA_LABS: SeedLabSet = {
           parts: [
             part(
               "The honest trade-off",
-              "A shared platform concentrates risk (one bad upgrade hits everyone) in exchange for concentrated expertise, standardisation and far less duplicated toil; the question is not whether outages happen but whether the platform is run with the discipline -- SLOs, on-call, staged change, transparency -- that a team would not sustain on its own cluster.",
+              "A shared platform concentrates risk (one bad upgrade hits everyone) in exchange for concentrated expertise, standardization and far less duplicated toil; the question is not whether outages happen but whether the platform is run with the discipline -- SLOs, on-call, staged change, transparency -- that a team would not sustain on its own cluster.",
               "The tenant is right that shared means shared blast radius: this incident touched everyone, where their own cluster would have failed alone. In return, twelve teams no longer each run Kyverno, Argo CD and monitoring badly in their spare time; upgrades happen once, by people whose job it is, with rehearsal and rollback. Trust is earned by discipline, not asserted: the platform team must run the platform better than any single team ran its cluster, and prove it."
             ),
             part(
               "Commitments",
               "Published SLOs and monthly reports against them, blameless reviews shared with tenants, staged changes with announced windows, a real on-call with response targets, an exit path (a team can run outside the platform with documented costs), and tenant representation on the platform's roadmap; measure trust with adoption and satisfaction surveys.",
-              "Commitments in writing: SLOs with a monthly report; every incident reviewed blamelessly and published; changes to shared components staged and announced; an on-call with a 15-minute acknowledgement target; a documented exit path so staying on the platform is a choice, not a trap; and a tenant council that shapes the roadmap. Then measure it -- adoption, incidents attributable to the platform, time to deploy, developer satisfaction -- and publish those too."
+              "Commitments in writing: SLOs with a monthly report; every incident reviewed blamelessly and published; changes to shared components staged and announced; an on-call with a 15-minute acknowledgment target; a documented exit path so staying on the platform is a choice, not a trap; and a tenant council that shapes the roadmap. Then measure it -- adoption, incidents attributable to the platform, time to deploy, developer satisfaction -- and publish those too."
             ),
           ],
         },
@@ -357,8 +358,8 @@ export const CNPA_LABS: SeedLabSet = {
             ),
             part(
               "Versioning and fulfilment",
-              "Start at v1alpha1 with a conversion plan: serve v1beta1/v1 alongside, mark one storage version, use a conversion webhook or none if fields only add; fulfilment by a controller -- Crossplane Composition (the PostgresDatabase as a claim XRD composed of cloud resources) or a Kubernetes operator (CloudNativePG) driven by a thin controller; explains the controller reconciles spec to real resources and writes status.",
-              "Version the API like Kubernetes does: ship v1alpha1, learn, then add v1beta1 with both served and v1beta1 as the storage version; additive changes need no conversion webhook, renames do. Fulfilment: implement PostgresDatabase as a Crossplane claim -- an XRD plus a Composition that maps tier to a cloud database instance size, storage and backup settings and writes the connection Secret -- or, for in-cluster databases, a small controller that creates a CloudNativePG Cluster from the spec and mirrors its status. Either way the controller reconciles continuously: edit backupRetentionDays and the real backup policy follows."
+              "Start at v1alpha1 with a conversion plan: serve v1beta1/v1 alongside, mark one storage version, use a conversion webhook or none if fields only add; fulfilment by a controller -- Crossplane Composition (the PostgresDatabase as a namespaced composite resource defined by an XRD and composed of cloud resources) or a Kubernetes operator (CloudNativePG) driven by a thin controller; explains the controller reconciles spec to real resources and writes status.",
+              "Version the API like Kubernetes does: ship v1alpha1, learn, then add v1beta1 with both served and v1beta1 as the storage version; additive changes need no conversion webhook, renames do. Fulfilment: implement PostgresDatabase as a Crossplane v2 namespaced composite resource -- an XRD plus a Composition that maps tier to a cloud database instance size, storage and backup settings and composes the connection Secret (v2 XRs have no built-in connection details) -- or, for in-cluster databases, a small controller that creates a CloudNativePG Cluster from the spec and mirrors its status. Either way the controller reconciles continuously: edit backupRetentionDays and the real backup policy follows."
             ),
           ],
         },
@@ -368,13 +369,13 @@ export const CNPA_LABS: SeedLabSet = {
       slug: "operator-vs-crossplane",
       objective: "Apply the Kubernetes operator pattern for integration: operators that reconcile custom resources into applications, databases and external systems",
       kind: "case",
-      title: "Choose how to fulfil a self-service API: operator, Crossplane or pipeline",
+      title: "Choose how to fulfill a self-service API: operator, Crossplane or pipeline",
       brief:
         "The fictional media firm Greystone Press has designed a self-service API for message queues and must decide how requests get fulfilled. Three proposals are on the table; the platform team asks you to evaluate them.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "Proposals:\n A. A CI pipeline watches the config repo for new MessageQueue manifests and runs Terraform to create the queue in the cloud, then kubectl-creates a Secret with credentials.\n B. Crossplane: an XRD MessageQueue with a Composition of the cloud provider's queue and IAM policy resources; the claim's connection details are written to a Secret automatically.\n C. A custom operator written in Go (controller-runtime) that reconciles MessageQueue resources by calling the cloud API directly and manages credentials.\n\nConstraints: the team has two engineers with Go experience; queues must be reconciled continuously (drift corrected); the cloud provider is one of the big three; the organisation already runs Crossplane for databases.",
+          text: "Proposals:\n A. A CI pipeline watches the config repo for new MessageQueue manifests and runs Terraform to create the queue in the cloud, then kubectl-creates a Secret with credentials.\n B. Crossplane: an XRD MessageQueue with a Composition of the cloud provider's queue and IAM policy resources; the Composition also composes a Secret with the connection details automatically.\n C. A custom operator written in Go (controller-runtime) that reconciles MessageQueue resources by calling the cloud API directly and manages credentials.\n\nConstraints: the team has two engineers with Go experience; queues must be reconciled continuously (drift corrected); the cloud provider is one of the big three; the organization already runs Crossplane for databases.",
           ask: "Evaluate each proposal against the operator pattern -- continuous reconciliation, status, idempotency -- and the team's constraints, then recommend.",
           parts: [
             part(
@@ -384,8 +385,8 @@ export const CNPA_LABS: SeedLabSet = {
             ),
             part(
               "B: Crossplane",
-              "Crossplane's providers are operators for cloud APIs: the Composition turns a claim into managed resources that are continuously reconciled (drift corrected), with status conditions and connection Secrets built in, no code to write, and the organisation already operates it; limitations: compositions can be verbose and complex logic needs composition functions.",
-              "Proposal B uses an operator the organisation already runs. Crossplane's provider controllers reconcile every managed resource (the queue, the IAM policy) against the cloud continuously, repairing drift; the claim gets Ready/Synced conditions and a connection Secret in the tenant namespace by convention; the whole thing is YAML in Git, reviewed like any manifest. Costs: Composition YAML gets long, and anything beyond mapping fields (naming rules, conditional resources) needs composition functions; provider versions and cloud API changes need upkeep."
+              "Crossplane's providers are operators for cloud APIs: the Composition turns a tenant's namespaced composite resource into managed resources that are continuously reconciled (drift corrected), with status conditions built in and the connection Secret composed alongside, no code to write, and the organization already operates it; limitations: compositions can be verbose and complex logic needs composition functions.",
+              "Proposal B uses an operator the organization already runs. Crossplane's provider controllers reconcile every managed resource (the queue, the IAM policy) against the cloud continuously, repairing drift; the tenant's MessageQueue gets Ready/Synced conditions, and the Composition writes a connection Secret next to it in the tenant namespace; the whole thing is YAML in Git, reviewed like any manifest. Costs: Composition YAML gets long, and anything beyond mapping fields (naming rules, conditional resources) needs composition functions; provider versions and cloud API changes need upkeep."
             ),
             part(
               "C: custom operator",
@@ -394,8 +395,8 @@ export const CNPA_LABS: SeedLabSet = {
             ),
             part(
               "Recommendation",
-              "B: build the MessageQueue XRD and Composition in Crossplane, reusing the organisation's existing platform; keep the API tenant-facing and thin; add a composition function only if needed; revisit C if an internal non-cloud system must be integrated.",
-              "Choose B. It satisfies continuous reconciliation, status and credential delivery out of the box, uses a system the team already operates and monitors, and keeps the platform's fulfilment layer uniform with the databases. Write the XRD for MessageQueue with the same conventions as PostgresDatabase (tier, retention, status conditions), compose the cloud queue plus its access policy, and expose connection details via the claim's writeConnectionSecretToRef. Reserve a custom operator for the day an internal system with no Crossplane provider needs the same self-service treatment."
+              "B: build the MessageQueue XRD and Composition in Crossplane, reusing the organization's existing platform; keep the API tenant-facing and thin; add a composition function only if needed; revisit C if an internal non-cloud system must be integrated.",
+              "Choose B. It satisfies continuous reconciliation, status and credential delivery out of the box, uses a system the team already operates and monitors, and keeps the platform's fulfilment layer uniform with the databases. Write the XRD for MessageQueue with the same conventions as PostgresDatabase (tier, retention, status conditions), compose the cloud queue plus its access policy, and compose a connection Secret in the tenant's namespace (Crossplane v2 XRs have no claims and no writeConnectionSecretToRef). Reserve a custom operator for the day an internal system with no Crossplane provider needs the same self-service treatment."
             ),
           ],
         },
@@ -405,8 +406,8 @@ export const CNPA_LABS: SeedLabSet = {
           parts: [
             part(
               "Drift and reconciliation",
-              "The hand edit created drift between the managed resource's desired state and the cloud; Crossplane's provider reconciles on an interval and should have reverted it -- either the IAM policy field edited is not managed (ignored or late-initialised) or the managementPolicies allow observe-only; the Ready condition reflects the provider's view of the resources it manages, so a field outside its spec can diverge while Ready stays true.",
-              "Someone changed the real IAM policy outside the API. A managed resource is reconciled on its poll interval (default 1 minute for many providers), so a managed field should have been restored within minutes; that it stayed changed means the edited part is not in the managed resource's spec (late-initialised from the cloud, or a field the Composition does not set) or the resource runs with managementPolicies that observe but do not update. Ready reports the provider's success at reconciling what it manages; it says nothing about fields it does not."
+              "The hand edit created drift between the managed resource's desired state and the cloud; Crossplane's provider reconciles on an interval and should have reverted it -- either the IAM policy field edited is not managed (ignored or late-initialized) or the managementPolicies allow observe-only; the Ready condition reflects the provider's view of the resources it manages, so a field outside its spec can diverge while Ready stays true.",
+              "Someone changed the real IAM policy outside the API. A managed resource is reconciled on its poll interval (default 1 minute for many providers), so a managed field should have been restored within minutes; that it stayed changed means the edited part is not in the managed resource's spec (late-initialized from the cloud, or a field the Composition does not set) or the resource runs with managementPolicies that observe but do not update. Ready reports the provider's success at reconciling what it manages; it says nothing about fields it does not."
             ),
             part(
               "Response",
@@ -438,8 +439,8 @@ export const CNPA_LABS: SeedLabSet = {
             ),
             part(
               "Delivery mechanisms",
-              "A portal template (Backstage Software Template) for the guided path, a CLI for the same actions for people who prefer terminals and for automation, and abstractions as declarative resources (the PostgresDatabase or Ingress claim) for capabilities; explains that templates generate editable code rather than hiding it behind a black box.",
-              "Three doors into the same path: the portal form for discoverability and guidance; a platform CLI (platform svc new --lang go --team checkout) that calls the same template for people in terminals and for scripts; and platform CRDs for capabilities teams add later (a database claim, an ingress claim). Templates generate plain files into the team's repo -- the team can read and edit every line -- rather than a hidden service that owns the configuration."
+              "A portal template (Backstage Software Template) for the guided path, a CLI for the same actions for people who prefer terminals and for automation, and abstractions as declarative resources (the PostgresDatabase or Ingress resource) for capabilities; explains that templates generate editable code rather than hiding it behind a black box.",
+              "Three doors into the same path: the portal form for discoverability and guidance; a platform CLI (platform svc new --lang go --team checkout) that calls the same template for people in terminals and for scripts; and platform CRDs for capabilities teams add later (a database API, an ingress API). Templates generate plain files into the team's repo -- the team can read and edit every line -- rather than a hidden service that owns the configuration."
             ),
             part(
               "What teams keep",
@@ -470,7 +471,7 @@ export const CNPA_LABS: SeedLabSet = {
           parts: [
             part(
               "Why it decayed",
-              "Manual registration with no automated ingestion means the catalog reflects the day someone registered a service, not today; ownership was free text rather than references to Group entities maintained from the identity system; dependencies were hand-declared and never verified; platform services were never modelled because the catalog was framed as 'your microservices', not 'everything a team depends on'.",
+              "Manual registration with no automated ingestion means the catalog reflects the day someone registered a service, not today; ownership was free text rather than references to Group entities maintained from the identity system; dependencies were hand-declared and never verified; platform services were never modeled because the catalog was framed as 'your microservices', not 'everything a team depends on'.",
               "A catalog is only as fresh as its sources. Manual registration captured a snapshot and nothing refreshed it when repos moved or were archived -- hence 88 stale entities. owner was typed by hand, so renamed teams left 131 orphans; nothing tied owners to the identity system. dependsOn was written once and never checked against reality. And the catalog's scope excluded the platform itself, so the things every service depends on in an incident were not there."
             ),
             part(
@@ -486,7 +487,7 @@ export const CNPA_LABS: SeedLabSet = {
             part(
               "Platform services as entities",
               "Model platform capabilities as Resources and Systems owned by the platform team (Kafka clusters, SSO, API gateway, databases provisioned through the platform API) with their own docs, runbooks, SLOs and on-call links, and auto-create entities for resources provisioned via platform CRDs so a tenant's PostgresDatabase appears as a Resource owned by the tenant with a dependsOn from their Component.",
-              "Catalogue the platform: a System per platform capability (messaging, identity, edge) owned by the platform team, with Resource entities for each Kafka cluster, the SSO provider, the API gateway -- each carrying TechDocs, runbook links, SLO dashboards and the on-call channel. Then automate the long tail: an entity provider that turns every platform CRD instance (PostgresDatabase, MessageQueue claims) into a Resource owned by the requesting team, with dependsOn edges to the consuming Components. During an incident the catalog now answers 'what does this service depend on, who owns it, how do I reach them' -- which is the point of having one."
+              "Catalog the platform: a System per platform capability (messaging, identity, edge) owned by the platform team, with Resource entities for each Kafka cluster, the SSO provider, the API gateway -- each carrying TechDocs, runbook links, SLO dashboards and the on-call channel. Then automate the long tail: an entity provider that turns every platform CRD instance (PostgresDatabase, MessageQueue) into a Resource owned by the requesting team, with dependsOn edges to the consuming Components. During an incident the catalog now answers 'what does this service depend on, who owns it, how do I reach them' -- which is the point of having one."
             ),
           ],
         },
@@ -496,12 +497,12 @@ export const CNPA_LABS: SeedLabSet = {
           parts: [
             part(
               "Where it helps",
-              "Answering questions over trustworthy catalog, docs and telemetry data (who owns this, what depends on it, what changed recently, what the runbook says), drafting configuration from templates, summarising incidents -- all read-only or proposal-generating uses whose value depends on the catalog being accurate, which is why fixing the data comes first.",
-              "An assistant is only as good as the catalog beneath it -- the fixes above are the prerequisite. With trustworthy data it is genuinely useful read-only: 'who owns payments-api and what does it depend on', 'what changed in checkout in the last 24 hours', 'summarise this runbook', 'draft a catalog-info.yaml for this repo', 'generate the overlay for a new environment from the template'. It turns the catalog, docs and telemetry into answers instead of searches."
+              "Answering questions over trustworthy catalog, docs and telemetry data (who owns this, what depends on it, what changed recently, what the runbook says), drafting configuration from templates, summarizing incidents -- all read-only or proposal-generating uses whose value depends on the catalog being accurate, which is why fixing the data comes first.",
+              "An assistant is only as good as the catalog beneath it -- the fixes above are the prerequisite. With trustworthy data it is genuinely useful read-only: 'who owns payments-api and what does it depend on', 'what changed in checkout in the last 24 hours', 'summarize this runbook', 'draft a catalog-info.yaml for this repo', 'generate the overlay for a new environment from the template'. It turns the catalog, docs and telemetry into answers instead of searches."
             ),
             part(
               "Guardrails for actions",
-              "No direct writes to clusters or production systems; any change the assistant proposes becomes a pull request or a template invocation that goes through the normal review and policy path; the assistant acts with the requesting user's permissions, never a privileged identity; its suggestions are labelled, logged and verifiable against sources; sensitive data stays out of prompts.",
+              "No direct writes to clusters or production systems; any change the assistant proposes becomes a pull request or a template invocation that goes through the normal review and policy path; the assistant acts with the requesting user's permissions, never a privileged identity; its suggestions are labeled, logged and verifiable against sources; sensitive data stays out of prompts.",
               "Let it propose, not act: changes become pull requests (reviewed, policy-checked, reconciled by GitOps like any other) or template runs the user confirms -- never kubectl against a cluster. It runs as the user, with the user's RBAC, so it cannot see or change more than they could. Every suggestion cites its sources (catalog entity, doc, metric) so a human can verify, and every action is logged. Secrets and personal data are excluded from what it reads. The same principle as the rest of the platform: the API and the review path are the control; the assistant is a faster way to use them."
             ),
           ],
@@ -520,7 +521,7 @@ export const CNPA_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Define each DORA metric for this organisation with its data source, add the platform-specific measures, and describe the report and the pitfalls.",
+          ask: "Define each DORA metric for this organization with its data source, add the platform-specific measures, and describe the report and the pitfalls.",
           parts: [
             part(
               "Deployment frequency and lead time",

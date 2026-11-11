@@ -59,24 +59,47 @@ after(async () => {
 });
 
 describe("refresh token rotation", () => {
-  test("concurrent refreshes with one token: exactly one wins, reuse revokes the family", async () => {
+  // REQ-203 (FAIL-865): two tabs refreshing at once present the same token.
+  // That is a race, not theft: within REFRESH_REUSE_GRACE_SECONDS of the
+  // rotation each caller gets its own live token and the family survives.
+  test("concurrent refreshes with one token: exactly one rotates, the rest are forgiven inside the grace window", async () => {
     const u = await makeUser("refresh");
     const { raw, familyId } = await createRefreshToken(u.id);
 
     const results = await Promise.allSettled(Array.from({ length: N }, () => rotateRefreshToken(raw)));
-    const won = results.filter((r) => r.status === "fulfilled");
+    assert.equal(results.filter((r) => r.status === "fulfilled").length, N, "no caller is signed out by the race");
+    const raws = results.map((r) => (r as PromiseFulfilledResult<{ raw: string }>).value.raw);
+    assert.equal(new Set(raws).size, N, "each caller gets its own token");
+
+    // The original is spent once, rotated to exactly one successor, and the
+    // other callers' tokens are siblings in the same family. Nothing revoked
+    // the family.
+    const fam = await query<{ revoked_at: string | null; replaced_by_id: string | null }>(
+      `select revoked_at, replaced_by_id from refresh_tokens where family_id = $1 order by created_at`,
+      [familyId]
+    );
+    assert.equal(fam.length, N + 1);
+    assert.equal(fam.filter((r) => r.revoked_at === null).length, N);
+    assert.equal(fam.filter((r) => r.replaced_by_id !== null).length, 1);
+  });
+
+  // The rule outside the window is unchanged: reuse of a spent token revokes
+  // the family, and the legitimate holder is forced to sign in again too.
+  test("concurrent refreshes, replayed after the grace window: reuse revokes the whole family", async () => {
+    const u = await makeUser("refresh-late");
+    const { raw, familyId } = await createRefreshToken(u.id);
+    const winner = await rotateRefreshToken(raw);
+    await query(`update refresh_tokens set revoked_at = revoked_at - interval '1 minute' where family_id = $1 and revoked_at is not null`, [familyId]);
+
+    const results = await Promise.allSettled(Array.from({ length: N }, () => rotateRefreshToken(raw)));
     const lost = results.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
-    assert.equal(won.length, 1, "exactly one rotation may succeed");
-    assert.equal(lost.length, N - 1);
+    assert.equal(lost.length, N, "every late replay is refused");
     for (const l of lost) assert.ok(l.reason instanceof RefreshTokenError);
 
-    // Reuse detection fired: nothing in the family stays live, and the
-    // family holds the original token plus exactly one successor.
-    const fam = await query<{ revoked_at: string | null }>(`select revoked_at from refresh_tokens where family_id = $1`, [
-      familyId,
-    ]);
-    assert.equal(fam.length, 2);
+    const fam = await query<{ revoked_at: string | null }>(`select revoked_at from refresh_tokens where family_id = $1`, [familyId]);
+    assert.equal(fam.length, 2, "the original and its one successor; late replays minted nothing");
     assert.ok(fam.every((r) => r.revoked_at !== null));
+    await assert.rejects(() => rotateRefreshToken(winner.raw), RefreshTokenError);
   });
 
   test("a single rotation still works and links the successor", async () => {
@@ -92,8 +115,10 @@ describe("refresh token rotation", () => {
     assert.ok(rows[0].revoked_at && rows[0].replaced_by_id);
     assert.equal(rows[1].revoked_at, null);
     assert.equal(rows[1].device_label, "phone");
-    // The successor rotates; the spent original is reuse.
+    // The successor rotates; the spent original, replayed after the grace
+    // window (REQ-203), is reuse.
     await rotateRefreshToken(next.raw);
+    await query(`update refresh_tokens set revoked_at = revoked_at - interval '1 minute' where family_id = $1 and revoked_at is not null`, [familyId]);
     await assert.rejects(() => rotateRefreshToken(raw), RefreshTokenError);
   });
 

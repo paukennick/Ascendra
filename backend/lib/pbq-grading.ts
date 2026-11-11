@@ -28,7 +28,7 @@ export async function gradePbqAnswer(params: {
   answer: string;
   revisionOf?: string[];
   ctx?: CoachContext;
-  userId?: string;
+  userId: string | null;
   purpose: AiPurpose;
   model?: string;
 }): Promise<PbqGraded> {

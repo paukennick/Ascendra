@@ -8,6 +8,10 @@ import { queryOne } from "@/lib/db";
 import { answerQuizTurn } from "@/lib/coach-quiz";
 import { requireFeature } from "@/lib/entitlements";
 
+// REQ-202: seconds this route may run (grading a quiz answer). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 // POST /api/coach/quiz/answer { turnId, choice, clientAttemptId? } -- grade one
@@ -26,7 +30,7 @@ export async function POST(req: Request) {
     ]);
     if (!owned) return notFound("Quiz question not found");
     await requireAcknowledgementForTrack(owned.track_id, user.id);
-    await requireFeature(user.id, "quiz_me"); // REQ-122
+    await requireFeature(user.id, "quiz_me", owned.track_id); // REQ-122, REQ-170
 
     const result = await answerQuizTurn(user.id, turnId, body.choice, validClientAttemptId(body.clientAttemptId));
     if (result.status === "not_found") return notFound("Quiz question not found");
@@ -36,7 +40,7 @@ export async function POST(req: Request) {
     return ok({ turn: result.turn, correct: result.correct, message: result.message, replayed: result.replayed });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

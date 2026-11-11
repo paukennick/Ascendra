@@ -1,7 +1,7 @@
 import { ok, badRequest, notFound, unauthorized, forbidden, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
-import { isUuid, visibleObjective } from "@/lib/visibility";
+import { isUuid, taughtObjective } from "@/lib/visibility";
 import { insightStatus, recordRefresherOpened, refresherOffer } from "@/lib/understanding-store";
 import { ensurePrerequisites, inBackground } from "@/lib/understanding-ai";
 
@@ -20,15 +20,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    const objective = await visibleObjective(id, user.id);
+    const objective = await taughtObjective(id, user.id);
     if (!objective) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     const state = await insightStatus(objective.track_id, "prerequisites");
-    if (state !== "ready") inBackground(() => ensurePrerequisites(objective.track_id));
+    if (state !== "ready") inBackground(() => ensurePrerequisites(objective.track_id, user.id));
     return ok({ offer: await refresherOffer(user.id, id), pending: state !== "ready" && state !== "failed" });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }
@@ -40,7 +40,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
+    if (!(await taughtObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     const body = await req.json().catch(() => ({}));
     if (!isUuid(body?.prerequisiteId)) return badRequest("prerequisiteId is required");
@@ -49,7 +49,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return ok({ recorded });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

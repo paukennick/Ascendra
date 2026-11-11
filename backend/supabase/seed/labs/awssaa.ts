@@ -125,13 +125,13 @@ export const AWSSAA_LABS: SeedLabSet = {
           parts: [
             part(
               "Clean-up",
-              "Terminates the unauthorised instances (after preserving evidence if required) and removes anything else the attacker created.",
+              "Terminates the unauthorized instances (after preserving evidence if required) and removes anything else the attacker created.",
               "Snapshot or record what forensics needs, then terminate the instances in that Region and delete any users, keys, roles or other resources the attacker created."
             ),
             part(
               "Region guardrail",
               "Uses an AWS Organizations service control policy (SCP) to deny actions in Regions the company does not use.",
-              "Attach an SCP to the organisation's accounts that denies requests outside the approved Regions (with exceptions for global services), so even a leaked credential with EC2 rights cannot launch there."
+              "Attach an SCP to the organization's accounts that denies requests outside the approved Regions (with exceptions for global services), so even a leaked credential with EC2 rights cannot launch there."
             ),
           ],
         },
@@ -312,7 +312,7 @@ export const AWSSAA_LABS: SeedLabSet = {
           parts: [
             part("Shared Linux file system", "Chooses Amazon EFS (NFS, multi-AZ, elastic).", "Amazon EFS: managed NFS that many Linux instances across AZs can mount at once and that grows and shrinks automatically."),
             part("Windows SMB shares", "Chooses Amazon FSx for Windows File Server (SMB, Active Directory integration).", "Amazon FSx for Windows File Server: native SMB shares with Active Directory integration for Windows workloads."),
-            part("HPC scratch", "Chooses Amazon FSx for Lustre linked to the S3 bucket.", "Amazon FSx for Lustre: a parallel file system built for high throughput that can import from and export to S3."),
+            part("HPC scratch", "Chooses Amazon FSx for Luster linked to the S3 bucket.", "Amazon FSx for Luster: a parallel file system built for high throughput that can import from and export to S3."),
             part("Database block volume", "Chooses Amazon EBS with a provisioned-IOPS SSD volume type (io2, or gp3 with provisioned IOPS) attached to the instance.", "Amazon EBS provisioned-IOPS SSD (io2), or gp3 with IOPS set, attached to the database instance for consistent low-latency block I/O."),
           ],
         },
@@ -338,8 +338,8 @@ export const AWSSAA_LABS: SeedLabSet = {
             ),
             part(
               "Expiration",
-              "Adds an expiration action at about 7 years (2,555 days) so logs are deleted when retention ends.",
-              "Expire objects at 2,555 days (7 years) so nothing is kept, or paid for, past the retention requirement."
+              "Adds an expiration action at 7 years (2,557 days, which counts the leap days; 2,555 is accepted as 365 x 7 with a note that it can fall two days short) so logs are deleted when retention ends.",
+              "Expire objects at 2,557 days (7 years including the leap days; 365 x 7 = 2,555 would delete up to two days early) so nothing is kept, or paid for, past the retention requirement."
             ),
             part(
               "Cost catches",

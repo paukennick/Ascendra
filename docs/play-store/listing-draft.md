@@ -1,20 +1,26 @@
-# Google Play listing draft (REQ-094, updated REQ-165)
+# Google Play listing draft (REQ-094, updated REQ-165 and REQ-228)
 
 Draft answers for the Play Console, written from `docs/legal/data-inventory.md`
 and re-checked against the code on 2026-11-09 (REQ-165). Items in [brackets]
 are owner decisions. Re-check every Data safety answer against the inventory
 before submitting; Google treats a wrong form as a policy violation.
 
+2026-11-11 (REQ-228): the store text (course list, review schedule, US
+spelling), target audience and health declaration were brought up to master
+after the 2026-11-10 and 2026-11-11 releases. The Data safety answers were
+not re-checked in that pass. Re-check this page whenever a release changes
+courses, features or data (the release playbook's "Ship notes" step).
+
 ## Store listing
 
 - **App name:** Ascendra
 - **Category:** Education
-- **Short description (80 max):** Exam prep that makes you think: guess, learn, practise and review, with an AI coach.
+- **Short description (80 max):** Exam prep that makes you think: guess, learn, practice and review, with an AI coach.
 - **Full description:**
 
-  Ascendra is a study companion for certification and licensing exams and degree coursework — nursing (NCLEX-RN, NCLEX-PN, CNA, CCRN), physical therapy (NPTE), health informatics, cloud (AWS, Azure, Google Cloud), CompTIA, project management (PMP, CAPM) and fitness certifications.
+  Ascendra is a study companion for certification and licensing exams and degree coursework — nursing (NCLEX-RN, NCLEX-PN, CNA, CCRN), emergency medical services (NREMT), physical therapy (NPTE), mental health (EPPP), health informatics, cloud (AWS, Azure, Google Cloud), Kubernetes, CompTIA, project management (PMP, CAPM), programming and fitness certifications.
 
-  Every objective follows the same loop: take a guess first, read a short explanation, work a guided problem, then solve one on your own. Your answers set a mastery level for each objective, and anything you miss comes back for review after 1, 7 and 21 days. Hands-on labs let you build something real or work a fictional case step by step. An AI coach answers questions about what you are studying.
+  Every objective follows the same loop: take a guess first, read a short explanation, work a guided problem, then solve one on your own. Your answers set a mastery level for each objective, and what you learn comes back for review after 1, 3, 7, 21 and 60 days, with anything you miss coming back sooner. Hands-on labs let you build something real or work a fictional case step by step. An AI coach answers questions about what you are studying.
 
   Ascendra is AI-assisted practice material. Courses follow each exam's official outline, deepened from reviewed open textbooks and official guidelines, but lessons, questions, labs and coach replies are written or graded with AI help and can contain mistakes — report anything that looks wrong from where you see it.
 
@@ -37,10 +43,10 @@ Google Play requires new apps and updates to target Android 16 (API level 36) si
 ## App content
 
 - **Ads:** No.
-- **Target audience:** [depends on minimum age]. If 18+ only, select 18+. If 16–17 are allowed (CNA students), the app is not "designed for children" but the families policy questions apply to the under-18 band.
+- **Target audience:** minimum age is 16 (Nick, 2026-11-10, REQ-205; sign-up asks "I am 16 or older"), so select the 16–17 and 18+ bands; the app is not "designed for children" but the families policy questions apply to the under-18 band. Mental health courses (REQ-224) also ask once for an 18+ confirmation before they open. [Owner to confirm the bands.]
 - **Content rating questionnaire:** Education/reference; no violence, sexual content, gambling or user-to-user communication. Answer **yes** to the generative-AI question: the coach, lesson and question writing, and grading feedback are AI-generated.
 - **Generative AI (AI-Generated Content policy):** users can flag AI output without leaving the app — "Report a problem with this lesson" (lessons), the report link after a question or lab result (questions and labs), and, new in REQ-165, **Report** under each coach reply (files a Support ticket that quotes the reply). Reports reach a person (`docs/support-process.md`) and feed the content review queue. The coach has safety guardrails (`backend/lib/coach-guard.ts`). [Confirm who reads reports and how fast.]
-- **Health apps declaration:** suggested answer: **Medical → Medical Reference and Education** only. Wording if asked: "Ascendra is exam preparation for health-profession certification and licensing exams (nursing, critical care, physical therapy, fitness). It includes practice questions and practice labs built around fictional patients and clients. It does not provide diagnosis, treatment, clinical decision support or medical advice, collects no health data about users, and is not a medical device. Every user accepts a notice before use that the content is practice material, may contain errors, is not medical or clinical advice and must never be used for decisions about real patients or clients; health courses and clinical labs can't be used until it is accepted." Do **not** tick Clinical Decision Support, Physical Therapy and Rehabilitation or Activity and Fitness: those describe apps used for care or tracking, which this is not. [Owner to confirm.]
+- **Health apps declaration:** suggested answer: **Medical → Medical Reference and Education** only. Wording if asked: "Ascendra is exam preparation for health-profession certification and licensing exams (nursing, critical care, emergency medical services, physical therapy, mental health, fitness). It includes practice questions and practice labs built around fictional patients and clients. It does not provide diagnosis, treatment, clinical decision support or medical advice, collects no health data about users, and is not a medical device. Every user accepts a notice before use that the content is practice material, may contain errors, is not medical or clinical advice and must never be used for decisions about real patients or clients; health courses and clinical labs can't be used until it is accepted." Do **not** tick Clinical Decision Support, Physical Therapy and Rehabilitation or Activity and Fitness: those describe apps used for care or tracking, which this is not. [Owner to confirm.]
 - **Government / financial / news:** No.
 
 ## Data safety

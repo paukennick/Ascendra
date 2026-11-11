@@ -1,4 +1,6 @@
+import { consumeGradedAnswer } from "@/lib/ai-access";
 import { query, queryOne } from "@/lib/db";
+import { requireStudyNotice } from "@/lib/study-notice";
 import { gradePbqAnswer } from "@/lib/pbq-grading";
 import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError, readJson } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
@@ -15,8 +17,7 @@ import { ALREADY_REVISED, partsToRevise, retryRefusal } from "@/lib/revision";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { visibleScenario, isUuid, NotVisibleError } from "@/lib/visibility";
 import { servePbqScenario } from "@/lib/pbq-scenarios";
-import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
-import { UserFacingError } from "@/lib/http";
+import { generateGated } from "@/lib/generation-gate";
 import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { isActive } from "@/lib/progress-sql";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
@@ -29,10 +30,11 @@ import { coachContextForUnit } from "@/lib/coach-context";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 import { requireFeature, requireFeatureToFinish } from "@/lib/entitlements";
 
-export const dynamic = "force-dynamic";
+// REQ-202: seconds this route may run (scenario generation or grade). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 180;
 
-const HELD_SCENARIO_MESSAGE =
-  "We couldn't write a scenario we're confident in just now. Please try again.";
+export const dynamic = "force-dynamic";
 
 // GET /api/pbq?scenarioId=... — one specific scenario (retry from Review).
 // GET /api/pbq?unitId=... — REQ-107: the newest scenario for the unit that the
@@ -52,9 +54,10 @@ export async function GET(req: Request) {
     const scenarioId = searchParams.get("scenarioId");
     if (scenarioId) {
       const scenario = await visibleScenario(scenarioId, authUser.id);
-      if (!scenario) return notFound("PBQ scenario not found");
+      // FAIL-889: a scenario of a retired unit is no longer taught.
+      if (!scenario || scenario.retired) return notFound("PBQ scenario not found");
       await requireAcknowledgementForUnit(scenario.unit_id, authUser.id);
-      await requireFeature(authUser.id, "pbq"); // REQ-122
+      await requireFeature(authUser.id, "pbq", { unitId: scenario.unit_id }); // REQ-122, REQ-170
       const row = await queryOne(`select * from pbq_scenarios where id = $1`, [scenario.id]);
       return ok({ scenario: row, cached: true });
     }
@@ -67,12 +70,12 @@ export async function GET(req: Request) {
     const unit = await queryOne<{ title: string; track_title: string }>(
       `select cu.title, st.title as track_title
        from course_units cu join subject_tracks st on st.id = cu.track_id
-       where cu.id = $1 and (st.user_id is null or st.user_id = $2)`,
+       where cu.id = $1 and (st.user_id is null or st.user_id = $2) and ${isActive("cu")}`,
       [unitId, authUser.id]
     );
     if (!unit) return notFound("Unit not found");
     await requireAcknowledgementForUnit(unitId, authUser.id);
-    await requireFeature(authUser.id, "pbq"); // REQ-122
+    await requireFeature(authUser.id, "pbq", { unitId }); // REQ-122, REQ-170
 
     // Runs only when nothing unseen is left (or fresh=1), and only in the
     // one request holding this learner's generation lease for the unit, so
@@ -95,24 +98,35 @@ export async function GET(req: Request) {
       // The model that generates is the model that gets recorded: this used to
       // store getModel() (Sonnet) although the fast model wrote the scenario.
       const generationModel = getFastModel();
-      const generated = await callClaudeStructured({
-        system,
-        messages: [{ role: "user", content: user }],
-        schema: pbqScenarioSchema,
-        maxTokens: 1200,
-        model: generationModel,
-        effort: "low",
-        thinking: "off",
-        purpose: "pbq_generate",
-        userId: authUser.id,
-      });
       // REQ-114 (Audit 3 H1): a scenario its writer was unsure of is never
-      // stored or shown; it is logged for review and the learner can retry.
-      const unsure = uncertaintyOf(generated);
-      if (unsure) {
-        await recordHoldback({ kind: "pbq", unitId, reason: "uncertain", claims: unsure, content: generated, model: generationModel });
-        throw new UserFacingError(HELD_SCENARIO_MESSAGE);
-      }
+      // stored or shown; it is logged for review. FAIL-1000: the first two
+      // live attempts were both held back, so a held-back scenario is
+      // written once more. FAIL-1005: a PBQ is an invented scenario graded
+      // holistically, with no answer key to get wrong, and the writer kept
+      // listing disclaimers ("this scenario is invented") as uncertain claims,
+      // so for PBQs only the writer's own low confidence holds a scenario back;
+      // listed claims are logged. REQ-216: the second attempt is steered with
+      // the first one's claims, and a scenario held twice is a 409 that says
+      // why (lib/generation-gate.ts).
+      const generated = await generateGated({
+        kind: "pbq",
+        unitId,
+        model: generationModel,
+        subject: "scenario",
+        generate: (steer) =>
+          callClaudeStructured({
+            system,
+            messages: [{ role: "user", content: steer ? `${user}\n\n${steer}` : user }],
+            schema: pbqScenarioSchema,
+            maxTokens: 1200,
+            model: generationModel,
+            effort: "low",
+            thinking: "off",
+            purpose: "pbq_generate",
+            userId: authUser.id,
+          }),
+        uncertainty: (g) => g,
+      });
       return { ...generated, model: generationModel };
     };
 
@@ -126,7 +140,7 @@ export async function GET(req: Request) {
     }
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }
@@ -161,17 +175,21 @@ export async function POST(req: Request) {
     const confidence: number | null = rawConfidence ?? null;
 
     const authUser = await requireUser(req);
+    // REQ-205 (FAIL-907): this route sends what the learner wrote to the model, so
+    // the study notice that says so must have been accepted -- checked here, not
+    // only in the app.
+    await requireStudyNotice(authUser.id);
 
     // REQ-129: reach the scenario through its unit and track so a scenario in
     // another user's private track is a 404, and gate on the scenario's own
     // unit -- not on whatever unitId the client chose to send (or omit).
     const scenario = await visibleScenario(scenarioId, authUser.id);
-    if (!scenario) return notFound("PBQ scenario not found");
+    if (!scenario || scenario.retired) return notFound("PBQ scenario not found");
     const unitId = scenario.unit_id;
     await requireAcknowledgementForUnit(unitId, authUser.id);
     // REQ-122; REQ-124 (decision 6): an answer to a scenario already on
     // screen when the paid period ended may still be sent and graded.
-    await requireFeatureToFinish(authUser.id, "pbq");
+    await requireFeatureToFinish(authUser.id, "pbq", { unitId });
 
     // A retry (dropped connection, double tap) replays the stored result.
     // Checked before the rate limit and the Anthropic call.
@@ -228,6 +246,10 @@ export async function POST(req: Request) {
         throw err;
       }
 
+      // REQ-201: under AI_ACCESS_MODE=granted a learner outside the pilot has
+      // Free's daily graded typed answers for this too (given back if
+      // grading fails). Nothing is counted otherwise, as before.
+      const use = await consumeGradedAnswer(authUser.id, null);
       const ctx = await coachContextForUnit(unitId);
       // Audit 3 M1/L1: lib/pbq-grading.ts (trivial answers, verdict vs part
       // scores). REQ-107 / REQ-112 (j): per-part scores, stored with the attempt.
@@ -239,6 +261,9 @@ export async function POST(req: Request) {
         ctx: ctx ?? undefined,
         userId: authUser.id,
         purpose: "pbq_grade",
+      }).catch(async (err) => {
+        await use.release();
+        throw err;
       });
       const graded = grade;
 
@@ -280,7 +305,7 @@ export async function POST(req: Request) {
     if (isDuplicateRetry(err)) return conflict(ALREADY_REVISED);
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof IdempotencyConflictError) return conflict(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

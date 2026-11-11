@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { queryOne, withTransaction } from "@/lib/db";
 import { ok, badRequest, serverError, readJson } from "@/lib/http";
-import { hashPassword } from "@/lib/auth/passwords";
+import { hashPassword, MAX_PASSWORD_LENGTH } from "@/lib/auth/passwords";
 import { bumpTokenVersion } from "@/lib/auth/sessionControl";
 import { clearLoginPairs } from "@/lib/auth/lockout";
 
@@ -18,6 +18,8 @@ export async function POST(req: Request) {
     if (newPassword.length < 8) {
       return badRequest("newPassword must be at least 8 characters");
     }
+    // REQ-219 (FAIL-1111): the same ceiling register has.
+    if (newPassword.length > MAX_PASSWORD_LENGTH) return badRequest("password is too long");
 
     const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     // Cheap early check so an invalid link doesn't cost a bcrypt hash. It is
@@ -44,9 +46,21 @@ export async function POST(req: Request) {
         [tokenHash]
       );
       if (!consumed) return false;
+      // REQ-191: the reset link was opened from the account's inbox, which
+      // proves the address as well as a verification link does. Without
+      // this, an unverified account (verification mail lost or burned by a
+      // scanner) reset its password and was still refused at login (403).
+      // Its pending verification links are spent with it: one could carry
+      // set_password (REQ-116) and would clear the password just chosen.
       await tx.query(
-        `update app_users set password_hash = $1, failed_login_count = 0, locked_until = null where id = $2`,
+        `update app_users set password_hash = $1, failed_login_count = 0, locked_until = null,
+                email_verified_at = coalesce(email_verified_at, now())
+          where id = $2`,
         [passwordHash, consumed.user_id]
+      );
+      await tx.query(
+        `update email_verification_tokens set consumed_at = now() where user_id = $1 and consumed_at is null`,
+        [consumed.user_id]
       );
       await tx.query(`update refresh_tokens set revoked_at = now() where user_id = $1 and revoked_at is null`, [
         consumed.user_id,

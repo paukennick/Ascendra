@@ -53,9 +53,9 @@ const CURRICULUM = "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5
 // ---------------------------------------------------------------------------
 export const CKA_TRACK: SeedTrack = {
   code: "CKA",
-  title: "Certified Kubernetes Administrator (CKA) Coach",
+  title: "Prep for the Certified Kubernetes Administrator® (CKA) Exam",
   description:
-    "CKA: the hands-on administrator exam. Build and upgrade kubeadm clusters, run RBAC, scheduling, Services, Gateway API and Ingress, storage, and above all troubleshoot broken nodes, components and networking at the kubectl prompt under time pressure.",
+    "CKA: the hands-on administrator exam. Build and upgrade kubeadm clusters, run RBAC, scheduling, Services, Gateway API and Ingress, storage, and above all troubleshoot broken nodes, components and networking at the kubectl prompt under time pressure. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Certified Kubernetes Administrator is a registered trademark of The Linux Foundation.",
   trackType: "certification",
   subcategorySlug: "cncf-certifications",
   freshnessModel: "certification_aligned",
@@ -89,13 +89,13 @@ export const CKA_TRACK: SeedTrack = {
         "Prepare the underlying infrastructure for a kubeadm cluster: container runtime (containerd) with the systemd cgroup driver, kernel modules and sysctls, swap off, and the ports the control plane and kubelet need",
         "Create and join a cluster with kubeadm: kubeadm init with a pod network CIDR, install a CNI plugin, generate and use join tokens, and add worker and control plane nodes",
         "Manage the lifecycle of a cluster: upgrade the control plane and then each node with kubeadm upgrade, drain, kubelet and kubectl upgrades, and uncordon, one minor version at a time",
-        "Back up and restore etcd with etcdctl snapshot save and snapshot restore using the right certificates and endpoint, and bring the static pod back up on the restored data",
+        "Back up and restore etcd with etcdctl snapshot save and etcdutl snapshot restore using the right certificates and endpoint, and bring the static pod back up on the restored data",
         "Implement and configure a highly available control plane: stacked versus external etcd, a load-balanced API server endpoint, and the controlPlaneEndpoint and certificate-key flow for joining extra control plane nodes",
         "Use Helm to install and manage cluster components: add repositories, inspect values, install, upgrade, roll back and uninstall releases",
         "Use Kustomize to install and customize components: bases, overlays, patches and kubectl apply -k",
         "Understand the extension interfaces (CNI, CSI, CRI) and what each contract covers, and how kubelet, the runtime and the network plugin fit together",
         "Understand CustomResourceDefinitions and operators: read a CRD, create custom resources, and install and configure an operator that reconciles them",
-        "Read a static pod manifest in /etc/kubernetes/manifests and relate the API server, controller manager, scheduler and etcd flags to the cluster's behaviour",
+        "Read a static pod manifest in /etc/kubernetes/manifests and relate the API server, controller manager, scheduler and etcd flags to the cluster's behavior",
       ],
     },
     {
@@ -168,9 +168,9 @@ export const CKA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CKAD_TRACK: SeedTrack = {
   code: "CKAD",
-  title: "Certified Kubernetes Application Developer (CKAD) Coach",
+  title: "Prep for the Certified Kubernetes Application Developer® (CKAD) Exam",
   description:
-    "CKAD: the hands-on developer exam. Design and build container images and multi-container Pods, ship them with Deployments, Helm and Kustomize, make them observable with probes and logs, configure and secure them with ConfigMaps, Secrets, SecurityContexts and quotas, and expose them with Services, Ingress and NetworkPolicies, all at the kubectl prompt.",
+    "CKAD: the hands-on developer exam. Design and build container images and multi-container Pods, ship them with Deployments, Helm and Kustomize, make them observable with probes and logs, configure and secure them with ConfigMaps, Secrets, SecurityContexts and quotas, and expose them with Services, Ingress and NetworkPolicies, all at the kubectl prompt. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Certified Kubernetes Application Developer is a registered trademark of The Linux Foundation.",
   trackType: "certification",
   subcategorySlug: "cncf-certifications",
   freshnessModel: "certification_aligned",
@@ -279,9 +279,9 @@ export const CKAD_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const KCNA_TRACK: SeedTrack = {
   code: "KCNA",
-  title: "Kubernetes and Cloud Native Associate (KCNA) Coach",
+  title: "Prep for the Kubernetes® and Cloud Native Associate (KCNA) Exam",
   description:
-    "KCNA: the entry-level, multiple-choice credential for the Kubernetes and cloud native ecosystem. Kubernetes core objects, administration, scheduling and containers; orchestration across networking, security, troubleshooting and storage; how applications are delivered with CI/CD, GitOps and Helm; and the architecture, observability and community of cloud native computing.",
+    "KCNA: the entry-level, multiple-choice credential for the Kubernetes and cloud native ecosystem. Kubernetes core objects, administration, scheduling and containers; orchestration across networking, security, troubleshooting and storage; how applications are delivered with CI/CD, GitOps and Helm; and the architecture, observability and community of cloud native computing. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Kubernetes is a registered trademark of The Linux Foundation.",
   trackType: "certification",
   subcategorySlug: "cncf-certifications",
   freshnessModel: "certification_aligned",
@@ -333,7 +333,7 @@ export const KCNA_TRACK: SeedTrack = {
         "Networking: cluster DNS with CoreDNS, Ingress and the Gateway API for HTTP routing, service meshes, and NetworkPolicy for restricting traffic",
         "Security: the 4Cs of cloud native security (cloud, cluster, container, code), the Pod Security Standards and Pod Security Admission, SecurityContexts and least privilege",
         "Security: RBAC roles and bindings, ServiceAccounts, Secrets and how to protect them, and securing the supply chain with image scanning and signing",
-        "Troubleshooting: Pod phases and container states, reading kubectl get, describe, logs, events and exec, and recognising CrashLoopBackOff, ImagePullBackOff, Pending and OOMKilled",
+        "Troubleshooting: Pod phases and container states, reading kubectl get, describe, logs, events and exec, and recognizing CrashLoopBackOff, ImagePullBackOff, Pending and OOMKilled",
         "Troubleshooting: where to look when a node, a Service or the control plane misbehaves, and the role of metrics-server and probes in detecting failure",
         "Storage: ephemeral volumes (emptyDir, ConfigMap, Secret) versus PersistentVolumes and PersistentVolumeClaims, StorageClasses and dynamic provisioning, and the Container Storage Interface (CSI)",
         "Storage: access modes, reclaim policies and why stateful applications use StatefulSets with volumeClaimTemplates",
@@ -349,20 +349,20 @@ export const KCNA_TRACK: SeedTrack = {
         "Application delivery: packaging and templating with Helm charts and Kustomize overlays, and choosing between them and plain manifests",
         "Application delivery: rollout strategies -- rolling update, recreate, blue/green and canary -- and how Deployments, Services and progressive delivery tools implement them",
         "Debugging a delivery: tracing a failed release through pipeline logs, image tags, kubectl rollout status and history, Pod events and application logs to the step that broke",
-        "Debugging a delivery: rolling back safely and recognising configuration drift between Git and the cluster",
+        "Debugging a delivery: rolling back safely and recognizing configuration drift between Git and the cluster",
       ],
     },
     {
       title: "Cloud Native Architecture",
       weight: 12,
-      gate: "Given an organisation's system and goals, evaluate how cloud native principles, observability and the CNCF ecosystem apply, and recommend what to adopt and in what order.",
+      gate: "Given an organization's system and goals, evaluate how cloud native principles, observability and the CNCF ecosystem apply, and recommend what to adopt and in what order.",
       objectives: [
         "Observability: the three pillars (metrics, logs, traces), what each answers, and the CNCF tools behind them -- Prometheus, Fluentd and Fluent Bit, Jaeger and OpenTelemetry",
         "Observability: designing SLIs, SLOs and alerts, and the difference between monitoring and observability, cost and telemetry volume included",
         "Cloud native ecosystem and principles: the CNCF definition of cloud native, microservices, containers, immutable infrastructure, declarative APIs, autoscaling (HPA, VPA, cluster autoscaler) and serverless (Knative) as design choices",
         "Cloud native ecosystem and principles: evaluating a design against resilience, scalability, loose coupling and manageability, and the role of service meshes and the CNCF landscape in it",
         "Cloud native community and collaboration: the CNCF's role under the Linux Foundation, project maturity levels (sandbox, incubating, graduated), the Technical Oversight Committee, SIGs and working groups, and how to contribute",
-        "Cloud native community and collaboration: open source governance and licences, the Kubernetes release cadence and support policy, and conformance programs",
+        "Cloud native community and collaboration: open source governance and licenses, the Kubernetes release cadence and support policy, and conformance programs",
       ],
     },
   ],
@@ -379,9 +379,9 @@ export const KCNA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CKS_TRACK: SeedTrack = {
   code: "CKS",
-  title: "Certified Kubernetes Security Specialist (CKS) Coach",
+  title: "Prep for the Certified Kubernetes Security Specialist® (CKS) Exam",
   description:
-    "CKS: the hands-on security exam for people who already hold the CKA. Harden the cluster from the CIS benchmark up: RBAC and ServiceAccounts, API access, kernel hardening with AppArmor and seccomp, Pod Security Standards, sandboxed runtimes and mTLS, a verified and signed supply chain, and runtime detection, audit logs and incident investigation.",
+    "CKS: the hands-on security exam for people who already hold the CKA. Harden the cluster from the CIS benchmark up: RBAC and ServiceAccounts, API access, kernel hardening with AppArmor and seccomp, Pod Security Standards, sandboxed runtimes and mTLS, a verified and signed supply chain, and runtime detection, audit logs and incident investigation. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Certified Kubernetes Security Specialist is a registered trademark of The Linux Foundation.",
   trackType: "certification",
   subcategorySlug: "cncf-certifications",
   freshnessModel: "certification_aligned",
@@ -493,9 +493,9 @@ export const CKS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const KCSA_TRACK: SeedTrack = {
   code: "KCSA",
-  title: "Kubernetes and Cloud Native Security Associate (KCSA) Coach",
+  title: "Prep for the Kubernetes® and Cloud Native Security Associate (KCSA) Exam",
   description:
-    "KCSA: the entry-level, multiple-choice security credential. The 4Cs of cloud native security, what each Kubernetes component exposes and how to lock it down, Pod Security Standards, authentication and authorization, Secrets, NetworkPolicy and audit logging, the Kubernetes threat model, platform security from supply chain to service mesh, and the compliance and threat-modelling frameworks teams work to.",
+    "KCSA: the entry-level, multiple-choice security credential. The 4Cs of cloud native security, what each Kubernetes component exposes and how to lock it down, Pod Security Standards, authentication and authorization, Secrets, NetworkPolicy and audit logging, the Kubernetes threat model, platform security from supply chain to service mesh, and the compliance and threat-modeling frameworks teams work to. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Kubernetes is a registered trademark of The Linux Foundation.",
   trackType: "certification",
   subcategorySlug: "cncf-certifications",
   freshnessModel: "certification_aligned",
@@ -526,10 +526,10 @@ export const KCSA_TRACK: SeedTrack = {
       objectives: [
         "The 4Cs of cloud native security -- cloud, cluster, container, code -- and why each layer depends on the ones outside it",
         "Cloud provider and infrastructure security: the shared responsibility model, identity for nodes and workloads, network perimeters, and managed control planes",
-        "Controls and frameworks: preventive, detective and corrective controls, defence in depth, and where CIS benchmarks, NIST and the Kubernetes hardening guidance fit",
+        "Controls and frameworks: preventive, detective and corrective controls, defense in depth, and where CIS benchmarks, NIST and the Kubernetes hardening guidance fit",
         "Isolation techniques across the stack: namespaces and cgroups, virtual machines, sandboxed runtimes, network segmentation and multi-tenancy boundaries",
         "Artifact repository and image security: trusted registries, image scanning, signing and provenance, tags versus digests, and admission control on images",
-        "Workload and application code security: secure defaults in Pod specs, dependency scanning, secrets handling in code, and the OWASP risks that survive containerisation",
+        "Workload and application code security: secure defaults in Pod specs, dependency scanning, secrets handling in code, and the OWASP risks that survive containerization",
       ],
     },
     {
@@ -572,7 +572,7 @@ export const KCSA_TRACK: SeedTrack = {
         "Persistence: how attackers stay -- backdoored images, CronJobs, mutating webhooks, ServiceAccount tokens, static Pods and node-level implants",
         "Denial of service: resource exhaustion by Pods without limits, API server flooding, etcd pressure and network amplification, and the quotas and rate limits that defend",
         "Malicious code execution and compromised applications in containers: what an attacker inside a container can reach, and how SecurityContexts, read-only filesystems and sandboxing contain it",
-        "Attacker on the network: sniffing and spoofing on a flat Pod network, exposed Services and dashboards, and mTLS and NetworkPolicy as defences",
+        "Attacker on the network: sniffing and spoofing on a flat Pod network, exposed Services and dashboards, and mTLS and NetworkPolicy as defenses",
         "Access to sensitive data: Secrets, mounted tokens, etcd, logs and backups as targets, and encryption and least privilege as controls",
         "Privilege escalation paths: privileged containers, hostPath, host namespaces, over-broad RBAC, token theft and kubelet access, and the chain from Pod to node to cluster",
       ],
@@ -594,10 +594,10 @@ export const KCSA_TRACK: SeedTrack = {
     {
       title: "Compliance and Security Frameworks",
       weight: 10,
-      gate: "Given a regulatory or organisational requirement, map it to Kubernetes controls and evidence, choose a threat-modelling approach, and say what can be automated.",
+      gate: "Given a regulatory or organizational requirement, map it to Kubernetes controls and evidence, choose a threat-modeling approach, and say what can be automated.",
       objectives: [
         "Compliance frameworks applied to Kubernetes: CIS Benchmarks, NIST SP 800-53 and 800-190, PCI DSS, SOC 2, ISO 27001 and the Kubernetes hardening guidance, and what evidence each asks for",
-        "Threat modelling frameworks: STRIDE, the MITRE ATT&CK matrix for containers and the Kubernetes threat matrix, and running a threat model on a cluster feature",
+        "Threat modeling frameworks: STRIDE, the MITRE ATT&CK matrix for containers and the Kubernetes threat matrix, and running a threat model on a cluster feature",
         "Supply chain compliance: SLSA levels, SBOM requirements, signed and attested artifacts, and policy that enforces them",
         "Automation and tooling for compliance: kube-bench, policy-as-code (Kyverno, OPA Gatekeeper), continuous scanning and audit evidence collection, and reporting",
       ],

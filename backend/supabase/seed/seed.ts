@@ -23,17 +23,19 @@
 
 import { Pool } from "pg";
 import "./env-local"; // must run before ./data so DEFAULT_USER_EMAIL is already set
+import { sslOption } from "../../lib/db-connection";
 import { SEED_USER_EMAIL } from "./data";
 import { CATALOG_TRACKS } from "./catalog";
 import { seedLabs, seedTrack } from "./seed-lib";
 import { LAB_SETS } from "./labs";
+import { seedSims } from "./sims-seed";
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set (set it in backend/.env.local or the environment).");
   }
-  const pool = new Pool({ connectionString, ssl: process.env.PGSSLMODE === "disable" ? false : { rejectUnauthorized: false } });
+  const pool = new Pool({ connectionString, ssl: sslOption() });
 
   try {
     // REQ-102: the seed writes retired_at (migration 033). Fail with the fix
@@ -45,6 +47,14 @@ async function main() {
     );
     if (!has033.rows[0]?.ok) {
       throw new Error("course_units/objectives.retired_at missing -- run `npm run migrate -- 033_exam_blueprints.sql` before seeding.");
+    }
+    // REQ-194: the seed writes subject_tracks.hidden_at (migration 065).
+    const has065 = await pool.query<{ ok: boolean }>(
+      `select count(*) = 1 as ok from information_schema.columns
+        where table_schema = 'public' and table_name = 'subject_tracks' and column_name = 'hidden_at'`
+    );
+    if (!has065.rows[0]?.ok) {
+      throw new Error("subject_tracks.hidden_at missing -- run `npm run migrate -- 065_track_hidden_at.sql` before seeding.");
     }
 
     // Legacy owner whose private catalog copies get adopted (see header).
@@ -69,6 +79,15 @@ async function main() {
     for (const set of LAB_SETS) {
       const n = await seedLabs(pool, set);
       console.log(`labs: ${set.trackCode} -> ${n} authored lab(s)`);
+    }
+
+    // REQ-190: authored sims (scenarios and bands), after the tracks.
+    const hasSims = await pool.query<{ ok: boolean }>(`select to_regclass('public.sim_versions') is not null as ok`);
+    if (!hasSims.rows[0]?.ok) {
+      throw new Error("sim tables missing -- run `npm run migrate -- 062_sim_engine.sql` before seeding.");
+    }
+    for (const r of await seedSims(pool)) {
+      console.log(`sims: ${r.course}/${r.slug} -> version ${r.version} (${r.change})`);
     }
 
     console.log("Seed complete.");

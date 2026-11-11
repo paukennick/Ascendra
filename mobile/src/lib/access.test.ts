@@ -82,6 +82,24 @@ describe("wiring", () => {
     const p = read("app/(app)/plans.tsx");
     assert.match(p, /if \(unrestricted\)/);
     const b = read("src/billing/BillingContext.tsx");
-    assert.match(b, /canUpgrade = me\?\.tier !== "pro" && !hasUnrestricted\(user\)/);
+    // REQ-170: "nothing left to buy" is now "the plans cover every course" (was tier === "pro").
+    assert.match(b, /canUpgrade = !me\?\.coversEverything && !hasUnrestricted\(user\)/);
+  });
+});
+
+// REQ-211
+describe("error-tracker test line", () => {
+  test("says what happened in each case", async () => {
+    const { errorTrackerTestLine } = await import("./access.ts");
+    assert.match(errorTrackerTestLine({ configured: false, delivered: false, status: null }), /off/);
+    assert.match(errorTrackerTestLine({ configured: true, delivered: true, status: 200 }), /^Sent/);
+    assert.match(errorTrackerTestLine({ configured: true, delivered: false, status: 401 }), /refused it \(401\)/);
+    assert.match(errorTrackerTestLine({ configured: true, delivered: false, status: 500 }), /didn't accept it \(500\)/);
+    assert.match(errorTrackerTestLine({ configured: true, delivered: false, status: null }), /Couldn't reach/);
+  });
+  test("Settings > Access has the button and calls the owner-only route", () => {
+    const src = readFileSync(join(dirname(new URL(import.meta.url).pathname), "..", "..", "app", "(app)", "settings", "access.tsx"), "utf8");
+    assert.match(src, /label="Send a test error"/);
+    assert.match(src, /api\.post<ErrorTrackerTestResult>\("\/api\/access\/error-tracker-test"\)/);
   });
 });

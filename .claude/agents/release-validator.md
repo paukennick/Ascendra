@@ -6,7 +6,7 @@ tools: Read, Glob, Grep, Bash
 model: opus
 effort: high
 permissionMode: default
-maxTurns: 80
+maxTurns: 200
 skills:
   - release-readiness
 ---

@@ -2,22 +2,38 @@ import { randomUUID } from "node:crypto";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { UserFacingError } from "@/lib/http";
 import { spendSinceUsd } from "@/lib/ai-budget";
-import { accessFor, isUnrestricted } from "@/lib/account-access";
+import { AiSpendUnavailableError } from "@/lib/ai-spend-ledger";
+import { accessFor, isOwner, isUnrestricted } from "@/lib/account-access";
+import { ownerEmails, ownerMonthlyCapUsd } from "@/lib/account-access-config";
 import {
   ALLOWANCE_DEFAULTS,
   ALLOWANCE_KINDS,
   FEATURES,
+  PLAN_FAMILIES,
+  SCOPE_NAME,
   TIER_COPY,
+  TIER_RANK,
   WINDOW_SECONDS,
   allowanceLimit,
   billingEnabled,
   freeCourseSwitchDays,
+  courseCategoryOf,
+  isPlanFamily,
+  isPlanScope,
   isTier,
+  learnerCapUsd,
   monthlyAiCapUsd,
+  planById,
+  unrestrictedCapUsd,
+  scopeCovers,
+  scopeForCategory,
   tierHas,
   type AllowanceKind,
+  type CourseCategory,
   type Feature,
   type PaidTier,
+  type PlanFamily,
+  type PlanScope,
   type Tier,
 } from "@/lib/billing-config";
 
@@ -48,19 +64,41 @@ import {
 //   - requireCourseAccess: Free studies one course. The first course a Free
 //     learner opens becomes it; they can switch (lib: chooseFreeCourse).
 //
+// REQ-170: category plans. An entitlement has a scope (IT and cloud,
+// project management, fitness, all-access or clinical; none = every course).
+// A learner's tier ON A COURSE is the highest tier among the entitlements
+// whose scope covers that course's category; a course no plan covers is on
+// Free terms (the one free course). Every gate that knows its course passes
+// it (a CourseRef), so a Pro plan for project management never opens Pro
+// features in an IT course. tierFor without a course is the highest tier
+// the learner holds anywhere (the plan summary and the free-course screen).
+// The monthly AI cap is per learner: the sum of the caps of the plans they
+// hold (lib/billing-config.ts learnerCapUsd).
+//
 // REQ-144: an owner or unrestricted account (lib/account-access.ts) is
 // treated as Pro by tierFor -- which has every feature and every course --
-// and has no allowance count and no monthly AI cap. With the switch off
-// these still return at once: everyone already has everything then.
+// and has no allowance count and no per-tier monthly AI cap. With the switch
+// off these still return at once: everyone already has everything then.
+// The one exception is an owner's monthly AI safety cap (Nick, 2026-11-09,
+// ownerMonthlyCapUsd, $35 by default), which applies with the switch on or
+// off: see aiAllowanceStatus.
 
 // Hours past period_end that a paid entitlement still counts, in case a
 // renewal's webhook arrives late. An EXPIRATION, refund or deletion event
 // ends access at once regardless.
-const GRACE_HOURS = 24;
+export const GRACE_HOURS = 24;
 
 export class UpgradeRequiredError extends UserFacingError {
-  constructor(message: string, readonly feature: Feature, readonly requiredTier: PaidTier, currentTier: Tier, extra: Record<string, unknown> = {}) {
-    super(message, 402, { upgrade: { feature, requiredTier, currentTier }, ...extra });
+  constructor(
+    message: string,
+    readonly feature: Feature,
+    readonly requiredTier: PaidTier,
+    currentTier: Tier,
+    extra: Record<string, unknown> = {},
+    // REQ-170: the category plan that would include it, for the app's sheet.
+    scope: PlanScope | null = null
+  ) {
+    super(message, 402, { upgrade: { feature, requiredTier, currentTier, scope }, ...extra });
     this.name = "UpgradeRequiredError";
   }
 }
@@ -87,6 +125,8 @@ export interface EntitlementRow {
   id: string;
   external_id: string;
   tier: PaidTier;
+  family: PlanFamily | null;
+  scope: PlanScope | null;
   source: "revenuecat" | "stripe" | "grant";
   product_id: string | null;
   plan: string | null;
@@ -96,19 +136,104 @@ export interface EntitlementRow {
   customer_ref: string | null;
 }
 
-const GIVES_ACCESS = `status in ('active', 'canceled', 'billing_issue')
+// REQ-219 (FAIL-1118): also read by lib/ai-access.ts (paid AI mode), so the grace
+// hours are defined once.
+export const GIVES_ACCESS = `status in ('active', 'canceled', 'billing_issue')
        and (period_end is null or period_end + make_interval(hours => ${GRACE_HOURS}) > now())`;
 
 // The entitlement that sets this learner's tier (highest tier, then latest end).
 export async function currentEntitlement(userId: string): Promise<EntitlementRow | null> {
   return queryOne<EntitlementRow>(
-    `select id, external_id, tier, source, product_id, plan, status, period_end, store, customer_ref
+    `select id, external_id, tier, family, scope, source, product_id, plan, status, period_end, store, customer_ref
        from entitlements
       where user_id = $1 and ${GIVES_ACCESS}
       order by case tier when 'pro' then 2 else 1 end desc, period_end desc nulls first
       limit 1`,
     [userId]
   );
+}
+
+// Every entitlement that gives access now (REQ-170: a learner may hold a
+// category plan and clinical, or a held period beside a new plan).
+export async function accessRows(userId: string): Promise<EntitlementRow[]> {
+  const rows = await query<EntitlementRow>(
+    `select id, external_id, tier, family, scope, source, product_id, plan, status, period_end, store, customer_ref
+       from entitlements
+      where user_id = $1 and ${GIVES_ACCESS}
+      order by case tier when 'pro' then 2 else 1 end desc, period_end desc nulls first`,
+    [userId]
+  );
+  return rows.map((r) => ({ ...r, family: isPlanFamily(r.family) ? r.family : null, scope: isPlanScope(r.scope) ? r.scope : null }));
+}
+
+// ---------------------------------------------------------------------------
+// Courses and categories (REQ-170)
+// ---------------------------------------------------------------------------
+
+// A course, or something in one. A string is a course (track) id.
+export type CourseRef = string | { trackId?: string | null; unitId?: string | null; objectiveId?: string | null } | null | undefined;
+
+export interface CoursePlace {
+  trackId: string;
+  // "own": a course the learner made themselves; any paid plan covers it.
+  category: CourseCategory | "own";
+}
+
+export async function coursePlace(userId: string, ref: CourseRef): Promise<CoursePlace | null> {
+  if (!ref) return null;
+  const r = typeof ref === "string" ? { trackId: ref } : ref;
+  let where: string;
+  let param: string;
+  if (r.trackId) {
+    where = "st.id = $2::uuid";
+    param = r.trackId;
+  } else if (r.unitId) {
+    where = "st.id = (select track_id from course_units where id = $2::uuid)";
+    param = r.unitId;
+  } else if (r.objectiveId) {
+    where = "st.id = (select cu.track_id from objectives o join course_units cu on cu.id = o.unit_id where o.id = $2::uuid)";
+    param = r.objectiveId;
+  } else return null;
+  if (!/^[0-9a-f-]{36}$/i.test(param)) return null;
+  const row = await queryOne<{ id: string; user_id: string | null; cat: string | null; sub: string | null }>(
+    `select st.id, st.user_id, ec.slug as cat, es.slug as sub
+       from subject_tracks st
+       left join education_subcategories es on es.id = st.subcategory_id
+       left join education_categories ec on ec.id = es.category_id
+      where ${where} and (st.user_id is null or st.user_id = $1)`,
+    [userId, param]
+  );
+  if (!row) return null;
+  return { trackId: row.id, category: row.user_id ? "own" : courseCategoryOf(row.cat, row.sub) };
+}
+
+function covers(row: Pick<EntitlementRow, "scope">, place: CoursePlace): boolean {
+  return place.category === "own" ? true : scopeCovers(row.scope, place.category);
+}
+
+// The plan to offer for a course the learner's plans don't cover.
+export function scopeToOffer(place: CoursePlace | null): PlanScope | null {
+  if (!place || place.category === "own") return null;
+  return scopeForCategory(place.category);
+}
+
+// The highest tier among rows covering the course; 'free' when none does.
+export function tierAmong(rows: Array<Pick<EntitlementRow, "scope" | "tier">>, place: CoursePlace | null): Tier {
+  let best: Tier = "free";
+  for (const r of rows) {
+    if (!isTier(r.tier)) continue;
+    if (place && !covers(r, place)) continue;
+    if (TIER_RANK[r.tier] > TIER_RANK[best]) best = r.tier;
+  }
+  return best;
+}
+
+// The learner's tier on one course (or, with no course, anywhere).
+export async function tierForCourse(userId: string, ref: CourseRef, env: NodeJS.ProcessEnv = process.env): Promise<Tier> {
+  if (!billingEnabled(env)) return "pro";
+  if (await isUnrestricted(userId, env)) return "pro";
+  const place = await coursePlace(userId, ref);
+  return tierAmong(await accessRows(userId), place);
 }
 
 export async function tierFor(userId: string, env: NodeJS.ProcessEnv = process.env): Promise<Tier> {
@@ -132,42 +257,65 @@ export async function tierFor(userId: string, env: NodeJS.ProcessEnv = process.e
 // revocation.
 export const FINISH_IN_PROGRESS_HOURS = 24;
 
-export async function hadFeatureRecently(userId: string, feature: Feature, env: NodeJS.ProcessEnv = process.env): Promise<boolean> {
+export async function hadFeatureRecently(
+  userId: string,
+  feature: Feature,
+  course: CourseRef = null,
+  env: NodeJS.ProcessEnv = process.env
+): Promise<boolean> {
   if (!billingEnabled(env)) return true;
   const tiers = (["plus", "pro"] as const).filter((t) => tierHas(t, feature));
-  const row = await queryOne(
-    `select 1 from entitlements
+  const place = await coursePlace(userId, course);
+  const rows = await query<{ scope: string | null }>(
+    `select scope from entitlements
       where user_id = $1 and tier = any($2::text[]) and status in ('active', 'canceled', 'billing_issue', 'expired')
         and period_end is not null
         -- when access ended: an expiry ends it when it was applied, anything
         -- else at the period end plus the grace window
         and (case when status = 'expired' then least(period_end, updated_at)
                   else period_end + make_interval(hours => ${GRACE_HOURS}) end)
-            + make_interval(hours => ${FINISH_IN_PROGRESS_HOURS}) > now()
-      limit 1`,
+            + make_interval(hours => ${FINISH_IN_PROGRESS_HOURS}) > now()`,
     [userId, tiers]
   );
-  return row !== null;
+  return rows.some((r) => !place || covers({ scope: isPlanScope(r.scope) ? r.scope : null }, place));
 }
 
 // requireFeature for finishing something already on screen: also passes
 // within FINISH_IN_PROGRESS_HOURS of the period that had it ending.
-export async function requireFeatureToFinish(userId: string, feature: Feature, env: NodeJS.ProcessEnv = process.env): Promise<Tier> {
+export async function requireFeatureToFinish(
+  userId: string,
+  feature: Feature,
+  course: CourseRef = null,
+  env: NodeJS.ProcessEnv = process.env
+): Promise<Tier> {
   if (!billingEnabled(env)) return "pro";
-  const tier = await tierFor(userId, env);
-  if (tierHas(tier, feature) || (await hadFeatureRecently(userId, feature, env))) return tier;
-  throw new UpgradeRequiredError(upgradeMessage(feature), feature, FEATURES[feature].minTier, tier);
+  const tier = await tierForCourse(userId, course, env);
+  if (tierHas(tier, feature) || (await hadFeatureRecently(userId, feature, course, env))) return tier;
+  throw await upgradeError(userId, feature, tier, course);
 }
 
-export function upgradeMessage(feature: Feature): string {
+// The plan named in an upgrade message: the course's category plan when the
+// course is known ("IT and cloud Plus"), else the tier ("Plus").
+export function planPhrase(minTier: PaidTier, scope: PlanScope | null): string {
+  if (!scope) return TIER_COPY[minTier].name;
+  if (scope === "all_access") return PLAN_FAMILIES.all_access.name;
+  if (scope === "clinical") return PLAN_FAMILIES.clinical_pro.name;
+  return `${SCOPE_NAME[scope]} ${TIER_COPY[minTier].name}`;
+}
+
+export function upgradeMessage(feature: Feature, scope: PlanScope | null = null): string {
   const f = FEATURES[feature];
-  const tierName = TIER_COPY[f.minTier].name;
-  return `${f.label} comes with ${tierName}. Everything you've done so far is kept, and your lessons, practice and review keep working.`;
+  return `${f.label} comes with ${planPhrase(f.minTier, scope)}. Everything you've done so far is kept, and your lessons, practice and review keep working.`;
 }
 
-export async function hasFeature(userId: string, feature: Feature, env: NodeJS.ProcessEnv = process.env): Promise<boolean> {
+async function upgradeError(userId: string, feature: Feature, tier: Tier, course: CourseRef): Promise<UpgradeRequiredError> {
+  const scope = scopeToOffer(await coursePlace(userId, course));
+  return new UpgradeRequiredError(upgradeMessage(feature, scope), feature, FEATURES[feature].minTier, tier, {}, scope);
+}
+
+export async function hasFeature(userId: string, feature: Feature, course: CourseRef = null, env: NodeJS.ProcessEnv = process.env): Promise<boolean> {
   if (!billingEnabled(env)) return true;
-  return tierHas(await tierFor(userId, env), feature);
+  return tierHas(await tierForCourse(userId, course, env), feature);
 }
 
 // For read-only screens (a lesson's lab card, the unit check status): null
@@ -176,20 +324,27 @@ export async function hasFeature(userId: string, feature: Feature, env: NodeJS.P
 export async function featureLock(
   userId: string,
   feature: Feature,
+  course: CourseRef = null,
   env: NodeJS.ProcessEnv = process.env
-): Promise<{ feature: Feature; requiredTier: PaidTier; message: string } | null> {
-  if (await hasFeature(userId, feature, env)) return null;
-  return { feature, requiredTier: FEATURES[feature].minTier, message: upgradeMessage(feature) };
+): Promise<{ feature: Feature; requiredTier: PaidTier; scope: PlanScope | null; message: string } | null> {
+  if (await hasFeature(userId, feature, course, env)) return null;
+  const scope = scopeToOffer(await coursePlace(userId, course));
+  return { feature, requiredTier: FEATURES[feature].minTier, scope, message: upgradeMessage(feature, scope) };
 }
 
 // Throws UpgradeRequiredError (402) when the learner's tier lacks the
 // feature; returns the tier otherwise.
-export async function requireFeature(userId: string, feature: Feature, env: NodeJS.ProcessEnv = process.env): Promise<Tier> {
+// REQ-170: `course` is the course the action is in; the tier is the
+// learner's tier there. Without one, the highest tier they hold anywhere.
+export async function requireFeature(
+  userId: string,
+  feature: Feature,
+  course: CourseRef = null,
+  env: NodeJS.ProcessEnv = process.env
+): Promise<Tier> {
   if (!billingEnabled(env)) return "pro";
-  const tier = await tierFor(userId, env);
-  if (!tierHas(tier, feature)) {
-    throw new UpgradeRequiredError(upgradeMessage(feature), feature, FEATURES[feature].minTier, tier);
-  }
+  const tier = await tierForCourse(userId, course, env);
+  if (!tierHas(tier, feature)) throw await upgradeError(userId, feature, tier, course);
   return tier;
 }
 
@@ -316,19 +471,35 @@ export async function consumeAllowance(
     const feature = KIND_FEATURE[kind];
     throw new UpgradeRequiredError(upgradeMessage(feature), feature, FEATURES[feature].minTier, t);
   }
+  return recordCountedUse(userId, kind, limit, (used, at) =>
+    new AllowanceReachedError(allowanceMessage(kind, limit, new Date(at), t), {
+      kind,
+      window: ALLOWANCE_DEFAULTS[kind].window,
+      limit,
+      used,
+      remaining: 0,
+      resetsAt: at,
+    })
+  );
+}
+
+// The count itself: one use recorded under a lock so parallel requests can't
+// overrun, or the error `atLimit` builds when `limit` uses are already in
+// the window. REQ-201: lib/ai-access.ts counts a pilot-gated learner's
+// graded answers with this too, with its own (no-upsell) error, in the same
+// allowance_uses rows the plans use.
+export async function recordCountedUse(
+  userId: string,
+  kind: AllowanceKind,
+  limit: number,
+  atLimit: (used: number, resetsAt: string) => Error
+): Promise<AllowanceUse> {
   const id = await withTransaction(async (tx) => {
     await tx.query(`select pg_advisory_xact_lock(hashtext($1))`, [`allowance:${kind}:${userId}`]);
     const { used, resetsAt } = await countUses(async (sql, p) => (await tx.query(sql, p)) as Array<Record<string, unknown>>, userId, kind, limit);
     if (used >= limit) {
       const at = resetsAt ?? new Date(Date.now() + WINDOW_SECONDS[ALLOWANCE_DEFAULTS[kind].window] * 1000).toISOString();
-      throw new AllowanceReachedError(allowanceMessage(kind, limit, new Date(at), t), {
-        kind,
-        window: ALLOWANCE_DEFAULTS[kind].window,
-        limit,
-        used,
-        remaining: 0,
-        resetsAt: at,
-      });
+      throw atLimit(used, at);
     }
     const row = await tx.queryOne<{ id: string }>(`insert into allowance_uses (user_id, kind) values ($1, $2) returning id`, [userId, kind]);
     return row!.id;
@@ -376,24 +547,60 @@ export function aiPausedMessage(resetsAt: Date): string {
   );
 }
 
+// `failClosed` (REQ-202): the monthly spend read used to turn a database error
+// into "spent nothing", so the cap vanished while the database was failing.
+// requireAiAllowance, the gate on coach chat and lesson regenerate, asks for
+// the error to be thrown; the plan summary (a display) keeps the soft answer.
 export async function aiAllowanceStatus(
   userId: string,
   tier?: Tier,
-  env: NodeJS.ProcessEnv = process.env
+  env: NodeJS.ProcessEnv = process.env,
+  opts: { failClosed?: boolean } = {}
 ): Promise<{ paused: boolean; resetsAt: string | null }> {
+  // Owners (OWNER_EMAILS): a monthly safety cap, billing switch on or off.
+  // The access read is skipped when no owner is configured, so other
+  // learners pay for it only on servers that have owners at all.
+  if (ownerEmails(env).size && (await isOwner(userId, env).catch(() => false))) {
+    return monthlyCapStatus(userId, ownerMonthlyCapUsd(env), opts.failClosed);
+  }
   if (!billingEnabled(env)) return { paused: false, resetsAt: null };
   const t = tier ?? (await tierFor(userId, env));
-  const cap = monthlyAiCapUsd(t, env);
+  if (t === "free") return { paused: false, resetsAt: null }; // Free has no chat or regenerate
+  // REQ-170 (Nick, 2026-11-09): an account granted unrestricted access is
+  // capped like the most a paying learner can hold, all-access plus the
+  // clinical add-on. The daily safety ceiling (lib/ai-budget.ts) applies on
+  // top of every cap.
+  const access = await accessFor(userId, env);
+  // REQ-181 (#77) replaces REQ-144's "owners have no monthly cap": an owner
+  // is normally caught by the owner branch at the top; this is the same cap
+  // for an owner the access read found but isOwner did not.
+  if (access?.level === "owner") return monthlyCapStatus(userId, ownerMonthlyCapUsd(env), opts.failClosed);
+  let cap: number | null;
+  if (access) cap = unrestrictedCapUsd(env);
+  else {
+    // REQ-170: the sum of the caps of the plans the learner holds.
+    const rows = await accessRows(userId);
+    cap = rows.length ? learnerCapUsd(rows, env) : monthlyAiCapUsd(t, env);
+  }
   if (cap === null) return { paused: false, resetsAt: null };
-  // REQ-144: no monthly cap; the daily safety ceiling (lib/ai-budget.ts) still applies.
-  if (await isUnrestricted(userId, env)) return { paused: false, resetsAt: null };
-  const spent = await spendSinceUsd(userId, monthStartUtc()).catch(() => 0);
+  return monthlyCapStatus(userId, cap, opts.failClosed);
+}
+
+async function monthlyCapStatus(
+  userId: string,
+  cap: number,
+  failClosed = false
+): Promise<{ paused: boolean; resetsAt: string | null }> {
+  const spent = await spendSinceUsd(userId, monthStartUtc()).catch((err) => {
+    if (failClosed) throw new AiSpendUnavailableError();
+    return 0;
+  });
   return spent >= cap ? { paused: true, resetsAt: nextMonthStartUtc().toISOString() } : { paused: false, resetsAt: null };
 }
 
-// Coach chat and lesson regenerate only. Grading and review never call this.
+// Coach chat and lesson regenerate only: the monthly pause is not applied to grading or review (REQ-202 gives those a daily pool in lib/ai-spend-gate.ts instead).
 export async function requireAiAllowance(userId: string, tier?: Tier, env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  const s = await aiAllowanceStatus(userId, tier, env);
+  const s = await aiAllowanceStatus(userId, tier, env, { failClosed: true });
   if (s.paused) throw new AiAllowancePausedError(aiPausedMessage(new Date(s.resetsAt!)), s.resetsAt!);
 }
 
@@ -423,23 +630,30 @@ export async function freeCourseFor(userId: string, env: NodeJS.ProcessEnv = pro
   return { trackId: row.track_id, title: row.title, chosenBy: row.chosen_by, chosenAt: chosenAt.toISOString(), canSwitchAt };
 }
 
-function courseLockedError(tier: Tier, free: FreeCourse): UpgradeRequiredError {
+function courseLockedError(tier: Tier, free: FreeCourse, scope: PlanScope | null): UpgradeRequiredError {
+  const plan = scope ? `the ${planPhrase("plus", scope).replace(/ Plus$/, "")} plan` : "Plus";
   return new UpgradeRequiredError(
     `Free includes one course at a time, and yours is ${free.title}. You can switch your free course in Settings` +
       (free.canSwitchAt ? " once a week" : "") +
-      ", or study every course with Plus.",
+      (scope ? `, or study this course with ${plan}.` : ", or study every course with Plus."),
     "all_courses",
     "plus",
     tier,
-    { freeCourse: free }
+    { freeCourse: free },
+    scope
   );
 }
 
 // Free learners study one course: the first one they open becomes theirs.
-export async function requireCourseAccess(userId: string, trackId: string, env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  if (!billingEnabled(env)) return;
-  const tier = await tierFor(userId, env);
-  if (tierHas(tier, "all_courses")) return;
+// REQ-170: a course one of the learner's plans covers is open; any other is
+// on Free terms. Returns the learner's tier on this course ('pro' while the
+// switch is off), for the route's feature and allowance checks.
+export async function requireCourseAccess(userId: string, trackId: string, env: NodeJS.ProcessEnv = process.env): Promise<Tier> {
+  if (!billingEnabled(env)) return "pro";
+  if (await isUnrestricted(userId, env)) return "pro";
+  const place = await coursePlace(userId, trackId);
+  const tier = tierAmong(await accessRows(userId), place);
+  if (tierHas(tier, "all_courses")) return tier;
   let free = await freeCourseFor(userId, env);
   if (!free) {
     await query(
@@ -448,16 +662,17 @@ export async function requireCourseAccess(userId: string, trackId: string, env: 
     );
     free = await freeCourseFor(userId, env);
   }
-  if (free && free.trackId !== trackId.toLowerCase()) throw courseLockedError(tier, free);
+  if (free && free.trackId !== trackId.toLowerCase()) throw courseLockedError(tier, free, scopeToOffer(place));
+  return tier;
 }
 
-export async function requireCourseAccessForObjective(userId: string, objectiveId: string, env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  if (!billingEnabled(env)) return;
+export async function requireCourseAccessForObjective(userId: string, objectiveId: string, env: NodeJS.ProcessEnv = process.env): Promise<Tier> {
+  if (!billingEnabled(env)) return "pro";
   const row = await queryOne<{ track_id: string }>(
     `select cu.track_id from objectives o join course_units cu on cu.id = o.unit_id where o.id = $1`,
     [objectiveId]
   );
-  if (row) await requireCourseAccess(userId, row.track_id, env);
+  return row ? requireCourseAccess(userId, row.track_id, env) : tierFor(userId, env);
 }
 
 export class FreeCourseSwitchError extends UserFacingError {
@@ -535,6 +750,27 @@ export async function revokeGrants(userId: string): Promise<number> {
   return rows.length;
 }
 
+// REQ-170: the clinical add-on is sold only to a learner who has all-access
+// (or a plan that already covers every course).
+export async function requirePlanPrerequisite(userId: string, planId: string, env: NodeJS.ProcessEnv = process.env): Promise<void> {
+  if (!billingEnabled(env)) return;
+  const plan = planById(planId, env);
+  const needs = plan ? PLAN_FAMILIES[plan.family].requires : undefined;
+  if (!needs) return;
+  const rows = await accessRows(userId);
+  if (rows.some((r) => r.scope === null || r.scope === needs)) return;
+  throw new UserFacingError(
+    `The ${PLAN_FAMILIES[plan!.family].name} is for learners with ${SCOPE_NAME[needs]}. Clinical Pro covers the clinical courses on its own.`,
+    409
+  );
+}
+
+// Every course is covered: a row with no scope, or all-access with clinical.
+export function coversEverything(rows: Array<Pick<EntitlementRow, "scope">>): boolean {
+  if (rows.some((r) => r.scope === null)) return true;
+  return rows.some((r) => r.scope === "all_access") && rows.some((r) => r.scope === "clinical");
+}
+
 // ---------------------------------------------------------------------------
 // GET /api/billing/me
 // ---------------------------------------------------------------------------
@@ -550,12 +786,17 @@ export async function billingSummary(userId: string, env: NodeJS.ProcessEnv = pr
       tier: "pro" as Tier,
       unrestricted: { level: access.level, grantedBy: access.grant?.grantedByName ?? null, expiresAt: access.grant?.expiresAt ?? null },
       entitlement: null,
+      plans: [],
+      coversEverything: true,
       freeCourse: null,
       allowances: [] as AllowanceStatus[],
-      aiPaused: { paused: false, resetsAt: null },
+      // An owner's monthly safety cap (REQ-181) or a grant's cap (REQ-170),
+      // both from aiAllowanceStatus.
+      aiPaused: await aiAllowanceStatus(userId, "pro", env),
     };
   }
-  const ent = await currentEntitlement(userId);
+  const rows = await accessRows(userId);
+  const ent = rows[0] ?? null;
   const tier: Tier = ent && isTier(ent.tier) ? ent.tier : "free";
   // Decision 6: the plan shown may be a paid period kept after a downgrade;
   // say what comes after it, and whether the subscription itself renews.
@@ -588,6 +829,9 @@ export async function billingSummary(userId: string, env: NodeJS.ProcessEnv = pr
           plan: ent.plan,
           productId: ent.product_id,
           periodEnd: ent.period_end ? new Date(ent.period_end).toISOString() : null,
+          // REQ-170: which category plan (null for a grant: every course)
+          family: ent.family,
+          scope: ent.scope,
           willRenew: renews,
           manage,
           // REQ-124: { tier, from } when this plan was kept to the end of its
@@ -595,7 +839,11 @@ export async function billingSummary(userId: string, env: NodeJS.ProcessEnv = pr
           next,
         }
       : null,
-    freeCourse: tier === "free" ? await freeCourseFor(userId, env) : null,
+    // REQ-170: every plan the learner holds, and whether together they
+    // cover every course (if not, the free course still matters).
+    plans: rows.map((r) => ({ family: r.family, scope: r.scope, tier: r.tier, status: r.status, periodEnd: r.period_end ? new Date(r.period_end).toISOString() : null })),
+    coversEverything: coversEverything(rows),
+    freeCourse: coversEverything(rows) ? null : await freeCourseFor(userId, env),
     allowances,
     aiPaused: await aiAllowanceStatus(userId, tier, env),
   };

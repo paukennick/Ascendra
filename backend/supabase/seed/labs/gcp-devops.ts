@@ -3,14 +3,22 @@ import { source } from "../sources";
 
 // REQ-157: Google Cloud Professional Cloud DevOps Engineer.
 //
-// Aligned to the Professional Cloud DevOps Engineer exam guide (PDF, read
-// 2026-11-07): five sections at 20/25/18/25/12. The current PDF says a new
-// guide applies to exams taken "on or after November 23" (no year, no link
-// found); the repo's outline matches the PDF that is live today, and that
-// note is reported to the lead rather than acted on here. SRE practice is
-// the heart of this exam, so the SLO and error-budget labs show the
-// arithmetic and every number is checked.
-// Density (docs/labs.md, policy "hybrid"): 2 / 3 / 2 / 2 / 2.
+// Aligned to the Professional Cloud DevOps Engineer exam guide live on
+// 2026-11-23 (112326_..._exam_guide_english.pdf, read 2026-11-09): five
+// sections at 18/30/18/22/12. The labs were first written (2026-11-07) to the
+// guide before it (20/25/18/25/12); on 2026-11-09 all 11 were re-checked
+// against the new outline. Nine map to an objective worded the same in the
+// new guide. Two were re-pointed: troubleshoot-failed-rollout, whose old
+// objective ("Troubleshooting and mitigating deployment issues") the new
+// section 2 drops, now sits on 2.3 configuration and secret management -- its
+// root cause, fix and prevention are all a missing Secret Manager secret and
+// its Workload Identity access; and error-budget-policy-case moves to the
+// reworded 3.1 error-budget objective (Cloud Service Mesh, Cloud Run and
+// Cloud Monitoring definitions). SRE practice is the heart of this exam, so
+// the SLO and error-budget labs show the arithmetic and every number is
+// checked.
+// Density (docs/labs.md, policy "hybrid"): 2 / 3 / 2 / 2 / 2, unchanged
+// under the new weights.
 //
 // Figures, verified 2026-11-07:
 //   - Burn-rate alerting for a 30-day SLO: 14.4x over 1 h (2% of budget),
@@ -33,7 +41,8 @@ import { source } from "../sources";
 //     (docs.cloud.google.com/compute/docs/instances/committed-use-discounts-overview).
 //   - Spot VMs up to 91% off, preemption at any time, no SLA
 //     (docs.cloud.google.com/compute/docs/instances/spot).
-//   - Cloud Run concurrency default 80, up to 1,000
+//   - Cloud Run concurrency default 80 in the console, 80 x vCPUs for a new
+//     service created with gcloud or Terraform; up to 1,000
 //     (docs.cloud.google.com/run/docs/about-concurrency).
 // Commands were checked against the installed Google Cloud SDK (570.0.0).
 
@@ -53,7 +62,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
   ],
   labs: [
     // ----------------------------------------------------------------------
-    // Bootstrapping and Maintaining a Google Cloud Organization (20%)
+    // Establishing and Bootstrapping Foundational Infrastructure and Organizational Governance (18%)
     // ----------------------------------------------------------------------
     {
       slug: "iam-and-org-policy-baseline",
@@ -130,7 +139,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
       ],
     },
     // ----------------------------------------------------------------------
-    // Building and Implementing CI/CD Pipelines (25%)
+    // Building, Implementing, and Maintaining CI/CD Pipelines (30%)
     // ----------------------------------------------------------------------
     {
       slug: "deployment-strategy-per-service",
@@ -139,7 +148,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose a deployment strategy and success metrics for three services",
       brief:
-        "Verdant Energy (fictional) is about to ship changes to three systems. (1) The customer billing API on GKE: a performance-sensitive refactor with no behaviour change; the team wants real-traffic evidence before full exposure. (2) The meter-reading batch processor on Compute Engine: it runs nightly against a database, cannot run two versions concurrently against the same data, and must be switchable back within minutes. (3) The web portal on Cloud Run: a redesigned sign-up page that product wants to show to 10% of visitors for two weeks to measure completion rate, and be able to turn off instantly without a deploy. Choose a strategy and define the success and abort metrics for each.",
+        "Verdant Energy (fictional) is about to ship changes to three systems. (1) The customer billing API on GKE: a performance-sensitive refactor with no behavior change; the team wants real-traffic evidence before full exposure. (2) The meter-reading batch processor on Compute Engine: it runs nightly against a database, cannot run two versions concurrently against the same data, and must be switchable back within minutes. (3) The web portal on Cloud Run: a redesigned sign-up page that product wants to show to 10% of visitors for two weeks to measure completion rate, and be able to turn off instantly without a deploy. Choose a strategy and define the success and abort metrics for each.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -163,7 +172,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
             ),
             part(
               "Where the metrics come from",
-              "Names the telemetry sources: Cloud Monitoring metrics per revision/pod version (labelled by version), log-based or custom metrics for business events (sign-up completed, job record count), traces for latency breakdown, and SLO burn rate as the universal abort signal; metrics must be labelled by version to compare.",
+              "Names the telemetry sources: Cloud Monitoring metrics per revision/pod version (labeled by version), log-based or custom metrics for business events (sign-up completed, job record count), traces for latency breakdown, and SLO burn rate as the universal abort signal; metrics must be labeled by version to compare.",
               "Every metric must be split by version: Cloud Run and GKE metrics by revision or pod label, custom or log-based metrics for business events (sign-up completed, records processed) tagged with the version, and the SLO's burn rate as the common abort trigger. Without a version label there is no baseline to compare the canary against."
             ),
           ],
@@ -214,7 +223,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
     },
     {
       slug: "troubleshoot-failed-rollout",
-      objective: "Troubleshooting and mitigating deployment issues",
+      objective: "Managing configuration and secrets: Secret Manager, Certificate Manager, Parameter Manager, Workload Identity Federation",
       kind: "case",
       title: "Troubleshoot and mitigate a failing production rollout",
       brief:
@@ -308,7 +317,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
     },
     {
       slug: "error-budget-policy-case",
-      objective: "Defining error budgets, including Cloud Service Mesh's own definitions",
+      objective: "Defining error budgets: Cloud Service Mesh, Cloud Run and Cloud Monitoring definitions",
       kind: "case",
       title: "Manage an error budget through a bad month",
       brief:
@@ -366,7 +375,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
       ],
     },
     // ----------------------------------------------------------------------
-    // Implementing Observability Practices and Troubleshooting Issues (25%)
+    // Implementing Observability Practices and Troubleshooting Issues (22%)
     // ----------------------------------------------------------------------
     {
       slug: "cut-logging-cost-without-losing-evidence",
@@ -451,7 +460,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
       kind: "build",
       title: "Plan commitments, discounts and network tier for a steady platform",
       brief:
-        "Verdant Energy (fictional) has twelve months of billing data. Compute Engine: a steady floor of 120 vCPUs and 480 GB of memory on E2 machines in europe-west4 that has never dipped in a year; a nightly batch peak of another 200 vCPUs for 4 hours; and a GKE cluster whose node machine types the team expects to change next year. Network: the customer portal serves users in Europe only, through a global external Application Load Balancer, and a bulk data-export job pushes 20 TB a month from one region to a partner's data centre and is not latency-sensitive. Google's current figures: resource-based committed use discounts give up to 55% (up to 70% for memory-optimised machines); compute flexible commitments on E2 give 28% for one year and 46% for three; Spot VMs are up to 91% off with no SLA.",
+        "Verdant Energy (fictional) has twelve months of billing data. Compute Engine: a steady floor of 120 vCPUs and 480 GB of memory on E2 machines in europe-west4 that has never dipped in a year; a nightly batch peak of another 200 vCPUs for 4 hours; and a GKE cluster whose node machine types the team expects to change next year. Network: the customer portal serves users in Europe only, through a global external Application Load Balancer, and a bulk data-export job pushes 20 TB a month from one region to a partner's data center and is not latency-sensitive. Google's current figures: resource-based committed use discounts give up to 55% (up to 70% for memory-optimized machines); compute flexible commitments on E2 give 28% for one year and 46% for three; Spot VMs are up to 91% off with no SLA.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -461,7 +470,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
             part(
               "The steady floor",
               "Covers the 120 vCPU / 480 GB floor with a committed use discount: resource-based (specific family and region) for the deepest discount if the E2 footprint will stay, or compute flexible if the machine types may change; chooses a term (3-year for the deepest discount on a floor that never dipped) and names the trade-off (paid whether used or not, no cancellation).",
-              "Commit the floor. If Verdant is confident it stays on E2 in europe-west4, a resource-based commitment for 120 vCPUs and 480 GB gives the largest discount (Google quotes up to 55% for most series). A 3-year term makes sense for a floor that has not dipped in a year; the trade-off is that the commitment is billed whether or not the capacity is used and cannot be cancelled."
+              "Commit the floor. If Verdant is confident it stays on E2 in europe-west4, a resource-based commitment for 120 vCPUs and 480 GB gives the largest discount (Google quotes up to 55% for most series). A 3-year term makes sense for a floor that has not dipped in a year; the trade-off is that the commitment is billed whether or not the capacity is used and cannot be canceled."
             ),
             part(
               "The GKE cluster with changing machine types",
@@ -488,12 +497,12 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
       kind: "build",
       title: "Cut the cost of three workloads without hurting their SLOs",
       brief:
-        "Verdant Energy (fictional) has three cost findings. (1) A GKE Standard cluster: nodes average 22% CPU utilisation; most Deployments request 2 vCPU and 4 GiB but use 200 millicores and 500 MiB; the cluster has no autoscaling and a nightly report job runs on the same nodes. (2) A Cloud Run service with concurrency 1, CPU always allocated, and 5 minimum instances for an internal tool that gets 200 requests an hour, almost all in office hours. (3) A fleet of 40 n2-standard-8 Compute Engine VMs for a dev environment, running 24/7, with the rightsizing recommender showing most would fit n2-standard-2. Recommend specific changes for each.",
+        "Verdant Energy (fictional) has three cost findings. (1) A GKE Standard cluster: nodes average 22% CPU utilization; most Deployments request 2 vCPU and 4 GiB but use 200 millicores and 500 MiB; the cluster has no autoscaling and a nightly report job runs on the same nodes. (2) A Cloud Run service with concurrency 1, CPU always allocated, and 5 minimum instances for an internal tool that gets 200 requests an hour, almost all in office hours. (3) A fleet of 40 n2-standard-8 Compute Engine VMs for a dev environment, running 24/7, with the rightsizing recommender showing most would fit n2-standard-2. Recommend specific changes for each.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Give the concrete optimisation for each workload and the check that it did not harm reliability.",
+          ask: "Give the concrete optimization for each workload and the check that it did not harm reliability.",
           parts: [
             part(
               "GKE cluster",
@@ -502,13 +511,13 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
             ),
             part(
               "Cloud Run internal tool",
-              "Raises concurrency from 1 toward the default of 80 (the tool is light), removes or reduces minimum instances (200 requests an hour do not justify five warm instances) and switches to request-based CPU allocation (--cpu-throttling) unless background work needs the CPU, checking cold-start latency against what the tool's users tolerate.",
-              "Concurrency 1 forces one instance per request; set it to the default of 80 (or 20 if the tool is heavy) so a handful of instances cover everything. Drop min-instances from 5 to 0 or 1; 200 requests an hour do not need five idle instances. Use request-based CPU allocation (--cpu-throttling) so CPU is billed only while serving, unless the tool does background work after responding. Check: cold-start latency on the first request after idle is acceptable to office users; if not, keep min-instances=1."
+              "Raises concurrency from 1 toward the default (80 per vCPU for a service created with gcloud or Terraform, 80 in the console; the tool is light), removes or reduces minimum instances (200 requests an hour do not justify five warm instances) and switches to request-based CPU allocation (--cpu-throttling) unless background work needs the CPU, checking cold-start latency against what the tool's users tolerate.",
+              "Concurrency 1 forces one instance per request; set it to the default -- 80 for a 1-vCPU service (gcloud and Terraform default to 80 x vCPUs, the console to 80) -- or 20 if the tool is heavy, so a handful of instances cover everything. Drop min-instances from 5 to 0 or 1; 200 requests an hour do not need five idle instances. Use request-based CPU allocation (--cpu-throttling) so CPU is billed only while serving, unless the tool does background work after responding. Check: cold-start latency on the first request after idle is acceptable to office users; if not, keep min-instances=1."
             ),
             part(
               "Compute Engine dev fleet",
-              "Applies the rightsizing recommendations (n2-standard-8 to n2-standard-2 where indicated, a quarter of the vCPUs and memory), schedules the dev VMs to stop outside working hours (about 50 of 168 hours a week), and considers Spot for throwaway dev instances; verifies with developer feedback and CPU/memory utilisation after the change.",
-              "Resize the recommended VMs from n2-standard-8 to n2-standard-2, cutting their compute to a quarter, and put the fleet on a schedule that stops them nights and weekends, so they run roughly 50 of 168 hours. Where a dev box can be recreated from a template, run it as a Spot VM. Check: utilisation after resizing stays below saturation and developers report no slowdowns; keep the recommender on to catch drift."
+              "Applies the rightsizing recommendations (n2-standard-8 to n2-standard-2 where indicated, a quarter of the vCPUs and memory), schedules the dev VMs to stop outside working hours (about 50 of 168 hours a week), and considers Spot for throwaway dev instances; verifies with developer feedback and CPU/memory utilization after the change.",
+              "Resize the recommended VMs from n2-standard-8 to n2-standard-2, cutting their compute to a quarter, and put the fleet on a schedule that stops them nights and weekends, so they run roughly 50 of 168 hours. Where a dev box can be recreated from a template, run it as a Spot VM. Check: utilization after resizing stays below saturation and developers report no slowdowns; keep the recommender on to catch drift."
             ),
             part(
               "The common method",

@@ -3,6 +3,7 @@ import { TextInput, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams } from "expo-router";
+import { friendlyError } from "@/lib/errorMessage";
 import { api, ApiError } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import { pbqDraftKey } from "@/lib/drafts";
@@ -29,10 +30,12 @@ import {
   ErrorBanner,
   H1,
   H2,
+  LiveAnnouncement,
   Loading,
   Muted,
   Screen,
   SectionHeader,
+  VERDICT_LABEL,
   VerdictBadge,
 } from "@/components/ui";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
@@ -118,12 +121,19 @@ export default function PBQScreen() {
       snap.clientAttemptId && snap.sentSignature ? { id: snap.clientAttemptId, signature: snap.sentSignature } : null;
   });
 
-  useEffect(() => {
+  // REQ-217 (FAIL-1060): a failed load said "No units yet" (as if the course
+  // were empty); it now says what happened and offers a retry.
+  const [unitsError, setUnitsError] = useState<string | null>(null);
+  const loadUnits = useCallback(() => {
+    setUnitsError(null);
     api
       .get<{ units: Unit[] }>(`/api/courses/${trackId}`)
       .then((res) => setUnits(res.units))
-      .catch(() => setUnits([]));
+      .catch((err) => setUnitsError(friendlyError(err)));
   }, [trackId]);
+  useEffect(() => {
+    loadUnits();
+  }, [loadUnits]);
 
   const loadHistory = useCallback(() => {
     api
@@ -264,7 +274,8 @@ export default function PBQScreen() {
 
       {!scenario ? (
         <Card elevated>
-          {units === null ? <Loading label="Loading units..." /> : null}
+          {units === null && unitsError ? <ErrorBanner message={unitsError} onRetry={loadUnits} /> : null}
+          {units === null && !unitsError ? <Loading label="Loading units..." /> : null}
           {units && units.length ? (
             <>
               <Muted>Scope the scenario to a unit</Muted>
@@ -362,6 +373,7 @@ export default function PBQScreen() {
             </Card>
           ) : (
             <Card elevated>
+              <LiveAnnouncement message={`${VERDICT_LABEL[result.verdict] ?? result.verdict}. ${result.feedback}`} />
               {firstResult ? (
                 <Collapsible label="Feedback on your first answer">
                   <FeedbackPanel result={firstResult} />

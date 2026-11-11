@@ -1,8 +1,9 @@
 import { queryOne } from "@/lib/db";
 import { lessonCheckFor } from "@/lib/grading-service";
 import { requireAcknowledgementForObjective, requireAcknowledgementForTrack } from "@/lib/auth/requireAcknowledgement";
-import { isUuid, visibleObjective, visibleTrack } from "@/lib/visibility";
+import { isUuid, taughtObjective, visibleTrack } from "@/lib/visibility";
 import { visibleLab } from "@/lib/labs";
+import { SimError, simReportTarget } from "@/lib/sims";
 import { textField } from "@/lib/text-input";
 import { FLAG_REASONS, flagItem, lessonItemId, type FlagReason, type ItemRef, type RecheckResult } from "@/lib/item-quality";
 import type { FactChecker } from "@/lib/fact-check";
@@ -30,6 +31,8 @@ export interface ReportInput {
   ref: ItemRef;
   reason: FlagReason;
   note: string | null;
+  // REQ-199: machine data kept beside the learner's note (item_flags.context).
+  context?: Record<string, unknown> | null;
 }
 
 export async function resolveReport(userId: string, body: Record<string, unknown> | null): Promise<ReportInput> {
@@ -43,12 +46,13 @@ export async function resolveReport(userId: string, body: Record<string, unknown
   const note = n.value.trim() || null;
   const notFound = () => new ReportError(404, "Question not found");
   let ref: ItemRef;
+  let context: Record<string, unknown> | null = null;
   switch (b.kind) {
     case "lesson": {
       if (typeof b.objectiveId !== "string" || (b.stage !== "fade" && b.stage !== "solo")) {
         throw new ReportError(400, "objectiveId and stage ('fade' or 'solo') are required");
       }
-      const o = await visibleObjective(b.objectiveId, userId);
+      const o = await taughtObjective(b.objectiveId, userId);
       if (!o) throw notFound();
       await requireAcknowledgementForObjective(o.id, userId);
       const found = await lessonCheckFor(userId, o.id, b.stage);
@@ -120,10 +124,23 @@ export async function resolveReport(userId: string, body: Record<string, unknown
       ref = { kind: "lab", itemId: lab.id, objectiveId: lab.objective_id, question: lab.title };
       break;
     }
+    case "sim": {
+      // REQ-199: a sim version, through a run this learner owns. The tick and
+      // state hash are what the app showed; they are context, not trusted.
+      try {
+        const t = await simReportTarget(userId, { runId: b.runId, tick: b.tick, stateHash: b.stateHash });
+        ref = t.ref;
+        context = t.context;
+      } catch (err) {
+        if (err instanceof SimError) throw err.status === 400 ? new ReportError(400, err.message) : notFound();
+        throw err;
+      }
+      break;
+    }
     default:
-      throw new ReportError(400, "kind must be one of lesson, review, exam, quiz, comparison, lab");
+      throw new ReportError(400, "kind must be one of lesson, review, exam, quiz, comparison, lab, sim");
   }
-  return { ref, reason: reason as FlagReason, note };
+  return { ref, reason: reason as FlagReason, note, context };
 }
 
 export interface ReportOutcome {
@@ -133,6 +150,6 @@ export interface ReportOutcome {
 }
 
 export async function reportItem(userId: string, input: ReportInput, checker?: FactChecker): Promise<ReportOutcome> {
-  const r = await flagItem(input.ref, { userId, source: "learner", reason: input.reason, note: input.note }, checker);
+  const r = await flagItem(input.ref, { userId, source: "learner", reason: input.reason, note: input.note, context: input.context ?? null }, checker);
   return { recorded: r.recorded, quarantined: r.quarantined, recheck: r.recheck };
 }

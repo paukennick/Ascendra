@@ -1,6 +1,8 @@
+import { consumeGradedAnswer } from "@/lib/ai-access";
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError } from "@/lib/http";
+import { requireStudyNotice } from "@/lib/study-notice";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { visibleObjective } from "@/lib/visibility";
+import { taughtObjective } from "@/lib/visibility";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForObjective } from "@/lib/coach-context";
@@ -14,6 +16,10 @@ import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { consumeAllowance, requireFeature } from "@/lib/entitlements";
 import { LABS_FEATURE } from "@/lib/labs";
+
+// REQ-202: seconds this route may run (questions then grade). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
 
 export const dynamic = "force-dynamic";
 
@@ -39,9 +45,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { id } = await params;
     const body = await req.json().catch(() => null);
     const user = await requireUser(req);
-    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
+    // REQ-205 (FAIL-907): this route sends what the learner wrote to the model, so
+    // the study notice that says so must have been accepted -- checked here, not
+    // only in the app.
+    await requireStudyNotice(user.id);
+    if (!(await taughtObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
-    await requireFeature(user.id, LABS_FEATURE); // REQ-122
+    const tier = await requireFeature(user.id, LABS_FEATURE, { objectiveId: id }); // REQ-122, REQ-170
     const obj = await labObjective(id);
     const prompt = obj?.lab_prompt?.trim();
     if (!obj || !prompt) return notFound("This objective has no lab");
@@ -74,7 +84,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }
 
       const ctx = await coachContextForObjective(id);
-      const questions = await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined);
+      const questions = await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined, user.id);
       const answers = labAnswersFor(body?.answers, questions.length);
       if (typeof answers === "string") return badRequest(answers);
       // REQ-116: refused before the billed model call.
@@ -84,7 +94,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       const answer = labReportAnswer(answers);
       // Nick, 2026-11-07 (decision 9): a lab report counts against the same
       // daily allowance as a graded typed answer; given back if grading fails.
-      const use = await consumeAllowance(user.id, "graded_answer");
+      const use = await consumeGradedAnswer(user.id, () => consumeAllowance(user.id, "graded_answer", tier)); // REQ-201
       let graded: Awaited<ReturnType<typeof gradeFreeResponse>>;
       try {
         graded = await gradeFreeResponse({
@@ -123,7 +133,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return await withGradingClaim(user.id, clientAttemptId, gradeAndRecord, replayStored);
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     if (err instanceof GradingInProgressError) return conflict(err.message);
     return serverError(err);
   }

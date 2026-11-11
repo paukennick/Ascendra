@@ -30,7 +30,7 @@ export const PMIACP_LABS: SeedLabSet = {
       kind: "build",
       title: "Classify the work and fit the practices to it",
       brief:
-        "Bluefin Insurance's digital team has three pieces of work. (1) Renewing 400 expiring TLS certificates using a runbook the team has followed every year. (2) Moving the claims database to a new server; the steps are known to the database specialists but have many interdependencies to analyse. (3) Building a first-ever chatbot for claims questions; nobody knows which questions customers will ask or how they will react to it.",
+        "Bluefin Insurance's digital team has three pieces of work. (1) Renewing 400 expiring TLS certificates using a runbook the team has followed every year. (2) Moving the claims database to a new server; the steps are known to the database specialists but have many interdependencies to analyze. (3) Building a first-ever chatbot for claims questions; nobody knows which questions customers will ask or how they will react to it.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -44,8 +44,8 @@ export const PMIACP_LABS: SeedLabSet = {
             ),
             part(
               "Approach for each",
-              "Matches an approach: (1) follow the standard procedure (sense-categorise-respond; a checklist or predictive plan is fine); (2) expert analysis and planning (sense-analyse-respond); (3) probe-sense-respond with small safe-to-fail experiments in short iterations.",
-              "(1) Follow the runbook with a checklist -- no need for iterations. (2) Have the specialists analyse dependencies and plan the cutover; a plan-based approach suits it. (3) Run short iterations with small experiments (probe, sense, respond): release a narrow chatbot to a few customers and adapt."
+              "Matches an approach: (1) follow the standard procedure (sense-categorize-respond; a checklist or predictive plan is fine); (2) expert analysis and planning (sense-analyze-respond); (3) probe-sense-respond with small safe-to-fail experiments in short iterations.",
+              "(1) Follow the runbook with a checklist -- no need for iterations. (2) Have the specialists analyze dependencies and plan the cutover; a plan-based approach suits it. (3) Run short iterations with small experiments (probe, sense, respond): release a narrow chatbot to a few customers and adapt."
             ),
             part(
               "Agile principle",
@@ -132,7 +132,7 @@ export const PMIACP_LABS: SeedLabSet = {
             part(
               "Communication strategy",
               "Sets a cadence that works across the time difference (for example a stand-up in the overlapping hours, async written updates) and a way to raise new blockers immediately.",
-              "Daily stand-up at the start of the office day, which is mid-afternoon for the remote members and inside both groups' working hours; a team channel where anyone flags a blocker immediately; written stand-up notes for anyone absent."
+              "Daily stand-up at the start of the office day (about 09:00 in the office, about 13:00, early afternoon, for the remote members four hours ahead), inside both groups' working hours; a team channel where anyone flags a blocker immediately; written stand-up notes for anyone absent."
             ),
             part(
               "Stakeholder visibility",
@@ -238,7 +238,7 @@ export const PMIACP_LABS: SeedLabSet = {
       kind: "build",
       title: "Split, size and order the backlog",
       brief:
-        "Heronsgate Garden Centres' online-shop team is refining its backlog. One epic reads: \"As a customer I want a complete loyalty programme.\" Four other items are ready to order, scored on a modified Fibonacci scale: (A) gift cards -- business value 8, time criticality 5, risk reduction/opportunity enablement 3, job size 8; (B) click-and-collect slots for the spring rush -- 5, 8, 2, size 3; (C) a new product search -- 13, 3, 5, size 13; (D) payment provider upgrade before the old API is switched off -- 3, 2, 8, size 5.",
+        "Heronsgate Garden Centers' online-shop team is refining its backlog. One epic reads: \"As a customer I want a complete loyalty program.\" Four other items are ready to order, scored on a modified Fibonacci scale: (A) gift cards -- business value 8, time criticality 5, risk reduction/opportunity enablement 3, job size 8; (B) click-and-collect slots for the spring rush -- 5, 8, 2, size 3; (C) a new product search -- 13, 3, 5, size 13; (D) payment provider upgrade before the old API is switched off -- 3, 2, 8, size 5.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -295,8 +295,8 @@ export const PMIACP_LABS: SeedLabSet = {
             ),
             part(
               "What to do next",
-              "Treats value as not yet fully achieved and proposes evidence-driven next steps (find out why tenants still call, prioritise backlog items that move the outcome metric), rather than declaring success because features shipped.",
-              "Features shipped but the targeted outcomes are only partly achieved. Analyse why people still phone (for example, can't upload photos or don't get a booking confirmation), add the items that address it to the top of the backlog, and re-measure next month."
+              "Treats value as not yet fully achieved and proposes evidence-driven next steps (find out why tenants still call, prioritize backlog items that move the outcome metric), rather than declaring success because features shipped.",
+              "Features shipped but the targeted outcomes are only partly achieved. Analyze why people still phone (for example, can't upload photos or don't get a booking confirmation), add the items that address it to the top of the backlog, and re-measure next month."
             ),
           ],
         },
@@ -352,7 +352,7 @@ export const PMIACP_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Analyse the value stream.",
+          ask: "Analyze the value stream.",
           parts: [
             part(
               "Lead time and value-added time",
@@ -371,7 +371,7 @@ export const PMIACP_LABS: SeedLabSet = {
             ),
             part(
               "Priority for improvement",
-              "Prioritises the biggest or most leverageable delays (for example the 6-day queue for developers, by limiting WIP/pulling work, and the 5-day release wait, by releasing more often with automation) and states the expected effect on lead time.",
+              "Prioritizes the biggest or most leverageable delays (for example the 6-day queue for developers, by limiting WIP/pulling work, and the 5-day release wait, by releasing more often with automation) and states the expected effect on lead time.",
               "First, release more often (automated deployment, weekly or on demand) to remove most of the 5-day wait. Second, limit work in progress so developers pull from analysis as capacity frees up, cutting the 6-day queue. Removing those two waits would take lead time from 24 days toward 13."
             ),
           ],
@@ -405,7 +405,7 @@ export const PMIACP_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "Two weeks after the WIP limits, items pile up in Review: three items sit there waiting for the single content approver, while developers keep being pulled away by urgent requests from councillors sent directly to them.",
+          text: "Two weeks after the WIP limits, items pile up in Review: three items sit there waiting for the single content approver, while developers keep being pulled away by urgent requests from councilors sent directly to them.",
           ask: "How do you improve the flow now?",
           parts: [
             part(
@@ -416,7 +416,7 @@ export const PMIACP_LABS: SeedLabSet = {
             part(
               "Shielding from interruptions",
               "Shields the team by routing urgent requests through one intake point (for example the product owner or an expedite lane with its own limit of one) instead of directly to developers.",
-              "All councillor requests go through the product owner; a genuinely urgent one uses an expedite lane limited to one item at a time, so developers aren't interrupted mid-task."
+              "All councilor requests go through the product owner; a genuinely urgent one uses an expedite lane limited to one item at a time, so developers aren't interrupted mid-task."
             ),
             part(
               "Measure",

@@ -26,7 +26,7 @@ export async function gradeFreeResponse(params: {
   answer: string;
   answerKey?: string;
   ctx?: CoachContext;
-  userId?: string;
+  userId: string | null;
   // Only the eval overrides these.
   model?: string;
   purpose?: AiPurpose;

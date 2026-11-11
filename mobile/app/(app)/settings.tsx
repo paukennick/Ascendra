@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Switch, View } from "react-native";
 import Constants from "expo-constants";
-import { useRouter } from "expo-router";
-import { Card, Divider, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
+import { useFocusEffect, useRouter } from "expo-router";
+import { Card, ChoiceSheet, Divider, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
+import { LOCK_AFTER_OPTIONS, lockAfterLabel } from "@/lib/autoLock";
 import { Alert } from "@/lib/alert";
 import { colors } from "@/lib/theme";
 import { useAuth } from "@/auth/AuthContext";
@@ -11,14 +12,33 @@ import { planSummary } from "@/lib/billing";
 import { accessPlanLine, parseAccess, showAccessSettings } from "@/lib/access";
 import { useDiscounts } from "@/billing/useDiscounts";
 import { settingsRowValue } from "@/lib/discounts";
+import { reminderRowValue, type ReminderPrefs } from "@/lib/reminders";
+import { loadReminderPrefs, remindersSupported } from "@/lib/reminderScheduler";
 
 export default function Settings() {
   const router = useRouter();
-  const { user, biometricAvailable, biometricEnabled, biometricLabel, enableBiometric, disableBiometric } = useAuth();
+  const { user, biometricAvailable, biometricEnabled, biometricLabel, enableBiometric, disableBiometric, lockAfter, setLockAfter } =
+    useAuth();
+  const [lockSheet, setLockSheet] = useState(false);
   const [biometricBusy, setBiometricBusy] = useState(false);
   const { config, me } = useBilling();
   const { status: discounts } = useDiscounts();
   const access = parseAccess(user?.access);
+  // REQ-206: the row used to say "Off unless you turn them on" whatever was saved.
+  const [reminders, setReminders] = useState<ReminderPrefs | null>(null);
+  const userId = user?.id;
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId || !remindersSupported) return;
+      let live = true;
+      loadReminderPrefs(userId)
+        .then((p) => live && setReminders(p))
+        .catch(() => undefined);
+      return () => {
+        live = false;
+      };
+    }, [userId])
+  );
 
   async function toggleBiometric(next: boolean) {
     setBiometricBusy(true);
@@ -29,6 +49,13 @@ export default function Settings() {
       } else {
         await disableBiometric();
       }
+    } catch {
+      // REQ-217 (FAIL-1063): a failed keystore write used to leave the switch
+      // snapping back with nothing said.
+      Alert.alert(
+        next ? "Couldn't turn this on" : "Couldn't turn this off",
+        "The phone's secure storage didn't accept the change. Your sign-in is unchanged. Try again, or sign out and back in first."
+      );
     } finally {
       setBiometricBusy(false);
     }
@@ -67,7 +94,8 @@ export default function Settings() {
           <SectionHeader label="Plan" />
           <Card style={{ gap: 0 }}>
             <ListRow icon="star" label="Current plan" value={planSummary(me) || "Free"} onPress={() => router.push("/plans")} />
-            {me?.tier === "free" ? (
+            {/* REQ-170: the free course matters until the plans cover every course. */}
+            {me && !me.coversEverything ? (
               <>
                 <Divider />
                 <ListRow icon="book" label="Free course" value={me.freeCourse?.title ?? "Not picked yet"} onPress={() => router.push("/settings/free-course")} />
@@ -87,7 +115,11 @@ export default function Settings() {
       {/* REQ-119 (M7): opt-in, kind study reminders. */}
       <SectionHeader label="Study" />
       <Card style={{ gap: 0 }}>
-        <ListRow icon="bell" label="Study reminders" value="Off unless you turn them on" onPress={() => router.push("/settings/reminders")} />
+        <ListRow icon="target" label="Study profile" value="Your goal, exams and study time" onPress={() => router.push("/settings/study-profile")} />
+        <ListRow icon="bell" label="Study reminders" value={reminderRowValue(reminders, remindersSupported)} onPress={() => router.push("/settings/reminders")} />
+        <Divider />
+        {/* REQ-197: exam change notices, exam countdown, weekly digest. */}
+        <ListRow icon="mail" label="Email" value="Exam notices and digest" onPress={() => router.push("/settings/emails")} />
       </Card>
 
       <SectionHeader label="Security" />
@@ -98,6 +130,9 @@ export default function Settings() {
           value={user?.mfaEnabled ? "Enabled" : "Disabled"}
           onPress={() => router.push("/settings/mfa")}
         />
+        {/* REQ-177: how long away before Ascendra locks. */}
+        <Divider />
+        <ListRow icon="lock" label="Lock Ascendra" value={lockAfterLabel(lockAfter)} onPress={() => setLockSheet(true)} />
         {biometricAvailable ? (
           <>
             <Divider />
@@ -106,12 +141,15 @@ export default function Settings() {
               label={`Use ${biometricLabel}`}
               right={
                 biometricBusy ? (
-                  <ActivityIndicator size="small" color={colors.accent} />
+                  <ActivityIndicator size="small" color={colors.accent} accessibilityLabel={`Updating ${biometricLabel}`} />
                 ) : (
                   <Switch
                     value={biometricEnabled}
                     onValueChange={toggleBiometric}
                     trackColor={{ true: colors.accent, false: colors.border }}
+                    accessibilityRole="switch"
+                    accessibilityLabel={`Use ${biometricLabel}`}
+                    accessibilityState={{ checked: biometricEnabled }}
                   />
                 )
               }
@@ -119,6 +157,23 @@ export default function Settings() {
           </>
         ) : null}
       </Card>
+
+      <ChoiceSheet
+        visible={lockSheet}
+        title="Lock Ascendra"
+        message={
+          biometricEnabled
+            ? `After you've been away this long, unlock with ${biometricLabel} or your device passcode.`
+            : "After you've been away this long, enter your password to carry on. Your work stays where you left it."
+        }
+        options={LOCK_AFTER_OPTIONS.map((o) => ({
+          label: lockAfterLabel(o),
+          variant: o === lockAfter ? "primary" : "ghost",
+          selected: o === lockAfter,
+          onPress: () => void setLockAfter(o),
+        }))}
+        onCancel={() => setLockSheet(false)}
+      />
 
       <SectionHeader label="About" />
       <Card>

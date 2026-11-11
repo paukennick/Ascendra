@@ -16,3 +16,15 @@ export function cronAuthFailure(req: Request): NextResponse | null {
   }
   return null;
 }
+
+// REQ-207: true only when CRON_SECRET is set and the request carries it.
+// For routes that answer everyone but show more to the owner (/api/health).
+// Unlike cronAuthFailure there is no response for the "not configured" or
+// "wrong token" cases: the caller just shows the public view.
+export function hasCronToken(req: Request): boolean {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  const given = Buffer.from(req.headers.get("authorization") ?? "");
+  const expected = Buffer.from(`Bearer ${secret}`);
+  return given.length === expected.length && timingSafeEqual(given, expected);
+}

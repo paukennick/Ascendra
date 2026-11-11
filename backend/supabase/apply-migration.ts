@@ -9,14 +9,24 @@
 //   npm run migrate -- --all        # every file not yet recorded, in order
 //   npm run migrate -- --status     # what this database is missing (REQ-128)
 //
-// Every migration in this repo is additive and written with IF NOT EXISTS /
-// ON CONFLICT guards, so re-running one by hand remains safe; the ledger is
-// a convenience, not a lock.
+// FAIL-1162: do NOT re-run a migration (or paste SQL) by hand on the strength
+// of "they are all re-runnable". Many are written to be, but not every one
+// (a backfill or a data fix may not be), and the ledger is the only thing
+// that stops a second run here. Hand-applied SQL also bypasses what keeps the
+// app's least-privilege role complete (migration 071): a new table, view,
+// sequence or function has no grant or policy for `app_runtime`, and a
+// CREATE OR REPLACE FUNCTION drops that function's search_path and EXECUTE
+// grants, so the app (connecting as app_runtime) can fail on it while the
+// owner-run checks look fine. After ANY hand-applied SQL run
+//   select app_runtime_sync();
+// and then `npm run migrate -- --status` (docs/operations-runbook.md,
+// "After SQL applied by hand").
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Pool } from "pg";
 import "./seed/env-local";
+import { lockTimeoutSql, sslOption } from "../lib/db-connection";
 import { checkSchema, formatMasteryDrift, masteryDrift, migrationsToApply } from "../lib/schema-status";
 import { BACKUPS_SQL, formatBackups, formatJit, type BackupRow } from "../lib/maintenance";
 
@@ -28,7 +38,7 @@ async function main() {
   const arg = process.argv[2];
   if (!arg) throw new Error("Pass a migration filename, --all, or --status.");
 
-  const pool = new Pool({ connectionString, ssl: process.env.PGSSLMODE === "disable" ? false : { rejectUnauthorized: false } });
+  const pool = new Pool({ connectionString, ssl: sslOption() });
   try {
     // --status must not write anything, so it only reads the ledger if one
     // already exists; applying creates it.
@@ -95,6 +105,8 @@ async function main() {
       const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf-8");
       const client = await pool.connect();
       try {
+        const lockTimeout = lockTimeoutSql();
+        if (lockTimeout) await client.query(lockTimeout);
         await client.query("begin");
         await client.query(sql);
         await client.query(`insert into schema_migrations (filename) values ($1)`, [file]);

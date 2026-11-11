@@ -1,7 +1,8 @@
+import { LOCKED_TITLE, lockedMessage } from "@/lib/featureLock";
 import React, { useCallback, useEffect, useState } from "react";
 import { TextInput, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
 import type { GradeResult, UnitCheck, UnitCheckStatus } from "@/types";
@@ -11,6 +12,9 @@ import { friendlyError } from "@/lib/errorMessage";
 import { t } from "@/lib/i18n";
 import { UNIT_PART_LABEL, unitCheckPartRows, unitPartA11yLabel, unitPartSummary, type UnitPartState } from "@/lib/unitCheck";
 import { useAnswerDraft } from "@/lib/useAnswerDraft";
+import { useGoBack } from "@/lib/useGoBack";
+import { isNotFound } from "@/lib/notFound";
+import { LoadError } from "@/components/LoadError";
 
 // REQ-108 (research item #1): the unit gate check. One scenario, new to the
 // learner, written from the unit's gate statement and graded per sub-part
@@ -38,7 +42,8 @@ const PART_COLOR: Record<UnitPartState, string> = {
 };
 
 export default function UnitCheckScreen() {
-  const router = useRouter();
+  const goBack = useGoBack("/review");
+  const [notFound, setNotFound] = useState(false);
   const { unitId } = useLocalSearchParams<{ unitId: string }>();
   const [status, setStatus] = useState<UnitCheckStatus | null>(null);
   const [check, setCheck] = useState<UnitCheck | null>(null);
@@ -46,21 +51,28 @@ export default function UnitCheckScreen() {
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // REQ-217 (FAIL-1064): the plan doesn't include unit checks; the server's own words.
+  const [locked, setLocked] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const draft = useAnswerDraft("unitcheck", check?.id ?? null);
 
   const load = useCallback(() => {
     setLoading(true);
     setLoadError(null);
+    setNotFound(false);
     setError(null);
     setResult(null);
     api
       .get<{ status: UnitCheckStatus; check: UnitCheck | null }>(`/api/units/${unitId}/check`)
       .then((res) => {
+        setLocked(lockedMessage(res));
         setStatus(res.status);
         setCheck(res.check);
       })
-      .catch((err) => setLoadError(friendlyError(err)))
+      .catch((err) => {
+        setLoadError(friendlyError(err));
+        setNotFound(isNotFound(err));
+      })
       .finally(() => setLoading(false));
   }, [unitId]);
 
@@ -92,7 +104,7 @@ export default function UnitCheckScreen() {
   return (
     <Screen>
       <Stack.Screen options={{ title: t("unitCheck.title") }} />
-      {loadError ? <ErrorBanner message={loadError} onRetry={load} /> : null}
+      {loadError ? <LoadError message={loadError} notFound={notFound} onRetry={load} /> : null}
       {loading ? <Loading label={t("unitCheck.preparing")} /> : null}
 
       {!loading && status ? (
@@ -102,7 +114,13 @@ export default function UnitCheckScreen() {
         </Card>
       ) : null}
 
-      {!loading && status && !status.eligible ? (
+      {!loading && locked ? (
+        <Card>
+          <EmptyState icon="lock" title={LOCKED_TITLE} message={locked} />
+        </Card>
+      ) : null}
+
+      {!loading && !locked && status && !status.eligible ? (
         <Card>
           <EmptyState
             icon="target"
@@ -178,9 +196,9 @@ export default function UnitCheckScreen() {
               {unscored ? <Muted>{t("unitCheck.unscored")}</Muted> : null}
               <Body>{result.feedback}</Body>
               <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
-                <Button label={t("unitCheck.back")} fullWidth={false} onPress={() => router.back()} />
+                <Button label={t("unitCheck.back")} fullWidth={false} onPress={goBack} />
                 {result.verdict !== "correct" ? (
-                  <Button label={t("unitCheck.later")} variant="ghost" fullWidth={false} onPress={() => router.back()} />
+                  <Button label={t("unitCheck.later")} variant="ghost" fullWidth={false} onPress={goBack} />
                 ) : null}
               </View>
             </View>

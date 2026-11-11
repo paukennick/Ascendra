@@ -1,9 +1,9 @@
-import { query, queryOne } from "@/lib/db";
+import { query } from "@/lib/db";
 import { ok, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { generateTotpSecret, buildTotpProvisioning } from "@/lib/auth/mfa";
 import { encrypt } from "@/lib/auth/crypto";
-import { checkReauth, reauthFailure } from "@/lib/auth/reauth";
+import { checkReauth, hasReauthProof, reauthFailure } from "@/lib/auth/reauth";
 
 export const dynamic = "force-dynamic";
 
@@ -22,14 +22,19 @@ const PENDING_TTL_MINUTES = 15;
 // a backup code, or the password (lib/auth/reauth.ts) -- and the pending
 // secret is marked as started after re-authentication
 // (totp_pending_reauth_at); enable refuses one that wasn't.
+//
+// REQ-203 (FAIL-860): that only covered an account with MFA already on. With
+// it off, a stolen access token could still enroll the attacker's
+// authenticator and then own the second factor, locking the owner out. Now
+// any account that has a way to prove it's them (password, code or Google)
+// must, whether or not MFA is on.
 export async function POST(req: Request) {
   try {
     const user = await requireUser(req);
     const body = await req.json().catch(() => ({}));
-    const row = await queryOne<{ mfa_enabled: boolean }>(`select mfa_enabled from app_users where id = $1`, [user.id]);
 
     let reauthed = false;
-    if (row?.mfa_enabled) {
+    if (await hasReauthProof(user.id)) {
       const r = await checkReauth(user.id, body ?? {});
       if (!r.ok) return reauthFailure(r);
       reauthed = true;

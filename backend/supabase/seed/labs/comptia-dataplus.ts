@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, selectPart } from "./types";
 import { source } from "../sources";
 
 // REQ-160: CompTIA Data+ (DA0-002, V2).
@@ -111,9 +111,9 @@ export const DATAPLUS_LABS: SeedLabSet = {
       slug: "descriptive-statistics-support-tickets",
       objective: "Applying basic statistical techniques to data",
       kind: "build",
-      title: "Summarise a week of support tickets with the right statistics",
+      title: "Summarize a week of support tickets with the right statistics",
       brief:
-        "Thistledown Software's support desk logged these daily ticket counts over eight days: 12, 15, 11, 18, 15, 22, 15, 12. The support manager wants a short statistical summary for the ops review and asks specifically whether the 22-ticket day was unusual. Use the sample standard deviation (divide by n - 1). The previous eight-day period totalled 104 tickets.",
+        "Thistledown Software's support desk logged these daily ticket counts over eight days: 12, 15, 11, 18, 15, 22, 15, 12. The support manager wants a short statistical summary for the ops review and asks specifically whether the 22-ticket day was unusual. Use the sample standard deviation (divide by n - 1). The previous eight-day period totaled 104 tickets.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -125,11 +125,7 @@ export const DATAPLUS_LABS: SeedLabSet = {
               "Mean = 120 / 8 = 15; sorted values 11, 12, 12, 15, 15, 15, 18, 22 give median = (15 + 15) / 2 = 15; mode = 15 (three times).",
               "Sum = 12 + 15 + 11 + 18 + 15 + 22 + 15 + 12 = 120; mean = 120 / 8 = 15 tickets per day. Sorted: 11, 12, 12, 15, 15, 15, 18, 22; median = average of the 4th and 5th values = (15 + 15) / 2 = 15. Mode = 15 (occurs three times). Mean, median and mode agree, so the distribution is roughly symmetric apart from the 22."
             ),
-            part(
-              "Dispersion",
-              "Range = 22 - 11 = 11; deviations from 15 are -3, 0, -4, 3, 0, 7, 0, -3, squared 9, 0, 16, 9, 0, 49, 0, 9 = 92; sample variance = 92 / 7 = 13.14; sample standard deviation = 3.63 (the population figure, 92 / 8 = 11.5, sd 3.39, is acceptable if labelled as such).",
-              "Range = 22 - 11 = 11. Deviations from the mean: -3, 0, -4, 3, 0, 7, 0, -3; squared: 9, 0, 16, 9, 0, 49, 0, 9; sum = 92. Sample variance = 92 / (8 - 1) = 13.14; sample standard deviation = sqrt(13.14) = 3.63 tickets. (Dividing by n gives the population figures 11.5 and 3.39; the brief asks for the sample version because these eight days stand in for the desk's usual behaviour.)"
-            ),
+            numericPart("Sample standard deviation", "Squared deviations from the mean of 15 sum to 92; sample variance = 92 / 7 = 13.14; sample standard deviation = 3.63 tickets. Met within 0.005; within 0.05 is partly there (rounding). The population figure (3.39) is not what the brief asks for.", "Range = 22 - 11 = 11. Deviations from the mean: -3, 0, -4, 3, 0, 7, 0, -3; squared: 9, 0, 16, 9, 0, 49, 0, 9; sum = 92. Sample variance = 92 / (8 - 1) = 13.14; sample standard deviation = sqrt(13.14) = 3.63 tickets. (Dividing by n gives the population figures 11.5 and 3.39; the brief asks for the sample version because these eight days stand in for the desk's usual behavior.)", { answer: 3.63, tolerance: 0.005, partialTolerance: 0.05, unit: "tickets" }),
             part(
               "Was 22 unusual?",
               "Computes the z-score (22 - 15) / 3.63 = 1.93, about two standard deviations above the mean -- notable but not extreme for eight observations; checks whether the day had an identifiable cause; notes with so few data points a formal outlier claim is weak.",
@@ -170,7 +166,7 @@ export const DATAPLUS_LABS: SeedLabSet = {
             part(
               "Analytics team",
               "A technical write-up or notebook with the data sources and date range, the definitions (what counts as a visit, a cancellation), the method (cohort comparison, how the 3.2x and 18% were calculated, sample sizes, confidence/limitations), the code in version control, and a data dictionary; shared in the team's repository with a review.",
-              "A notebook plus README in the analytics repository: data sources and extraction dates; definitions (visit = badge scan; cancellation = membership ended within 365 days of joining; pilot period and gyms); the cohort method and the exact calculations behind 3.2x and 18% with sample sizes and a note on the pilot's limits (two gyms, not randomised); the SQL and code; and a data dictionary. Ask a colleague to review and rerun it. This is what lets the team extend the work to other risk factors."
+              "A notebook plus README in the analytics repository: data sources and extraction dates; definitions (visit = badge scan; cancellation = membership ended within 365 days of joining; pilot period and gyms); the cohort method and the exact calculations behind 3.2x and 18% with sample sizes and a note on the pilot's limits (two gyms, not randomized); the SQL and code; and a data dictionary. Ask a colleague to review and rerun it. This is what lets the team extend the work to other risk factors."
             ),
             part(
               "The rule for all three",
@@ -200,6 +196,7 @@ export const DATAPLUS_LABS: SeedLabSet = {
               "Suspects join fan-out: each customer has two address rows (billing and shipping), so every order matches twice and its amount is summed twice -- consistent with a total exactly 2x the ledger.",
               "The exact doubling points at the join. customer_addresses has two rows per customer (billing and shipping), so each order joins to both and its amount is counted twice. A filter or date problem would give an arbitrary difference; a one-to-many join gives a clean multiple."
             ),
+            selectPart("The line that doubles the total", "Picks the JOIN to customer_addresses: with two address rows per customer, every order matches twice. Picking any other line as well is not met.", "JOIN customer_addresses a ON a.customer_id = o.customer_id -- one order row meets two address rows (billing and shipping), so SUM(o.amount) counts every order twice.", { display: "config", lines: ["SELECT a.region, SUM(o.amount) AS revenue", "FROM orders o", "JOIN customer_addresses a ON a.customer_id = o.customer_id", "WHERE o.order_date >= '2026-10-01' AND o.order_date < '2026-11-01'", "GROUP BY a.region;"], correct: [2] }),
             part(
               "Confirming queries",
               "Compares row counts before and after the join (COUNT(*) of October orders vs COUNT(*) of the joined result), sums orders alone, and checks the address table's cardinality per customer (COUNT by customer_id having > 1, or by address_type).",
@@ -260,18 +257,18 @@ export const DATAPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Questions 1-3",
-              "(1) Line chart for a 24-month trend (time on the x-axis, revenue on y, zero-based or clearly labelled axis); (2) bar chart (or a pie/donut only because there are just five parts summing to 100%, with labels) for share by category; (3) scatter plot of discount % vs units sold, optionally with a trend line, for a relationship across 400 points.",
-              "1) Line chart: 24 months left to right, revenue on the y-axis, one line (two if comparing to the prior period) -- trends and seasonality show immediately. 2) Horizontal bar chart sorted by value, labelled with percentages; a pie or donut is tolerable here because there are only five slices summing to 100%, but bars compare lengths more accurately than angles. 3) Scatter plot with discount percentage on x and units on y, one dot per promotion, with a fitted trend line and the correlation noted; 400 points is exactly what a scatter is for."
+              "(1) Line chart for a 24-month trend (time on the x-axis, revenue on y, zero-based or clearly labeled axis); (2) bar chart (or a pie/donut only because there are just five parts summing to 100%, with labels) for share by category; (3) scatter plot of discount % vs units sold, optionally with a trend line, for a relationship across 400 points.",
+              "1) Line chart: 24 months left to right, revenue on the y-axis, one line (two if comparing to the prior period) -- trends and seasonality show immediately. 2) Horizontal bar chart sorted by value, labeled with percentages; a pie or donut is tolerable here because there are only five slices summing to 100%, but bars compare lengths more accurately than angles. 3) Scatter plot with discount percentage on x and units on y, one dot per promotion, with a fitted trend line and the correlation noted; 400 points is exactly what a scatter is for."
             ),
             part(
               "Questions 4-5",
-              "(4) A choropleth map of US states shaded by return rate (sequential colour scale) or, if the exact ranking matters more than geography, a sorted bar chart; (5) a table with sortable columns, consistent number formatting and conditional highlighting for the SKU look-up.",
-              "4) A filled (choropleth) map of the states with a single-hue sequential colour scale for return rate, so regional patterns jump out; add a sorted bar chart of the top ten beside it, because a map makes exact comparison between two states hard. 5) A table: 40 rows x 3 measures, right-aligned numbers with the same decimals and units, sortable by column, with a subtle colour band on return rates above the target. People looking up a specific SKU want a value, not a shape."
+              "(4) A choropleth map of US states shaded by return rate (sequential color scale) or, if the exact ranking matters more than geography, a sorted bar chart; (5) a table with sortable columns, consistent number formatting and conditional highlighting for the SKU look-up.",
+              "4) A filled (choropleth) map of the states with a single-hue sequential color scale for return rate, so regional patterns jump out; add a sorted bar chart of the top ten beside it, because a map makes exact comparison between two states hard. 5) A table: 40 rows x 3 measures, right-aligned numbers with the same decimals and units, sortable by column, with a subtle color band on return rates above the target. People looking up a specific SKU want a value, not a shape."
             ),
             part(
               "Design rules for the pack",
-              "Consistent colour meaning across charts (one colour per category throughout), bar axes starting at zero, direct labels and clear titles that state the finding, units on axes, colour-blind-safe palette with sufficient contrast, no chartjunk (3D, gradients), minimal gridlines, and the same time range and definitions on every page.",
-              "One palette, with the same colour for the same category on every page; bar and column axes start at zero; titles state the takeaway ('Revenue up 12% year on year') with the metric and period in the subtitle; units and date ranges on every axis; a colour-blind-safe palette and labels that do not rely on colour alone; no 3D, shadows or gradients; light gridlines; and footnotes for definitions and the data refresh date."
+              "Consistent color meaning across charts (one color per category throughout), bar axes starting at zero, direct labels and clear titles that state the finding, units on axes, color-blind-safe palette with sufficient contrast, no chartjunk (3D, gradients), minimal gridlines, and the same time range and definitions on every page.",
+              "One palette, with the same color for the same category on every page; bar and column axes start at zero; titles state the takeaway ('Revenue up 12% year on year') with the metric and period in the subtitle; units and date ranges on every axis; a color-blind-safe palette and labels that do not rely on color alone; no 3D, shadows or gradients; light gridlines; and footnotes for definitions and the data refresh date."
             ),
             part(
               "The colleague's proposals",
@@ -315,7 +312,7 @@ export const DATAPLUS_LABS: SeedLabSet = {
             part(
               "Pipeline fix",
               "Converts provider B's amount to dollars at ingestion (amount / 100.0 cast to DECIMAL(12,2)) in the staging layer so every downstream model sees one unit, documents the unit for each source, and re-runs the quarter.",
-              "In the staging model for provider B: CAST(amount AS DECIMAL(12,2)) / 100 AS amount_usd, with a column comment 'converted from minor units'. Standardise both feeds to amount_usd before the union so no downstream model ever sees mixed units. Add the unit to each source's entry in the data dictionary, reprocess Q3 and compare with the ledger."
+              "In the staging model for provider B: CAST(amount AS DECIMAL(12,2)) / 100 AS amount_usd, with a column comment 'converted from minor units'. Standardize both feeds to amount_usd before the union so no downstream model ever sees mixed units. Add the unit to each source's entry in the data dictionary, reprocess Q3 and compare with the ledger."
             ),
             part(
               "Preventive control",
@@ -365,13 +362,13 @@ export const DATAPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Validity and accuracy",
-              "Validity: 310 malformed emails (310 / 48,750 non-null = 0.64%); state must be in the reference list of 51 codes (uppercase, two letters) -- 'Wa' and 'tx' need standardising, 'N/A' is a null in disguise; date_of_birth must be <= today (12 failures). Accuracy: premium total within 0.1% of the policy system; currently 0.4% low, failing, so reconcile at the policy level.",
-              "Validity -- email format: 310 of 48,750 non-null values (0.64%) fail the pattern; rule: 100% of non-null emails match. State: must be one of the 51 reference codes; standardise case ('Wa' -> WA, 'tx' -> TX) in the load and treat 'N/A' as null (then it counts under completeness). Date of birth: must be on or before today and after a plausible floor (e.g. 1900-01-01); 12 future dates fail. Accuracy -- premiums: table total vs. policy system within 0.1%; currently 0.4% under, FAIL; find the missing or mis-keyed policies by comparing policy ids."
+              "Validity: 310 malformed emails (310 / 48,750 non-null = 0.64%); state must be in the reference list of 51 codes (uppercase, two letters) -- 'Wa' and 'tx' need standardizing, 'N/A' is a null in disguise; date_of_birth must be <= today (12 failures). Accuracy: premium total within 0.1% of the policy system; currently 0.4% low, failing, so reconcile at the policy level.",
+              "Validity -- email format: 310 of 48,750 non-null values (0.64%) fail the pattern; rule: 100% of non-null emails match. State: must be one of the 51 reference codes; standardize case ('Wa' -> WA, 'tx' -> TX) in the load and treat 'N/A' as null (then it counts under completeness). Date of birth: must be on or before today and after a plausible floor (e.g. 1900-01-01); 12 future dates fail. Accuracy -- premiums: table total vs. policy system within 0.1%; currently 0.4% under, FAIL; find the missing or mis-keyed policies by comparing policy ids."
             ),
             part(
               "Timeliness and consistency",
               "Timeliness: load must complete by 06:00; finished 07:40 (100 minutes late), failing; alert on the SLA. Consistency: cross-field rules such as policy start date >= date of birth + 18 years, and the premium sum consistent with the policy system; defines how each is measured.",
-              "Timeliness: the nightly load must finish by 06:00 so the morning reports are current; it finished at 07:40, 100 minutes late -- FAIL, and the reports that ran at 06:30 used yesterday's data. Consistency: internal rules across fields and tables -- a customer's first policy start date must be at least 18 years after date_of_birth; every customer_id in the policies table must exist in customers (referential integrity); and the premium sum per customer must equal the policy system's for that customer, which also localises the 0.4% gap."
+              "Timeliness: the nightly load must finish by 06:00 so the morning reports are current; it finished at 07:40, 100 minutes late -- FAIL, and the reports that ran at 06:30 used yesterday's data. Consistency: internal rules across fields and tables -- a customer's first policy start date must be at least 18 years after date_of_birth; every customer_id in the policies table must exist in customers (referential integrity); and the premium sum per customer must equal the policy system's for that customer, which also localizes the 0.4% gap."
             ),
             part(
               "Monitoring and tests in the pipeline",
@@ -402,7 +399,7 @@ export const DATAPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Protection per field",
-              "Removes name and email and national ID (or replaces the customer with a pseudonymous key via a keyed hash/token held by a separate team); generalises date of birth to age band (or year), address removed and postal code truncated to a coarse area; keeps balance and transaction amounts but rounds/bands balances if needed and strips free-text memo fields; documents each transformation.",
+              "Removes name and email and national ID (or replaces the customer with a pseudonymous key via a keyed hash/token held by a separate team); generalizes date of birth to age band (or year), address removed and postal code truncated to a coarse area; keeps balance and transaction amounts but rounds/bands balances if needed and strips free-text memo fields; documents each transformation.",
               "Drop full name, email and national ID entirely; replace the customer with a pseudonymous customer_key produced by a keyed hash or token vault that only the data-governance team can reverse, so analysts can still follow one customer across tables. Date of birth -> age band (18-24, 25-34, ...). Home address -> removed; postal code -> first part only (a district), which gives location for segmentation without a doorstep. Account balance -> kept, or banded if exact values plus rare combinations could single someone out; transaction history -> amounts, dates and merchant categories kept, free-text descriptions removed. Write each rule into the dataset's documentation."
             ),
             part(

@@ -32,7 +32,7 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Carve a /22 into right-sized subnets with VLSM",
       brief:
-        "Harbor Point Logistics has been allocated 172.16.40.0/22 for its new distribution centre. The network needs: Sales and warehouse floor, 300 hosts; Engineering, 120 hosts; VoIP phones, 60 hosts; Servers, 25 hosts; and two point-to-point links between the core and two edge routers (2 addresses each). Use variable-length subnet masking so that no subnet is larger than it needs to be and the leftover space stays contiguous for growth. A technician also asks which of your subnets the address 172.16.42.140 belongs to.",
+        "Harbor Point Logistics has been allocated 172.16.40.0/22 for its new distribution center. The network needs: Sales and warehouse floor, 300 hosts; Engineering, 120 hosts; VoIP phones, 60 hosts; Servers, 25 hosts; and two point-to-point links between the core and two edge routers (2 addresses each). Use variable-length subnet masking so that no subnet is larger than it needs to be and the leftover space stays contiguous for growth. A technician also asks which of your subnets the address 172.16.42.140 belongs to.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -186,7 +186,7 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Pick the monitoring data that answers each question",
       brief:
-        "Northgate Community College's network team has four open questions this week. (1) The library uplink graphs show 95% utilisation every afternoon; who or what is using it? (2) A core switch port is suspected of dropping frames; the team wants error and discard counts over time and an alert when the port goes down. (3) The student portal intermittently returns a blank page; the web team says 'the network is slow' and the network team says 'the server is slow'. (4) After a suspected phishing incident, security wants to see every login failure, firewall deny and VPN connection for one user across all devices, correlated by time. The team has an SNMP-capable network management system, switches that can export NetFlow/sFlow, a laptop with a protocol analyser, and a syslog collector that is not yet used.",
+        "Northgate Community College's network team has four open questions this week. (1) The library uplink graphs show 95% utilization every afternoon; who or what is using it? (2) A core switch port is suspected of dropping frames; the team wants error and discard counts over time and an alert when the port goes down. (3) The student portal intermittently returns a blank page; the web team says 'the network is slow' and the network team says 'the server is slow'. (4) After a suspected phishing incident, security wants to see every login failure, firewall deny and VPN connection for one user across all devices, correlated by time. The team has an SNMP-capable network management system, switches that can export NetFlow/sFlow, a laptop with a protocol analyser, and a syslog collector that is not yet used.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -195,7 +195,7 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Who is using the uplink",
-              "Chooses flow data (NetFlow/sFlow/IPFIX) exported from the library switch or router to a collector, because flows show top talkers, conversations and applications by port, which utilisation graphs cannot; names top-talker/top-conversation reports as the answer.",
+              "Chooses flow data (NetFlow/sFlow/IPFIX) exported from the library switch or router to a collector, because flows show top talkers, conversations and applications by port, which utilization graphs cannot; names top-talker/top-conversation reports as the answer.",
               "Enable NetFlow (or sFlow) on the library uplink interface and export it to a flow collector. Flow records give source, destination, ports and byte counts per conversation, so the 'top talkers' and 'top applications' reports for 14:00-16:00 show exactly which hosts and which service (for example a video-streaming CDN or a backup job) fill the link. SNMP only says the link is full; it cannot say who."
             ),
             part(
@@ -210,7 +210,7 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Correlating one user's activity",
-              "Chooses log aggregation (syslog/SIEM): sends firewall, VPN, directory/authentication and switch logs to the collector with synchronised time (NTP), then searches/correlates by username and time window; notes retention and access control for the logs.",
+              "Chooses log aggregation (syslog/SIEM): sends firewall, VPN, directory/authentication and switch logs to the collector with synchronized time (NTP), then searches/correlates by username and time window; notes retention and access control for the logs.",
               "Point every device -- firewall denies, VPN concentrator, the directory's authentication logs, Wi-Fi controller -- at the syslog collector (or a SIEM on top of it). With all clocks on NTP, one search for the username across the incident window lays out the sequence: failed logins, the successful VPN connection, the firewall denies that followed. Keep the logs long enough for investigations and restrict who can read them."
             ),
           ],
@@ -250,7 +250,7 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Conference rooms and web filtering",
-              "Uses NAC (802.1X with a guest/unauthenticated VLAN, or MAC-based fallback) so conference-room jacks land visitors in an internet-only guest VLAN, and a content filter (web proxy/DNS filtering by category) with HTTPS inspection or SNI/DNS-based categorisation for the gambling/adult block, applied to staff VLANs.",
+              "Uses NAC (802.1X with a guest/unauthenticated VLAN, or MAC-based fallback) so conference-room jacks land visitors in an internet-only guest VLAN, and a content filter (web proxy/DNS filtering by category) with HTTPS inspection or SNI/DNS-based categorization for the gambling/adult block, applied to staff VLANs.",
               "Conference-room ports: enable 802.1X; devices that cannot authenticate are placed in a guest VLAN that the firewall allows to the internet only, with no route to 10.20.0.0/16 (dynamic VLAN assignment from the RADIUS/NAC server for staff who do authenticate). HR's request: a category-based content filter -- DNS filtering or a web proxy -- blocking the gambling and adult categories for staff VLANs, with the policy and exceptions documented."
             ),
           ],
@@ -288,7 +288,7 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
             part(
               "BYOD",
               "Onboards personal phones through NAC/802.1X (or a dedicated BYOD SSID with device registration/MDM posture check) into a BYOD VLAN that can reach only the secure-messaging service (and internet), not the EHR or clinical VLANs; data stays in the managed app.",
-              "BYOD SSID with 802.1X (user credentials, device registered through the mobile-device-management enrolment) landing in a BYOD VLAN. Firewall: BYOD -> the secure-messaging servers on their ports, and internet; everything else denied. The MDM enforces screen lock and app-level encryption, and devices that fail the posture check are placed in a remediation VLAN."
+              "BYOD SSID with 802.1X (user credentials, device registered through the mobile-device-management enrollment) landing in a BYOD VLAN. Firewall: BYOD -> the secure-messaging servers on their ports, and internet; everything else denied. The MDM enforces screen lock and app-level encryption, and devices that fail the posture check are placed in a remediation VLAN."
             ),
           ],
         },
@@ -312,8 +312,8 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Identify the problem",
-              "Gathers information: questions the user (what exactly fails, since when, error text, what changed on her side), identifies symptoms and scope (one user, wired, neighbours fine), tries to duplicate the problem, and treats it as a single problem rather than assuming a server fault.",
-              "Ask Marta: what does 'cannot open' look like (error message), when did it last work, did anything change on her PC (updates, a setting she changed), does anything else fail (web, email). Confirm scope: her neighbours on the same VLAN can reach FS01, so the server and the VLAN's routing are probably fine; this is likely local to her PC or port. Try to reproduce: open \\\\FS01 and ping it from her PC."
+              "Gathers information: questions the user (what exactly fails, since when, error text, what changed on her side), identifies symptoms and scope (one user, wired, neighbors fine), tries to duplicate the problem, and treats it as a single problem rather than assuming a server fault.",
+              "Ask Marta: what does 'cannot open' look like (error message), when did it last work, did anything change on her PC (updates, a setting she changed), does anything else fail (web, email). Confirm scope: her neighbors on the same VLAN can reach FS01, so the server and the VLAN's routing are probably fine; this is likely local to her PC or port. Try to reproduce: open \\\\FS01 and ping it from her PC."
             ),
             part(
               "First checks",
@@ -329,13 +329,13 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Theory of probable cause",
-              "Identifies the wrong subnet mask: the PC has /16 (255.255.0.0) instead of the VLAN's /24, so it believes 10.20.30.15 is on its own subnet, ARPs for it directly (the FAILED neighbour entry and 'Destination Host Unreachable' from its own address) instead of sending to the gateway; the gateway ping works because .1 is local under either mask.",
+              "Identifies the wrong subnet mask: the PC has /16 (255.255.0.0) instead of the VLAN's /24, so it believes 10.20.30.15 is on its own subnet, ARPs for it directly (the FAILED neighbor entry and 'Destination Host Unreachable' from its own address) instead of sending to the gateway; the gateway ping works because .1 is local under either mask.",
               "The static configuration used mask /16 instead of /24. Under /16 the PC thinks the whole of 10.20.0.0/16 -- including FS01 at 10.20.30.15 -- is on its local segment, so it ARPs for FS01 instead of sending the packet to 10.20.5.1. No one on the Accounting VLAN answers that ARP (ip neigh shows FAILED), hence 'Destination Host Unreachable' from 10.20.5.37 itself. Pinging the gateway works because 10.20.5.1 is on the local wire under either mask. The question-the-obvious clue was 'what changed': the static address."
             ),
             part(
               "Testing the theory",
               "Proposes a reversible test: temporarily set the mask to /24 (or switch back to DHCP) and ping FS01 again; or ping another host outside 10.20.5.0/24 to confirm everything off-subnet fails the same way; if the test fails, re-establish a new theory or escalate.",
-              "Test without committing: ip addr del 10.20.5.37/16 dev eth0; ip addr add 10.20.5.37/24 dev eth0 (or set the adapter back to DHCP) and ping 10.20.30.15 again. A reply confirms the theory. A cross-check: ping any other off-subnet host (e.g. the DNS server) -- under /16 it should fail the same way. If FS01 still does not answer after the fix, the theory is wrong: look at the switch port's VLAN or escalate."
+              "Test without committing: ip addr add 10.20.5.37/24 dev eth0, then ip addr del 10.20.5.37/16 dev eth0 -- in that order, because deleting the /16 first removes the default route with it (or set the adapter back to DHCP) and ping 10.20.30.15 again. A reply confirms the theory. A cross-check: ping any other off-subnet host (e.g. the DNS server) -- under /16 it should fail the same way. If FS01 still does not answer after the fix, the theory is wrong: look at the switch port's VLAN or escalate."
             ),
           ],
         },
@@ -356,7 +356,7 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
             part(
               "Documentation",
               "Records in the ticket the symptom, scope, root cause (static /16 mask set by a non-IT person), the fix, verification, the preventive change and the time; notes lessons learned for the knowledge base.",
-              "Ticket: 'One user unable to reach FS01 and all off-subnet hosts; neighbours unaffected. Cause: PC manually configured 10.20.5.37/16 (should be /24 via DHCP), set to work around a printer address change. Fix: adapter returned to DHCP; printer given a reservation. Verified file share, print, web, DNS at 09:40. Preventive: adapter settings locked by policy; DHCP snooping proposed.' Add a knowledge-base note: 'Destination Host Unreachable from own address plus a FAILED neighbour entry = wrong mask or VLAN'."
+              "Ticket: 'One user unable to reach FS01 and all off-subnet hosts; neighbors unaffected. Cause: PC manually configured 10.20.5.37/16 (should be /24 via DHCP), set to work around a printer address change. Fix: adapter returned to DHCP; printer given a reservation. Verified file share, print, web, DNS at 09:40. Preventive: adapter settings locked by policy; DHCP snooping proposed.' Add a knowledge-base note: 'Destination Host Unreachable from own address plus a FAILED neighbor entry = wrong mask or VLAN'."
             ),
           ],
         },
@@ -378,8 +378,8 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Reading the symptom",
-              "Recognises 169.254.x.x as an APIPA/link-local self-assigned address with no gateway, meaning the client got no DHCP lease -- a DHCP service problem, not a Wi-Fi association or routing problem (the working neighbour has a valid lease and gateway).",
-              "169.254.117.42 with no default gateway is an APIPA (link-local) address: the laptop associated to Wi-Fi fine but no DHCP server answered its DISCOVER, so it made up an address and cannot reach anything beyond the local segment. Wi-Fi and routing are not the fault -- the neighbour with 192.168.50.173 proves the path works for anyone who has a lease. The DHCP service is the suspect."
+              "Recognizes 169.254.x.x as an APIPA/link-local self-assigned address with no gateway, meaning the client got no DHCP lease -- a DHCP service problem, not a Wi-Fi association or routing problem (the working neighbor has a valid lease and gateway).",
+              "169.254.117.42 with no default gateway is an APIPA (link-local) address: the laptop associated to Wi-Fi fine but no DHCP server answered its DISCOVER, so it made up an address and cannot reach anything beyond the local segment. Wi-Fi and routing are not the fault -- the neighbor with 192.168.50.173 proves the path works for anyone who has a lease. The DHCP service is the suspect."
             ),
             part(
               "Next checks",
@@ -411,12 +411,12 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Preventive changes",
-              "Separates visitors onto a guest SSID/VLAN with its own scope (and internet-only access), stops sharing the corporate Wi-Fi password (or moves staff to 802.1X), keeps a short lease on the staff scope, and sizes/monitors the pool (alert at e.g. 80% utilisation); may also consider a /23 or a second scope if staff count grows.",
+              "Separates visitors onto a guest SSID/VLAN with its own scope (and internet-only access), stops sharing the corporate Wi-Fi password (or moves staff to 802.1X), keeps a short lease on the staff scope, and sizes/monitors the pool (alert at e.g. 80% utilization); may also consider a /23 or a second scope if staff count grows.",
               "Create a guest SSID on its own VLAN and subnet with its own DHCP scope and internet-only firewall policy, and rotate the corporate pre-shared key (better: move staff Wi-Fi to 802.1X so there is no shared password to hand out). Keep the staff lease at 8 hours. Add monitoring on the scope with an alert at 80% in use. If staff headcount is heading past 180, plan a /23 for the staff VLAN rather than squeezing the pool."
             ),
             part(
               "Verification and documentation",
-              "Verifies by joining a test device to the guest SSID (gets a guest-range address, internet only, cannot reach 192.168.50.0/24) and checking the staff scope utilisation after the change; documents cause, fix and the new policy for events.",
+              "Verifies by joining a test device to the guest SSID (gets a guest-range address, internet only, cannot reach 192.168.50.0/24) and checking the staff scope utilization after the change; documents cause, fix and the new policy for events.",
               "Join a phone to the new guest SSID: it should receive a guest-subnet address, browse the internet and fail to ping 192.168.50.1. Check the staff scope shows well under 80% with leases only from corporate hostnames. Document: 'Monday outage caused by DHCP scope exhaustion after 89 visitor devices used the corporate SSID over an 8-day lease; fixed by lease cleanup and 8-hour lease; guest SSID and 80% alert added; events must use the guest network.'"
             ),
           ],
@@ -451,18 +451,18 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
         },
         {
           text:
-            "The WAN router's interface shows the outbound side at 97-99% utilisation from 14:00 to 16:05 with output drops climbing, and almost no input errors or CRCs. NetFlow for 14:00-16:00 lists the top conversation as 10.20.30.40 (the branch file server) -> 10.100.8.12 (head-office backup target) on TCP 443, 71 GB; the backup team confirms the daily offsite job was moved to 14:00 last month.",
+            "The WAN router's interface shows the outbound side at 97-99% utilization from 14:00 to 16:05 with output drops climbing, and almost no input errors or CRCs. NetFlow for 14:00-16:00 lists the top conversation as 10.20.30.40 (the branch file server) -> 10.100.8.12 (head-office backup target) on TCP 443, 71 GB; the backup team confirms the daily offsite job was moved to 14:00 last month.",
           ask: "What do you do about it, both immediately and properly?",
           parts: [
             part(
               "Immediate action",
               "Stops the saturation now: reschedules or rate-limits the backup job (move to overnight or cap its bandwidth), and confirms the change with the backup team rather than just killing it.",
-              "Ask the backup team to move the offsite job back to the overnight window (or pause today's run) and, if it must run in the day, cap its throughput so it cannot fill the link. Confirm with interface utilisation dropping below saturation and a ping to 198.51.100.20 returning to single-digit milliseconds with no loss."
+              "Ask the backup team to move the offsite job back to the overnight window (or pause today's run) and, if it must run in the day, cap its throughput so it cannot fill the link. Confirm with interface utilization dropping below saturation and a ping to 198.51.100.20 returning to single-digit milliseconds with no loss."
             ),
             part(
               "Proper fix",
-              "Implements QoS: classify and mark voice (DSCP EF for RTP, CS3/AF31 for SIP signalling) at the phones/voice VLAN, trust the marking at the router, and give voice a strict-priority (low-latency) queue on the WAN interface with bandwidth policed/guaranteed for it, so bulk traffic cannot starve it; considers more WAN bandwidth or traffic shaping to the circuit rate if the link is undersized.",
-              "Configure QoS end to end: mark voice media EF (DSCP 46) and SIP signalling CS3 on the voice VLAN, trust those markings on the router, and apply an outbound policy on the WAN interface with a low-latency (priority) queue for EF sized for the number of concurrent calls, a guaranteed class for signalling, and the backup/bulk class best-effort or shaped. Shape to the circuit's real rate so the queue lives on our router, where the policy applies, not on the provider's. Also forecast whether 100 Mbps is still enough for the branch and plan an upgrade if afternoon demand is legitimate."
+              "Implements QoS: classify and mark voice (DSCP EF for RTP, CS3/AF31 for SIP signaling) at the phones/voice VLAN, trust the marking at the router, and give voice a strict-priority (low-latency) queue on the WAN interface with bandwidth policed/guaranteed for it, so bulk traffic cannot starve it; considers more WAN bandwidth or traffic shaping to the circuit rate if the link is undersized.",
+              "Configure QoS end to end: mark voice media EF (DSCP 46) and SIP signaling CS3 on the voice VLAN, trust those markings on the router, and apply an outbound policy on the WAN interface with a low-latency (priority) queue for EF sized for the number of concurrent calls, a guaranteed class for signaling, and the backup/bulk class best-effort or shaped. Shape to the circuit's real rate so the queue lives on our router, where the policy applies, not on the provider's. Also forecast whether 100 Mbps is still enough for the branch and plan an upgrade if afternoon demand is legitimate."
             ),
           ],
         },
@@ -472,13 +472,13 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Verification",
-              "Repeats the same tests at the same time window (ping/traceroute to the PBX showing low, steady latency and 0% loss), checks interface utilisation and output drops, and confirms with users or the PBX's call-quality metrics (MOS/jitter reports) that calls are clear even while a bulk transfer is forced through.",
+              "Repeats the same tests at the same time window (ping/traceroute to the PBX showing low, steady latency and 0% loss), checks interface utilization and output drops, and confirms with users or the PBX's call-quality metrics (MOS/jitter reports) that calls are clear even while a bulk transfer is forced through.",
               "At 14:30: ping -c 100 198.51.100.20 -> 0% loss, ~5 ms average, mdev under a few ms; traceroute with no jump at hop 3; interface output drops no longer climbing. Then deliberately start a large transfer and repeat the ping -- with QoS the voice class should stay clean while the bulk traffic takes the hit. Check the PBX's call-quality report (jitter, loss, MOS) for the afternoon's calls."
             ),
             part(
               "Early warning",
-              "Sets monitoring: SNMP utilisation and output-drop thresholds on the WAN interface (alert at e.g. 80% for 5 minutes), ongoing flow data to spot new top talkers, and a baseline so afternoon changes stand out; documents the incident and the QoS policy.",
-              "Alert from the NMS when WAN output utilisation exceeds 80% for five minutes or output drops increase, and keep NetFlow so the next unexpected top talker is visible in a minute. Record the baseline (morning and afternoon utilisation, normal RTT to the PBX) to compare against. Document: 'Afternoon voice quality loss caused by WAN congestion from a rescheduled 71 GB backup; fixed by moving the job overnight and adding a priority queue for EF-marked voice; alerts added at 80% utilisation.'"
+              "Sets monitoring: SNMP utilization and output-drop thresholds on the WAN interface (alert at e.g. 80% for 5 minutes), ongoing flow data to spot new top talkers, and a baseline so afternoon changes stand out; documents the incident and the QoS policy.",
+              "Alert from the NMS when WAN output utilization exceeds 80% for five minutes or output drops increase, and keep NetFlow so the next unexpected top talker is visible in a minute. Record the baseline (morning and afternoon utilization, normal RTT to the PBX) to compare against. Document: 'Afternoon voice quality loss caused by WAN congestion from a rescheduled 71 GB backup; fixed by moving the job overnight and adding a priority queue for EF-marked voice; alerts added at 80% utilization.'"
             ),
           ],
         },

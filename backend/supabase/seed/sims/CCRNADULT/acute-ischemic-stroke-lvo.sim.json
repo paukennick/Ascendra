@@ -1,0 +1,1711 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "acute-ischemic-stroke-lvo",
+  "title": "Acute ischemic stroke: an in-hospital stroke alert",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 50,
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              60,
+              110
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "nibp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              180,
+              185,
+              200
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 94
+          },
+          "announce": {
+            "bands": [
+              95,
+              94
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              12,
+              24
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "nihss",
+          "label": "NIHSS",
+          "spokenLabel": "Last NIHSS score",
+          "value": "nihss",
+          "unit": "",
+          "announce": {
+            "bands": [
+              14,
+              20
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(nihssAt)"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Nicardipine {nicRate} mg/h",
+      "banner": [
+        {
+          "when": "postLytic",
+          "text": "Thrombolytic given: neuro checks and BP every 15 min, BP below 180/105."
+        }
+      ]
+    }
+  },
+  "objective": "Stroke, hemorrhagic and ischemic, and neuroendovascular interventions such as coiling and thrombectomy",
+  "secondaryObjectives": [
+    "In ischemic stroke, establish the last-known-well time, score deficits with the NIHSS, and screen for thrombolytic contraindications"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN (Adult) Exam Handbook and Adult CCRN Test Plan, effective 2025-11-12",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "The objective and its secondary objectives are the course's own titles, built from this test plan (backend/supabase/seed/tracks/ccrn.ts, verified there 2026-10-31). Not re-fetched for this scenario."
+    },
+    {
+      "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+      "checkedAt": "2026-11-10",
+      "url": "https://doi.org/10.1161/STR.0000000000000513",
+      "note": "Read 2026-11-10 in a full-text PDF copy (parts of it) and the AHA 'Top things to know' page. Section 3.2: noncontrast imaging to exclude hemorrhage before reperfusion; emergent imaging as rapidly as possible (eg, within 25 minutes). 4.1: SpO2 above 94% if hypoxic. 4.3 rec 5: SBP below 185 and DBP below 110 before IVT; rec 7: below 180/105 for at least 24 h after IVT; intensive lowering to below 140 not recommended after IVT and harmful after successful EVT. 4.5: treat glucose below 60 mg/dL; 140-180 reasonable for persistent hyperglycemia. 4.6.1: determine blood glucose before IVT; avoid delays from additional imaging such as CTA or perfusion; IVT within 4.5 h; tenecteplase 0.25 mg/kg (max 25 mg) or alteplase 0.9 mg/kg. Table 7: BP and neurological checks every 15 min during and after IVT for 2 h, every 30 min for 6 h, then hourly to 24 h. Table 5: stop the thrombolytic for suspected symptomatic hemorrhage. 4.7: EVT for ICA or M1 occlusion within 6 h with NIHSS 6 or more, prestroke mRS 0-1, ASPECTS 3-10."
+    },
+    {
+      "cite": "American Heart Association. Target: Stroke Phase III (quality improvement program brochure)",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.stroke.org/-/media/files/professional/quality-improvement/target-stroke/target-stroke-phase-iii/aha-qi-target-stroke-phase-3-brochure.pdf",
+      "note": "Read 2026-11-10: door-to-needle within 60 minutes in 85% or more of patients treated with IV thrombolytics; secondary goals 45 minutes in 75% and 30 minutes in 50%. An ED door measure: this in-hospital case uses discovery of the deficit as its 'door' (authored analogy)."
+    }
+  ],
+  "brief": {
+    "situation": "10:20 on the progressive care unit. Bed 12, 67-year-old, 72 kg, admitted yesterday with community-acquired pneumonia and improving. At the 09:40 vitals the patient was talking normally and ate breakfast. Now the patient cannot get words out and the right arm will not lift. No anticoagulants; mechanical compression for clot prevention. Two peripheral IVs.",
+    "handover": [
+      "At 09:40: HR 82, BP 148/84, SpO2 96% on 2 L, alert and chatting.",
+      "Now: HR 84, BP 196/106, SpO2 96%. Right arm limp, right face droops, eyes turned to the left."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Assessments examine the patient; orders and calls act. The stroke team, CT and the thrombectomy team take as long as they would in a hospital.",
+      "While you wait on something you can skip ahead; the skip stops early at an alarm or a result.",
+      "Partway through you are asked to write your plan. The case ends when the patient leaves for thrombectomy (or at three hours), then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:20",
+    "tick": "1s",
+    "maxDuration": "3h",
+    "calendar": "clock"
+  },
+  "params": {
+    "weight": {
+      "value": 72,
+      "unit": "kg"
+    },
+    "lkwBefore": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "In-hospital stroke response (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Last seen normal at 09:40, 40 min before the deficit is found at 10:20."
+      }
+    },
+    "teamTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "In-hospital stroke response (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Stroke team at the bedside about 10 min after the alert."
+      }
+    },
+    "ncctTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "In-hospital stroke response (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Transport and noncontrast CT read about 15 min after leaving; the guideline asks for imaging as fast as possible, eg within 25 min."
+      }
+    },
+    "ctaTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "In-hospital stroke response (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "CTA read about 25 min after leaving for CT."
+      }
+    },
+    "evtTeamTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "In-hospital stroke response (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Neurointerventional team and angiography suite ready about 30 min after the call."
+      }
+    },
+    "bpCheck": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "In-hospital stroke response (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Recheck the BP 5 min after an IV antihypertensive."
+      }
+    },
+    "neuroEvery": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.1161/STR.0000000000000513",
+        "note": "Read 2026-11-10 in a full-text PDF copy (parts of it) and the AHA 'Top things to know' page. Section 3.2: noncontrast imaging to exclude hemorrhage before reperfusion; emergent imaging as rapidly as possible (eg, within 25 minutes). 4.1: SpO2 above 94% if hypoxic. 4.3 rec 5: SBP below 185 and DBP below 110 before IVT; rec 7: below 180/105 for at least 24 h after IVT; intensive lowering to below 140 not recommended after IVT and harmful after successful EVT. 4.5: treat glucose below 60 mg/dL; 140-180 reasonable for persistent hyperglycemia. 4.6.1: determine blood glucose before IVT; avoid delays from additional imaging such as CTA or perfusion; IVT within 4.5 h; tenecteplase 0.25 mg/kg (max 25 mg) or alteplase 0.9 mg/kg. Table 7: BP and neurological checks every 15 min during and after IVT for 2 h, every 30 min for 6 h, then hourly to 24 h. Table 5: stop the thrombolytic for suspected symptomatic hemorrhage. 4.7: EVT for ICA or M1 occlusion within 6 h with NIHSS 6 or more, prestroke mRS 0-1, ASPECTS 3-10."
+      }
+    },
+    "bpPreS": {
+      "value": 185,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.1161/STR.0000000000000513",
+        "note": "Read 2026-11-10 in a full-text PDF copy (parts of it) and the AHA 'Top things to know' page. Section 3.2: noncontrast imaging to exclude hemorrhage before reperfusion; emergent imaging as rapidly as possible (eg, within 25 minutes). 4.1: SpO2 above 94% if hypoxic. 4.3 rec 5: SBP below 185 and DBP below 110 before IVT; rec 7: below 180/105 for at least 24 h after IVT; intensive lowering to below 140 not recommended after IVT and harmful after successful EVT. 4.5: treat glucose below 60 mg/dL; 140-180 reasonable for persistent hyperglycemia. 4.6.1: determine blood glucose before IVT; avoid delays from additional imaging such as CTA or perfusion; IVT within 4.5 h; tenecteplase 0.25 mg/kg (max 25 mg) or alteplase 0.9 mg/kg. Table 7: BP and neurological checks every 15 min during and after IVT for 2 h, every 30 min for 6 h, then hourly to 24 h. Table 5: stop the thrombolytic for suspected symptomatic hemorrhage. 4.7: EVT for ICA or M1 occlusion within 6 h with NIHSS 6 or more, prestroke mRS 0-1, ASPECTS 3-10."
+      }
+    },
+    "bpPreD": {
+      "value": 110,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.1161/STR.0000000000000513",
+        "note": "Read 2026-11-10 in a full-text PDF copy (parts of it) and the AHA 'Top things to know' page. Section 3.2: noncontrast imaging to exclude hemorrhage before reperfusion; emergent imaging as rapidly as possible (eg, within 25 minutes). 4.1: SpO2 above 94% if hypoxic. 4.3 rec 5: SBP below 185 and DBP below 110 before IVT; rec 7: below 180/105 for at least 24 h after IVT; intensive lowering to below 140 not recommended after IVT and harmful after successful EVT. 4.5: treat glucose below 60 mg/dL; 140-180 reasonable for persistent hyperglycemia. 4.6.1: determine blood glucose before IVT; avoid delays from additional imaging such as CTA or perfusion; IVT within 4.5 h; tenecteplase 0.25 mg/kg (max 25 mg) or alteplase 0.9 mg/kg. Table 7: BP and neurological checks every 15 min during and after IVT for 2 h, every 30 min for 6 h, then hourly to 24 h. Table 5: stop the thrombolytic for suspected symptomatic hemorrhage. 4.7: EVT for ICA or M1 occlusion within 6 h with NIHSS 6 or more, prestroke mRS 0-1, ASPECTS 3-10."
+      }
+    },
+    "bpPostS": {
+      "value": 180,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.1161/STR.0000000000000513",
+        "note": "Read 2026-11-10 in a full-text PDF copy (parts of it) and the AHA 'Top things to know' page. Section 3.2: noncontrast imaging to exclude hemorrhage before reperfusion; emergent imaging as rapidly as possible (eg, within 25 minutes). 4.1: SpO2 above 94% if hypoxic. 4.3 rec 5: SBP below 185 and DBP below 110 before IVT; rec 7: below 180/105 for at least 24 h after IVT; intensive lowering to below 140 not recommended after IVT and harmful after successful EVT. 4.5: treat glucose below 60 mg/dL; 140-180 reasonable for persistent hyperglycemia. 4.6.1: determine blood glucose before IVT; avoid delays from additional imaging such as CTA or perfusion; IVT within 4.5 h; tenecteplase 0.25 mg/kg (max 25 mg) or alteplase 0.9 mg/kg. Table 7: BP and neurological checks every 15 min during and after IVT for 2 h, every 30 min for 6 h, then hourly to 24 h. Table 5: stop the thrombolytic for suspected symptomatic hemorrhage. 4.7: EVT for ICA or M1 occlusion within 6 h with NIHSS 6 or more, prestroke mRS 0-1, ASPECTS 3-10."
+      }
+    },
+    "bpPostD": {
+      "value": 105,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.1161/STR.0000000000000513",
+        "note": "Read 2026-11-10 in a full-text PDF copy (parts of it) and the AHA 'Top things to know' page. Section 3.2: noncontrast imaging to exclude hemorrhage before reperfusion; emergent imaging as rapidly as possible (eg, within 25 minutes). 4.1: SpO2 above 94% if hypoxic. 4.3 rec 5: SBP below 185 and DBP below 110 before IVT; rec 7: below 180/105 for at least 24 h after IVT; intensive lowering to below 140 not recommended after IVT and harmful after successful EVT. 4.5: treat glucose below 60 mg/dL; 140-180 reasonable for persistent hyperglycemia. 4.6.1: determine blood glucose before IVT; avoid delays from additional imaging such as CTA or perfusion; IVT within 4.5 h; tenecteplase 0.25 mg/kg (max 25 mg) or alteplase 0.9 mg/kg. Table 7: BP and neurological checks every 15 min during and after IVT for 2 h, every 30 min for 6 h, then hourly to 24 h. Table 5: stop the thrombolytic for suspected symptomatic hemorrhage. 4.7: EVT for ICA or M1 occlusion within 6 h with NIHSS 6 or more, prestroke mRS 0-1, ASPECTS 3-10."
+      }
+    },
+    "labDrop": {
+      "value": 18,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Labetalol IV prescribing information",
+        "checkedAt": "2026-11-10",
+        "note": "FLAG: authored effect size for a 10 mg IV dose (onset within about 5 min, effect fading over 2-4 h); the prescribing information was not opened this session."
+      }
+    },
+    "labOnset": {
+      "value": 3,
+      "unit": "min",
+      "source": {
+        "cite": "Labetalol IV prescribing information",
+        "checkedAt": "2026-11-10",
+        "note": "Authored onset time constant; not opened this session."
+      }
+    },
+    "labTau": {
+      "value": 120,
+      "unit": "min",
+      "source": {
+        "cite": "Labetalol IV prescribing information",
+        "checkedAt": "2026-11-10",
+        "note": "Authored decay time constant: a single dose fades over a couple of hours, so BP climbs back after thrombolysis unless it is treated again or an infusion runs. Not opened this session."
+      }
+    },
+    "nicPerMg": {
+      "value": 3.2,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "SBP fall per mg/h of nicardipine. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nicTau": {
+      "value": 8,
+      "unit": "min",
+      "source": {
+        "cite": "Nicardipine IV prescribing information",
+        "checkedAt": "2026-11-10",
+        "note": "Authored onset time constant (titrate every 5-15 min); not opened this session."
+      }
+    },
+    "ichBpSecs": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "FLAG: after thrombolysis, 30 min in total above 180/105 causes a symptomatic hemorrhage in this case. In reality BP above the threshold raises the risk; it does not make a bleed certain. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ichAfterBadLytic": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "FLAG: a thrombolytic given with BP at or above 185/110 bleeds 10 min later in this case. In reality it raises the risk. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reasonAt": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The written question opens when the CTA is read, or at 30 min. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "lkw": {
+      "type": "enum",
+      "values": [
+        "none",
+        "correct",
+        "discovery",
+        "unknown"
+      ],
+      "init": "none"
+    },
+    "lkwAt": {
+      "type": "time",
+      "init": null
+    },
+    "alertAt": {
+      "type": "time",
+      "init": null
+    },
+    "teamHere": {
+      "type": "bool",
+      "init": false
+    },
+    "nihssAt": {
+      "type": "time",
+      "init": null
+    },
+    "glucAt": {
+      "type": "time",
+      "init": null
+    },
+    "screenAt": {
+      "type": "time",
+      "init": null
+    },
+    "ctAt": {
+      "type": "time",
+      "init": null
+    },
+    "ncctAt": {
+      "type": "time",
+      "init": null
+    },
+    "ctaAt": {
+      "type": "time",
+      "init": null
+    },
+    "lyticAt": {
+      "type": "time",
+      "init": null
+    },
+    "lyticSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 300,
+      "unit": "mmHg"
+    },
+    "lyticDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "badLytic": {
+      "type": "bool",
+      "init": false
+    },
+    "evtCallAt": {
+      "type": "time",
+      "init": null
+    },
+    "angioAt": {
+      "type": "time",
+      "init": null
+    },
+    "labN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "labTarget": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100,
+      "unit": "mmHg"
+    },
+    "labEff": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100,
+      "unit": "mmHg"
+    },
+    "nicRate": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 15
+    },
+    "nicEff": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100,
+      "unit": "mmHg"
+    },
+    "highBpSecs": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "ich": {
+      "type": "bool",
+      "init": false
+    },
+    "neuroLastAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200
+    },
+    "neuroSince": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "neuroGapMax": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    }
+  },
+  "history": {
+    "sbpH": {
+      "of": "sbp",
+      "every": "30s",
+      "keep": "10min"
+    }
+  },
+  "derived": {
+    "postLytic": {
+      "expr": "not isNull(lyticAt)"
+    },
+    "sbp": {
+      "expr": "round(clamp(196 + 2 * sin(t / 53) - labEff - nicEff, 90, 240))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(0.54 * sbp + 0.5)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round(dbp + (sbp - dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(84 + (ich ? -18 : 0) + 1.5 * sin(t / 37))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "ich ? 93 : 96",
+      "unit": "%",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "ich ? 12 : 18",
+      "unit": "/min",
+      "precision": 0
+    },
+    "nihss": {
+      "expr": "ich ? 23 : 14",
+      "precision": 0
+    },
+    "bpHigh": {
+      "expr": "sbp > bpPostS or dbp > bpPostD"
+    }
+  },
+  "processes": [
+    {
+      "id": "labetalol",
+      "update": {
+        "labTarget": "labTarget - labTarget * dt / (labTau * 60)",
+        "labEff": "labEff + (labTarget - labEff) * (1 - exp(-dt / (labOnset * 60)))"
+      }
+    },
+    {
+      "id": "nicardipine",
+      "update": {
+        "nicEff": "nicEff + (nicPerMg * nicRate - nicEff) * (1 - exp(-dt / (nicTau * 60)))"
+      }
+    },
+    {
+      "id": "afterLytic",
+      "when": "postLytic and isNull(angioAt)",
+      "update": {
+        "highBpSecs": "highBpSecs + (bpHigh ? dt : 0)",
+        "neuroSince": "neuroSince + dt",
+        "neuroGapMax": "max(neuroGapMax, neuroSince + dt)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the bedside",
+      "clock": "running",
+      "actions": [
+        "neuro",
+        "nihss",
+        "lkw",
+        "glucose",
+        "screen",
+        "alert",
+        "ct",
+        "labetalol",
+        "nicardipine",
+        "lytic",
+        "evt"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "neuro": {
+      "label": "Neuro check (consciousness, pupils, speech, limbs)",
+      "group": "Assess",
+      "effects": [
+        {
+          "set": "neuroLastAt",
+          "to": "t"
+        },
+        {
+          "add": "neuroN",
+          "by": "1"
+        },
+        {
+          "set": "neuroSince",
+          "to": "0"
+        },
+        {
+          "if": "postLytic",
+          "then": [
+            {
+              "schedule": "neuroDueT",
+              "after": "neuroEvery"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "ich",
+              "then": [
+                {
+                  "log": "Now hard to rouse, vomiting, complaining of a sudden severe headache before drifting off. Left pupil larger than the right. Much weaker on the right than before.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Awake. Eyes and head turned to the left; does not look to the right. Right face droops, right arm drifts to the bed, right leg drifts. Expressive aphasia: understands, cannot find words. Pupils equal and reactive.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "nihss": {
+      "label": "Score the NIHSS",
+      "group": "Assess",
+      "available": "isNull(nihssAt) or ich",
+      "why": "Scored already; use the neuro check to follow it.",
+      "effects": [
+        {
+          "if": "isNull(nihssAt)",
+          "then": [
+            {
+              "set": "nihssAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "NIHSS {nihss}: gaze deviation, right facial palsy, right arm and leg weakness, aphasia. A pattern that suggests a large-vessel occlusion in the left middle cerebral artery territory.",
+          "kind": "find"
+        }
+      ]
+    },
+    "lkw": {
+      "label": "Establish the last-known-well time",
+      "group": "Assess",
+      "params": [
+        {
+          "id": "when",
+          "kind": "choice",
+          "label": "Last known well",
+          "options": [
+            {
+              "value": "correct",
+              "label": "09:40: last seen at baseline, at the 09:40 vitals"
+            },
+            {
+              "value": "discovery",
+              "label": "10:20: when the weakness was found"
+            },
+            {
+              "value": "unknown",
+              "label": "Unknown: treat as unknown onset"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "lkw",
+          "to": "when"
+        },
+        {
+          "if": "isNull(lkwAt)",
+          "then": [
+            {
+              "set": "lkwAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "when == \"correct\"",
+              "then": [
+                {
+                  "log": "Last known well 09:40 (chart and the 09:40 vitals: talking normally). 40 minutes ago: well inside 4.5 hours.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "when == \"discovery\"",
+              "then": [
+                {
+                  "log": "Last known well recorded as 10:20.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Onset recorded as unknown.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Point-of-care glucose",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(glucAt)",
+          "then": [
+            {
+              "set": "glucAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Glucose 128 mg/dL. Not hypoglycemia: the deficit is not a glucose mimic.",
+          "kind": "find"
+        }
+      ]
+    },
+    "screen": {
+      "label": "Thrombolysis screen (history, medicines, recent procedures)",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(screenAt)",
+          "then": [
+            {
+              "set": "screenAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "No anticoagulant or antiplatelet at home or here (mechanical compression for clot prevention). No surgery, bleeding, head injury or stroke in the last 3 months. No known bleeding disorder.",
+          "kind": "find"
+        }
+      ]
+    },
+    "alert": {
+      "label": "Call a stroke alert",
+      "group": "Escalate",
+      "available": "isNull(alertAt)",
+      "why": "The alert is already out.",
+      "effects": [
+        {
+          "set": "alertAt",
+          "to": "t"
+        },
+        {
+          "schedule": "teamT",
+          "after": "teamTime"
+        },
+        {
+          "log": "Stroke alert called: stroke team paged, CT notified to hold the scanner."
+        }
+      ]
+    },
+    "ct": {
+      "label": "To CT: noncontrast CT and CTA",
+      "group": "Orders",
+      "available": "not isNull(alertAt) and isNull(ctAt)",
+      "why": "Call the stroke alert first (or the scans are done).",
+      "effects": [
+        {
+          "set": "ctAt",
+          "to": "t"
+        },
+        {
+          "schedule": "ncctT",
+          "after": "ncctTime"
+        },
+        {
+          "schedule": "ctaT",
+          "after": "ctaTime"
+        },
+        {
+          "log": "On the way to CT with the monitor: noncontrast CT first, then CT angiography of the head and neck."
+        }
+      ]
+    },
+    "labetalol": {
+      "label": "Labetalol 10 mg IV",
+      "group": "Orders",
+      "available": "labN < 3",
+      "why": "Three doses already: switch to an infusion.",
+      "effects": [
+        {
+          "add": "labN",
+          "by": "1"
+        },
+        {
+          "add": "labTarget",
+          "by": "labDrop"
+        },
+        {
+          "schedule": "bpCheckT",
+          "after": "bpCheck"
+        },
+        {
+          "log": "Labetalol 10 mg IV over 2 min. Recheck in 5 min."
+        }
+      ]
+    },
+    "nicardipine": {
+      "label": "Nicardipine infusion",
+      "group": "Drips",
+      "params": [
+        {
+          "id": "rate",
+          "kind": "choice",
+          "label": "Rate",
+          "options": [
+            {
+              "value": "5",
+              "label": "5 mg/h"
+            },
+            {
+              "value": "7.5",
+              "label": "7.5 mg/h"
+            },
+            {
+              "value": "10",
+              "label": "10 mg/h"
+            },
+            {
+              "value": "0",
+              "label": "Stop"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "nicRate",
+          "to": "num(rate)"
+        },
+        {
+          "schedule": "bpCheckT",
+          "after": "bpCheck"
+        },
+        {
+          "if": "num(rate) == 0",
+          "then": [
+            {
+              "log": "Nicardipine stopped."
+            }
+          ],
+          "else": [
+            {
+              "log": "Nicardipine at {num(rate)} mg/h. Recheck in 5 min."
+            }
+          ]
+        }
+      ]
+    },
+    "lytic": {
+      "label": "Tenecteplase 0.25 mg/kg IV bolus (stroke team's order)",
+      "group": "Orders",
+      "available": "teamHere and not isNull(ncctAt) and isNull(lyticAt)",
+      "why": "Needs the stroke team at the bedside and the noncontrast CT read (or it is given).",
+      "effects": [
+        {
+          "set": "lyticAt",
+          "to": "t"
+        },
+        {
+          "set": "lyticSbp",
+          "to": "sbp"
+        },
+        {
+          "set": "lyticDbp",
+          "to": "dbp"
+        },
+        {
+          "set": "neuroSince",
+          "to": "0"
+        },
+        {
+          "schedule": "neuroDueT",
+          "after": "neuroEvery"
+        },
+        {
+          "if": "sbp >= bpPreS or dbp >= bpPreD",
+          "then": [
+            {
+              "set": "badLytic",
+              "to": "true"
+            },
+            {
+              "schedule": "ichT",
+              "after": "ichAfterBadLytic"
+            },
+            {
+              "log": "Tenecteplase 18 mg IV bolus given with BP {sbp}/{dbp}, at or above 185/110.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "Tenecteplase 18 mg (0.25 mg/kg) IV bolus given with BP {sbp}/{dbp}. Neuro checks and BP every 15 min; keep BP below 180/105.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    "evt": {
+      "label": "Call the thrombectomy team",
+      "group": "Escalate",
+      "available": "not isNull(ctaAt) and isNull(evtCallAt)",
+      "why": "Needs the CTA result (or the team is already called).",
+      "effects": [
+        {
+          "set": "evtCallAt",
+          "to": "t"
+        },
+        {
+          "schedule": "angioT",
+          "after": "evtTeamTime"
+        },
+        {
+          "log": "Neurointerventional team called for a left M1 occlusion: suite and team ready in about 30 min."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "teamT": {
+      "label": "the stroke team arriving",
+      "wait": {
+        "skipLabel": "the stroke team (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "In-hospital stroke response (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Stroke team at the bedside about 10 min after the alert."
+      },
+      "effects": [
+        {
+          "set": "teamHere",
+          "to": "true"
+        },
+        {
+          "log": "Stroke team at the bedside.",
+          "kind": "good"
+        }
+      ]
+    },
+    "ncctT": {
+      "label": "the noncontrast CT read",
+      "wait": {
+        "skipLabel": "the noncontrast CT read (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "In-hospital stroke response (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Transport and noncontrast CT read about 15 min after leaving; the guideline asks for imaging as fast as possible, eg within 25 min."
+      },
+      "effects": [
+        {
+          "set": "ncctAt",
+          "to": "t"
+        },
+        {
+          "log": "Noncontrast CT: no hemorrhage, no established large infarct. Thrombolysis is not ruled out by the scan.",
+          "kind": "find"
+        }
+      ]
+    },
+    "ctaT": {
+      "label": "the CTA read",
+      "wait": {
+        "skipLabel": "the CTA read (about 25 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "In-hospital stroke response (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "CTA read about 25 min after leaving for CT."
+      },
+      "effects": [
+        {
+          "set": "ctaAt",
+          "to": "t"
+        },
+        {
+          "log": "CTA: occlusion of the left middle cerebral artery, M1 segment. A large-vessel occlusion.",
+          "kind": "find"
+        }
+      ]
+    },
+    "bpCheckT": {
+      "label": "the BP recheck",
+      "wait": {
+        "skipLabel": "the 5-minute BP recheck"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "In-hospital stroke response (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Recheck the BP 5 min after an IV antihypertensive."
+      },
+      "effects": [
+        {
+          "log": "BP {sbp}/{dbp}.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "neuroDueT": {
+      "label": "the 15-minute neuro and BP check",
+      "wait": {
+        "skipLabel": "the next 15-minute neuro check"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.1161/STR.0000000000000513",
+        "note": "Read 2026-11-10 in a full-text PDF copy (parts of it) and the AHA 'Top things to know' page. Section 3.2: noncontrast imaging to exclude hemorrhage before reperfusion; emergent imaging as rapidly as possible (eg, within 25 minutes). 4.1: SpO2 above 94% if hypoxic. 4.3 rec 5: SBP below 185 and DBP below 110 before IVT; rec 7: below 180/105 for at least 24 h after IVT; intensive lowering to below 140 not recommended after IVT and harmful after successful EVT. 4.5: treat glucose below 60 mg/dL; 140-180 reasonable for persistent hyperglycemia. 4.6.1: determine blood glucose before IVT; avoid delays from additional imaging such as CTA or perfusion; IVT within 4.5 h; tenecteplase 0.25 mg/kg (max 25 mg) or alteplase 0.9 mg/kg. Table 7: BP and neurological checks every 15 min during and after IVT for 2 h, every 30 min for 6 h, then hourly to 24 h. Table 5: stop the thrombolytic for suspected symptomatic hemorrhage. 4.7: EVT for ICA or M1 occlusion within 6 h with NIHSS 6 or more, prestroke mRS 0-1, ASPECTS 3-10."
+      },
+      "effects": [
+        {
+          "log": "15-minute neuro check due. BP {sbp}/{dbp}.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "angioT": {
+      "label": "the angiography suite",
+      "wait": {
+        "skipLabel": "the thrombectomy team (about 30 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "In-hospital stroke response (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Neurointerventional team and angiography suite ready about 30 min after the call."
+      },
+      "effects": [
+        {
+          "set": "angioAt",
+          "to": "t"
+        },
+        {
+          "log": "Angiography suite ready. To thrombectomy.",
+          "kind": "good"
+        }
+      ]
+    },
+    "ichT": {
+      "label": "bleed",
+      "instances": "one",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "FLAG: a thrombolytic given with BP at or above 185/110 bleeds 10 min later in this case. In reality it raises the risk. Simplified teaching model written for exam practice; not a validated physiological model."
+      },
+      "effects": [
+        {
+          "set": "ich",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "bpAfterLytic",
+      "when": "postLytic and bpHigh",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: BP {sbp}/{dbp}, above 180/105 after thrombolysis.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "bpBleed",
+      "when": "highBpSecs >= ichBpSecs",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "ich",
+          "to": "true"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "plan": {
+      "trigger": "not isNull(ctaAt) or t >= reasonAt",
+      "question": "Put it together: is this patient a candidate for thrombolysis, for thrombectomy, or both? What has to be true first, and what do you watch afterwards?",
+      "parts": [
+        {
+          "label": "Candidacy",
+          "criteria": "Acute ischemic stroke with a disabling deficit, last known well 09:40 (inside 4.5 h), glucose normal, no hemorrhage on noncontrast CT: a thrombolysis candidate. The CTA shows an M1 occlusion with NIHSS 14: also a thrombectomy candidate. Thrombolysis should not wait for the CTA or for the thrombectomy team.",
+          "modelAnswer": "Thrombolysis and thrombectomy. Last known well was 09:40, not 10:20 when it was found; glucose is 128; the noncontrast CT shows no bleed; the screen finds no contraindication. NIHSS 14 with a left M1 occlusion on CTA makes this a thrombectomy case too. Give the thrombolytic as soon as the BP allows, without waiting for the CTA, and call the thrombectomy team as soon as the CTA is read."
+        },
+        {
+          "label": "Before and after",
+          "criteria": "BP below 185/110 before the thrombolytic (treat it first), then below 180/105 for 24 h; neuro checks and BP every 15 min for the first 2 h; any worsening, headache or vomiting means a possible hemorrhage: stop and get a CT.",
+          "modelAnswer": "Bring the BP below 185/110 first (labetalol or nicardipine), then keep it below 180/105 for 24 hours. Neuro checks and BP every 15 minutes for 2 hours, every 30 minutes for 6 hours, then hourly. A new headache, vomiting or a worse neuro check means a possible bleed: stop the thrombolytic if it is still running and get an urgent CT."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {
+      "lyticWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "American Heart Association. Target: Stroke Phase III (quality improvement program brochure)",
+          "checkedAt": "2026-11-10",
+          "url": "https://www.stroke.org/-/media/files/professional/quality-improvement/target-stroke/target-stroke-phase-iii/aha-qi-target-stroke-phase-3-brochure.pdf",
+          "note": "Read 2026-11-10: door-to-needle within 60 minutes in 85% or more of patients treated with IV thrombolytics; secondary goals 45 minutes in 75% and 30 minutes in 50%. An ED door measure: this in-hospital case uses discovery of the deficit as its 'door' (authored analogy)."
+        }
+      },
+      "evtWindow": {
+        "value": 900,
+        "source": {
+          "cite": "In-hospital stroke response (authored estimate)",
+          "checkedAt": "2026-11-10",
+          "note": "Thrombectomy team called within 15 min of the CTA read (authored)."
+        }
+      },
+      "alertWindow": {
+        "value": 300,
+        "source": {
+          "cite": "In-hospital stroke response (authored estimate)",
+          "checkedAt": "2026-11-10",
+          "note": "Stroke alert within 5 min of finding the deficit (authored)."
+        }
+      },
+      "neuroGap": {
+        "value": 1200,
+        "source": {
+          "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+          "checkedAt": "2026-11-10",
+          "url": "https://doi.org/10.1161/STR.0000000000000513",
+          "note": "Table 7: every 15 min for 2 h after IVT; 5 min of grace added for the case."
+        }
+      },
+      "highBpLimit": {
+        "value": 300,
+        "source": {
+          "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+          "checkedAt": "2026-11-10",
+          "url": "https://doi.org/10.1161/STR.0000000000000513",
+          "note": "Authored: no more than 5 min in total above 180/105 after IVT counts as keeping it below."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "t >= 10800 and isNull(angioAt)",
+      "class": "harm",
+      "rationale": "A large-vessel occlusion that never reaches thrombectomy loses brain every minute; three safe hours without it is harm, not a holding pattern.",
+      "source": {
+        "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.1161/STR.0000000000000513",
+        "note": "EVT is recommended (COR 1) for ICA or M1 occlusion within 6 h with NIHSS 6 or more. The class choice is the author's, per docs/sims.md 9.2."
+      }
+    }
+  },
+  "endings": {
+    "bleed": {
+      "label": "Symptomatic brain hemorrhage",
+      "class": "harm",
+      "when": "ich",
+      "terminal": true,
+      "narrative": "Sudden headache, vomiting, a falling level of consciousness and a blown left pupil: a symptomatic intracranial hemorrhage after thrombolysis. The team stops everything and rushes to CT."
+    },
+    "toThrombectomy": {
+      "label": "To thrombectomy, on time",
+      "class": "target",
+      "when": "not isNull(angioAt) and not badLytic and not isNull(lyticAt) and timeAt(lyticAt) <= lyticWindow and not isNull(glucAt) and timeAt(glucAt) <= timeAt(lyticAt) and lkw == \"correct\" and not isNull(alertAt) and timeAt(alertAt) <= alertWindow and timeAt(evtCallAt) <= timeAt(ctaAt) + evtWindow and neuroGapMax <= neuroGap and highBpSecs <= highBpLimit",
+      "terminal": true,
+      "narrative": "Thrombolysis went in fast with the BP under control, and the thrombectomy team was called as soon as the CTA showed the occlusion. The patient leaves for the angiography suite with the best chance of saving the threatened brain."
+    },
+    "toThrombectomyLate": {
+      "label": "To thrombectomy, by a slower route",
+      "class": "recovered",
+      "when": "not isNull(angioAt) and not badLytic",
+      "terminal": true,
+      "narrative": "The patient reaches thrombectomy, but something cost time or safety: thrombolysis late or missed, the thrombectomy call late, a gap in the checks, or the BP above the limit after thrombolysis."
+    },
+    "time_up": {
+      "label": "No thrombectomy",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Three hours after the deficit was found the occluded artery has not been opened. The infarct has grown."
+    }
+  },
+  "endingOrder": [
+    "bleed",
+    "toThrombectomy",
+    "toThrombectomyLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "lastKnownWell",
+        "label": "Last known well set correctly (not the discovery time)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "lkw == \"correct\"",
+            "score": "met",
+            "why": "Last known well 09:40."
+          },
+          {
+            "when": "lkw == \"unknown\"",
+            "score": "partial",
+            "why": "Recorded as unknown, though the chart showed the patient at baseline at 09:40."
+          },
+          {
+            "when": "lkw == \"discovery\"",
+            "score": "missed",
+            "why": "The discovery time (10:20) was recorded as the last-known-well time; the clock starts when the patient was last seen normal."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The last-known-well time was never established."
+          }
+        ]
+      },
+      {
+        "id": "glucose",
+        "label": "Glucose checked before thrombolysis",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(glucAt)",
+            "score": "missed",
+            "why": "Glucose was never checked: hypoglycemia can mimic a stroke."
+          },
+          {
+            "when": "not isNull(lyticAt) and timeAt(glucAt) > timeAt(lyticAt)",
+            "score": "missed",
+            "why": "Glucose checked only after the thrombolytic."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Glucose checked at {timeAt(glucAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "alert",
+        "label": "Stroke alert called at once",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(alertAt)",
+            "score": "missed",
+            "why": "No stroke alert."
+          },
+          {
+            "when": "timeAt(alertAt) <= alertWindow",
+            "score": "met",
+            "why": "Called at {timeAt(alertAt)|clock}."
+          },
+          {
+            "when": "timeAt(alertAt) <= 900",
+            "score": "partial",
+            "why": "Called at {timeAt(alertAt)|clock}, more than 5 min after finding the deficit."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Called at {timeAt(alertAt)|clock}, more than 15 min after finding the deficit."
+          }
+        ]
+      },
+      {
+        "id": "nihss",
+        "label": "NIHSS scored early",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(nihssAt)",
+            "score": "missed",
+            "why": "No NIHSS."
+          },
+          {
+            "when": "timeAt(nihssAt) <= 1200",
+            "score": "met",
+            "why": "Scored at {timeAt(nihssAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Scored at {timeAt(nihssAt)|clock}, more than 20 min in."
+          }
+        ]
+      },
+      {
+        "id": "screen",
+        "label": "Screened for thrombolysis contraindications first",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(screenAt)",
+            "score": "missed",
+            "why": "No contraindication screen."
+          },
+          {
+            "when": "not isNull(lyticAt) and timeAt(screenAt) > timeAt(lyticAt)",
+            "score": "missed",
+            "why": "Screened only after the thrombolytic."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Screened at {timeAt(screenAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "bpBefore",
+        "label": "BP below 185/110 before thrombolysis",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(lyticAt)",
+            "score": "na",
+            "why": "No thrombolytic was given."
+          },
+          {
+            "when": "not badLytic",
+            "score": "met",
+            "why": "Given with BP {lyticSbp}/{lyticDbp}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Given with BP {lyticSbp}/{lyticDbp}, at or above 185/110: a contraindication."
+          }
+        ]
+      },
+      {
+        "id": "lyticTime",
+        "label": "Thrombolysis within 60 min of finding the deficit",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(lyticAt)",
+            "score": "missed",
+            "why": "No thrombolytic, though the patient was eligible."
+          },
+          {
+            "when": "timeAt(lyticAt) <= lyticWindow",
+            "score": "met",
+            "why": "Given at {timeAt(lyticAt)|clock}, {timeAt(lyticAt)|duration} after the deficit was found."
+          },
+          {
+            "when": "timeAt(lyticAt) <= 5400",
+            "score": "partial",
+            "why": "Given at {timeAt(lyticAt)|clock}, {timeAt(lyticAt)|duration} after the deficit was found (goal: 60 min or less)."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Given more than 90 min after the deficit was found."
+          }
+        ]
+      },
+      {
+        "id": "thrombectomy",
+        "label": "Thrombectomy team called as soon as the CTA showed the occlusion",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(ctaAt)",
+            "score": "missed",
+            "why": "No CTA, so the occlusion was never found."
+          },
+          {
+            "when": "isNull(evtCallAt)",
+            "score": "missed",
+            "why": "The thrombectomy team was never called."
+          },
+          {
+            "when": "timeAt(evtCallAt) <= timeAt(ctaAt) + evtWindow",
+            "score": "met",
+            "why": "Called at {timeAt(evtCallAt)|clock}."
+          },
+          {
+            "when": "timeAt(evtCallAt) <= timeAt(ctaAt) + 1800",
+            "score": "partial",
+            "why": "Called at {timeAt(evtCallAt)|clock}, more than 15 min after the CTA read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Called at {timeAt(evtCallAt)|clock}, more than 30 min after the CTA read."
+          }
+        ]
+      },
+      {
+        "id": "bpAfter",
+        "label": "BP kept below 180/105 after thrombolysis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(lyticAt)",
+            "score": "na",
+            "why": "No thrombolytic was given."
+          },
+          {
+            "when": "highBpSecs <= highBpLimit",
+            "score": "met",
+            "why": "{round(highBpSecs / 60)} min above 180/105."
+          },
+          {
+            "when": "highBpSecs < ichBpSecs",
+            "score": "partial",
+            "why": "{round(highBpSecs / 60)} min above 180/105."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{round(highBpSecs / 60)} min above 180/105."
+          }
+        ]
+      },
+      {
+        "id": "neuroChecks",
+        "label": "Neuro checks every 15 min after thrombolysis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(lyticAt)",
+            "score": "na",
+            "why": "No thrombolytic was given."
+          },
+          {
+            "when": "neuroGapMax <= neuroGap",
+            "score": "met",
+            "why": "Longest gap {round(neuroGapMax / 60)} min."
+          },
+          {
+            "when": "neuroGapMax <= 1800",
+            "score": "partial",
+            "why": "Longest gap {round(neuroGapMax / 60)} min (every 15 min for the first 2 h)."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Longest gap {round(neuroGapMax / 60)} min."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: candidacy, and what must be true before and after",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toAlert",
+        "label": "Found to stroke alert",
+        "value": "isNull(alertAt) ? -1 : timeAt(alertAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "toLytic",
+        "label": "Found to thrombolysis",
+        "value": "isNull(lyticAt) ? -1 : timeAt(lyticAt)",
+        "format": "duration",
+        "expert": "about 30 min"
+      },
+      {
+        "id": "lkwToLytic",
+        "label": "Last known well to thrombolysis",
+        "value": "isNull(lyticAt) ? -1 : timeAt(lyticAt) + lkwBefore",
+        "format": "duration",
+        "expert": "about 70 min"
+      },
+      {
+        "id": "ctaToCall",
+        "label": "CTA read to thrombectomy call",
+        "value": "isNull(ctaAt) or isNull(evtCallAt) ? -1 : timeAt(evtCallAt) - timeAt(ctaAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "toAngio",
+        "label": "Found to angiography suite",
+        "value": "isNull(angioAt) ? -1 : timeAt(angioAt)",
+        "format": "duration",
+        "expert": "about 70 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:20",
+        "text": "New right-sided weakness and aphasia: call a stroke alert now. Last known well is 09:40, not 10:20. Point-of-care glucose."
+      },
+      {
+        "at": "10:21-10:25",
+        "text": "Neuro check and NIHSS (14, a pattern that suggests a large-vessel occlusion). Thrombolysis screen. BP 196/106: labetalol 10 mg IV."
+      },
+      {
+        "at": "10:25",
+        "text": "To CT with the monitor as soon as the alert is out. Recheck BP 5 min after the labetalol; start nicardipine if it is not below 185/110 or to keep it there."
+      },
+      {
+        "at": "~10:40",
+        "text": "Noncontrast CT: no bleed. BP below 185/110: tenecteplase 0.25 mg/kg bolus without waiting for the CTA."
+      },
+      {
+        "at": "~10:50",
+        "text": "CTA: left M1 occlusion. Call the thrombectomy team at once."
+      },
+      {
+        "at": "after",
+        "text": "Neuro checks and BP every 15 min, BP below 180/105; any headache, vomiting or worsening means a possible bleed. To the angiography suite about 30 min after the call."
+      }
+    ],
+    "debrief": {
+      "bleed": {
+        "headline": "Symptomatic brain hemorrhage",
+        "body": "The most useful kind of run to learn from. Look at the BP: before the thrombolytic it must be below 185/110, and after it below 180/105, checked every 15 minutes."
+      },
+      "toThrombectomy": {
+        "headline": "To thrombectomy, on time",
+        "body": "A fast alert, the right last-known-well time, glucose and BP before the thrombolytic, and the thrombectomy call the moment the CTA was read. That is the expert path."
+      },
+      "toThrombectomyLate": {
+        "headline": "To thrombectomy, by a slower route",
+        "body": "The patient got there, but something cost time or safety. Check the thrombolysis time, the thrombectomy call, the BP after thrombolysis and the neuro check gaps."
+      },
+      "time_up": {
+        "headline": "No thrombectomy",
+        "body": "A large-vessel occlusion needs thrombectomy as well as thrombolysis. The CTA result is the trigger to call the team."
+      }
+    },
+    "modelReasoning": "In-hospital acute ischemic stroke: sudden right-sided weakness, right facial droop, left gaze deviation and aphasia, NIHSS 14, last known well 09:40 (the last time seen at baseline, not when it was found). Glucose is normal, so this is not a hypoglycemic mimic, and the noncontrast CT shows no bleed. With no contraindication on the screen, the patient is a thrombolysis candidate, but only once BP is below 185/110, so the BP is treated first and the thrombolytic is not delayed for the CTA. The CTA shows a left M1 occlusion: a thrombectomy candidate, so the team is called at once. After thrombolysis: BP below 180/105, neuro checks and BP every 15 minutes for 2 hours, and any headache, vomiting or worsening is treated as a possible hemorrhage."
+  },
+  "chapters": [
+    {
+      "id": "imaging",
+      "label": "Noncontrast CT read",
+      "when": "not isNull(ncctAt)"
+    },
+    {
+      "id": "thrombolysis",
+      "label": "Thrombolytic given",
+      "when": "not isNull(lyticAt)"
+    },
+    {
+      "id": "thrombectomyCalled",
+      "label": "Thrombectomy team called",
+      "when": "not isNull(evtCallAt)"
+    }
+  ],
+  "teaching": {
+    "glucoseOnly": {
+      "during": "teamT",
+      "when": "isNull(lyticAt)",
+      "ask": "While the stroke team comes: which result has to be known before the thrombolytic can start?",
+      "choices": [
+        {
+          "id": "glucose",
+          "label": "Blood glucose"
+        },
+        {
+          "id": "coags",
+          "label": "Platelets and clotting times"
+        },
+        {
+          "id": "troponin",
+          "label": "Troponin and a 12-lead ECG"
+        }
+      ],
+      "expect": "glucose",
+      "explain": "Blood glucose. The 2026 guideline says to determine glucose before thrombolysis, because hypoglycemia can mimic a stroke. It also says an ECG and troponin should not delay thrombolysis. Waiting for platelets and clotting times is usually needed only when a problem is suspected, such as an anticoagulant.",
+      "source": {
+        "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.1161/STR.0000000000000513",
+        "note": "4.6.1 rec 5: determine blood glucose before IVT; ECG and troponin should not delay IVT or EVT (COR 1). FLAG: the 'platelets and coagulation only if suspected' point is from the 2019 guideline and was not found in the parts of the 2026 text read for this case."
+      }
+    },
+    "noWaitCta": {
+      "during": "ctaT",
+      "when": "not isNull(ncctAt) and isNull(lyticAt)",
+      "ask": "The noncontrast CT shows no bleed and the BP is under control. The CTA will be read in about 10 minutes. Wait for it before the thrombolytic?",
+      "choices": [
+        {
+          "id": "wait",
+          "label": "Yes, wait for the CTA"
+        },
+        {
+          "id": "give",
+          "label": "No, give it now"
+        }
+      ],
+      "expect": "give",
+      "explain": "Give it now. The guideline asks for thrombolysis as quickly as possible, avoiding the delays that extra imaging such as CTA or perfusion scans can add. The CTA decides thrombectomy, which goes ahead alongside.",
+      "source": {
+        "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.1161/STR.0000000000000513",
+        "note": "4.6.1 (COR 1): avoid potential delays associated with additional multimodal neuroimaging such as CTA/MRA and CT/MR perfusion."
+      }
+    },
+    "bpThreshold": {
+      "during": "bpCheckT",
+      "when": "isNull(lyticAt)",
+      "ask": "If the recheck shows 188/102, can the thrombolytic go in?",
+      "choices": [
+        {
+          "id": "yes",
+          "label": "Yes: close enough"
+        },
+        {
+          "id": "no",
+          "label": "No: below 185/110 first"
+        }
+      ],
+      "expect": "no",
+      "explain": "No. Systolic must be below 185 and diastolic below 110 before thrombolysis starts, then below 180/105 for at least 24 hours. Treat it, recheck, and give the drug once it is below.",
+      "source": {
+        "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.1161/STR.0000000000000513",
+        "note": "4.3 rec 5 (COR 1): SBP below 185 and DBP below 110 before IVT; rec 7: below 180/105 for at least the first 24 h after IVT."
+      }
+    },
+    "neuroFrequency": {
+      "during": "angioT",
+      "when": "not isNull(lyticAt)",
+      "ask": "While the thrombectomy team gets ready: how often are neuro checks and BP needed for the first 2 hours after thrombolysis?",
+      "choices": [
+        {
+          "id": "q15",
+          "label": "Every 15 minutes"
+        },
+        {
+          "id": "q30",
+          "label": "Every 30 minutes"
+        },
+        {
+          "id": "q60",
+          "label": "Every hour"
+        }
+      ],
+      "expect": "q15",
+      "explain": "Every 15 minutes for 2 hours, then every 30 minutes for 6 hours, then hourly until 24 hours. A new headache, vomiting, rising BP or a worse check is a possible bleed.",
+      "source": {
+        "cite": "Prabhakaran S, Gonzalez NR, Zachrison KS, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke: a guideline from the American Heart Association/American Stroke Association. Stroke 2026 (published online 2026-01-26). doi:10.1161/STR.0000000000000513",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.1161/STR.0000000000000513",
+        "note": "Table 7: measure BP and perform neurological assessments every 15 min during and after IVT for 2 h, then every 30 min for 6 h, then hourly until 24 h."
+      }
+    }
+  }
+}

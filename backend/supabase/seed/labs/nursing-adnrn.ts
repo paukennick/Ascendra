@@ -1,5 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
-import { CHEMM_START, DKA_CONSENSUS_2024, ISMP_HIGH_ALERT, NCSBN_ANA_DELEGATION, NCSBN_RN_2026, NICHD_FHR, SCIRE_AD, SSC_2021 } from "./nursing-sources";
+import { CHEMM_START, DKA_CONSENSUS_2024, ISMP_HIGH_ALERT, NCSBN_ANA_DELEGATION, NCSBN_RN_2026, NICHD_FHR, SCIRE_AD, SSC_ADULT_2026 } from "./nursing-sources";
 
 // REQ-148: Associate Degree Nursing (RN) program course.
 //
@@ -15,12 +15,12 @@ import { CHEMM_START, DKA_CONSENSUS_2024, ISMP_HIGH_ALERT, NCSBN_ANA_DELEGATION,
 // "per order / per protocol" where facilities differ.
 //
 // Values quoted come from nursing-sources.ts, read 2026-11-07:
-//   - Sepsis: Surviving Sepsis Campaign 2021 (antimicrobials ideally within
-//     1 hour; at least 30 mL/kg crystalloid in 3 hours for hypoperfusion, a
+//   - Sepsis: Surviving Sepsis Campaign adult guidelines 2026, which kept
+//     the 2021 values (antimicrobials ideally within 1 hour; at least 30 mL/kg crystalloid in 3 hours for hypoperfusion, a
 //     suggestion; MAP 65 mm Hg; lactate).
 //   - DKA: the 2024 hyperglycemic crises consensus -- insulin postponed until
-//     potassium is above 3.5 mmol/L. (The CCRN Adult pilot lab still says
-//     "about 3.3"; reported to the lead, not changed here.)
+//     potassium is above 3.5 mmol/L (the CCRN Adult dka-case agrees since
+//     2026-11-09).
 //   - Fetal heart rate: NICHD definitions (baseline 110-160 bpm, moderate
 //     variability 6-25 bpm, Category III).
 //   - START triage (CHEMM, HHS): walking, breathing, respiratory rate over 30,
@@ -29,15 +29,16 @@ import { CHEMM_START, DKA_CONSENSUS_2024, ISMP_HIGH_ALERT, NCSBN_ANA_DELEGATION,
 //     Spinal Cord Medicine/PVA guidance (injury at T6 or above; overfull
 //     bladder or bowel the commonest trigger; sit upright, loosen clothing,
 //     recheck blood pressure every few minutes, find and remove the cause).
-// The stroke lab deliberately quotes no blood-pressure limit: the 2026
-// AHA/ASA stroke guideline's thresholds could not be read at the source, so
-// the rubric asks for "the limit the protocol sets".
+// The stroke lab deliberately quotes no blood-pressure limit; the rubric asks
+// for "the limit the protocol sets". The 2026 AHA/ASA thresholds (below
+// 185/110 mm Hg before IV thrombolysis) have since been read and are recorded
+// in value-sources.ts (AIS_2026, checked 2026-11-08).
 // Calculations use fictional drugs with every number given. All
 // needs_expert_review (docs/labs.md).
 
 export const ADNRN_LABS: SeedLabSet = {
   trackCode: "ADNRN",
-  sources: [NCSBN_RN_2026, NCSBN_ANA_DELEGATION, SSC_2021, DKA_CONSENSUS_2024, NICHD_FHR, CHEMM_START, ISMP_HIGH_ALERT, SCIRE_AD],
+  sources: [NCSBN_RN_2026, NCSBN_ANA_DELEGATION, SSC_ADULT_2026, DKA_CONSENSUS_2024, NICHD_FHR, CHEMM_START, ISMP_HIGH_ALERT, SCIRE_AD],
   labs: [
     // ---- Professional nursing foundations (2) ----
     {
@@ -83,7 +84,7 @@ export const ADNRN_LABS: SeedLabSet = {
       kind: "case",
       title: "The dose was ten times too high",
       brief:
-        "You are an RN on a fictional medical unit. At 10:00 you gave a client a fictional oral sedative, 'Medication V'. Ordered: 0.5 mg. At 10:40, documenting, you realise you gave 5 mg: the unit stocks 0.5 mg and 5 mg tablets in similar packaging in adjacent bins, and you did not scan the barcode because the scanner was broken.",
+        "You are an RN on a fictional medical unit. At 10:00 you gave a client a fictional oral sedative, 'Medication V'. Ordered: 0.5 mg. At 10:40, documenting, you realize you gave 5 mg: the unit stocks 0.5 mg and 5 mg tablets in similar packaging in adjacent bins, and you did not scan the barcode because the scanner was broken.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -119,8 +120,8 @@ export const ADNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Classification",
-              "Classifies the behaviour as at-risk behaviour (drifting from the barcode-scanning safeguard when it was unavailable) within a flawed system (look-alike packaging stored side by side, broken scanner), not reckless behaviour, so the response is coaching plus system fixes rather than punishment.",
-              "Picking the wrong tablet was a human error made more likely by the system; giving it without a scan was at-risk behaviour (a workaround that felt safe), not reckless. Just culture says: coach the nurse and fix the system, don't punish."
+              "Classifies the behavior as at-risk behavior (drifting from the barcode-scanning safeguard when it was unavailable) within a flawed system (look-alike packaging stored side by side, broken scanner), not reckless behavior, so the response is coaching plus system fixes rather than punishment.",
+              "Picking the wrong tablet was a human error made more likely by the system; giving it without a scan was at-risk behavior (a workaround that felt safe), not reckless. Just culture says: coach the nurse and fix the system, don't punish."
             ),
             part(
               "System fixes",
@@ -170,7 +171,7 @@ export const ADNRN_LABS: SeedLabSet = {
       kind: "case",
       title: "When the wheezing stops",
       brief:
-        "A fictional 24-year-old with asthma is admitted from the emergency department after nebulised bronchodilators. Orders: oxygen to keep SpO2 within the prescribed target, a short-acting bronchodilator by nebuliser every 4 hours and as needed, systemic corticosteroid, and call the provider for worsening respiratory status.",
+        "A fictional 24-year-old with asthma is admitted from the emergency department after nebulized bronchodilators. Orders: oxygen to keep SpO2 within the prescribed target, a short-acting bronchodilator by nebulizer every 4 hours and as needed, systemic corticosteroid, and call the provider for worsening respiratory status.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -190,13 +191,13 @@ export const ADNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Interpret",
-              "Recognises that diminished or absent breath sounds with increasing distress and drowsiness (a 'silent chest') mean very little air is moving and the client is tiring toward respiratory failure -- worse, not better, despite the wheeze disappearing.",
+              "Recognizes that diminished or absent breath sounds with increasing distress and drowsiness (a 'silent chest') mean very little air is moving and the client is tiring toward respiratory failure -- worse, not better, despite the wheeze disappearing.",
               "The wheeze has gone because almost no air is moving -- a silent chest. With rising effort, one-word speech, low SpO2 and drowsiness, the client is tiring and heading for respiratory failure."
             ),
             part(
               "Act",
               "Calls the rapid response/provider immediately, stays, sits the client upright, increases oxygen per order/protocol, gives the as-needed bronchodilator as ordered, and prepares for possible intubation (airway equipment, ABG).",
-              "Call rapid response and the provider now and stay. Sit the client upright, increase oxygen per protocol, give the as-needed nebuliser as ordered, and get airway equipment and an ABG ready -- this client may need intubation."
+              "Call rapid response and the provider now and stay. Sit the client upright, increase oxygen per protocol, give the as-needed nebulizer as ordered, and get airway equipment and an ABG ready -- this client may need intubation."
             ),
           ],
         },
@@ -206,7 +207,7 @@ export const ADNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Evaluate",
-              "Recognises that the return of wheezing with better speech, SpO2 and alertness reflects improved air movement (improvement), and continues close reassessment.",
+              "Recognizes that the return of wheezing with better speech, SpO2 and alertness reflects improved air movement (improvement), and continues close reassessment.",
               "Wheezes are back because air is moving again -- with better speech, oxygen and alertness, that's improvement. I keep reassessing closely."
             ),
           ],
@@ -229,7 +230,7 @@ export const ADNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Hypothesis",
-              "Prioritises sepsis with hypoperfusion (possible septic shock), likely from an abdominal source such as an anastomotic leak, over less urgent explanations, citing fever, tachycardia, tachypnea, hypotension (MAP below 65), confusion and mottling.",
+              "Prioritizes sepsis with hypoperfusion (possible septic shock), likely from an abdominal source such as an anastomotic leak, over less urgent explanations, citing fever, tachycardia, tachypnea, hypotension (MAP below 65), confusion and mottling.",
               "Sepsis with poor perfusion, maybe septic shock, likely from the abdomen (an anastomotic leak): fever, fast pulse and breathing, MAP 63, new confusion and mottled skin."
             ),
             part(
@@ -246,7 +247,7 @@ export const ADNRN_LABS: SeedLabSet = {
             part(
               "Sequence",
               "Draws blood cultures (and lactate) before antibiotics but does not let them delay antibiotics, gives antimicrobials as soon as possible, ideally within 1 hour of recognition, and starts the fluid bolus promptly, with large-bore IV access.",
-              "Get large-bore IV access; draw blood cultures and lactate first, then give the antibiotic straight away -- aim for within an hour of recognising sepsis, and never let cultures hold it up -- and start the fluid bolus at the same time."
+              "Get large-bore IV access; draw blood cultures and lactate first, then give the antibiotic straight away -- aim for within an hour of recognizing sepsis, and never let cultures hold it up -- and start the fluid bolus at the same time."
             ),
             part(
               "Fluid volume",
@@ -266,7 +267,7 @@ export const ADNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Evaluate and anticipate",
-              "Recognises persistent hypotension despite fluids with high lactate and low urine output as septic shock not responding to fluid, and anticipates vasopressors to an initial MAP target of 65 mm Hg (with central or appropriate access per protocol), ICU transfer, repeat lactate, and source control (surgical review).",
+              "Recognizes persistent hypotension despite fluids with high lactate and low urine output as septic shock not responding to fluid, and anticipates vasopressors to an initial MAP target of 65 mm Hg (with central or appropriate access per protocol), ICU transfer, repeat lactate, and source control (surgical review).",
               "The MAP is still below 65 after fluids, with a high lactate and little urine: septic shock not responding to fluid. Expect a vasopressor infusion to an initial MAP goal of 65, transfer to ICU, a repeat lactate and an urgent surgical review for the source."
             ),
           ],
@@ -359,7 +360,7 @@ export const ADNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Blood pressure",
-              "Recognises that blood pressure must be below the limit the thrombolysis protocol sets before and after treatment, reports the reading, and gives antihypertensives as ordered with frequent rechecks.",
+              "Recognizes that blood pressure must be below the limit the thrombolysis protocol sets before and after treatment, reports the reading, and gives antihypertensives as ordered with frequent rechecks.",
               "The protocol sets a blood-pressure limit for thrombolysis and this is likely above it. Report it, give the ordered antihypertensive and recheck often until it's within the protocol's limit."
             ),
             part(
@@ -397,7 +398,7 @@ export const ADNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognise",
-              "Recognises autonomic dysreflexia (injury at T6 or above, sudden severe hypertension from baseline, bradycardia, headache, flushing and sweating above the injury) as an emergency triggered by a noxious stimulus below the injury.",
+              "Recognizes autonomic dysreflexia (injury at T6 or above, sudden severe hypertension from baseline, bradycardia, headache, flushing and sweating above the injury) as an emergency triggered by a noxious stimulus below the injury.",
               "Autonomic dysreflexia: an injury above T6 with a sudden jump in blood pressure from a baseline near 100/62, a slow pulse, pounding headache, and flushing and sweating above the injury -- an emergency triggered by something irritating below the injury."
             ),
             part(
@@ -424,8 +425,8 @@ export const ADNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Evaluate and prevent",
-              "Continues monitoring blood pressure for a period because it can rise again, documents the episode and trigger, notifies the provider, and prevents recurrence (catheter positioning, bladder and bowel programme, skin checks, teaching the client and family to recognise and act).",
-              "Keep checking blood pressure for a while -- it can come back -- document what happened and the cause, tell the provider, and prevent it: keep tubing free, follow the bladder and bowel programme, check the skin, and review with the client what to do if it happens again."
+              "Continues monitoring blood pressure for a period because it can rise again, documents the episode and trigger, notifies the provider, and prevents recurrence (catheter positioning, bladder and bowel program, skin checks, teaching the client and family to recognize and act).",
+              "Keep checking blood pressure for a while -- it can come back -- document what happened and the cause, tell the provider, and prevent it: keep tubing free, follow the bladder and bowel program, check the skin, and review with the client what to do if it happens again."
             ),
           ],
         },
@@ -438,7 +439,7 @@ export const ADNRN_LABS: SeedLabSet = {
       kind: "case",
       title: "A tracing that changes during oxytocin",
       brief:
-        "A fictional 29-year-old at 40 weeks is in labour on an oxytocin infusion for augmentation. Earlier tracing: baseline 135 bpm, moderate variability, accelerations, no decelerations.",
+        "A fictional 29-year-old at 40 weeks is in labor on an oxytocin infusion for augmentation. Earlier tracing: baseline 135 bpm, moderate variability, accelerations, no decelerations.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -474,8 +475,8 @@ export const ADNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Category III",
-              "Recognises absent variability with recurrent late decelerations as Category III (abnormal), requiring immediate provider evaluation and preparation for expedited birth if the pattern does not resolve.",
-              "Absent variability with recurrent late decelerations is Category III. The provider must come now, and the team prepares for an expedited birth, likely a caesarean, if it doesn't resolve."
+              "Recognizes absent variability with recurrent late decelerations as Category III (abnormal), requiring immediate provider evaluation and preparation for expedited birth if the pattern does not resolve.",
+              "Absent variability with recurrent late decelerations is Category III. The provider must come now, and the team prepares for an expedited birth, likely a cesarean, if it doesn't resolve."
             ),
           ],
         },
@@ -540,8 +541,8 @@ export const ADNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Justification and order",
-              "Explains that restraint or seclusion is used only when there is imminent danger to the client or others and less restrictive measures have failed, as an emergency measure under an order from a provider authorised by facility policy and regulation (obtained immediately), for the shortest time.",
-              "Only now -- with imminent danger and de-escalation failed -- is restraint or seclusion justified, as an emergency measure with an order from an authorised provider straight away, and only for as long as the danger lasts."
+              "Explains that restraint or seclusion is used only when there is imminent danger to the client or others and less restrictive measures have failed, as an emergency measure under an order from a provider authorized by facility policy and regulation (obtained immediately), for the shortest time.",
+              "Only now -- with imminent danger and de-escalation failed -- is restraint or seclusion justified, as an emergency measure with an order from an authorized provider straight away, and only for as long as the danger lasts."
             ),
             part(
               "Doing it safely",
@@ -556,7 +557,7 @@ export const ADNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Monitor and release",
-              "Monitors continuously and checks physical and psychological status, vital signs, hydration, toileting and injury at the intervals law and policy require; ends seclusion as soon as release criteria are met (not when the order expires); debriefs with the client and the team; documents behaviour, alternatives tried, monitoring and release.",
+              "Monitors continuously and checks physical and psychological status, vital signs, hydration, toileting and injury at the intervals law and policy require; ends seclusion as soon as release criteria are met (not when the order expires); debriefs with the client and the team; documents behavior, alternatives tried, monitoring and release.",
               "Watch continuously and check vital signs, injury, fluids, toileting and how the client is feeling at the intervals policy and regulation set; end it as soon as the client is calm and safe, not when the order runs out; debrief with the client and the team; and document what happened, what we tried first, the checks and the release time."
             ),
           ],

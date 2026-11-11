@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { requireAiBudget } from "@/lib/ai-budget";
+import { requireAiFeature, requireGlobalCeiling, requireSharedLessonRoom } from "@/lib/ai-access";
 import { ok, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { visibleObjective } from "@/lib/visibility";
@@ -21,14 +22,22 @@ import {
   introToLesson,
   GENERATE_LIMIT,
   GENERATE_RATE_EVENT,
+  releaseUseUnlessStored,
+  type GenerationHandle,
 } from "@/lib/lesson-generation";
 import { learnerHistoryFor } from "@/lib/lesson-experience";
 import { tryItFields, tryItLab } from "@/lib/lab-attempts";
 import { SHARED } from "@/lib/lesson-store";
 import { isHintAwareClient } from "@/lib/client-protocol";
-import { requireAiAllowance, requireCourseAccessForObjective, requireFeature, withAllowance } from "@/lib/entitlements";
+import { consumeAllowance, requireAiAllowance, requireCourseAccessForObjective, requireFeature } from "@/lib/entitlements";
+
+// REQ-202: seconds this route may run (two sequential Sonnet halves plus fact-check and a retry). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 300;
 
 export const dynamic = "force-dynamic";
+
+const RETIRED_MESSAGE = "This objective has been retired and is no longer taught.";
 
 // GET /api/objectives/:id/lesson -- returns the lesson this learner should
 // see: their own regenerated lesson if they have one, otherwise the shared
@@ -57,6 +66,9 @@ export async function GET(
     // not an access check on its own.
     const objective = await visibleObjective(id, user.id);
     if (!objective) return notFound("Objective not found");
+    // REQ-195: a retired objective is no longer taught -- no stored lesson
+    // is served and nothing is generated for it.
+    if (objective.retired) return notFound(RETIRED_MESSAGE);
     // REQ-146: the canonical id, so a Solo hint reveal recorded for an app
     // build without the hint flow uses the same key as the hint route.
     const viewer = { userId: user.id, objectiveId: objective.id };
@@ -102,17 +114,22 @@ export async function GET(
     const objRow = await loadObjective(id);
     if (!objRow) return notFound("Objective not found");
 
+    // REQ-201: a lesson nobody has opened yet is generated once and shared
+    // (open in every mode); at the global daily AI ceiling it waits for the
+    // next day instead (a 429 "being prepared"; owners exempt).
+    await requireSharedLessonRoom(user.id);
+
     // REQ-135: starting a new generation counts against a per-learner budget.
     try {
       await consumeRateLimit(GENERATE_RATE_EVENT, user.id, GENERATE_LIMIT, { userId: user.id });
     } catch (err) {
       if (err instanceof RateLimitError) {
-        return tooManyRequests("You've opened a lot of new lessons just now. Please wait a few minutes and try again.");
+        return tooManyRequests("You've opened a lot of new lessons this hour. Please wait a while and try again.");
       }
       throw err;
     }
 
-    const handle = ensureGeneration(id, objRow, { scope: SHARED });
+    const handle = ensureGeneration(id, objRow, { scope: SHARED, triggeredBy: user.id });
     const intro = await handle.introPromise;
     // null: another server instance is generating (or has just finished)
     // this lesson. Wait for its stored result so every part of what the
@@ -132,7 +149,7 @@ export async function GET(
     });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }
@@ -162,6 +179,9 @@ export async function POST(
     // not an access check on its own.
     const objective = await visibleObjective(id, user.id);
     if (!objective) return notFound("Objective not found");
+    // REQ-195: a retired objective is no longer taught -- no stored lesson
+    // is served and nothing is generated for it.
+    if (objective.retired) return notFound(RETIRED_MESSAGE);
     // REQ-146: the canonical id, so a Solo hint reveal recorded for an app
     // build without the hint flow uses the same key as the hint route.
     const viewer = { userId: user.id, objectiveId: objective.id };
@@ -179,6 +199,11 @@ export async function POST(
     const objRow = await loadObjective(id);
     if (!objRow) return notFound("Objective not found");
 
+    // REQ-201: regenerate is limited to owners and invited pilot accounts
+    // under AI_ACCESS_MODE=granted, and pauses for everyone but owners at the
+    // global daily AI ceiling. No read when neither is set.
+    await requireAiFeature(user.id, "regenerate");
+    await requireGlobalCeiling(user.id, "regenerate");
     // Audit 3 H4 / adversary finding 8: regenerations count against the
     // learner's daily AI budget (lib/ai-budget.ts), not only the 10-minute
     // window (which allowed ~720 a day).
@@ -186,7 +211,7 @@ export async function POST(
     // REQ-122: regenerate is in Plus and Pro, counted per week, and pauses at
     // the plan's monthly AI cap. All no-ops while billing is off.
     await requireCourseAccessForObjective(user.id, id);
-    const tier = await requireFeature(user.id, "regenerate");
+    const tier = await requireFeature(user.id, "regenerate", { objectiveId: id }); // REQ-170: the tier on this course
     await requireAiAllowance(user.id, tier);
     try {
       await consumeRateLimit(REGEN_RATE_EVENT, user.id, REGEN_LIMIT, { userId: user.id });
@@ -197,23 +222,34 @@ export async function POST(
       throw err;
     }
 
-    // The use is given back if the regenerate fails before its first half.
-    const { handle, intro } = await withAllowance(
-      user.id,
-      "regeneration",
-      async () => {
-        const h = await startRegeneration(user.id, id, objRow);
-        return { handle: h, intro: await h.introPromise };
-      },
-      tier
-    );
+    // FAIL-888: the week's use is given back whenever nothing was stored, not
+    // only when the first half fails. The practice half runs after this
+    // response (and can be held back by the accuracy checks), and a learner
+    // charged for a regenerate that produced no lesson had spent a use on
+    // nothing.
+    const use = await consumeAllowance(user.id, "regeneration", tier);
+    let handle: GenerationHandle;
+    let intro: Awaited<GenerationHandle["introPromise"]>;
+    try {
+      handle = await startRegeneration(user.id, id, objRow);
+      intro = await handle.introPromise;
+    } catch (err) {
+      await use.release();
+      throw err;
+    }
     // null: this learner's regenerate is already running on another
     // instance; hand back its finished result.
     if (!intro) {
-      const generated = await handle.fullPromise;
+      let generated;
+      try {
+        generated = await handle.fullPromise;
+      } catch (err) {
+        await use.release();
+        throw err;
+      }
       return ok({ lesson: await lessonForClient(generated, viewer, hintAware), cached: false });
     }
-    after(() => handle.fullPromise.catch(() => {}));
+    after(() => releaseUseUnlessStored(handle, use));
 
     return ok({
       lesson: introToLesson(intro),
@@ -222,7 +258,7 @@ export async function POST(
     });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

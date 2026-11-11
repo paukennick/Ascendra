@@ -22,6 +22,13 @@
 // Both tracks set requiresAcknowledgement: physical therapy content acted
 // on in practice has patient-safety consequences, same as nursing.
 //
+// Corrected 2026-11-09 (content audit): each rangeLabel's denominator is the
+// scored-item total FSBPT's 2024 content outlines print ("TOTAL 180" for
+// NPTE-PT, "TOTAL 140" for NPTE-PTA, re-read that day), not the full form
+// with pretest items (225 and 180); the ranges and weights are unchanged.
+// The SpO2 objective now reads 94-98% (88-92% with a hypercapnia risk), per
+// the BTS 2017 emergency oxygen guideline.
+//
 // Deepened 2026-11-04 under docs/source-reliability-standard.md (adopted
 // 2026-10-31). New objectives sit at the END of existing units only, each
 // group after an "Added 2026-11-04" marker and each line with an inline
@@ -41,7 +48,7 @@
 // Inline tag key: FSBPT-PT pN / FSBPT-PTA pN = page of the 2024 content
 // outline; CAPTE-PTA 7Dn = PTA required element; CMS-BPM15 n = Medicare
 // Benefit Policy Manual ch. 15 section; CFR 410.60 = 42 CFR 410.60;
-// APTA-SEC = Standards of Ethical Conduct for the PTA; CPG-xxx = guideline
+// APTA-COE = APTA Code of Ethics for the Physical Therapy Profession (2026; replaced the Standards of Ethical Conduct for the PTA); MM12071 = CMS MLN Matters MM12071; CPG-xxx = guideline
 // below; SP-xxx = StatPearls chapter below; AP n.n = OpenStax Anatomy and
 // Physiology 2e section.
 //
@@ -69,9 +76,14 @@
 // - eCFR, 42 CFR 410.60 (outpatient PT; last amended 89 FR 98556,
 //   2024-12-09), read through the eCFR versioner API at 2026-10-30. Public
 //   domain. https://www.ecfr.gov/current/title-42/section-410.60
-// - APTA, "Standards of Ethical Conduct for the Physical Therapist
-//   Assistant", HOD S06-20-31-26. Copyright 2020 APTA; scope only.
-//   https://www.apta.org/siteassets/pdfs/policies/standardsofethicalconductptahods06-20-31-26-.pdf
+// - APTA, "Code of Ethics for the Physical Therapy Profession", effective
+//   2026-01-01, one code for PTs and PTAs; it replaced the "Standards of
+//   Ethical Conduct for the Physical Therapist Assistant" (HOD
+//   S06-20-31-26). Read 2026-11-10 (REQ-220). Scope only.
+//   https://www.apta.org/siteassets/pdfs/policies/apta-code-ethics-physical-therapy-profession.pdf
+// - CMS, MLN Matters MM12071 (effective 2021-01-01): a PT may delegate
+//   furnishing maintenance therapy to a PTA. Read 2026-11-10 (REQ-220).
+//   https://www.hhs.gov/guidance/sites/default/files/hhs-guidance-documents/MM12071.pdf
 // - APTA clinical practice guidelines, open access through Europe PMC
 //   (full-text XML), each read in full:
 //   CPG-TKA  Physical therapist management of total knee arthroplasty:
@@ -156,7 +168,7 @@
 //   Candidate Handbook prints Musculoskeletal as 45-54 items and the
 //   Interventions column total as 45-58, while the 2024 content-outline
 //   PDFs print 44-54 and 47-58. Both are FSBPT (Tier 1). The existing
-//   rangeLabel "45-54 of 225 items" and weight were left untouched
+//   rangeLabel "45-54" (then "of 225 items") and weight were left untouched
 //   (append-only); flagged for Nick.
 //   Decided 2026-11-06 (Nick): keep 45-54, because the 2025.02 handbook is
 //   newer than the 2024 outline.
@@ -221,9 +233,13 @@ const PT_DISCLAIMER_KEY = "pt-clinical-content";
 // Interventions), but FSBPT's own published breakdown is per-system, not
 // per-split, so that's what's modeled here.
 // ---------------------------------------------------------------------------
+// REQ-220: superseded lines retired in place (ids and history kept); their
+// replacements are appended to the same unit.
+const PTA_REQ220_RETIRED_AT = "2026-11-10T00:00:00Z";
+
 export const NPTE_PT_TRACK: SeedTrack = {
   code: "NPTEPT",
-  title: "NPTE-PT Coach",
+  title: "Prep for the NPTE-PT Exam",
   description:
     "The physical therapist licensure examination, built on FSBPT's current NPTE-PT Test Content Outline: 14 body-system and non-system domains, weighted by the exam's own published item-count ranges.",
   trackType: "certification",
@@ -258,7 +274,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
   units: [
     {
       title: "Musculoskeletal System",
-      rangeLabel: "45-54 of 225 items",
+      rangeLabel: "45-54 of 180 scored items",
       weight: 27,
       gate: "Given a musculoskeletal presentation, name the specific structure, special test, or intervention it calls for -- not a generic 'treat the joint' answer.",
       objectives: [
@@ -278,7 +294,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Neuromuscular and Nervous Systems",
-      rangeLabel: "39-48 of 225 items",
+      rangeLabel: "39-48 of 180 scored items",
       weight: 24,
       gate: "Given a neurological presentation, localize the lesion and name the specific intervention it calls for -- not a generic 'improve function' answer.",
       objectives: [
@@ -288,7 +304,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
         "Managing common neurological diagnoses: stroke, spinal cord injury, traumatic brain injury, and peripheral neuropathy",
         "Recognizing signs of neurological decline or emergency (e.g., cauda equina, increasing ICP) that require immediate referral",
         // Added 2026-11-04: depth from open textbooks and Tier 1 sources (see source header at top of file).
-        "Tell upper motor neuron signs (hyperreflexia, spasticity, poor dexterity) from lower motor neuron signs (atrophy, fasciculations, flaccid tone), and recognise that ALS shows both together", // SP-ALS; AP 16.4
+        "Tell upper motor neuron signs (hyperreflexia, spasticity, poor dexterity) from lower motor neuron signs (atrophy, fasciculations, flaccid tone), and recognize that ALS shows both together", // SP-ALS; AP 16.4
         "Recognize autonomic dysreflexia when the spinal cord lesion is at T6 or higher -- a sudden severe headache with a blood pressure surge -- sit the patient up with legs down, loosen anything tight, and look for a trigger such as a full bladder or bowel", // SP-AD
         "Document spinal cord injury level and completeness with the ISNCSCI examination from ASIA and ISCoS, and recognize central cord syndrome by arm weakness greater than leg weakness", // SP-SCI
         "Offer supervised vestibular therapy for unilateral or bilateral peripheral vestibular hypofunction using gaze-stabilization and balance exercise, and do not rely on saccadic or smooth-pursuit drills for gaze stability", // CPG-VEST
@@ -298,7 +314,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Cardiovascular and Pulmonary Systems",
-      rangeLabel: "22-27 of 225 items",
+      rangeLabel: "22-27 of 180 scored items",
       weight: 14,
       gate: "Given a patient's vital signs and history, determine whether it is safe to proceed with an intervention and what to modify -- not a generic 'monitor vitals' answer.",
       objectives: [
@@ -312,12 +328,12 @@ export const NPTE_PT_TRACK: SeedTrack = {
         "Run a 6-minute walk test on a flat 30 m course with a pulse oximeter, a dyspnea scale such as Borg, and emergency equipment such as a defibrillator within reach", // SP-6MWT
         "Set pulmonary rehabilitation endurance training by symptoms: dyspnea of about 4 to 6 on the Borg scale, or perceived exertion rated 12 to 14, marks moderate to high intensity", // SP-PULMREHAB
         "Choose airway clearance for mucus-heavy disease such as cystic fibrosis or COPD (postural drainage, percussion, vibration), and after surgery pair incentive spirometry with deep breathing, coughing and early mobilization", // SP-PDV; SP-IS
-        "Monitor SpO2 against the right target: about 92% to 98% for most patients, but 88% to 92% for chronic hypercapnic disease, where excess oxygen can harm", // SP-O2
+        "Monitor SpO2 against the right target: 94% to 98% for most patients, but 88% to 92% for those at risk of hypercapnic respiratory failure, where excess oxygen can harm", // SP-O2
       ],
     },
     {
       title: "Integumentary System",
-      rangeLabel: "8-11 of 225 items",
+      rangeLabel: "8-11 of 180 scored items",
       weight: 5,
       gate: "Given a wound presentation, classify it correctly and select the specific dressing or intervention it calls for -- not a generic 'clean and cover' answer.",
       objectives: [
@@ -332,7 +348,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "System Interactions",
-      rangeLabel: "8-10 of 225 items",
+      rangeLabel: "8-10 of 180 scored items",
       weight: 5,
       gate: "Given a patient with comorbid conditions across systems, determine how one system's status changes the plan for another -- not a generic 'treat each problem separately' answer.",
       objectives: [
@@ -346,7 +362,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Lymphatic System",
-      rangeLabel: "4-7 of 225 items",
+      rangeLabel: "4-7 of 180 scored items",
       weight: 3,
       gate: "Given a lymphedema presentation, select the specific stage-appropriate intervention it calls for -- not a generic 'reduce swelling' answer.",
       objectives: [
@@ -359,7 +375,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Safety and Protection",
-      rangeLabel: "5-7 of 225 items",
+      rangeLabel: "5-7 of 180 scored items",
       weight: 3,
       gate: "Given a patient-safety scenario, name the specific fall-prevention or infection-control step it calls for -- not a generic 'be careful' answer.",
       objectives: [
@@ -374,7 +390,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Equipment, Devices, and Technologies",
-      rangeLabel: "5-6 of 225 items",
+      rangeLabel: "5-6 of 180 scored items",
       weight: 3,
       gate: "Given a mobility or functional deficit, select the specific assistive device or orthosis it calls for -- not a generic 'give them a cane' answer.",
       objectives: [
@@ -387,7 +403,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Metabolic and Endocrine Systems",
-      rangeLabel: "4-6 of 225 items",
+      rangeLabel: "4-6 of 180 scored items",
       weight: 3,
       gate: "Given a metabolic or endocrine complication (e.g., hypoglycemia, diabetic neuropathy), determine the specific exercise modification it calls for.",
       objectives: [
@@ -400,7 +416,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Therapeutic Modalities",
-      rangeLabel: "4-6 of 225 items",
+      rangeLabel: "4-6 of 180 scored items",
       weight: 3,
       gate: "Given a tissue condition, select the specific modality and parameters it calls for -- not a generic 'apply heat or ice' answer.",
       objectives: [
@@ -414,7 +430,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Gastrointestinal System",
-      rangeLabel: "3-6 of 225 items",
+      rangeLabel: "3-6 of 180 scored items",
       weight: 3,
       gate: "Given a GI-related complaint during a PT session, determine whether it's benign or requires referral.",
       objectives: [
@@ -425,7 +441,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Professional Responsibilities",
-      rangeLabel: "4-5 of 225 items",
+      rangeLabel: "4-5 of 180 scored items",
       weight: 3,
       gate: "Given a professional or ethical scenario, apply the specific standard of practice or documentation requirement it calls for.",
       objectives: [
@@ -439,7 +455,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Genitourinary System",
-      rangeLabel: "2-5 of 225 items",
+      rangeLabel: "2-5 of 180 scored items",
       weight: 2,
       gate: "Given a genitourinary-related complaint, determine whether it's within PT scope or requires referral.",
       objectives: [
@@ -450,7 +466,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Research and Evidence-Based Practice",
-      rangeLabel: "3-5 of 225 items",
+      rangeLabel: "3-5 of 180 scored items",
       weight: 2,
       gate: "Given a research study or outcome measure, interpret its validity/reliability and apply it to clinical decision-making -- not a generic 'evidence matters' answer.",
       objectives: [
@@ -478,7 +494,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const NPTE_PTA_TRACK: SeedTrack = {
   code: "NPTEPTA",
-  title: "NPTE-PTA Coach",
+  title: "Prep for the NPTE-PTA Exam",
   description:
     "The physical therapist assistant licensure examination, built on FSBPT's current NPTE-PTA Test Content Outline: 14 body-system and non-system domains, weighted by the exam's own published item-count ranges.",
   trackType: "certification",
@@ -513,7 +529,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
   units: [
     {
       title: "Musculoskeletal System",
-      rangeLabel: "31-40 of 180 items",
+      rangeLabel: "31-40 of 140 scored items",
       weight: 26,
       gate: "Given a musculoskeletal treatment session, apply the specific intervention or precaution a PTA carries out under the plan of care -- not a generic 'do the exercises' answer.",
       objectives: [
@@ -530,7 +546,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Neuromuscular and Nervous Systems",
-      rangeLabel: "27-35 of 180 items",
+      rangeLabel: "27-35 of 140 scored items",
       weight: 22,
       gate: "Given a neurological patient during a treatment session, apply the specific motor-learning technique or safety precaution it calls for.",
       objectives: [
@@ -546,7 +562,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Cardiovascular and Pulmonary Systems",
-      rangeLabel: "20-27 of 180 items",
+      rangeLabel: "20-27 of 140 scored items",
       weight: 17,
       gate: "Given a patient's vital signs during activity, determine whether to continue, modify, or stop the session -- not a generic 'watch the numbers' answer.",
       objectives: [
@@ -562,7 +578,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Equipment, Devices, and Technologies",
-      rangeLabel: "8-10 of 180 items",
+      rangeLabel: "8-10 of 140 scored items",
       weight: 6,
       gate: "Given a patient using an assistive device, apply the specific fitting-check or gait-training step it calls for.",
       objectives: [
@@ -575,7 +591,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Safety and Protection",
-      rangeLabel: "6-8 of 180 items",
+      rangeLabel: "6-8 of 140 scored items",
       weight: 5,
       gate: "Given a patient-safety scenario during a session, apply the specific fall-prevention or infection-control step it calls for.",
       objectives: [
@@ -588,7 +604,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Integumentary System",
-      rangeLabel: "3-8 of 180 items",
+      rangeLabel: "3-8 of 140 scored items",
       weight: 4,
       gate: "Given a wound-care task delegated by a PT, apply the specific dressing or precaution it calls for.",
       objectives: [
@@ -601,7 +617,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Metabolic and Endocrine Systems",
-      rangeLabel: "4-6 of 180 items",
+      rangeLabel: "4-6 of 140 scored items",
       weight: 4,
       gate: "Given a metabolic complication during activity (e.g., hypoglycemia), apply the specific response it calls for.",
       objectives: [
@@ -612,7 +628,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Therapeutic Modalities",
-      rangeLabel: "5-7 of 180 items",
+      rangeLabel: "5-7 of 140 scored items",
       weight: 4,
       gate: "Given a modality ordered by a PT, apply the specific parameters and precautions it calls for -- not a generic 'apply heat or ice' answer.",
       objectives: [
@@ -625,7 +641,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "System Interactions",
-      rangeLabel: "5-7 of 180 items",
+      rangeLabel: "5-7 of 140 scored items",
       weight: 4,
       gate: "Given a patient with comorbid conditions, recognize when a change in one system requires modifying the current session.",
       objectives: [
@@ -636,7 +652,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Lymphatic System",
-      rangeLabel: "2-6 of 180 items",
+      rangeLabel: "2-6 of 140 scored items",
       weight: 3,
       gate: "Given a lymphedema patient's session, apply the specific compression or positioning precaution it calls for.",
       objectives: [
@@ -647,7 +663,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Professional Responsibilities",
-      rangeLabel: "2-4 of 180 items",
+      rangeLabel: "2-4 of 140 scored items",
       weight: 2,
       gate: "Given a professional or supervisory scenario, apply the specific scope-of-practice or documentation requirement it calls for.",
       objectives: [
@@ -657,11 +673,16 @@ export const NPTE_PTA_TRACK: SeedTrack = {
         "Know what Medicare does not allow a PTA to do -- evaluate or assess, make clinical judgments, or develop and furnish skilled maintenance programs -- and work under the supervising PT's direction", // CMS-BPM15 230.1
         "Record progress objectively, for example the distance walked and level of assistance, leaving judgments about why progress did or did not happen to the PT, and change goals only at the PT's direction", // CMS-BPM15 220.3
         "Know that since 2025 Medicare lets a PT in private practice supervise a PTA under general supervision (the PT need not be on site), that state law, other payers or the facility may require closer supervision, and that the Standards of Ethical Conduct still require deciding jointly with the PT", // CFR 410.60(c)(2); APTA-SEC
+        // REQ-220 (FAIL-1134): replaces the pre-2021 maintenance rule (CMS MLN Matters MM12071, effective 2021-01-01). // MM12071; CMS-BPM15 230.1
+        "Know what Medicare does not allow a PTA to do -- evaluate or assess, make clinical judgments, or establish the maintenance program -- that since 2021 the PT may delegate furnishing a maintenance program the PT established to the PTA when clinically appropriate, and work under the supervising PT's direction",
+        // REQ-220 (FAIL-1133): the Standards of Ethical Conduct for the PTA were replaced by the 2026 Code (Standards of Conduct 7.2, 7.4). // CFR 410.60(c)(2); APTA-COE
+        "Know that since 2025 Medicare lets a PT in private practice supervise a PTA under general supervision (the PT need not be on site), that state law, other payers or the facility may require closer supervision, and that APTA's Code of Ethics (2026) still has the PTA work under the PT's direction and supervision and tell the PT when the patient's status calls for a change to the plan of care",
       ],
+      objectiveRetiredAt: [null, null, PTA_REQ220_RETIRED_AT, null, PTA_REQ220_RETIRED_AT, null, null],
     },
     {
       title: "Gastrointestinal System",
-      rangeLabel: "0-4 of 180 items",
+      rangeLabel: "0-4 of 140 scored items",
       weight: 1,
       gate: "Given a GI-related complaint during a session, determine whether to continue treatment or notify the supervising PT.",
       objectives: [
@@ -672,7 +693,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Genitourinary System",
-      rangeLabel: "0-4 of 180 items",
+      rangeLabel: "0-4 of 140 scored items",
       weight: 1,
       gate: "Given a genitourinary-related complaint during a session, determine whether to continue treatment or notify the supervising PT.",
       objectives: [
@@ -683,7 +704,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Research and Evidence-Based Practice",
-      rangeLabel: "1-3 of 180 items",
+      rangeLabel: "1-3 of 140 scored items",
       weight: 1,
       gate: "Given an outcome measure used in a session, apply it and interpret the result correctly.",
       objectives: [

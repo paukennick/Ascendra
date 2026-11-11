@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { BrandMark, Screen, Card, H1, Muted, TextField, Button, ErrorBanner, EmptyState } from "@/components/ui";
-import { api, ApiError } from "@/api/client";
+import { api } from "@/api/client";
+import { messageOr } from "@/lib/errorMessage";
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function ForgotPassword() {
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async () => {
+    if (status === "submitting") return;
     if (!email) {
       setError("Enter your email.");
       return;
@@ -20,7 +22,7 @@ export default function ForgotPassword() {
       await api.post("/api/auth/forgot-password", { email: email.trim() });
       setStatus("sent");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+      setError(messageOr(err, "Something went wrong."));
       setStatus("idle");
     }
   };
@@ -56,6 +58,8 @@ export default function ForgotPassword() {
           textContentType="emailAddress"
           autoComplete="email"
           icon="mail"
+          returnKeyType="go"
+          onSubmitEditing={onSubmit}
         />
         <Button label="Send reset link" onPress={onSubmit} loading={status === "submitting"} icon="send" />
       </Card>

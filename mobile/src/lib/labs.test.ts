@@ -35,7 +35,7 @@ const item = (over: Partial<LabListItem> = {}): LabListItem => ({
   kind: "case",
   title: "Who do you see first?",
   objectiveId: "o1",
-  objectiveTitle: "Prioritising by acuity",
+  objectiveTitle: "Prioritizing by acuity",
   unitId: "u1",
   unitTitle: "Management of Care",
   stepCount: 3,
@@ -67,7 +67,7 @@ describe("lab lists", () => {
   // awaits expert review (the study notice covers all content).
   test("the screen-reader label names kind, objective and state, never review status", () => {
     const l = labA11yLabel(item());
-    assert.match(l, /^Case lab: Who do you see first\?\. Objective: Prioritising by acuity\. Not started: 3 steps\.$/);
+    assert.match(l, /^Case lab: Who do you see first\?\. Objective: Prioritizing by acuity\. Not started: 3 steps\.$/);
     assert.doesNotMatch(labA11yLabel(item({ reviewStatus: "needs_expert_review" })), /expert|review/i);
   });
 });
@@ -120,7 +120,9 @@ describe("lab drafts", () => {
     assert.equal(labDraftPayload({ parts: ["", " "], sentId: null, sentSig: null }), null);
     assert.ok(labDraftPayload({ parts: ["", ""], sentId: "id", sentSig: "s" }), "a sent id is kept so a resend replays");
     assert.equal(parseLabDraft("not json", 2), null);
-    assert.equal(parseLabDraft(JSON.stringify({ parts: ["x".repeat(LAB_PART_MAX + 10)] }), 1)!.parts[0].length, LAB_PART_MAX);
+    // REQ-197: kept whole past the send limit (canSubmit holds it back), bounded at 4x.
+    assert.equal(parseLabDraft(JSON.stringify({ parts: ["x".repeat(LAB_PART_MAX + 10)] }), 1)!.parts[0].length, LAB_PART_MAX + 10);
+    assert.equal(parseLabDraft(JSON.stringify({ parts: ["x".repeat(5 * LAB_PART_MAX)] }), 1)!.parts[0].length, 4 * LAB_PART_MAX);
   });
   test("the same answers (ignoring surrounding spaces) are the same submission; at least one part is needed", () => {
     assert.equal(answersSignature(0, [" a ", "b"]), answersSignature(0, ["a", "b "]));
@@ -132,7 +134,7 @@ describe("lab drafts", () => {
 });
 
 describe("REQ-124: lab access on Free and Plus", () => {
-  test("the sample is labelled as a sample, other labs say which plan has them, nothing when all are open", () => {
+  test("the sample is labeled as a sample, other labs say which plan has them, nothing when all are open", () => {
     assert.equal(labAccessBadge("sample"), "Sample lab");
     assert.equal(labAccessBadge("locked"), "Part of Pro");
     assert.equal(labAccessBadge("full"), null);

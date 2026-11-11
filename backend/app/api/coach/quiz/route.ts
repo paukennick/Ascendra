@@ -6,6 +6,10 @@ import { visibleTrack } from "@/lib/visibility";
 import { nextQuizTurn } from "@/lib/coach-quiz";
 import { requireFeature } from "@/lib/entitlements";
 
+// REQ-202: seconds this route may run (one fast-model question). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 // REQ-110: limit on NEW quiz questions written by the model per learner. Reused
@@ -26,7 +30,7 @@ export async function POST(req: Request) {
     const track = await visibleTrack(trackId, user.id);
     if (!track) return notFound("Track not found");
     await requireAcknowledgementForTrack(trackId, user.id);
-    await requireFeature(user.id, "quiz_me"); // REQ-122
+    await requireFeature(user.id, "quiz_me", track.id); // REQ-122, REQ-170
 
     const result = await nextQuizTurn(user.id, trackId, {
       beforeGenerate: async () => {
@@ -38,7 +42,7 @@ export async function POST(req: Request) {
     return ok({ turn: result.turn });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     if (err instanceof RateLimitError) return tooManyRequests("That's a lot of new questions for one hour. Take a breather and try again soon.");
     return serverError(err);
   }

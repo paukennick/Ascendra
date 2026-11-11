@@ -9,6 +9,9 @@
 // private id exists.
 
 import { queryOne } from "@/lib/db";
+import { listedOrStarted } from "@/lib/progress-sql";
+import { isMatureCategory, matureContentNeededSql } from "@/lib/mature-content";
+import { MatureContentError } from "@/lib/auth/requireAcknowledgement";
 
 // An id that isn't a UUID can't match any row; asking Postgres anyway raises
 // "invalid input syntax for type uuid" and surfaces as a 500. Treat it as
@@ -40,18 +43,33 @@ export interface VisibleObjective {
   id: string;
   unit_id: string;
   track_id: string;
+  // REQ-195: the objective or its unit is retired (retired_at has passed).
+  // Still visible, so history and grading of past answers keep working, but
+  // the lesson routes do not teach it.
+  retired: boolean;
 }
 
 export async function visibleObjective(objectiveId: string, userId: string): Promise<VisibleObjective | null> {
   if (!isUuid(objectiveId)) return null;
   return queryOne<VisibleObjective>(
-    `select o.id, o.unit_id, cu.track_id
+    `select o.id, o.unit_id, cu.track_id,
+            not ((o.retired_at is null or o.retired_at > now()) and (cu.retired_at is null or cu.retired_at > now())) as retired
        from objectives o
        join course_units cu on cu.id = o.unit_id
        join subject_tracks st on st.id = cu.track_id
       where o.id = $1 and (st.user_id is null or st.user_id = $2)`,
     [objectiveId, userId]
   );
+}
+
+// FAIL-889 (REQ-195): the objective, but only while it is taught. A retired
+// objective (its own or its unit's retired_at has passed) answers null, so a
+// route that spends a model call, hands out stored content or records an
+// answer 404s for it exactly as for an objective the caller cannot see. The
+// retired objective stays readable through visibleObjective for history.
+export async function taughtObjective(objectiveId: string, userId: string): Promise<VisibleObjective | null> {
+  const o = await visibleObjective(objectiveId, userId);
+  return o && !o.retired ? o : null;
 }
 
 export async function visibleUnit(unitId: string, userId: string): Promise<{ id: string; track_id: string } | null> {
@@ -73,7 +91,32 @@ export async function visibleTrack(trackId: string, userId: string): Promise<{ i
   );
 }
 
+// REQ-194: may this caller START this course -- pick it, open a session on
+// it, choose it at first run, plan it? Visible, and either listed or already
+// studied by the caller (listedOrStarted). A hidden course the caller never
+// studied answers null (404, as for any course they can't see). Only the
+// start routes use this; the study routes keep visibleTrack so a learner
+// part-way through a hidden course keeps full access.
+//
+// REQ-224: starting a mental health course also needs the learner's 18+
+// confirmation (lib/mature-content.ts); without it this throws
+// MatureContentError, which every route answers with a 403 (serverError
+// included), so the app can show the notice and try again.
+export async function startableTrack(trackId: string, userId: string): Promise<{ id: string; title: string } | null> {
+  if (!isUuid(trackId)) return null;
+  const row = await queryOne<{ id: string; title: string; mature_needed: string | null }>(
+    `select st.id, st.title, ${matureContentNeededSql("st", "$2")} as mature_needed from subject_tracks st
+      where st.id = $1 and (st.user_id is null or st.user_id = $2) and ${listedOrStarted("$2")}`,
+    [trackId, userId]
+  );
+  if (!row) return null;
+  if (isMatureCategory(row.mature_needed)) throw new MatureContentError(row.mature_needed);
+  return { id: row.id, title: row.title };
+}
+
 export interface VisibleScenario {
+  // FAIL-889: the scenario's unit is retired (retired_at has passed).
+  retired: boolean;
   id: string;
   unit_id: string;
   track_id: string;
@@ -87,7 +130,8 @@ export interface VisibleScenario {
 export async function visibleScenario(scenarioId: string, userId: string): Promise<VisibleScenario | null> {
   if (!isUuid(scenarioId)) return null;
   return queryOne<VisibleScenario>(
-    `select ps.id, ps.unit_id, cu.track_id, ps.title, ps.scenario, ps.sub_parts
+    `select ps.id, ps.unit_id, cu.track_id, ps.title, ps.scenario, ps.sub_parts,
+            not (cu.retired_at is null or cu.retired_at > now()) as retired
        from pbq_scenarios ps
        join course_units cu on cu.id = ps.unit_id
        join subject_tracks st on st.id = cu.track_id

@@ -36,7 +36,9 @@ import { source } from "../sources";
 //     doi:10.1111/j.1532-5415.2005.53221.x (cut-off 26).
 //   - Fried 2001 frailty phenotype, J Gerontol A
 //     doi:10.1093/gerona/56.3.m146 (3 or more of: unintentional weight loss,
-//     exhaustion, weakness, slow walking, low activity).
+//     exhaustion, weakness, slow walking, low activity; weakness is grip
+//     in the lowest 20% by sex and BMI -- for women 17 to 21 kg -- not the
+//     EWGSOP2 16 kg line).
 //   - Singer 2016, Sepsis-3, JAMA doi:10.1001/jama.2016.0287 (qSOFA: RR
 //     22/min or more, altered mentation, SBP 100 mm Hg or less; 2 or more).
 //   - Perera 2006, J Am Geriatr Soc doi:10.1111/j.1532-5415.2006.00701.x
@@ -89,8 +91,8 @@ export const ABPTSGCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Fall-risk medicines",
-              "Identifies polypharmacy (5 or more regular medicines) and names the fall-risk-increasing drugs with their mechanism: the benzodiazepine (lorazepam) and sedating antihistamine (diphenhydramine) for sedation and impaired balance; the tricyclic (amitriptyline) and oxybutynin for anticholinergic effects (confusion, blurred vision, orthostasis) -- all on the AGS Beers list of medicines to avoid in older adults; the antihypertensives and diuretic for orthostatic hypotension; and the sulfonylurea for hypoglycaemia.",
-              "Nine regular medicines is polypharmacy, and several are fall-risk-increasing drugs that the AGS Beers Criteria say to avoid in older adults: lorazepam (benzodiazepine: sedation, slowed reactions, imbalance), diphenhydramine and amitriptyline (strongly anticholinergic plus sedation), oxybutynin (anticholinergic). Metoprolol, amlodipine and furosemide together can drop her standing blood pressure -- which fits her light-headedness -- and the sulfonylurea can cause hypoglycaemia, another fall mechanism."
+              "Identifies polypharmacy (5 or more regular medicines) and names the fall-risk-increasing drugs with their mechanism: the benzodiazepine (lorazepam) and sedating antihistamine (diphenhydramine) for sedation and impaired balance; the tricyclic (amitriptyline) and oxybutynin for anticholinergic effects (confusion, blurred vision, orthostasis) -- all on the AGS Beers list of medicines to avoid in older adults; the antihypertensives and diuretic for orthostatic hypotension; and the sulfonylurea for hypoglycemia.",
+              "Nine regular medicines is polypharmacy, and several are fall-risk-increasing drugs that the AGS Beers Criteria say to avoid in older adults: lorazepam (benzodiazepine: sedation, slowed reactions, imbalance), diphenhydramine and amitriptyline (strongly anticholinergic plus sedation), oxybutynin (anticholinergic). Metoprolol, amlodipine and furosemide together can drop her standing blood pressure -- which fits her light-headedness -- and the sulfonylurea can cause hypoglycemia, another fall mechanism."
             ),
             part(
               "Examination and exercise dosing",
@@ -99,8 +101,8 @@ export const ABPTSGCS_LABS: SeedLabSet = {
             ),
             part(
               "Communication to the prescriber",
-              "Writes to the prescriber recommending a structured medication review and deprescribing of fall-risk-increasing drugs as a core falls intervention (benzodiazepine taper, alternatives to the anticholinergics and sedating antihistamine, review of blood-pressure and glucose-lowering targets), reporting the orthostatic measurements and the fall history, and asking for timing of any changes so the exercise programme can be adjusted.",
-              "To the prescriber: two falls in 3 months with a fracture, orthostatic drop measured in clinic, and a list containing lorazepam, amitriptyline, oxybutynin and diphenhydramine. Request a structured medication review with deprescribing in mind -- a supervised benzodiazepine taper, alternatives to the anticholinergics and the antihistamine, and a check of her blood-pressure and glucose targets given the orthostasis. Ask to be told when changes are made so the balance programme can be adjusted."
+              "Writes to the prescriber recommending a structured medication review and deprescribing of fall-risk-increasing drugs as a core falls intervention (benzodiazepine taper, alternatives to the anticholinergics and sedating antihistamine, review of blood-pressure and glucose-lowering targets), reporting the orthostatic measurements and the fall history, and asking for timing of any changes so the exercise program can be adjusted.",
+              "To the prescriber: two falls in 3 months with a fracture, orthostatic drop measured in clinic, and a list containing lorazepam, amitriptyline, oxybutynin and diphenhydramine. Request a structured medication review with deprescribing in mind -- a supervised benzodiazepine taper, alternatives to the anticholinergics and the antihistamine, and a check of her blood-pressure and glucose targets given the orthostasis. Ask to be told when changes are made so the balance program can be adjusted."
             ),
           ],
         },
@@ -173,7 +175,7 @@ export const ABPTSGCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Concerns",
-              "Recognises possible elder abuse or neglect -- neglect (inadequate food, hygiene, unreliable care), possible physical abuse (unexplained bruise) and possible financial exploitation (missing card, control of accounts) -- in a person who is dependent on carers, and that these are reportable concerns, not conclusions.",
+              "Recognizes possible elder abuse or neglect -- neglect (inadequate food, hygiene, unreliable care), possible physical abuse (unexplained bruise) and possible financial exploitation (missing card, control of accounts) -- in a person who is dependent on carers, and that these are reportable concerns, not conclusions.",
               "Signs of possible neglect (no food, soiled clothing, a carer who does not reliably come), possible physical abuse (an unexplained bruise) and possible financial exploitation (missing bank card, the daughter now controlling accounts) in a dependent older adult. These are concerns to report and investigate, not accusations."
             ),
             part(
@@ -191,7 +193,7 @@ export const ABPTSGCS_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose the measures for a home-health caseload",
       brief:
-        "You lead a fictional home-health therapy team that sees older adults after hospitalisation. The agency director asks you to pick a core set of standardised measures that every therapist will use at admission and discharge to show outcomes to payers and to guide care. The caseload is mixed: post-hospital deconditioning, hip fracture, heart failure, Parkinson disease and dementia. Measures must be feasible in a home with no equipment beyond a chair, a stopwatch and a tape measure. Fictional agency; exam practice, not clinical guidance.",
+        "You lead a fictional home-health therapy team that sees older adults after hospitalization. The agency director asks you to pick a core set of standardized measures that every therapist will use at admission and discharge to show outcomes to payers and to guide care. The caseload is mixed: post-hospital deconditioning, hip fracture, heart failure, Parkinson disease and dementia. Measures must be feasible in a home with no equipment beyond a chair, a stopwatch and a tape measure. Fictional agency; exam practice, not clinical guidance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -200,8 +202,8 @@ export const ABPTSGCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Core set and rationale",
-              "Chooses a small feasible set covering strength, balance, gait/mobility and self-report, each with a reason: for example usual gait speed over 4 m (predicts falls, hospitalisation and survival; feasible anywhere), the Short Physical Performance Battery or five-times sit-to-stand (lower-limb strength and function), the Timed Up and Go (mobility and falls screening), and a self-report or patient-specific measure (for example the Patient-Specific Functional Scale or a falls-efficacy scale); explains that the set should be short enough to be used consistently.",
-              "Four measures, all possible in a living room: usual gait speed over 4 m (the single most useful number -- it predicts falls, hospitalisation and survival), the Short Physical Performance Battery (balance, gait speed and chair stands in one 12-point score, so strength is covered), the Timed Up and Go (mobility and a falls screen) and the Patient-Specific Functional Scale for the person's own goals, plus the short FES-I when fear of falling is an issue. Short enough that every therapist does it every time."
+              "Chooses a small feasible set covering strength, balance, gait/mobility and self-report, each with a reason: for example usual gait speed over 4 m (predicts falls, hospitalization and survival; feasible anywhere), the Short Physical Performance Battery or five-times sit-to-stand (lower-limb strength and function), the Timed Up and Go (mobility and falls screening), and a self-report or patient-specific measure (for example the Patient-Specific Functional Scale or a falls-efficacy scale); explains that the set should be short enough to be used consistently.",
+              "Four measures, all possible in a living room: usual gait speed over 4 m (the single most useful number -- it predicts falls, hospitalization and survival), the Short Physical Performance Battery (balance, gait speed and chair stands in one 12-point score, so strength is covered), the Timed Up and Go (mobility and a falls screen) and the Patient-Specific Functional Scale for the person's own goals, plus the short FES-I when fear of falling is an issue. Short enough that every therapist does it every time."
             ),
             part(
               "Judging real change",
@@ -227,11 +229,11 @@ export const ABPTSGCS_LABS: SeedLabSet = {
       kind: "case",
       title: "Two falls in a year: the multifactorial assessment",
       brief:
-        "A fictional 77-year-old woman is referred after falling twice in the past 12 months; the second fall, in the bathroom at night, left her on the floor for about 90 minutes before her neighbour found her, with bruising but no fracture. Fictional patient; exam practice, not clinical guidance.",
+        "A fictional 77-year-old woman is referred after falling twice in the past 12 months; the second fall, in the bathroom at night, left her on the floor for about 90 minutes before her neighbor found her, with bruising but no fracture. Fictional patient; exam practice, not clinical guidance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
-          text: "History: both falls were at night getting up to the toilet; she felt 'woozy' on standing. She is afraid of falling again and has stopped going to her choir. Medicines include a diuretic and an antihypertensive. Lives alone in a two-storey house.",
+          text: "History: both falls were at night getting up to the toilet; she felt 'woozy' on standing. She is afraid of falling again and has stopped going to her choir. Medicines include a diuretic and an antihypertensive. Lives alone in a two-story house.",
           ask: "Stratify her falls risk using the World Falls Guidelines and justify the category, and list the components your multifactorial assessment must include.",
           parts: [
             part(
@@ -253,12 +255,12 @@ export const ABPTSGCS_LABS: SeedLabSet = {
             part(
               "Interpretation",
               "Interprets each result: gait speed 0.64 m/s is below the 0.8 m/s risk threshold; TUG 16.8 s exceeds the 15 s alternative threshold; a Berg score of 43 indicates impaired balance (and change will need at least 5 points to be real at this level); the orthostatic drop of 28 mm Hg systolic within 3 minutes with symptoms is orthostatic hypotension; high fear of falling; cognition within the normal range on MoCA.",
-              "Gait speed 0.64 m/s is under the 0.8 m/s falls-risk threshold and the TUG of 16.8 s is over 15 s -- both flag risk. Berg 43/56 shows impaired balance (a true change at this level needs 5 points). Systolic BP fell 28 mm Hg within a minute of standing with symptoms: orthostatic hypotension, which fits the nocturnal 'woozy' falls. Short FES-I 20 is high fear. MoCA 27 is normal, so she can learn and follow a programme."
+              "Gait speed 0.64 m/s is under the 0.8 m/s falls-risk threshold and the TUG of 16.8 s is over 15 s -- both flag risk. Berg 43/56 shows impaired balance (a true change at this level needs 5 points). Systolic BP fell 28 mm Hg within a minute of standing with symptoms: orthostatic hypotension, which fits the nocturnal 'woozy' falls. Short FES-I 20 is high fear. MoCA 27 is normal, so she can learn and follow a program."
             ),
             part(
               "Priorities",
-              "Ranks the modifiable factors: orthostatic hypotension with nocturnal falls (medication review and timing, slow staged rising, fluids per physician), strength and balance deficits (exercise), environmental and behavioural night-time risks (lighting, path to bathroom, footwear, bedside commode or urinal), fear of falling and activity restriction, and floor-rise inability (training and an alarm or pendant for long lies).",
-              "1) The orthostatic drop behind the night-time falls -- ask the physician to review the diuretic and antihypertensive and their timing, teach sit-then-stand with a pause and ankle pumps. 2) Strength and balance (slow gait, long chair-stand time, Berg 43) -- a progressive balance and strength programme. 3) The night route: motion-sensor lighting, a clear path, firm closed-back footwear, a bedside commode for now. 4) Fear and avoidance -- graded return to choir with the programme. 5) Teach floor-rise technique and arrange a pendant alarm so a long lie never happens again."
+              "Ranks the modifiable factors: orthostatic hypotension with nocturnal falls (medication review and timing, slow staged rising, fluids per physician), strength and balance deficits (exercise), environmental and behavioral night-time risks (lighting, path to bathroom, footwear, bedside commode or urinal), fear of falling and activity restriction, and floor-rise inability (training and an alarm or pendant for long lies).",
+              "1) The orthostatic drop behind the night-time falls -- ask the physician to review the diuretic and antihypertensive and their timing, teach sit-then-stand with a pause and ankle pumps. 2) Strength and balance (slow gait, long chair-stand time, Berg 43) -- a progressive balance and strength program. 3) The night route: motion-sensor lighting, a clear path, firm closed-back footwear, a bedside commode for now. 4) Fear and avoidance -- graded return to choir with the program. 5) Teach floor-rise technique and arrange a pendant alarm so a long lie never happens again."
             ),
           ],
         },
@@ -279,12 +281,12 @@ export const ABPTSGCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Screen and interpretation",
-              "Applies the Confusion Assessment Method (or 4AT) and shows the features: acute onset and fluctuating course (fine yesterday, disturbed overnight, drowsy now), inattention (months backwards failure), plus disorganised thinking ('waiting for the bus') and/or altered level of consciousness (drowsy) -- the CAM algorithm is positive (feature 1 and 2 plus 3 or 4), or the 4AT would score 4 or more; concludes probable delirium, likely hypoactive/mixed, not dementia.",
-              "CAM: feature 1 (acute onset and fluctuation -- normal yesterday, agitated overnight, drowsy now) present; feature 2 (inattention -- fails months backwards) present; feature 3 (disorganised thinking -- 'waiting for the bus') and feature 4 (altered consciousness -- drowsy) both present. CAM positive. On the 4AT, abnormal alertness alone scores 4, so it is also 4 or more. This is delirium, mixed hyperactive-hypoactive, in a man with no baseline cognitive impairment."
+              "Applies the Confusion Assessment Method (or 4AT) and shows the features: acute onset and fluctuating course (fine yesterday, disturbed overnight, drowsy now), inattention (months backwards failure), plus disorganized thinking ('waiting for the bus') and/or altered level of consciousness (drowsy) -- the CAM algorithm is positive (feature 1 and 2 plus 3 or 4), or the 4AT would score 4 or more; concludes probable delirium, likely hypoactive/mixed, not dementia.",
+              "CAM: feature 1 (acute onset and fluctuation -- normal yesterday, agitated overnight, drowsy now) present; feature 2 (inattention -- fails months backwards) present; feature 3 (disorganized thinking -- 'waiting for the bus') and feature 4 (altered consciousness -- drowsy) both present. CAM positive. On the 4AT, abnormal alertness alone scores 4, so it is also 4 or more. This is delirium, mixed hyperactive-hypoactive, in a man with no baseline cognitive impairment."
             ),
             part(
               "The session",
-              "Modifies rather than abandons mobility: avoids complex instruction, uses simple one-step cues and demonstration, keeps him safe (two people, gait belt, no unsupervised standing), focuses on orientation, sitting out of bed, and basic transfers if he can attend, and recognises that immobility worsens delirium while unsafe mobility risks a fall.",
+              "Modifies rather than abandons mobility: avoids complex instruction, uses simple one-step cues and demonstration, keeps him safe (two people, gait belt, no unsupervised standing), focuses on orientation, sitting out of bed, and basic transfers if he can attend, and recognizes that immobility worsens delirium while unsafe mobility risks a fall.",
               "Do not cancel, do simplify: one-step instructions, demonstration, orientation to place and time, glasses and hearing aids on, curtains open. Aim for sitting out of bed and a supported stand or transfer with two people and a gait belt if he can attend for it; no walking he cannot concentrate for. Staying in bed will make the delirium worse; a fall would be worse still."
             ),
             part(
@@ -311,18 +313,18 @@ export const ABPTSGCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Examination plan",
-              "Plans a full baseline: resting and orthostatic blood pressure (lie-to-stand with the 20/10 mm Hg within 3 minutes definition), heart rate and rhythm regularity, respiratory rate and pattern, SpO2 at rest and during activity, auscultation for crackles and wheeze, oedema and jugular venous pressure where skilled, body weight trend against the heart-failure team's threshold, symptoms (orthopnoea, dyspnoea on exertion), and uses RPE and dyspnoea scales because the beta-blocker blunts heart-rate response.",
-              "Baseline every visit: seated BP and HR, then lying-to-standing BP (orthostatic if it drops 20 systolic or 10 diastolic within 3 minutes), rhythm regularity, respiratory rate, SpO2 at rest and walking, lung sounds (crackles, wheeze), ankle oedema, weight on the same scale, and symptoms -- orthopnoea, breathlessness, dizziness. Because of the beta-blocker, dose and monitor exercise by RPE and a dyspnoea scale rather than heart rate."
+              "Plans a full baseline: resting and orthostatic blood pressure (lie-to-stand with the 20/10 mm Hg within 3 minutes definition), heart rate and rhythm regularity, respiratory rate and pattern, SpO2 at rest and during activity, auscultation for crackles and wheeze, edema and jugular venous pressure where skilled, body weight trend against the heart-failure team's threshold, symptoms (orthopnea, dyspnea on exertion), and uses RPE and dyspnea scales because the beta-blocker blunts heart-rate response.",
+              "Baseline every visit: seated BP and HR, then lying-to-standing BP (orthostatic if it drops 20 systolic or 10 diastolic within 3 minutes), rhythm regularity, respiratory rate, SpO2 at rest and walking, lung sounds (crackles, wheeze), ankle edema, weight on the same scale, and symptoms -- orthopnea, breathlessness, dizziness. Because of the beta-blocker, dose and monitor exercise by RPE and a dyspnea scale rather than heart rate."
             ),
             part(
               "Interpretation",
-              "Interprets today as probable early heart-failure decompensation: weight up 2.4 kg in 10 days, new orthopnoea (three pillows), ankle oedema, with borderline low blood pressure and resting SpO2 of 91% (within or near his COPD target range, so not alarming alone) -- a pattern that needs same-day contact with the heart-failure team against the weight threshold they set.",
-              "Weight up 2.4 kg since discharge, new three-pillow orthopnoea and ankle swelling -- that is fluid retention and probable early decompensation, whatever the exact daily-weight threshold his heart-failure team set. BP 104/62 is on the low side on his medicines, HR 58 reflects the beta-blocker, and SpO2 91% is not alarming on its own in COPD, but together the picture says he is not stable today."
+              "Interprets today as probable early heart-failure decompensation: weight up 2.4 kg in 10 days, new orthopnea (three pillows), ankle edema, with borderline low blood pressure and resting SpO2 of 91% (within or near his COPD target range, so not alarming alone) -- a pattern that needs same-day contact with the heart-failure team against the weight threshold they set.",
+              "Weight up 2.4 kg since discharge, new three-pillow orthopnea and ankle swelling -- that is fluid retention and probable early decompensation, whatever the exact daily-weight threshold his heart-failure team set. BP 104/62 is on the low side on his medicines, HR 58 reflects the beta-blocker, and SpO2 91% is not alarming on its own in COPD, but together the picture says he is not stable today."
             ),
             part(
               "Decision",
-              "Defers the planned exercise session, contacts the heart-failure team or physician the same day with the specific findings (weight change, orthopnoea, oedema, vitals), gives the patient clear instructions on what to do if symptoms worsen (and emergency services for severe breathlessness or chest pain), and plans to resume with a re-screen once he is reviewed.",
-              "No exercise session today. Call his heart-failure nurse or physician now with the numbers: +2.4 kg in 10 days, orthopnoea, oedema, BP 104/62, SpO2 91%. Tell him to call emergency services for breathlessness at rest, chest pain or fainting, and to expect a medication review. Re-screen at the next visit and start with light, monitored activity once the team confirms he is back at his dry weight."
+              "Defers the planned exercise session, contacts the heart-failure team or physician the same day with the specific findings (weight change, orthopnea, edema, vitals), gives the patient clear instructions on what to do if symptoms worsen (and emergency services for severe breathlessness or chest pain), and plans to resume with a re-screen once he is reviewed.",
+              "No exercise session today. Call his heart-failure nurse or physician now with the numbers: +2.4 kg in 10 days, orthopnea, edema, BP 104/62, SpO2 91%. Tell him to call emergency services for breathlessness at rest, chest pain or fainting, and to expect a medication review. Re-screen at the next visit and start with light, monitored activity once the team confirms he is back at his dry weight."
             ),
           ],
         },
@@ -347,13 +349,13 @@ export const ABPTSGCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Frailty and prognosis",
-              "Applies the Fried phenotype: unintentional weight loss, exhaustion, weakness (grip 14 kg, below the female cut-off) and slowness -- 3 or more criteria, so she is frail -- and explains that frailty after hip fracture predicts slower recovery, higher complication and institutionalisation risk, so expectations are set realistically but the plan is still active and progressive.",
-              "She meets at least four of the five Fried criteria -- unintentional weight loss, exhaustion, weak grip (14 kg is below 16 kg) and slowing -- so she is frail. Frailty means recovery after hip fracture is slower and riskier (complications, needing residential care), so I would tell her and her son honestly that regaining outdoor walking with an aid is possible but will take months of structured rehabilitation, with a realistic early goal of safe indoor mobility."
+              "Applies the Fried phenotype: unintentional weight loss, exhaustion, weakness (grip 14 kg, below Fried's BMI-adjusted female cut-offs of 17-21 kg) and slowness -- 3 or more criteria, so she is frail -- and explains that frailty after hip fracture predicts slower recovery, higher complication and institutionalization risk, so expectations are set realistically but the plan is still active and progressive.",
+              "She meets at least four of the five Fried criteria -- unintentional weight loss, exhaustion, weak grip (14 kg is below Fried's cut-off for women, 17 to 21 kg depending on BMI) and slowing -- so she is frail. Frailty means recovery after hip fracture is slower and riskier (complications, needing residential care), so I would tell her and her son honestly that regaining outdoor walking with an aid is possible but will take months of structured rehabilitation, with a realistic early goal of safe indoor mobility."
             ),
             part(
               "Day-1 plan",
-              "Starts early mobilisation on day 1 as the hip fracture guidance recommends: out of bed, transfers and walking with a frame weight-bearing as tolerated, progressive exercise for standing up, balance and walking, pain-coordinated sessions, breathing and circulation measures, and planning for continued structured exercise after discharge.",
-              "Mobilise today: sit out, stand and take steps with a frame, weight-bearing as tolerated, timed with analgesia. Begin the exercise programme that continues for months -- sit-to-stand, supported balance, walking distance progressions -- plus deep breathing and ankle pumps. Start discharge planning now, because her son's work hours decide where the next stage happens."
+              "Starts early mobilization on day 1 as the hip fracture guidance recommends: out of bed, transfers and walking with a frame weight-bearing as tolerated, progressive exercise for standing up, balance and walking, pain-coordinated sessions, breathing and circulation measures, and planning for continued structured exercise after discharge.",
+              "Mobilize today: sit out, stand and take steps with a frame, weight-bearing as tolerated, timed with analgesia. Begin the exercise program that continues for months -- sit-to-stand, supported balance, walking distance progressions -- plus deep breathing and ankle pumps. Start discharge planning now, because her son's work hours decide where the next stage happens."
             ),
           ],
         },
@@ -368,8 +370,8 @@ export const ABPTSGCS_LABS: SeedLabSet = {
             ),
             part(
               "Goals",
-              "Sets measurable goals: independent transfers, indoor walking with an aid over a set distance, a target TUG improvement, a strength and balance programme continuing 3 or more times a week, nutrition review for intake and protein, and criteria for discharge home, with reassessment points.",
-              "Six-week goals: independent bed and chair transfers; walking 50 m indoors with a frame or stick independently; TUG under 25 s from 38 s; standing up from a chair without using the arms three times; a progressive strength, balance and walking programme at least three times a week that continues at home; dietitian review for protein and calories. Reassess at 2 and 4 weeks."
+              "Sets measurable goals: independent transfers, indoor walking with an aid over a set distance, a target TUG improvement, a strength and balance program continuing 3 or more times a week, nutrition review for intake and protein, and criteria for discharge home, with reassessment points.",
+              "Six-week goals: independent bed and chair transfers; walking 50 m indoors with a frame or stick independently; TUG under 25 s from 38 s; standing up from a chair without using the arms three times; a progressive strength, balance and walking program at least three times a week that continues at home; dietitian review for protein and calories. Reassess at 2 and 4 weeks."
             ),
           ],
         },
@@ -390,7 +392,7 @@ export const ABPTSGCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition",
-              "Recognises probable sepsis in an older adult with a recent infection: altered mentation plus respiratory rate 22/min or more plus systolic BP 100 mm Hg or less -- all three qSOFA criteria (2 or more is positive) -- with fever and tachycardia, and that confusion is often the first sign in older adults.",
+              "Recognizes probable sepsis in an older adult with a recent infection: altered mentation plus respiratory rate 22/min or more plus systolic BP 100 mm Hg or less -- all three qSOFA criteria (2 or more is positive) -- with fever and tachycardia, and that confusion is often the first sign in older adults.",
               "This is possible sepsis until proven otherwise. She scores 3 of 3 on qSOFA -- new confusion, respiratory rate 24 (22 or more), systolic 96 (100 or less) -- plus fever and a heart rate of 112, two days after finishing antibiotics for a urinary infection. New confusion is often how sepsis announces itself in older adults."
             ),
             part(
@@ -406,7 +408,7 @@ export const ABPTSGCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Interpretation",
-              "Interprets probable dehydration with orthostatic hypotension (a 24 mm Hg systolic fall within 3 minutes), likely aggravated by fluid restriction and the restarted loop diuretic, and recognises cramps and dizziness as possible signs of electrolyte disturbance (for example low potassium or sodium) that need laboratory checking -- a medical, not exercise, problem.",
+              "Interprets probable dehydration with orthostatic hypotension (a 24 mm Hg systolic fall within 3 minutes), likely aggravated by fluid restriction and the restarted loop diuretic, and recognizes cramps and dizziness as possible signs of electrolyte disturbance (for example low potassium or sodium) that need laboratory checking -- a medical, not exercise, problem.",
               "Dry lips, deliberately drinking less, a loop diuretic restarted, and a 24 mm Hg systolic drop on standing: dehydration with orthostatic hypotension. Calf cramps and dizziness on a diuretic raise the question of low potassium or sodium, which only a blood test answers. This is a medical issue today."
             ),
             part(
@@ -428,7 +430,7 @@ export const ABPTSGCS_LABS: SeedLabSet = {
       kind: "build",
       title: "A written exercise prescription for a frail 84-year-old",
       brief:
-        "A fictional 84-year-old woman with sarcopenia and frailty (Fried 3 of 5) is referred from a falls clinic for a 12-week programme. Baseline: five-times sit-to-stand 21 s using her arms, gait speed 0.6 m/s, 6-minute walk 180 m, grip 15 kg. She has osteoarthritic knees (pain 3/10 on stairs), controlled hypertension on a beta-blocker, and no cardiac symptoms; her physician has cleared her for progressive exercise. She can attend supervised sessions twice a week and will do home exercise on other days. Fictional patient; exam practice, not clinical guidance.",
+        "A fictional 84-year-old woman with sarcopenia and frailty (Fried 3 of 5) is referred from a falls clinic for a 12-week program. Baseline: five-times sit-to-stand 21 s using her arms, gait speed 0.6 m/s, 6-minute walk 180 m, grip 15 kg. She has osteoarthritic knees (pain 3/10 on stairs), controlled hypertension on a beta-blocker, and no cardiac symptoms; her physician has cleared her for progressive exercise. She can attend supervised sessions twice a week and will do home exercise on other days. Fictional patient; exam practice, not clinical guidance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -458,29 +460,29 @@ export const ABPTSGCS_LABS: SeedLabSet = {
       slug: "gcs-design-falls-prevention-programme",
       objective: "Fall-prevention and balance intervention programs with evidence-based components",
       kind: "build",
-      title: "Design a community falls-prevention programme",
+      title: "Design a community falls-prevention program",
       brief:
-        "A fictional community health centre asks you to design a 12-week group falls-prevention programme for older adults classified as intermediate or high falls risk after a World Falls Guidelines assessment. Participants will have had their medication, vision and orthostatic blood pressure addressed by their physicians; you own the exercise and education component. Budget allows one instructor for groups of 8 and a hall with chairs, steps and light weights. Fictional organisation; exam practice, not clinical guidance.",
+        "A fictional community health center asks you to design a 12-week group falls-prevention program for older adults classified as intermediate or high falls risk after a World Falls Guidelines assessment. Participants will have had their medication, vision and orthostatic blood pressure addressed by their physicians; you own the exercise and education component. Budget allows one instructor for groups of 8 and a hall with chairs, steps and light weights. Fictional organization; exam practice, not clinical guidance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Write the programme: dose and components, individualisation and progression, and how you will evaluate it.",
+          ask: "Write the program: dose and components, individualization and progression, and how you will evaluate it.",
           parts: [
             part(
               "Dose and components",
-              "Specifies a programme built around balance and functional training (challenging static and dynamic balance, sit-to-stand, stepping, gait variations) with progressive resistance training, delivered 3 or more times a week (group sessions plus prescribed home days) for at least 12 weeks, consistent with the World Falls Guidelines, with Tai Chi as an option; includes education on falls risk, footwear, home hazards and getting up from the floor.",
-              "Three sessions a week for 12 weeks -- two supervised group sessions plus a structured home day -- centred on challenging balance (narrow and single-leg stance, weight shifts, stepping in all directions, tandem and turning gait, dual-task walking) and functional strength (sit-to-stand, step-ups, heel and toe raises with light weights), with a Tai Chi-based block as an option. Each week includes 10 minutes of education: footwear, home lighting and hazards, medication and vision check-ups, and how to get up from the floor."
+              "Specifies a program built around balance and functional training (challenging static and dynamic balance, sit-to-stand, stepping, gait variations) with progressive resistance training, delivered 3 or more times a week (group sessions plus prescribed home days) for at least 12 weeks, consistent with the World Falls Guidelines, with Tai Chi as an option; includes education on falls risk, footwear, home hazards and getting up from the floor.",
+              "Three sessions a week for 12 weeks -- two supervised group sessions plus a structured home day -- centered on challenging balance (narrow and single-leg stance, weight shifts, stepping in all directions, tandem and turning gait, dual-task walking) and functional strength (sit-to-stand, step-ups, heel and toe raises with light weights), with a Tai Chi-based block as an option. Each week includes 10 minutes of education: footwear, home lighting and hazards, medication and vision check-ups, and how to get up from the floor."
             ),
             part(
-              "Individualisation and progression",
-              "Individualises intensity to each person's baseline (gait speed, TUG, chair stands), progresses challenge weekly (reduce support and base of support, add head turns, eyes closed, cognitive dual tasks, speed), and sets safety rules for the group (chairs or rails within reach, ratios, screening for acute illness or symptoms each session).",
+              "Individualization and progression",
+              "Individualizes intensity to each person's baseline (gait speed, TUG, chair stands), progresses challenge weekly (reduce support and base of support, add head turns, eyes closed, cognitive dual tasks, speed), and sets safety rules for the group (chairs or rails within reach, ratios, screening for acute illness or symptoms each session).",
               "Screen everyone at entry (gait speed, TUG, five chair stands, FES-I) and give three difficulty tiers for each exercise. Progress weekly: less hand support, narrower base, head turns, eyes closed, counting backwards while stepping, then faster and bigger steps. Rails or chairs within arm's reach at all times, no more than 8 per instructor, and a quick 'how are you today' check for dizziness, illness or a new fall before each session."
             ),
             part(
               "Evaluation",
-              "Plans evaluation with pre/post measures (gait speed, TUG, five-times sit-to-stand, FES-I) interpreted against meaningful-change values, tracks falls and injurious falls with a monthly calendar during and after the programme, records attendance and adverse events, and plans continuation (maintenance class or home programme) because benefits fade when exercise stops.",
-              "Measure at weeks 0 and 12: gait speed (0.05 m/s small, 0.10 m/s substantial change), TUG, five-times sit-to-stand and the FES-I. Hand out monthly falls calendars during the programme and for 6 months after, and log attendance and any adverse events. Build in a maintenance pathway -- a weekly community class or a progressed home programme -- because the protection fades once people stop."
+              "Plans evaluation with pre/post measures (gait speed, TUG, five-times sit-to-stand, FES-I) interpreted against meaningful-change values, tracks falls and injurious falls with a monthly calendar during and after the program, records attendance and adverse events, and plans continuation (maintenance class or home program) because benefits fade when exercise stops.",
+              "Measure at weeks 0 and 12: gait speed (0.05 m/s small, 0.10 m/s substantial change), TUG, five-times sit-to-stand and the FES-I. Hand out monthly falls calendars during the program and for 6 months after, and log attendance and any adverse events. Build in a maintenance pathway -- a weekly community class or a progressed home program -- because the protection fades once people stop."
             ),
           ],
         },
@@ -515,7 +517,7 @@ export const ABPTSGCS_LABS: SeedLabSet = {
             ),
             part(
               "Justification or discharge",
-              "Writes a concise, honest paragraph: documents clinically meaningful gains in walking capacity and function, identifies the remaining measurable deficit (FGA at or below the fall-risk threshold, fear limiting participation) with specific, time-limited goals and a plan (dynamic gait and community-walking training, graded exposure), or, if arguing for discharge, a maintenance programme; avoids overstating the Berg change.",
+              "Writes a concise, honest paragraph: documents clinically meaningful gains in walking capacity and function, identifies the remaining measurable deficit (FGA at or below the fall-risk threshold, fear limiting participation) with specific, time-limited goals and a plan (dynamic gait and community-walking training, graded exposure), or, if arguing for discharge, a maintenance program; avoids overstating the Berg change.",
               "'Over 8 weeks Mrs X improved gait speed by 0.16 m/s, 6-minute walk by 47 m and SPPB by 2 points, each beyond published thresholds for meaningful change, and now shops independently. Her Functional Gait Assessment of 21/30 remains at the published fall-risk cut-off and fear of falling prevents community walking. We request 4 further weeks (8 visits) targeting dynamic gait and graded community walking, with goals of FGA 24/30 or higher and independent walking to church, after which she transitions to a community balance class.' The Berg change is not reported as improvement because it is within measurement error."
             ),
           ],

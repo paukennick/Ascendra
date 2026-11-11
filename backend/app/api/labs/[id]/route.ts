@@ -4,6 +4,7 @@ import { isUuid } from "@/lib/visibility";
 import { requireAcknowledgementForObjective } from "@/lib/auth/requireAcknowledgement";
 import { LabError, labView, visibleLab } from "@/lib/labs";
 import { gateLab, labRouteError } from "@/lib/lab-routes";
+import { rendersInteractiveLabs } from "@/lib/client-protocol";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const access = await gateLab(user.id, lab, "view"); // REQ-124: Pro, or this course's sample
     const runId = new URL(req.url).searchParams.get("runId");
     if (runId !== null && !isUuid(runId)) throw new LabError(404, "Run not found");
-    return ok(await labView(lab, user.id, runId, access));
+    return ok(await labView(lab, user.id, runId, access, { interactive: rendersInteractiveLabs(req) }));
   } catch (err) {
     return labRouteError(err);
   }

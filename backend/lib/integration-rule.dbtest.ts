@@ -3,10 +3,12 @@
 // every migration applied. Each test names the follow-up letter from the
 // integration brief and failed before its change.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { query, queryOne, closePool } from "./db";
+import { ownerQuery, closeOwner } from "./test-owner";
 import { signAccessToken } from "./auth/tokens";
 import { __setClientForTest } from "./anthropic";
 import { setAiCallSink } from "./ai-calls";
@@ -65,6 +67,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `ir-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const auth = (u: string) => ({
@@ -164,10 +167,11 @@ beforeEach(() => {
 
 after(async () => {
   __setClientForTest(null);
-  await query(`delete from mastery_backup_041 where user_id = any($1::uuid[])`, [users]);
+  await ownerQuery(`delete from mastery_backup_041 where user_id = any($1::uuid[])`, [users]);
   await query(`delete from app_users where id = any($1::uuid[])`, [users]);
   await query(`delete from subject_tracks where id = $1`, [track]);
   await closePool();
+  await closeOwner();
 });
 
 describe("041 mastery rule (REQ-112)", () => {
@@ -307,7 +311,7 @@ describe("(d) a correct, unassisted, spaced exam answer advances a due review", 
       [u, unitA, objs[7]]
     );
     await query(`insert into review_schedule (user_id, objective_id, due_on, enrolled_at) values ($1, $2, current_date, now() - interval '3 days')
-                 on conflict (user_id, objective_id) do update set due_on = current_date`, [u, objs[7]]);
+                 on conflict (user_id, objective_id) do update set due_on = current_date, enrolled_at = now() - interval '2 days'`, [u, objs[7]]);
     return u;
   }
   const state = async (u: string) => ({
@@ -414,8 +418,8 @@ describe("(i) review questions are aimed at the learner's recorded mix-ups", () 
     const a = await put(u, o, { verdict: "correct", ago: "3 days" });
     await query(`insert into mastery (user_id, objective_id, status, score_0_4, evidence) values ($1, $2, 'Guided', 2, 'e')
                  on conflict (user_id, objective_id) do nothing`, [u, o]);
-    await query(`insert into review_schedule (user_id, objective_id, due_on) values ($1, $2, current_date)
-                 on conflict (user_id, objective_id) do update set due_on = current_date`, [u, o]);
+    await query(`insert into review_schedule (user_id, objective_id, due_on, enrolled_at) values ($1, $2, current_date, now() - interval '2 days')
+                 on conflict (user_id, objective_id) do update set due_on = current_date, enrolled_at = now() - interval '2 days'`, [u, o]);
     await query(
       `insert into learner_misconceptions (user_id, objective_id, attempt_id, source, tag, sentence)
        values ($1, $2, $3, 'grader', 'MIXUP-RBAC-vs-MAC', 'You may be mixing up RBAC with MAC.')`,

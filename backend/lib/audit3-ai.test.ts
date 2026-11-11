@@ -90,11 +90,11 @@ describe("M1 + L1: the shared multi-part grader (PBQ and unit check)", () => {
         },
       },
     });
-    const g = await gradePbqAnswer({ scenario: "1) choose 2) justify", subParts: ["choose", "justify"], answer: "I would choose AES because it is fast", purpose: "unitcheck_grade" });
+    const g = await gradePbqAnswer({ scenario: "1) choose 2) justify", subParts: ["choose", "justify"], answer: "I would choose AES because it is fast", purpose: "unitcheck_grade", userId: null });
     assert.equal(g.verdict, "partial");
     assert.equal(sent[0].max_tokens, PBQ_GRADE_MAX_TOKENS);
     assert.deepEqual(g.partScores?.map((p) => p.score), ["met", "missed"]);
-    const t = await gradePbqAnswer({ scenario: "1) choose 2) justify", subParts: ["choose", "justify"], answer: ".", purpose: "unitcheck_grade" });
+    const t = await gradePbqAnswer({ scenario: "1) choose 2) justify", subParts: ["choose", "justify"], answer: ".", purpose: "unitcheck_grade", userId: null });
     assert.equal(t.verdict, "incorrect");
     assert.equal(sent.length, 1, "no call for a trivial answer");
   });
@@ -103,7 +103,9 @@ describe("M1 + L1: the shared multi-part grader (PBQ and unit check)", () => {
 describe("M2 + L2: content validator (FAIL-297, FAIL-306)", () => {
   const good = {
     fadeProblem: "Fill in: SHA-256 output is ___ bits.", fadeChoices: ["256", "160", "128", "512"], fadeCorrectIndex: 0, fadeWhy: "The name says it.",
-    soloCheck: "Which property stops two inputs sharing a digest?", soloChoices: ["Collision resistance", "Avalanche", "Salting", "Padding"],
+    soloCheck: "Which property stops two inputs sharing a digest?", // REQ-187: options parallel in length (the distractor lint refuses a key
+    // much longer than the rest; it was "Collision resistance" vs "Salting").
+    soloChoices: ["Collision resistance", "Avalanche effect", "Salt uniqueness", "Length padding"],
     soloCorrectIndex: 0, soloWhy: "That is its meaning.",
     fadeOptionReasons: ["a", "b", "c", "d"], soloOptionReasons: ["a", "b", "c", "d"],
   };
@@ -132,14 +134,14 @@ describe("M2 + L2: content validator (FAIL-297, FAIL-306)", () => {
     assert.equal(languageProblem(["Use AES-256-GCM with a 96-bit IV; TLS 1.3 and SHA-256 are the defaults."]), null);
     assert.equal(languageProblem(["Ceci est une leçon"], "fr"), null, "only English is checked today");
   });
-  test("generateValid regenerates once, then fails cleanly with a 503", async () => {
+  test("generateValid regenerates once, then fails cleanly with a 4xx", async () => {
     let calls = 0;
     const out = await generateValid("lesson", async () => ++calls, (n) => (n < 2 ? ["bad"] : []), () => {});
     assert.equal(out, 2);
     calls = 0;
     await assert.rejects(
       generateValid("lesson", async () => ++calls, () => ["bad"], () => {}),
-      (e: unknown) => e instanceof InvalidContentError && e.status === 503 && calls === 2
+      (e: unknown) => e instanceof InvalidContentError && e.status === 409 && calls === 2
     );
   });
 });

@@ -12,28 +12,32 @@
 //   npm run labs:generate -- --submit [filters]   # create the batch
 //   npm run labs:generate -- --collect <batch id> # when it has ended: check and store
 //
-// Storing goes through lib/lab-generation.ts saveGeneratedLab: the writer's
-// uncertainty, the content rules and an independent fact-check (fail closed),
-// then insert-if-absent as source 'generated', review_status
-// 'needs_expert_review' -- never served in production until a person approves
-// it (docs/labs.md).
+// Storing goes through lib/lab-generation.ts saveGeneratedLab, the REQ-216 gate:
+// a lab is held only when the writer rated its confidence low, it broke a content
+// rule, or the independent check found a wrong reference answer or something
+// unsafe. A held lab is written once more (live, steered with what held it back);
+// held twice, the outcome line says why in plain words. A failed check call is
+// retryable and holds nothing back. Then insert-if-absent as source 'generated',
+// review_status 'needs_expert_review' -- never served in production until a
+// person approves it (docs/labs.md).
 
 import "../supabase/seed/env-local";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import { query, closePool } from "../lib/db";
+import { query, queryOne, closePool } from "../lib/db";
 import { isActive } from "../lib/progress-sql";
 import { buildRequest, getModel } from "../lib/anthropic";
 import { coachContextForObjective } from "../lib/coach-context";
-import { labGenerationPrompt, labGenerationSchema, saveGeneratedLab } from "../lib/lab-generation";
+import { describeSaveOutcome, labGenerationPrompt, labGenerationSchema, modelLabWriter, saveGeneratedLab, type SaveOutcome } from "../lib/lab-generation";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
 import { NURSING_TRACKS } from "../supabase/seed/tracks/nursing";
 import { PT_TRACKS } from "../supabase/seed/tracks/pt";
 import { CCRN_TRACKS } from "../supabase/seed/tracks/ccrn";
 import { CCRN_PEDS_NEO_TRACKS } from "../supabase/seed/tracks/ccrn-peds-neo";
 import { FITNESS_TRACKS } from "../supabase/seed/tracks/fitness";
+import { EMS_TRACKS } from "../supabase/seed/tracks/ems";
 import {
   formatSummary,
   isPerformanceObjective,
@@ -48,7 +52,8 @@ import {
   type PlanTrack,
 } from "./generate-labs-lib";
 
-const CLINICAL = new Set([...NURSING_TRACKS, ...PT_TRACKS, ...CCRN_TRACKS, ...CCRN_PEDS_NEO_TRACKS].map((t) => t.code));
+// REQ-174: the NREMT tracks sit under healthcare-nursing too, so they are clinical.
+const CLINICAL = new Set([...NURSING_TRACKS, ...PT_TRACKS, ...CCRN_TRACKS, ...CCRN_PEDS_NEO_TRACKS, ...EMS_TRACKS].map((t) => t.code));
 const FITNESS = new Set(FITNESS_TRACKS.map((t) => t.code));
 
 function familyOf(code: string): LabFamily {
@@ -134,7 +139,7 @@ async function submit(list: Target[]) {
     requests.push({
       custom_id: labRequestId(t.objectiveId, t.kind),
       params: buildRequest(
-        { model, effort: "medium", thinking: "off", purpose: "lab_generate", system, messages: [{ role: "user", content: user }], maxTokens: 4000 },
+        { model, effort: "medium", thinking: "off", purpose: "lab_generate", userId: null, system, messages: [{ role: "user", content: user }], maxTokens: 4000 },
         zodOutputFormat(labGenerationSchema)
       ),
     });
@@ -170,8 +175,31 @@ async function collect(batchId: string) {
       continue;
     }
     const ctx = (await coachContextForObjective(id.objectiveId)) ?? undefined;
-    const outcome = await saveGeneratedLab({ objectiveId: id.objectiveId, kind: id.kind, generated: parsed.data, model, ctx });
+    const where = await queryOne<{ track_code: string; track_title: string; unit_title: string; title: string }>(
+      `select st.code as track_code, st.title as track_title, cu.title as unit_title, o.title
+         from objectives o join course_units cu on cu.id = o.unit_id join subject_tracks st on st.id = cu.track_id
+        where o.id = $1`,
+      [id.objectiveId]
+    );
+    let outcome: SaveOutcome | "error";
+    try {
+      outcome = await saveGeneratedLab({
+        objectiveId: id.objectiveId,
+        kind: id.kind,
+        generated: parsed.data,
+        model,
+        ctx,
+        regenerate: where
+          ? modelLabWriter({ trackTitle: where.track_title, unitTitle: where.unit_title, objectiveTitle: where.title, kind: id.kind, family: familyOf(where.track_code), ctx })
+          : undefined,
+      });
+    } catch (err) {
+      // the steered retry or the database failed: nothing was stored for this one
+      console.log(`  ${id.objectiveId}: error, run --collect again: ${err instanceof Error ? err.message : err}`);
+      outcome = "error";
+    }
     tally[outcome] = (tally[outcome] ?? 0) + 1;
+    if (outcome !== "error" && outcome !== "saved" && outcome !== "exists") console.log(`  ${id.objectiveId}: ${describeSaveOutcome(outcome)}`);
   }
   console.log("Outcome:", tally, "-- every saved lab is needs_expert_review until a person approves it.");
 }

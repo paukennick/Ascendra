@@ -1,10 +1,12 @@
+import { consumeGradedAnswer } from "@/lib/ai-access";
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError } from "@/lib/http";
+import { requireStudyNotice } from "@/lib/study-notice";
 import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { hasUnstorableText } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
-import { visibleObjective } from "@/lib/visibility";
+import { taughtObjective } from "@/lib/visibility";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { getLessonFor } from "@/lib/lesson-store";
 import { queryOne } from "@/lib/db";
@@ -21,6 +23,10 @@ import { gradeExplainBack } from "@/lib/understanding-ai";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 import { recordGraderMisconception } from "@/lib/understanding-grading";
 import { consumeAllowance, featureLock, requireFeature } from "@/lib/entitlements";
+
+// REQ-202: seconds this route may run (one fast-model grade). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
 
 export const dynamic = "force-dynamic";
 
@@ -39,11 +45,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
+    if (!(await taughtObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     const status = await masteryStatus(user.id, id);
     // REQ-122: not in this learner's plan -- shown as not open, with why.
-    const locked = await featureLock(user.id, "explain_back");
+    const locked = await featureLock(user.id, "explain_back", { objectiveId: id });
     return ok({
       ...(locked ? { locked } : {}),
       eligible: !locked && isGuidedPlus(status),
@@ -53,7 +59,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     if (err instanceof GradingInProgressError) return conflict(err.message);
     return serverError(err);
   }
@@ -80,18 +86,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    const objective = await visibleObjective(id, user.id);
+    // REQ-205 (FAIL-907): this route sends what the learner wrote to the model, so
+    // the study notice that says so must have been accepted -- checked here, not
+    // only in the app.
+    await requireStudyNotice(user.id);
+    const objective = await taughtObjective(id, user.id);
     if (!objective) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
-    await requireFeature(user.id, "explain_back"); // REQ-122
+    const tier = await requireFeature(user.id, "explain_back", { objectiveId: objective.id }); // REQ-122, REQ-170
     const body = await req.json().catch(() => ({}));
 
     const clientAttemptId = validClientAttemptId(body?.clientAttemptId);
     // REQ-116: only a replay of this objective's explain-back.
+    // REQ-218: and only of the same explanation -- the stored answer must be
+    // the text sent now, or the id is refused (the new text was never graded).
+    const sentAnswer = typeof body?.answer === "string" ? (body.answer as string) : null;
     const replayStored = async () => {
-      const prior = clientAttemptId ? await findClientAttempt(user.id, clientAttemptId) : null;
+      const prior = clientAttemptId && sentAnswer !== null ? await findClientAttempt(user.id, clientAttemptId) : null;
       if (!prior) return null;
-      if (!replayMatches(prior.attempt, { objectiveId: id, kind: "quiz", stage: "explain" })) {
+      if (!replayMatches(prior.attempt, { objectiveId: id, kind: "quiz", stage: "explain", answer: sentAnswer! })) {
         return conflict(REPLAY_CONFLICT);
       }
       return ok({ ...prior, rubric: null, diagnosis: null, copied: prior.assistReason === "reveal" });
@@ -132,7 +145,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       // Nick, 2026-11-07 (decision 9): an explanation counts against the same
       // daily allowance as a graded typed answer (only a tier with a count
       // limit is counted; given back if grading fails).
-      const use = await consumeAllowance(user.id, "graded_answer");
+      const use = await consumeGradedAnswer(user.id, () => consumeAllowance(user.id, "graded_answer", tier)); // REQ-201
       let graded: Awaited<ReturnType<typeof gradeExplainBack>>;
       try {
         graded = await gradeExplainBack({
@@ -191,7 +204,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return await withGradingClaim(user.id, clientAttemptId, gradeAndRecord, replayStored);
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     if (err instanceof GradingInProgressError) return conflict(err.message);
     return serverError(err);
   }

@@ -1,29 +1,81 @@
-import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
-import { rotateRefreshToken, RefreshTokenError } from "@/lib/auth/tokens";
+import { ok, badRequest, unauthorized, serverError, UserFacingError, INVALID_JSON } from "@/lib/http";
+import { rotateRefreshToken, RefreshTokenError, revokeRefreshToken } from "@/lib/auth/tokens";
 import { signAccessToken } from "@/lib/auth/tokens";
 import { queryOne } from "@/lib/db";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
+import {
+  clearRefreshCookie,
+  cookieRequestAllowed,
+  csrfRejected,
+  isWebClient,
+  readRefreshCookie,
+  sessionResponse,
+} from "@/lib/auth/refreshCookie";
 
 export const dynamic = "force-dynamic";
 
-// POST /api/auth/refresh — { refreshToken, deviceLabel? }
+// Reads an optional JSON body; the web app's cookie refresh sends none.
+async function optionalJson(req: Request): Promise<Record<string, unknown>> {
+  const text = await req.text();
+  if (!text.trim()) return {};
+  try {
+    const parsed = JSON.parse(text);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    throw new UserFacingError(INVALID_JSON, 400);
+  }
+}
+
+// Which token this request presents. A body token (native, and a web tab
+// exchanging the sessionStorage token it held before REQ-192) wins over the
+// cookie. A cookie is only used from the web app, from our own origin.
+type Presented = { token: string; via: "body" | "cookie" } | { error: "missing" | "csrf" };
+function presentedToken(req: Request, body: Record<string, unknown>): Presented {
+  if (typeof body.refreshToken === "string" && body.refreshToken) return { token: body.refreshToken, via: "body" };
+  if (body.refreshToken !== undefined) return { error: "missing" };
+  const cookie = readRefreshCookie(req);
+  if (!cookie) return { error: "missing" };
+  if (!cookieRequestAllowed(req)) return { error: "csrf" };
+  return { token: cookie, via: "cookie" };
+}
+
+// POST /api/auth/refresh -- native: { refreshToken, deviceLabel? }, answered
+// { accessToken, refreshToken }. Web (X-Ascendra-Platform: web): no body
+// (the cookie), or once { refreshToken } to move an old sessionStorage token
+// into the cookie; answered { accessToken } with the rotated token set as
+// the cookie (lib/auth/refreshCookie.ts).
 export async function POST(req: Request) {
   try {
-    const body = await readJson(req);
-    const { refreshToken, deviceLabel } = body ?? {};
-    if (!refreshToken || typeof refreshToken !== "string") {
+    const body = await optionalJson(req);
+    const presented = presentedToken(req, body);
+    if ("error" in presented) {
+      if (presented.error === "csrf") return csrfRejected();
+      // REQ-203 (FAIL-868): a body that names a token (even a junk one) is not
+      // about the cookie, so a valid cookie stays. The cookie is cleared only
+      // when there is nothing to refresh with.
+      if (isWebClient(req)) {
+        const res = unauthorized("No session. Sign in again.");
+        return body.refreshToken === undefined ? clearRefreshCookie(res) : res;
+      }
       return badRequest("refreshToken is required");
     }
+    const { deviceLabel } = body;
 
     let rotated;
     try {
-      rotated = await rotateRefreshToken(refreshToken, {
+      rotated = await rotateRefreshToken(presented.token, {
         deviceLabel: typeof deviceLabel === "string" ? deviceLabel : undefined,
         userAgent: getUserAgent(req),
         ip: getClientIp(req),
       });
     } catch (err) {
-      if (err instanceof RefreshTokenError) return unauthorized(err.message);
+      if (err instanceof RefreshTokenError) {
+        const res = unauthorized(err.message);
+        // REQ-203 (FAIL-868): clear the cookie only when the cookie itself
+        // failed. A bad token in the body (an old tab's sessionStorage token,
+        // junk from a script) used to wipe a perfectly good session cookie.
+        return isWebClient(req) && presented.via === "cookie" ? clearRefreshCookie(res) : res;
+      }
       throw err;
     }
 
@@ -41,7 +93,24 @@ export async function POST(req: Request) {
       ver: user.token_version,
       fam: rotated.familyId,
     });
-    return ok({ accessToken, refreshToken: rotated.raw });
+    return sessionResponse(req, { accessToken, refreshToken: rotated.raw });
+  } catch (err) {
+    return serverError(err);
+  }
+}
+
+// DELETE /api/auth/refresh -- REQ-192: the web app's logout. Revokes the
+// session the cookie names and clears the cookie. It works with an expired
+// access token (the web idle sign-out runs 30 minutes after the last input).
+// Same origin rule as a cookie refresh.
+export async function DELETE(req: Request) {
+  try {
+    const token = readRefreshCookie(req);
+    if (token) {
+      if (!cookieRequestAllowed(req)) return csrfRejected();
+      await revokeRefreshToken(token);
+    }
+    return clearRefreshCookie(ok({ success: true }));
   } catch (err) {
     return serverError(err);
   }

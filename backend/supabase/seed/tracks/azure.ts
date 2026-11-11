@@ -78,9 +78,9 @@ const OUTLINE_CHECKED_AT = "2026-11-08T00:00:00Z";
 
 export const AZURE_AZ900_TRACK: SeedTrack = {
   code: "AZ900",
-  title: "Azure Fundamentals Coach",
+  title: "Prep for the Azure Fundamentals (AZ-900) Exam",
   description:
-    "Microsoft Certified: Azure Fundamentals (AZ-900): core cloud concepts, Azure's architecture and core services, and how cost, compliance, and governance work day to day in Azure.",
+    "Microsoft Certified: Azure Fundamentals (AZ-900): core cloud concepts, Azure's architecture and core services, and how cost, compliance, and governance work day to day in Azure. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
@@ -195,9 +195,9 @@ export const AZURE_AZ900_TRACK: SeedTrack = {
 
 export const AZURE_AZ104_TRACK: SeedTrack = {
   code: "AZ104",
-  title: "Azure Administrator Associate Coach",
+  title: "Prep for the Azure Administrator Associate (AZ-104) Exam",
   description:
-    "Microsoft Certified: Azure Administrator Associate (AZ-104): implementing, managing, and monitoring an Azure environment -- identities and governance, storage, compute, virtual networking, and day-to-day monitoring and recovery.",
+    "Microsoft Certified: Azure Administrator Associate (AZ-104): implementing, managing, and monitoring an Azure environment -- identities and governance, storage, compute, virtual networking, and day-to-day monitoring and recovery. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
@@ -287,7 +287,7 @@ export const AZURE_AZ104_TRACK: SeedTrack = {
         "Deploying resources with an Azure Resource Manager template or a Bicep file",
         "Exporting a deployment as an ARM template, or converting an ARM template to Bicep",
         "Creating a virtual machine",
-        "Configuring encryption at host for Azure virtual machines",
+        "Configuring Azure Disk Encryption for virtual machines",
         "Moving a virtual machine to another resource group, subscription, or region",
         "Managing virtual machine sizes",
         "Managing virtual machine disks",
@@ -360,9 +360,9 @@ export const AZURE_AZ104_TRACK: SeedTrack = {
 
 export const AZURE_AZ305_TRACK: SeedTrack = {
   code: "AZ305",
-  title: "Azure Solutions Architect Expert Coach",
+  title: "Prep for the Azure Solutions Architect Expert (AZ-305) Exam",
   description:
-    "Microsoft Certified: Azure Solutions Architect Expert (AZ-305): translating business requirements into Azure designs across identity/governance/monitoring, data storage, business continuity, and infrastructure -- aligned to the Well-Architected Framework and Cloud Adoption Framework. Requires the Azure Administrator Associate certification first.",
+    "Microsoft Certified: Azure Solutions Architect Expert (AZ-305): translating business requirements into Azure designs across identity/governance/monitoring, data storage, business continuity, and infrastructure -- aligned to the Well-Architected Framework and Cloud Adoption Framework. Requires the Azure Administrator Associate certification first. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
@@ -488,9 +488,9 @@ export const AZURE_AZ305_TRACK: SeedTrack = {
 
 export const AZURE_AI901_TRACK: SeedTrack = {
   code: "AI901",
-  title: "Azure AI Fundamentals Coach",
+  title: "Prep for the Azure AI Fundamentals (AI-901) Exam",
   description:
-    "Microsoft Certified: Azure AI Fundamentals (AI-901): core AI/ML concepts and responsible AI principles, then building generative AI, vision, speech, and information-extraction solutions with Microsoft Foundry.",
+    "Microsoft Certified: Azure AI Fundamentals (AI-901): core AI/ML concepts and responsible AI principles, then building generative AI, vision, speech, and information-extraction solutions with Microsoft Foundry. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
@@ -574,9 +574,9 @@ export const AZURE_AI901_TRACK: SeedTrack = {
 
 export const AZURE_DP900_TRACK: SeedTrack = {
   code: "DP900",
-  title: "Azure Data Fundamentals Coach",
+  title: "Prep for the Azure Data Fundamentals (DP-900) Exam",
   description:
-    "Microsoft Certified: Azure Data Fundamentals (DP-900): core relational and non-relational data concepts, Azure's data services for each, and the building blocks of an analytics workload -- ingestion, analytical stores, real-time analytics, and Power BI visualization.",
+    "Microsoft Certified: Azure Data Fundamentals (DP-900): core relational and non-relational data concepts, Azure's data services for each, and the building blocks of an analytics workload -- ingestion, analytical stores, real-time analytics, and Power BI visualization. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
@@ -677,9 +677,9 @@ export const AZURE_DP900_TRACK: SeedTrack = {
 
 export const AZURE_AZ700_TRACK: SeedTrack = {
   code: "AZ700",
-  title: "Azure Network Engineer Associate Coach",
+  title: "Prep for the Azure Network Engineer Associate (AZ-700) Exam",
   description:
-    "Microsoft Certified: Azure Network Engineer Associate (AZ-700): designing and implementing Azure networking end to end -- IP addressing and DNS, VNet routing and monitoring, VPN/ExpressRoute/Virtual WAN connectivity, load balancing and Front Door, private access, and network security (NSGs, Azure Firewall, WAF).",
+    "Microsoft Certified: Azure Network Engineer Associate (AZ-700): designing and implementing Azure networking end to end -- IP addressing and DNS, VNet routing and monitoring, VPN/ExpressRoute/Virtual WAN connectivity, load balancing and Front Door, private access, and network security (NSGs, Azure Firewall, WAF). Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
@@ -884,9 +884,9 @@ export const AZURE_AZ700_TRACK: SeedTrack = {
 
 export const AZURE_AZ140_TRACK: SeedTrack = {
   code: "AZ140",
-  title: "Azure Virtual Desktop Specialty Coach",
+  title: "Prep for the Azure Virtual Desktop Specialty (AZ-140) Exam",
   description:
-    "Microsoft Certified: Azure Virtual Desktop Specialty (AZ-140): planning and implementing an Azure Virtual Desktop infrastructure -- networking, storage, host pools, and session host images -- plus identity and security, user environments and app delivery (FSLogix, App attach), and ongoing monitoring, backup, and disaster recovery.",
+    "Microsoft Certified: Azure Virtual Desktop Specialty (AZ-140): planning and implementing an Azure Virtual Desktop infrastructure -- networking, storage, host pools, and session host images -- plus identity and security, user environments and app delivery (FSLogix, App attach), and ongoing monitoring, backup, and disaster recovery. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
@@ -1033,17 +1033,20 @@ export const AZURE_AZ140_TRACK: SeedTrack = {
 // resources 20-25% / Configure and manage automation of tasks 15-20% /
 // Plan and configure an HA/DR environment 20-25%.
 
+// Content audit fix (2026-11-09): DP-300 objectives re-compared with the live
+// study guide that day.
+const DP300_CHECKED_AT = "2026-11-09T00:00:00Z";
+
 export const AZURE_DP300_TRACK: SeedTrack = {
   code: "DP300",
-  title: "Azure Database Administrator Associate Coach",
+  title: "Prep for the Azure Database Administrator Associate (DP-300) Exam",
   description:
-    "Microsoft Certified: Azure Database Administrator Associate (DP-300): administering Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VMs -- deployment and migration, authentication and data protection, performance monitoring and tuning, task automation, and high availability/disaster recovery.",
+    "Microsoft Certified: Azure Database Administrator Associate (DP-300): administering Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VMs -- deployment and migration, authentication and data protection, performance monitoring and tuning, task automation, and high availability/disaster recovery. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-database-administrator-associate/",
-  contentReviewDueAt: "2026-10-27T00:00:00Z",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: DP300_CHECKED_AT,
   credential: {
     ...AZURE_PROVIDER,
     credentialSlug: "azure-database-administrator-associate",
@@ -1051,20 +1054,19 @@ export const AZURE_DP300_TRACK: SeedTrack = {
     credentialUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-database-administrator-associate/",
     examCode: "DP-300",
     status: "active",
-    // REQ-142: OUTDATED. The guide (read 2026-11-08) is "Skills measured as of
-    // October 27, 2026"; its change log marks "Implement security for data at rest
-    // and data in transit" Minor, and the objectives below still say "Always
-    // Encrypted with VBS enclaves" where the live guide says "with secure
-    // enclaves". So the version recorded is the one these objectives follow, the
-    // verified date is left at the last full read, and the review is due from
-    // the change date. Not rewritten here (PR #44).
-    objectivesRevision: "Skills measured prior to October 27, 2026",
+    // REQ-142 found this outline OUTDATED (objectives said "Always Encrypted
+    // with VBS enclaves"; the guide "Skills measured as of October 27, 2026"
+    // says "with secure enclaves", its only change, marked Minor). Content
+    // audit fix 2026-11-09: that objective reworded in place (same sort
+    // order) and every other objective re-compared with the live guide,
+    // which was last updated 2026-10-30 -- no other differences.
+    objectivesRevision: "Skills measured as of October 27, 2026",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300",
     // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of October 27, 2026) at
     // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300
     // -- unchanged. Unit weights are now points inside those ranges that total 100;
     // see "Domain weights" in the file header.
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: DP300_CHECKED_AT,
     recommendedExperience:
       "Subject matter expertise building database solutions on Azure SQL services and SQL Server on-premises, including day-to-day operational management, availability, security, and performance monitoring/optimization using Transact-SQL and other administrative tools.",
     durationMinutes: 100,
@@ -1118,7 +1120,7 @@ export const AZURE_DP300_TRACK: SeedTrack = {
         "Implementing object-level encryption",
         "Configuring server- and database-level firewall rules",
         "Implementing Always Encrypted",
-        "Implementing Always Encrypted with VBS enclaves",
+        "Implementing Always Encrypted with secure enclaves",
         "Configuring private links and service endpoints",
         "Applying a data classification strategy",
         "Configuring server and database audits",
@@ -1215,9 +1217,9 @@ export const AZURE_DP300_TRACK: SeedTrack = {
 
 export const AZURE_AZ400_TRACK: SeedTrack = {
   code: "AZ400",
-  title: "Azure DevOps Engineer Expert Coach",
+  title: "Prep for the Microsoft DevOps Engineer Expert (AZ-400) Exam",
   description:
-    "Microsoft Certified: DevOps Engineer Expert (AZ-400): designing and implementing Microsoft DevOps solutions across GitHub and Azure DevOps -- work-item flow and metrics, source control strategy, build/release pipelines, deployment strategies, infrastructure as code, security and compliance scanning, and instrumentation. Requires the Azure Administrator Associate certification.",
+    "Microsoft Certified: DevOps Engineer Expert (AZ-400): designing and implementing Microsoft DevOps solutions across GitHub and Azure DevOps -- work-item flow and metrics, source control strategy, build/release pipelines, deployment strategies, infrastructure as code, security and compliance scanning, and instrumentation. Requires the Azure Administrator Associate certification. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
@@ -1376,9 +1378,9 @@ export const AZURE_AZ400_TRACK: SeedTrack = {
 
 export const AZURE_AZ120_TRACK: SeedTrack = {
   code: "AZ120",
-  title: "Azure for SAP Workloads Specialty Coach",
+  title: "Prep for the Azure for SAP Workloads Specialty (AZ-120) Exam",
   description:
-    "Microsoft Certified: Azure for SAP Workloads Specialty (AZ-120): planning, migrating, and administering SAP landscapes on Azure -- migration strategy and SAP RISE integration, compute/networking/storage infrastructure for SAP virtual machines, high availability and disaster recovery (clustering, Pacemaker, Site Recovery), and ongoing performance optimization and monitoring.",
+    "Microsoft Certified: Azure for SAP Workloads Specialty (AZ-120): planning, migrating, and administering SAP landscapes on Azure -- migration strategy and SAP RISE integration, compute/networking/storage infrastructure for SAP virtual machines, high availability and disaster recovery (clustering, Pacemaker, Site Recovery), and ongoing performance optimization and monitoring. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",

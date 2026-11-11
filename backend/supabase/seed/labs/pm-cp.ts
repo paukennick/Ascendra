@@ -51,7 +51,7 @@ export const PMICP_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "Your review finds partial entitlement: some ground was worse than reported, but the contractor's programme also slipped for its own reasons. The contractor threatens formal proceedings.",
+          text: "Your review finds partial entitlement: some ground was worse than reported, but the contractor's program also slipped for its own reasons. The contractor threatens formal proceedings.",
           ask: "How do you try to resolve the dispute?",
           parts: [
             part(
@@ -108,7 +108,7 @@ export const PMICP_LABS: SeedLabSet = {
       kind: "build",
       title: "Plan the interfaces between three packages",
       brief:
-        "A fictional light-rail project has three packages let to different contractors: civils (track bed, bridges, stations' structure), systems (signalling, power, communications) and stations fit-out (platform screens, lifts, ticketing). The systems contractor needs cable ducts cast into the civils structures; the station fit-out needs power from systems and finished platforms from civils.",
+        "A fictional light-rail project has three packages let to different contractors: civils (track bed, bridges, stations' structure), systems (signaling, power, communications) and stations fit-out (platform screens, lifts, ticketing). The systems contractor needs cable ducts cast into the civils structures; the station fit-out needs power from systems and finished platforms from civils.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -122,7 +122,7 @@ export const PMICP_LABS: SeedLabSet = {
             ),
             part(
               "Classification",
-              "Classifies interfaces (e.g. physical, functional, contractual, organisational; or internal/external) and by criticality.",
+              "Classifies interfaces (e.g. physical, functional, contractual, organizational; or internal/external) and by criticality.",
               "IP-01 physical, critical (missed ducts mean breaking out concrete). IP-02 functional, critical to commissioning. IP-03 physical/contractual, critical to the opening date."
             ),
             part(
@@ -175,7 +175,7 @@ export const PMICP_LABS: SeedLabSet = {
       kind: "build",
       title: "Tailor messages for a bridge closure",
       brief:
-        "A fictional city will close the Harbour Street bridge for 9 months to rebuild it. Stakeholders: 40 local shops worried about lost trade, a hospital whose ambulances use the bridge, commuters, the city council (sponsor), and residents living next to the site who face night work twice a month.",
+        "A fictional city will close the Harbor Street bridge for 9 months to rebuild it. Stakeholders: 40 local shops worried about lost trade, a hospital whose ambulances use the bridge, commuters, the city council (sponsor), and residents living next to the site who face night work twice a month.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -184,8 +184,8 @@ export const PMICP_LABS: SeedLabSet = {
           parts: [
             part(
               "Early buy-in",
-              "Engages high-impact groups before the closure is finalised (meetings with shop owners and the hospital, a residents' forum), and uses their input in the plan.",
-              "Before finalising, meet the business association and hospital emergency managers, and hold a residents' forum; use their input to set diversion routes, signage and night-work limits."
+              "Engages high-impact groups before the closure is finalized (meetings with shop owners and the hospital, a residents' forum), and uses their input in the plan.",
+              "Before finalizing, meet the business association and hospital emergency managers, and hold a residents' forum; use their input to set diversion routes, signage and night-work limits."
             ),
             part(
               "Tailored messages",
@@ -252,7 +252,7 @@ export const PMICP_LABS: SeedLabSet = {
             ),
             part(
               "Speed mechanisms",
-              "Adds mechanisms for speed: pre-agreed unit rates, a not-to-exceed instruction to start urgent work while pricing is finalised, and a weekly change review.",
+              "Adds mechanisms for speed: pre-agreed unit rates, a not-to-exceed instruction to start urgent work while pricing is finalized, and a weekly change review.",
               "Pre-agreed unit rates for common items; for urgent changes a written instruction to proceed with a not-to-exceed amount, priced within 10 days; a weekly change review meeting."
             ),
             part(
@@ -269,7 +269,7 @@ export const PMICP_LABS: SeedLabSet = {
       objective:
         "Applying scope-management tools and techniques (value engineering, cost-benefit analysis) to identify and close scope gaps",
       kind: "build",
-      title: "Value-engineer a community centre over budget",
+      title: "Value-engineer a community center over budget",
       brief:
         "A fictional community centre's pre-tender estimate is $8.6M against a budget of $8.0M. The brief's must-haves: a sports hall, 4 meeting rooms, accessible changing places and a 50-year design life. Options identified: (A) switch the hall's curtain wall to brick with windows, saving $350,000; (B) cut meeting rooms from 4 to 3, saving $200,000; (C) change roof from standing-seam metal to single-ply membrane, saving $280,000 but needing replacement after about 25 years at an estimated $400,000; (D) reduce site landscaping, saving $120,000.",
       safetyNote: GENERAL_SAFETY,

@@ -11,7 +11,8 @@ import { source } from "../sources";
 // installed Google Cloud SDK (570.0.0) help on 2026-11-07.
 // Density (docs/labs.md, policy "hybrid"): 3 / 2 / 3 / 2.
 //
-// Figures: Cloud Run concurrency default 80 per instance, up to 1,000
+// Figures: Cloud Run concurrency default 80 per instance in the console, and
+// 80 x vCPUs for a new service created with gcloud or Terraform; up to 1,000
 // (docs.cloud.google.com/run/docs/about-concurrency); gcloud storage sign-url
 // allows at most 12 hours when signing with a system-managed key (SDK help).
 // Everything else is long-stable behaviour (ADC lookup order, Workload
@@ -274,8 +275,8 @@ export const GCPDEV_LABS: SeedLabSet = {
             ),
             part(
               "Scaling and concurrency",
-              "Justifies min-instances=1 (one warm instance avoids the cold start, at the cost of paying for an idle instance), max-instances=20 (protects downstream systems and the bill), and concurrency=40 below the default of 80 because requests are memory-heavy, noting Cloud Run allows up to 1,000 per instance and that lower concurrency means more instances for the same traffic.",
-              "min-instances=1 keeps one instance warm so the slow first request disappears, which costs an always-on instance. max-instances=20 stops a traffic spike from overrunning the database or the budget. concurrency=40 is half the default of 80 because each request uses a lot of memory; Cloud Run allows up to 1,000, but lower concurrency simply means more instances for the same load, which is the right trade here."
+              "Justifies min-instances=1 (one warm instance avoids the cold start, at the cost of paying for an idle instance), max-instances=20 (protects downstream systems and the bill), and concurrency=40 below the default of 80 (the console default, and the gcloud/Terraform default of 80 x vCPUs for a 1-vCPU service) because requests are memory-heavy, noting Cloud Run allows up to 1,000 per instance and that lower concurrency means more instances for the same traffic.",
+              "min-instances=1 keeps one instance warm so the slow first request disappears, which costs an always-on instance. max-instances=20 stops a traffic spike from overrunning the database or the budget. concurrency=40 is half the default of 80 (80 in the console; a new service created with gcloud or Terraform gets 80 x its vCPUs, so 80 at 1 vCPU) because each request uses a lot of memory; Cloud Run allows up to 1,000, but lower concurrency simply means more instances for the same load, which is the right trade here."
             ),
           ],
         },
@@ -287,7 +288,7 @@ export const GCPDEV_LABS: SeedLabSet = {
       kind: "build",
       title: "Trigger a Cloud Run service from Cloud Storage and Pub/Sub events",
       brief:
-        "Quayside Analytics (fictional) has a Cloud Run service ingest in europe-west1 (project qa-prod) that must run (a) whenever a file is finalised in the bucket qa-landing and (b) whenever a message is published to the Pub/Sub topic orders. The service must not be publicly invokable; only the triggers may call it. The team also asks what happens if the service throws an error while handling an event, and how to avoid processing the same file twice.",
+        "Quayside Analytics (fictional) has a Cloud Run service ingest in europe-west1 (project qa-prod) that must run (a) whenever a file is finalized in the bucket qa-landing and (b) whenever a message is published to the Pub/Sub topic orders. The service must not be publicly invokable; only the triggers may call it. The team also asks what happens if the service throws an error while handling an event, and how to avoid processing the same file twice.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -324,7 +325,7 @@ export const GCPDEV_LABS: SeedLabSet = {
       kind: "build",
       title: "Write the probes for a slow-starting service on GKE",
       brief:
-        "Saltmarsh Books (fictional) runs its catalogue service on GKE. It takes 40 to 90 seconds to start because it loads a search index, listens on port 8080, exposes /healthz (returns 200 once the process is up) and /ready (returns 200 only when the index is loaded and the database is reachable). Today the Deployment has no probes, so rollouts send traffic to pods that cannot answer yet, and a pod that deadlocks keeps receiving requests until someone notices. A previous attempt added a liveness probe with a 10-second initial delay, which restarted every pod in a loop. Write the probes and explain each number.",
+        "Saltmarsh Books (fictional) runs its catalog service on GKE. It takes 40 to 90 seconds to start because it loads a search index, listens on port 8080, exposes /healthz (returns 200 once the process is up) and /ready (returns 200 only when the index is loaded and the database is reachable). Today the Deployment has no probes, so rollouts send traffic to pods that cannot answer yet, and a pod that deadlocks keeps receiving requests until someone notices. A previous attempt added a liveness probe with a 10-second initial delay, which restarted every pod in a loop. Write the probes and explain each number.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -378,8 +379,8 @@ export const GCPDEV_LABS: SeedLabSet = {
             ),
             part(
               "How to back off",
-              "Uses truncated exponential backoff with jitter: wait base x 2^n plus a random component, cap the wait at a maximum (for example tens of seconds), and honour a Retry-After header if present; explains jitter prevents synchronised retry storms from many clients.",
-              "Truncated exponential backoff with full jitter: on attempt n wait a random time between 0 and min(cap, base x 2^n), for example base 1 second and a cap of about 32-64 seconds, and honour Retry-After when the response includes it. Doubling spreads retries out; the random jitter stops thousands of clients retrying in lockstep, which is what turned one throttle into a storm."
+              "Uses truncated exponential backoff with jitter: wait base x 2^n plus a random component, cap the wait at a maximum (for example tens of seconds), and honor a Retry-After header if present; explains jitter prevents synchronized retry storms from many clients.",
+              "Truncated exponential backoff with full jitter: on attempt n wait a random time between 0 and min(cap, base x 2^n), for example base 1 second and a cap of about 32-64 seconds, and honor Retry-After when the response includes it. Doubling spreads retries out; the random jitter stops thousands of clients retrying in lockstep, which is what turned one throttle into a storm."
             ),
             part(
               "When to stop",

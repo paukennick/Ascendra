@@ -112,12 +112,12 @@ export const PFMP_LABS: SeedLabSet = {
             part(
               "Sequence",
               "Starts the regulatory upgrade and the CDP first (deadline and the key dependency), then pricing analytics and the claims portal after the CDP, with the broker app placed where capacity allows.",
-              "Months 1-6: regulatory upgrade (team 1) and CDP (team 2, through month 12). Months 7-14: broker app on team 1. Months 13-18: pricing analytics; months 13-21: claims portal (CDP data available from month 13)."
+              "Team 1: regulatory upgrade months 1-6 (inside the 10-month deadline), then broker app months 7-14, then pricing analytics months 15-20. Team 2: CDP months 1-12, then claims portal months 13-21 (CDP data available from month 13). Never more than two streams at once; everything is done by month 21."
             ),
             part(
               "Dependencies and capacity",
               "Shows the dependencies (portal and analytics on CDP) and respects the two-team limit, noting where the plan uses a third team or overlaps if it does.",
-              "Portal and analytics both wait for the CDP. Months 13-14 need three streams (broker app finishing, analytics, portal): either finish the broker app by month 12 if possible or start the portal in month 15."
+              "Portal and analytics both wait for the CDP. In months 13-14 team 1 is still on the broker app, so only one CDP-dependent program can start in month 13 (the portal, on team 2) and analytics waits for team 1 in month 15. The broker app can't finish by month 12: team 1 is on the regulatory upgrade until month 6 and the app takes 8 months."
             ),
             part(
               "Alignment",
@@ -155,8 +155,8 @@ export const PFMP_LABS: SeedLabSet = {
             ),
             part(
               "Policies",
-              "Sets policies for intake (no work starts unregistered), prioritisation using agreed criteria, resource allocation for shared engineers, and periodic review/termination of components.",
-              "Intake: nothing starts without PMO registration and a short business case. Prioritisation: scored against agreed criteria each quarter. Shared engineers allocated by the portfolio board by priority. Quarterly review can pause or stop components."
+              "Sets policies for intake (no work starts unregistered), prioritization using agreed criteria, resource allocation for shared engineers, and periodic review/termination of components.",
+              "Intake: nothing starts without PMO registration and a short business case. Prioritization: scored against agreed criteria each quarter. Shared engineers allocated by the portfolio board by priority. Quarterly review can pause or stop components."
             ),
           ],
         },
@@ -208,7 +208,7 @@ export const PFMP_LABS: SeedLabSet = {
       kind: "build",
       title: "Balance engineer demand across the portfolio",
       brief:
-        "Brightline Utilities (fictional) has 40 network engineers. Next quarter's demand from approved components (in engineer FTE): Grid Upgrade (priority 1) 18, Outage App (priority 2) 10, Substation Refresh (priority 3) 12, Fibre Rollout (priority 4) 8. Operations also needs 5 engineers for emergency response, which is non-negotiable.",
+        "Brightline Utilities (fictional) has 40 network engineers. Next quarter's demand from approved components (in engineer FTE): Grid Upgrade (priority 1) 18, Outage App (priority 2) 10, Substation Refresh (priority 3) 12, Fiber Rollout (priority 4) 8. Operations also needs 5 engineers for emergency response, which is non-negotiable.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -222,13 +222,13 @@ export const PFMP_LABS: SeedLabSet = {
             ),
             part(
               "Allocation",
-              "Allocates by priority after the non-negotiable 5: Grid 18, Outage App 10, Substation 7 of 12, Fibre 0 -- totalling 40, and states the effect on each component.",
-              "Operations 5, Grid Upgrade 18, Outage App 10 = 33; 7 left for Substation Refresh (of 12, so it slows by roughly 40%); Fibre Rollout gets none and is paused one quarter."
+              "Allocates by priority after the non-negotiable 5: Grid 18, Outage App 10, Substation 7 of 12, Fiber 0 -- totaling 40, and states the effect on each component.",
+              "Operations 5, Grid Upgrade 18, Outage App 10 = 33; 7 left for Substation Refresh (of 12, so it slows by roughly 40%); Fiber Rollout gets none and is paused one quarter."
             ),
             part(
               "Options and decision",
               "Proposes ways to close the gap (contractors, re-phasing, skills sharing), notes cost/schedule effects on lower-priority components, and takes the trade-off to the portfolio board.",
-              "Options: hire 5 contract engineers for Substation, re-phase Fibre to next quarter, or train 3 technicians for simpler tasks. Present the allocation and options with their cost and schedule impact to the portfolio board for decision."
+              "Options: hire 5 contract engineers for Substation, re-phase Fiber to next quarter, or train 3 technicians for simpler tasks. Present the allocation and options with their cost and schedule impact to the portfolio board for decision."
             ),
           ],
         },
@@ -240,7 +240,7 @@ export const PFMP_LABS: SeedLabSet = {
       kind: "case",
       title: "A supplier failure that hits three projects",
       brief:
-        "In Tidewater Insurance's (fictional) portfolio, a cloud hosting supplier used by three projects has announced it will close its regional data centre in 60 days.",
+        "In Tidewater Insurance's (fictional) portfolio, a cloud hosting supplier used by three projects has announced it will close its regional data center in 60 days.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -249,7 +249,7 @@ export const PFMP_LABS: SeedLabSet = {
           parts: [
             part(
               "Portfolio-level issue",
-              "Recognises it affects multiple components, may need a common solution and contract decision, and exceeds individual project authority, so the portfolio office coordinates and escalates.",
+              "Recognizes it affects multiple components, may need a common solution and contract decision, and exceeds individual project authority, so the portfolio office coordinates and escalates.",
               "It hits three components at once, needs one supplier decision rather than three, and may change budgets and the roadmap -- beyond any single project's authority. The portfolio office takes ownership and logs it as a portfolio issue."
             ),
             part(
@@ -285,7 +285,7 @@ export const PFMP_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Analyse the dependencies and write the resulting portfolio risks and monitoring.",
+          ask: "Analyze the dependencies and write the resulting portfolio risks and monitoring.",
           parts: [
             part(
               "Dependency map",
@@ -299,8 +299,8 @@ export const PFMP_LABS: SeedLabSet = {
             ),
             part(
               "Monitoring",
-              "Sets leading indicators and owners (CDP milestone tracking, team utilisation, partner change notices) reviewed at portfolio level.",
-              "Track CDP milestones weekly at the portfolio office; watch data-team utilisation (flag above 90%); agree change-notice terms with the partner network. Review these indicators monthly at the portfolio board."
+              "Sets leading indicators and owners (CDP milestone tracking, team utilization, partner change notices) reviewed at portfolio level.",
+              "Track CDP milestones weekly at the portfolio office; watch data-team utilization (flag above 90%); agree change-notice terms with the partner network. Review these indicators monthly at the portfolio board."
             ),
           ],
         },
@@ -346,7 +346,7 @@ export const PFMP_LABS: SeedLabSet = {
       kind: "build",
       title: "Write the portfolio communication plan",
       brief:
-        "Brightline Utilities' (fictional) portfolio of 60 projects and 4 programs reports through 64 separate status reports each month. Executives say they can't see the overall picture; business unit heads complain they learn about decisions affecting them from rumours; the regulator requires a quarterly update on safety-related investments.",
+        "Brightline Utilities' (fictional) portfolio of 60 projects and 4 programs reports through 64 separate status reports each month. Executives say they can't see the overall picture; business unit heads complain they learn about decisions affecting them from rumors; the regulator requires a quarterly update on safety-related investments.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {

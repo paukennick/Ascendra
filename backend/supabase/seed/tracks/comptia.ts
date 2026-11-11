@@ -227,7 +227,7 @@ export const APLUS_CORE2_TRACK: SeedTrack = {
       objectives: [
         "Troubleshooting common Windows problems: slow performance, application crashes, boot failures, and blue screen errors",
         "Troubleshooting common PC security symptoms: browser redirection, unwanted pop-ups, and rogue antivirus",
-        "Best-practice malware removal procedure: quarantine, disable System Restore, remediate, re-enable, and educate the user",
+        "Best-practice malware removal procedure: investigate and verify symptoms, quarantine, disable System Restore, remediate, schedule scans and run updates, re-enable System Restore and create a restore point, and educate the user",
         "Troubleshooting common mobile OS and app issues: signal loss, failed app loads, and failed synchronization",
         "Troubleshooting common mobile security issues: unauthorized data access, unexpected data usage, and unauthorized location tracking",
       ],
@@ -1042,11 +1042,13 @@ export const CLOUDNETX_TRACK: SeedTrack = {
 
 // ---------------------------------------------------------------------------
 // CompTIA SecAI+ (CY0-001, V1). Confirmed current: launched 2026-02-17,
-// CompTIA's first AI-security certification. Domain/objective text sourced
-// from CompTIA's own "Exam Objectives Document Version 2.0" PDF (fetched
-// and text-extracted with pymupdf). Duration/question-count/passing-score
-// came from comptia.org's certification page rather than the objectives
-// PDF, since the PDF still listed those fields as "TBD".
+// CompTIA's first AI-security certification. Domain/objective text first
+// sourced from CompTIA's "Exam Objectives Document Version 2.0" PDF (fetched
+// and text-extracted with pymupdf); re-checked 2026-11-09 against the
+// current Document Version 4.0, the same version the labs cite: domains,
+// weights (17/40/24/19), max 60 questions, 60 minutes and 600 on 100-900
+// all match. (Version 2.0 listed the test details as "TBD", so they were
+// first taken from comptia.org's certification page.)
 export const SECAIPLUS_TRACK: SeedTrack = {
   code: "SECAIPLUS",
   title: "Prep for CompTIA SecAI+",

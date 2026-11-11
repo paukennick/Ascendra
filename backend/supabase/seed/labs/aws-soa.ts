@@ -110,7 +110,7 @@ export const AWSSOA_LABS: SeedLabSet = {
       kind: "build",
       title: "Design the alarms for a customer-facing API",
       brief:
-        "Greywood Ticketing, a fictional events company, runs an API on EC2 instances in an Auto Scaling group behind an Application Load Balancer. Today's alarms page on-call for every one-minute blip: a single bad datapoint of 5XX errors fires, a quiet night with no requests shows INSUFFICIENT_DATA that nobody understands, and when the database goes down the team receives eleven separate alarm emails. Operations wants: page on sustained errors, not blips; sensible behaviour when traffic is zero; one notification per incident; and the load balancer's unhealthy-host condition to replace instances without a human.",
+        "Greywood Ticketing, a fictional events company, runs an API on EC2 instances in an Auto Scaling group behind an Application Load Balancer. Today's alarms page on-call for every one-minute blip: a single bad datapoint of 5XX errors fires, a quiet night with no requests shows INSUFFICIENT_DATA that nobody understands, and when the database goes down the team receives eleven separate alarm emails. Operations wants: page on sustained errors, not blips; sensible behavior when traffic is zero; one notification per incident; and the load balancer's unhealthy-host condition to replace instances without a human.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -350,9 +350,9 @@ export const AWSSOA_LABS: SeedLabSet = {
           ask: "What are the two different problems and the fix for each?",
           parts: [
             part(
-              "Permissions versus capability acknowledgement",
-              "Separates the two: the first is an IAM permissions problem (the caller, or the stack's service role if one is set, lacks iam:CreateRole), fixed by granting the permission to a CloudFormation service role; the second is CloudFormation's acknowledgement that the template creates IAM resources with custom names, fixed by passing CAPABILITY_NAMED_IAM (CAPABILITY_IAM if the names are generated).",
-              "Problem one is authorisation: whoever CloudFormation acts as (the user, or better a dedicated CloudFormation service role) needs iam:CreateRole and the related IAM actions; give the stack a service role with those permissions rather than widening the engineer. Problem two is not a permission at all: because the template names its IAM role, CloudFormation requires the caller to acknowledge it with CAPABILITY_NAMED_IAM (CAPABILITY_IAM would do for unnamed IAM resources)."
+              "Permissions versus capability acknowledgment",
+              "Separates the two: the first is an IAM permissions problem (the caller, or the stack's service role if one is set, lacks iam:CreateRole), fixed by granting the permission to a CloudFormation service role; the second is CloudFormation's acknowledgment that the template creates IAM resources with custom names, fixed by passing CAPABILITY_NAMED_IAM (CAPABILITY_IAM if the names are generated).",
+              "Problem one is authorization: whoever CloudFormation acts as (the user, or better a dedicated CloudFormation service role) needs iam:CreateRole and the related IAM actions; give the stack a service role with those permissions rather than widening the engineer. Problem two is not a permission at all: because the template names its IAM role, CloudFormation requires the caller to acknowledge it with CAPABILITY_NAMED_IAM (CAPABILITY_IAM would do for unnamed IAM resources)."
             ),
           ],
         },
@@ -423,7 +423,7 @@ export const AWSSOA_LABS: SeedLabSet = {
             part(
               "Which layer",
               "Reads that the message names the policy type: an explicit deny in a service control policy attached in AWS Organizations, which no identity policy can override; explains that an explicit deny anywhere (SCP, permissions boundary, resource policy, identity policy) wins, and that SCPs set the ceiling for member accounts.",
-              "The denial came from an SCP: the access-denied message now names the policy type, 'with an explicit deny in a service control policy'. Evaluation logic: any explicit deny in any applicable policy ends the request, and an SCP applies to every principal in the member account regardless of what the identity policy allows. Her policy is fine; the organisation's guardrail blocks it."
+              "The denial came from an SCP: the access-denied message now names the policy type, 'with an explicit deny in a service control policy'. Evaluation logic: any explicit deny in any applicable policy ends the request, and an SCP applies to every principal in the member account regardless of what the identity policy allows. Her policy is fine; the organization's guardrail blocks it."
             ),
             part(
               "Next step",
@@ -530,8 +530,8 @@ export const AWSSOA_LABS: SeedLabSet = {
           parts: [
             part(
               "Routes and NAT placement",
-              "Adds a default route (0.0.0.0/0) in the application subnet's route table to the NAT gateway, and explains the NAT gateway itself must live in a public subnet whose route table sends 0.0.0.0/0 to the internet gateway, otherwise it has no way out either; moves or recreates it in a public subnet.",
-              "Two mistakes: the application route table never pointed 0.0.0.0/0 anywhere, and the NAT gateway sits in a subnet with no route to the internet gateway, so it is a private NAT with no exit. Create the NAT gateway in a public subnet (0.0.0.0/0 -> igw) with an Elastic IP, then add 0.0.0.0/0 -> nat-gateway to the application subnet's route table. One NAT gateway per AZ avoids cross-AZ dependency."
+              "Adds a default route (0.0.0.0/0) in the application subnet's route table to the NAT gateway, and explains that this zonal NAT gateway must live in a public subnet whose route table sends 0.0.0.0/0 to the internet gateway, otherwise it has no way out either; moves or recreates it in a public subnet (or replaces it with a regional NAT gateway, which needs no public subnet).",
+              "Two mistakes: the application route table never pointed 0.0.0.0/0 anywhere, and the NAT gateway sits in a subnet with no route to the internet gateway, so it is a private NAT with no exit. Create the zonal NAT gateway in a public subnet (0.0.0.0/0 -> igw) with an Elastic IP, then add 0.0.0.0/0 -> nat-gateway to the application subnet's route table. One zonal NAT gateway per AZ avoids cross-AZ dependency. The public-subnet rule applies to zonal NAT gateways, the kind created in a subnet; a regional NAT gateway is created for the VPC instead, needs no public subnet and expands across AZs as workloads appear, so it is the simpler alternative here."
             ),
           ],
         },

@@ -43,7 +43,7 @@ export function labPromptHash(labPrompt: string): string {
 }
 
 export interface LabQuestionGenerator {
-  (params: { objectiveTitle: string; labPrompt: string; ctx?: CoachContext }): Promise<{ questions: string[]; model: string }>;
+  (params: { objectiveTitle: string; labPrompt: string; ctx?: CoachContext; userId: string | null }): Promise<{ questions: string[]; model: string }>;
 }
 
 export const claudeLabQuestions: LabQuestionGenerator = async (params) => {
@@ -58,6 +58,7 @@ export const claudeLabQuestions: LabQuestionGenerator = async (params) => {
     effort: "low",
     thinking: "off",
     purpose: "lab_questions",
+    userId: params.userId,
   });
   return { questions: out.questions, model };
 };
@@ -70,7 +71,10 @@ export async function labQuestionsFor(
   objectiveId: string,
   objectiveTitle: string,
   labPrompt: string,
-  ctx?: CoachContext,
+  ctx: CoachContext | undefined,
+  // REQ-202: the learner whose request starts the generation; the shared
+  // questions are charged to them.
+  userId: string | null,
   generate: LabQuestionGenerator = claudeLabQuestions
 ): Promise<string[]> {
   const hash = labPromptHash(labPrompt);
@@ -84,7 +88,7 @@ export async function labQuestionsFor(
   const inFlight = pendingLabQuestions.get(key);
   if (inFlight) return inFlight;
   const run = (async () => {
-    const { questions, model } = await generate({ objectiveTitle, labPrompt, ctx });
+    const { questions, model } = await generate({ objectiveTitle, labPrompt, ctx, userId });
     const clean = cleanLabQuestions(questions);
     // A changed lab text replaces the old questions; the same text never
     // replaces questions another instance already stored.

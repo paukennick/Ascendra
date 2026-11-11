@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-150: CompTIA Project+ (PK0-005, V5). Still the live exam when checked
@@ -33,24 +33,24 @@ export const PROJECTPLUS_LABS: SeedLabSet = {
       slug: "projectplus-risk-responses",
       objective: "Risk management",
       kind: "build",
-      title: "Analyse and respond to risks on an office move",
+      title: "Analyze and respond to risks on an office move",
       brief:
-        "Northlight Accountancy is moving its 80 staff and server room to a new office over one weekend in three months. Known risks: (1) the internet provider may not activate the new building's fibre line in time; (2) the old servers are end-of-life and may fail when moved; (3) the landlord may offer an extra floor at a discount if the move happens a month early; (4) a major cybersecurity event could hit while systems are being reconnected.",
+        "Northlight Accountancy is moving its 80 staff and server room to a new office over one weekend in three months. Known risks: (1) the internet provider may not activate the new building's fiber line in time; (2) the old servers are end-of-life and may fail when moved; (3) the landlord may offer an extra floor at a discount if the move happens a month early; (4) a major cybersecurity event could hit while systems are being reconnected.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Analyse the risks and plan responses.",
+          ask: "Analyze the risks and plan responses.",
           parts: [
             part(
               "Qualitative analysis",
               "Rates each risk's probability and impact (for example high/medium/low or 1-5) with a brief reason, and identifies which need the most attention (likely 1 and 2).",
-              "(1) Fibre not ready: probability medium, impact high (no internet on Monday). (2) Servers fail in transit: probability medium (end-of-life), impact high. (3) Discounted extra floor: probability low, impact medium (positive). (4) Cyber event during reconnection: probability low, impact high. Priorities: 1 and 2."
+              "(1) Fiber not ready: probability medium, impact high (no internet on Monday). (2) Servers fail in transit: probability medium (end-of-life), impact high. (3) Discounted extra floor: probability low, impact medium (positive). (4) Cyber event during reconnection: probability low, impact high. Priorities: 1 and 2."
             ),
             part(
               "Negative-risk responses",
               "Gives an appropriate strategy name and action for at least two threats from avoid, mitigate, transfer or accept (for example mitigate 1 with an early order and a 4G/5G backup; avoid or transfer 2 by migrating to new hardware or cloud, or insuring the move).",
-              "(1) Mitigate: confirm the fibre order now with weekly check-ins and arrange 5G routers as a fallback. (2) Avoid: migrate services to new servers before the move so the old ones aren't relied on; or transfer the physical move to a specialist mover with insurance. (4) Mitigate: keep firewall rules and MFA in place and monitor during reconnection."
+              "(1) Mitigate: confirm the fiber order now with weekly check-ins and arrange 5G routers as a fallback. (2) Avoid: migrate services to new servers before the move so the old ones aren't relied on; or transfer the physical move to a specialist mover with insurance. (4) Mitigate: keep firewall rules and MFA in place and monitor during reconnection."
             ),
             part(
               "Positive-risk response",
@@ -60,7 +60,7 @@ export const PROJECTPLUS_LABS: SeedLabSet = {
             part(
               "Contingency and ownership",
               "Gives a contingency/fallback plan for at least one risk with a trigger, and names a risk owner or escalation point.",
-              "Contingency for (1): if the provider hasn't confirmed an activation date two weeks before the move, switch to the 5G routers for the first week. Owner: IT manager; escalation to the office manager if the fibre date slips."
+              "Contingency for (1): if the provider hasn't confirmed an activation date two weeks before the move, switch to the 5G routers for the first week. Owner: IT manager; escalation to the office manager if the fiber date slips."
             ),
           ],
         },
@@ -77,13 +77,9 @@ export const PROJECTPLUS_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Analyse the schedule and how to manage changes to it.",
+          ask: "Analyze the schedule and how to manage changes to it.",
           parts: [
-            part(
-              "Dependency types",
-              "Classifies A->B as mandatory (hard logic), A->C as discretionary (soft logic, preferred), and the vendor-support need as an external dependency.",
-              "A -> B: mandatory (hard logic) -- you can't install without hardware. A -> C: discretionary (soft logic) -- a preference that could change. Vendor support for go-live: an external dependency outside the team's control."
-            ),
+            matchPart("Dependency types", "A -> B is mandatory (hard logic), A -> C is discretionary (soft logic, a preference) and the vendor support for go-live is external. All three right is met; two is partly there.", "A -> B: mandatory (hard logic) -- you can't install without hardware. A -> C: discretionary (soft logic) -- a preference that could change. Vendor support for go-live: an external dependency outside the team's control.", { leftHeading: "Dependency", rightHeading: "Type", left: ["A Order hardware -> B Install software", "A Order hardware -> C Train staff", "D Go live needs the vendor's support team"], right: ["Mandatory (hard logic)", "Discretionary (soft logic)", "External"], pairs: [0, 1, 2] }),
             part(
               "Critical path",
               "Calculates A-B-D = 10 days (critical) and A-C-D = 9 days, so C has 1 day of float.",
@@ -91,7 +87,7 @@ export const PROJECTPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Using the soft logic",
-              "Recognises that because A->C is discretionary, training could start earlier (in parallel with A) to add float or protect the schedule, but this does not shorten the project since C is not critical.",
+              "Recognizes that because A->C is discretionary, training could start earlier (in parallel with A) to add float or protect the schedule, but this does not shorten the project since C is not critical.",
               "Since training only has a preferred link to ordering, it could start on day 0. That gives C more float but doesn't shorten the project, because the critical path runs through B."
             ),
             part(
@@ -196,11 +192,7 @@ export const PROJECTPLUS_LABS: SeedLabSet = {
               "Matches tools to needs: the task/Kanban board for the team's daily work; the burndown for sprint progress; a Gantt chart (or roadmap) for senior managers' cross-team timeline with dependencies and milestones.",
               "Team daily work: the task board (to do, in progress, done). Sprint progress: the burndown. Senior managers: a Gantt chart showing the app, warehouse and training work with dependencies and milestones."
             ),
-            part(
-              "Burndown reading",
-              "Calculates the ideal remaining work at day 6 (60 - 6 x 6 = 24) and concludes the team is 16 points behind the ideal line (40 remaining).",
-              "Ideal burn = 60 / 10 = 6 points a day, so 60 - 36 = 24 points should remain after day 6. Actual is 40, so the team is 16 points behind."
-            ),
+            numericPart("Points behind the ideal line", "Ideal burn is 60 / 10 = 6 points a day, so 24 points should remain after day 6; 40 remain, so the team is 16 points behind. Met at exactly 16.", "Ideal burn = 60 / 10 = 6 points a day, so 60 - 36 = 24 points should remain after day 6. Actual is 40, so the team is 16 points behind.", { answer: 16, tolerance: 0, unit: "points" }),
             part(
               "Forecast and action",
               "Forecasts at the current rate (20 points in 6 days = about 3.3 a day; 4 days left gives about 13 more, leaving about 27 unfinished) and proposes an action (discuss at stand-up, agree with the product owner which items to drop, look for blockers).",

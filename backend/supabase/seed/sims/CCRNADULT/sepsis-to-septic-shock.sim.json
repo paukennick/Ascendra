@@ -1,0 +1,2131 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sepsis-to-septic-shock",
+  "title": "Sepsis to septic shock",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 50,
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              110,
+              120,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "nibp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "map",
+          "label": "MAP",
+          "spokenLabel": "Mean arterial pressure",
+          "value": "map",
+          "unit": "mmHg",
+          "alarm": {
+            "low": 65
+          },
+          "trend": {
+            "history": "mapH",
+            "window": "5min",
+            "threshold": 3
+          },
+          "announce": {
+            "bands": [
+              65,
+              55,
+              45
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 28
+          },
+          "announce": {
+            "bands": [
+              24,
+              28
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90,
+              88
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature",
+          "value": "temp",
+          "unit": "C",
+          "announce": {
+            "bands": [
+              38.3,
+              39
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "uo",
+          "label": "Urine",
+          "spokenLabel": "Urine output",
+          "value": "uo",
+          "unit": "mL/h",
+          "announce": {
+            "bands": [
+              40,
+              20
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "lac",
+          "label": "Lactate",
+          "spokenLabel": "Last lactate result",
+          "value": "lacLast",
+          "unit": "mmol/L",
+          "announce": {
+            "bands": [
+              2,
+              4
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "lacLast > 0"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Norepinephrine {neDose} mcg/kg/min; fluid running {round(infRate)} mL/h; total {round(fluidTotal)} mL",
+      "banner": [
+        {
+          "when": "intubated",
+          "text": "Intubated for pulmonary edema."
+        }
+      ]
+    }
+  },
+  "objective": "Early sepsis identification and sepsis management",
+  "secondaryObjectives": [
+    "Shock states, including distributive and obstructive shock",
+    "Deliver early sepsis care: blood cultures, broad-spectrum antibiotics ideally within the first hour in shock or probable sepsis (after a rapid assessment when sepsis is only possible), source control, crystalloid resuscitation and vasopressors to a mean arterial pressure target"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN (Adult) Exam Handbook and Adult CCRN Test Plan, effective 2025-11-12",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "The objective and its secondary objectives are the course's own titles, built from this test plan (backend/supabase/seed/tracks/ccrn.ts, verified there 2026-10-31). Not re-fetched for this scenario."
+    },
+    {
+      "cite": "Prescott HC, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026. Crit Care Med 2026;54(4) (published 2026-03-23); also Intensive Care Med 2026, doi:10.1007/s00134-026-08361-1",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+      "note": "Supersedes 2021 where they differ. As relayed by secondary summaries read 2026-11-10 (Epocrates; Critical Care Update 2026-04-30; clinical-database.com Part 3): septic shock antimicrobials immediately, ideally within 1 h; crystalloids first line (strong) and balanced crystalloids over 0.9% saline (conditional); about 30 mL/kg initially kept (algorithm figure: at least 30 mL/kg within 3 h); serial lactate (Rec 51) and capillary refill time as an adjunct (Rec 52) to guide resuscitation; norepinephrine first line (Rec 53, strong); vasopressin added on escalating norepinephrine (Rec 56); MAP about 65 managed as a range, 60-65 suggested at age 65 or older; figure: start the vasopressor peripherally if there is no central access, and it may start with fluids in unstable shock. The primary text was not opened (the publisher page refused the fetch); confirm recommendation numbers and wording at the next review."
+    },
+    {
+      "cite": "Evans L, Rhodes A, Alhazzani W, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2021. Crit Care Med 2021;49(11):e1063-e1143. doi:10.1097/CCM.0000000000005337",
+      "checkedAt": "2026-11-10",
+      "url": "https://journals.lww.com/ccmjournal/fulltext/2021/11000/surviving_sepsis_campaign__international.21.aspx",
+      "note": "Used for: antimicrobials immediately, ideally within 1 h, for possible septic shock or a high likelihood of sepsis (strong); within 3 h for possible sepsis without shock if concern persists (weak); at least 30 mL/kg IV crystalloid within the first 3 h for sepsis-induced hypoperfusion; initial MAP target 65 mmHg; norepinephrine first line; starting a vasopressor peripherally rather than delaying until central access; guiding resuscitation by lactate. Checked through a secondary listing (WikEM, Sepsis (main), read 2026-11-10); the primary text was not opened this session."
+    },
+    {
+      "cite": "Levy MM, Evans LE, Rhodes A. The Surviving Sepsis Campaign Bundle: 2018 update. Crit Care Med 2018;46(6):997-1000 (the Hour-1 bundle)",
+      "checkedAt": "2026-11-10",
+      "url": "https://wikem.org/wiki/Sepsis_(main)",
+      "note": "Bundle elements as listed by WikEM (Sepsis (main), read 2026-11-10): measure lactate and re-measure within 2-4 h if the first is above 2 mmol/L; blood cultures before antibiotics, without delaying antibiotics to obtain them; broad-spectrum antibiotics; 30 mL/kg crystalloid for hypotension or lactate of 4 mmol/L or more; vasopressors if hypotensive during or after fluids to keep MAP at 65 or more. The 2-4 h wording is the secondary listing's; the 2018 paper was not opened this session."
+    },
+    {
+      "cite": "Singer M, Deutschman CS, Seymour CW, et al. The Third International Consensus Definitions for Sepsis and Septic Shock (Sepsis-3). JAMA 2016;315(8):801-810",
+      "checkedAt": "2026-11-10",
+      "note": "Septic shock: sepsis needing a vasopressor to hold MAP at 65 or more with lactate above 2 mmol/L despite adequate fluid. Stated from the published definition; not re-opened this session."
+    }
+  ],
+  "brief": {
+    "situation": "Handover at 19:00. Bed 4, 58-year-old, 80 kg, admitted from the ED at 18:30 with fever, right flank pain and dysuria. The ED gave 1,000 mL of lactated Ringer's. A broad-spectrum antibiotic is ordered and on the unit; the first dose is not in yet, and blood cultures were not drawn in the ED. A sepsis order set is active.",
+    "handover": [
+      "Temperature 39.1, HR 115, BP 92/50 (MAP 70) and drifting down, RR 24, SpO2 95% on 2 L.",
+      "A little confused about the date. ED lactate was not sent. Peripheral IVs: two, 18 gauge, both forearms.",
+      "Urine via Foley: about 30 mL in the last hour, dark."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Assessments examine the patient; orders and drips act. Some ask for a volume or dose.",
+      "Things take as long as they would on a unit: cultures take minutes to draw, a lactate comes back from the analyser, a bolus runs in, drips take minutes to work, the provider calls back.",
+      "While you wait on something you can skip ahead; the skip stops early at an alarm or a result.",
+      "Partway through you are asked to write what you think is happening. The case ends at the intensivist's review 2.5 hours in, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "19:00",
+    "tick": "1s",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "weight": {
+      "value": 80,
+      "unit": "kg"
+    },
+    "sevRise": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Untreated, the shock deepens until MAP reaches the arrest threshold about 95 min after handover. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sevFall": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Once the antibiotic acts, the vasodilation eases slowly. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "abxLag": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The first antibiotic dose changes the trajectory about 1 h after it is given; a shorter delay to the dose means a shorter peak. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "leakTau": {
+      "value": 60,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Time constant of the intravascular effect of a crystalloid bolus in capillary leak: most of the pressure effect is gone within about an hour. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "mmHgPer500": {
+      "value": 5,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Peak MAP gain per 500 mL still in the vessels. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "fluidCap": {
+      "value": 9,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Fluid alone cannot raise MAP more than this in this case: the shock is distributive. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bolusRate": {
+      "value": 2000,
+      "unit": "mL/h",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Bolus on a pump or pressure bag: 500 mL in 15 min, 1,000 mL in 30 min."
+      }
+    },
+    "edFluid": {
+      "value": 1000,
+      "unit": "mL"
+    },
+    "overloadAt": {
+      "value": 5000,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Above about 5 L the lungs start to fill: SpO2 falls about 4% per extra liter. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "neTau": {
+      "value": 3.5,
+      "unit": "min",
+      "source": {
+        "cite": "Norepinephrine prescribing information (half-life about 2-3 min)",
+        "checkedAt": "2026-11-10",
+        "note": "Same time constant as the tamponade case (tamponade-after-cabg). Not re-opened this session."
+      }
+    },
+    "nePer": {
+      "value": 110,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "MAP gain per mcg/kg/min of norepinephrine, blunted as the shock deepens. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "titrate": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Norepinephrine prescribing information (half-life about 2-3 min)",
+        "checkedAt": "2026-11-10",
+        "note": "Titrate every 5 minutes, as in the tamponade case."
+      }
+    },
+    "lacTau": {
+      "value": 40,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Lactate moves toward its current production level with this time constant. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lacTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Blood gas analyser on the unit: lactate back in about 10 min."
+      }
+    },
+    "cultureTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Two sets from two sites: about 5 min."
+      }
+    },
+    "callback": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Provider callback about 3 min."
+      }
+    },
+    "teamWalk": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Provider and ICU team at the bedside about 10 min after the callback."
+      }
+    },
+    "lineTime": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Central line: consent, set-up, ultrasound-guided placement and an X-ray check, about 45 min."
+      }
+    },
+    "arrestMap": {
+      "value": 40,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "MAP at which this patient arrests. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reasonAt": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The written question opens at the first MAP below 65, or at 20 min. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "abxLate": {
+      "value": 10800,
+      "unit": "s",
+      "source": {
+        "cite": "Evans L, Rhodes A, Alhazzani W, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2021. Crit Care Med 2021;49(11):e1063-e1143. doi:10.1097/CCM.0000000000005337",
+        "checkedAt": "2026-11-10",
+        "note": "3 h: the outer bound the 2021 guideline gives for possible sepsis without shock; used here only to separate a late dose (partial) from a much later one (missed)."
+      }
+    },
+    "fluidGoal": {
+      "value": 2400,
+      "unit": "mL",
+      "source": {
+        "cite": "Evans L, Rhodes A, Alhazzani W, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2021. Crit Care Med 2021;49(11):e1063-e1143. doi:10.1097/CCM.0000000000005337",
+        "checkedAt": "2026-11-10",
+        "note": "30 mL/kg x 80 kg. The 2026 guideline keeps about 30 mL/kg initially (secondary summaries); the ED's 1,000 mL counts toward it."
+      }
+    },
+    "pressorWindow": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Prescott HC, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026. Crit Care Med 2026;54(4) (published 2026-03-23); also Intensive Care Med 2026, doi:10.1007/s00134-026-08361-1",
+        "checkedAt": "2026-11-10",
+        "note": "Authored window: norepinephrine within 30 min of hypotension that persists after 30 mL/kg. The guideline sets no minute count; its figure says the vasopressor may start with fluids in unstable shock."
+      }
+    },
+    "lacWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Levy MM, Evans LE, Rhodes A. The Surviving Sepsis Campaign Bundle: 2018 update. Crit Care Med 2018;46(6):997-1000 (the Hour-1 bundle)",
+        "checkedAt": "2026-11-10",
+        "note": "Authored: the first lactate within 15 min of handover, inside the Hour-1 bundle."
+      }
+    },
+    "relacMin": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "Levy MM, Evans LE, Rhodes A. The Surviving Sepsis Campaign Bundle: 2018 update. Crit Care Med 2018;46(6):997-1000 (the Hour-1 bundle)",
+        "checkedAt": "2026-11-10",
+        "url": "https://wikem.org/wiki/Sepsis_(main)",
+        "note": "Bundle elements as listed by WikEM (Sepsis (main), read 2026-11-10): measure lactate and re-measure within 2-4 h if the first is above 2 mmol/L; blood cultures before antibiotics, without delaying antibiotics to obtain them; broad-spectrum antibiotics; 30 mL/kg crystalloid for hypotension or lactate of 4 mmol/L or more; vasopressors if hypotensive during or after fluids to keep MAP at 65 or more. The 2-4 h wording is the secondary listing's; the 2018 paper was not opened this session."
+      }
+    },
+    "reviewAt": {
+      "value": 9000,
+      "unit": "s",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The intensivist's 2.5-hour review of the resuscitation, when the case ends."
+      }
+    }
+  },
+  "state": {
+    "sev": {
+      "type": "number",
+      "init": 0.42,
+      "min": 0.1,
+      "max": 1.5
+    },
+    "vol": {
+      "type": "number",
+      "init": 300,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "infRate": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10000,
+      "unit": "mL/h"
+    },
+    "nRunning": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "nBolus": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 30
+    },
+    "fluidTotal": {
+      "type": "number",
+      "init": 1000,
+      "min": 0,
+      "max": 30000,
+      "unit": "mL"
+    },
+    "fluid30At": {
+      "type": "time",
+      "init": null
+    },
+    "neDose": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1
+    },
+    "neEff": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1
+    },
+    "firstNeAt": {
+      "type": "time",
+      "init": null
+    },
+    "lactate": {
+      "type": "number",
+      "init": 4.2,
+      "min": 0.5,
+      "max": 20,
+      "unit": "mmol/L"
+    },
+    "lacLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20,
+      "unit": "mmol/L"
+    },
+    "lacN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "lacPending": {
+      "type": "bool",
+      "init": false
+    },
+    "lacFirstAt": {
+      "type": "time",
+      "init": null
+    },
+    "lacRepeatAt": {
+      "type": "time",
+      "init": null
+    },
+    "culturesStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "culturesAt": {
+      "type": "time",
+      "init": null
+    },
+    "abxAt": {
+      "type": "time",
+      "init": null
+    },
+    "abxBeforeCultures": {
+      "type": "bool",
+      "init": false
+    },
+    "sourceAt": {
+      "type": "time",
+      "init": null
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "hypoAt": {
+      "type": "time",
+      "init": null
+    },
+    "shockAt": {
+      "type": "time",
+      "init": null
+    },
+    "hypoSecs": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "pendingCall": {
+      "type": "bool",
+      "init": false
+    },
+    "orderVaso": {
+      "type": "bool",
+      "init": false
+    },
+    "teamHere": {
+      "type": "bool",
+      "init": false
+    },
+    "lineAt": {
+      "type": "time",
+      "init": null
+    },
+    "centralLine": {
+      "type": "bool",
+      "init": false
+    },
+    "intubated": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "history": {
+    "mapH": {
+      "of": "map",
+      "every": "30s",
+      "keep": "10min"
+    }
+  },
+  "derived": {
+    "abxOn": {
+      "expr": "not isNull(abxAt) and t >= timeAt(abxAt) + abxLag"
+    },
+    "fluidEff": {
+      "expr": "min(fluidCap, mmHgPer500 * vol / 500)",
+      "unit": "mmHg",
+      "precision": 1
+    },
+    "overload": {
+      "expr": "clamp((fluidTotal - overloadAt) / 1000, 0, 3)"
+    },
+    "mapRaw": {
+      "expr": "96 - 70 * sev + fluidEff + nePer * neEff * (1 - 0.3 * sev) + 1.5 * sin(t / 41)",
+      "unit": "mmHg"
+    },
+    "map": {
+      "expr": "round(clamp(mapRaw, 20, 130))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "pp": {
+      "expr": "44 - 8 * sev",
+      "unit": "mmHg"
+    },
+    "sbp": {
+      "expr": "round(map + 2 * pp / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(map - pp / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(96 + 45 * sev - 0.6 * fluidEff + 12 * neEff + 1.5 * sin(t / 29), 60, 160))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "intubated ? 16 : round(18 + 14 * sev + 4 * overload)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "intubated ? 97 : round(clamp(96 - 2 * sev - 4 * overload, 70, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round((38.4 + 1.8 * sev) * 10) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "uo": {
+      "expr": "round(clamp(2 * (map - 52), 0, 60))",
+      "unit": "mL/h",
+      "precision": 0
+    },
+    "lacStar": {
+      "expr": "1 + 6 * max(0, sev - 0.25) + 0.2 * max(0, 65 - map)",
+      "unit": "mmol/L"
+    }
+  },
+  "processes": [
+    {
+      "id": "sepsis",
+      "update": {
+        "sev": "abxOn ? sev - sevFall * dt / 60 : sev + sevRise * dt / 60"
+      }
+    },
+    {
+      "id": "fluids",
+      "update": {
+        "vol": "vol + infRate * dt / 3600 - vol * dt / (leakTau * 60)",
+        "fluidTotal": "fluidTotal + infRate * dt / 3600"
+      }
+    },
+    {
+      "id": "drips",
+      "update": {
+        "neEff": "neEff + (neDose - neEff) * (1 - exp(-dt / (neTau * 60)))"
+      }
+    },
+    {
+      "id": "lactic",
+      "update": {
+        "lactate": "lactate + (lacStar - lactate) * (1 - exp(-dt / (lacTau * 60)))"
+      }
+    },
+    {
+      "id": "clocks",
+      "update": {
+        "hypoSecs": "hypoSecs + (map < 65 ? dt : 0)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the bedside",
+      "clock": "running",
+      "actions": [
+        "look",
+        "source",
+        "lactate",
+        "cultures",
+        "abx",
+        "bolus",
+        "norepi",
+        "line",
+        "call"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Look at the patient",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "map >= 65 and sev < 0.5",
+              "then": [
+                {
+                  "log": "Flushed and warm, a little confused about the date. Capillary refill 3 s. Breathing fast. Skin hot to the touch.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "map >= 65",
+              "then": [
+                {
+                  "log": "Warm peripheries but knees starting to mottle. Capillary refill 3-4 s. Drowsy but answers. Urine in the bag dark and scant.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "map >= 55",
+              "then": [
+                {
+                  "log": "Mottled knees, capillary refill over 4 s, cool fingers now. Drowsy, mumbling. Breathing fast and shallow.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Grey and mottled to the thighs, capillary refill over 5 s. Barely rousable. Weak thready pulse.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "overload > 0.5 and not intubated",
+          "then": [
+            {
+              "log": "Crackles at both bases now, rising. Work of breathing up.",
+              "kind": "find"
+            }
+          ]
+        }
+      ]
+    },
+    "source": {
+      "label": "Look for the source",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(sourceAt)",
+          "then": [
+            {
+              "set": "sourceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Right costovertebral angle tenderness. Foley urine cloudy and concentrated. Likely urinary source (pyelonephritis): tell the provider, who will want imaging to look for an obstruction that needs draining.",
+          "kind": "find"
+        }
+      ]
+    },
+    "lactate": {
+      "label": "Draw a lactate (blood gas)",
+      "group": "Labs",
+      "available": "not lacPending",
+      "why": "A lactate is already running.",
+      "effects": [
+        {
+          "set": "lacPending",
+          "to": "true"
+        },
+        {
+          "add": "lacN",
+          "by": "1"
+        },
+        {
+          "if": "isNull(lacFirstAt)",
+          "then": [
+            {
+              "set": "lacFirstAt",
+              "to": "t"
+            },
+            {
+              "schedule": "relacDue",
+              "after": "relacMin"
+            }
+          ],
+          "else": [
+            {
+              "if": "t - timeAt(lacFirstAt) >= relacMin",
+              "then": [
+                {
+                  "if": "isNull(lacRepeatAt)",
+                  "then": [
+                    {
+                      "set": "lacRepeatAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "schedule": "lacResultT",
+          "after": "lacTime",
+          "with": {
+            "v": "round(lactate * 10) / 10"
+          }
+        },
+        {
+          "log": "Venous blood gas with lactate sent to the unit analyser (about 10 min)."
+        }
+      ]
+    },
+    "cultures": {
+      "label": "Draw blood cultures (2 sets)",
+      "group": "Labs",
+      "available": "isNull(culturesStartAt)",
+      "why": "Cultures already drawn.",
+      "effects": [
+        {
+          "set": "culturesStartAt",
+          "to": "t"
+        },
+        {
+          "schedule": "culturesT",
+          "after": "cultureTime"
+        },
+        {
+          "log": "Drawing two sets of blood cultures from two sites (about 5 min)."
+        }
+      ]
+    },
+    "abx": {
+      "label": "Give the first antibiotic dose",
+      "group": "Orders",
+      "available": "isNull(abxAt)",
+      "why": "The first dose is already in.",
+      "effects": [
+        {
+          "set": "abxAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(culturesAt)",
+          "then": [
+            {
+              "set": "abxBeforeCultures",
+              "to": "true"
+            },
+            {
+              "log": "Antibiotic hung before the blood cultures were drawn: later cultures may grow nothing even if the blood was infected.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "log": "First dose of the ordered broad-spectrum antibiotic running in."
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Crystalloid bolus (balanced)",
+      "group": "Orders",
+      "available": "nRunning < 2",
+      "why": "Two boluses are already running.",
+      "params": [
+        {
+          "id": "ml",
+          "kind": "choice",
+          "label": "Volume",
+          "options": [
+            {
+              "value": "500",
+              "label": "500 mL over 15 min"
+            },
+            {
+              "value": "1000",
+              "label": "1,000 mL over 30 min"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "add": "infRate",
+          "by": "bolusRate"
+        },
+        {
+          "add": "nRunning",
+          "by": "1"
+        },
+        {
+          "add": "nBolus",
+          "by": "1"
+        },
+        {
+          "schedule": "bolusDone",
+          "after": "num(ml) / bolusRate * 3600",
+          "with": {
+            "ml": "num(ml)"
+          }
+        },
+        {
+          "log": "{num(ml)} mL lactated Ringer's running in (about {round(num(ml) / bolusRate * 60)} min). Fluid so far, counting this bolus: {round(fluidTotal + num(ml))} mL."
+        },
+        {
+          "if": "fluidTotal + num(ml) > overloadAt",
+          "then": [
+            {
+              "log": "That takes the total past 5 L. Listen to the chest before the next one.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "norepi": {
+      "label": "Norepinephrine",
+      "group": "Drips",
+      "available": "orderVaso",
+      "why": "Needs an order: call the provider.",
+      "params": [
+        {
+          "id": "dose",
+          "kind": "choice",
+          "label": "Dose",
+          "options": [
+            {
+              "value": "0.05",
+              "label": "0.05 mcg/kg/min"
+            },
+            {
+              "value": "0.1",
+              "label": "0.1 mcg/kg/min"
+            },
+            {
+              "value": "0.15",
+              "label": "0.15 mcg/kg/min"
+            },
+            {
+              "value": "0.2",
+              "label": "0.2 mcg/kg/min"
+            },
+            {
+              "value": "0.3",
+              "label": "0.3 mcg/kg/min"
+            },
+            {
+              "value": "0",
+              "label": "Turn off"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "neDose",
+          "to": "num(dose)"
+        },
+        {
+          "schedule": "dripCheck",
+          "after": "titrate"
+        },
+        {
+          "if": "num(dose) == 0",
+          "then": [
+            {
+              "log": "Norepinephrine stopped. The effect wears off over several minutes."
+            }
+          ],
+          "else": [
+            {
+              "if": "isNull(firstNeAt)",
+              "then": [
+                {
+                  "set": "firstNeAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "if": "centralLine",
+              "then": [
+                {
+                  "log": "Norepinephrine at {num(dose)} mcg/kg/min via the central line. Reassess in 5 min."
+                }
+              ],
+              "else": [
+                {
+                  "log": "Norepinephrine at {num(dose)} mcg/kg/min via a large proximal peripheral IV. Check the site often for leaks. Reassess in 5 min."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "line": {
+      "label": "Ask for a central line",
+      "group": "Orders",
+      "available": "orderVaso and isNull(lineAt)",
+      "why": "Needs the provider first (or the line is already coming).",
+      "effects": [
+        {
+          "set": "lineAt",
+          "to": "t"
+        },
+        {
+          "schedule": "lineT",
+          "after": "lineTime"
+        },
+        {
+          "log": "Central line requested. Set-up, placement and an X-ray check take about 45 min."
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the provider (SBAR)",
+      "group": "Escalate",
+      "available": "not pendingCall",
+      "why": "Paged; waiting for the callback.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "shock",
+                  "label": "Hypotensive and tachycardic, lactate high, mottling: I think this is septic shock"
+                },
+                {
+                  "value": "soft",
+                  "label": "BP is a bit soft"
+                },
+                {
+                  "value": "fever",
+                  "label": "Still febrile"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "58 y, pyelonephritis from the ED, 1 L given there, antibiotic and cultures status"
+                },
+                {
+                  "value": "min",
+                  "label": "Admitted from the ED with an infection"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "septic",
+                  "label": "Septic shock from a urinary source; fluids are not holding the pressure"
+                },
+                {
+                  "value": "dry",
+                  "label": "Probably just dry"
+                },
+                {
+                  "value": "unsure",
+                  "label": "Not sure"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "come",
+                  "label": "Please come now: I need a norepinephrine order and the ICU team"
+                },
+                {
+                  "value": "fluid",
+                  "label": "Can I give another liter?"
+                },
+                {
+                  "value": "tylenol",
+                  "label": "Can I give something for the fever?"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pendingCall",
+          "to": "true"
+        },
+        {
+          "if": "(sit == \"shock\" or asmt == \"septic\" or rec == \"come\") and isNull(callEffAt)",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "callbackT",
+          "after": "callback",
+          "with": {
+            "effective": "sit == \"shock\" or asmt == \"septic\" or rec == \"come\""
+          }
+        },
+        {
+          "log": "Paged the provider. Callback in about 3 min."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "lacResultT": {
+      "label": "the lactate result",
+      "wait": {
+        "skipLabel": "the lactate result (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "v": {
+          "type": "number",
+          "unit": "mmol/L"
+        }
+      },
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Blood gas analyser on the unit: lactate back in about 10 min."
+      },
+      "effects": [
+        {
+          "set": "lacPending",
+          "to": "false"
+        },
+        {
+          "set": "lacLast",
+          "to": "timer.with.v"
+        },
+        {
+          "cases": [
+            {
+              "when": "timer.with.v >= 4",
+              "then": [
+                {
+                  "log": "Lactate {timer.with.v|1dp} mmol/L: 4 or more, a sign of poor tissue perfusion.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "timer.with.v > 2",
+              "then": [
+                {
+                  "log": "Lactate {timer.with.v|1dp} mmol/L: still above 2.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Lactate {timer.with.v|1dp} mmol/L: 2 or below.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "culturesT": {
+      "label": "blood cultures drawn",
+      "wait": {
+        "skipLabel": "the blood cultures (about 5 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Two sets from two sites: about 5 min."
+      },
+      "effects": [
+        {
+          "set": "culturesAt",
+          "to": "t"
+        },
+        {
+          "log": "Two sets of blood cultures drawn and sent.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "bolusDone": {
+      "label": "bolus finished",
+      "wait": {
+        "skipLabel": "the bolus to finish"
+      },
+      "instances": "many",
+      "with": {
+        "ml": {
+          "type": "number",
+          "unit": "mL"
+        }
+      },
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Bolus on a pump or pressure bag: 500 mL in 15 min, 1,000 mL in 30 min."
+      },
+      "effects": [
+        {
+          "add": "infRate",
+          "by": "-bolusRate"
+        },
+        {
+          "add": "nRunning",
+          "by": "-1"
+        },
+        {
+          "log": "{timer.with.ml} mL bolus finished. MAP {map}, HR {hr}. Total fluid {round(fluidTotal)} mL.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "dripCheck": {
+      "label": "drip reassessment (5 min)",
+      "wait": {
+        "skipLabel": "the 5-minute drip reassessment"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Norepinephrine prescribing information (half-life about 2-3 min)",
+        "checkedAt": "2026-11-10",
+        "note": "Titrate every 5 minutes, as in the tamponade case."
+      },
+      "effects": [
+        {
+          "log": "5 min on this dose: MAP {map}.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "callbackT": {
+      "label": "the provider's callback",
+      "wait": {
+        "skipLabel": "the provider's callback (about 3 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "effective": {
+          "type": "bool"
+        }
+      },
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Provider callback about 3 min."
+      },
+      "effects": [
+        {
+          "set": "pendingCall",
+          "to": "false"
+        },
+        {
+          "if": "timer.with.effective",
+          "then": [
+            {
+              "if": "not orderVaso",
+              "then": [
+                {
+                  "set": "orderVaso",
+                  "to": "true"
+                },
+                {
+                  "schedule": "teamT",
+                  "after": "teamWalk"
+                }
+              ]
+            },
+            {
+              "log": "Provider: \"Agree, septic shock. Norepinephrine, titrate to MAP 65 or more; start it peripherally, don't wait for a line. Cultures and the antibiotic now if they're not in. I'm coming with the ICU team.\"",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Provider (phone): \"Give another liter and call me back if it's not better.\"",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "teamT": {
+      "label": "the ICU team arriving",
+      "wait": {
+        "skipLabel": "the ICU team (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Provider and ICU team at the bedside about 10 min after the callback."
+      },
+      "effects": [
+        {
+          "set": "teamHere",
+          "to": "true"
+        },
+        {
+          "log": "Provider and ICU team at the bedside. They review the fluid, the drip and the source.",
+          "kind": "good"
+        }
+      ]
+    },
+    "lineT": {
+      "label": "the central line",
+      "wait": {
+        "skipLabel": "the central line (about 45 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Central line: consent, set-up, ultrasound-guided placement and an X-ray check, about 45 min."
+      },
+      "effects": [
+        {
+          "set": "centralLine",
+          "to": "true"
+        },
+        {
+          "log": "Central line in, tip confirmed. Infusions can move to it.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "relacDue": {
+      "label": "repeat lactate due",
+      "wait": {
+        "skipLabel": "the repeat lactate (2 hours after the first)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Levy MM, Evans LE, Rhodes A. The Surviving Sepsis Campaign Bundle: 2018 update. Crit Care Med 2018;46(6):997-1000 (the Hour-1 bundle)",
+        "checkedAt": "2026-11-10",
+        "url": "https://wikem.org/wiki/Sepsis_(main)",
+        "note": "Bundle elements as listed by WikEM (Sepsis (main), read 2026-11-10): measure lactate and re-measure within 2-4 h if the first is above 2 mmol/L; blood cultures before antibiotics, without delaying antibiotics to obtain them; broad-spectrum antibiotics; 30 mL/kg crystalloid for hypotension or lactate of 4 mmol/L or more; vasopressors if hypotensive during or after fluids to keep MAP at 65 or more. The 2-4 h wording is the secondary listing's; the 2018 paper was not opened this session."
+      },
+      "effects": [
+        {
+          "log": "2 hours since the first lactate: repeat it now.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "reviewT": {
+      "label": "the 2.5-hour review",
+      "wait": {
+        "skipLabel": "the intensivist's 2.5-hour review",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The intensivist's 2.5-hour review of the resuscitation, when the case ends."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "reviewT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "mapLow",
+      "when": "map < 65",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "hypoAt",
+          "to": "t"
+        },
+        {
+          "log": "Alarm: MAP below 65.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "mapVeryLow",
+      "when": "map < 55",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: MAP below 55.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "fluid30",
+      "when": "fluidTotal >= fluidGoal",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "fluid30At",
+          "to": "t"
+        },
+        {
+          "log": "30 mL/kg reached: {round(fluidTotal)} mL in total, counting the ED liter.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "shock",
+      "when": "map < 65 and fluidTotal >= fluidGoal",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "shockAt",
+          "to": "t"
+        },
+        {
+          "log": "MAP still below 65 after 30 mL/kg of fluid.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "spo2Low",
+      "when": "spo2 < 90",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: SpO2 below 90.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "intubate",
+      "when": "not intubated and spo2 < 88",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "intubated",
+          "to": "true"
+        },
+        {
+          "log": "Rapid response: pulmonary edema after {round(fluidTotal)} mL of fluid. Intubated and ventilated.",
+          "kind": "bad"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "whatNow": {
+      "trigger": "not isNull(hypoAt) or t >= reasonAt",
+      "question": "The picture is changing. What do you think is happening, and what are your next steps, in order?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "Names sepsis progressing to septic shock (or distributive shock from infection), supported by at least two of: falling MAP with tachycardia, lactate of 4 or more, mottling or slow capillary refill, confusion, falling urine output, fever with a urinary source.",
+          "modelAnswer": "Sepsis from a urinary source progressing to septic shock: falling MAP and rising heart rate, lactate above 4, mottled knees and slow capillary refill, confusion and little urine. The vessels are dilated and leaking, so fluid alone will not hold the pressure."
+        },
+        {
+          "label": "What next",
+          "criteria": "Gives the first antibiotic now (cultures first only if they do not delay it), completes 30 mL/kg crystalloid and reassesses after each bolus, escalates to the provider for a norepinephrine order to a MAP of 65 or more (peripheral start acceptable), and plans a repeat lactate.",
+          "modelAnswer": "Blood cultures, then the antibiotic without delay; finish 30 mL/kg balanced crystalloid and reassess after each bolus; call the provider with an SBAR naming septic shock and ask for norepinephrine to MAP 65 or more, started peripherally rather than waiting for a central line; look for the source; repeat the lactate in 2 hours."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {
+      "abxWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Prescott HC, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026. Crit Care Med 2026;54(4) (published 2026-03-23); also Intensive Care Med 2026, doi:10.1007/s00134-026-08361-1",
+          "checkedAt": "2026-11-10",
+          "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+          "note": "Septic shock: antimicrobials immediately, ideally within 1 h (as relayed)."
+        }
+      },
+      "escWindow": {
+        "value": 900,
+        "source": {
+          "cite": "ICU unit practice (authored estimate)",
+          "checkedAt": "2026-11-10",
+          "note": "Escalate within 15 min of the first MAP below 65."
+        }
+      },
+      "hypoLimit": {
+        "value": 2700,
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-10",
+          "note": "Total time with MAP below 65 that still counts as a prompt restoration: 45 min. Simplified teaching model written for exam practice; not a validated physiological model."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "t >= reviewAt and map < 65",
+      "class": "harm",
+      "rationale": "Septic shock still below a MAP of 65 two and a half hours in is ongoing organ hypoperfusion, not a safe holding pattern, so this case calls it harm.",
+      "source": {
+        "cite": "Prescott HC, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026. Crit Care Med 2026;54(4) (published 2026-03-23); also Intensive Care Med 2026, doi:10.1007/s00134-026-08361-1",
+        "checkedAt": "2026-11-10",
+        "note": "MAP target about 65 (as relayed); persistent hypotension is the progressive harm the targets exist to prevent. The class choice is the author's, per docs/sims.md 9.2."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Cardiac arrest from refractory septic shock",
+      "class": "harm",
+      "when": "map <= arrestMap",
+      "terminal": true,
+      "narrative": "The pressure kept falling until the heart stopped. PEA on the monitor: the code team is called. Septic shock that is not treated in time ends here."
+    },
+    "stabilized": {
+      "label": "Stabilized: septic shock treated on time",
+      "class": "target",
+      "when": "t >= reviewAt and map >= 65 and not intubated and not isNull(abxAt) and timeAt(abxAt) <= abxWindow and not abxBeforeCultures and not isNull(fluid30At) and not isNull(callEffAt) and (isNull(hypoAt) or timeAt(callEffAt) <= timeAt(hypoAt) + escWindow) and not isNull(firstNeAt) and (isNull(shockAt) or timeAt(firstNeAt) <= timeAt(shockAt) + pressorWindow) and hypoSecs <= hypoLimit",
+      "terminal": true,
+      "narrative": "Two and a half hours in, MAP is holding at {map} on norepinephrine {neDose} mcg/kg/min, the antibiotic went in early after cultures, and the lactate is coming down. The ICU team takes over a patient who is getting better."
+    },
+    "stabilizedLate": {
+      "label": "Stabilized, by a slower route",
+      "class": "recovered",
+      "when": "t >= reviewAt and map >= 65",
+      "terminal": true,
+      "narrative": "MAP is {map} at the 2.5-hour review and the patient is alive, but the route was slower or needed rescue: a late antibiotic, a late call, a long time below a MAP of 65, or a breathing tube for fluid overload."
+    },
+    "time_up": {
+      "label": "Still in shock at the review",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Two and a half hours in, MAP is still below 65. The kidneys and the brain have been underperfused for a long time."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "stabilized",
+    "stabilizedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "lactateEarly",
+        "label": "Measured the lactate early",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(lacFirstAt)",
+            "score": "missed",
+            "why": "No lactate was drawn."
+          },
+          {
+            "when": "timeAt(lacFirstAt) <= lacWindow",
+            "score": "met",
+            "why": "First lactate drawn at {timeAt(lacFirstAt)|clock}."
+          },
+          {
+            "when": "timeAt(lacFirstAt) <= 3600",
+            "score": "partial",
+            "why": "First lactate drawn at {timeAt(lacFirstAt)|clock}, more than 15 minutes in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "First lactate drawn at {timeAt(lacFirstAt)|clock}, more than an hour in."
+          }
+        ]
+      },
+      {
+        "id": "cultures",
+        "label": "Blood cultures before the antibiotic",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(culturesStartAt)",
+            "score": "missed",
+            "why": "No blood cultures were drawn."
+          },
+          {
+            "when": "abxBeforeCultures",
+            "score": "partial",
+            "why": "Cultures were drawn, but after the antibiotic was hung."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Cultures drawn at {timeAt(culturesAt)|clock}, before the antibiotic."
+          }
+        ]
+      },
+      {
+        "id": "antibiotic",
+        "label": "First antibiotic within 1 hour",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(abxAt)",
+            "score": "missed",
+            "why": "No antibiotic was given."
+          },
+          {
+            "when": "timeAt(abxAt) <= abxWindow",
+            "score": "met",
+            "why": "Given at {timeAt(abxAt)|clock}, {timeAt(abxAt)|duration} after handover."
+          },
+          {
+            "when": "timeAt(abxAt) <= abxLate",
+            "score": "partial",
+            "why": "Given at {timeAt(abxAt)|clock}, {timeAt(abxAt)|duration} after handover. Target: within 1 hour in septic shock."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Given more than 3 hours after handover."
+          }
+        ]
+      },
+      {
+        "id": "fluids",
+        "label": "30 mL/kg crystalloid for hypoperfusion",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(fluid30At)",
+            "score": "missed",
+            "why": "Total fluid {round(fluidTotal)} mL, short of 2,400 mL (30 mL/kg)."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "30 mL/kg reached at {timeAt(fluid30At)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "noOverload",
+        "label": "Reassessed instead of pouring in fluid",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "intubated",
+            "score": "missed",
+            "why": "{round(fluidTotal)} mL in total: pulmonary edema needed a breathing tube."
+          },
+          {
+            "when": "fluidTotal > overloadAt",
+            "score": "partial",
+            "why": "{round(fluidTotal)} mL in total, past 5 L, with crackles starting."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "{round(fluidTotal)} mL in total, then the vasopressor did the rest."
+          }
+        ]
+      },
+      {
+        "id": "pressor",
+        "label": "Norepinephrine started without waiting (peripheral start)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(firstNeAt)",
+            "score": "missed",
+            "why": "No vasopressor was started."
+          },
+          {
+            "when": "isNull(shockAt) or timeAt(firstNeAt) <= timeAt(shockAt) + pressorWindow",
+            "score": "met",
+            "why": "Norepinephrine started at {timeAt(firstNeAt)|clock}."
+          },
+          {
+            "when": "timeAt(firstNeAt) <= timeAt(shockAt) + 3600",
+            "score": "partial",
+            "why": "Norepinephrine started at {timeAt(firstNeAt)|clock}, more than 30 minutes after fluids failed to hold the pressure."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Norepinephrine started at {timeAt(firstNeAt)|clock}, more than an hour after fluids failed to hold the pressure."
+          }
+        ]
+      },
+      {
+        "id": "mapRestored",
+        "label": "MAP back to 65 or more promptly",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "hypoSecs <= hypoLimit",
+            "score": "met",
+            "why": "{round(hypoSecs / 60)} minutes in total with MAP below 65."
+          },
+          {
+            "when": "hypoSecs <= 5400",
+            "score": "partial",
+            "why": "{round(hypoSecs / 60)} minutes in total with MAP below 65 (expert: under 45)."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{round(hypoSecs / 60)} minutes in total with MAP below 65."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Called the provider early with a clear SBAR",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callEffAt) and not isNull(callAt)",
+            "score": "missed",
+            "why": "The call sounded routine, so it ended with phone orders."
+          },
+          {
+            "when": "isNull(callEffAt)",
+            "score": "missed",
+            "why": "The provider was never called."
+          },
+          {
+            "when": "isNull(hypoAt) or timeAt(callEffAt) <= timeAt(hypoAt) + escWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callEffAt)|clock}, naming the shock and asking for what was needed."
+          },
+          {
+            "when": "timeAt(callEffAt) <= timeAt(hypoAt) + 1800",
+            "score": "partial",
+            "why": "Called at {timeAt(callEffAt)|clock}, more than 15 minutes after the first MAP below 65."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Called at {timeAt(callEffAt)|clock}, more than 30 minutes after the first MAP below 65."
+          }
+        ]
+      },
+      {
+        "id": "relactate",
+        "label": "Re-measured the lactate (2 to 4 hours after the first)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lacRepeatAt)",
+            "score": "met",
+            "why": "Repeat lactate drawn at {timeAt(lacRepeatAt)|clock}."
+          },
+          {
+            "when": "lacN >= 2",
+            "score": "partial",
+            "why": "Repeated, but sooner than 2 hours after the first: fine for trending, still due again at 2 hours."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The lactate was not repeated."
+          }
+        ]
+      },
+      {
+        "id": "source",
+        "label": "Looked for the source",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(sourceAt)",
+            "score": "met",
+            "why": "Source looked for at {timeAt(sourceAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The source (a urinary tract that may need draining) was not looked for."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "whatNow",
+        "label": "Written reasoning: named septic shock and the order of care",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toAbx",
+        "label": "Handover to first antibiotic",
+        "value": "isNull(abxAt) ? -1 : timeAt(abxAt)",
+        "format": "duration",
+        "expert": "under 15 min"
+      },
+      {
+        "id": "toFluid30",
+        "label": "Handover to 30 mL/kg",
+        "value": "isNull(fluid30At) ? -1 : timeAt(fluid30At)",
+        "format": "duration",
+        "expert": "about 45 min"
+      },
+      {
+        "id": "toPressor",
+        "label": "Handover to norepinephrine",
+        "value": "isNull(firstNeAt) ? -1 : timeAt(firstNeAt)",
+        "format": "duration",
+        "expert": "about 30 min"
+      },
+      {
+        "id": "hypoMinutes",
+        "label": "Minutes with MAP below 65",
+        "value": "round(hypoSecs / 60)",
+        "format": "number",
+        "expert": "under 45"
+      },
+      {
+        "id": "fluidTotal",
+        "label": "Total crystalloid (mL, with the ED liter)",
+        "value": "round(fluidTotal)",
+        "format": "number",
+        "expert": "about 3,000"
+      },
+      {
+        "id": "lastLactate",
+        "label": "Last lactate result (mmol/L)",
+        "value": "lacLast",
+        "format": "number",
+        "expert": "falling, about 3 at 2 hours"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "19:00-19:02",
+        "text": "Look at the patient: warm, confused, fast breathing, MAP 70 and falling, HR 115. Probable sepsis with hypoperfusion: lactate now, cultures now."
+      },
+      {
+        "at": "19:02-19:07",
+        "text": "Two sets of blood cultures (about 5 min), a lactate on the unit analyser, and the antibiotic hung the moment the cultures are drawn."
+      },
+      {
+        "at": "19:03",
+        "text": "Start completing 30 mL/kg: the ED liter plus two 1,000 mL boluses of balanced crystalloid, reassessing after each."
+      },
+      {
+        "at": "19:05",
+        "text": "Call the provider: septic shock from a urinary source, fluids not holding; ask for norepinephrine and the ICU team. Look for the source."
+      },
+      {
+        "at": "~19:25-19:30",
+        "text": "MAP sliding toward 65 with 30 mL/kg in: start norepinephrine peripherally at 0.1 (the provider has ordered it), titrate every 5 min to MAP 65 or more. Do not wait for a central line."
+      },
+      {
+        "at": "21:02",
+        "text": "Repeat the lactate 2 hours after the first. Falling lactate, warmer skin and more urine say the resuscitation is working."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "Cardiac arrest from septic shock",
+        "body": "The most useful kind of run to learn from. Look at the first hour: when the antibiotic went in, when the provider was called, and when the MAP first dropped below 65 with nothing to hold it."
+      },
+      "stabilized": {
+        "headline": "Stabilized: septic shock treated on time",
+        "body": "Cultures, then the antibiotic within the hour, 30 mL/kg with reassessment, an early call and a peripheral norepinephrine start. That is the expert path."
+      },
+      "stabilizedLate": {
+        "headline": "Stabilized, by a slower route",
+        "body": "The patient made it, but something cost time or needed rescue. Check the antibiotic time, the call, the minutes below a MAP of 65 and the total fluid."
+      },
+      "time_up": {
+        "headline": "Still in shock at the review",
+        "body": "The pressure never came back to 65. The usual cause is a late antibiotic, a vasopressor started late or too low, or waiting for a central line."
+      }
+    },
+    "modelReasoning": "Sepsis from a urinary source is progressing to septic shock: falling MAP with a rising heart rate, lactate above 4, mottling and slow capillary refill, confusion and falling urine output. Antimicrobials are time-critical in septic shock (immediately, ideally within an hour); blood cultures come first only when drawing them does not delay the dose. At least 30 mL/kg of crystalloid is given for hypoperfusion and reassessed after each bolus, because the leak means more fluid is not always better. When MAP stays below 65 despite fluid, norepinephrine is first line and can start through a good peripheral line rather than waiting for central access. Escalate early with a clear SBAR, look for a source that may need draining, and trend the lactate."
+  },
+  "chapters": [
+    {
+      "id": "shockRecognized",
+      "label": "MAP below 65",
+      "when": "not isNull(hypoAt)"
+    },
+    {
+      "id": "pressorRunning",
+      "label": "Norepinephrine running",
+      "when": "neDose > 0"
+    },
+    {
+      "id": "repeatLactate",
+      "label": "Repeat lactate",
+      "when": "not isNull(lacRepeatAt)"
+    }
+  ],
+  "teaching": {
+    "culturesFirst": {
+      "during": "culturesT",
+      "ask": "Cultures are being drawn now. If drawing them were going to take another 45 minutes, should the antibiotic wait for them?",
+      "choices": [
+        {
+          "id": "wait",
+          "label": "Yes: cultures always come first"
+        },
+        {
+          "id": "give",
+          "label": "No: give the antibiotic, cultures as soon as possible"
+        }
+      ],
+      "expect": "give",
+      "explain": "No. Cultures before antibiotics matters because a dose can sterilize the blood and hide the organism, but in septic shock the antibiotic is time-critical. The guidelines put cultures first only when drawing them causes no substantial delay.",
+      "source": {
+        "cite": "Levy MM, Evans LE, Rhodes A. The Surviving Sepsis Campaign Bundle: 2018 update. Crit Care Med 2018;46(6):997-1000 (the Hour-1 bundle)",
+        "checkedAt": "2026-11-10",
+        "url": "https://wikem.org/wiki/Sepsis_(main)",
+        "note": "Hour-1 bundle as listed by WikEM: obtain blood cultures before antibiotics, but do not delay antibiotics to obtain cultures. SSC 2021 gives the 1-hour target in possible septic shock."
+      }
+    },
+    "bolusEffect": {
+      "during": "bolusDone",
+      "ask": "This bolus will lift the MAP while it runs in. What do you expect over the next hour after it finishes?",
+      "choices": [
+        {
+          "id": "holds",
+          "label": "The MAP stays up"
+        },
+        {
+          "id": "drifts",
+          "label": "The MAP drifts back down"
+        },
+        {
+          "id": "rises",
+          "label": "The MAP keeps rising"
+        }
+      ],
+      "expect": "drifts",
+      "explain": "It drifts back down. In septic shock the vessels are dilated and leaky, so much of a bolus leaves the circulation within the hour. That is why each bolus is followed by a reassessment, and why a vasopressor follows when fluid does not hold the pressure.",
+      "source": {
+        "cite": "Prescott HC, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026. Crit Care Med 2026;54(4) (published 2026-03-23); also Intensive Care Med 2026, doi:10.1007/s00134-026-08361-1",
+        "checkedAt": "2026-11-10",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+        "note": "FLAG: the guideline recommends reassessing with dynamic measures (Rec 49, as relayed) and starting a vasopressor for hypotension during or after fluid; the 'drifts back within the hour' time course is this scenario's own teaching model (leakTau 60 min), not a number from the guideline."
+      }
+    },
+    "peripheral": {
+      "during": "callbackT",
+      "ask": "MAP 61 after 30 mL/kg. The provider is about to call back. No central line yet. What do you plan to suggest?",
+      "choices": [
+        {
+          "id": "peripheral",
+          "label": "Start norepinephrine now through a good peripheral IV"
+        },
+        {
+          "id": "waitLine",
+          "label": "Wait for a central line before any vasopressor"
+        },
+        {
+          "id": "moreFluid",
+          "label": "Another 2 L of fluid first"
+        }
+      ],
+      "expect": "peripheral",
+      "explain": "Start it peripherally. The 2021 guideline suggests starting a vasopressor peripherally rather than delaying until central access, and the 2026 algorithm (as relayed) says the same. Use a large proximal vein and check the site often; move it to a central line when one is in.",
+      "source": {
+        "cite": "Evans L, Rhodes A, Alhazzani W, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2021. Crit Care Med 2021;49(11):e1063-e1143. doi:10.1097/CCM.0000000000005337",
+        "checkedAt": "2026-11-10",
+        "url": "https://journals.lww.com/ccmjournal/fulltext/2021/11000/surviving_sepsis_campaign__international.21.aspx",
+        "note": "SSC 2021: suggest starting vasopressors peripherally rather than delaying until central venous access (weak). SSC 2026 algorithm figure, as relayed by a secondary summary: start peripherally if no central access."
+      }
+    },
+    "lactateTrend": {
+      "during": "lacResultT",
+      "when": "lacN >= 2",
+      "ask": "If this repeat lactate comes back lower than the first, is the resuscitation finished?",
+      "choices": [
+        {
+          "id": "done",
+          "label": "Yes: the lactate is falling"
+        },
+        {
+          "id": "notYet",
+          "label": "Not on its own: check MAP, perfusion and urine too"
+        }
+      ],
+      "expect": "notYet",
+      "explain": "Not on its own. A falling lactate is a good sign and the guidelines use serial lactate to guide resuscitation, with capillary refill time as an adjunct. Read it beside the MAP, the skin, the mentation and the urine output.",
+      "source": {
+        "cite": "Prescott HC, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026. Crit Care Med 2026;54(4) (published 2026-03-23); also Intensive Care Med 2026, doi:10.1007/s00134-026-08361-1",
+        "checkedAt": "2026-11-10",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+        "note": "Rec 51 (serial lactate to guide resuscitation) and Rec 52 (capillary refill time as an adjunct), as relayed by a secondary summary (clinical-database.com, Part 3)."
+      }
+    }
+  }
+}

@@ -9,9 +9,13 @@
 export type Tier = "free" | "plus" | "pro";
 export type PlanPeriod = "monthly" | "quarterly" | "yearly";
 export type AllowanceKind = "coach_message" | "regeneration" | "mock_exam" | "graded_answer";
+// REQ-170: category plans.
+export type PlanScope = "it_cloud" | "pm" | "fitness" | "all_access" | "clinical";
 
 export interface BillingPlan {
   id: string;
+  family: string;
+  scope: PlanScope;
   tier: "plus" | "pro";
   period: PlanPeriod;
   months: number;
@@ -31,6 +35,19 @@ export interface BillingConfig {
   revenueCat: { entitlements: Record<string, string>; offering: string };
   freeCourseSwitchDays: number;
   webCheckout: boolean;
+  // REQ-170
+  scopes: Array<{ id: PlanScope; name: string; summary: string; families: string[] }>;
+  families: Record<string, BillingFamily>;
+  samePriceNote: string;
+}
+
+export interface BillingFamily {
+  scope: PlanScope;
+  tier: "plus" | "pro";
+  name: string;
+  requires: PlanScope | null;
+  storeGroup: "main" | "clinical";
+  rank: number;
 }
 
 export interface AllowanceStatus {
@@ -59,6 +76,9 @@ export interface BillingMe {
     plan: PlanPeriod | null;
     productId: string | null;
     periodEnd: string | null;
+    // REQ-170: the category plan (null for a grant: every course)
+    family?: string | null;
+    scope?: PlanScope | null;
     willRenew: boolean;
     manage: "app_store" | "play_store" | "stripe" | "grant" | "store" | null;
     // REQ-124: the plan was kept to the end of its paid period after a
@@ -66,6 +86,9 @@ export interface BillingMe {
     next?: { tier: Tier; from: string } | null;
   } | null;
   freeCourse?: FreeCourse | null;
+  // REQ-170: every plan held, and whether together they cover every course.
+  plans?: Array<{ family: string | null; scope: PlanScope | null; tier: Tier; status: string; periodEnd: string | null }>;
+  coversEverything?: boolean;
   allowances?: AllowanceStatus[];
   aiPaused?: { paused: boolean; resetsAt: string | null };
   // REQ-144: set for owner and unrestricted accounts instead of a plan.
@@ -81,6 +104,9 @@ export const DISABLED_CONFIG: BillingConfig = {
   revenueCat: { entitlements: {}, offering: "default" },
   freeCourseSwitchDays: 7,
   webCheckout: false,
+  scopes: [],
+  families: {},
+  samePriceNote: "",
 };
 
 // Anything that isn't a well-formed config with enabled === true is "off".
@@ -92,6 +118,17 @@ export function parseConfig(data: unknown): BillingConfig {
 }
 
 export const TIER_NAME: Record<Tier, string> = { free: "Free", plus: "Plus", pro: "Pro" };
+export const SCOPE_IDS: readonly string[] = ["it_cloud", "pm", "fitness", "all_access", "clinical"];
+export const SCOPE_NAME: Record<PlanScope, string> = {
+  it_cloud: "IT and cloud",
+  pm: "Project management",
+  fitness: "Fitness",
+  all_access: "All access",
+  clinical: "Clinical",
+};
+export function isScope(v: unknown): v is PlanScope {
+  return typeof v === "string" && SCOPE_IDS.includes(v);
+}
 export const PERIOD_NAME: Record<PlanPeriod, string> = { monthly: "Monthly", quarterly: "3 months", yearly: "Yearly" };
 
 // ---------------------------------------------------------------------------
@@ -99,7 +136,7 @@ export const PERIOD_NAME: Record<PlanPeriod, string> = { monthly: "Monthly", qua
 // ---------------------------------------------------------------------------
 
 export type BillingSignal =
-  | { kind: "upgrade"; message: string; feature: string; requiredTier: "plus" | "pro"; freeCourse: FreeCourse | null }
+  | { kind: "upgrade"; message: string; feature: string; requiredTier: "plus" | "pro"; scope: PlanScope | null; freeCourse: FreeCourse | null }
   | { kind: "allowance"; message: string; allowance: AllowanceStatus }
   | { kind: "aiPaused"; message: string; resetsAt: string };
 
@@ -110,7 +147,8 @@ export function billingSignal(status: number, data: unknown): BillingSignal | nu
   const d = data as Record<string, any>;
   const message = typeof d.error === "string" ? d.error : "";
   if (status === 402 && d.upgrade && (d.upgrade.requiredTier === "plus" || d.upgrade.requiredTier === "pro")) {
-    return { kind: "upgrade", message, feature: String(d.upgrade.feature ?? ""), requiredTier: d.upgrade.requiredTier, freeCourse: d.freeCourse ?? null };
+    const scope = SCOPE_IDS.includes(d.upgrade.scope) ? (d.upgrade.scope as PlanScope) : null;
+    return { kind: "upgrade", message, feature: String(d.upgrade.feature ?? ""), requiredTier: d.upgrade.requiredTier, scope, freeCourse: d.freeCourse ?? null };
   }
   if (status === 429 && d.allowance && typeof d.allowance.kind === "string") {
     return { kind: "allowance", message, allowance: d.allowance as AllowanceStatus };
@@ -172,7 +210,8 @@ export function allowanceLine(a: AllowanceStatus, now = new Date()): string {
 // the exact local time when it knows it.
 export function signalCopy(s: BillingSignal, now = new Date()): { title: string; body: string; showPlans: boolean } {
   if (s.kind === "upgrade") {
-    const title = s.feature === "all_courses" ? "One course on Free" : `Part of ${TIER_NAME[s.requiredTier]}`;
+    const plan = s.scope ? scopePlanName(s.scope, s.requiredTier) : TIER_NAME[s.requiredTier];
+    const title = s.feature === "all_courses" ? "One course on Free" : `Part of ${plan}`;
     return { title, body: s.message, showPlans: true };
   }
   if (s.kind === "allowance") {
@@ -192,9 +231,38 @@ export const FREE_MASTERY_NOTE =
 // Plans
 // ---------------------------------------------------------------------------
 
-export function plansFor(config: BillingConfig, tier: "plus" | "pro"): BillingPlan[] {
+// "IT and cloud Plus", "All access", "Clinical Pro".
+export function scopePlanName(scope: PlanScope, tier: "plus" | "pro"): string {
+  if (scope === "all_access") return "All access";
+  if (scope === "clinical") return "Clinical Pro";
+  return `${SCOPE_NAME[scope]} ${TIER_NAME[tier]}`;
+}
+
+// REQ-170: the lengths of one plan family, shortest first.
+export function plansFor(config: BillingConfig, family: string): BillingPlan[] {
   const order: PlanPeriod[] = ["monthly", "quarterly", "yearly"];
-  return config.plans.filter((p) => p.tier === tier).sort((a, b) => order.indexOf(a.period) - order.indexOf(b.period));
+  return config.plans.filter((p) => p.family === family).sort((a, b) => order.indexOf(a.period) - order.indexOf(b.period));
+}
+
+// The families to choose between on a scope (Plus first), leaving out the
+// clinical add-on unless the learner has all-access, and Clinical Pro when
+// they do (the add-on is the cheaper way in for them).
+export function familiesFor(config: BillingConfig, scope: PlanScope, me: BillingMe | null): string[] {
+  const all = config.scopes.find((s) => s.id === scope)?.families ?? [];
+  const hasAllAccess = (me?.plans ?? []).some((p) => p.scope === "all_access");
+  return all.filter((f) => {
+    const info = config.families[f];
+    if (!info) return false;
+    if (info.requires) return (me?.plans ?? []).some((p) => p.scope === info.requires);
+    if (scope === "clinical" && hasAllAccess) return false;
+    return true;
+  });
+}
+
+// The family a plan screen opens on for a scope and (optional) tier.
+export function defaultFamily(config: BillingConfig, scope: PlanScope, me: BillingMe | null, tier?: "plus" | "pro" | null): string | null {
+  const list = familiesFor(config, scope, me);
+  return list.find((f) => config.families[f]?.tier === tier) ?? list[0] ?? null;
 }
 
 // The price to show: the store's localised string when the store gave one,
@@ -236,8 +304,8 @@ export function shouldInitPurchases(config: BillingConfig, platform: string, key
 
 export function planSummary(me: BillingMe | null, now = new Date()): string {
   if (!me || !me.enabled) return "";
-  const name = TIER_NAME[me.tier];
   const e = me.entitlement;
+  const name = e?.scope ? scopePlanName(e.scope, me.tier === "plus" ? "plus" : "pro") : TIER_NAME[me.tier];
   if (!e) return name;
   // REQ-124 (decision 6): "Pro until Dec 1, then Plus" after a downgrade.
   if (e.next && e.next.tier !== me.tier) {
@@ -262,14 +330,24 @@ export function readinessLockedLine(lock: { message?: unknown } | null | undefin
 // same-tier change is DEFERRED to the end of the paid period, so the learner
 // keeps what they paid for -- the App Store does this by itself. null when
 // there is nothing to replace (no Play subscription, or the same product).
+// REQ-170: plans are replaced only within one store group (one non-clinical
+// plan at a time; clinical is separate, as on the App Store), and "upgrade"
+// is the plan's rank (all-access over a category's Pro over its Plus).
 export function googlePlanChange(
   current: { tier: Tier; manage?: string | null; productId?: string | null; status?: string } | null | undefined,
-  target: Pick<BillingPlan, "tier" | "playProductId">
+  target: Pick<BillingPlan, "tier" | "playProductId"> & { family?: string },
+  families: Record<string, Pick<BillingFamily, "storeGroup" | "rank">> = {}
 ): { oldProductIdentifier: string; mode: "immediate" | "deferred" } | null {
   if (!current || current.manage !== "play_store" || !current.productId) return null;
   if (current.status && !["active", "canceled", "billing_issue"].includes(current.status)) return null;
   const oldSub = current.productId.split(":")[0];
   if (current.productId === target.playProductId) return null;
+  const oldFamily = families[oldSub.replace(/^ascendra_/, "")];
+  const newFamily = target.family ? families[target.family] : undefined;
+  if (oldFamily && newFamily) {
+    if (oldFamily.storeGroup !== newFamily.storeGroup) return null; // held side by side
+    return { oldProductIdentifier: oldSub, mode: newFamily.rank > oldFamily.rank ? "immediate" : "deferred" };
+  }
   const rank: Record<Tier, number> = { free: 0, plus: 1, pro: 2 };
   return { oldProductIdentifier: oldSub, mode: rank[target.tier] > rank[current.tier] ? "immediate" : "deferred" };
 }

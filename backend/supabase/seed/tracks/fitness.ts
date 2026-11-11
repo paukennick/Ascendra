@@ -10,9 +10,14 @@
 //   delineation study; in effect since August 21, 2023 per ACE's own
 //   announcement, next review on ACE's five-year cycle).
 // - ACSM-CPT: ACSM Certified Personal Trainer Exam Content Outline PDF,
-//   "Effective July 10, 2025" (2024 performance domains).
-// - NSCA CSCS and NSCA-CPT: NSCA Certification Handbook "Effective July 1,
-//   2026", Appendices F and H (detailed content outlines).
+//   "Effective July 10, 2025" (2024 job task analysis; the PDF's domain
+//   table is titled "2021 ACSM-CPT Performance Domains").
+// - NSCA CSCS and NSCA-CPT: the detailed content outlines from NSCA's 2025
+//   job task analyses, "New Detailed Content Outline (DCO) Date Effective:
+//   July 1, 2025" (NSCA JTA summaries, re-read 2026-11-09), reproduced in
+//   the NSCA Certification Handbook, Appendices F and H. (Corrected
+//   2026-11-09: the track had used July 1, 2026; the outlines took effect
+//   July 1, 2025, as the lab headers already said.)
 // - ISSA: ISSA's NCCA-accredited exam is the NCCPT-CPT, run by its
 //   subsidiary NCCPT; NCCPT Certification Programs Candidate Handbook,
 //   Appendix 2 (2020 Job Analysis Study). ISSA's own open-book course exam
@@ -58,7 +63,7 @@ const COMMON = {
 export const NASM_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "NASMCPT",
-  title: "NASM Certified Personal Trainer (NASM-CPT) Coach",
+  title: "Prep for the NASM Certified Personal Trainer (NASM-CPT) Exam",
   description:
     "NASM's NCCA-accredited personal trainer exam on its current six-domain blueprint: exercise technique and training instruction (24%), program design (20%), assessment (16%), sciences and nutrition, client relations, and professional responsibility.",
   sourceUrl: "https://www.nasm.org/certified-personal-trainer/exam-information",
@@ -166,7 +171,7 @@ export const NASM_CPT_TRACK: SeedTrack = {
 export const ACE_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "ACECPT",
-  title: "ACE Certified Personal Trainer Coach",
+  title: "Prep for the ACE Certified Personal Trainer Exam",
   description:
     "ACE's NCCA-accredited personal trainer exam on its 2022 role delineation study: client onboarding and assessments (23%), program design and implementation (31%), program modification and progression (27%), and risk management, professional conduct and ethical business practices (19%).",
   sourceUrl: "https://contentcdn.eacefitness.com/assets/certification/pdfs/CPT-Exam-Content-Outline.pdf",
@@ -250,7 +255,7 @@ export const ACE_CPT_TRACK: SeedTrack = {
 export const ACSM_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "ACSMCPT",
-  title: "ACSM Certified Personal Trainer (ACSM-CPT) Coach",
+  title: "Prep for the ACSM Certified Personal Trainer (ACSM-CPT) Exam",
   description:
     "ACSM's NCCA-accredited personal trainer exam on the outline effective July 10, 2025: initial client consultation and assessment (25%), exercise programming and implementation (43%), exercise leadership and client education (22%), and legal and professional responsibilities (10%).",
   sourceUrl: "https://acsm.org/wp-content/uploads/2024/12/ACSM-Certified-Personal-Trainer-Exam-Content-Outline.pdf",
@@ -264,7 +269,7 @@ export const ACSM_CPT_TRACK: SeedTrack = {
     credentialType: "certification",
     credentialUrl: "https://acsm.org/certification/get-certified/personal-trainer/",
     basis: "vendor_exam_unpublished_code",
-    examRevision: "2024 performance domains, effective July 10, 2025",
+    examRevision: "2024 JTA (outline table titled 2021 ACSM-CPT Performance Domains), effective July 10, 2025",
     status: "active",
     effectiveDate: "2025-07-10",
     officialObjectivesUrl: "https://acsm.org/wp-content/uploads/2024/12/ACSM-Certified-Personal-Trainer-Exam-Content-Outline.pdf",
@@ -305,7 +310,7 @@ export const ACSM_CPT_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Exercise leadership, client education and engagement",
+      title: "Exercise leadership and client education",
       weight: 22,
       gate: "Show how you'd keep a specific client adherent and educated through a plateau, using communication rather than more volume.",
       objectives: [
@@ -333,9 +338,9 @@ export const ACSM_CPT_TRACK: SeedTrack = {
 export const NSCA_CSCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "NSCACSCS",
-  title: "NSCA Certified Strength and Conditioning Specialist (CSCS) Coach",
+  title: "Prep for the NSCA Certified Strength and Conditioning Specialist® (CSCS®) Exam",
   description:
-    "NSCA's CSCS on the detailed content outline in the handbook effective July 1, 2026: two separately passed sections -- Scientific Foundations (exercise science, sport psychology, nutrition) and Practical/Applied (program design, exercise technique, program implementation, organization and administration).",
+    "NSCA's CSCS on the detailed content outline from the 2025 job task analysis, effective July 1, 2025: two separately passed sections -- Scientific Foundations (exercise science, sport psychology, nutrition) and Practical/Applied (program design, exercise technique, program implementation, organization and administration).",
   sourceUrl: "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
   credential: {
     providerSlug: "nsca",
@@ -347,13 +352,13 @@ export const NSCA_CSCS_TRACK: SeedTrack = {
     credentialType: "certification",
     credentialUrl: "https://www.nsca.com/certification/cscs/",
     basis: "vendor_exam_unpublished_code",
-    examRevision: "NSCA Certification Handbook effective July 1, 2026 (Appendix F detailed content outline)",
+    examRevision: "2025 JTA detailed content outline, effective July 1, 2025 (Handbook Appendix F)",
     status: "active",
-    effectiveDate: "2026-07-01",
+    effectiveDate: "2025-07-01",
     officialObjectivesUrl: "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
-      "A bachelor's degree or higher from an accredited institution (or enrollment as a college senior), or a degree in physical therapy or chiropractic medicine, plus current CPR/AED certification. From January 1, 2030, US candidates must hold a bachelor's degree from a CASCE-accredited program.",
+      "A bachelor's degree or higher from an accredited institution (or enrollment as a college senior), or a degree in physical therapy or chiropractic medicine, plus current CPR/AED certification. NSCA targets a change for 2030 requiring a bachelor's degree from a CASCE-accredited program; the current degree requirement stays in place until December 31, 2029.",
     durationMinutes: 240,
     questionFormat: "Two sections: Scientific Foundations, 1.5 hours, 80 scored + 15 unscored; Practical/Applied, 2.5 hours, 110 scored + 15 unscored with 30-40 video or image items. First-time candidates sit both; a failed section is retaken alone within one year",
     passingScorePolicy: "Scaled score of 70 on each section, set by modified Angoff.",
@@ -462,9 +467,9 @@ export const NSCA_CSCS_TRACK: SeedTrack = {
 export const NSCA_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "NSCACPT",
-  title: "NSCA Certified Personal Trainer (NSCA-CPT) Coach",
+  title: "Prep for the NSCA-Certified Personal Trainer® (NSCA-CPT®) Exam",
   description:
-    "NSCA's NCCA-accredited personal trainer exam on the handbook effective July 1, 2026: client consultation and assessment (23%), program planning (29%), program execution (36%), and safety, emergency procedures and legal issues (12%).",
+    "NSCA's NCCA-accredited personal trainer exam on the detailed content outline from the 2025 job task analysis, effective July 1, 2025: client consultation and assessment (23%), program planning (29%), program execution (36%), and safety, emergency procedures and legal issues (12%).",
   sourceUrl: "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
   credential: {
     providerSlug: "nsca",
@@ -476,9 +481,9 @@ export const NSCA_CPT_TRACK: SeedTrack = {
     credentialType: "certification",
     credentialUrl: "https://www.nsca.com/certification/nsca-cpt/",
     basis: "vendor_exam_unpublished_code",
-    examRevision: "NSCA Certification Handbook effective July 1, 2026 (Appendix H detailed content outline)",
+    examRevision: "2025 JTA detailed content outline, effective July 1, 2025 (Handbook Appendix H)",
     status: "active",
-    effectiveDate: "2026-07-01",
+    effectiveDate: "2025-07-01",
     officialObjectivesUrl: "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
@@ -543,7 +548,7 @@ export const NSCA_CPT_TRACK: SeedTrack = {
 export const ISSA_NCCPT_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "NCCPTCPT",
-  title: "ISSA / NCCPT Certified Personal Trainer (NCCPT-CPT) Coach",
+  title: "Prep for the NCCPT Certified Personal Trainer (NCCPT-CPT) Exam",
   description:
     "The NCCA-accredited personal trainer exam behind ISSA's certification, administered by its subsidiary NCCPT, on the 2020 job analysis outline: applied science (25%), program design and implementation (25%), intake and ongoing evaluation (15%), exercise selection and instruction (15%), nutrition (10%) and professional practice (10%).",
   sourceUrl: "https://nccpt.issaonline.com/pages/exam-information",

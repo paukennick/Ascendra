@@ -6,6 +6,7 @@ process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 // (lib/item-quality.dbtest.ts); here the fake model answers only the
 // feature's own calls, so the gate is off, as it was before REQ-114.
 process.env.ITEM_FACT_CHECK = "off";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -57,6 +58,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `cp-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const auth = (u: string) => ({ authorization: `Bearer ${signAccessToken({ sub: u, email: `${u}@example.test` })}`, "content-type": "application/json" });
@@ -195,7 +197,14 @@ describe("Quiz me on my weak spots", () => {
     assert.equal(parsed.length, 1);
 
     const order = presentationOrder(presentationSeed(u, objsA[2], "coach_quiz", QUIZ_ITEM.question), 4);
-    const right = shownIndexOf(order, 2);
+    // REQ-187: the stored answer position is shuffled when the question is
+    // written, so the key is read back rather than assumed to be index 2.
+    const storedKey = (await queryOne<{ correct_index: number; choices: string[] }>(
+      `select correct_index, choices from coach_quiz_items where objective_id = $1 and question = $2 order by generated_at desc limit 1`,
+      [objsA[2], QUIZ_ITEM.question]
+    ))!;
+    assert.equal(storedKey.choices[storedKey.correct_index], QUIZ_ITEM.choices[QUIZ_ITEM.correctIndex]);
+    const right = shownIndexOf(order, storedKey.correct_index);
     const wrong = [0, 1, 2, 3].filter((i) => i !== right);
 
     const a1 = await json(await quizAnswerPost(req(u, "/api/coach/quiz/answer", "POST", { turnId: turn.id, choice: wrong[0], clientAttemptId: `cq-${run}-1` })));
@@ -241,7 +250,12 @@ describe("Quiz me on my weak spots", () => {
     await lessonAnswer(u, objsB[0], "incorrect");
     const { turn } = await json(await quizPost(req(u, "/api/coach/quiz", "POST", { trackId: track })));
     const order = presentationOrder(presentationSeed(u, turn.objectiveId, "coach_quiz", QUIZ_ITEM.question), 4);
-    const res = await json(await quizAnswerPost(req(u, "/api/coach/quiz/answer", "POST", { turnId: turn.id, choice: shownIndexOf(order, 2) })));
+    // REQ-187: the stored key position is shuffled; read it back.
+    const k = (await queryOne<{ correct_index: number }>(
+      `select correct_index from coach_quiz_items where objective_id = $1 and question = $2 order by generated_at desc limit 1`,
+      [turn.objectiveId, QUIZ_ITEM.question]
+    ))!.correct_index;
+    const res = await json(await quizAnswerPost(req(u, "/api/coach/quiz/answer", "POST", { turnId: turn.id, choice: shownIndexOf(order, k) })));
     assert.equal(res.correct, true);
     assert.equal(res.turn.status, "correct");
     const m = await queryOne<{ status: string }>(`select status from mastery where user_id = $1 and objective_id = $2`, [u, turn.objectiveId]);

@@ -8,6 +8,16 @@ import type { LabSafetyFamily } from "@/lib/lab-grading";
 import { recordAttemptTx, findClientAttempt, isDuplicateClientAttempt } from "@/lib/grading-service";
 import { cleanText, hasUnstorableText } from "@/lib/text-input";
 import {
+  InteractiveAnswerError,
+  answerForm,
+  interactiveAnswerText,
+  interactiveInput,
+  interactiveKey,
+  interactiveLegacyText,
+  type InteractiveInput,
+  type InteractiveKey,
+} from "@/lib/lab-interactive";
+import {
   LAB_ANSWER_TOTAL_MAX,
   LAB_PART_MAX,
   runSummary,
@@ -104,12 +114,12 @@ export async function servedReviewStatusesFor(userId: string, env: Record<string
 }
 
 // The subject family of a course (which labs need the study notice): the course
-// taxonomy's healthcare-* categories are clinical, health-fitness is
-// fitness, everything else general -- the rule lib/lab-grading.ts
+// taxonomy's healthcare-* categories and mental-health (REQ-224, migration 077)
+// are clinical, health-fitness is fitness, everything else general -- the rule lib/lab-grading.ts
 // labSafetyFamily applies to the coach context's category slug.
 // `track` is the alias of subject_tracks in the calling query.
 export function labFamilySql(track: string): string {
-  return `coalesce((select case when ec.slug like 'healthcare%' then 'clinical' when ec.slug = 'health-fitness' then 'fitness' end
+  return `coalesce((select case when ec.slug like 'healthcare%' or ec.slug = 'mental-health' then 'clinical' when ec.slug = 'health-fitness' then 'fitness' end
                       from education_subcategories esc join education_categories ec on ec.id = esc.category_id
                      where esc.id = ${track}.subcategory_id), 'general')`;
 }
@@ -151,7 +161,7 @@ export async function sampleLabId(trackId: string): Promise<string | null> {
 }
 
 export async function labAccess(userId: string, lab: Pick<LabRow, "id" | "track_id">): Promise<LabAccess> {
-  if (await hasFeature(userId, LABS_FEATURE)) return "full";
+  if (await hasFeature(userId, LABS_FEATURE, lab.track_id)) return "full"; // REQ-170: on this course
   return (await sampleLabId(lab.track_id)) === lab.id ? "sample" : "locked";
 }
 
@@ -185,6 +195,28 @@ export function labAnswers(answers: unknown, partCount: number): string[] | stri
   return list;
 }
 
+// REQ-189: a structured answer to an interactive part must name only that
+// part's own options (a 400 otherwise). A written answer to one -- from an
+// app build that shows a text box -- is fine; the model grades it.
+export function interactiveAnswerProblem(parts: LabRubricPart[], answers: string[]): string | null {
+  for (const [i, p] of parts.entries()) {
+    if (!p.interactive) continue;
+    try {
+      answerForm(p.interactive, answers[i] ?? "", `part ${i + 1}`);
+    } catch (err) {
+      if (err instanceof InteractiveAnswerError) return err.message;
+      throw err;
+    }
+  }
+  return null;
+}
+
+// The learner's answer to a part in words (an interactive answer's ids
+// turned back into the items they name).
+export function partAnswerText(part: LabRubricPart | undefined, answer: string): string {
+  return part?.interactive ? interactiveAnswerText(part.interactive, answer) : answer;
+}
+
 export function sameAnswers(stored: unknown, sent: string[]): boolean {
   return (
     Array.isArray(stored) &&
@@ -199,7 +231,7 @@ export function runTranscript(lab: Pick<LabRow, "steps" | "rubric">, answers: st
   return answers
     .map((parts, i) => {
       const head = lab.steps.length > 1 ? `Step ${i + 1}\n` : "";
-      return head + parts.map((a, j) => `${lab.rubric[i]?.parts[j]?.label ?? `Part ${j + 1}`}: ${a.trim() || "(blank)"}`).join("\n");
+      return head + parts.map((a, j) => `${lab.rubric[i]?.parts[j]?.label ?? `Part ${j + 1}`}: ${partAnswerText(lab.rubric[i]?.parts[j], a).trim() || "(blank)"}`).join("\n");
     })
     .join("\n\n");
 }
@@ -292,13 +324,17 @@ export async function listLabs(userId: string, scope: LabScope, env = process.en
       order by cu.sort_order, o.sort_order, l.kind, l.title, l.id`,
     [id, userId, await servedReviewStatusesFor(userId, env)]
   );
-  const full = await hasFeature(userId, LABS_FEATURE);
+  // REQ-170: labs are on a plan per course, so "full" is decided per course.
+  const fullOn = new Map<string, boolean>();
   const samples = new Map<string, string | null>();
-  if (!full) {
-    for (const r of rows) if (!samples.has(r.track_id)) samples.set(r.track_id, await sampleLabId(r.track_id));
+  for (const r of rows) {
+    if (fullOn.has(r.track_id)) continue;
+    const full = await hasFeature(userId, LABS_FEATURE, r.track_id);
+    fullOn.set(r.track_id, full);
+    if (!full) samples.set(r.track_id, await sampleLabId(r.track_id));
   }
   return rows.map((r) => ({
-    access: full ? ("full" as const) : samples.get(r.track_id) === r.id ? ("sample" as const) : ("locked" as const),
+    access: fullOn.get(r.track_id) ? ("full" as const) : samples.get(r.track_id) === r.id ? ("sample" as const) : ("locked" as const),
     id: r.id,
     kind: r.kind,
     title: r.title,
@@ -389,7 +425,9 @@ export async function openRun(userId: string, labId: string, restart: boolean): 
       [userId, labId]
     );
     if (open && !restart) return open;
-    if (open) await tx.query(`update lab_runs set abandoned_at = now() where id = $1`, [open.id]);
+    // completed_at is re-checked on the locked row: a last step that finished
+    // the run first (recordStep holds the row) leaves it finished, not abandoned.
+    if (open) await tx.query(`update lab_runs set abandoned_at = now() where id = $1 and completed_at is null`, [open.id]);
     const created = await tx.queryOne<RunRow>(`insert into lab_runs (user_id, lab_id) values ($1, $2) returning *`, [userId, labId]);
     return created!;
   });
@@ -402,9 +440,14 @@ export interface StepResultShape {
   partScores: { part: string; score: string; comment: string }[];
   missedParts: string[];
   fixNext: string | null;
+  // The answers in words (an interactive part's choices written out).
   answers: string[];
-  // The step's rubric, revealed once the step is graded.
-  reference: { label: string; criteria: string; modelAnswer: string }[];
+  // REQ-189: the answers exactly as sent (an interactive part's ids), for
+  // the app to mark its own controls.
+  responses: string[];
+  // The step's rubric, revealed once the step is graded; `key` only on an
+  // interactive part.
+  reference: { label: string; criteria: string; modelAnswer: string; key?: InteractiveKey }[];
 }
 
 function stepResultShape(lab: LabRow, s: StepRow): StepResultShape {
@@ -415,8 +458,14 @@ function stepResultShape(lab: LabRow, s: StepRow): StepResultShape {
     partScores: Array.isArray(s.part_scores) ? s.part_scores : [],
     missedParts: Array.isArray(s.missed_parts) ? s.missed_parts : [],
     fixNext: s.fix_next,
-    answers: Array.isArray(s.answers) ? s.answers : [],
-    reference: (lab.rubric[s.step_index]?.parts ?? []).map((p) => ({ label: p.label, criteria: p.criteria, modelAnswer: p.modelAnswer })),
+    answers: (Array.isArray(s.answers) ? s.answers : []).map((a, j) => partAnswerText(lab.rubric[s.step_index]?.parts[j], a)),
+    responses: Array.isArray(s.answers) ? s.answers : [],
+    reference: (lab.rubric[s.step_index]?.parts ?? []).map((p) => ({
+      label: p.label,
+      criteria: p.criteria,
+      modelAnswer: p.modelAnswer,
+      ...(p.interactive ? { key: interactiveKey(p.interactive) } : {}),
+    })),
   };
 }
 
@@ -436,7 +485,7 @@ export interface LabView {
     // Decision 10: "sample" is labelled as this course's sample lab.
     access: LabAccess;
     // Steps revealed so far: graded ones and the current one.
-    steps: { index: number; text: string; ask: string; parts: string[] }[];
+    steps: StepView[];
   };
   run: {
     id: string;
@@ -448,6 +497,23 @@ export interface LabView {
   runsFinished: number;
 }
 
+// REQ-189: `inputs` lines up with `parts`: null for a written part, else the
+// control to show (never the key). An app that doesn't speak protocol 2
+// (lib/client-protocol.ts) gets each interactive part's options written
+// into the step text instead, so it can still be answered in words.
+export interface StepView {
+  index: number;
+  text: string;
+  ask: string;
+  parts: string[];
+  inputs: (InteractiveInput | null)[];
+}
+
+export interface LabViewOptions {
+  // The app renders interactive parts (X-Ascendra-Client >= 2).
+  interactive?: boolean;
+}
+
 export interface FinalShape {
   verdict: "correct" | "partial" | "incorrect";
   summary: string;
@@ -456,13 +522,21 @@ export interface FinalShape {
   attemptId: string | null;
 }
 
-function revealedSteps(lab: LabRow, upTo: number) {
-  return lab.steps.slice(0, Math.min(upTo + 1, lab.steps.length)).map((s, i) => ({
-    index: i,
-    text: s.text,
-    ask: s.ask,
-    parts: (lab.rubric[i]?.parts ?? []).map((p) => p.label),
-  }));
+function revealedSteps(lab: LabRow, upTo: number, opts: LabViewOptions = {}): StepView[] {
+  return lab.steps.slice(0, Math.min(upTo + 1, lab.steps.length)).map((s, i) => {
+    const parts = lab.rubric[i]?.parts ?? [];
+    const inputs = parts.map((p, j) => (p.interactive ? interactiveInput(p.interactive, `${lab.id}:${i}:${j}`) : null));
+    const legacy = opts.interactive
+      ? []
+      : inputs.flatMap((inp, j) => (inp ? [interactiveLegacyText(parts[j].label, inp)] : []));
+    return {
+      index: i,
+      text: legacy.length ? [s.text, ...legacy].filter(Boolean).join("\n\n") : s.text,
+      ask: s.ask,
+      parts: parts.map((p) => p.label),
+      inputs,
+    };
+  });
 }
 
 async function finalShape(run: RunRow, steps: StepRow[]): Promise<FinalShape | null> {
@@ -483,7 +557,13 @@ async function finalShape(run: RunRow, steps: StepRow[]): Promise<FinalShape | n
   };
 }
 
-export async function labView(lab: LabRow, userId: string, runId?: string | null, access: LabAccess = "full"): Promise<LabView> {
+export async function labView(
+  lab: LabRow,
+  userId: string,
+  runId?: string | null,
+  access: LabAccess = "full",
+  opts: LabViewOptions = {}
+): Promise<LabView> {
   const run = runId
     ? await queryOne<RunRow>(`select * from lab_runs where id = $1 and user_id = $2 and lab_id = $3`, [runId, userId, lab.id])
     : await currentRun(userId, lab.id);
@@ -508,7 +588,7 @@ export async function labView(lab: LabRow, userId: string, runId?: string | null
     access,
   };
   return {
-    lab: { ...base, steps: revealedSteps(lab, steps.length) },
+    lab: { ...base, steps: revealedSteps(lab, steps.length, opts) },
     run: run
       ? {
           id: run.id,
@@ -533,11 +613,13 @@ export interface SubmitInput {
   step: number;
   answers: string[];
   clientAttemptId: string | null;
+  // REQ-189: the app renders interactive parts (the next step's view).
+  interactive?: boolean;
 }
 
 export interface SubmitResult {
   step: StepResultShape;
-  nextStep: { index: number; text: string; ask: string; parts: string[] } | null;
+  nextStep: StepView | null;
   final: FinalShape | null;
   replayed: boolean;
 }
@@ -571,7 +653,7 @@ export async function replayStep(input: SubmitInput): Promise<SubmitResult | nul
   const isLast = row.step_index === input.lab.steps.length - 1;
   return {
     step: stepResultShape(input.lab, row),
-    nextStep: isLast ? null : revealedSteps(input.lab, row.step_index + 1)[row.step_index + 1] ?? null,
+    nextStep: isLast ? null : revealedSteps(input.lab, row.step_index + 1, { interactive: input.interactive })[row.step_index + 1] ?? null,
     final: isLast && run ? await finalShape(run, steps) : null,
     replayed: true,
   };
@@ -602,6 +684,17 @@ export async function recordStep(input: SubmitInput, graded: LabStepGraded): Pro
   const isLast = input.step === lab.steps.length - 1;
   try {
     return await withTransaction(async (tx) => {
+      // REQ-218: the run is locked before anything is written, and a run a
+      // restart abandoned (or another copy finished) takes no step. A
+      // restart used to land between the check in checkRunStep and this
+      // insert, and the last step then finished the abandoned run and
+      // recorded its attempt. openRun's update takes the same row lock.
+      const locked = await tx.queryOne<{ completed_at: string | null; abandoned_at: string | null }>(
+        `select completed_at, abandoned_at from lab_runs where id = $1 and user_id = $2 for update`,
+        [input.runId, input.userId]
+      );
+      if (!locked) throw new LabError(404, "Run not found");
+      if (locked.completed_at || locked.abandoned_at) throw new LabError(409, "This run is finished. Start a new run to try the lab again.");
       const ins = await tx.queryOne<StepRow>(
         `insert into lab_run_steps
            (run_id, user_id, step_index, client_attempt_id, answers, verdict, feedback, classification, missed_parts, part_scores, fix_next)
@@ -666,7 +759,7 @@ export async function recordStep(input: SubmitInput, graded: LabStepGraded): Pro
       }
       return {
         step: stepResultShape(lab, ins),
-        nextStep: isLast ? null : revealedSteps(lab, input.step + 1)[input.step + 1] ?? null,
+        nextStep: isLast ? null : revealedSteps(lab, input.step + 1, { interactive: input.interactive })[input.step + 1] ?? null,
         final,
         replayed: false,
       };
@@ -674,7 +767,7 @@ export async function recordStep(input: SubmitInput, graded: LabStepGraded): Pro
   } catch (err) {
     // Two copies of one submission raced past the claim (or the claim
     // expired): the slower one replays the winner's stored result.
-    if (input.clientAttemptId && (isDuplicateClientAttempt(err) || isDuplicateStepClient(err))) {
+    if (input.clientAttemptId && (isDuplicateClientAttempt(err) || isDuplicateStepClient(err) || (err instanceof LabError && err.status === 409))) {
       const prior = await replayStep(input);
       if (prior) return prior;
     }

@@ -13,7 +13,11 @@
 //   ascendra.lessonProgress.<userId>.<objectiveId>
 //   ascendra.labDraft.<userId>.<objectiveId>   (lab report answers, REQ-106;
 //                                             FAIL-235: missed until integration)
-//   ascendra.reminders.<userId>                (study reminder settings, REQ-119)
+//   ascendra.reminders.<userId>                (study reminder settings, REQ-119; kept on logout, REQ-217)
+//   ascendra.reminderPlan.<userId>             (the last reminder plan, REQ-197:
+//                                             names the learner's topics)
+//   ascendra.dictationHint.<userId>            (dictation tip dismissed, REQ-197)
+//   ascendra.simJournal.<userId>.<simId>       (unsent sim commands, REQ-199)
 
 const PREFIX = "ascendra.";
 
@@ -22,14 +26,24 @@ export function localDataOwner(key: string): string | null {
   if (!key.startsWith(PREFIX)) return null;
   const parts = key.slice(PREFIX.length).split(".");
   if (parts[0] === "draft") return parts.length >= 4 && parts[2] ? parts[2] : null;
-  if (parts[0] === "pbqProgress" || parts[0] === "lessonProgress" || parts[0] === "labDraft") return parts.length >= 3 && parts[1] ? parts[1] : null;
-  if (parts[0] === "reminders") return parts.length === 2 && parts[1] ? parts[1] : null;
+  if (parts[0] === "pbqProgress" || parts[0] === "lessonProgress" || parts[0] === "labDraft" || parts[0] === "simJournal") return parts.length >= 3 && parts[1] ? parts[1] : null;
+  if (parts[0] === "reminders" || parts[0] === "reminderPlan" || parts[0] === "dictationHint") {
+    return parts.length === 2 && parts[1] ? parts[1] : null;
+  }
   return null;
 }
 
+// REQ-217 (FAIL-1057): what a learner chose rather than what they wrote stays
+// through "Log out": the study reminder setting (days, time, on or off). The
+// sweep used to delete it, so the next sign-in found reminders off and the
+// learner never knew. Their notifications are still cancelled at sign-out
+// (AuthContext clearUserLocalData) and come back with this setting at the next
+// sign-in. The reminder plan, which names the learner's topics, is still swept.
+const KEPT_ON_LOGOUT_PREFIX = "ascendra.reminders.";
+
 export function userLocalDataKeys(keys: readonly string[], userId: string): string[] {
   if (!userId) return [];
-  return keys.filter((k) => localDataOwner(k) === userId);
+  return keys.filter((k) => localDataOwner(k) === userId && !k.startsWith(KEPT_ON_LOGOUT_PREFIX));
 }
 
 // Users who have logged out on this device since the app started. A draft

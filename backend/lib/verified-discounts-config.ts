@@ -23,7 +23,8 @@
 //   VERIFIED_DISCOUNTS_ENABLED          the switch
 //   VERIFIED_DISCOUNT_GROUPS            comma list overriding the default
 //                                       enabled set, e.g. "military,nurse"
-//   DISCOUNT_PERCENT_<GROUP>            the published percentage, 1-90
+//   DISCOUNT_PERCENT_<GROUP>            the published percentage, 1-25
+//                                       (REQ-170: at most 25%, Nick 2026-11-09)
 //                                       (no default: Nick sets the numbers;
 //                                       a group without one isn't offered)
 //   STRIPE_COUPON_<GROUP>               the Stripe coupon id for the web
@@ -82,12 +83,29 @@ export function enabledGroups(env: Env = process.env): DiscountGroup[] {
 }
 
 // The published percentage for a group, or null when none is set (or it is
-// not a whole number from 1 to 90).
+// not a whole number from 1 to MAX_DISCOUNT_PERCENT).
+//
+// REQ-170 (Nick, 2026-11-09): verified discounts are capped at 25%. A
+// larger setting is REJECTED, not clamped: the group is then not offered
+// (and `npm run discounts:codes -- --config` says why), because a clamped
+// 25% would no longer match the Stripe coupon and store offers set up for
+// the larger number. With the AI cap at half the yearly take, 25% keeps
+// every plan's worst case positive (docs/billing.md, "Margins").
+export const MAX_DISCOUNT_PERCENT = 25;
 export function discountPercent(group: DiscountGroup, env: Env = process.env): number | null {
   const raw = env[`DISCOUNT_PERCENT_${group.toUpperCase()}`]?.trim();
   if (!raw) return null;
   const n = Number(raw);
-  return Number.isInteger(n) && n >= 1 && n <= 90 ? n : null;
+  return Number.isInteger(n) && n >= 1 && n <= MAX_DISCOUNT_PERCENT ? n : null;
+}
+
+// Groups whose percentage is set but refused (not a whole number from 1 to
+// MAX_DISCOUNT_PERCENT), for the operator report.
+export function rejectedPercents(env: Env = process.env): Array<{ group: DiscountGroup; value: string }> {
+  return DISCOUNT_GROUPS.flatMap((g) => {
+    const raw = env[`DISCOUNT_PERCENT_${g.toUpperCase()}`]?.trim();
+    return raw && discountPercent(g, env) === null ? [{ group: g, value: raw }] : [];
+  });
 }
 
 export interface OfferedGroup {

@@ -42,6 +42,16 @@ const VERIFIED_AT = "2026-09-18T00:00:00Z";
 const NURSING_DISCLAIMER_KEY = "nursing-clinical-content";
 
 // ---------------------------------------------------------------------------
+// Corrected 2026-11-09 (content audit; reworded in place, order unchanged so
+// mastery is kept): clozapine no longer has a REMS (FDA, effective
+// 2025-06-13; ANC monitoring per labelling); ventricular tachycardia is three
+// or more ventricular beats in a row (StatPearls NBK532954); a sentinel event
+// includes severe temporary harm (Joint Commission); newborn apnea is a pause
+// of 20 seconds or more, or shorter with bradycardia, cyanosis or pallor;
+// hypoglycaemia examples follow CDC's fast-carbohydrate list (no graham
+// crackers -- fat slows absorption).
+//
+// ---------------------------------------------------------------------------
 // Depth added 2026-11-02: sources, tiers and disagreements (all six tracks).
 //
 // What changed: new objectives were appended to the END of existing units
@@ -204,7 +214,7 @@ const NURSING_DISCLAIMER_KEY = "nursing-clinical-content";
 // ---------------------------------------------------------------------------
 export const NCLEX_RN_TRACK: SeedTrack = {
   code: "NCLEXRN",
-  title: "NCLEX-RN Coach",
+  title: "Prep for the NCLEX-RN Exam",
   description:
     "The registered nurse licensure examination, built on the 2026 NCSBN test plan: the four Client Needs categories and their eight subcategories, weighted as the exam weights them, with clinical judgment treated as the thing being tested rather than a topic to revise.",
   trackType: "certification",
@@ -245,9 +255,9 @@ export const NCLEX_RN_TRACK: SeedTrack = {
       weight: 18,
       gate: "Given a shift of assigned clients, decide who is seen first and what goes to whom -- and defend the delegation against scope of practice, not against convenience.",
       objectives: [
-        "Prioritising by acuity rather than by who asked first",
-        "Airway, breathing, circulation as a prioritisation frame, and where it stops helping",
-        "Unstable versus stable: recognising which client is actually deteriorating",
+        "Prioritizing by acuity rather than by who asked first",
+        "Airway, breathing, circulation as a prioritization frame, and where it stops helping",
+        "Unstable versus stable: recognizing which client is actually deteriorating",
         "Assignment and delegation are different acts with different accountability",
         "Matching a task to the competency of an LPN/VN, assistive personnel, or another RN",
         "The five rights of delegation: task, circumstance, person, direction, supervision",
@@ -271,9 +281,9 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Accessing client records within facility regulation",
         "Legal issues that reach the nurse: refusal of treatment, client valuables, interpreter services",
         "Mandatory reporting: abuse, neglect, communicable disease",
-        "Recognising ethical dilemmas and reporting them",
-        "Practising within the nurses' code of ethics and the legal scope of practice",
-        "Recognising the limits of one's own competence and using resources",
+        "Recognizing ethical dilemmas and reporting them",
+        "Practicing within the nurses' code of ethics and the legal scope of practice",
+        "Recognizing the limits of one's own competence and using resources",
         "Collaborating with the multidisciplinary team: physical therapy, nutrition, social work",
         "Case management for a client with chronic or complex needs",
         "Assessing the need for a referral and obtaining the order it requires",
@@ -281,20 +291,20 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Performance and quality improvement: what the activity is and how the nurse participates",
         "Evaluating what a quality improvement measure actually changed",
         "Managing conflict among clients and staff",
-        "Organising a workload so time is spent where acuity is",
+        "Organizing a workload so time is spent where acuity is",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
-        "Work a case through the six clinical judgment steps the test plan names -- recognise cues, analyse cues, prioritise hypotheses, generate solutions, take action, evaluate outcomes -- and say which step a given question is testing", // RNTP p8; MS 4.2
-        "Prioritise hypotheses by asking which explanation is most likely, which is most serious, and which must be treated first, then revisit the ranking as new data arrive", // MS 4.2; FN 43.1
+        "Work a case through the six clinical judgment steps the test plan names -- recognize cues, analyze cues, prioritize hypotheses, generate solutions, take action, evaluate outcomes -- and say which step a given question is testing", // RNTP p8; MS 4.2
+        "Prioritize hypotheses by asking which explanation is most likely, which is most serious, and which must be treated first, then revisit the ranking as new data arrive", // MS 4.2; FN 43.1
         "Write outcomes in SMART form with a time frame, set with the client's input where possible, so that evaluation has something concrete to compare against", // MS 4.4
         "Evaluate outcomes by comparing what happened with what was expected, and revise the plan when the goal is not met rather than repeating the same interventions", // MS 4.5; FN 43.1
         "Account for context in clinical judgment: time pressure, task complexity, prior experience and the client's cultural, psychological and spiritual factors all shape the decision", // MS 4.2; MS 4.3
         "Know the licensed nurse cannot delegate clinical reasoning, nursing judgment or critical decision making, and keeps overall accountability for the client even after delegating a task", // DEL
-        "Distinguish assignment from delegation: assignment hands routine care within a person's authorised scope or basic training; delegation hands a specific activity beyond their traditional role, after competence is validated", // DEL; FN 15.4
+        "Distinguish assignment from delegation: assignment hands routine care within a person's authorized scope or basic training; delegation hands a specific activity beyond their traditional role, after competence is validated", // DEL; FN 15.4
         "Apply the right circumstance: delegate only for a stable client, and require the delegatee to report any change so the nurse can reassess whether delegation is still safe", // DEL
         "Give delegation directions that state what data to collect, how and by when to report, and make clear the delegatee may not change the activity without first consulting the nurse", // DEL
         "Know that handing care of a client to another RN, or an LPN/VN to another LPN/VN, is a handoff, not delegation, and that state law decides whether an LPN/VN may delegate to assistive personnel", // DEL
         "Know the nurse's part in informed consent: confirm the signer is of legal age, competent and acting voluntarily, and escalate when the client does not understand the procedure, its risks or alternatives", // FN 16.3
-        "Recognise when someone else gives consent -- parents, guardians or court-appointed decision-makers -- and when consent is implied in an emergency", // FN 16.3
+        "Recognize when someone else gives consent -- parents, guardians or court-appointed decision-makers -- and when consent is implied in an emergency", // FN 16.3
         "Know that a nurse who knows consent was not properly obtained and does not tell the provider or a supervisor can be held liable, and that treating without consent may be battery", // FN 16.3
         "Name the ethical principles behind practice -- autonomy, beneficence, nonmaleficence, justice, fidelity and veracity -- and identify which ones conflict in a dilemma", // FN 16.2
         "Distinguish a living will and a named healthcare proxy from a POLST, which is a portable medical order that guides care in the last stage of life", // FN 36.4
@@ -302,14 +312,14 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Identify the parts of a malpractice claim -- a duty owed, a breach of that duty, and harm caused by the breach -- and how documentation of the standard of care is used to judge it", // FN 16.3; FN 16.2
         "Discharge a client safely: review medications and follow-up, and confirm the client has the knowledge, supplies and support to manage at home", // FN 8.3
         "Use the PDSA cycle in quality improvement: plan a change, try it, study the result, then act on what was learned and run the cycle again until the change works", // FN 15.3
-        "Know that a sentinel event is an adverse event, such as a fall, that leads to death or permanent disability -- not death from the illness itself -- and that its investigation uses root cause analysis to find system causes", // FN 15.3; FN 9.1
-        "Recognise leadership styles -- autocratic for a code, democratic for a unit protocol change, laissez-faire for experienced self-directed staff -- and when each fits", // FN 18.1
+        "Know that a sentinel event is a patient safety event, such as a fall, that leads to death, permanent harm or severe temporary harm -- not harm from the illness itself -- and that its investigation uses root cause analysis to find system causes", // FN 15.3; FN 9.1
+        "Recognize leadership styles -- autocratic for a code, democratic for a unit protocol change, laissez-faire for experienced self-directed staff -- and when each fits", // FN 18.1
         "Advocate for a client through the chain of command when concerns go unanswered, as part of the nurse's professional duty", // FN 16.4; FN 16.3
-        "Run an organised, thorough admission, because what is learned at admission sets the course of care and an admission can turn emergent if the client becomes unstable", // FN 8.1
+        "Run an organized, thorough admission, because what is learned at admission sets the course of care and an admission can turn emergent if the client becomes unstable", // FN 8.1
         "Give a transfer report focused on what the receiving team most needs, since every transfer point is a chance for crucial information to be lost", // FN 8.2
         "Use a care transition model -- communication, client and caregiver teaching, medication reconciliation, timely follow-up -- to prevent avoidable readmission", // POP 30.2; POP 30.1
         "Know the roles of the interprofessional team members, each bound by their own state scope of practice, and use referrals to connect clients to them", // FN 15.6; CNS 2.4
-        "Know that delegation decisions start at the organisation, which sets policies on what may be delegated, to whom and under what circumstances", // DEL
+        "Know that delegation decisions start at the organization, which sets policies on what may be delegated, to whom and under what circumstances", // DEL
       ],
     },
     {
@@ -359,19 +369,19 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Limit transport of an isolated client to medically necessary trips, with a mask on a client on droplet or airborne precautions and infected areas covered for contact precautions", // CDC-TBP
         "Keep susceptible staff out of the rooms of clients with known or suspected measles, chickenpox or disseminated zoster when immune staff are available", // CDC-TBP
         "Apply enhanced barrier precautions in long-term care: gown and gloves for high-contact care of residents with MDROs, wounds or indwelling devices, without confining them to the room", // CDC-EBP
-        "Know when contact precautions replace enhanced barrier precautions: uncontained diarrhoea or drainage, an outbreak, a public health directive, or C. difficile, norovirus or scabies", // CDC-EBP
+        "Know when contact precautions replace enhanced barrier precautions: uncontained diarrhea or drainage, an outbreak, a public health directive, or C. difficile, norovirus or scabies", // CDC-EBP
         "Name the elements of standard precautions, including respiratory hygiene, cleaning and disinfecting shared equipment, safe handling of linen and safe injection practices", // CDC-SP
         "Prevent falls in older adults with a fall risk assessment, medication review and attention to the drugs, such as opioids, that raise fall risk", // FN 41.4; FN 9.1
-        "Recognise the forms of abuse a client may disclose and follow state and facility reporting rules, including adult and child protective services and police where required", // FN 9.2
+        "Recognize the forms of abuse a client may disclose and follow state and facility reporting rules, including adult and child protective services and police where required", // FN 9.2
         "Know that workplace violence is a major occupational hazard in health care, and that nurses face a high risk of injury and infectious exposure", // FN 9.2; FN 9.1
         "Triage with the ABCDE sequence -- airway, breathing, circulation, disability, exposure -- assessing the airway first whatever the underlying cause", // MS 33.1
         "Know the phases of disaster response, starting with mitigation that reduces the risk and impact of future disasters before one occurs", // MS 34.4
         "Prevent medication errors through the safety checks in four groups: identify the client correctly, check the order for errors, keep the environment safe, and monitor for adverse reactions", // CNS 11.1
-        "Recognise oncologic emergencies the nurse must report at once, such as tumour lysis syndrome with its high potassium, high phosphate and low calcium", // MS 31.3
+        "Recognize oncologic emergencies the nurse must report at once, such as tumor lysis syndrome with its high potassium, high phosphate and low calcium", // MS 31.3
         "Screen every client for intimate partner violence and know that pregnancy raises the risk of physical abuse and of serious maternal and newborn complications", // MN 9.2; FN 9.2
         "Manage aggression with the least restrictive measure that is safe, treat an emergency medication order as an interim step, and stay with the client afterwards to monitor its effect", // PMH 11.2
         "Wear the correct PPE as the best protection against chemical, drug and infectious exposure, and know the follow-up steps when an exposure happens", // MS 33.3
-        "Recognise biological disasters -- outbreaks, pandemics and bioterrorism -- and apply epidemiology and public health principles to triage and care", // MS 34.2
+        "Recognize biological disasters -- outbreaks, pandemics and bioterrorism -- and apply epidemiology and public health principles to triage and care", // MS 34.2
         "Keep electronic health information confidential, accurate and available, and spot and respond to a security breach", // FN 9.3
         "Clean and disinfect equipment used for a client on contact precautions before another client uses it, or keep dedicated equipment such as a blood pressure cuff", // CDC-TBP
         "Know when to clean hands: before touching a client, before an aseptic task, after body fluid exposure, after touching the client or their surroundings, and right after removing gloves", // CDC-HH
@@ -403,18 +413,18 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Choosing physical assessment equipment and technique appropriate to the client",
         "Disease prevention and health maintenance recommendations",
         "Community health education and participation in it",
-        "High-risk behaviours: identifying them and teaching prevention and treatment",
+        "High-risk behaviors: identifying them and teaching prevention and treatment",
         "Lifestyle choices, including sexuality, contraception and family planning",
         "Contraindications to a chosen contraceptive method",
-        "Recognising the socially or environmentally isolated client",
+        "Recognizing the socially or environmentally isolated client",
         "Alternative and homeopathic practices the client is already using",
         "Assessing readiness to learn, learning preference, and barriers to learning",
-        "Minimising communication barriers so teaching actually lands",
+        "Minimizing communication barriers so teaching actually lands",
         "Self-care capacity in the home environment, and planning care around it",
-        "Evaluating whether the client understood the health promotion behaviour taught",
+        "Evaluating whether the client understood the health promotion behavior taught",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
-        "Tell the five levels of prevention apart -- primordial, primary, secondary, tertiary, quaternary -- and place immunisation and lifestyle teaching in primary prevention and screening in secondary prevention", // POP 2.5
-        "Name Erikson's psychosocial stages in order from trust versus mistrust onward, and recognise how an unresolved early stage can show up later in a client's behaviour", // FN 38.2
+        "Tell the five levels of prevention apart -- primordial, primary, secondary, tertiary, quaternary -- and place immunization and lifestyle teaching in primary prevention and screening in secondary prevention", // POP 2.5
+        "Name Erikson's psychosocial stages in order from trust versus mistrust onward, and recognize how an unresolved early stage can show up later in a client's behavior", // FN 38.2
         "Plan teaching for each learning domain -- cognitive for knowledge, affective for attitudes and feelings, psychomotor for skills -- and match the method to the domain", // FN 17.2
         "Evaluate learning with objective evidence -- return demonstration, the client explaining in their own words, or a checklist -- rather than accepting nods and smiles as understanding", // FN 17.4
         "Estimate the due date from the first day of the last menstrual period with Naegele's rule, or by ultrasound, and note maternal age at either end of the range as a risk factor", // MN 11.1
@@ -422,12 +432,12 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Report blood pressure readings that need follow-up in pregnancy: 140/90 mm Hg or higher before 20 weeks suggests preexisting hypertension, and any elevation after 20 weeks needs investigation", // MN 11.3
         "Assess the postpartum fundus and bladder: a boggy uterus displaced above the umbilicus and to one side often means a full bladder, so help the client empty it and massage the fundus", // MN 20.3
         "Describe the expected change in lochia from rubra in the first days after birth through serosa to alba, and teach the client what to expect at home", // MN 20.3
-        "Recognise postpartum haemorrhage -- cumulative blood loss of 1,000 mL or more within 24 hours of birth, by either route -- measure blood loss quantitatively, and activate the hemorrhage team", // MN 21.2
-        "Score the Apgar at 1 and 5 minutes on heart rate, respiratory effort, reflex irritability, muscle tone and colour, and repeat at 10 minutes when the 5-minute score is below 7", // MN 22.1
+        "Recognize postpartum hemorrhage -- cumulative blood loss of 1,000 mL or more within 24 hours of birth, by either route -- measure blood loss quantitatively, and activate the hemorrhage team", // MN 21.2
+        "Score the Apgar at 1 and 5 minutes on heart rate, respiratory effort, reflex irritability, muscle tone and color, and repeat at 10 minutes when the 5-minute score is below 7", // MN 22.1
         "Support early newborn care: skin-to-skin contact for the stable baby, delaying the first bath to protect temperature and blood sugar, and infant security banding", // MN 24.1
-        "Teach parents the newborn warning signs that need urgent care, such as a pause in breathing of more than 10 seconds with blue colour, and safe sleep and car seat use", // MN 24.3
+        "Teach parents the newborn warning signs that need urgent care, such as a pause in breathing of 20 seconds or more, or any shorter pause with blue color, paleness or a slow heart rate, and safe sleep and car seat use", // MN 24.3
         "Use the comprehensive geriatric assessment areas -- ADLs, IADLs, mental health, fall risk, pain, polypharmacy, nutrition, senses and care preferences -- to target health promotion for an older adult", // FN 41.4
-        "Recognise that preeclampsia, gestational hypertension and gestational diabetes are conditions of pregnancy itself and are diagnosed during prenatal care", // MN 12.2
+        "Recognize that preeclampsia, gestational hypertension and gestational diabetes are conditions of pregnancy itself and are diagnosed during prenatal care", // MN 12.2
         "Take a sexual health history with the 5 Ps -- partners, practices, protection from STIs, past history of STIs, and pregnancy intention -- in a respectful, non-judgemental way", // MN 7.1
         "Choose contraception through shared decision making, using the reproductive history to find what matters to the person and any contraindications", // MN 5.1
         "Give anticipatory guidance before, during and after pregnancy, and know the factors linked to rising infertility, such as delayed childbearing, obesity, smoking, alcohol and STIs", // FN 39.3
@@ -443,20 +453,20 @@ export const NCLEX_RN_TRACK: SeedTrack = {
       title: "Psychosocial Integrity",
       rangeLabel: "6-12% of the exam",
       weight: 9,
-      gate: "Given a client in distress, choose the response that opens the conversation rather than closing it -- and recognise when distress has become a safety problem.",
+      gate: "Given a client in distress, choose the response that opens the conversation rather than closing it -- and recognize when distress has become a safety problem.",
       objectives: [
         "Therapeutic communication technique, and what makes a response non-therapeutic",
         "Encouraging the client to put feelings into words",
         "Allowing silence and time rather than filling it",
         "Assessing verbal and nonverbal communication needs",
-        "Recognising nonverbal cues to physical and psychological stress",
+        "Recognizing nonverbal cues to physical and psychological stress",
         "Evaluating whether communication with the client was effective",
         "Assessing for abuse or neglect, and reporting or escalating it",
         "Risk factors for domestic, child, elder and sexual abuse",
         "Providing a safe environment for the abused or neglected client",
         "Assessing the potential for violence and using safety precautions",
         "Identifying the client in crisis and applying crisis intervention technique",
-        "Coping mechanisms, and evaluating constructive use of defence mechanisms",
+        "Coping mechanisms, and evaluating constructive use of defense mechanisms",
         "Adapting to temporary and permanent role change",
         "Supporting the client with an unexpected altered body image",
         "Substance use disorder: assessing for misuse, dependency and withdrawal",
@@ -465,7 +475,7 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Signs and symptoms of acute and chronic mental illness",
         "Impaired cognition: memory loss, poor hygiene, altered judgment",
         "Alterations in mood, judgment, cognition and reasoning",
-        "Behavioural intervention and helping the client regain self-control",
+        "Behavioral intervention and helping the client regain self-control",
         "Orienting the client to reality, and providing reality-based diversion",
         "Sensory and perceptual alterations, and strategies for the client experiencing them",
         "Grief and loss, including anticipatory grieving",
@@ -479,32 +489,32 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Stress management technique, and evaluating the client's use of it",
         "Promoting and maintaining a therapeutic environment",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
-        "Avoid the common blocks to therapeutic communication: challenging, probing, changing the subject, false reassurance, disagreeing, judging, rejecting or minimising the client's concern", // PMH 3.1
+        "Avoid the common blocks to therapeutic communication: challenging, probing, changing the subject, false reassurance, disagreeing, judging, rejecting or minimizing the client's concern", // PMH 3.1
         "Restate and clarify what the client says to check understanding, and use self-reflection to keep improving your own therapeutic communication", // PMH 3.1
         "Assess suicide risk directly when ideation is present, including lethality: whether there is a detailed plan, access to means, past attempts, current mental state and social support", // PMH 16.3
         "Know that suicidal ideation ranges from fleeting passive thoughts to a detailed plan with timing and method, and that depression and substance use are its most common drivers", // PMH 16.3
         "Monitor lithium closely: it has a narrow safety margin, so changes in sodium balance and drugs such as diuretics, NSAIDs and ACE inhibitors can push the level into toxicity", // PHARM 13.3
         "Watch for hypothyroidism in a client on long-term lithium, because lithium suppresses thyroid hormone synthesis and release", // PHARM 13.3
-        "Recognise extrapyramidal effects of first-generation antipsychotics -- pseudoparkinsonism, dystonia, akathisia and tardive dyskinesia -- and report them promptly", // PHARM 13.2
-        "Recognise neuroleptic malignant syndrome as a rare but potentially fatal reaction to antipsychotics that needs immediate escalation", // PHARM 13.2
-        "Know that clozapine is reserved for schizophrenia that has not responded to other drugs and is dispensed only under an FDA REMS programme that requires neutrophil count monitoring", // PHARM 13.2
+        "Recognize extrapyramidal effects of first-generation antipsychotics -- pseudoparkinsonism, dystonia, akathisia and tardive dyskinesia -- and report them promptly", // PHARM 13.2
+        "Recognize neuroleptic malignant syndrome as a rare but potentially fatal reaction to antipsychotics that needs immediate escalation", // PHARM 13.2
+        "Know that clozapine is reserved for schizophrenia that has not responded to other drugs and needs absolute neutrophil count monitoring as its labeling directs (the FDA ended the clozapine REMS program in June 2025)", // PHARM 13.2
         "Separate an MAOI from other serotonergic antidepressants by the required washout, because combining them risks serotonin syndrome", // PHARM 13.1
         "Screen for alcohol withdrawal on admission and use the CIWA-Ar scale to judge the need for medically supervised withdrawal management", // PMH 19.2
-        "Recognise alcohol overdose -- confusion, difficulty staying conscious, vomiting, seizures, slow breathing and heart rate, low temperature -- and the added risk when combined with opioids or sedatives", // PMH 19.2
-        "Recognise anorexia nervosa by severe restriction and very low body weight, with an adult BMI under 18.5 as the usual marker", // PMH 20.2
+        "Recognize alcohol overdose -- confusion, difficulty staying conscious, vomiting, seizures, slow breathing and heart rate, low temperature -- and the added risk when combined with opioids or sedatives", // PMH 19.2
+        "Recognize anorexia nervosa by severe restriction and very low body weight, with an adult BMI under 18.5 as the usual marker", // PMH 20.2
         "Give trauma-informed care built on safety, trust and collaboration, and avoid care that makes a client feel as unsafe as when the trauma happened", // PMH 6.5
         "Support a grieving client to express grief in their own way, including anger, and offer listening without judgment", // FN 36.1
-        "Recognise the physical side of grief -- fatigue, chest tightness, breathlessness, palpitations -- and the behaviours that signal a client is struggling, such as withdrawal or avoiding reminders", // FN 36.1
-        "Recognise a manic episode -- high energy, grandiose delusions, little need for sleep, racing thoughts, rapid speech and reckless behaviour -- and the depressive episodes that alternate with it in bipolar disorder", // PMH 16.4
-        "Distinguish generalised anxiety disorder, persistent excessive worry that interferes with daily life, from expected worry, and recognise its physical and behavioural signs", // PMH 17.2
-        "Recognise the core symptoms of schizophrenia -- delusions, hallucinations, disorganised speech or behaviour, and negative symptoms -- and psychosis as a loss of contact with reality", // PMH 15.1
-        "Support clients with borderline personality disorder through clear, consistent boundaries, and know that dialectical behaviour therapy is the gold-standard treatment", // PMH 18.3
+        "Recognize the physical side of grief -- fatigue, chest tightness, breathlessness, palpitations -- and the behaviors that signal a client is struggling, such as withdrawal or avoiding reminders", // FN 36.1
+        "Recognize a manic episode -- high energy, grandiose delusions, little need for sleep, racing thoughts, rapid speech and reckless behavior -- and the depressive episodes that alternate with it in bipolar disorder", // PMH 16.4
+        "Distinguish generalized anxiety disorder, persistent excessive worry that interferes with daily life, from expected worry, and recognize its physical and behavioral signs", // PMH 17.2
+        "Recognize the core symptoms of schizophrenia -- delusions, hallucinations, disorganized speech or behavior, and negative symptoms -- and psychosis as a loss of contact with reality", // PMH 15.1
+        "Support clients with borderline personality disorder through clear, consistent boundaries, and know that dialectical behavior therapy is the gold-standard treatment", // PMH 18.3
         "Know the client rights that protect mental health clients, including HIPAA confidentiality and the HIPAA notice describing how health information is shared", // PMH 10.1
-        "Assess spiritual beliefs and needs, recognising how they may differ from your own, and draw on them as a source of comfort and resilience during illness", // FN 35.2
-        "Recognise the mental health conditions that follow trauma, such as PTSD, and the ways trauma shapes a client's behaviour and trust", // PMH 17.4; PMH 6.5
-        "Assess for every form of abuse -- physical, emotional, psychological, verbal, sexual and financial -- and recognise neglect, the failure to care properly, as abuse too", // CNS 20.3
+        "Assess spiritual beliefs and needs, recognizing how they may differ from your own, and draw on them as a source of comfort and resilience during illness", // FN 35.2
+        "Recognize the mental health conditions that follow trauma, such as PTSD, and the ways trauma shapes a client's behavior and trust", // PMH 17.4; PMH 6.5
+        "Assess for every form of abuse -- physical, emotional, psychological, verbal, sexual and financial -- and recognize neglect, the failure to care properly, as abuse too", // CNS 20.3
         "Know that nurses are often first to see signs of anger, abuse and violence, and that abuse occurs in homes and in institutions such as hospitals and nursing homes", // PMH 9.3
-        "Recognise opioid use disorder, which can begin with legitimate pain treatment, and its consequences such as financial trouble", // PMH 19.4
+        "Recognize opioid use disorder, which can begin with legitimate pain treatment, and its consequences such as financial trouble", // PMH 19.4
       ],
     },
     {
@@ -520,7 +530,7 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Compensating for a physical or sensory impairment",
         "Applying, maintaining and removing orthopedic devices",
         "Mobility and immobility, and the complications immobility causes",
-        "Measures that promote circulation: range of motion, positioning, mobilisation",
+        "Measures that promote circulation: range of motion, positioning, mobilization",
         "Skin assessment and maintaining skin and tissue integrity",
         "Nutrition and oral hydration, and evaluating nutritional status",
         "Providing nutrition through tube feedings",
@@ -539,16 +549,16 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Teach sleep hygiene: a consistent bedtime routine and cutting caffeine and alcohol in the hours before bed", // FN 28.4
         "Stage pressure injuries: stage 1 is intact skin with nonblanchable redness, which may look darker or lighter rather than red on darkly pigmented skin", // MS 28.3
         "Know that a wound covered by slough or eschar is unstageable until it is debrided, when it will prove to be stage 3 or 4, and that devices can cause their own pressure injuries", // MS 28.3
-        "Recognise urinary retention, including after anaesthesia and with opioids or an enlarged prostate, and act on the incomplete emptying it causes", // FN 26.4
-        "Prevent constipation by tackling its causes -- inactivity, dehydration, low fibre, opioids and diuretics -- and use the Bristol stool chart to describe stool", // FN 27.4
+        "Recognize urinary retention, including after anesthesia and with opioids or an enlarged prostate, and act on the incomplete emptying it causes", // FN 26.4
+        "Prevent constipation by tackling its causes -- inactivity, dehydration, low fiber, opioids and diuretics -- and use the Bristol stool chart to describe stool", // FN 27.4
         "Match diet teaching to the condition: a consistent carbohydrate diet for diabetes, low-fat low-sodium eating for heart disease, and modified textures for dysphagia", // FN 21.3
-        "Recognise that loss of basic ADLs such as bathing, feeding and dressing sharply raises the chance of nursing home admission, and plan support that preserves them", // FN 22.3
+        "Recognize that loss of basic ADLs such as bathing, feeding and dressing sharply raises the chance of nursing home admission, and plan support that preserves them", // FN 22.3
         "Care for a client in a cast, brace, sling or traction, and watch for pressure injury or skin infection from a cast that is too tight", // CNS 9.5
-        "Prevent sensory overload in hospital -- crowding, noise, bright lights, strong smells -- and recognise its signs: irritability, agitation, anxiety and fatigue", // FN 29.2
+        "Prevent sensory overload in hospital -- crowding, noise, bright lights, strong smells -- and recognize its signs: irritability, agitation, anxiety and fatigue", // FN 29.2
         "Use the TIME principles to prepare a wound bed -- tissue, infection or inflammation, moisture balance, edges -- and choose a dressing that fits the wound at that stage", // MS 28.5
-        "Tell venous leg ulcers -- medial lower leg, irregular, heavily draining -- from arterial wounds, and know arterial wound care centres on moist healing", // MS 28.5
+        "Tell venous leg ulcers -- medial lower leg, irregular, heavily draining -- from arterial wounds, and know arterial wound care centers on moist healing", // MS 28.5
         "Give oral care to a dependent client, more often when NPO or mouth breathing, with the head of the bed raised 30 to 45 degrees and suction available to prevent aspiration", // CNS 7.3
-        "Store dentures in a labelled, closed cup when not worn, and handle them as the client's property", // CNS 7.3
+        "Store dentures in a labeled, closed cup when not worn, and handle them as the client's property", // CNS 7.3
         "Follow the speech-language pathologist's texture recommendations for a client with dysphagia to reduce aspiration risk", // FN 21.3
         "Position the feet to prevent foot drop in a client on prolonged bed rest", // CNS 9.4
         "Know when a gait belt is contraindicated -- recent chest, back or abdominal surgery, a G tube, hernia, abdominal aneurysm, severe cardiac or respiratory conditions", // CNS 9.3
@@ -575,7 +585,7 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Expected actions and outcomes of a prescribed medication",
         "Evaluating the client's response to a medication over time",
         "Adverse effects, side effects, contraindications and interactions distinguished",
-        "Recognising an allergic reaction to a medication",
+        "Recognizing an allergic reaction to a medication",
         "Incompatibilities among a client's prescribed medications",
         "Notifying the provider, and documenting what was observed and done",
         "Teaching the client which effects warrant a call to the provider",
@@ -594,15 +604,15 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Read anticoagulant monitoring: a higher aPTT, INR or anti-Xa level means blood that clots more slowly and a client more prone to bleeding", // PHARM 20.2
         "Teach a client on warfarin to keep vitamin K intake consistent rather than avoid it, because a sudden drop in leafy greens can over-anticoagulate them", // PHARM 20.2
-        "Know the insulin profile -- onset, peak and duration -- and watch most closely for hypoglycaemia when the insulin is peaking", // PHARM 28.2
-        "Treat hypoglycaemia in a conscious client with a fast carbohydrate such as orange juice, graham crackers or hard candy", // PHARM 28.2
+        "Know the insulin profile -- onset, peak and duration -- and watch most closely for hypoglycemia when the insulin is peaking", // PHARM 28.2
+        "Treat hypoglycemia in a conscious client with a fast carbohydrate such as glucose tablets, orange juice or hard candy", // PHARM 28.2
         "Monitor digoxin for toxicity -- anorexia, nausea, vomiting, visual changes and dysrhythmias -- and remember low potassium and magnesium increase the risk", // PHARM 19.6
-        "Recognise the serious adverse effects of ACE inhibitors, including angioedema and a dry nonproductive cough", // PHARM 18.2
+        "Recognize the serious adverse effects of ACE inhibitors, including angioedema and a dry nonproductive cough", // PHARM 18.2
         "Report a medication error honestly and promptly, because early disclosure may allow an intervention that prevents harm", // PHARM 3.2
         "Before a transfusion, verify the order, check for any premedication and relevant labs, ask about past reactions, and confirm a working IV with blood tubing and normal saline ready", // CNS 13.4
         "Collect only one unit of blood from the bank at a time, and verify client identity, order, consent, blood type and compatibility at the bedside before starting", // CNS 13.4
         "Tell transfusion reactions apart: febrile nonhemolytic is most common, allergic reactions are often mild, acute hemolytic reactions come from ABO mismatch, and circulatory overload from excess volume", // MS 16.7
-        "Recognise fluid volume overload during IV therapy -- rising blood pressure and respiratory rate, falling saturation, edema and crackles -- and act on it", // CNS 13.3
+        "Recognize fluid volume overload during IV therapy -- rising blood pressure and respiratory rate, falling saturation, edema and crackles -- and act on it", // CNS 13.3
         "Stop the infusion, remove the catheter, document and notify the provider when an IV site is painful, red, swollen, warm, cool or leaking", // CNS 13.3
         "Know that concentrated parenteral nutrition irritates small veins, which is why it usually runs through a central line whose position is confirmed by chest x-ray before use", // PHARM 5.3; MS 19.3
         "Monitor vancomycin by renal function and serum drug levels, because it is cleared entirely by the kidneys, and know that the oral form treats C. difficile colitis", // PHARM 7.2
@@ -611,14 +621,14 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Give subcutaneous injections in small volumes, usually 1 mL or less, in the abdomen well away from the umbilicus, the outer upper arm, anterior thigh or upper back", // CNS 12.5
         "Give sublingual and buccal medications correctly: not swallowed, chewed or taken with water, and not given while the client is eating, drinking or smoking", // CNS 12.1
         "Know that first-pass metabolism in the liver can reduce the bioavailability of an oral drug before it reaches the systemic circulation", // PHARM 2.2
-        "Calculate paediatric doses carefully, often in mg/kg or by body surface area, and measure them with the smallest syringe that holds the dose", // PHARM 1.4
+        "Calculate pediatric doses carefully, often in mg/kg or by body surface area, and measure them with the smallest syringe that holds the dose", // PHARM 1.4
         "Teach a client on corticosteroids not to stop them abruptly because of the risk of adrenal insufficiency, and to report signs of infection; monitor potassium, sleep and weight", // PHARM 25.2
         "Use albuterol, a short-acting beta-2 agonist, as the rescue inhaler for acute bronchospasm, and teach that long-acting salmeterol is for maintenance only", // PHARM 25.1
         "Withhold bulk-forming laxatives when a client may have appendicitis, a bowel obstruction or ileus", // PHARM 30.3
         "Monitor opioid therapy with the NARCS U adverse effects in mind -- nausea, addiction, respiratory depression, constipation, sedation, urinary retention -- and treat respiratory depression with naloxone", // PHARM 14.3
-        "Expect constipation in nearly every client on long-term opioids, and plan a bowel regimen with laxatives, softeners or fibre", // PHARM 14.3
-        "Know that ultra-rapid CYP2D6 metabolisers can turn codeine into too much morphine, risking life-threatening respiratory depression", // PHARM 14.3
-        "Give epinephrine first in anaphylaxis, ask the alert client to report any change in breathing or status, and add nebulised albuterol if the airway does not fully open", // PHARM 22.3
+        "Expect constipation in nearly every client on long-term opioids, and plan a bowel regimen with laxatives, softeners or fiber", // PHARM 14.3
+        "Know that ultra-rapid CYP2D6 metabolizers can turn codeine into too much morphine, risking life-threatening respiratory depression", // PHARM 14.3
+        "Give epinephrine first in anaphylaxis, ask the alert client to report any change in breathing or status, and add nebulized albuterol if the airway does not fully open", // PHARM 22.3
         "Instil eye drops into the lower conjunctival sac, press the inner canthus, and wait between drops so the first is not washed out", // CNS 14.1
         "Give ear medications at room temperature to avoid vertigo, dizziness and nausea", // CNS 14.2
       ],
@@ -650,7 +660,7 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Peripheral edema, and signs of hypo- or hyperglycemia",
         "Factors that delay wound healing",
         "Risk assessment for falls, sensory impairment, mobility and skin integrity",
-        "Recognising a trend in the client's condition and intervening on it",
+        "Recognizing a trend in the client's condition and intervening on it",
         "Abnormal response following a diagnostic test or procedure",
         "Monitoring for signs of bleeding",
         "Positioning to prevent complications after a procedure",
@@ -675,13 +685,13 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Before surgery, confirm the client understands the procedure, risks and benefits, and that consent is signed before any medication that could impair decision-making", // MS 25.2
         "Prevent postoperative atelectasis and pneumonia with incentive spirometry and saturation monitoring, and inspect the incision for infection", // MS 27.3
         "Watch the postoperative client for DVT and pulmonary embolism, ileus and urinary retention, which immobility and surgery make more likely", // MS 27.3
-        "Prioritise airway management and postoperative nausea and vomiting in the postanaesthesia care unit, and give a clear handover from the surgical team", // MS 27.1
+        "Prioritize airway management and postoperative nausea and vomiting in the postanesthesia care unit, and give a clear handover from the surgical team", // MS 27.1
         "Palpate around a chest tube site, or a recently removed one, for crepitus that signals an air leak", // CNS 23.2
-        "Recognise the cues of fluid imbalance -- changes in weight, urine output and skin turgor -- and track daily weights and intake and output closely in both fluid deficit and fluid excess", // FN 20.3
+        "Recognize the cues of fluid imbalance -- changes in weight, urine output and skin turgor -- and track daily weights and intake and output closely in both fluid deficit and fluid excess", // FN 20.3
         "Correct sodium at the ordered rate, because changing serum sodium too quickly shifts water into or out of brain cells with life-threatening results", // MS 10.3; MS 21.4
-        "Calculate pulse pressure and recognise a narrowed or widened value as a finding that needs follow-up", // CNS 15.7
+        "Calculate pulse pressure and recognize a narrowed or widened value as a finding that needs follow-up", // CNS 15.7
         "Calculate ventricular rate from a 6-second strip by counting QRS complexes and multiplying by ten", // MS 12.2
-        "Recognise premature ventricular contractions, unifocal or multifocal, and that more than three in a row is a run of ventricular tachycardia", // MS 12.2
+        "Recognize premature ventricular contractions, unifocal or multifocal, and that three or more in a row is a run of ventricular tachycardia", // MS 12.2
         "Know that an arteriovenous fistula for long-term hemodialysis takes months to mature, so a temporary dialysis catheter is often used first", // MS 20.7
         "Work with respiratory therapy and the provider to set oxygen saturation targets in an acute respiratory exacerbation, and monitor saturation and oxygen needs", // MS 11.4
         "Know that benign prostatic hyperplasia affects over half of men aged 51 to 60 and 70 percent of men over 60, can lead to UTI and kidney stones, and that a hard prostate nodule raises concern for cancer", // MS 20.4
@@ -698,7 +708,7 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "General principles of pathophysiology: injury and repair, immunity, cellular structure",
         "Identifying the pathophysiology behind an acute or chronic condition",
         "Assessing the client's adaptation to illness or health alteration",
-        "Fluid and electrolyte imbalance: recognising the signs and symptoms",
+        "Fluid and electrolyte imbalance: recognizing the signs and symptoms",
         "Managing the client with a fluid or electrolyte imbalance",
         "Evaluating the response to correction of an imbalance",
         "Decreased cardiac output: diminished pulses, hypotension",
@@ -730,37 +740,37 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Emergency care procedures, including wound dehiscence",
         "Identifying client data that must be reported immediately",
         "Notifying the provider about an unexpected response or emergency",
-        "Unexpected adverse response to therapy, and recognising complications early",
+        "Unexpected adverse response to therapy, and recognizing complications early",
         "Evaluating achievement of the client's treatment goals",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
-        "Identify hyperkalaemia -- serum potassium above 5.1 mEq/L -- by irritability, cramping, diarrhoea and peaked T waves, and know it can progress to dysrhythmia and cardiac arrest", // FN 20.1
-        "Recognise hyponatraemia by headache, confusion, nausea, seizures and coma", // FN 20.1
-        "Recognise Cushing's triad -- widening pulse pressure, bradycardia and irregular breathing -- as a sign of increased intracranial pressure, alongside headache, vomiting and a falling level of consciousness", // MS 17.1
+        "Identify hyperkalemia -- serum potassium above 5.1 mEq/L -- by irritability, cramping, diarrhea and peaked T waves, and know it can progress to dysrhythmia and cardiac arrest", // FN 20.1
+        "Recognize hyponatremia by headache, confusion, nausea, seizures and coma", // FN 20.1
+        "Recognize Cushing's triad -- widening pulse pressure, bradycardia and irregular breathing -- as a sign of increased intracranial pressure, alongside headache, vomiting and a falling level of consciousness", // MS 17.1
         "For a suspected stroke, find out when the client was last known well, because the clot-dissolving drug tPA is time-sensitive, and use the NIH Stroke Scale for severity", // MS 15.2
-        "Know the common seizure triggers -- high fever, tumour, stroke, head injury, infection, hypoglycaemia and alcohol -- so you can anticipate seizures and protect the client", // MS 17.5
-        "Prioritise respiratory distress and falling oxygenation in pneumonia: monitor vital signs, give oxygen and prepare the client for imaging", // MS 11.7
-        "Recognise heart failure: lower-extremity edema graded 0 to 4+, weight gain, cough, orthopnea and basal crackles, with respiratory distress signalling pulmonary edema", // MS 12.3
-        "Prioritise airway, then breathing, circulation with fluid resuscitation, and temperature in a burn, and watch for infection, hypovolaemia, hypothermia and sepsis", // MS 14.2
+        "Know the common seizure triggers -- high fever, tumor, stroke, head injury, infection, hypoglycemia and alcohol -- so you can anticipate seizures and protect the client", // MS 17.5
+        "Prioritize respiratory distress and falling oxygenation in pneumonia: monitor vital signs, give oxygen and prepare the client for imaging", // MS 11.7
+        "Recognize heart failure: lower-extremity edema graded 0 to 4+, weight gain, cough, orthopnea and basal crackles, with respiratory distress signaling pulmonary edema", // MS 12.3
+        "Prioritize airway, then breathing, circulation with fluid resuscitation, and temperature in a burn, and watch for infection, hypovolemia, hypothermia and sepsis", // MS 14.2
         "Interpret the fetal heart rate baseline: 110 to 160 bpm with moderate variability reassures, and the first response to an abnormal tracing is repositioning, or stopping oxytocin if it is infusing", // MN 16.4
-        "Know that magnesium sulfate is used in pregnancy for fetal neuroprotection and preterm labour, and that hypertensive disorders of pregnancy can progress to HELLP syndrome and eclampsia", // MN 12.2
-        "Protect the client with neutropenia from infection: know that severe neutropenia means neutrophils below 500 per microlitre, and that infection may show only as fever, sore throat or mouth ulcers", // MS 16.5
+        "Know that magnesium sulfate is used in pregnancy for fetal neuroprotection and preterm labor, and that hypertensive disorders of pregnancy can progress to HELLP syndrome and eclampsia", // MN 12.2
+        "Protect the client with neutropenia from infection: know that severe neutropenia means neutrophils below 500 per microliter, and that infection may show only as fever, sore throat or mouth ulcers", // MS 16.5
         "Perform frequent neurovascular checks on a fractured limb to catch compartment syndrome, and suspect fat embolism when breathlessness, chest pain or neurological change follows a long-bone fracture", // MS 13.3
-        "Recognise portal hypertension complications of cirrhosis -- varices, ascites and hepatic encephalopathy -- and the role of paracentesis for ascites", // MS 19.6
-        "Recognise distributive shock, where low blood pressure comes from vasodilation rather than volume loss, and report a falling blood pressure with a rising heart rate promptly", // MS 23.4
-        "Recognise the warning signs of immunodeficiency -- opportunistic or persistent infections despite treatment -- and teach measures that reduce infection risk, including antiretroviral adherence in HIV", // MS 29.3
-        "Recognise the warning signs after brain or spinal cord injury -- headache, visual change, seizures, slurred speech, weakness, ear or nose drainage, loss of bowel or bladder control -- and changes in vital signs", // MS 17.9
+        "Recognize portal hypertension complications of cirrhosis -- varices, ascites and hepatic encephalopathy -- and the role of paracentesis for ascites", // MS 19.6
+        "Recognize distributive shock, where low blood pressure comes from vasodilation rather than volume loss, and report a falling blood pressure with a rising heart rate promptly", // MS 23.4
+        "Recognize the warning signs of immunodeficiency -- opportunistic or persistent infections despite treatment -- and teach measures that reduce infection risk, including antiretroviral adherence in HIV", // MS 29.3
+        "Recognize the warning signs after brain or spinal cord injury -- headache, visual change, seizures, slurred speech, weakness, ear or nose drainage, loss of bowel or bladder control -- and changes in vital signs", // MS 17.9
         "Tell DKA from HHS: DKA is acute with a low mortality rate, while HHS develops slowly, over weeks, with a much higher mortality rate", // MS 21.2
-        "Watch for hypoglycaemia and low potassium, common side effects of diabetes medications, whose aim is blood glucose in range and an individual A1C target often set around 7 percent", // MS 21.2
-        "Treat thyroid storm -- fever, tachycardia, agitation, confusion, vomiting, diarrhoea -- as an emergency needing immediate care and treatment of the cause", // MS 21.3
-        "Recognise hypothyroidism by low metabolic rate, weight gain, cold extremities, constipation and slowed thinking, and Graves' disease as the most common cause of hyperthyroidism", // MS 21.3
+        "Watch for hypoglycemia and low potassium, common side effects of diabetes medications, whose aim is blood glucose in range and an individual A1C target often set around 7 percent", // MS 21.2
+        "Treat thyroid storm -- fever, tachycardia, agitation, confusion, vomiting, diarrhea -- as an emergency needing immediate care and treatment of the cause", // MS 21.3
+        "Recognize hypothyroidism by low metabolic rate, weight gain, cold extremities, constipation and slowed thinking, and Graves' disease as the most common cause of hyperthyroidism", // MS 21.3
         "Know Addison's disease reduces cortisol and aldosterone, so low blood glucose can follow from the loss of cortisol", // MS 21.5
-        "Recognise anaphylaxis -- flushing, angioedema, urticaria, bronchoconstriction, hypotension -- after exposure to foods, stings, latex or medications", // MS 24.7
-        "Recognise appendicitis -- right lower quadrant or periumbilical pain and a positive Rovsing sign -- and that perforation can cause peritonitis, sepsis and septic shock", // MS 19.5
-        "Know that Guillain-Barre syndrome is an autoimmune attack on the peripheral nerves, often following a respiratory or diarrhoeal illness, that can cause temporary paralysis and is occasionally fatal", // MS 17.2
+        "Recognize anaphylaxis -- flushing, angioedema, urticaria, bronchoconstriction, hypotension -- after exposure to foods, stings, latex or medications", // MS 24.7
+        "Recognize appendicitis -- right lower quadrant or periumbilical pain and a positive Rovsing sign -- and that perforation can cause peritonitis, sepsis and septic shock", // MS 19.5
+        "Know that Guillain-Barre syndrome is an autoimmune attack on the peripheral nerves, often following a respiratory or diarrheal illness, that can cause temporary paralysis and is occasionally fatal", // MS 17.2
         "Treat suspected bacterial meningitis as the most dangerous form of meningitis, one that can kill", // MS 17.2
-        "Recognise multiple sclerosis, a chronic neurological disease that usually first appears between ages 20 and 40, with coordination problems, slurred speech and cognitive changes", // MS 17.3
-        "Recognise intermittent claudication, leg pain on walking, as a sign of peripheral arterial disease, and tell arterial from venous disease", // MS 12.7
-        "Prioritise airway clearance and respiratory status in cystic fibrosis, monitoring cough, lung sounds and vital signs for exacerbation", // MS 11.9
+        "Recognize multiple sclerosis, a chronic neurological disease that usually first appears between ages 20 and 40, with coordination problems, slurred speech and cognitive changes", // MS 17.3
+        "Recognize intermittent claudication, leg pain on walking, as a sign of peripheral arterial disease, and tell arterial from venous disease", // MS 12.7
+        "Prioritize airway clearance and respiratory status in cystic fibrosis, monitoring cough, lung sounds and vital signs for exacerbation", // MS 11.9
       ],
     },
   ],
@@ -790,9 +800,9 @@ export const NCLEX_RN_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const NCLEX_PN_TRACK: SeedTrack = {
   code: "NCLEXPN",
-  title: "NCLEX-PN Coach",
+  title: "Prep for the NCLEX-PN Exam",
   description:
-    "The practical and vocational nurse licensure examination, built on the 2026 NCSBN test plan. Weighted as the exam weights it, and scoped as the licence is scoped -- what the PN collects, reports and contributes, rather than what the RN decides.",
+    "The practical and vocational nurse licensure examination, built on the 2026 NCSBN test plan. Weighted as the exam weights it, and scoped as the license is scoped -- what the PN collects, reports and contributes, rather than what the RN decides.",
   trackType: "certification",
   subcategorySlug: "nclex-preparation",
   freshnessModel: "certification_aligned",
@@ -831,12 +841,12 @@ export const NCLEX_PN_TRACK: SeedTrack = {
       weight: 21,
       gate: "Given a shift and a set of clients, act inside the PN scope: know what you may accept, what you must pass to the RN, and what you report rather than decide.",
       objectives: [
-        "What the practical nurse licence permits, and where it stops",
+        "What the practical nurse license permits, and where it stops",
         "Accepting an assignment, and declining one that exceeds scope or competence",
         "Assignment and delegation as they apply to the PN, including delegation to assistive personnel",
         "Reporting to the registered nurse: what must be escalated rather than handled",
         "Establishing priorities among assigned clients",
-        "Recognising the client whose condition requires immediate RN or provider involvement",
+        "Recognizing the client whose condition requires immediate RN or provider involvement",
         "Contributing to the plan of care rather than authoring it",
         "Continuity of care and handoff of assigned clients",
         "Admission, transfer and discharge procedures",
@@ -845,7 +855,7 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Client rights, and educating clients and staff about them",
         "Informed consent: what the PN may and may not do in the process",
         "Confidentiality and information security, including social media disclosure",
-        "Ethical practice and recognising an ethical dilemma",
+        "Ethical practice and recognizing an ethical dilemma",
         "Legal rights and responsibilities, including refusal of treatment",
         "Mandatory reporting: abuse, neglect, communicable disease",
         "Documenting accurately, completely and in approved terminology",
@@ -856,9 +866,9 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Resource management and cost-conscious care",
         "Performance and quality improvement participation",
         "Concepts of management and supervision as they apply to the PN",
-        "Recognising the limits of one's own competence and using resources",
+        "Recognizing the limits of one's own competence and using resources",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
-        "Contribute to the six clinical judgment steps -- recognise and analyse cues, prioritise hypotheses, generate solutions, take action, evaluate outcomes -- within the PN role, reporting findings that need RN or provider judgment", // PNTP p10; MS 4.2
+        "Contribute to the six clinical judgment steps -- recognize and analyze cues, prioritize hypotheses, generate solutions, take action, evaluate outcomes -- within the PN role, reporting findings that need RN or provider judgment", // PNTP p10; MS 4.2
         "Use data from several credible sources -- the record, the client, the family, the team -- when making a clinical decision", // PNTP p11; MS 4.3
         "Assign care to assistive personnel or another LPN/VN where your state allows, giving clear directions on what to report and when, and checking the outcome", // PNTP p11; DEL
         "Know that a licensed nurse who delegates keeps accountability for the client and cannot delegate nursing judgment, and that state law decides whether an LPN/VN may delegate to assistive personnel", // DEL
@@ -869,13 +879,13 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Know the ethical principles that guide practice -- autonomy, beneficence, nonmaleficence, justice, fidelity and veracity", // FN 16.2
         "Know that treating without consent can be battery, and that a breach of the duty of care that causes harm is the basis of a negligence claim", // FN 16.3
         "Protect privacy: log off after each use, keep screens from view, keep conversations private, and access only the minimum information the job requires", // FN 9.3
-        "Organise and prioritise care by client need, using airway, breathing and circulation and Maslow's hierarchy to decide what comes first", // PNTP p11; MS 4.3
+        "Organize and prioritize care by client need, using airway, breathing and circulation and Maslow's hierarchy to decide what comes first", // PNTP p11; MS 4.3
         "Give a clear handoff, using a structured tool such as SBAR -- situation, background, assessment, recommendation -- when reporting a concern", // MN 20.1
         "Rank the possible explanations for a client's cues by how likely and how serious each is, and take the most urgent to the RN or provider", // MS 4.2
         "Know that a sentinel event, such as a fall that causes death or permanent disability, is investigated by root cause analysis aimed at system causes, which is why prompt incident reports matter", // FN 15.3
         "Know that a nurse who knows consent was not properly obtained and does not speak up can be held liable", // FN 16.3
         "Give a transfer report built around what the receiving team needs, since every handoff can drop crucial information", // FN 8.2
-        "Contribute to an organised admission, because the data gathered then shape the course of care and a stable admission can turn urgent", // FN 8.1
+        "Contribute to an organized admission, because the data gathered then shape the course of care and a stable admission can turn urgent", // FN 8.1
         "Name what makes a care transition safe -- clear communication, client and caregiver teaching, medication reconciliation, timely follow-up -- and how it prevents readmission", // POP 30.2
         "Move up the chain of command when a concern about an order is not resolved", // MS 5.4; FN 16.3
       ],
@@ -923,7 +933,7 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Keep susceptible staff, including yourself if not immune, out of the rooms of clients with known or suspected measles, chickenpox or disseminated zoster when immune staff are available", // CDC-TBP
         "Use dedicated equipment for a client on contact precautions, or clean and disinfect shared items such as a blood pressure cuff before the next client", // CDC-TBP
         "Limit trips out of the room for an isolated client to those medically necessary, with a mask on the client for droplet or airborne precautions", // CDC-TBP
-        "Know when contact precautions replace enhanced barrier precautions: uncontained diarrhoea or drainage, outbreaks, public health direction, and C. difficile, norovirus or scabies", // CDC-EBP
+        "Know when contact precautions replace enhanced barrier precautions: uncontained diarrhea or drainage, outbreaks, public health direction, and C. difficile, norovirus or scabies", // CDC-EBP
         "Wear the right PPE as the best protection against chemical, drug and infectious exposure, and know the follow-up steps when an exposure happens", // MS 33.3
         "Screen clients for intimate partner violence and know that pregnancy raises the risk of physical abuse", // MN 9.2
         "Keep electronic health information confidential, accurate and available, and report a suspected security breach", // FN 9.3
@@ -933,7 +943,7 @@ export const NCLEX_PN_TRACK: SeedTrack = {
       title: "Health Promotion and Maintenance",
       rangeLabel: "6-12% of the exam",
       weight: 9,
-      gate: "Given a client at any life stage, collect the right data, recognise what is expected for that stage, and reinforce the teaching.",
+      gate: "Given a client at any life stage, collect the right data, recognize what is expected for that stage, and reinforce the teaching.",
       objectives: [
         "Data collection technique, and how it differs from assessment",
         "Collecting a health history and reporting the findings",
@@ -950,25 +960,25 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Newborn care and feeding",
         "Health promotion and disease prevention teaching",
         "Reinforcing teaching the RN has planned",
-        "High-risk behaviours and teaching about them",
+        "High-risk behaviors and teaching about them",
         "Lifestyle choices, including family planning and sexuality",
         "Self-care capacity and managing care in the home",
         "Community resources available to the client",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Compare a child's developmental milestones with what is expected for age, and report delays", // PNTP p13; FN 38.2
-        "Know Erikson's stages from trust versus mistrust onward, and how an unmet stage can affect later behaviour", // FN 38.2
-        "Identify clients who need required or voluntary immunisations, and know that immunisation is primary prevention while screening is secondary prevention", // PNTP p13; POP 2.5
+        "Know Erikson's stages from trust versus mistrust onward, and how an unmet stage can affect later behavior", // FN 38.2
+        "Identify clients who need required or voluntary immunizations, and know that immunization is primary prevention while screening is secondary prevention", // PNTP p13; POP 2.5
         "Identify barriers to communication and to learning, and check learning with a return demonstration or the client's own explanation rather than a nod", // PNTP p13; FN 17.4
         "Assist with care of the antepartum client and know when blood pressure readings in pregnancy must be reported", // PNTP p13; MN 11.3
-        "Assist with monitoring a client in labour, reporting the frequency, duration and strength of contractions and the fetal heart rate as directed", // PNTP p13; MN 18.1; MN 16.4
+        "Assist with monitoring a client in labor, reporting the frequency, duration and strength of contractions and the fetal heart rate as directed", // PNTP p13; MN 18.1; MN 16.4
         "Monitor the recovery of a stable postpartum client: report a temperature above 100.4 F (38 C), and check the fundus, bladder and lochia", // PNTP p13; MN 20.1; MN 20.3
         "Know that a boggy, displaced fundus after birth often means a full bladder, and help the client empty it", // MN 20.3
-        "Recognise postpartum haemorrhage as blood loss of 1,000 mL or more within 24 hours of birth, and report heavy bleeding at once", // MN 21.2
+        "Recognize postpartum hemorrhage as blood loss of 1,000 mL or more within 24 hours of birth, and report heavy bleeding at once", // MN 21.2
         "Reinforce newborn care teaching, including safe sleep, car seat use and the warning signs that need urgent care", // MN 24.3
         "Support early skin-to-skin contact for a stable newborn and the delayed first bath that protects temperature and blood sugar", // MN 24.1
         "Explain how the due date is estimated from the first day of the last menstrual period with Naegele's rule, or by ultrasound", // MN 11.1
         "Know the routine second-trimester checks, including gestational diabetes screening at 24 to 28 weeks and visits every 4 weeks", // MN 11.3
-        "Know the five Apgar signs -- heart rate, breathing effort, reflex irritability, muscle tone, colour -- scored at 1 and 5 minutes", // MN 22.1
+        "Know the five Apgar signs -- heart rate, breathing effort, reflex irritability, muscle tone, color -- scored at 1 and 5 minutes", // MN 22.1
         "Reinforce teaching in all three learning domains: knowledge, attitudes and feelings, and hands-on skills", // FN 17.2
         "Reinforce relief measures for morning sickness: small frequent snacks, fluids apart from meals, ginger and plain dry foods", // MN 10.3
         "Know that HPV and hepatitis B vaccines prevent some cancers, while mammograms, colonoscopy and cervical screening catch cancer early", // MS 31.2
@@ -979,23 +989,23 @@ export const NCLEX_PN_TRACK: SeedTrack = {
       title: "Psychosocial Integrity",
       rangeLabel: "9-15% of the exam",
       weight: 12,
-      gate: "Given a client in distress, respond therapeutically, and recognise when distress has become a safety problem to escalate.",
+      gate: "Given a client in distress, respond therapeutically, and recognize when distress has become a safety problem to escalate.",
       objectives: [
         "Therapeutic communication technique, and what makes a response non-therapeutic",
         "Encouraging the client to express feelings",
-        "Recognising nonverbal cues to distress",
-        "Abuse or neglect: recognising it, reporting it, escalating it",
+        "Recognizing nonverbal cues to distress",
+        "Abuse or neglect: recognizing it, reporting it, escalating it",
         "Risk factors for domestic, child and elder abuse",
-        "Recognising the potential for violence and using safety precautions",
+        "Recognizing the potential for violence and using safety precautions",
         "Crisis intervention within the PN role",
         "Coping mechanisms and adaptation to role change",
         "Supporting the client with an altered body image",
         "Substance use disorder, dependency and withdrawal",
-        "Recognising signs of withdrawal or toxicity and reporting them",
+        "Recognizing signs of withdrawal or toxicity and reporting them",
         "Non-substance dependencies",
-        "Mental health concepts and recognising acute and chronic mental illness",
+        "Mental health concepts and recognizing acute and chronic mental illness",
         "Impaired cognition: memory loss, altered judgment, poor hygiene",
-        "Behavioural management technique",
+        "Behavioral management technique",
         "Orienting the client to reality",
         "Sensory and perceptual alterations",
         "Grief, loss and anticipatory grieving",
@@ -1007,7 +1017,7 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Stress management technique",
         "Maintaining a therapeutic environment",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
-        "Avoid blocks to therapeutic communication: false reassurance, changing the subject, judging, disagreeing or minimising the client's concern", // PNTP p14; PMH 3.1
+        "Avoid blocks to therapeutic communication: false reassurance, changing the subject, judging, disagreeing or minimizing the client's concern", // PNTP p14; PMH 3.1
         "Collect data on the client's potential for violence to self or others, and report warning signs immediately", // PNTP p14; PMH 16.3
         "Know the risk factors a suicide lethality assessment looks for -- a detailed plan, access to means, past attempts -- and report any suicidal statement to the RN at once", // PMH 16.3
         "Identify the signs of substance misuse, substance use disorder, withdrawal and overdose, including alcohol overdose and the added risk with opioids or sedatives", // PNTP p14; PMH 19.2
@@ -1016,18 +1026,18 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Take part in client group sessions, knowing that groups offer belonging, shared learning and the chance to give and receive support", // PNTP p14; PMH 5.2
         "Take part in reminiscence therapy, validation therapy and reality orientation for cognitively impaired clients", // PNTP p14; FN 29.1; PMH 24.2
         "Assist in the care of a cognitively impaired client: speak calmly with simple questions, and avoid reorienting when it only causes distress", // PNTP p14; PMH 14.3
-        "Recognise that delirium starts suddenly and fluctuates and may signal a serious illness, and report a sudden change in mental status", // PMH 14.2
+        "Recognize that delirium starts suddenly and fluctuates and may signal a serious illness, and report a sudden change in mental status", // PMH 14.2
         "Help de-escalate an angry or agitated client, and stay with or near the client after an emergency medication to monitor its effect", // PNTP p14; PMH 11.2
-        "Recognise a manic episode -- high energy, grandiosity, little sleep, racing thoughts -- in bipolar disorder", // PMH 16.4
-        "Recognise hallucinations, delusions and disorganised speech as signs of psychosis", // PMH 15.1
-        "Support a grieving client in expressing grief, including anger, and recognise the physical symptoms grief can cause", // FN 36.1
-        "Recognise the signs that death is near -- cool, mottled skin, irregular or noisy breathing with pauses, less eating and drinking -- and remember the dying client may still hear and feel touch", // PNTP p14; FN 36.2
-        "Give trauma-informed care that builds safety and trust and avoids re-traumatising the client", // PMH 6.5
-        "Recognise generalised anxiety disorder, persistent excessive worry that disrupts daily life, and its physical signs such as restlessness, fatigue and poor sleep", // PMH 17.2
+        "Recognize a manic episode -- high energy, grandiosity, little sleep, racing thoughts -- in bipolar disorder", // PMH 16.4
+        "Recognize hallucinations, delusions and disorganized speech as signs of psychosis", // PMH 15.1
+        "Support a grieving client in expressing grief, including anger, and recognize the physical symptoms grief can cause", // FN 36.1
+        "Recognize the signs that death is near -- cool, mottled skin, irregular or noisy breathing with pauses, less eating and drinking -- and remember the dying client may still hear and feel touch", // PNTP p14; FN 36.2
+        "Give trauma-informed care that builds safety and trust and avoids re-traumatizing the client", // PMH 6.5
+        "Recognize generalized anxiety disorder, persistent excessive worry that disrupts daily life, and its physical signs such as restlessness, fatigue and poor sleep", // PMH 17.2
         "Support a client with borderline personality disorder through clear, consistent boundaries", // PMH 18.3
-        "Recognise the very low body weight of anorexia nervosa, with an adult BMI under 18.5 the usual marker, and report it", // PMH 20.2
-        "Recognise every form of abuse -- physical, emotional, verbal, sexual, financial -- and neglect, and report it", // CNS 20.3
-        "Recognise that opioid use disorder can start with legitimate pain treatment", // PMH 19.4
+        "Recognize the very low body weight of anorexia nervosa, with an adult BMI under 18.5 the usual marker, and report it", // PMH 20.2
+        "Recognize every form of abuse -- physical, emotional, verbal, sexual, financial -- and neglect, and report it", // CNS 20.3
+        "Recognize that opioid use disorder can start with legitimate pain treatment", // PMH 19.4
         "Report signs of neuroleptic malignant syndrome, a rare but potentially fatal reaction to antipsychotics", // PHARM 13.2
       ],
     },
@@ -1057,18 +1067,18 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Nonpharmacological comfort interventions",
         "Postmortem care",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
-        "Evaluate pain with a standardised rating scale suited to the client's cognitive and developmental level", // PNTP p15; FN 30.4
+        "Evaluate pain with a standardized rating scale suited to the client's cognitive and developmental level", // PNTP p15; FN 30.4
         "Use the PQRSTU questions to collect data about pain", // FN 30.4
         "Provide nonpharmacological pain relief such as imagery, massage, music and repositioning", // PNTP p15; FN 30.5
         "Promote sleep and rest with good sleep hygiene, including cutting caffeine and alcohol before bedtime", // PNTP p15; FN 28.4
         "Identify a stage 1 pressure injury as intact skin with nonblanchable redness, which may look darker or lighter on darkly pigmented skin, and report it", // MS 28.3
         "Prevent pressure injury by repositioning, floating heels and reducing friction and shear", // CNS 9.4
-        "Care for an immobilised client, including a client in a cast, watching for skin injury from a tight cast", // PNTP p15; CNS 9.5
+        "Care for an immobilized client, including a client in a cast, watching for skin injury from a tight cast", // PNTP p15; CNS 9.5
         "Provide postmortem care gently and with privacy, and prepare the body and room for the family", // PNTP p15; FN 36.4
-        "Prevent sensory overload from noise, crowding, bright light and strong smells, and recognise irritability, agitation and anxiety as its signs", // FN 29.2
+        "Prevent sensory overload from noise, crowding, bright light and strong smells, and recognize irritability, agitation and anxiety as its signs", // FN 29.2
         "Serve the food texture the speech-language pathologist recommended for a client with dysphagia, to lower aspiration risk", // FN 21.3
         "Support a consistent carbohydrate diet for clients with diabetes and low-fat, low-sodium eating for heart disease", // FN 21.3
-        "Prevent constipation by addressing inactivity, dehydration, low fibre intake and drugs such as opioids and diuretics", // FN 27.4; PHARM 14.3
+        "Prevent constipation by addressing inactivity, dehydration, low fiber intake and drugs such as opioids and diuretics", // FN 27.4; PHARM 14.3
         "Give oral care to a dependent client more often when NPO or mouth breathing, with the head of the bed raised to prevent aspiration", // CNS 7.3
         "Position the feet to prevent foot drop in a client on long bed rest", // CNS 9.4
         "Tell a venous leg ulcer -- medial lower leg, irregular, heavy drainage -- from an arterial wound, and report changes in either", // MS 28.5
@@ -1090,21 +1100,21 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Documenting medication administration",
         "Expected actions and therapeutic outcomes",
         "Side effects, adverse effects, contraindications and interactions distinguished",
-        "Recognising an allergic reaction and responding to it",
+        "Recognizing an allergic reaction and responding to it",
         "Reporting adverse effects to the registered nurse or provider",
         "Monitoring the client's response to a medication",
         "Pharmacological pain management and p.r.n. decisions within scope",
         "Evaluating and documenting the response to pain medication",
         "Controlled substances: handling, counting and documentation",
         "Safe storage and disposal of medication",
-        "Maintaining an intravenous site and recognising infiltration or phlebitis",
+        "Maintaining an intravenous site and recognizing infiltration or phlebitis",
         "Reinforcing medication teaching with the client",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Keep the client's medication list current at every transition, including herbal and over-the-counter products, because medication reconciliation is a core part of safe care transitions", // PNTP p16; POP 30.2
         "Calculate and monitor IV flow rates, and perform the calculations medication administration requires", // PNTP p16; CNS 11.2
         "Instil eye drops into the lower conjunctival sac, not onto the eye, press on the inner canthus, and wait between drops so the first is not washed out", // CNS 14.1
         "Give ear drops at room temperature to avoid dizziness, vertigo and nausea", // CNS 14.2
-        "Clean a nebuliser after each use and disinfect it at least once a week, and know a nebuliser helps clients who have difficulty coordinating their breathing with an inhaler", // CNS 14.4
+        "Clean a nebulizer after each use and disinfect it at least once a week, and know a nebulizer helps clients who have difficulty coordinating their breathing with an inhaler", // CNS 14.4
         "Choose an intramuscular site by age: deltoid, vastus lateralis or ventrogluteal for adults, and vastus lateralis for infants under 18 months", // CNS 12.6
         "Give subcutaneous injections in small volumes, usually 1 mL or less, well away from the umbilicus when using the abdomen", // CNS 12.5
         "Give sublingual medication under the tongue without water, chewing or swallowing", // CNS 12.1
@@ -1112,7 +1122,7 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Monitor a client with a PCA pump, epidural or nerve catheter for the opioid effects that matter most -- sedation, respiratory depression, nausea, constipation, urinary retention -- and report respiratory depression at once", // PNTP p16; PHARM 14.3
         "Monitor a client receiving a blood transfusion where state scope and facility policy allow, and if a reaction is suspected stop it immediately and notify the RN and provider", // PNTP p16; CNS 13.4
         "Teach a client on warfarin to keep vitamin K intake consistent, and know a higher INR means a greater bleeding risk", // PHARM 20.2
-        "Watch for hypoglycaemia when insulin peaks, and treat a conscious client with fast carbohydrate such as orange juice or hard candy", // PHARM 28.2
+        "Watch for hypoglycemia when insulin peaks, and treat a conscious client with fast carbohydrate such as orange juice or hard candy", // PHARM 28.2
         "Take an apical pulse before digoxin and withhold and report it below 60 beats per minute, and report signs of toxicity -- nausea, vomiting, visual changes, dysrhythmias", // PHARM 19.6; PHARM 17.6
         "Report signs of lithium toxicity and know that diuretics, NSAIDs and ACE inhibitors can raise lithium levels", // PHARM 13.3
         "Report extrapyramidal symptoms from antipsychotics -- tremor, rigidity, dystonia, restlessness, tardive dyskinesia", // PHARM 13.2
@@ -1130,7 +1140,7 @@ export const NCLEX_PN_TRACK: SeedTrack = {
       weight: 12,
       gate: "Given a client before or after a procedure, collect the data that would show a complication developing, and report it in time.",
       objectives: [
-        "Collecting vital signs and recognising changes and trends",
+        "Collecting vital signs and recognizing changes and trends",
         "Reporting an abnormal vital sign rather than acting alone on it",
         "Comparing laboratory values against normal values",
         "Monitoring laboratory results and reporting them",
@@ -1144,8 +1154,8 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Comparing current data against the client's baseline",
         "Monitoring output for change from baseline",
         "Focused data collection on a body system",
-        "Recognising abnormal neurologic status",
-        "Recognising peripheral edema and abnormal pulses",
+        "Recognizing abnormal neurologic status",
+        "Recognizing peripheral edema and abnormal pulses",
         "Signs of hypoglycemia and hyperglycemia",
         "Factors that delay wound healing",
         "Risk assessment for falls and mobility",
@@ -1159,7 +1169,7 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Check for urinary retention by bladder scan, ultrasound or palpation, and know that a post-void residual under 50 mL is expected, rising to about 100 mL in older adults", // PNTP p17; FN 26.4
         "Insert, maintain and remove a urinary catheter, and know that catheter-associated urinary tract infection is common, often preventable and raises length of stay and risk of death", // PNTP p17; CNS 19.4
-        "Perform venipuncture: a tourniquet tight enough to fill the veins but released as soon as blood flows, and specimens labelled at the bedside", // PNTP p17; CNS 10.4
+        "Perform venipuncture: a tourniquet tight enough to fill the veins but released as soon as blood flows, and specimens labeled at the bedside", // PNTP p17; CNS 10.4
         "Read a monitor strip at a basic level: count the QRS complexes in 6 seconds and multiply by ten for the rate, and report premature ventricular beats and any run of them", // PNTP p18; MS 12.2
         "Maintain a central venous catheter where state scope and facility policy allow, knowing its position is confirmed by chest x-ray, which also rules out a pneumothorax before use", // PNTP p17; MS 19.3
         "Assist with care before surgery, including confirming that consent is signed before any sedating medication", // PNTP p17; MS 25.2
@@ -1182,7 +1192,7 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Basic pathophysiology: injury and repair, immunity, cellular structure",
         "Connecting a chronic condition to the findings it produces",
         "Alterations in body systems and the care they require",
-        "Fluid and electrolyte imbalance: recognising and reporting it",
+        "Fluid and electrolyte imbalance: recognizing and reporting it",
         "Caring for the client with a fluid or electrolyte imbalance",
         "Monitoring the client with impaired oxygenation",
         "Oxygen therapy and airway care within scope",
@@ -1192,31 +1202,31 @@ export const NCLEX_PN_TRACK: SeedTrack = {
         "Monitoring wounds for signs of infection",
         "Managing drainage devices",
         "Ostomy care and reinforcing client teaching",
-        "Postoperative care and recognising complications",
+        "Postoperative care and recognizing complications",
         "Infectious disease: signs, symptoms and incubation periods",
         "Caring for the client receiving radiation or chemotherapy",
         "Maintaining the client's optimal temperature",
-        "Complications of pregnancy and delivery to recognise and report",
+        "Complications of pregnancy and delivery to recognize and report",
         "Medical emergencies and the PN's immediate response",
         "Identifying client data that must be reported immediately",
-        "Unexpected response to therapy, and recognising complications early",
+        "Unexpected response to therapy, and recognizing complications early",
         "Reporting a change in condition to the registered nurse or provider",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Care for a client on dialysis: know that an arteriovenous fistula for hemodialysis takes months to mature, so a temporary catheter is often used first, and that peritoneal dialysis leaves dialysate in the abdomen for hours", // PNTP p18; MS 20.7
-        "Recognise high potassium -- above 5.1 mEq/L -- by cramping, diarrhoea and peaked T waves, and report it as a risk for dysrhythmia", // FN 20.1
-        "Recognise low sodium by headache, confusion, nausea and seizures", // FN 20.1
-        "Recognise and report signs of rising intracranial pressure: headache, vomiting, falling level of consciousness, and Cushing's triad", // MS 17.1
-        "Recognise heart failure signs -- edema, weight gain, orthopnea, crackles -- and report respiratory distress at once", // MS 12.3
-        "Recognise the signs of fluid volume overload during IV therapy and stop and report", // CNS 13.3
+        "Recognize high potassium -- above 5.1 mEq/L -- by cramping, diarrhea and peaked T waves, and report it as a risk for dysrhythmia", // FN 20.1
+        "Recognize low sodium by headache, confusion, nausea and seizures", // FN 20.1
+        "Recognize and report signs of rising intracranial pressure: headache, vomiting, falling level of consciousness, and Cushing's triad", // MS 17.1
+        "Recognize heart failure signs -- edema, weight gain, orthopnea, crackles -- and report respiratory distress at once", // MS 12.3
+        "Recognize the signs of fluid volume overload during IV therapy and stop and report", // CNS 13.3
         "Report a fever, sore throat or mouth ulcers in a client with neutropenia, since these may be the only signs of infection", // MS 16.5
         "Perform neurovascular checks on a fractured limb and report signs of compartment syndrome or fat embolism", // MS 13.3
         "Tell DKA from HHS: DKA is acute with low mortality, while HHS develops over weeks with a much higher mortality rate", // MS 21.2
-        "Recognise thyroid storm as an emergency and hypothyroidism by weight gain, cold extremities, constipation and slowed thinking", // MS 21.3
-        "Recognise appendicitis by right lower quadrant or periumbilical pain, and report it because perforation can cause peritonitis and sepsis", // MS 19.5
-        "Recognise anaphylaxis -- flushing, hives, swelling, wheeze, low blood pressure -- after foods, stings, latex or drugs, and call for help at once", // MS 24.7
-        "Prioritise airway, breathing and circulation in a burn, and watch for infection, hypothermia and sepsis", // MS 14.2
-        "Recognise meningococcal meningitis -- stiff neck, fever, altered mental status -- as a medical emergency", // HP 16.13
-        "Recognise intermittent claudication, leg pain on walking, as a sign of peripheral arterial disease", // MS 12.7
+        "Recognize thyroid storm as an emergency and hypothyroidism by weight gain, cold extremities, constipation and slowed thinking", // MS 21.3
+        "Recognize appendicitis by right lower quadrant or periumbilical pain, and report it because perforation can cause peritonitis and sepsis", // MS 19.5
+        "Recognize anaphylaxis -- flushing, hives, swelling, wheeze, low blood pressure -- after foods, stings, latex or drugs, and call for help at once", // MS 24.7
+        "Prioritize airway, breathing and circulation in a burn, and watch for infection, hypothermia and sepsis", // MS 14.2
+        "Recognize meningococcal meningitis -- stiff neck, fever, altered mental status -- as a medical emergency", // HP 16.13
+        "Recognize intermittent claudication, leg pain on walking, as a sign of peripheral arterial disease", // MS 12.7
       ],
     },
   ],
@@ -1231,6 +1241,9 @@ export const NCLEX_PN_TRACK: SeedTrack = {
 // apportioning it, and the AACN Essentials define domains without weighting
 // them. So the weights on these four tracks are our own judgment about study
 // emphasis, and must not be presented to a learner as an exam blueprint.
+// REQ-220 (FAIL-1136): each credential says so (domainWeights:
+// "study_emphasis"), the seed leaves exam_domains unweighted, and readiness,
+// the progress screen and the prompts then treat the course as unweighted.
 // ---------------------------------------------------------------------------
 
 const CMS_PROVIDER = {
@@ -1275,6 +1288,7 @@ export const CNA_TRACK: SeedTrack = {
   disclaimerKey: NURSING_DISCLAIMER_KEY,
   disclaimerVersion: 1,
   credential: {
+    domainWeights: "study_emphasis", // REQ-220: see the note on unit weights above
     ...CMS_PROVIDER,
     credentialSlug: "certified-nursing-assistant",
     credentialName: "Certified Nursing Assistant (Nurse Aide)",
@@ -1297,6 +1311,22 @@ export const CNA_TRACK: SeedTrack = {
       title: "Before resident contact",
       rangeLabel: "At least 16 hours, federally required first",
       weight: 18,
+      // REQ-220 (FAIL-1141): the lesson writer and fact-checker get this
+      // value, so a lesson on "the Heimlich maneuver" teaches the same
+      // sequence as the CNA choking lab (seed/labs/nursing-cna.ts), not the
+      // older abdominal-thrusts-only rule. Value as recorded in
+      // seed/labs/ems-sources.ts (AHA_2025_ADULT_BLS, read on cpr.heart.org).
+      sources: [
+        {
+          title: "AHA 2025 Guidelines for CPR and ECC, Part 7: Adult Basic Life Support (Circulation 2025;152(suppl 2):S448-S478)",
+          url: "https://doi.org/10.1161/CIR.0000000000001369",
+          kind: "clinical_guideline",
+          checkedAt: "2026-11-08",
+          keyValues: [
+            "severe foreign-body airway obstruction in a responsive adult: repeated cycles of 5 back blows, then 5 abdominal thrusts, until the object comes out or the person becomes unresponsive",
+          ],
+        },
+      ],
       gate: "Demonstrate the five things federal law says you must know before you are allowed near a resident at all.",
       objectives: [
         "Why this block exists: federal law bars resident contact until it is complete",
@@ -1306,7 +1336,7 @@ export const CNA_TRACK: SeedTrack = {
         "Standard precautions and personal protective equipment",
         "Safety and emergency procedures",
         "The Heimlich maneuver, named explicitly in the regulation",
-        "Recognising an emergency and summoning help correctly",
+        "Recognizing an emergency and summoning help correctly",
         "Promoting residents' independence rather than doing for them",
         "Respecting residents' rights in everyday interaction",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
@@ -1326,14 +1356,14 @@ export const CNA_TRACK: SeedTrack = {
       title: "Basic nursing skills",
       rangeLabel: "42 CFR 483.152(b)(2)",
       weight: 18,
-      gate: "Take an accurate set of measurements, notice when something has changed, and report it to the nurse without editorialising.",
+      gate: "Take an accurate set of measurements, notice when something has changed, and report it to the nurse without editorializing.",
       objectives: [
         "Taking and recording temperature, pulse, respiration and blood pressure",
-        "Recognising a measurement that falls outside the expected range",
+        "Recognizing a measurement that falls outside the expected range",
         "Measuring and recording height and weight",
         "Caring for the resident's environment: bed, unit, call light within reach",
         "Bed making, occupied and unoccupied",
-        "Recognising abnormal changes in body functioning",
+        "Recognizing abnormal changes in body functioning",
         "Reporting changes to the nurse: what, when and in what words",
         "Observation versus interpretation, and why the aide reports the first",
         "Caring for residents when death is imminent",
@@ -1343,7 +1373,7 @@ export const CNA_TRACK: SeedTrack = {
         "Avoid a false oral temperature: wait if the resident has just had a hot or cold drink, chewed gum or smoked, and report a reading that does not fit how the resident looks", // FN 7.2
         "Choose a blood pressure cuff that fits: one that is too large reads falsely low and one that is too small reads falsely high, and the bladder should sit over the brachial artery", // FN 7.2
         "Measure and record intake and output accurately, and tell the nurse when a resident drinks or passes much less than usual", // FN 26.4; CNS 19.2
-        "Recognise the changes that can signal death is near -- cool hands and feet, mottled or pale skin, irregular or noisy breathing with pauses, less eating and drinking -- and report them to the nurse", // FN 36.2
+        "Recognize the changes that can signal death is near -- cool hands and feet, mottled or pale skin, irregular or noisy breathing with pauses, less eating and drinking -- and report them to the nurse", // FN 36.2
         "Keep talking to and touching a dying resident gently, because a person near death may still hear and feel even when they cannot respond", // FN 36.2
         "Help the nurse with care of the body after death, as the nurse and facility direct: handle the body gently, preserve privacy, replace soiled linen, clean soiled areas and tidy the room so the family can say goodbye", // FN 36.4
         "Respect the resident's and family's cultural and religious wishes about care at and after death, and pass any request you cannot meet to the nurse", // FN 36.4
@@ -1365,16 +1395,16 @@ export const CNA_TRACK: SeedTrack = {
         "Incontinence care and protecting skin",
         "Assisting with eating and hydration",
         "Proper feeding techniques and reducing aspiration risk",
-        "Recognising and reporting poor intake",
-        "Skin care and recognising early pressure injury",
+        "Recognizing and reporting poor intake",
+        "Skin care and recognizing early pressure injury",
         "Transfers, positioning and turning",
         "Using a gait belt and a mechanical lift safely",
         "Protecting the resident's privacy throughout personal care",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Keep the resident covered during a bath, exposing only the area being washed, with the door or curtain closed", // FN 25.3
-        "Give perineal care regularly and after incontinence, because the warm, moist perineal area breeds bacteria that cause urinary infection, odour and skin breakdown", // CNS 7.1
+        "Give perineal care regularly and after incontinence, because the warm, moist perineal area breeds bacteria that cause urinary infection, odor and skin breakdown", // CNS 7.1
         "Give mouth care to a resident who cannot do it alone, more often for a resident who takes nothing by mouth or breathes through the mouth, and raise the head of the bed to lower the risk of aspiration", // CNS 7.1; CNS 7.3
-        "Handle dentures as the resident's personal property: clean them daily with a denture brush and store them in a labelled, covered cup when they are not being worn", // CNS 7.1; CNS 7.3
+        "Handle dentures as the resident's personal property: clean them daily with a denture brush and store them in a labeled, covered cup when they are not being worn", // CNS 7.1; CNS 7.3
         "Keep nails clean and trimmed with clean tools, which prevents infection and scratching injuries, and follow facility policy on which residents' nails you may trim", // CNS 7.1
         "Use a gait belt for an unsteady resident unless it is contraindicated, for example after recent chest, back or abdominal surgery, with a gastrostomy (G) tube, hernia or abdominal aneurysm, or severe heart or breathing problems", // CNS 9.3
         "Use a mechanical lift only as trained: lock the wheels, use the correct sling, and work with a second caregiver as most facilities and manufacturers require", // CNS 9.3
@@ -1395,11 +1425,11 @@ export const CNA_TRACK: SeedTrack = {
         "Allowing residents to make their own choices",
         "Behavior that maintains and enhances the resident's dignity",
         "Using the resident's family as a source of emotional support",
-        "Recognising depression and withdrawal, and reporting it",
+        "Recognizing depression and withdrawal, and reporting it",
         "Cultural and religious practices that shape daily care",
         "Sexuality and the older adult resident",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
-        "Know that depression in older adults is common, often preventable, and easily mistaken for normal ageing, especially after a loss of function or independence, and report the changes you see", // PMH 24.2
+        "Know that depression in older adults is common, often preventable, and easily mistaken for normal aging, especially after a loss of function or independence, and report the changes you see", // PMH 24.2
         "Support a resident's right to choose their own schedule, including when they sleep and wake, and the activities they take part in", // CFR 483.10
         "Encourage residents to join activities that match their interests, alone or in groups, because activities support physical, mental and social wellbeing", // CFR 483.24
         "Give trauma-informed care: learn and avoid what may trigger distress in a resident who has survived trauma, and respect their cultural background and preferences", // CFR 483.25
@@ -1427,7 +1457,7 @@ export const CNA_TRACK: SeedTrack = {
         "Speak to a resident with dementia calmly, using simple questions, and keep the daily routine predictable", // PMH 14.3
         "Go along with a confused resident's sense of time and place when reorienting them would only cause distress", // PMH 14.3
         "Watch for late-afternoon and evening confusion and agitation (sundowning), and help by keeping the resident active and exposed to daylight during the day", // FN 41.3
-        "Recognise that dementia can bring agitation, anxiety, withdrawal and changes in behaviour and language, and report new or worsening changes to the nurse", // PMH 14.3
+        "Recognize that dementia can bring agitation, anxiety, withdrawal and changes in behavior and language, and report new or worsening changes to the nurse", // PMH 14.3
       ],
     },
     {
@@ -1443,7 +1473,7 @@ export const CNA_TRACK: SeedTrack = {
         "Bowel and bladder training",
         "Care and use of prosthetic and orthotic devices",
         "Ambulation with a walker, cane or crutches",
-        "Recognising when a device fits poorly or is unsafe",
+        "Recognizing when a device fits poorly or is unsafe",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Know the goal set by federal rules: a resident's ability to bathe, dress, groom, move, use the toilet, eat and communicate should not decline unless the decline could not be avoided", // CFR 483.24
         "Prevent loss of range of motion in residents who have full movement, and help residents with limited movement keep or regain it", // CFR 483.25
@@ -1467,7 +1497,7 @@ export const CNA_TRACK: SeedTrack = {
         "Helping residents take part in resident and family groups and activities",
         "Care and security of residents' personal possessions",
         "Freedom from abuse, mistreatment and neglect",
-        "Recognising abuse and neglect, including neglect by omission",
+        "Recognizing abuse and neglect, including neglect by omission",
         "Reporting a suspected violation to the right facility staff, promptly",
         "Avoiding the need for restraints in line with current professional standards",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
@@ -1508,6 +1538,7 @@ export const LPN_TRACK: SeedTrack = {
   disclaimerKey: NURSING_DISCLAIMER_KEY,
   disclaimerVersion: 1,
   credential: {
+    domainWeights: "study_emphasis", // REQ-220: see the note on unit weights above
     ...NCSBN_PROVIDER,
     subcategorySlug: "nursing-licensure",
     credentialSlug: "practical-nurse-licence",
@@ -1528,7 +1559,7 @@ export const LPN_TRACK: SeedTrack = {
     {
       title: "Foundations of practical nursing",
       weight: 16,
-      gate: "Say what the practical nurse licence authorises, and route a situation correctly when it sits outside that line.",
+      gate: "Say what the practical nurse license authorizes, and route a situation correctly when it sits outside that line.",
       objectives: [
         "The practical nurse role within the healthcare team",
         "Scope of practice, and why it is set by your state's nurse practice act",
@@ -1548,7 +1579,7 @@ export const LPN_TRACK: SeedTrack = {
         "Know how delegation works for the PN: the delegating nurse stays accountable, nursing judgment cannot be delegated, and state law decides whether an LPN/VN may delegate to assistive personnel", // DEL
         "Tell assignment from delegation: assignment covers routine care within someone's scope or basic training, delegation hands over a specific task beyond their usual role after competence is checked", // DEL
         "Accept a delegated task only when it is within your scope and competence, ask clarifying questions, and report changes in the client's condition to the delegating nurse", // DEL
-        "Contribute to each step of clinical judgment -- recognise and analyse cues, prioritise hypotheses, generate solutions, take action, evaluate outcomes -- and report what needs RN judgment", // PNTP p10; MS 4.2
+        "Contribute to each step of clinical judgment -- recognize and analyze cues, prioritize hypotheses, generate solutions, take action, evaluate outcomes -- and report what needs RN judgment", // PNTP p10; MS 4.2
         "Know the nurse's part in informed consent: witness the signature, confirm the signer is of age, competent and acting freely, and report when understanding is lacking", // FN 16.3
         "Name the ethical principles behind practice -- autonomy, beneficence, nonmaleficence, justice, fidelity and veracity", // FN 16.2
         "Know that negligence is a breach of the duty of care that harms the client, and that treating without consent may be battery", // FN 16.3
@@ -1588,8 +1619,8 @@ export const LPN_TRACK: SeedTrack = {
         "Know the normal arterial pH range of 7.35 to 7.45, and that below it is acidosis and above it alkalosis", // FN 20.2
         "Distinguish the central from the peripheral nervous system and what each does", // FN 23.1
         "Tell acute inflammation, a helpful short-term response, from chronic inflammation, which can deplete the body over weeks or years", // MS 8.6
-        "Distinguish innate immunity, the always-on first line of defence including skin and certain white cells, from adaptive immunity that targets a specific pathogen", // PHARM 6.1
-        "Explain how osteoporosis develops when bone resorption outpaces remodelling, and why osteopenia comes first", // MS 13.1
+        "Distinguish innate immunity, the always-on first line of defense including skin and certain white cells, from adaptive immunity that targets a specific pathogen", // PHARM 6.1
+        "Explain how osteoporosis develops when bone resorption outpaces remodeling, and why osteopenia comes first", // MS 13.1
         "Know the forms of dementia (major neurocognitive disorder) -- Alzheimer disease, Lewy body and vascular dementia", // MS 17.4
         "Distinguish type 1 from type 2 diabetes, with type 2 making up about 95 percent of cases and beginning with insulin resistance", // MS 21.2
       ],
@@ -1634,7 +1665,7 @@ export const LPN_TRACK: SeedTrack = {
         "Use a gait belt correctly and know when it is contraindicated, and work with a second caregiver when using a mechanical lift", // CNS 9.3
         "Keep a sterile field sterile: items above the waist and in view, never reaching across", // FN 10.3
         "Use enhanced barrier precautions in long-term care for residents with MDROs, wounds or indwelling devices", // CDC-EBP
-        "Prevent sensory overload -- noise, crowding, bright lights, strong smells -- and recognise irritability, agitation and anxiety as its signs", // FN 29.2
+        "Prevent sensory overload -- noise, crowding, bright lights, strong smells -- and recognize irritability, agitation and anxiety as its signs", // FN 29.2
       ],
     },
     {
@@ -1654,7 +1685,7 @@ export const LPN_TRACK: SeedTrack = {
         "Insulin administration and sliding scale orders",
         "Routes outside the PN scope in most jurisdictions",
         "Controlled substances: handling, counting and documentation",
-        "Recognising side effects and adverse reactions",
+        "Recognizing side effects and adverse reactions",
         "Allergic and anaphylactic reactions",
         "Drug interactions, including food and herbal products",
         "High-alert medications and the extra checks they need",
@@ -1666,8 +1697,8 @@ export const LPN_TRACK: SeedTrack = {
         "Choose IM sites by age, and use the vastus lateralis for infants under 18 months", // CNS 12.6
         "Give subcutaneous injections in small volumes, usually 1 mL or less, well away from the umbilicus when using the abdomen", // CNS 12.5
         "Give sublingual and buccal medications correctly, without water, chewing or swallowing", // CNS 12.1
-        "Measure paediatric doses with the smallest syringe that holds the dose, after a careful mg/kg calculation", // PHARM 1.4
-        "Know insulin onset, peak and duration, and watch most closely for hypoglycaemia at peak", // PHARM 28.2
+        "Measure pediatric doses with the smallest syringe that holds the dose, after a careful mg/kg calculation", // PHARM 1.4
+        "Know insulin onset, peak and duration, and watch most closely for hypoglycemia at peak", // PHARM 28.2
         "Take an apical pulse before digoxin and withhold and report it below 60 beats per minute", // PHARM 17.6; PHARM 19.6
         "Teach a client on warfarin to keep vitamin K intake consistent, and know a higher INR means higher bleeding risk", // PHARM 20.2
         "Teach clients on corticosteroids not to stop them suddenly because of the risk of adrenal insufficiency", // PHARM 25.2
@@ -1698,28 +1729,28 @@ export const LPN_TRACK: SeedTrack = {
         "Cancer care, chemotherapy and radiation side effects",
         "Renal failure and dialysis support",
         "Gastrointestinal disorders and ostomy patients",
-        "Infection, sepsis and recognising early deterioration",
+        "Infection, sepsis and recognizing early deterioration",
         "Care of the older adult and polypharmacy",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
-        "Recognise heart failure: edema graded 0 to 4+, weight gain, orthopnea and crackles, and report respiratory distress at once", // MS 12.3
-        "Recognise hyperkalaemia by cramping, diarrhoea and peaked T waves, and hyponatraemia by headache, confusion and seizures", // FN 20.1
-        "Recognise stroke as an emergency: find out when the client was last known well, because treatment is time-sensitive", // MS 15.2; MS 15.3
+        "Recognize heart failure: edema graded 0 to 4+, weight gain, orthopnea and crackles, and report respiratory distress at once", // MS 12.3
+        "Recognize hyperkalemia by cramping, diarrhea and peaked T waves, and hyponatremia by headache, confusion and seizures", // FN 20.1
+        "Recognize stroke as an emergency: find out when the client was last known well, because treatment is time-sensitive", // MS 15.2; MS 15.3
         "Know that hemorrhagic stroke is most often caused by hypertension and that anticoagulants raise the risk", // MS 15.3
-        "Recognise rising intracranial pressure: headache, vomiting, falling level of consciousness and Cushing's triad", // MS 17.1
+        "Recognize rising intracranial pressure: headache, vomiting, falling level of consciousness and Cushing's triad", // MS 17.1
         "Care for an ostomy, knowing that ileostomy and ascending-colon output is watery while descending-colon output is more formed", // MS 19.7
-        "Prioritise breathing in pneumonia: monitor vital signs and oxygen saturation, give oxygen as ordered, and report distress", // MS 11.7
+        "Prioritize breathing in pneumonia: monitor vital signs and oxygen saturation, give oxygen as ordered, and report distress", // MS 11.7
         "Protect a client with neutropenia, in whom fever, sore throat or mouth ulcers may be the only signs of infection", // MS 16.5
         "Do neurovascular checks after a fracture and report signs of compartment syndrome or fat embolism", // MS 13.3
         "Watch the postoperative client for atelectasis, DVT, ileus and urinary retention, and encourage incentive spirometry", // MS 27.3
-        "Recognise the complications of cirrhosis -- varices, ascites and hepatic encephalopathy", // MS 19.6
-        "Recognise appendicitis by right lower quadrant or periumbilical pain and report it, since perforation can lead to peritonitis and sepsis", // MS 19.5
-        "Recognise thyroid storm -- fever, tachycardia, agitation, confusion, vomiting -- as a medical emergency to report at once", // MS 21.3
+        "Recognize the complications of cirrhosis -- varices, ascites and hepatic encephalopathy", // MS 19.6
+        "Recognize appendicitis by right lower quadrant or periumbilical pain and report it, since perforation can lead to peritonitis and sepsis", // MS 19.5
+        "Recognize thyroid storm -- fever, tachycardia, agitation, confusion, vomiting -- as a medical emergency to report at once", // MS 21.3
       ],
     },
     {
       title: "Maternal, newborn, pediatric and mental health nursing",
       weight: 10,
-      gate: "Adjust care to the patient in front of you -- a labouring mother, a toddler, an adolescent in crisis -- rather than applying the adult default.",
+      gate: "Adjust care to the patient in front of you -- a laboring mother, a toddler, an adolescent in crisis -- rather than applying the adult default.",
       objectives: [
         "Antepartum care and common discomforts of pregnancy",
         "Danger signs in pregnancy that must be reported",
@@ -1728,7 +1759,7 @@ export const LPN_TRACK: SeedTrack = {
         "Newborn care, feeding and normal findings",
         "Growth and development milestones by age",
         "Pediatric vital sign and dosage differences",
-        "Common childhood illnesses and immunisation schedules",
+        "Common childhood illnesses and immunization schedules",
         "Communicating with a child and with the parent",
         "Child abuse recognition and mandatory reporting",
         "Mental health conditions commonly encountered",
@@ -1740,13 +1771,13 @@ export const LPN_TRACK: SeedTrack = {
         "Report decreased fetal movement, which can reflect low maternal blood sugar or poor placental perfusion, and vaginal bleeding in pregnancy", // MN 11.4
         "Report blood pressure of 140/90 mm Hg or higher in pregnancy, and know preeclampsia can progress to HELLP syndrome and eclampsia", // MN 11.3; MN 12.2
         "Check the postpartum fundus, bladder and lochia, and report a temperature above 100.4 F (38 C)", // MN 20.1; MN 20.3
-        "Recognise postpartum haemorrhage as blood loss of 1,000 mL or more within 24 hours, and report heavy bleeding at once", // MN 21.2
+        "Recognize postpartum hemorrhage as blood loss of 1,000 mL or more within 24 hours, and report heavy bleeding at once", // MN 21.2
         "Know the Apgar score is taken at 1 and 5 minutes and repeated at 10 minutes when the 5-minute score is below 7", // MN 22.1
-        "Recognise suicide risk factors -- a plan, access to means, previous attempts -- and report any suicidal statement immediately", // PMH 16.3
-        "Recognise mania and psychosis, and the extrapyramidal side effects of first-generation antipsychotics", // PMH 16.4; PMH 15.1; PHARM 13.2
+        "Recognize suicide risk factors -- a plan, access to means, previous attempts -- and report any suicidal statement immediately", // PMH 16.3
+        "Recognize mania and psychosis, and the extrapyramidal side effects of first-generation antipsychotics", // PMH 16.4; PMH 15.1; PHARM 13.2
         "Use the CIWA-Ar scale for alcohol withdrawal, and know that alcohol with opioids or sedatives raises overdose risk", // PMH 19.2
-        "Give trauma-informed care that builds safety and trust and avoids re-traumatising the client", // PMH 6.5
-        "Reinforce newborn care teaching, including safe sleep, car seats and the warning signs such as a breathing pause over 10 seconds with blue colour", // MN 24.3
+        "Give trauma-informed care that builds safety and trust and avoids re-traumatizing the client", // PMH 6.5
+        "Reinforce newborn care teaching, including safe sleep, car seats and the warning signs such as a breathing pause of 20 seconds or more, or a shorter pause with blue color or paleness", // MN 24.3
       ],
     },
   ],
@@ -1774,6 +1805,7 @@ export const ADN_TRACK: SeedTrack = {
   disclaimerKey: NURSING_DISCLAIMER_KEY,
   disclaimerVersion: 1,
   credential: {
+    domainWeights: "study_emphasis", // REQ-220: see the note on unit weights above
     ...NCSBN_PROVIDER,
     subcategorySlug: "nursing-degrees",
     credentialSlug: "associate-degree-nursing",
@@ -1787,7 +1819,7 @@ export const ADN_TRACK: SeedTrack = {
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
       "Program prerequisites usually include anatomy and physiology, microbiology and college-level mathematics. Licensure requires graduating an approved program and passing NCLEX-RN.",
-    questionFormat: "Program coursework, clinical evaluation and standardised progression testing",
+    questionFormat: "Program coursework, clinical evaluation and standardized progression testing",
     passingScorePolicy: "Set by the program; licensure is by NCLEX-RN",
   },
   units: [
@@ -1801,9 +1833,9 @@ export const ADN_TRACK: SeedTrack = {
         "The nursing process: assessment, diagnosis, planning, implementation, evaluation",
         "Nursing assessment as an RN act, distinct from data collection",
         "Formulating a nursing diagnosis from assessment findings",
-        "Setting measurable, client-centred outcomes",
+        "Setting measurable, client-centered outcomes",
         "Clinical judgment and the steps that make it a process rather than instinct",
-        "Prioritisation frameworks and their limits",
+        "Prioritization frameworks and their limits",
         "Delegation and supervision: the five rights applied",
         "Legal and ethical accountability, including negligence and malpractice",
         "Informed consent and the nurse's distinct role in it",
@@ -1818,10 +1850,10 @@ export const ADN_TRACK: SeedTrack = {
         "Frame a clinical question with PICOT and place the answer in the hierarchy of evidence, with recent high-quality systematic reviews at the top", // FN 15.1
         "Apply the five rights of delegation, keeping in mind that the RN retains accountability and cannot delegate nursing judgment or an unstable client", // DEL; FN 15.4
         "Know the RN's part in informed consent and the consequences of proceeding without it: liability for the nurse and possible battery", // FN 16.3
-        "Use the ethical principles -- autonomy, beneficence, nonmaleficence, justice, fidelity, veracity -- to analyse a dilemma", // FN 16.2
+        "Use the ethical principles -- autonomy, beneficence, nonmaleficence, justice, fidelity, veracity -- to analyze a dilemma", // FN 16.2
         "Know that a sentinel event, such as a fall that leads to death or permanent disability, triggers root cause analysis aimed at system causes", // FN 15.3
         "Move up the chain of command when a provider insists on an order the nurse believes is unsafe", // MS 5.4; FN 16.3
-        "Run an organised, thorough admission, because it sets the course of care and an admission can turn emergent if the client becomes unstable", // FN 8.1
+        "Run an organized, thorough admission, because it sets the course of care and an admission can turn emergent if the client becomes unstable", // FN 8.1
         "Give a transfer report focused on what the receiving team needs, since each transfer point risks losing crucial information", // FN 8.2
       ],
     },
@@ -1859,7 +1891,7 @@ export const ADN_TRACK: SeedTrack = {
         "Know that the history for a young child comes mainly from the caregiver, and offer adolescents private time to discuss their health", // HP 14.5
         "Use the comprehensive geriatric assessment areas -- function, cognition, mood, falls, pain, polypharmacy, nutrition, senses -- for older adults", // FN 41.4
         "Calculate ventricular rate from a 6-second strip by counting QRS complexes and multiplying by ten", // MS 12.2
-        "Recognise premature ventricular contractions and know that more than three in a row is a run of ventricular tachycardia", // MS 12.2
+        "Recognize premature ventricular contractions and know that three or more in a row is a run of ventricular tachycardia", // MS 12.2
       ],
     },
     {
@@ -1870,7 +1902,7 @@ export const ADN_TRACK: SeedTrack = {
         "Hypertension, heart failure and cardiomyopathy",
         "Coronary artery disease, angina and myocardial infarction",
         "Dysrhythmia recognition and nursing response",
-        "Shock: recognising type, stage and urgency",
+        "Shock: recognizing type, stage and urgency",
         "Peripheral arterial and venous disease",
         "COPD, asthma and respiratory failure",
         "Pneumonia, tuberculosis and pulmonary embolism",
@@ -1886,19 +1918,19 @@ export const ADN_TRACK: SeedTrack = {
         "Sepsis recognition and the first hour of response",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Distinguish type 1 from type 2 diabetes: type 2 makes up about 95 percent of cases and begins with insulin resistance linked to obesity and inactivity", // MS 21.2
-        "Know the insulin profile -- onset, peak, duration -- and treat hypoglycaemia in a conscious client with a fast-acting carbohydrate", // PHARM 28.2
-        "Recognise heart failure findings -- graded edema, weight gain, orthopnea, crackles -- and pulmonary edema as an emergency", // MS 12.3
+        "Know the insulin profile -- onset, peak, duration -- and treat hypoglycemia in a conscious client with a fast-acting carbohydrate", // PHARM 28.2
+        "Recognize heart failure findings -- graded edema, weight gain, orthopnea, crackles -- and pulmonary edema as an emergency", // MS 12.3
         "Monitor digoxin: take an apical pulse and withhold below 60, and watch for toxicity, which low potassium and magnesium make more likely", // PHARM 17.6; PHARM 19.6
-        "Recognise ACE inhibitor adverse effects, including angioedema and a dry cough", // PHARM 18.2
+        "Recognize ACE inhibitor adverse effects, including angioedema and a dry cough", // PHARM 18.2
         "Teach warfarin safety: consistent vitamin K intake and INR monitoring, with a higher INR meaning higher bleeding risk", // PHARM 20.2
-        "Prioritise respiratory distress in pneumonia and know COPD is the biggest risk factor for hospitalisation with pneumonia", // MS 11.7
+        "Prioritize respiratory distress in pneumonia and know COPD is the biggest risk factor for hospitalization with pneumonia", // MS 11.7
         "Use albuterol as the rescue inhaler and salmeterol for maintenance only, and teach clients not to stop corticosteroids abruptly", // PHARM 25.1; PHARM 25.2
         "Before surgery, confirm consent is signed before sedating drugs; after surgery, prevent atelectasis with incentive spirometry and watch for DVT, ileus and urinary retention", // MS 25.2; MS 27.3
         "Stage pressure injuries correctly, including stage 1 on darkly pigmented skin, unstageable wounds and device-related injuries", // MS 28.3
-        "Recognise hyperkalaemia above 5.1 mEq/L with peaked T waves, and know its common causes: kidney failure, acidosis, potassium-sparing diuretics and supplements", // FN 20.1
+        "Recognize hyperkalemia above 5.1 mEq/L with peaked T waves, and know its common causes: kidney failure, acidosis, potassium-sparing diuretics and supplements", // FN 20.1
         "Correct sodium at the ordered pace, since a rapid change can cause cerebral edema or brain damage", // MS 10.3; MS 21.4
         "Tell DKA from HHS: DKA is acute with low mortality, while HHS develops over weeks and has a much higher mortality rate", // MS 21.2
-        "Treat thyroid storm as an emergency, and recognise hypothyroidism by low metabolic rate, weight gain, cold extremities and constipation", // MS 21.3
+        "Treat thyroid storm as an emergency, and recognize hypothyroidism by low metabolic rate, weight gain, cold extremities and constipation", // MS 21.3
         "Know Addison's disease reduces cortisol and aldosterone, and that low cortisol can cause low blood glucose", // MS 21.5
       ],
     },
@@ -1926,18 +1958,18 @@ export const ADN_TRACK: SeedTrack = {
         "Palliative and end-of-life care",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Find the last-known-well time for suspected stroke because tPA is time-sensitive, and score severity with the NIH Stroke Scale", // MS 15.2
-        "Distinguish intracerebral from subarachnoid haemorrhage and know hypertension and anticoagulants raise the risk of intracerebral bleeding", // MS 15.3
-        "Recognise Cushing's triad and the other signs of increased intracranial pressure", // MS 17.1
-        "Classify neutropenia by severity, with severe neutropenia below 500 cells per microlitre, and protect the client from infection", // MS 16.5
-        "Recognise tumour lysis syndrome and its electrolyte pattern -- high potassium, phosphate and uric acid with low calcium", // MS 31.3
+        "Distinguish intracerebral from subarachnoid hemorrhage and know hypertension and anticoagulants raise the risk of intracerebral bleeding", // MS 15.3
+        "Recognize Cushing's triad and the other signs of increased intracranial pressure", // MS 17.1
+        "Classify neutropenia by severity, with severe neutropenia below 500 cells per microliter, and protect the client from infection", // MS 16.5
+        "Recognize tumor lysis syndrome and its electrolyte pattern -- high potassium, phosphate and uric acid with low calcium", // MS 31.3
         "Tell transfusion reactions apart and stop the transfusion and notify the provider at once when a reaction is suspected", // MS 16.7; CNS 13.4
-        "Recognise cirrhosis complications -- portal hypertension, varices, ascites, hepatic encephalopathy -- and the role of paracentesis", // MS 19.6
-        "Prioritise airway, breathing, then circulation and fluid resuscitation in burns, and watch for infection, hypothermia and sepsis", // MS 14.2
-        "Perform neurovascular checks after a fracture and recognise compartment syndrome and fat embolism", // MS 13.3
+        "Recognize cirrhosis complications -- portal hypertension, varices, ascites, hepatic encephalopathy -- and the role of paracentesis", // MS 19.6
+        "Prioritize airway, breathing, then circulation and fluid resuscitation in burns, and watch for infection, hypothermia and sepsis", // MS 14.2
+        "Perform neurovascular checks after a fracture and recognize compartment syndrome and fat embolism", // MS 13.3
         "Distinguish palliative care, which aims to relieve symptoms, pain and stress rather than to cure, from hospice care for those expected to live fewer than six months", // MS 32.1; MS 32.2
         "Support the dying client and family through hospice's interdisciplinary team, including the chaplain's role before and after death", // MS 32.2
-        "Recognise appendicitis with a positive Rovsing sign, and peritonitis after perforation as a route to sepsis", // MS 19.5
-        "Recognise Guillain-Barre syndrome, an autoimmune attack on peripheral nerves that can cause temporary paralysis", // MS 17.2
+        "Recognize appendicitis with a positive Rovsing sign, and peritonitis after perforation as a route to sepsis", // MS 19.5
+        "Recognize Guillain-Barre syndrome, an autoimmune attack on peripheral nerves that can cause temporary paralysis", // MS 17.2
       ],
     },
     {
@@ -1961,21 +1993,21 @@ export const ADN_TRACK: SeedTrack = {
         "Congenital and acquired cardiac conditions in children",
         "Pediatric respiratory illness: bronchiolitis, croup, epiglottitis",
         "Childhood cancers and chronic illness support",
-        "Immunisation schedules and parental questions about them",
+        "Immunization schedules and parental questions about them",
         "Child abuse recognition and mandatory reporting",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Estimate the due date with Naegele's rule, and know the routine second-trimester screens, including gestational diabetes testing at 24 to 28 weeks", // MN 11.1; MN 11.3
         "Interpret the fetal heart rate baseline -- 110 to 160 bpm with moderate variability -- and respond to an abnormal tracing by repositioning or stopping oxytocin", // MN 16.4
-        "Recognise postpartum haemorrhage at 1,000 mL within 24 hours, measure blood loss quantitatively, and assess fundal tone and bladder", // MN 21.2; MN 20.3
+        "Recognize postpartum hemorrhage at 1,000 mL within 24 hours, measure blood loss quantitatively, and assess fundal tone and bladder", // MN 21.2; MN 20.3
         "Score the Apgar at 1 and 5 minutes, repeating at 10 minutes when the 5-minute score is below 7", // MN 22.1
-        "Recognise bronchiolitis, usually from RSV, as most severe in infants, with priorities of symptom relief, preventing complications and controlling spread", // HP 15.10
-        "Recognise croup, usually from parainfluenza virus in children aged 6 months to 3 years, with airway swelling often worse at night", // HP 15.8
+        "Recognize bronchiolitis, usually from RSV, as most severe in infants, with priorities of symptom relief, preventing complications and controlling spread", // HP 15.10
+        "Recognize croup, usually from parainfluenza virus in children aged 6 months to 3 years, with airway swelling often worse at night", // HP 15.8
         "Treat epiglottitis as an airway emergency: a child's floppy epiglottis can block the airway quickly, and the Hib vaccine has made it less common", // HP 15.9
         "Tell a simple febrile seizure, a single seizure under 15 minutes, from a complex one, which lasts longer or recurs within 24 hours", // HP 16.10
-        "Recognise meningococcal meningitis as a medical emergency, with stiff neck, fever and altered mental status as its classic signs", // HP 16.13
-        "Spot subtle signs of a congenital heart defect in an infant: feeding difficulty, sweating or bluish colour with feeds, fast breathing at rest and poor weight gain", // HP 17.5
-        "Distinguish acute diarrhoea in children, under two weeks and usually infectious, from chronic diarrhoea, and watch for dehydration", // HP 16.9
-        "Adapt the paediatric exam: let infants and toddlers with stranger anxiety sit with a caregiver, and try a different approach with an uncooperative older child", // HP 14.5
+        "Recognize meningococcal meningitis as a medical emergency, with stiff neck, fever and altered mental status as its classic signs", // HP 16.13
+        "Spot subtle signs of a congenital heart defect in an infant: feeding difficulty, sweating or bluish color with feeds, fast breathing at rest and poor weight gain", // HP 17.5
+        "Distinguish acute diarrhea in children, under two weeks and usually infectious, from chronic diarrhea, and watch for dehydration", // HP 16.9
+        "Adapt the pediatric exam: let infants and toddlers with stranger anxiety sit with a caregiver, and try a different approach with an uncooperative older child", // HP 14.5
       ],
     },
     {
@@ -2005,16 +2037,16 @@ export const ADN_TRACK: SeedTrack = {
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Assess suicide lethality: a detailed plan, access to means, prior attempts, current mental state and social support", // PMH 16.3
         "Monitor lithium's narrow safety margin and the drugs that raise its level, and watch for lithium-induced hypothyroidism", // PHARM 13.3
-        "Recognise extrapyramidal symptoms and neuroleptic malignant syndrome with antipsychotics, and know clozapine needs neutrophil monitoring under a REMS programme", // PHARM 13.2
-        "Use the CIWA-Ar scale for alcohol withdrawal and recognise alcohol overdose", // PMH 19.2
+        "Recognize extrapyramidal symptoms and neuroleptic malignant syndrome with antipsychotics, and know clozapine needs absolute neutrophil count monitoring as its labeling directs (the FDA REMS program ended in June 2025)", // PHARM 13.2
+        "Use the CIWA-Ar scale for alcohol withdrawal and recognize alcohol overdose", // PMH 19.2
         "Provide trauma-informed care grounded in safety, trust and collaboration", // PMH 6.5
         "Use the least restrictive measure for aggression and treat emergency medication orders as interim steps", // PMH 11.2
-        "Know the five levels of prevention and place immunisation in primary and screening in secondary prevention", // POP 2.5
+        "Know the five levels of prevention and place immunization in primary and screening in secondary prevention", // POP 2.5
         "Explain economic stability as a social determinant of health: steady income and access to housing, food, transport, child care and insurance", // POP 8.1
         "Support safe care transitions through accurate information transfer, client and family education and follow-up that prevents readmission", // POP 30.1
         "Use democratic, autocratic or laissez-faire leadership as the situation demands, and the PDSA cycle for quality improvement", // FN 18.1; FN 15.3
-        "Recognise intimate partner violence and know pregnancy raises the risk of physical abuse", // MN 9.2
-        "Recognise opioid use disorder, which can begin with legitimate pain treatment, and its social consequences", // PMH 19.4
+        "Recognize intimate partner violence and know pregnancy raises the risk of physical abuse", // MN 9.2
+        "Recognize opioid use disorder, which can begin with legitimate pain treatment, and its social consequences", // PMH 19.4
       ],
     },
   ],
@@ -2037,7 +2069,7 @@ export const BSN_TRACK: SeedTrack = {
   code: "BSNRN",
   title: "BSN Nursing Coach",
   description:
-    "Baccalaureate nursing organised the way the discipline organises itself: the ten Domains of the AACN Essentials, from knowledge for nursing practice through systems, informatics and professional formation.",
+    "Baccalaureate nursing organized the way the discipline organizes itself: the ten Domains of the AACN Essentials, from knowledge for nursing practice through systems, informatics and professional formation.",
   trackType: "graduate",
   subcategorySlug: "nursing-degrees",
   freshnessModel: "academic_foundational",
@@ -2048,6 +2080,7 @@ export const BSN_TRACK: SeedTrack = {
   disclaimerKey: NURSING_DISCLAIMER_KEY,
   disclaimerVersion: 1,
   credential: {
+    domainWeights: "study_emphasis", // REQ-220: see the note on unit weights above
     ...AACN_PROVIDER,
     credentialSlug: "bachelor-of-science-in-nursing",
     credentialName: "Bachelor of Science in Nursing",
@@ -2082,7 +2115,7 @@ export const BSN_TRACK: SeedTrack = {
         "Use the clinical judgment model's layers and six cognitive steps as one structured way to show how nursing knowledge becomes a clinical decision", // ESS 1.3; FN 43.1
         "Use Erikson's psychosocial and Piaget's cognitive theories to frame care across the lifespan", // FN 38.2
         "Apply the socio-ecological model to see a client within nested individual, relationship, community and policy contexts", // POP 10.3
-        "Use health behaviour theories -- the health belief model, the stages of change and social cognitive theory -- to explain why clients do or do not change", // POP 15.3
+        "Use health behavior theories -- the health belief model, the stages of change and social cognitive theory -- to explain why clients do or do not change", // POP 15.3
         "Identify the five stages of change -- precontemplation, contemplation, preparation, action and maintenance -- and match the intervention to the stage", // POP 15.3
         "Explain the theory-practice gap and how evidence-based practice closes it by joining research evidence, clinical expertise and the person's values", // MS 1.4
         "Use ABCs and Maslow's hierarchy to sort many cues into the problems that come first", // MS 4.3
@@ -2094,11 +2127,11 @@ export const BSN_TRACK: SeedTrack = {
       weight: 14,
       gate: "Build care around the person and the people who matter to them, not around the diagnosis.",
       objectives: [
-        "Person-centered care as holistic and individualised",
+        "Person-centered care as holistic and individualized",
         "Establishing a caring relationship and presence",
         "Communicating effectively across difference",
         "Compassionate care: noticing vulnerability and responding to it",
-        "Assessment as the foundation of individualised care",
+        "Assessment as the foundation of individualized care",
         "Diagnosing, planning and evaluating with the person, not for them",
         "Coordinating care across settings and disciplines",
         "Family and important others as part of the unit of care",
@@ -2108,17 +2141,17 @@ export const BSN_TRACK: SeedTrack = {
         "Managing pain and symptoms as a person experiences them",
         "Advocating for the person within the system",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
-        "Turn assessment data into a prioritised problem list, writing each problem as a NANDA-I diagnosis -- problem-focused, risk, health promotion or syndrome -- with the person's preferences in view", // ESS 2.4; FN 13.3
+        "Turn assessment data into a prioritized problem list, writing each problem as a NANDA-I diagnosis -- problem-focused, risk, health promotion or syndrome -- with the person's preferences in view", // ESS 2.4; FN 13.3
         "Set SMART outcomes with a time frame together with the person, and anticipate expected, unexpected and adverse outcomes when planning", // ESS 2.5; MS 4.4
         "Use teaching materials suited to the person's health literacy, and confirm learning through return demonstration or teach-back rather than nods", // ESS 2.2; FN 17.4
         "Plan teaching across cognitive, affective and psychomotor domains, and assess readiness to learn first", // FN 17.2
         "Use shared decision making, such as AHRQ's five-step SHARE approach, so the person's values shape the plan", // FN 15.2
-        "Reassess and modify the plan of care when outcomes fall short, and recognise when standard practice needs to change for an individual", // ESS 2.7; MS 4.5
+        "Reassess and modify the plan of care when outcomes fall short, and recognize when standard practice needs to change for an individual", // ESS 2.7; MS 4.5
         "Give trauma-informed care that builds safety, trust and collaboration", // PMH 6.5
-        "Use the comprehensive geriatric assessment areas -- function, cognition, mood, falls, pain, polypharmacy, nutrition, senses, care preferences -- to individualise care", // FN 41.4
+        "Use the comprehensive geriatric assessment areas -- function, cognition, mood, falls, pain, polypharmacy, nutrition, senses, care preferences -- to individualize care", // FN 41.4
         "Help the person record their wishes in a living will or name a healthcare proxy, and know a POLST guides care in the last stage of life", // FN 36.4
         "Support grief as the person experiences it, including anger and the physical symptoms grief can bring", // FN 36.1
-        "Assess spiritual needs, recognising they may differ from your own, and draw on them as a source of comfort", // FN 35.2
+        "Assess spiritual needs, recognizing they may differ from your own, and draw on them as a source of comfort", // FN 35.2
         "Distinguish palliative care, which aims to relieve symptoms, pain and stress rather than to cure, from hospice care for those expected to live fewer than six months", // MS 32.1; MS 32.2
       ],
     },
@@ -2143,7 +2176,7 @@ export const BSN_TRACK: SeedTrack = {
         "Use epidemiological measures -- rates, proportions, incidence, prevalence, case-fatality and attack rates -- to compare disease frequency across groups, places and times", // POP 12.5
         "Apply the epidemiological triad: disease arises from the interaction of a susceptible host, an agent and the environment", // POP 12.3
         "Classify agents of disease as physical, chemical, nutritional, psychosocial or biological", // POP 12.3
-        "Tell experimental studies, the randomised gold standard, from observational ones such as case-control and cohort studies", // POP 12.4
+        "Tell experimental studies, the randomized gold standard, from observational ones such as case-control and cohort studies", // POP 12.4
         "Know the three core functions of public health -- assessment, policy development, assurance -- and how the 10 Essential Public Health Services put them into practice", // POP 2.4
         "Take part in a community health assessment and use the nursing process to form a community diagnosis and plan of care", // POP 17.4; ESS 3.1
         "Know the phases of the disaster management cycle and the nurse's role in prevention, preparation, response and recovery", // POP 32.4; ESS 3.6
@@ -2153,7 +2186,7 @@ export const BSN_TRACK: SeedTrack = {
         "Place cancer control on the prevention levels: HPV and hepatitis B vaccination as primary, mammography, colonoscopy and cervical screening as secondary", // MS 31.2
         "Define health disparities as avoidable gaps in illness, injury, violence and opportunity carried by socially disadvantaged groups", // POP 9.1
         "Use a staged model of policy development: define the problem clearly first, then bring it to the people with power to change the policy", // POP 34.3
-        "Recognise intimate partner violence as a population health problem, with higher risk in pregnancy and serious maternal and newborn consequences", // MN 9.2
+        "Recognize intimate partner violence as a population health problem, with higher risk in pregnancy and serious maternal and newborn consequences", // MN 9.2
       ],
     },
     {
@@ -2190,13 +2223,13 @@ export const BSN_TRACK: SeedTrack = {
         "Root cause analysis and failure modes analysis",
         "Quality improvement methods and measurement",
         "Nurse-sensitive indicators and outcome data",
-        "Standardisation, checklists and reducing variation",
+        "Standardization, checklists and reducing variation",
         "Reporting near misses and adverse events",
         "Disclosure to patients and families after harm",
-        "Minimising risk of harm to patients and to providers",
+        "Minimizing risk of harm to patients and to providers",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Use the PDSA cycle repeatedly, revising the plan from what was learned until the change succeeds", // FN 15.3; ESS 5.1
-        "Recognise a sentinel event and use root cause analysis to find the system factors behind an error, such as similar-looking drug labels or vague orders", // FN 15.3; FN 9.1
+        "Recognize a sentinel event and use root cause analysis to find the system factors behind an error, such as similar-looking drug labels or vague orders", // FN 15.3; FN 9.1
         "Use Lean thinking to remove unnecessary steps from a care process", // FN 15.3
         "Know the main occupational hazards nurses face, including workplace violence, injury and infectious exposure, and contribute to a safe work environment", // ESS 5.3; FN 9.2; FN 9.1
         "Report medication errors honestly and promptly, since early disclosure may prevent harm", // PHARM 3.2
@@ -2222,10 +2255,10 @@ export const BSN_TRACK: SeedTrack = {
         "Use SBAR to give concise, structured information at handoffs and transfers", // FN 15.2; MN 20.1
         "Delegate to team members by role and competence, keeping accountability for the delegated task", // ESS 6.2; FN 18.3; DEL
         "Explain the benefits of a collaborative, interprofessional care model: better quality, lower cost and more convenience for the client", // MS 1.2
-        "Practise cultural humility within the team: reflect on your own values and biases, stay open to other perspectives, and notice how bias shapes interactions", // ESS 6.4; POP 23.1
+        "Practice cultural humility within the team: reflect on your own values and biases, stay open to other perspectives, and notice how bias shapes interactions", // ESS 6.4; POP 23.1
         "Use constructive communication to manage conflict, drawing on approaches leaders use to resolve team tension", // ESS 6.4; FN 18.2
         "Know each interprofessional team member's role and that each works within their own state scope of practice", // FN 15.6
-        "Know that delegation is first set by organisational policy naming which tasks can go to which staff and in what situations", // DEL
+        "Know that delegation is first set by organizational policy naming which tasks can go to which staff and in what situations", // DEL
         "Use referrals to connect the person to the right team member or specialist", // CNS 2.4
       ],
     },
@@ -2240,15 +2273,15 @@ export const BSN_TRACK: SeedTrack = {
         "Care coordination across the continuum",
         "Transitions of care and the risks they carry",
         "Regulatory bodies, accreditation and their influence",
-        "Organisational structure, culture and change",
+        "Organizational structure, culture and change",
         "Staffing, workload and their relationship to outcomes",
         "Risk management and legal exposure",
         "Advocating for system-level change",
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Describe a clinical microsystem -- a focused type of care, a defined population, skilled staff and supporting technology -- inside the larger health system", // MS 1.6; ESS 7.1
-        "Know the main public funding sources, such as Medicare and Medicaid with its waiver programmes, and how they shape long-term and in-home care", // MS 1.5
+        "Know the main public funding sources, such as Medicare and Medicaid with its waiver programs, and how they shape long-term and in-home care", // MS 1.5
         "Know how scope of practice sets the legal limits of what a nurse may do", // MS 1.3
-        "Explain why care transition models arose with the move from fee-for-service toward client-centred care: to prevent miscommunication, poor follow-up and readmissions", // POP 30.2
+        "Explain why care transition models arose with the move from fee-for-service toward client-centered care: to prevent miscommunication, poor follow-up and readmissions", // POP 30.2
         "Distinguish primary, secondary and tertiary levels of care by complexity, and how people move between them over a lifetime", // FN 3.1
         "Use care coordination -- information transfer, teaching, follow-up -- to close gaps between settings and prevent adverse events", // POP 30.1
       ],
@@ -2262,7 +2295,7 @@ export const BSN_TRACK: SeedTrack = {
         "Electronic health records and structured documentation",
         "Clinical decision support and alert fatigue",
         "Data, information, knowledge and wisdom as a progression",
-        "Standardised terminology in nursing documentation",
+        "Standardized terminology in nursing documentation",
         "Data privacy, security and regulatory obligation",
         "Telehealth and remote monitoring",
         "Evaluating a digital health tool before trusting it",
@@ -2293,7 +2326,7 @@ export const BSN_TRACK: SeedTrack = {
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Know the nurse's roles -- caregiver, decision-maker, collaborator, communicator, advocate and educator -- within the profession's standards", // MS 1.3
         "Describe nurse advocacy by its features -- protecting, informing, valuing, mediating, and championing social justice", // POP 33.1
-        "Build a therapeutic relationship by conveying respect, clarifying and restating what the person says, and avoiding blocks such as false reassurance, judging or minimising", // ESS 9.2; PMH 3.1
+        "Build a therapeutic relationship by conveying respect, clarifying and restating what the person says, and avoiding blocks such as false reassurance, judging or minimizing", // ESS 9.2; PMH 3.1
         "Know the ethical principles that guide nursing -- autonomy, beneficence, nonmaleficence, justice, fidelity, veracity", // FN 16.2
         "Comply with laws, policies and regulations, including the duties around informed consent", // ESS 9.4; FN 16.3
         "Know certification is voluntary recognition in a specialty, a step beyond licensure", // FN 18.4

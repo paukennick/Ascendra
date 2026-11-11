@@ -13,6 +13,7 @@
 //      idempotent, expired codes skipped, empty pool 409, no verification 403.
 //   5. Removing verifications, the account export, and account deletion.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -34,7 +35,7 @@ const users: string[] = [];
 const ENV_KEYS = [
   "BILLING_ENABLED", "VERIFIED_DISCOUNTS_ENABLED", "VERIFIED_DISCOUNT_GROUPS", "MOCK_PROVIDER_KEY",
   "DISCOUNT_PERCENT_MILITARY", "DISCOUNT_PERCENT_NURSE", "DISCOUNT_PERCENT_STUDENT", "DISCOUNT_PERCENT_RESPONDER", "DISCOUNT_PERCENT_TEACHER",
-  "STRIPE_COUPON_MILITARY", "STRIPE_COUPON_NURSE", "STRIPE_SECRET_KEY", "STRIPE_PRICE_PLUS_MONTHLY", "APP_URL", "SUPPORT_EMAIL",
+  "STRIPE_COUPON_MILITARY", "STRIPE_COUPON_NURSE", "STRIPE_SECRET_KEY", "STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY", "APP_URL", "SUPPORT_EMAIL",
   "APP_STORE_OFFER_REDEEM_URL",
 ];
 const saved: Record<string, string | undefined> = {};
@@ -68,7 +69,7 @@ function turnOn() {
     STRIPE_COUPON_MILITARY: "co_mil20",
     STRIPE_COUPON_NURSE: "co_nurse25",
     STRIPE_SECRET_KEY: "sk_test_fake",
-    STRIPE_PRICE_PLUS_MONTHLY: "price_plus_m",
+    STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY: "price_plus_m",
     APP_URL: "https://www.example.test",
     SUPPORT_EMAIL: "help@example.test",
     APP_STORE_OFFER_REDEEM_URL: "https://apps.apple.com/redeem?ctx=offercodes&id=1&code=",
@@ -88,6 +89,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email, email_verified_at) values ($1, $2, now())`, [u, `disc-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 // Start a verification through the route and follow the provider back.
@@ -123,7 +125,7 @@ describe("REQ-166 off by default", () => {
     assert.deepEqual(await json(await call(statusGet, "/api/discounts", u)), { available: false });
     await json(await call(verifyPost, "/api/discounts/verify", u, "POST", { group: "military" }), 404);
     assert.equal(await stripeCouponForUser(u), null);
-    await json(await call(offerCodePost, "/api/discounts/offer-code", u, "POST", { planId: "plus_monthly" }), 404);
+    await json(await call(offerCodePost, "/api/discounts/offer-code", u, "POST", { planId: "it_cloud_plus_monthly" }), 404);
   });
 
   test("billing off: unavailable even with a provider", async () => {
@@ -241,8 +243,8 @@ describe("REQ-166 applying the discount", () => {
       return new Response(JSON.stringify({ url: "https://checkout.stripe.test/x" }), { status: 200 });
     }) as typeof fetch;
     try {
-      await json(await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "plus_monthly" }));
-      await json(await call(checkoutPost, "/api/billing/checkout", plain, "POST", { planId: "plus_monthly" }));
+      await json(await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "it_cloud_plus_monthly" }));
+      await json(await call(checkoutPost, "/api/billing/checkout", plain, "POST", { planId: "it_cloud_plus_monthly" }));
     } finally {
       globalThis.fetch = real;
     }
@@ -258,25 +260,25 @@ describe("REQ-166 applying the discount", () => {
     turnOn();
     const code = (n: number) => `T${run.toUpperCase()}${n}`;
     // One code about to expire (never handed out), two good ones.
-    await importCodes({ group: "military", productId: "ascendra.plus.monthly", expiresAt: new Date(Date.now() + 3600_000), codes: [code(0)] });
-    const r = await importCodes({ group: "military", productId: "ascendra.plus.monthly", expiresAt: new Date(Date.now() + 90 * 86400000), codes: [code(1), code(2), code(1)] });
+    await importCodes({ group: "military", productId: "ascendra.it_cloud_plus.monthly", expiresAt: new Date(Date.now() + 3600_000), codes: [code(0)] });
+    const r = await importCodes({ group: "military", productId: "ascendra.it_cloud_plus.monthly", expiresAt: new Date(Date.now() + 90 * 86400000), codes: [code(1), code(2), code(1)] });
     assert.deepEqual(r, { added: 2, skipped: 1 });
     for (const x of [u, v, w]) await recordVerification({ userId: x, group: "military", provider: "mockid", subject: subj(`c-${x}`), providerExpiresAt: null });
 
-    const a1 = await json(await call(offerCodePost, "/api/discounts/offer-code", u, "POST", { planId: "plus_monthly" }));
-    const a2 = await json(await call(offerCodePost, "/api/discounts/offer-code", u, "POST", { planId: "plus_monthly" }));
+    const a1 = await json(await call(offerCodePost, "/api/discounts/offer-code", u, "POST", { planId: "it_cloud_plus_monthly" }));
+    const a2 = await json(await call(offerCodePost, "/api/discounts/offer-code", u, "POST", { planId: "it_cloud_plus_monthly" }));
     assert.equal(a1.code, a2.code);
     assert.notEqual(a1.code, code(0));
-    assert.equal(a1.productId, "ascendra.plus.monthly");
+    assert.equal(a1.productId, "ascendra.it_cloud_plus.monthly");
     assert.equal(a1.redeemUrl, `https://apps.apple.com/redeem?ctx=offercodes&id=1&code=${a1.code}`);
-    const b1 = await json(await call(offerCodePost, "/api/discounts/offer-code", v, "POST", { planId: "plus_monthly" }));
+    const b1 = await json(await call(offerCodePost, "/api/discounts/offer-code", v, "POST", { planId: "it_cloud_plus_monthly" }));
     assert.notEqual(b1.code, a1.code);
-    await json(await call(offerCodePost, "/api/discounts/offer-code", w, "POST", { planId: "plus_monthly" }), 409);
-    await json(await call(offerCodePost, "/api/discounts/offer-code", u, "POST", { planId: "pro_yearly" }), 409);
-    await json(await call(offerCodePost, "/api/discounts/offer-code", none, "POST", { planId: "plus_monthly" }), 403);
+    await json(await call(offerCodePost, "/api/discounts/offer-code", w, "POST", { planId: "it_cloud_plus_monthly" }), 409);
+    await json(await call(offerCodePost, "/api/discounts/offer-code", u, "POST", { planId: "it_cloud_pro_yearly" }), 409);
+    await json(await call(offerCodePost, "/api/discounts/offer-code", none, "POST", { planId: "it_cloud_plus_monthly" }), 403);
     await json(await call(offerCodePost, "/api/discounts/offer-code", u, "POST", { planId: "nope" }), 400);
     const lines = await runCodesCli({ kind: "status" });
-    assert.ok(lines.some((l) => l.startsWith("military ascendra.plus.monthly:")), lines.join("\n"));
+    assert.ok(lines.some((l) => l.startsWith("military ascendra.it_cloud_plus.monthly:")), lines.join("\n"));
   });
 });
 
@@ -286,9 +288,9 @@ describe("REQ-166 the learner's data", () => {
     turnOn();
     await recordVerification({ userId: u, group: "student", provider: "mockid", subject: subj("d"), providerExpiresAt: null });
     const c = `T${run.toUpperCase()}D`;
-    await importCodes({ group: "student", productId: "ascendra.pro.yearly", expiresAt: new Date(Date.now() + 90 * 86400000), codes: [c] });
+    await importCodes({ group: "student", productId: "ascendra.it_cloud_pro.yearly", expiresAt: new Date(Date.now() + 90 * 86400000), codes: [c] });
     process.env.DISCOUNT_PERCENT_STUDENT = "15";
-    const issued = await json(await call(offerCodePost, "/api/discounts/offer-code", u, "POST", { planId: "pro_yearly" }));
+    const issued = await json(await call(offerCodePost, "/api/discounts/offer-code", u, "POST", { planId: "it_cloud_pro_yearly" }));
     assert.equal(issued.code, c);
 
     const data = (await buildAccountExport(u, (sql, p) => query(sql, p))) as any;

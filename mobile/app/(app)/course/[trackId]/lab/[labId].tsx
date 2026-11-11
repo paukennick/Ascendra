@@ -1,14 +1,19 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
-import { api } from "@/api/client";
+import { api, ApiError } from "@/api/client";
+import { Alert } from "@/lib/alert";
 import { Badge, Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, Screen, TextField, VerdictBadge } from "@/components/ui";
 import { ReportProblem } from "@/components/ReportProblem";
+import { DictationHint } from "@/components/DictationHint";
+import { lengthProblem } from "@/lib/dictation";
 import { colors, spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
 import { useLabDraft } from "@/lib/useLabDraft";
+import { InteractivePartField, InteractiveResult } from "@/components/LabInteractive";
+import { answerToSend, knownInput, partAnswered } from "@/lib/labInteractive";
 import {
   LAB_PART_MAX,
   PART_STATE_LABEL,
@@ -24,6 +29,9 @@ import {
   type LabView,
   type PartRowState,
 } from "@/lib/labs";
+import { useGoBack } from "@/lib/useGoBack";
+import { isNotFound } from "@/lib/notFound";
+import { LoadError } from "@/components/LoadError";
 
 // REQ-123: one lab. A build lab is one step with an answer field per rubric
 // part; a case lab is a stepper that reveals each step's new information
@@ -35,6 +43,11 @@ import {
 // Accessibility: each answer field carries its part label; results rows are
 // single accessible elements with a spoken label; buttons are >= 48 dp;
 // colours are the theme's AA-checked tokens and state is always written out.
+//
+// REQ-189: a part with an interactive control (order, match, select,
+// command, numeric; src/components/LabInteractive.tsx) is answered with it
+// and checked instantly by rule on the server. Its answer is still one
+// string in the same draft, so leaving mid-step loses nothing.
 //
 // REQ-165 (Nick, 2026-11-09): no per-lab disclaimer, no "Awaiting expert
 // review" badge and no per-family "I understand" -- the one study notice,
@@ -55,8 +68,9 @@ const PART_COLOR: Record<PartRowState, string> = {
 };
 
 export default function LabScreen() {
-  const router = useRouter();
-  const { labId, title } = useLocalSearchParams<{ trackId: string; labId: string; title?: string }>();
+  const { trackId, labId, title } = useLocalSearchParams<{ trackId: string; labId: string; title?: string }>();
+  const goBack = useGoBack(`/course/${encodeURIComponent(trackId)}/labs`);
+  const [notFound, setNotFound] = useState(false);
   const [view, setView] = useState<LabView | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
@@ -64,10 +78,14 @@ export default function LabScreen() {
 
   const load = useCallback(() => {
     setLoadError(null);
+    setNotFound(false);
     api
       .get<LabView>(`/api/labs/${labId}`)
       .then(setView)
-      .catch((err) => setLoadError(friendlyError(err)));
+      .catch((err) => {
+        setLoadError(friendlyError(err));
+        setNotFound(isNotFound(err));
+      });
   }, [labId]);
   useEffect(load, [load]);
 
@@ -111,7 +129,7 @@ export default function LabScreen() {
   return (
     <Screen>
       <Stack.Screen options={{ title: lab?.kind === "case" ? "Case lab" : lab ? "Build lab" : title ?? "Lab" }} />
-      {loadError ? <ErrorBanner message={loadError} onRetry={load} /> : null}
+      {loadError ? <LoadError message={loadError} notFound={notFound} onRetry={load} /> : null}
       {!view && !loadError ? <Loading label="Opening the lab..." /> : null}
 
       {lab ? (
@@ -165,6 +183,7 @@ export default function LabScreen() {
               stepCount={lab.stepCount}
               kind={lab.kind}
               onGraded={onGraded}
+              onStale={load}
             />
           ) : null}
 
@@ -179,7 +198,7 @@ export default function LabScreen() {
               </View>
               {startError ? <ErrorBanner message={startError} onRetry={() => start(true)} /> : null}
               <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
-                <Button label="Back to labs" fullWidth={false} onPress={() => router.back()} />
+                <Button label="Back to labs" fullWidth={false} onPress={goBack} />
                 <Button
                   label="Try it again"
                   accessibilityLabel="Try this lab again. It counts lightly, because you've seen the model answers."
@@ -195,7 +214,23 @@ export default function LabScreen() {
           {/* The study notice points to the report links, so this is on the screen from the start. */}
           <ReportProblem target={{ kind: "lab", labId: lab.id }} />
           {open && run && run.results.length > 0 ? (
-            <Button label="Start over" variant="link" size="sm" fullWidth={false} onPress={() => start(true)} />
+            <>
+              {/* REQ-217 (FAIL-1051): a failed restart said nothing. */}
+              {startError ? <ErrorBanner message={startError} onRetry={() => start(true)} /> : null}
+              <Button
+                label="Start over"
+                variant="link"
+                size="sm"
+                fullWidth={false}
+                onPress={() =>
+                  // REQ-217 (FAIL-1051): it throws away the answers already graded in this run.
+                  Alert.alert("Start over?", "This discards your answers so far and begins the lab again from the first step.", [
+                    { text: "Keep my answers", style: "cancel" },
+                    { text: "Start over", style: "destructive", onPress: () => void start(true) },
+                  ])
+                }
+              />
+            </>
           ) : null}
         </>
       ) : null}
@@ -220,6 +255,7 @@ function StepForm({
   stepCount,
   kind,
   onGraded,
+  onStale,
 }: {
   labId: string;
   runId: string;
@@ -227,27 +263,36 @@ function StepForm({
   stepCount: number;
   kind: "build" | "case";
   onGraded: (res: LabSubmitResult) => void;
+  // REQ-217 (FAIL-1054): the server says this step or run is no longer open
+  // (answered on another device, or the run ended): reload the lab so the
+  // screen shows where the run really is, not a step that can never be sent.
+  onStale: () => void;
 }) {
   const draft = useLabDraft(labId, runId, step.index, step.parts.length);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inputs = step.parts.map((_, i) => knownInput(step.inputs?.[i]));
+  // What is sent: an order the learner never moved is still an answer.
+  const answers = draft.parts.map((p, i) => answerToSend(p, inputs[i]));
+  const ready = canSubmit(answers) && answers.some((a, i) => partAnswered(draft.parts[i] ?? "", inputs[i]) && a.trim());
 
   async function submit() {
-    if (!canSubmit(draft.parts)) return;
+    if (!ready) return;
     setBusy(true);
     setError(null);
-    const clientAttemptId = draft.idFor(answersSignature(step.index, draft.parts), () => Crypto.randomUUID());
+    const clientAttemptId = draft.idFor(answersSignature(step.index, answers), () => Crypto.randomUUID());
     try {
       const res = await api.post<LabSubmitResult>(`/api/labs/${labId}/submit`, {
         runId,
         step: step.index,
-        answers: draft.parts,
+        answers,
         clientAttemptId,
       });
       draft.clear();
       onGraded(res);
     } catch (err) {
       setError(friendlyError(err, { kept: true }));
+      if (err instanceof ApiError && err.status === 409) onStale();
     } finally {
       setBusy(false);
     }
@@ -257,7 +302,17 @@ function StepForm({
   return (
     <Card elevated>
       <StepHeader step={step} stepCount={stepCount} />
-      {step.parts.map((label, i) => (
+      {step.parts.some((_, i) => !inputs[i]) ? <DictationHint /> : null}
+      {step.parts.map((label, i) =>
+        inputs[i] ? (
+          <InteractivePartField
+            key={i}
+            label={step.parts.length > 1 ? `Part ${i + 1}: ${label}` : label}
+            input={inputs[i]!}
+            value={draft.parts[i] ?? ""}
+            onChange={(v) => draft.setPart(i, v)}
+          />
+        ) : (
         <TextField
           key={i}
           label={step.parts.length > 1 ? `Part ${i + 1}: ${label}` : label}
@@ -266,17 +321,18 @@ function StepForm({
           placeholder={kind === "build" ? "Write this part of your answer" : "Your decision and why"}
           multiline
           minHeight={kind === "build" ? 110 : 90}
-          maxLength={LAB_PART_MAX}
+          error={lengthProblem(draft.parts[i] ?? "", LAB_PART_MAX)}
           autoCapitalize="sentences"
         />
-      ))}
+        )
+      )}
       <Muted style={{ fontSize: 12 }}>Your answers are saved on this device until you send them. This is fictional practice; don't enter real people's details.</Muted>
       {error ? <ErrorBanner message={error} onRetry={submit} /> : null}
       <Button
         label={last ? (stepCount > 1 ? "Check my last step" : "Check my answer") : "Check this step"}
         icon="send"
         loading={busy}
-        disabled={busy || !canSubmit(draft.parts)}
+        disabled={busy || !ready}
         onPress={submit}
       />
     </Card>
@@ -285,6 +341,7 @@ function StepForm({
 
 function GradedStep({ step, result, stepCount, isFinal }: { step: LabStepView; result: LabStepResult; stepCount: number; isFinal: boolean }) {
   const rows = partRows(result, step.parts);
+  const inputs = step.parts.map((_, i) => knownInput(step.inputs?.[i]));
   return (
     <Card>
       <StepHeader step={step} stepCount={stepCount} />
@@ -307,7 +364,11 @@ function GradedStep({ step, result, stepCount, isFinal }: { step: LabStepView; r
             {PART_STATE_LABEL[row.state]}
             {row.comment ? ` · ${row.comment}` : ""}
           </Muted>
-          <Muted style={{ fontSize: 13 }}>Your answer: {row.answer.trim() || "(blank)"}</Muted>
+          {inputs[i] && result.reference[i]?.key && result.responses ? (
+            <InteractiveResult input={inputs[i]!} response={result.responses[i] ?? ""} interactiveKey={result.reference[i]?.key} />
+          ) : (
+            <Muted style={{ fontSize: 13 }}>Your answer: {row.answer.trim() || "(blank)"}</Muted>
+          )}
           <Muted style={{ fontSize: 13, color: colors.text }}>Model answer: {row.modelAnswer}</Muted>
         </View>
       ))}

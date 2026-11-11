@@ -55,7 +55,7 @@ import { source } from "../sources";
 //     the electrodiagnostic criteria were not re-read in full text and are
 //     listed as not verified.
 //   - Robinson, "Traumatic injury to peripheral nerves", Muscle Nerve 2000
-//     (AANEM minimonograph; PMID 10842261): abstract read (EDX localises
+//     (AANEM minimonograph; PMID 10842261): abstract read (EDX localizes
 //     and quantifies axon loss); Wallerian-degeneration timing is used only
 //     qualitatively and is listed as not verified.
 
@@ -129,7 +129,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
           parts: [
             part(
               "Interpretation",
-              "Recognises that diffusely low CMAPs with normal sensory studies and normal latencies/velocities suggest a presynaptic neuromuscular junction disorder (Lambert-Eaton) rather than a neuropathy, given the autonomic symptoms and reflex facilitation.",
+              "Recognizes that diffusely low CMAPs with normal sensory studies and normal latencies/velocities suggest a presynaptic neuromuscular junction disorder (Lambert-Eaton) rather than a neuropathy, given the autonomic symptoms and reflex facilitation.",
               "Low CMAPs everywhere with normal SNAPs and normal conduction speeds point away from a neuropathy and toward a presynaptic NMJ problem -- Lambert-Eaton fits the proximal weakness, dry mouth and reflexes that improve after contraction."
             ),
             part(
@@ -204,7 +204,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
           parts: [
             part(
               "Lymphedema and skin",
-              "Recognises that lymphedema is not an absolute contraindication (AANEM: judge each case on risk vs value, often limiting needle work in that limb), but that active skin infection over the test site means the study should be postponed until it resolves, informing the referrer.",
+              "Recognizes that lymphedema is not an absolute contraindication (AANEM: judge each case on risk vs value, often limiting needle work in that limb), but that active skin infection over the test site means the study should be postponed until it resolves, informing the referrer.",
               "Lymphedema alone isn't an absolute bar -- AANEM leaves needle EMG in a lymphedematous limb to case-by-case judgment, and a CTS question can often be answered by NCS with little or no needle work in that arm. But the forearm redness may be cellulitis: postpone the study, tell the referring physician, and rebook once the skin has healed."
             ),
           ],
@@ -235,7 +235,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
             ),
             part(
               "Radial muscles above and below the spiral groove",
-              "Includes radial-innervated muscles distal to the spiral groove (extensor digitorum, extensor indicis) and proximal to it (triceps, and brachioradialis) to localise a radial lesion.",
+              "Includes radial-innervated muscles distal to the spiral groove (extensor digitorum, extensor indicis) and proximal to it (triceps, and brachioradialis) to localize a radial lesion.",
               "Distal: extensor digitorum and extensor indicis. Proximal: triceps (branches leave above the groove) and brachioradialis (below the groove, above the forearm)."
             ),
             part(
@@ -254,7 +254,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
       kind: "case",
       title: "Wrist drop after a humeral shaft fracture",
       brief:
-        "A fictional 28-year-old fractured the right humeral shaft in a fall and woke from surgery with a wrist and finger drop. The orthopaedic surgeon asks for an electrodiagnostic study 'as soon as possible'. Exam practice, not clinical guidance.",
+        "A fictional 28-year-old fractured the right humeral shaft in a fall and woke from surgery with a wrist and finger drop. The orthopedic surgeon asks for an electrodiagnostic study 'as soon as possible'. Exam practice, not clinical guidance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -311,7 +311,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
           parts: [
             part(
               "Patient 1",
-              "Axonal: low CMAP amplitude with normal or only mildly slowed latency/velocity (velocity not below what loss of the fastest fibres could explain), and no conduction block (elbow about equal to wrist).",
+              "Axonal: low CMAP amplitude with normal or only mildly slowed latency/velocity (velocity not below what loss of the fastest fibers could explain), and no conduction block (elbow about equal to wrist).",
               "Axon loss: amplitude is well below the limit (1.2 vs 4.0 mV) while latency is normal and velocity only slightly low, as expected when the fastest axons are lost. Elbow and wrist amplitudes match, so no block."
             ),
             part(
@@ -343,8 +343,8 @@ export const ABPTSECS_LABS: SeedLabSet = {
           parts: [
             part(
               "Interpretation",
-              "States that normal routine studies don't exclude mild CTS, because sensory fibres are affected first and a long-segment sensory latency can stay within limits.",
-              "No. In early carpal tunnel syndrome sensory fibres change first, and a 14 cm wrist-to-digit latency of 3.5 ms can stay within limits while the short segment under the carpal ligament is slowed."
+              "States that normal routine studies don't exclude mild CTS, because sensory fibers are affected first and a long-segment sensory latency can stay within limits.",
+              "No. In early carpal tunnel syndrome sensory fibers change first, and a 14 cm wrist-to-digit latency of 3.5 ms can stay within limits while the short segment under the carpal ligament is slowed."
             ),
             part(
               "Next study",
@@ -365,7 +365,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
             part(
               "Impression",
               "Writes a mild median neuropathy at the wrist, sensory (demyelinating) only, with no motor or axon-loss involvement, consistent with clinical carpal tunnel syndrome; notes needle EMG is optional and not needed unless weakness or another diagnosis is suspected.",
-              "Impression: mild right median neuropathy at the wrist, affecting sensory fibres only, without motor involvement or axon loss -- consistent with carpal tunnel syndrome. Needle EMG was not needed with normal strength and no other suspected diagnosis."
+              "Impression: mild right median neuropathy at the wrist, affecting sensory fibers only, without motor involvement or axon loss -- consistent with carpal tunnel syndrome. Needle EMG was not needed with normal strength and no other suspected diagnosis."
             ),
           ],
         },
@@ -397,7 +397,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
           ask: "Interpret the findings.",
           parts: [
             part(
-              "Root localisation",
+              "Root localization",
               "Concludes C6 (C5-6) radiculopathy: neurogenic change in at least two muscles sharing the root but supplied by different nerves (biceps, brachioradialis) plus paraspinals, with muscles of other roots normal.",
               "Left C6 radiculopathy: active denervation in biceps (musculocutaneous) and brachioradialis (radial) -- two nerves, same root -- and in the C5-6 paraspinals, with C7 and C8 muscles normal."
             ),
@@ -445,7 +445,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
           parts: [
             part(
               "Demyelinating pattern",
-              "Recognises an acquired, multifocal demyelinating polyradiculoneuropathy (proximal and distal weakness, conduction block at non-entrapment sites, marked slowing) that is not explained by diabetes, raises CIDP, and contacts the physician promptly because it may be treatable.",
+              "Recognizes an acquired, multifocal demyelinating polyradiculoneuropathy (proximal and distal weakness, conduction block at non-entrapment sites, marked slowing) that is not explained by diabetes, raises CIDP, and contacts the physician promptly because it may be treatable.",
               "This is not typical diabetic neuropathy: proximal and distal weakness, marked slowing, conduction block away from entrapment sites and long F-waves indicate an acquired demyelinating polyradiculoneuropathy. With progression beyond 8 weeks, CIDP should be considered. Call the referring physician and recommend neurology referral, because CIDP is treatable."
             ),
           ],
@@ -464,7 +464,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Localise each injury, explain the key findings, and say what else could be tested and why it matters.",
+          ask: "Localize each injury, explain the key findings, and say what else could be tested and why it matters.",
           parts: [
             part(
               "Rider A",

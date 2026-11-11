@@ -7,12 +7,16 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import type { ChatMessage } from "@/types";
-import { Body, Button, EmptyState, ErrorBanner, H1, Loading, Muted } from "@/components/ui";
+import { Body, Button, CONTENT_MAX_WIDTH, EmptyState, ErrorBanner, H1, LiveAnnouncement, Loading, Muted } from "@/components/ui";
 import { CHAT_DRAFT_MAX, chatDraftKey, chatDraftPayload, chatDraftText } from "@/lib/drafts";
 import { colors, radius, spacing } from "@/lib/theme";
 import { useStoredDraft } from "@/lib/useStoredDraft";
+import { useKeyboardOverlap } from "@/lib/useKeyboardOverlap";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ReportCoachReply } from "@/components/ReportCoachReply";
+import { COACH_PREVIEW_BODY, COACH_PREVIEW_TITLE, aiAccessSignalOf, hasFullAi } from "@/lib/aiAccess";
+import { DictationHint } from "@/components/DictationHint";
+import { lengthProblem } from "@/lib/dictation";
 
 export default function ChatScreen() {
   // REQ-084: `prefill` and `unitId` arrive from the "Ask the coach about
@@ -27,6 +31,9 @@ export default function ChatScreen() {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [input, setInput] = useState(prefill ?? "");
+  // REQ-197: no maxLength (it would cut dictated text off); over the limit
+  // the message waits, whole, until it is shortened.
+  const tooLong = lengthProblem(input, CHAT_DRAFT_MAX);
   const [busy, setBusy] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   // REQ-113 (Audit 3 mobile M7): a failed reply used to be added to the
@@ -42,11 +49,19 @@ export default function ChatScreen() {
   // REQ-165: edge-to-edge (Android 15+ targets, enforced at API 36) draws
   // under the navigation bar; keep the message box above it.
   const insets = useSafeAreaInsets();
+  // REQ-217 (FAIL-1062): Android 15+ no longer resizes for the keyboard.
+  const wrapRef = useRef<View>(null);
+  const overlap = useKeyboardOverlap(wrapRef);
 
   // REQ-131: an unsent message survives leaving the screen. Per user and
   // course; a prefill from the lesson shortcut wins over an older draft, and
   // emptying the box (what a send does) clears it.
   const { user } = useAuth();
+  // REQ-201: the server says (GET /api/auth/me `ai`) whether the coach is open
+  // to this learner; a refusal while on screen (the mode just changed) closes
+  // it the same way.
+  const [previewRefused, setPreviewRefused] = useState(false);
+  const fullAi = hasFullAi(user) && !previewRefused;
   useStoredDraft(
     user && trackId ? chatDraftKey(user.id, trackId) : null,
     chatDraftPayload(input, prefill),
@@ -56,6 +71,8 @@ export default function ChatScreen() {
       if (text) setInput((current) => current || text);
     }
   );
+
+  const [announce, setAnnounce] = useState<string | null>(null);
 
   const load = useCallback(() => {
     setLoadError(null);
@@ -70,8 +87,9 @@ export default function ChatScreen() {
   }, [load]);
 
   async function send() {
-    if (!input.trim()) return;
+    if (!input.trim() || lengthProblem(input, CHAT_DRAFT_MAX)) return;
     setSendError(null);
+    setAnnounce(null);
     const userMsg: ChatMessage = { role: "user", content: input };
     setMessages((prev) => [...(prev ?? []), userMsg]);
     const text = input;
@@ -84,10 +102,12 @@ export default function ChatScreen() {
       const res = await api.post<{ reply: string }>("/api/chat", { trackId, unitId, message: text, clientMessageId });
       pendingRef.current = null;
       setMessages((prev) => [...(prev ?? []), { role: "assistant", content: res.reply }]);
+      setAnnounce(`Coach replied: ${res.reply.slice(0, 400)}`);
     } catch (err) {
       // Take the unanswered message back out of the thread; its text goes
       // back in the box below, ready to send again.
       setMessages((prev) => (prev && prev[prev.length - 1] === userMsg ? prev.slice(0, -1) : prev));
+      if (aiAccessSignalOf(err)?.state === "limited_preview") setPreviewRefused(true);
       setSendError(friendlyError(err, { kept: true }));
       // The draft is only meant to be cleared by a *successful* send: put the
       // text back (unless they've started something new) so it isn't lost and
@@ -99,12 +119,18 @@ export default function ChatScreen() {
   }
 
   return (
+    <View ref={wrapRef} style={{ flex: 1, backgroundColor: colors.bg, paddingBottom: overlap }}>
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.bg }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <View style={{ padding: spacing.lg, paddingBottom: spacing.lg + insets.bottom, gap: spacing.xs, flex: 1 }}>
+      <View
+        role="main"
+        style={{ padding: spacing.lg, paddingBottom: spacing.lg + (overlap > 0 ? 0 : insets.bottom), gap: spacing.xs, flex: 1, width: "100%", maxWidth: CONTENT_MAX_WIDTH, alignSelf: "center" }}
+      >
+        {/* REQ-206 (FAIL-929): a new coach reply is read out (a screen reader got nothing). */}
+        <LiveAnnouncement message={announce} />
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <View style={styles.headerIcon}>
             <Feather name="message-circle" size={16} color={colors.accent} />
@@ -134,7 +160,7 @@ export default function ChatScreen() {
           <Loading />
         ) : messages.length === 0 ? (
           <View style={{ flex: 1, justifyContent: "center" }}>
-            <EmptyState icon="message-square" title="No messages yet" message="Ask anything about this course — concepts, exam strategy, or a concept you're stuck on." />
+            <EmptyState icon="message-square" title="No messages yet" message={fullAi ? "Ask anything about this course — concepts, exam strategy, or a concept you're stuck on." : "Quiz me above still works while the coach is in limited preview."} />
           </View>
         ) : (
           <FlatList
@@ -188,45 +214,59 @@ export default function ChatScreen() {
             onClose={() => setReporting(null)}
           />
         ) : null}
-        {sendError ? <ErrorBanner message={sendError} onRetry={send} /> : null}
-        <View style={styles.inputBar}>
-          <TextInput
-            style={styles.input}
-            accessibilityLabel="Message to the coach"
-            multiline
-            placeholder="Ask anything about this track..."
-            maxLength={CHAT_DRAFT_MAX}
-            placeholderTextColor={colors.mutedDim}
-            value={input}
-            onChangeText={setInput}
-            // REQ-077: on web, Enter sends and Shift+Enter inserts a newline,
-            // the convention every chat UI on the desktop follows. Native
-            // keyboards keep their return key as a newline.
-            onKeyPress={(e) => {
-              if (Platform.OS !== "web") return;
-              const native = e.nativeEvent as unknown as { key: string; shiftKey?: boolean };
-              if (native.key === "Enter" && !native.shiftKey) {
-                e.preventDefault();
-                if (!busy && input.trim()) send();
-              }
-            }}
-          />
-          {/* REQ-113 (Audit 3 mobile H4): labelled, with a role and state, and
-              a 48 dp touch target around the 36 dp circle. */}
-          <Pressable
-            onPress={send}
-            disabled={busy || !input.trim()}
-            accessibilityRole="button"
-            accessibilityLabel="Send message"
-            accessibilityState={{ disabled: busy || !input.trim(), busy }}
-            hitSlop={6}
-            style={[styles.sendButton, (busy || !input.trim()) && { opacity: 0.4 }]}
-          >
-            <Feather name="send" size={17} color={colors.accentText} />
-          </Pressable>
+        {sendError && fullAi ? <ErrorBanner message={sendError} onRetry={send} /> : null}
+        {tooLong ? <ErrorBanner message={tooLong} /> : null}
+        <View style={{ paddingHorizontal: spacing.md }}>
+          <DictationHint />
         </View>
+        {/* REQ-201: outside the AI pilot the coach is limited preview: say so
+            plainly in place of the message box (no plan or price). Quiz me
+            above still works. */}
+        {!fullAi ? (
+          <View style={styles.preview} accessibilityRole="text">
+            <Body style={{ fontWeight: "600" }}>{COACH_PREVIEW_TITLE}</Body>
+            <Muted>{COACH_PREVIEW_BODY}</Muted>
+          </View>
+        ) : (
+          <View style={styles.inputBar}>
+            <TextInput
+              style={styles.input}
+              accessibilityLabel="Message to the coach"
+              multiline
+              placeholder="Ask anything about this track..."
+              placeholderTextColor={colors.mutedDim}
+              value={input}
+              onChangeText={setInput}
+              // REQ-077: on web, Enter sends and Shift+Enter inserts a newline,
+              // the convention every chat UI on the desktop follows. Native
+              // keyboards keep their return key as a newline.
+              onKeyPress={(e) => {
+                if (Platform.OS !== "web") return;
+                const native = e.nativeEvent as unknown as { key: string; shiftKey?: boolean };
+                if (native.key === "Enter" && !native.shiftKey) {
+                  e.preventDefault();
+                  if (!busy && input.trim() && !tooLong) send();
+                }
+              }}
+            />
+            {/* REQ-113 (Audit 3 mobile H4): labelled, with a role and state, and
+                a 48 dp touch target around the 36 dp circle. */}
+            <Pressable
+              onPress={send}
+              disabled={busy || !input.trim() || !!tooLong}
+              accessibilityRole="button"
+              accessibilityLabel="Send message"
+              accessibilityState={{ disabled: busy || !input.trim() || !!tooLong, busy }}
+              hitSlop={6}
+              style={[styles.sendButton, (busy || !input.trim() || !!tooLong) && { opacity: 0.4 }]}
+            >
+              <Feather name="send" size={17} color={colors.accentText} />
+            </Pressable>
+          </View>
+        )}
       </View>
     </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -258,6 +298,14 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
   },
   reportLink: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start", marginTop: 6 },
+  preview: {
+    gap: spacing.xs,
+    backgroundColor: colors.cardAlt,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+  },
   inputBar: {
     flexDirection: "row",
     gap: spacing.sm,

@@ -13,6 +13,8 @@ import { NCCPTCPT_LABS } from "./fitness-nccptcpt";
 import { NPTEPT_LABS } from "./pt-nptept";
 import { NPTEPTA_LABS } from "./pt-nptepta";
 import { DPT_LABS } from "./pt-dpt";
+// REQ-198: PT school prerequisites refresher.
+import { PTPREREQ_LABS } from "./pt-prereq";
 // REQ-150: more project-management courses.
 import { CAPM_LABS } from "./pm-capm";
 import { PMIACP_LABS } from "./pm-acp";
@@ -113,6 +115,12 @@ import { PMICPMAI_LABS } from "./pm-cpmai";
 import { CSPP_LABS } from "./pm-cspp";
 // REQ-173: ABPTS Clinical Electrophysiologic Specialist.
 import { ABPTSECS_LABS } from "./pt-abpts-ecs";
+// REQ-174: NREMT EMS courses.
+import { NREMTEMT_LABS } from "./ems-emt";
+import { NREMTEMR_LABS } from "./ems-emr";
+// REQ-182
+import { NREMTPARAMEDIC_LABS } from "./ems-paramedic";
+import { NREMTAEMT_LABS } from "./ems-aemt";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -133,6 +141,7 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   NPTEPT_LABS,
   NPTEPTA_LABS,
   DPT_LABS,
+  PTPREREQ_LABS,
   CAPM_LABS,
   PMIACP_LABS,
   PMIRMP_LABS,
@@ -229,4 +238,8 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   PMICPMAI_LABS,
   CSPP_LABS,
   ABPTSECS_LABS,
+  NREMTEMT_LABS,
+  NREMTEMR_LABS,
+  NREMTPARAMEDIC_LABS,
+  NREMTAEMT_LABS,
 ].map(withValueSources);

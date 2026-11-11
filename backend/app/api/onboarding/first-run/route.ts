@@ -1,6 +1,7 @@
+import { legalContext } from "@/lib/legal";
 import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { visibleTrack } from "@/lib/visibility";
+import { startableTrack } from "@/lib/visibility";
 import { completeFirstRun, onboardingState } from "@/lib/onboarding";
 
 export const dynamic = "force-dynamic";
@@ -21,12 +22,12 @@ export async function POST(req: Request) {
     }
     let trackId: string | null = null;
     if (rawTrack) {
-      const track = await visibleTrack(rawTrack, user.id);
+      const track = await startableTrack(rawTrack, user.id); // REQ-194: not a hidden course
       if (!track) return notFound("Track not found");
       trackId = track.id;
     }
     await completeFirstRun(user.id, { trackId, justExploring: trackId === null });
-    return ok(await onboardingState(user.id));
+    return ok(await onboardingState(user.id, legalContext(req)));
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

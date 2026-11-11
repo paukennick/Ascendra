@@ -115,7 +115,7 @@ export async function tryItLab(userId: string, objectiveId: string): Promise<Try
   const objective = await findLabObjective(objectiveId, userId);
   const prompt = objective?.lab_prompt?.trim();
   if (!objective || !prompt) return null;
-  if (await featureLock(userId, LABS_FEATURE)) return null;
+  if (await featureLock(userId, LABS_FEATURE, { objectiveId: objective.id })) return null;
   if (await objectiveHasLab(userId, objective)) return null;
   const family = labSafetyFamily(await coachContextForObjective(objective.id));
   if (family !== "general" && !(await hasAcceptedStudyNotice(userId))) return null;
@@ -129,7 +129,7 @@ export async function tryItLab(userId: string, objectiveId: string): Promise<Try
 // GET /api/labs?objectiveId= (locked ones included: they are listed too).
 // The caller has already checked the objective is visible to this learner.
 export async function objectiveHasLab(userId: string, objective: LabObjective): Promise<boolean> {
-  if (objective.lab_prompt?.trim() && !(await featureLock(userId, LABS_FEATURE))) return true;
+  if (objective.lab_prompt?.trim() && !(await featureLock(userId, LABS_FEATURE, { objectiveId: objective.id }))) return true;
   return (await listLabs(userId, { objectiveId: objective.id })).length > 0;
 }
 

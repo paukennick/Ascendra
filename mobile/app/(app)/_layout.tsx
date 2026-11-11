@@ -1,8 +1,18 @@
 import { Stack } from "expo-router";
 import { colors, fonts } from "@/lib/theme";
 import { BillingProvider } from "@/billing/BillingContext";
+import { useAuth } from "@/auth/AuthContext";
+import { Loading } from "@/components/ui";
 
 export default function AppLayout() {
+  const { status } = useAuth();
+  // REQ-206 (FAIL-922): on a reload or a deep link every signed-in screen
+  // mounted at once and sent its requests before the session was restored from
+  // the refresh cookie (or before the launch lock was opened), so
+  // /account/sessions and others answered 401. The screens wait; the splash
+  // screen is still up for exactly this long (app/_layout.tsx), so nothing
+  // visible changes.
+  if (status === "loading" || status === "locked" || status === "retry") return <Loading label="Restoring your session..." />;
   // REQ-122: the plan (inert while paid plans are off) for every signed-in screen.
   return (
     <BillingProvider>
@@ -28,6 +38,8 @@ export default function AppLayout() {
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
       <Stack.Screen name="settings/mfa" options={{ title: "Two-factor authentication" }} />
       <Stack.Screen name="settings/reminders" options={{ title: "Study reminders" }} />
+      <Stack.Screen name="settings/emails" options={{ title: "Email" }} />
+      <Stack.Screen name="settings/study-profile" options={{ title: "Study profile" }} />
       <Stack.Screen name="whats-new" options={{ title: "What's new" }} />
       {/* REQ-119: one-tap Terms prompt and the first-run flow (no back: each finishes by moving on). */}
       <Stack.Screen name="agree" options={{ title: "Before you continue", headerBackVisible: false, gestureEnabled: false }} />
@@ -50,6 +62,14 @@ export default function AppLayout() {
       <Stack.Screen name="plans" options={{ title: "Plans" }} />
       <Stack.Screen name="settings/free-course" options={{ title: "Your free course" }} />
       <Stack.Screen name="settings/access" options={{ title: "Access" }} />
+      {/* REQ-206 (FAIL-936): these had no entry, so the header read the file path
+          ("settings/discount") until the screen set its own title. */}
+      <Stack.Screen name="settings/discount" options={{ title: "Verified discount" }} />
+      <Stack.Screen name="support" options={{ title: "Support" }} />
+      <Stack.Screen name="course/[trackId]/labs" options={{ title: "Labs" }} />
+      <Stack.Screen name="course/[trackId]/lab/[labId]" options={{ title: "Lab" }} />
+      <Stack.Screen name="course/[trackId]/sims" options={{ title: "Simulations" }} />
+      <Stack.Screen name="course/[trackId]/sim/[simId]" options={{ title: "Simulation" }} />
     </Stack>
     </BillingProvider>
   );

@@ -50,11 +50,11 @@ export const ITEM_WRITING_RULES = `Item-writing rules for every question with op
 export const uncertaintySchemaFields = {
   confidence: z
     .enum(["high", "medium", "low"])
-    .describe("How sure you are that every fact and the answer key are accurate and current for this exam version."),
+    .describe("How sure you are that every fact and the answer key are accurate and current for this exam version. Rate \"low\" only when the answer key or a central fact is in doubt: low is held back for review rather than shown to learners."),
   uncertainClaims: z
     .array(z.string())
     .describe(
-      "Every specific claim in this output you are NOT sure is accurate and current for this exam version (a product name, limit, default, price, version detail). Empty when you are sure of all of them. Content listing any is held back for review rather than shown to learners."
+      "Every specific claim in this output you are NOT sure is accurate and current for this exam version (a product name, limit, default, price, version detail). Empty when you are sure of all of them. Listing a claim does not hold content back by itself (they are logged for review); rate confidence \"low\" if the answer key or a central fact is in doubt."
     ),
 };
 export const UNCERTAINTY_JSON = `"confidence": "high" | "medium" | "low",
@@ -91,6 +91,27 @@ export function quoteTitle(title: string): string {
   return JSON.stringify(one.length > 160 ? `${one.slice(0, 157)}...` : one);
 }
 
+// REQ-220 (FAIL-1140): the reasoning model named in clinical framing
+// follows the profession. The healthcare category holds nursing, physical
+// therapy and EMS courses; a PT course was told to reason by "the nursing
+// process".
+const NURSING_SUBCATEGORIES = new Set([
+  "nclex-preparation",
+  "nursing-licensure",
+  "nursing-degrees",
+  "nursing-specialty-certifications",
+  "advanced-practice-nursing",
+  "patient-care-fundamentals",
+]);
+export function clinicalReasoningFrame(subcategorySlug: string | null | undefined): string {
+  if (subcategorySlug === "physical-therapy")
+    return "the physical therapy patient/client management model -- examination, evaluation, diagnosis, prognosis, plan of care, intervention and outcomes -- and the physical therapist's or assistant's scope";
+  if (subcategorySlug === "emergency-medical-services")
+    return "scene safety, the primary assessment with life threats treated as found, then history, secondary assessment and reassessment, within the EMS provider's scope";
+  if (subcategorySlug && NURSING_SUBCATEGORIES.has(subcategorySlug)) return "the nursing process or clinical-reasoning cycle";
+  return "the profession's own clinical-reasoning model and scope of practice";
+}
+
 export function domainFraming(ctx?: CoachContext): string {
   if (!ctx) return "";
   const lines: string[] = [];
@@ -108,8 +129,21 @@ export function domainFraming(ctx?: CoachContext): string {
     lines.push(
       "This is clinical exam-preparation content, not clinical guidance for a real patient. Align to the " +
         "published content outline, use standard clinical terminology, and reason the way the exam expects " +
-        "(safety and priority first; the nursing process or clinical-reasoning cycle; evidence-based " +
+        `(safety and priority first; ${clinicalReasoningFrame(ctx.subcategorySlug)}; evidence-based ` +
         "practice). Where real guidelines vary by jurisdiction or institution, say so rather than asserting one."
+    );
+  }
+  // REQ-224: mental health licensure (EPPP first). Frank clinical material
+  // is allowed (the learner confirmed 18+, lib/mature-content.ts), but it is
+  // exam preparation, and duties such as warning and reporting vary by law.
+  if (ctx.categorySlug === "mental-health") {
+    lines.push(
+      "This is mental health licensure exam-preparation content (psychology, counseling, social work), not clinical, " +
+        "legal or crisis advice for a real person. Align to the published content outline and the current ethics code " +
+        "and DSM-5-TR terminology. Discuss suicide, abuse, violence and trauma factually and clinically, as the exam " +
+        "tests them, without gratuitous detail. Where a duty (to warn or protect, to report abuse, consent for minors) " +
+        "differs by jurisdiction, say so rather than asserting one rule. If the learner seems to be writing about their " +
+        "own crisis, stop the exercise and point them to local emergency services or a crisis line such as 988 in the US."
     );
   }
   // REQ-114 (Audit 3 M7): fitness tracks teach exercise for special
@@ -127,6 +161,10 @@ export function domainFraming(ctx?: CoachContext): string {
   if (ctx.unitWeight != null && ctx.unitWeight > 0) {
     lines.push(`The current unit carries ${ctx.unitWeight}% of the exam's weight.`);
   }
+  // REQ-187 (R10): the dated facts the course is built on, from the seed
+  // (lib/current-facts.ts), so the model does not fall back on a remembered
+  // older or newer exam version, plan or year.
+  if (ctx.currentFacts) lines.push(ctx.currentFacts);
   return lines.length ? `\n\n${lines.join("\n")}` : "";
 }
 
@@ -141,7 +179,9 @@ Rules, always:
 - Require reasoning before revealing a full solution where the flow calls for it (guess-before-teach).
 - A multiple-choice or recognition-level answer alone never earns "Independent" or "Transfer-ready" —
   those require the learner can define the idea, apply it to something new, explain why it works, and
-  name its limits/tradeoffs.
+  name its limits/tradeoffs. How the app levels (REQ-218): Independent also needs a second correct answer
+  on their own at least 24 hours after the first, and Transfer-ready needs correct unassisted answers in
+  two kinds of question at least three days apart. If the learner asks why a level hasn't moved, say so.
 - CRITICAL grading rule for any multi-part question (a scenario, a PBQ, a diagnostic item with several
   sub-asks): grade EVERY sub-part explicitly and by name. If only some sub-parts are addressed, say
   PLAINLY AND SPECIFICALLY which sub-part(s) were missed. Never grade past a missed sub-part by
@@ -459,6 +499,8 @@ export function lessonIntroPrompt(params: {
   objectiveTitle: string;
   avoid?: LessonAvoid;
   ctx?: CoachContext;
+  // REQ-187 (P8): on the one retry of held-back teaching text, what to avoid.
+  steer?: string;
 }): { system: SystemPrompt; user: string } {
   const system = systemWithRules(
     `You are generating the guess-and-teach half of cached lesson content for ONE learning objective, to
@@ -470,7 +512,7 @@ straight explanation.`,
 
   const user = `Course/track: ${params.trackTitle}
 Unit: ${params.unitTitle}
-Objective: ${params.objectiveTitle}${avoidPreviousBlock(params.avoid)}
+Objective: ${params.objectiveTitle}${avoidPreviousBlock(params.avoid)}${params.steer ? `\n\n${params.steer}` : ""}
 
 The teaching is shown as four short cards the learner moves through one at a time on a phone, so
 keep each card short and self-contained. Together they must still define every named term, say why it
@@ -577,6 +619,20 @@ const FEEDBACK_RULES =
   "specific misconception behind it and why it fails in this case. For the right option, say why it is right. One " +
   "short sentence each; never just 'incorrect'.";
 
+export const verificationSchema = z
+  .object({
+    language: z.enum(["python", "javascript"]),
+    code: z
+      .string()
+      .describe("A short self-contained program that recomputes the soloCheck answer and prints ONE line: the answer. Python may import the standard library and sympy; JavaScript uses no imports. No network, files or input."),
+    expected: z.string().describe("Exactly what the program prints for the correct answer, matching the correct choice."),
+  })
+  .nullable()
+  .describe("Only when asked for in the request and the soloCheck answer is a computation (a value, count, complexity or program output); null otherwise.")
+  // Required in the schema the API enforces; a stored or mocked output
+  // without it parses as null.
+  .default(null);
+
 export const lessonPracticeSchema = z.object({
   fadeProblem: z
     .string()
@@ -615,6 +671,10 @@ export const lessonPracticeSchema = z.object({
     .array(z.string())
     .length(4)
     .describe("Same as fadeOptionReasons, one short explanation per soloChoices entry, same order."),
+  // REQ-187 (R4/P7): verify by execution. Only asked for on academic and
+  // developer courses (lib/verify-execution.ts wantsVerification); null
+  // otherwise, and whenever a key is not a computation.
+  soloVerification: verificationSchema,
   ...uncertaintySchemaFields,
 });
 // The option reasons are optional in the type (the schema still requires
@@ -622,10 +682,12 @@ export const lessonPracticeSchema = z.object({
 // and saveLesson stores null rather than a list that doesn't match the choices.
 export type LessonPracticeContent = Omit<
   z.infer<typeof lessonPracticeSchema>,
-  "fadeOptionReasons" | "soloOptionReasons" | "confidence" | "uncertainClaims"
+  "fadeOptionReasons" | "soloOptionReasons" | "confidence" | "uncertainClaims" | "soloVerification"
 > & {
   fadeOptionReasons?: string[];
   soloOptionReasons?: string[];
+  // REQ-187: checked before storing, never stored (lib/verify-execution.ts).
+  soloVerification?: z.infer<typeof verificationSchema>;
   confidence?: "high" | "medium" | "low";
   uncertainClaims?: string[];
 };
@@ -640,6 +702,8 @@ export function lessonPracticePrompt(params: {
   ctx?: CoachContext;
   // REQ-114: on the one retry of a held-back practice half, what to avoid.
   steer?: string;
+  // REQ-187: ask for a soloVerification program (academic and dev courses).
+  verify?: boolean;
 }): { system: SystemPrompt; user: string } {
   const system = systemWithRules(
     `You are generating the practice half of cached lesson content for ONE learning objective, to be
@@ -650,8 +714,8 @@ free-response question on their own AND carry a matching multiple-choice version
 question (fadeChoices/soloChoices) — the learner picks which format to answer in, every time they see it,
 so neither version can depend on the other to make sense.
 
-Both questions must make the learner apply the idea, not recognise a word from the teaching. Before
-finalising, check every clue in each question against the right answer: if any detail would point a
+Both questions must make the learner apply the idea, not recognize a word from the teaching. Before
+finalizing, check every clue in each question against the right answer: if any detail would point a
 knowledgeable reader to a different answer, change the detail. Stay within what the teaching text below
 covers and what is accurate for this course.
 
@@ -684,6 +748,7 @@ Produce ONLY a JSON object with exactly these fields, no prose outside the JSON,
   "soloWhy": "one short sentence",
   "fadeOptionReasons": ["exactly 4 entries, ONE short sentence each, same order as fadeChoices: why the correct one is right; for each wrong one, the misconception it reflects and why it fails"],
   "soloOptionReasons": ["same shape as fadeOptionReasons, for soloChoices"],
+  "soloVerification": ${params.verify ? `{"language": "python" | "javascript", "code": "a short program that recomputes the soloCheck answer and prints only that answer", "expected": "exactly what it prints"} when the soloCheck answer is a computation (a value, count, complexity or program output); otherwise null` : "null"},
   ${UNCERTAINTY_JSON}
 }`;
 
@@ -807,7 +872,11 @@ export function pbqGenerationPrompt(params: {
     `You are generating a performance-based-question (PBQ) style scenario: a realistic, multi-part
 scenario with 2-4 named sub-tasks in one prompt, the closest a text-based app gets to a real
 certification PBQ. It will be graded holistically against every sub-task, so each sub-task must be
-independently identifiable and answerable from the scenario as written.`,
+independently identifiable and answerable from the scenario as written.
+The organization, people and setting are invented, so they are not claims. In uncertainClaims list only
+a fact the scenario or its expected answer depends on that could be wrong (a port, a setting, a control
+type, a dosage, a step order). Do not list that a term or label is paraphrased from the exam outline or
+might be worded differently elsewhere; use the exam's standard terminology instead.`,
     params.ctx
   );
   const user = `Track: ${params.trackTitle}
@@ -942,7 +1011,7 @@ export const CHAT_GUARDRAILS = `Guardrails for this thread, always:
 - Stay on this course's subject. If asked about something unrelated, say briefly that you are here
   for this course and steer back to it.
 - Keep an encouraging tone: treat a mistake as information about what to practice next, never as a
-  judgement of the learner. Be honest about errors, specific about the fix, and keep the next step small.`;
+  judgment of the learner. Be honest about errors, specific about the fix, and keep the next step small.`;
 
 // REQ-106 (research #7): the optional hands-on lab on a lesson's Done card.
 // After doing it the learner answers up to three short report questions.

@@ -1,0 +1,522 @@
+// REQ-162 (docs/sims.md 4.1, 5.2, 8.2, 9.1): the scenario document and the
+// engine's public shapes. These types are the source of truth; the zod schema
+// in backend/lib/sim/schema.ts must stay mutually assignable with them
+// (lib/sim/schema-conformance.test.ts). Rules for this folder: erasable
+// TypeScript only, `.ts` on every relative import, no imports outside it.
+
+// Durations are strings with a unit ("90s", "8min", "2h", "7d") so authors
+// never confuse seconds and minutes. Every duration must be an exact multiple
+// of the clock tick. The tick itself is a whole number of seconds, at least 1.
+export type Duration = string;
+export type Expr = string; // the expression language, docs/sims.md 4.3
+export type Template = string; // plain text with {expr|format} slots, never HTML
+export type Id = string; // ^[a-z][a-zA-Z0-9_]{0,47}$
+export type Literal = number | boolean | string | Literal[] | { [k: string]: Literal };
+export type Unit = string; // "mmHg", "mL/h", "/min", "$", "pts", "%"; dimension-checked by the linter
+
+export interface Source {
+  cite: string;
+  url?: string;
+  note?: string;
+  checkedAt: string; // ISO date the author last checked the number against the source
+  recheckBy?: string; // default checkedAt + 12 months (+ 6 for clinical and cloud); excluded from the content hash
+}
+
+export interface ScenarioDoc {
+  schemaVersion: 1;
+  engine: { major: 1; minor: number }; // the MINIMUM engine: exactly this major, minor >= this
+  slug: string;
+  title: string;
+  screen: ScreenSpec;
+  objective: string;
+  secondaryObjectives?: string[];
+  sources: Source[];
+  brief: { situation: string; handover?: string[]; howItWorks?: string[] };
+  safetyNote?: string; // author-facing context only; never shown as a disclaimer (REQ-165: one study notice covers every sim)
+  clock: {
+    start: string; // "14:00", or "2027-02-01T09:00" for dated sims; display only
+    tick: Duration;
+    maxDuration: Duration; // hard stop -> the "time_up" ending
+    calendar?: "clock" | "date" | "week";
+  };
+  random?: { streams: Id[] };
+  params: Record<Id, Param>;
+  catalogs?: Record<Id, Catalog>;
+  state: Record<Id, StateVar>;
+  history?: Record<Id, History>;
+  derived: Record<Id, Derived>;
+  processes: Process[];
+  tables?: Record<Id, Table>;
+  phases: Record<Id, Phase>;
+  initialPhase: Id;
+  actions: Record<Id, Action>;
+  timers: Record<Id, TimerSpec>;
+  triggers: Trigger[];
+  prompts?: Record<Id, Prompt>;
+  reasoning: Record<Id, ReasoningMoment>;
+  outcome: OutcomeSpec;
+  endings: Record<Id, Ending>; // must include "time_up"
+  // REQ-227 (FAIL-1222), engine minor 2: the order endings are checked in,
+  // first true wins. Without it the engine uses the key order of `endings`,
+  // which a jsonb column does not keep (shorter keys first), so on the server
+  // and in the app the same document could end differently. Lists every
+  // ending that has a `when` exactly once (never time_up); required from
+  // minor 2 whenever two or more endings have a `when`.
+  endingOrder?: Id[];
+  scoring: Scoring;
+  // REQ-209 (docs/sims.md 5.4a-5.4e). Optional, clinical and fitness scenarios
+  // with a `running` phase only (lint), engine minor 1 (FEATURE_MINOR).
+  focusedStart?: FocusedStart;
+  chapters?: Chapter[];
+  teaching?: Record<Id, TeachingPrompt>;
+}
+
+// A start point the learner may choose at launch: the run begins at `at`,
+// reached by evolving the normal start with no learner actions (the `begin`
+// command), never from a hand-written state.
+export interface FocusedStart {
+  label: string; // "Start near the deterioration"
+  summary: string; // one line for the launch card: what has happened by then
+  at: Duration; // sim time since the clock start; a multiple of the tick
+  source: Source; // why this is the right moment
+}
+
+// A natural break: when `when` first holds the app offers "Continue" or
+// "Save and finish later". Display and log only; it never changes state.
+export interface Chapter {
+  id: Id;
+  label: string; // "Surgeon at the bedside"
+  when: Expr;
+}
+
+// A short prediction or reasoning prompt shown while the named wait runs.
+// Answered by choice (no model call) and not scored: the answer is logged
+// for the debrief only.
+export interface TeachingPrompt {
+  during: Id; // a timer with a `wait` that must be pending
+  when?: Expr; // optional extra condition on the state
+  ask: string; // "What do you expect the CVP to do?"
+  choices: { id: Id; label: string }[]; // 2 to 4
+  expect: Id; // the choice the rationale supports
+  explain: string; // shown after the answer: the reasoning, in plain words
+  source: Source; // the sourced rationale (cite, url, note, checkedAt)
+}
+
+export interface Param {
+  value: Literal;
+  unit?: Unit;
+  source?: Source; // required by the linter for time, rate and threshold params
+}
+
+export interface Catalog {
+  fields: Record<Id, FieldSpec>;
+  entries: ({ id: string } & Record<Id, Literal>)[]; // at most 5,000 rows, ordered
+  source?: Source;
+}
+
+export type FieldSpec =
+  | { type: "number"; unit?: Unit }
+  | { type: "bool" }
+  | { type: "string"; max: number }
+  | { type: "enum"; values: string[] }
+  | { type: "list"; of: "number" | "string" };
+
+export type StateVar =
+  | { type: "number"; init: number | Expr; unit?: Unit; min: number; max: number }
+  | { type: "bool"; init: boolean }
+  | { type: "enum"; values: string[]; init: string }
+  | { type: "set"; of: string[]; init: string[] }
+  | { type: "time"; init: null }
+  | { type: "records"; fields: Record<Id, FieldSpec>; max: number; init: Record<string, Literal>[] };
+
+export interface History {
+  of: Expr; // number-valued; may not read history
+  every: Duration; // sample interval (multiple of the tick)
+  keep: Duration; // how far back; at most 1,000 samples
+}
+
+export interface Derived {
+  expr: Expr;
+  unit?: Unit;
+  precision?: number; // display only
+}
+
+export interface Process {
+  id: Id;
+  when?: Expr;
+  update: Record<Id, Expr>; // every right-hand side reads the same state, then all writes happen
+}
+
+export interface Table {
+  rows: { when: Expr; then: Record<Id, Expr>; text?: Template }[];
+}
+
+export interface Phase {
+  label: string;
+  actions: Id[];
+  clock: "running" | "turns" | "stopped";
+}
+
+export interface Action {
+  label: string;
+  group: string;
+  available?: Expr;
+  why?: Template;
+  params?: ActionParam[];
+  effects: Effect[];
+}
+
+export interface Option {
+  value: string;
+  label: string;
+}
+
+// How a command carries each param kind (Command.params, docs/sims.md 5.2):
+//   choice   params[id] = the option value; bound as a string-enum name `id`
+//   form     params[fieldId] = the option value for each field; each field is
+//            bound by its own bare id (the spec's `S == "stop"`)
+//   slot     params[id] = the catalogue entry id, params[`${id}.slot`] = the
+//            slot; bound as a record `{ id, slot }` (`place.id`, `place.slot`)
+//   pick     params[id] = the record's `_id` (a number), or for max > 1 a
+//            string of `_id`s joined by ","; bound as a record (or records)
+//   command  params[id] = the typed line; bound as a record `{ text, matched }`
+//            so `cmd.text` is the line and `cmd.matched` the string-enum of
+//            pattern ids plus "none"; captures are bare names inside the
+//            matched pattern's cases only
+//   query    params[id] = the search text; bound as a string
+export type ActionParam =
+  | { id: Id; kind: "choice"; label: string; options: Option[] }
+  | { id: Id; kind: "form"; label: string; fields: { id: Id; label: string; options: Option[] }[] }
+  | { id: Id; kind: "slot"; label: string; catalog: Id; slots: string[] }
+  | { id: Id; kind: "pick"; label: string; from: Expr; show: Template; max?: number }
+  | { id: Id; kind: "command"; label: string; maxLength: 200; patterns: CommandPattern[]; unmatched: Template }
+  | { id: Id; kind: "query"; label: string; fields: Id[]; maxLength: 200 };
+
+export interface CommandPattern {
+  id: Id;
+  pattern: string; // "ping {host:ipv4}", "show ip route"; capture types word, int, ipv4, cidr, enum(a|b|c)
+  cases: { when: Expr; then: Effect[] }[]; // first match; the last case must be unconditional
+}
+
+export type Effect =
+  | { set: Id; to: Expr }
+  | { add: Id; by: Expr }
+  | { push: Id; value: Expr | Record<Id, Expr> }
+  | { update: Id; where: Expr; set: Record<Id, Expr> }
+  | { remove: Id; where: Expr }
+  | { schedule: Id; after: Expr | Duration; with?: Record<Id, Expr> }
+  | { cancel: Id; where?: Expr }
+  | { log: Template; kind?: "act" | "find" | "sys" | "good" | "bad" | "alarm" }
+  | { finding: Template }
+  | { output: Template | TableView }
+  | { phase: Id }
+  | { prompt: Id }
+  | { reason: Id }
+  | { end: Id }
+  | { table: Id; into?: Id }
+  | { if: Expr; then: Effect[]; else?: Effect[] }
+  | { cases: { when: Expr; then: Effect[] }[] }
+  | { each: Id; in: Expr; do: Effect[] };
+
+export interface TableView {
+  rows: Expr; // records- or catalogue-valued
+  columns: { label: string; value: Expr; format?: string }[];
+}
+
+export interface TimerSpec {
+  label: Template;
+  // routine (REQ-209): a recurring check, not a change (the q15 drainage
+  // check). It stays skippable by hand but is never what the calm-skip offer
+  // skips to, and the lint's "a wait is pending at every tick" warning ignores it.
+  wait?: { skipLabel: Template; routine?: boolean };
+  instances: "one" | "many";
+  interruptsSkip?: boolean;
+  with?: Record<Id, FieldSpec>;
+  source: Source;
+  effects: Effect[];
+}
+
+export interface Trigger {
+  id: Id;
+  when: Expr;
+  mode: "once" | "edge";
+  interruptsSkip?: boolean;
+  effects: Effect[];
+}
+
+export interface Prompt {
+  title: string;
+  context: Template;
+  choices: { id: Id; label: string; effects: Effect[]; feedback?: Template }[];
+}
+
+export interface ReasoningMoment {
+  trigger?: Expr;
+  question: string;
+  parts: { label: string; criteria: string; modelAnswer: string }[]; // server-only
+  pausesClock: true;
+}
+
+export type OutcomeClass = "target" | "recovered" | "harm";
+// REQ-225: "clinical-session" is the people-layer profile (docs/sims.md 9.2,
+// 20.2): a session with a client, where the outcome is what the session left
+// the client with (safety, protection, the right diagnosis, the alliance).
+export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session";
+
+export interface OutcomeSpec {
+  profile: OutcomeProfile;
+  thresholds: Record<Id, { value: number; source: Source }>; // bound as names in expressions; never looser than the profile default
+  // docs/sims.md 9.2: "safe but little or no progress" is classified per case,
+  // never by a family default. The condition is the end state that means the
+  // goal was not meaningfully reached; the class is what the scenario gives
+  // it; the rationale says why, with a source. The linter requires it.
+  noProgress: { when: Expr; class: OutcomeClass; rationale: string; source: Source };
+}
+
+export interface Ending {
+  label: string;
+  class?: OutcomeClass; // required on every terminal ending, time_up included
+  when?: Expr; // required on every terminal ending EXCEPT time_up, which must not have one
+  narrative: Template;
+  terminal: boolean;
+  phase?: Id; // a non-terminal ending is a branch point: the phase it moves to (required when terminal is false)
+}
+
+export interface ScreenSpec {
+  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data";
+  level?: number;
+  bedside?: {
+    tiles: {
+      id: Id;
+      label: string;
+      spokenLabel: string;
+      value: Expr | [Expr, Expr];
+      unit: Unit;
+      sub?: Template;
+      alarm?: { low?: number; high?: number };
+      trend?: { history: Id; window: Duration; threshold: number };
+      announce: { bands: number[] };
+      colour: "ecg" | "art" | "cvp" | "pa" | "spo2" | "neutral";
+      hiddenUntil?: Expr;
+    }[];
+    waveforms?: { kind: "ecg" | "art" | "pleth"; from: { hr: Id; sys?: Id; dia?: Id; flat?: Expr } }[];
+    infusions?: Template;
+    banner?: { when: Expr; text: Template }[];
+  };
+  // REQ-190: the architecture board's topology, display-only like the
+  // bedside tiles. Each zone (an edge, a subnet per AZ, a Region, an
+  // account) lists the items whose `when` holds on the current state;
+  // meters are short read-outs (cost, availability). The renderer evaluates
+  // the bindings; it never holds a rule of its own (docs/sims.md 3, 8.2).
+  board?: {
+    zones: { id: Id; label: string; spokenLabel: string; items: { label: Template; when: Expr }[] }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
+  // REQ-225: the client session (the people layer, docs/sims.md 8.2, 20.2),
+  // display-only like the board. The client's name and how they present now
+  // (a template over state); gauges are numeric client states read in words
+  // (rapport, distress, disclosure), each value banded by `bands` into
+  // `words` (one more word than bands); notes are what the clinician knows
+  // so far, shown while `when` holds, `alert` marking one the screen reader
+  // must hear at once (imminent risk); the record is the documentation so far.
+  session?: {
+    client: { name: string; presentation: Template };
+    gauges: { id: Id; label: string; spokenLabel: string; value: Expr; max: number; bands: number[]; words: string[] }[];
+    notes?: { id: Id; label: string; text: Template; when?: Expr; alert?: Expr }[];
+    record?: { label: string; items: { label: Template; when: Expr }[] };
+  };
+}
+
+export type CriterionScore = "met" | "partial" | "missed";
+// REQ-190: a criterion row may also score "na" (not applicable), left out of
+// the process score's numerator and denominator, like a grader failure (9.1).
+// A spliced module's criteria use it when the module never ran (a code
+// criterion in a run with no arrest). Reasoning grades never use it.
+export type CriterionRowScore = CriterionScore | "na";
+
+export interface Scoring {
+  criteria: {
+    id: Id;
+    label: string;
+    weight: number;
+    critical?: boolean;
+    rows: { when: Expr; score: CriterionRowScore; why: Template }[]; // first match
+  }[];
+  reasoningCriteria: { moment: Id; label: string; weight: number; critical?: boolean }[];
+  kpis: { id: Id; label: string; value: Expr; format: "duration" | "number" | "usd"; expert?: string }[];
+  expertPath: { at: string; text: string }[];
+  debrief: Record<Id, { headline: string; body: Template }>;
+  modelReasoning: string;
+}
+
+// ---- Commands (docs/sims.md 5.2) ----
+
+export type CommandParams = Record<string, string | number>;
+
+export type Command =
+  | { seq: number; tick: number; type: "act"; action: Id; params?: CommandParams }
+  | { seq: number; tick: number; type: "choose"; prompt: Id; choice: Id }
+  | { seq: number; tick: number; type: "skip"; timer: Id; instance: number; to: number; calm?: true }
+  | { seq: number; tick: number; type: "pause"; reason: "learner" | "background" | "stall" | "idle" }
+  | { seq: number; tick: number; type: "resume" }
+  | { seq: number; tick: number; type: "reason"; moment: Id; answered: boolean }
+  | { seq: number; tick: number; type: "end"; reason: "learner_quit" }
+  // REQ-209: none of these four changes sim state (like pause/resume); they
+  // exist so the server can account for wall time and the debrief can report.
+  | { seq: number; tick: number; type: "pace"; pace: Pace }
+  | { seq: number; tick: number; type: "begin"; start: "focused" } // only seq 1 at tick 0
+  | { seq: number; tick: number; type: "teach"; prompt: Id; choice: Id }
+  | { seq: number; tick: number; type: "chapter"; chapter: Id; choice: "continue" | "later" };
+
+// Wall-clock pacing of a running phase: 3 = "Study pace" (default), 1 = "Exam
+// realism". Sim time, physiology and every delay stay in sim seconds.
+export type Pace = 1 | 3;
+
+// ---- Engine values and run state ----
+
+export type RecordValue = { _id: number; [field: string]: number | boolean | string | (number | string)[] };
+
+export type Value = number | boolean | string | null | Value[] | RecordValue | { [k: string]: Value };
+
+export interface TimerInstance {
+  id: number;
+  timer: Id;
+  due: number;
+  with: Record<string, Value>;
+}
+
+export interface LogEntry {
+  tick: number;
+  kind: "act" | "find" | "sys" | "good" | "bad" | "alarm" | "skip" | "pause";
+  text: string;
+}
+
+export interface OutputBlock {
+  tick: number;
+  text?: string;
+  table?: { columns: string[]; rows: string[][] };
+}
+
+export interface SkipRecord {
+  seq: number;
+  from: number;
+  to: number; // the tick the skip stopped at
+  target: number;
+  timer: Id;
+  instance: number;
+  stoppedBy: string | null;
+  calm?: true; // present only when the learner took the calm-skip offer
+}
+
+export interface RunEnd {
+  ending: Id | null; // null when the learner quit
+  class: OutcomeClass | null;
+  tick: number;
+  reason: "ending" | "time_up" | "learner_quit" | "engine_error";
+  detail?: string;
+}
+
+// Everything the state hash covers and a checkpoint restores. Plain data
+// only, so it can be cloned and serialised without engine code.
+export interface SimState {
+  tick: number;
+  phase: Id;
+  vars: Record<Id, Value>;
+  recordCounters: Record<Id, number>;
+  history: Record<Id, number[]>;
+  timers: TimerInstance[]; // sorted by (due, id)
+  timerCounter: number;
+  streams: Record<Id, number>; // mulberry32 state per stream
+  triggerPrev: boolean[]; // one per trigger, document order
+  triggerFired: boolean[];
+  firedEndings: Id[]; // non-terminal endings already fired
+  openPrompt: Id | null;
+  openReasoning: Id | null;
+  reasoningOpened: Id[]; // every moment opened so far (once each)
+  ended: RunEnd | null;
+}
+
+export interface Checkpoint {
+  engine: string; // ENGINE_VERSION
+  tick: number;
+  lastSeq: number;
+  state: SimState;
+  log: LogEntry[];
+  outputs: OutputBlock[];
+  findings: { tick: number; text: string }[];
+  skips: SkipRecord[];
+  commands: Command[];
+  realtimeTicks: number;
+  skippedTicks: number;
+  evaluations: number;
+  // REQ-209, absent in a checkpoint taken before it (read as all 1x, no
+  // focused start): real-time ticks by logged pace, and the tick a focused
+  // start began the run at (0 = a full case).
+  paceTicks?: { 1: number; 3: number };
+  focusedAt?: number;
+}
+
+export interface WaitInfo {
+  timer: Id;
+  instance: number;
+  due: number;
+  label: string;
+  skipLabel: string;
+  routine?: boolean; // present (true) only for a routine wait
+}
+
+export type Rating = "good" | "mediocre" | "bad";
+
+export interface CriterionResult {
+  id: Id;
+  label: string;
+  weight: number;
+  critical: boolean;
+  score: CriterionRowScore;
+  why: string;
+}
+
+export interface ReasoningGrade {
+  moment: Id;
+  score: CriterionScore | "grader_failed";
+}
+
+export interface DebriefData {
+  ending: Id | null;
+  endingLabel: string;
+  outcomeClass: OutcomeClass | null;
+  rating: Rating | null;
+  processScore: number | null;
+  criteria: CriterionResult[];
+  reasoning: { moment: Id; label: string; weight: number; critical: boolean; score: CriterionScore | "grader_failed" }[];
+  kpis: { id: Id; label: string; value: string; raw: Value; expert?: string }[];
+  headline: string;
+  body: string;
+  timeline: { tick: number; time: string; text: string; kind: "act" | "choose" | "skip" | "pause" | "resume" | "reason" | "end" | "pace" | "begin" | "teach" | "chapter" }[];
+  skippedTicks: number;
+  realtimeTicks: number;
+  skips: number;
+  pausedSeconds: number;
+  // REQ-209, only on a run that used the feature. The timeline above is in
+  // sim time throughout; these say how it was paced and what was offered.
+  pacing?: DebriefPacing;
+  focusedStart?: { tick: number; time: string; label: string };
+  calmSkips?: number;
+  teaching?: { prompt: Id; ask: string; chosen: string; expected: string; matched: boolean }[];
+  chapters?: { chapter: Id; label: string; choice: "continue" | "later"; time: string }[];
+  seed: number;
+  expertPath: { at: string; text: string }[];
+  modelReasoning: string;
+}
+
+// How a run was paced (REQ-209). Wall time only: nothing here changes a score.
+export interface DebriefPacing {
+  startPace: Pace;
+  finalPace: Pace;
+  changes: number;
+  studyTicks: number; // real-time ticks played at 3x
+  examTicks: number; // real-time ticks played at 1x
+  note: string; // the sentence the debrief shows
+}
+
+export type Problem = { level: "error" | "warning"; path: string; message: string };

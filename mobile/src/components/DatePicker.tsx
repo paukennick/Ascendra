@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SheetModal } from "@/components/SheetModal";
 import Feather from "@expo/vector-icons/Feather";
 import { Button, MIN_TOUCH } from "@/components/ui";
 import { addMonths, longDate, monthGrid, monthTitle, parseIso, weekdayNames } from "@/lib/datePicker";
@@ -86,7 +87,7 @@ function MonthSheet({
   const atMin = !!minMonth && month.y * 12 + month.m0 <= minMonth.y * 12 + minMonth.m0;
 
   return (
-    <Modal transparent visible animationType={isReducedMotion() ? "none" : "fade"} onRequestClose={onCancel}>
+    <SheetModal transparent visible animationType={isReducedMotion() ? "none" : "fade"} onRequestClose={onCancel}>
       <Pressable style={styles.backdrop} onPress={onCancel} accessibilityRole="button" accessibilityLabel={t("date.cancel")}>
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
           <View style={styles.header}>
@@ -152,7 +153,7 @@ function MonthSheet({
           <Button label={t("date.cancel")} variant="ghost" onPress={onCancel} />
         </Pressable>
       </Pressable>
-    </Modal>
+    </SheetModal>
   );
 }
 

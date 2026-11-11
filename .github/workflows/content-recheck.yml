@@ -1,0 +1,92 @@
+# REQ-187 (audit 2026-11-09 R6), sandboxed by REQ-196: re-run the fact-check
+# on every still-served lesson check and keyed item stored before the
+# 2026-11-07 gate, and STAGE (item_holdbacks) the ones the checker does not
+# agree with (backend/lib/recheck-stored.ts). Staging changes nothing a
+# learner sees: each finding waits for a person to run
+# `npm run items -- confirm | clear` (backend/scripts/item-quality.ts).
+#
+# Manual only (Actions tab -> Re-check pre-gate content -> Run workflow).
+#   mode estimate (default): no model call, no write; prints the item count
+#                            and the cost estimate.
+#   mode check:              makes the calls, writes nothing.
+#   mode apply:              makes the calls and stages the findings.
+# Every mode prints the estimate first. budget is a hard cap in USD for the
+# run (default 2, max 25): a call starts only if the run can afford the most
+# it could cost.
+#
+# Isolation (docs/content-review.md, "Sandboxed re-check"):
+#   - RECHECK_DATABASE_URL: a LOGIN member of the content_recheck role
+#     (migration 064): SELECT on content, INSERT on item_holdbacks and
+#     exec_check_runs, nothing else. The script refuses any role that can
+#     write item_status, attempts or content (lib/recheck-guard.ts).
+#   - RECHECK_ANTHROPIC_API_KEY: a key from a SEPARATE Claude Console
+#     workspace with its own spend limit, never the app's. Usage is tallied
+#     in the job and never written to ai_calls, so it cannot count toward
+#     learners' AI caps.
+#   - It never runs in the production request path.
+# Logs item ids and outcomes only.
+name: Re-check pre-gate content
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "estimate (no calls) | check (calls, no writes) | apply (calls, stage findings)"
+        type: choice
+        options: [estimate, check, apply]
+        default: estimate
+      budget:
+        description: "Hard cap in USD for this run (max 25)"
+        type: string
+        default: "2"
+      kinds:
+        description: "Comma-separated: lesson,review,quiz,exam,comparison"
+        type: string
+        default: lesson,review,quiz,exam,comparison
+      limit:
+        description: "At most this many items (blank: all)"
+        type: string
+        default: ""
+concurrency:
+  group: content-recheck
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  recheck:
+    name: Re-check (staging only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Check the secrets are set
+        env:
+          RECHECK_DATABASE_URL: ${{ secrets.RECHECK_DATABASE_URL }}
+          RECHECK_ANTHROPIC_API_KEY: ${{ secrets.RECHECK_ANTHROPIC_API_KEY }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          test -n "$RECHECK_DATABASE_URL" || { echo "::error::Add the repository secret RECHECK_DATABASE_URL (docs/content-review.md, 'Re-check database user')."; exit 1; }
+          if [ "$MODE" != "estimate" ] && [ -z "$RECHECK_ANTHROPIC_API_KEY" ]; then
+            echo "::error::Add the repository secret RECHECK_ANTHROPIC_API_KEY (a key from a separate Console workspace), or run mode estimate."
+            exit 1
+          fi
+      - run: npm ci
+      - name: Re-check content stored before the gate
+        env:
+          DATABASE_URL: ${{ secrets.RECHECK_DATABASE_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.RECHECK_ANTHROPIC_API_KEY }}
+          MODE: ${{ inputs.mode }}
+          BUDGET: ${{ inputs.budget }}
+          KINDS: ${{ inputs.kinds }}
+          LIMIT: ${{ inputs.limit }}
+        run: |
+          set -- --mode "$MODE" --budget "$BUDGET" --kinds "$KINDS"
+          if [ -n "$LIMIT" ]; then set -- "$@" --limit "$LIMIT"; fi
+          npm run items:recheck -- "$@"

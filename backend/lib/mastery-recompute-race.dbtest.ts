@@ -9,6 +9,7 @@
 //   UPDATE locks the row even when its WHERE skips the update).
 // FAIL-182: attempts of any kind counted as evidence.
 // FAIL-119: skipping 029b passed every status check.
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -81,6 +82,7 @@ async function setStale(objectiveId: string) {
 
 before(async () => {
   await query(`insert into app_users (id, email) values ($1, $2)`, [user, `rr-${run}@example.test`]);
+  await recordStudyNoticeAcceptance(user); // REQ-205: model routes need the notice
   await query(`insert into subject_tracks (id, code, title, track_type, user_id) values ($1, $2, 'RR', 'certification', $3)`, [
     track,
     `RR-${run}`,
@@ -175,7 +177,9 @@ describe("deploy gap: only lesson attempts are evidence (FAIL-182)", () => {
     await attempt(o, "quiz", "What is 1+1?", "2 days");
     await attempt(o, "lesson", "What is 2+2?", "0 seconds");
     await query(`select recompute_mastery($1)`, [user]);
-    assert.equal(await stored(o), "Independent");
+    // REQ-218: one lesson success is Guided until a later sitting confirms it;
+    // the forged quiz row is not that confirmation (nor a second format).
+    assert.equal(await stored(o), "Guided");
   });
 
   test("an objective with only other-kind attempts has no evidence", async () => {

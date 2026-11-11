@@ -8,9 +8,11 @@ import { source } from "../sources";
 // Business Needs and Solutions 26%, Identify Data Needs 26%, Manage AI Model
 // Development and Evaluation 16%, Operationalize AI Solution 17%. pmi.org's
 // PMI-CPMAI page, read 2026-11-09, still offers the exam (120 questions,
-// 160 minutes) and announces no change, but doesn't list domain weights;
-// the ECO PDF answered "not on allowlist" to this session, so the weights
-// rest on the track's 2026-09-27 reading of that PDF.
+// 160 minutes) and announces no change, but doesn't list domain weights.
+// The ECO PDF (pmicpmai-exam-content-outline2025-updated.pdf) was fetched
+// and re-read on 2026-11-09 and its weights match the ones above. AI
+// pattern names follow the Seven Patterns of AI that the ECO cites
+// (Cognilytica, read 2026-11-09).
 // Density ("hybrid"): 2 / 3 / 2 / 2 / 2 = 11 labs (7 build, 4 case).
 // Model metrics are worked in the model answers; no vendor product is
 // required.
@@ -34,13 +36,13 @@ export const PMICPMAI_LABS: SeedLabSet = {
       objective:
         "Conducting bias checks across model, data, and algorithm: demographic representation analysis, fairness testing, and bias-mitigation techniques",
       kind: "case",
-      title: "A screening model that favours one group",
+      title: "A screening model that favors one group",
       brief:
         "Harborview Credit Union (fictional) is piloting a model that recommends which loan applications go to fast-track approval. You manage the AI project.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "Pilot results: applicants aged under 30 make up 35% of applications but 12% of fast-track recommendations; applicants 30 and over are fast-tracked at 40%. Approval outcomes for both groups after full review are similar.",
+          text: "Pilot results: applicants aged under 30 make up 35% of applications and are fast-tracked at 10%; applicants 30 and over are fast-tracked at 40%. Approval outcomes for both groups after full review are similar.",
           ask: "What do you check to find out whether the model is biased?",
           parts: [
             part(
@@ -119,8 +121,8 @@ export const PMICPMAI_LABS: SeedLabSet = {
           parts: [
             part(
               "Patterns",
-              "1 predictive analytics (classification of churn); 2 conversational/generative (chatbot); 3 anomaly/pattern detection; 4 pattern recognition / clustering (unsupervised); 5 predictive analytics (time-series forecasting).",
-              "1 predictive analytics -- churn classification. 2 conversational AI. 3 patterns and anomalies -- fraud detection. 4 pattern recognition -- unsupervised clustering into segments. 5 predictive analytics -- sales forecasting."
+              "Uses the Seven Patterns of AI names: 1 predictive analytics and decision support (churn classification); 2 conversational/human interaction (chatbot); 3 patterns and anomalies (fraud detection); 4 patterns and anomalies (unsupervised clustering finds which customers belong together -- not recognition, which identifies things in unstructured data such as images or text); 5 predictive analytics and decision support (time-series forecasting).",
+              "1 predictive analytics and decision support -- churn classification. 2 conversational/human interaction -- a customer-service assistant. 3 patterns and anomalies -- fraud detection. 4 patterns and anomalies -- unsupervised clustering into segments nobody has defined. 5 predictive analytics and decision support -- sales forecasting."
             ),
             part(
               "Persona and problem statement",
@@ -180,22 +182,22 @@ export const PMICPMAI_LABS: SeedLabSet = {
       steps: [
         {
           text: "You find: door sensors log open/close times every trip; failures are recorded in a maintenance system as free text; there were 180 door failures across 300 trains in two years; maintenance planners say they could act on a two-week warning.",
-          ask: "Assess feasibility across technical, data and organisational readiness.",
+          ask: "Assess feasibility across technical, data and organizational readiness.",
           parts: [
             part(
               "Data",
               "Notes positives (sensor data exists) and gaps: free-text failure records need labelling/linking to sensor data; 180 failures is a small, imbalanced set; data quality and time alignment must be checked.",
-              "Sensor data is plentiful but failures are rare (180) and recorded as free text, so they must be labelled and matched to trains and dates -- labelling effort and class imbalance are the main risks."
+              "Sensor data is plentiful but failures are rare (180) and recorded as free text, so they must be labeled and matched to trains and dates -- labeling effort and class imbalance are the main risks."
             ),
             part(
-              "Technical and organisational",
-              "Judges the pattern technically plausible (anomaly detection or classification on sensor trends) with modest compute, and organisational readiness positive (planners will act) but notes skills/ownership needs.",
+              "Technical and organizational",
+              "Judges the pattern technically plausible (anomaly detection or classification on sensor trends) with modest compute, and organizational readiness positive (planners will act) but notes skills/ownership needs.",
               "Detecting slower door cycles before failure is a plausible pattern with modest compute. Planners are ready to act; the project needs a data engineer for the sensor pipeline and an owner in maintenance."
             ),
           ],
         },
         {
-          text: "Labelling a sample shows that only 60 failures can be linked confidently to sensor records.",
+          text: "Labeling a sample shows that only 60 failures can be linked confidently to sensor records.",
           ask: "What do you recommend?",
           parts: [
             part(
@@ -230,7 +232,7 @@ export const PMICPMAI_LABS: SeedLabSet = {
             ),
             part(
               "Actions",
-              "Gives an action for each (investigate why dates are missing rather than blindly imputing; standardise region codes; treat 1900 as missing; obtain more online data or weight it) and documents them.",
+              "Gives an action for each (investigate why dates are missing rather than blindly imputing; standardize region codes; treat 1900 as missing; obtain more online data or weight it) and documents them.",
               "Find out why dates are missing (maybe in-store cash buyers) before choosing imputation; map region values to one code; set 1900 birth years to missing; add online transactions from the e-commerce system or reweight. Record every change for reproducibility."
             ),
             part(
@@ -257,8 +259,8 @@ export const PMICPMAI_LABS: SeedLabSet = {
           parts: [
             part(
               "Checks",
-              "Checks the legal basis and purpose compatibility under applicable data protection law, consent/privacy notices, the data protection officer's view (impact assessment), data minimisation, the vendor contract (processing terms, location, security) and access controls.",
-              "Ask the data protection officer for a privacy impact assessment: is training a compatible purpose under the privacy notice and law; can we minimise (only fields needed for classification); does the vendor contract cover processing, data location, security and deletion; who will have access."
+              "Checks the legal basis and purpose compatibility under applicable data protection law, consent/privacy notices, the data protection officer's view (impact assessment), data minimization, the vendor contract (processing terms, location, security) and access controls.",
+              "Ask the data protection officer for a privacy impact assessment: is training a compatible purpose under the privacy notice and law; can we minimize (only fields needed for classification); does the vendor contract cover processing, data location, security and deletion; who will have access."
             ),
           ],
         },
@@ -316,7 +318,7 @@ export const PMICPMAI_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose the learning approach for three tasks",
       brief:
-        "Three fictional tasks: (A) Harborview Credit Union must explain to each applicant why a loan was declined; it has 5 years of labelled outcomes. (B) Oakline Retail wants to find groups of customers with similar buying habits; it has purchase histories but no labels. (C) A warehouse wants software that learns over time how to route picking robots to minimise travel, using a simulator.",
+        "Three fictional tasks: (A) Harborview Credit Union must explain to each applicant why a loan was declined; it has 5 years of labeled outcomes. (B) Oakline Retail wants to find groups of customers with similar buying habits; it has purchase histories but no labels. (C) A warehouse wants software that learns over time how to route picking robots to minimize travel, using a simulator.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -325,8 +327,8 @@ export const PMICPMAI_LABS: SeedLabSet = {
           parts: [
             part(
               "Task A",
-              "Supervised learning (labelled outcomes) with an interpretable model (e.g. logistic regression, scorecard or shallow tree) or explainability methods, because declines must be explained; trades some accuracy for interpretability.",
-              "Supervised learning on the labelled outcomes, using an interpretable model such as a scorecard or logistic regression so reason codes can be given to each applicant -- accepting slightly lower accuracy than a complex model."
+              "Supervised learning (labeled outcomes) with an interpretable model (e.g. logistic regression, scorecard or shallow tree) or explainability methods, because declines must be explained; trades some accuracy for interpretability.",
+              "Supervised learning on the labeled outcomes, using an interpretable model such as a scorecard or logistic regression so reason codes can be given to each applicant -- accepting slightly lower accuracy than a complex model."
             ),
             part(
               "Task B",
@@ -391,7 +393,7 @@ export const PMICPMAI_LABS: SeedLabSet = {
           parts: [
             part(
               "Diagnosis",
-              "Suspects data drift (input distributions changed with app customers, e.g. fewer store visits recorded) causing miscalibration, and confirms by comparing feature distributions to training data and checking performance on recent labelled outcomes.",
+              "Suspects data drift (input distributions changed with app customers, e.g. fewer store visits recorded) causing miscalibration, and confirms by comparing feature distributions to training data and checking performance on recent labeled outcomes.",
               "Probably data drift: app customers shop differently (fewer store visits), so the model reads them as at risk. Compare current feature distributions with the training data, and check precision/recall on customers whose outcome is now known."
             ),
           ],
@@ -402,7 +404,7 @@ export const PMICPMAI_LABS: SeedLabSet = {
           parts: [
             part(
               "Response",
-              "Retrains on recent data including app behaviour (as a new version), validates against criteria, deploys through the normal approval process, and limits harm meanwhile (e.g. reduce offer volume).",
+              "Retrains on recent data including app behavior (as a new version), validates against criteria, deploys through the normal approval process, and limits harm meanwhile (e.g. reduce offer volume).",
               "Cut the offer list to the top-scored customers to limit waste, retrain on the last 12 months including app data as version 2, validate against the go-live criteria and release through the approval process."
             ),
             part(

@@ -2,7 +2,7 @@ import { after } from "next/server";
 import { queryOne } from "@/lib/db";
 import { ok, notFound, unauthorized, forbidden, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { visibleObjective } from "@/lib/visibility";
+import { taughtObjective } from "@/lib/visibility";
 import { isActive } from "@/lib/progress-sql";
 import {
   requireAcknowledgementForObjective,
@@ -18,7 +18,12 @@ import {
 } from "@/lib/lesson-generation";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { SHARED, getLessonFor, isClaimLive } from "@/lib/lesson-store";
+import { globalCeilingReached } from "@/lib/ai-access";
 import { requireCourseAccessForObjective, UpgradeRequiredError } from "@/lib/entitlements";
+
+// REQ-202: seconds this route may run (after() keeps the function alive for the whole generation). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 300;
 
 // The objective immediately after this one in course order: same unit with
 // the next sort_order, or -- if this is the unit's last objective -- the
@@ -83,7 +88,7 @@ export async function POST(
     // Audit 2: the access check REQ-129 added everywhere else. The disclaimer
     // gate below returns silently for a track the caller can't see, so it is
     // not an access check on its own.
-    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
+    if (!(await taughtObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
 
     const next = await findNextObjective(id);
@@ -124,6 +129,10 @@ export async function POST(
     const objRow = await loadObjective(nextId);
     if (!objRow) return notFound("Next objective not found");
 
+    // REQ-201: at the global daily AI ceiling nothing new is warmed (the
+    // real visit answers "being prepared"). No read when no ceiling is set.
+    if (await globalCeilingReached()) return ok({ nextObjectiveId: nextId, next, status: "ceiling" });
+
     // REQ-135: a prefetch that would start a generation spends the same
     // per-learner budget as a lesson GET. Over it, the prefetch is skipped
     // (it is best-effort); the real visit will generate if the budget allows.
@@ -137,13 +146,13 @@ export async function POST(
     // Fully fire-and-forget: nobody is waiting on this response for actual
     // lesson content, so there's no reason to await the intro half inline
     // the way GET/POST do for a real visit.
-    const handle = ensureGeneration(nextId, objRow, { scope: SHARED });
+    const handle = ensureGeneration(nextId, objRow, { scope: SHARED, triggeredBy: user.id });
     after(() => handle.fullPromise.catch(() => {}));
 
     return ok({ nextObjectiveId: nextId, next, status: "started" });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

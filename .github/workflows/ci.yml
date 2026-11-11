@@ -7,13 +7,15 @@ on:
   # based on another PR's branch) are checked too.
   pull_request:
 
+permissions:
+  contents: read
 jobs:
   backend:
     name: Backend (typecheck, build, audit)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -45,6 +47,32 @@ jobs:
       - run: npm audit --audit-level=high
         working-directory: backend
 
+  # REQ-196: the sandbox model-written code runs in (verify by execution,
+  # the fact-checker eval) must hold on every change: network, the job's
+  # environment, the filesystem outside the scratch area, root, a fork
+  # bomb, an endless loop, memory and an output flood are all tried against
+  # real Docker and must fail (backend/lib/sandbox-runner.sandboxtest.ts).
+  sandbox:
+    name: Sandbox (escape attempts against Docker)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - name: Build the sandbox images
+        working-directory: backend
+        run: |
+          docker build -t ascendra-sandbox-python:1 -f sandbox/python.Dockerfile sandbox
+          docker pull node:22-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d
+      - run: npm run test:sandbox
+        working-directory: backend
+
   # REQ-128: nothing in CI touched a database before, so a migration that
   # didn't apply, SQL that named a missing column, or code that needed a
   # migration production hadn't run could all ship green. This builds the
@@ -69,8 +97,8 @@ jobs:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/ascendra
       PGSSLMODE: disable
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -91,6 +119,12 @@ jobs:
         working-directory: backend
       - name: Integration tests
         run: npm run test:db
+        working-directory: backend
+      # REQ-207 (FAIL-940): the same suite again, connected as the
+      # least-privilege app_runtime role migration 071 creates. Proves the
+      # app works with no owner rights, no BYPASSRLS and no PUBLIC execute.
+      - name: Integration tests as app_runtime (least privilege)
+        run: bash scripts/ci/db-tests-as-runtime.sh
         working-directory: backend
 
   # REQ-118 (Audit 3 LOW-11): the job above builds the schema on an EMPTY
@@ -119,8 +153,8 @@ jobs:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/ascendra
       PGSSLMODE: disable
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -150,49 +184,71 @@ jobs:
         run: psql "$DATABASE_URL" -f scripts/ci/backfill-check.sql
         working-directory: backend
 
-  # Release 2026-11-07: production is master @ c3e13ab's schema plus line B's
-  # 025-027. This rebuilds that state (master's own migrations, seed and
-  # routes making 3 accounts and 25 answers), then: the release's --status
-  # lists exactly its new files, --all, schema current with no mastery
-  # drift, the batched recompute, the release seed; master's routes still
-  # work on the migrated schema; the rollback script restores the
-  # production-state schema (enum values aside) and master's routes work
-  # again; and a fresh database ends identical. About 3 minutes.
-  rehearsal:
-    name: Database (production-state rehearsal and rollback)
+  # The 2026-11-07 production-state rehearsal (scripts/rehearse-production-
+  # migration.sh) was retired on 2026-11-10 (REQ-214): it applied every
+  # migration and then undid only the 11-07 release, so it failed on every
+  # run from the first later release. Per-migration rollbacks are tested in
+  # lib/rollback-scripts.dbtest.ts (Database job).
+
+  # REQ-200: the nightly backup (db-backup.yml) and its restore drill, end to
+  # end on throwaway local databases with a throwaway age keypair: dump ->
+  # encrypt -> decrypt -> restore -> table and row counts match the manifest
+  # -> migrate --status current; plus the refusals (no secret, no recipient,
+  # a private key as recipient, a too-small dump, a wrong key, a changed file,
+  # a count mismatch). Under a minute.
+  backup-drill:
+    name: Database (nightly backup and restore drill)
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17  # production runs Postgres 17; the runner's pg_dump writes 17-only settings
+        image: postgres:17  # production runs Postgres 17
         env:
           POSTGRES_PASSWORD: postgres
         ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s --health-timeout 5s --health-retries 10
+      # FAIL-1160: a SECOND server for the restore, which has never seen the
+      # app's roles (roles belong to the cluster, and the source above gets
+      # app_runtime and content_recheck from its migrations). Restoring into
+      # the source's own cluster hid that a dump cannot restore without them.
+      postgres-restore:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      ADMIN_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      ADMIN_URL: postgres://postgres:postgres@localhost:5432/postgres
+      RESTORE_ADMIN_URL: postgres://postgres:postgres@localhost:5433/postgres
       PGSSLMODE: disable
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # needs master @ c3e13ab and line B's branch
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
         working-directory: backend
-      - run: bash scripts/rehearse-production-migration.sh
+      - name: Install age and the PostgreSQL 17 client (as db-backup.yml does)
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q age jq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -q postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+      - run: bash scripts/ci/backup-drill-test.sh
         working-directory: backend
 
   mobile:
     name: Mobile (typecheck, audit)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -205,18 +261,18 @@ jobs:
       # strips types natively, so no extra tooling).
       - run: npm test
         working-directory: mobile
-      # Report-only, not blocking: Expo's own CLI toolchain currently ships
-      # transitive advisories (uuid/bunyan/xcode, build-time only, not in the
-      # shipped app bundle) with no non-breaking fix available. Gating on
-      # this would make the check permanently red instead of meaningful --
-      # revisit turning this blocking once `npm audit fix` (or an Expo SDK
-      # bump) actually clears it.
-      #
-      # REQ-118: still report-only (re-checked 2026-11-07, Audit 3 LOW-11): the
-      # advisories are in Expo's CLI/build tooling, not the app bundle. Read
-      # this step's log when bumping the Expo SDK; make it blocking once it is
-      # clean.
-      - run: npm audit --audit-level=high || true
+      # REQ-207 (FAIL-951): blocking. After the non-breaking `npm audit fix`
+      # (lockfile only) three high advisories remain (expo-router and the
+      # query-string chain), and npm's only fix is expo-router 58, a breaking
+      # Expo SDK step. They are listed with reasons in mobile/audit-known.json;
+      # this fails on any OTHER high or critical advisory in the production
+      # dependencies, and on a listed one that has been fixed (so the list
+      # shrinks). Moderate and low are printed, not blocking.
+      - run: node --test .github/scripts/audit-gate.test.mjs .github/scripts/pin-lib.test.mjs .github/scripts/eas-build-summary.test.mjs
+      - name: npm audit (production dependencies, blocking)
+        run: |
+          npm audit --omit=dev --json > "$RUNNER_TEMP/mobile-audit.json" || true
+          node ../.github/scripts/audit-gate.mjs "$RUNNER_TEMP/mobile-audit.json" audit-known.json
         working-directory: mobile
       # REQ-118: Expo's project health checks (config, native module
       # versions, duplicate dependencies). Report-only for now: on 2026-11-07
@@ -240,8 +296,8 @@ jobs:
     name: Sim cross-runtime (Hermes)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -262,7 +318,7 @@ jobs:
           echo "os=$(. /etc/os-release && echo "$ID-$VERSION_ID")" >> "$GITHUB_OUTPUT"
           echo "react-native $(node -p "require('./mobile/node_modules/react-native/package.json').version"), Hermes $tag"
           mobile/node_modules/hermes-compiler/hermesc/linux64-bin/hermesc -version | grep -i 'release version'
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         id: cache
         with:
           path: ~/hermes-vm
@@ -299,6 +355,22 @@ jobs:
           cmp "$RUNNER_TEMP/hermes-hbc.txt" lib/sim/cross-runtime/fixture.expected.txt \
             || { diff "$RUNNER_TEMP/hermes-hbc.txt" lib/sim/cross-runtime/fixture.expected.txt; exit 1; }
           echo "Hermes source and -O bytecode both match Node"
+      # REQ-162: engine major 1 itself, the v1 corpus and every seeded
+      # document's golden replays, as source and as the app's -O bytecode.
+      - name: Engine corpus and golden replays under Hermes = Node, byte for byte
+        working-directory: backend
+        run: |
+          npm run -s sim:cross-runtime -- engine-print > "$RUNNER_TEMP/engine-node.txt"
+          npm run -s sim:cross-runtime -- engine-hermes-script "$RUNNER_TEMP/engine.js"
+          ~/hermes-vm/hermes "$RUNNER_TEMP/engine.js" > "$RUNNER_TEMP/engine-hermes.txt"
+          cmp "$RUNNER_TEMP/engine-hermes.txt" "$RUNNER_TEMP/engine-node.txt" \
+            || { diff "$RUNNER_TEMP/engine-hermes.txt" "$RUNNER_TEMP/engine-node.txt"; exit 1; }
+          ../mobile/node_modules/hermes-compiler/hermesc/linux64-bin/hermesc -emit-binary -O \
+            -out "$RUNNER_TEMP/engine.hbc" "$RUNNER_TEMP/engine.js"
+          ~/hermes-vm/hermes "$RUNNER_TEMP/engine.hbc" > "$RUNNER_TEMP/engine-hbc.txt"
+          cmp "$RUNNER_TEMP/engine-hbc.txt" "$RUNNER_TEMP/engine-node.txt" \
+            || { diff "$RUNNER_TEMP/engine-hbc.txt" "$RUNNER_TEMP/engine-node.txt"; exit 1; }
+          tail -n 1 "$RUNNER_TEMP/engine-node.txt"
       # Informational: native Math.exp/sin/pow/... are implementation-defined,
       # which is why the engine computes its own (docs/sims.md 5.5). The
       # count is evidence for that rule, not a failure.
@@ -326,8 +398,8 @@ jobs:
     env:
       PLAYWRIGHT_VERSION: 1.64.1
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -350,8 +422,8 @@ jobs:
     name: OmniEngineering workspace freshness
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
       # Blocking: regenerates the same files `./omni sync` / `./omni map`

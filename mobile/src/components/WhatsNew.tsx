@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SheetModal } from "@/components/SheetModal";
 import Feather from "@expo/vector-icons/Feather";
 import { useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/api/client";
@@ -94,7 +95,7 @@ export function WhatsNewSheet({ entry, onDismiss }: { entry: WhatsNewEntry | nul
   const reduced = useReducedMotion();
   if (!entry) return null;
   return (
-    <Modal transparent visible animationType={reduced ? "none" : "slide"} onRequestClose={onDismiss}>
+    <SheetModal transparent visible animationType={reduced ? "none" : "slide"} onRequestClose={onDismiss}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onDismiss} accessibilityRole="button" accessibilityLabel="Close what's new" />
         <View style={styles.sheet} accessibilityViewIsModal>
@@ -123,7 +124,7 @@ export function WhatsNewSheet({ entry, onDismiss }: { entry: WhatsNewEntry | nul
           </View>
         </View>
       </View>
-    </Modal>
+    </SheetModal>
   );
 }
 

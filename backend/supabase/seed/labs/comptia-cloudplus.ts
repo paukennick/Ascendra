@@ -32,7 +32,7 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Recommend a cloud deployment model for a hospital group",
       brief:
-        "Marlowe Health runs three hospitals. Its needs: (1) a patient-records system whose data must, by regulation, stay in facilities the group controls, with sub-10 ms latency to bedside devices; (2) a research analytics platform that processes anonymised data in huge bursts a few days a month; (3) a public appointment-booking website with unpredictable traffic; (4) an email and collaboration suite the IT team no longer wants to run. The board has asked for 'a cloud strategy' and one director wants everything on two public providers 'so we are never locked in'. Recommend a deployment model for the group and say where each system runs.",
+        "Marlowe Health runs three hospitals. Its needs: (1) a patient-records system whose data must, by regulation, stay in facilities the group controls, with sub-10 ms latency to bedside devices; (2) a research analytics platform that processes anonymized data in huge bursts a few days a month; (3) a public appointment-booking website with unpredictable traffic; (4) an email and collaboration suite the IT team no longer wants to run. The board has asked for 'a cloud strategy' and one director wants everything on two public providers 'so we are never locked in'. Recommend a deployment model for the group and say where each system runs.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -42,7 +42,7 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
             part(
               "Overall model",
               "Recommends a hybrid cloud: a private cloud (on-premises or hosted in group-controlled facilities) for the regulated, latency-sensitive system, connected to a public cloud for elastic and commodity workloads.",
-              "Hybrid: keep a private cloud in the group's own data centre for what regulation and latency pin down, and use a public cloud for everything elastic or commodity, joined by a private connection or VPN so systems can talk and identity is shared. Neither all-private (no elasticity) nor all-public (breaks the data-location rule) fits."
+              "Hybrid: keep a private cloud in the group's own data center for what regulation and latency pin down, and use a public cloud for everything elastic or commodity, joined by a private connection or VPN so systems can talk and identity is shared. Neither all-private (no elasticity) nor all-public (breaks the data-location rule) fits."
             ),
             part(
               "Placing the systems",
@@ -52,7 +52,7 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
             part(
               "Multi-cloud proposal",
               "Evaluates multi-cloud honestly: it reduces single-provider dependence but doubles skills, tooling and security surface and rarely helps a group of this size; recommends portability practices (containers, IaC, open standards) over running two providers from day one.",
-              "Running every workload on two public providers would double the skills, tooling, identity integration and security monitoring the team must master, for a lock-in risk that is better managed by portability: containerise applications, define infrastructure as code, and avoid provider-only services where a standard one exists. Use a second provider only where a specific service or resilience need justifies it."
+              "Running every workload on two public providers would double the skills, tooling, identity integration and security monitoring the team must master, for a lock-in risk that is better managed by portability: containerize applications, define infrastructure as code, and avoid provider-only services where a standard one exists. Use a second provider only where a specific service or resilience need justifies it."
             ),
           ],
         },
@@ -64,7 +64,7 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Cut a cloud bill by a third without breaking service levels",
       brief:
-        "Fenwick Apparel's monthly cloud bill is 180,000 and finance wants it under 120,000. The inventory shows: 400 virtual machines averaging 9% CPU and 20% memory use; a 24/7 fleet of 30 large instances for a batch job that runs 02:00-05:00; 200 TB of object storage in the premium tier, 90% of it not accessed in a year; 60 unattached block volumes and 25 idle load balancers from finished projects; and a production web tier running on-demand at a steady baseline of 50 instances all year. Nothing may breach the 99.9% availability target for production. Write the optimisation plan.",
+        "Fenwick Apparel's monthly cloud bill is 180,000 and finance wants it under 120,000. The inventory shows: 400 virtual machines averaging 9% CPU and 20% memory use; a 24/7 fleet of 30 large instances for a batch job that runs 02:00-05:00; 200 TB of object storage in the premium tier, 90% of it not accessed in a year; 60 unattached block volumes and 25 idle load balancers from finished projects; and a production web tier running on-demand at a steady baseline of 50 instances all year. Nothing may breach the 99.9% availability target for production. Write the optimization plan.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -73,8 +73,8 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Right-sizing",
-              "Right-sizes the under-used VMs (smaller instance types or fewer instances based on measured utilisation) in stages with monitoring, and considers autoscaling where load varies.",
-              "The 400 VMs at 9% CPU and 20% memory are oversized: using 30 days of utilisation metrics, move each to a size that puts peak use around 60-70%, in waves by environment (non-production first), watching performance after each wave. Where load varies by time of day, put them in autoscaling groups so capacity follows demand."
+              "Right-sizes the under-used VMs (smaller instance types or fewer instances based on measured utilization) in stages with monitoring, and considers autoscaling where load varies.",
+              "The 400 VMs at 9% CPU and 20% memory are oversized: using 30 days of utilization metrics, move each to a size that puts peak use around 60-70%, in waves by environment (non-production first), watching performance after each wave. Where load varies by time of day, put them in autoscaling groups so capacity follows demand."
             ),
             part(
               "Scheduling and purchasing",
@@ -103,7 +103,7 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Plan the migration of three applications",
       brief:
-        "Tarrant Freight is closing its data centre in nine months and moving three applications to a public cloud. (1) A dispatch system: a Windows application server and SQL database, business-critical, change-averse vendor, 2-hour maximum downtime allowed. (2) An internal wiki on an old Linux server with a vendor that no longer exists. (3) A customer tracking portal: a modern web app on containers already, stateless, with its data in a managed database the team can replicate. Write the migration plan: the strategy for each application, the order, the cutover and rollback approach, and how you validate success.",
+        "Tarrant Freight is closing its data center in nine months and moving three applications to a public cloud. (1) A dispatch system: a Windows application server and SQL database, business-critical, change-averse vendor, 2-hour maximum downtime allowed. (2) An internal wiki on an old Linux server with a vendor that no longer exists. (3) A customer tracking portal: a modern web app on containers already, stateless, with its data in a managed database the team can replicate. Write the migration plan: the strategy for each application, the order, the cutover and rollback approach, and how you validate success.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -112,7 +112,7 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Strategy per application",
-              "Chooses rehost (lift and shift) for the change-averse dispatch system, replace with a SaaS/hosted wiki for the orphaned application, and replatform/refactor-light for the containerised portal onto a managed container service with database replication.",
+              "Chooses rehost (lift and shift) for the change-averse dispatch system, replace with a SaaS/hosted wiki for the orphaned application, and replatform/refactor-light for the containerized portal onto a managed container service with database replication.",
               "Dispatch: rehost, moving the application server and database as virtual machines with minimal change, because the vendor will not support changes. Wiki: replace, exporting content into a hosted wiki product, since there is no vendor to support the old one. Portal: replatform onto a managed container service, replicating the database to a managed equivalent, with no application rewrite."
             ),
             part(
@@ -184,7 +184,7 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Design the identity model, authorisation model, non-human access, and the controls that keep it honest.",
+          ask: "Design the identity model, authorization model, non-human access, and the controls that keep it honest.",
           parts: [
             part(
               "Identities",
@@ -214,9 +214,9 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
       slug: "harden-container-platform",
       objective: "Safeguarding containerized applications and resources",
       kind: "build",
-      title: "Harden a containerised application platform",
+      title: "Harden a containerized application platform",
       brief:
-        "Ashby & Stone's order-processing application runs as 14 containerised services on a managed Kubernetes cluster. A security review found: images are built from 'latest' base tags and never scanned; containers run as root; database passwords are baked into image environment variables; any pod can talk to any other pod and to the internet; and the registry accepts pushes from any developer laptop. Write the hardening plan for the build, the registry, the runtime and the network.",
+        "Ashby & Stone's order-processing application runs as 14 containerized services on a managed Kubernetes cluster. A security review found: images are built from 'latest' base tags and never scanned; containers run as root; database passwords are baked into image environment variables; any pod can talk to any other pod and to the internet; and the registry accepts pushes from any developer laptop. Write the hardening plan for the build, the registry, the runtime and the network.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -297,7 +297,7 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Design the monitoring: what you measure, how you alert, what you keep for diagnosis, and how it feeds optimisation.",
+          ask: "Design the monitoring: what you measure, how you alert, what you keep for diagnosis, and how it feeds optimization.",
           parts: [
             part(
               "Measure user impact",
@@ -311,13 +311,13 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Diagnosis",
-              "Keeps the three pillars together: centralised structured logs with request IDs, metrics per tier (saturation: CPU, memory, connections, queue depth, database locks) and distributed traces across web, API, database and workers, so an alert can be followed to a cause.",
-              "Centralise logs with a correlation ID carried from the web tier through the API to the workers; collect per-tier saturation metrics (connections, queue depth, database lock waits, cache hit rate) alongside CPU and memory; and add distributed tracing so a slow booking shows which hop took the time. An alert links to the dashboard of that service and its traces."
+              "Keeps the three pillars together: centralized structured logs with request IDs, metrics per tier (saturation: CPU, memory, connections, queue depth, database locks) and distributed traces across web, API, database and workers, so an alert can be followed to a cause.",
+              "Centralize logs with a correlation ID carried from the web tier through the API to the workers; collect per-tier saturation metrics (connections, queue depth, database lock waits, cache hit rate) alongside CPU and memory; and add distributed tracing so a slow booking shows which hop took the time. An alert links to the dashboard of that service and its traces."
             ),
             part(
-              "Optimisation loop",
+              "Optimization loop",
               "Uses baselines and trends (capacity planning, right-sizing, autoscaling policies driven by the right metric such as request rate or queue depth), reviews incidents and SLO reports regularly, and tunes thresholds from data.",
-              "Review weekly: SLO attainment, the slowest endpoints from traces, and resource trends for capacity planning. Drive autoscaling from request rate or queue depth rather than CPU alone, right-size from 30-day utilisation, and adjust alert thresholds based on what actually preceded incidents. Each incident review adds or removes a signal."
+              "Review weekly: SLO attainment, the slowest endpoints from traces, and resource trends for capacity planning. Drive autoscaling from request rate or queue depth rather than CPU alone, right-size from 30-day utilization, and adjust alert thresholds based on what actually preceded incidents. Each incident review adds or removes a signal."
             ),
           ],
         },
@@ -355,13 +355,13 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
           ask: "What has happened, and what do you do now?",
           parts: [
             part(
-              "Recognise the escalation",
+              "Recognize the escalation",
               "Identifies privilege escalation (an over-permissive identity allowed to modify its own permissions) and persistence (a new admin user and key), and contains both: remove the admin policy, disable and delete svc-maint and its key, and check for other persistence (roles, keys, instance profiles, scheduled tasks).",
               "build-bot could change IAM, which is how a deployment key became an administrator; the attacker then created their own admin user as persistence. Remove the administrator policy from build-bot, disable and delete svc-maint and its key, and search for anything else created in the same window: other users or keys, modified roles, new instance identities, scheduled tasks or functions that could re-create access."
             ),
             part(
               "Clean up and preserve evidence",
-              "Terminates the unauthorised instances after capturing evidence (snapshots, logs) if needed, checks the bill, and documents the timeline for the incident report and any disclosure obligation.",
+              "Terminates the unauthorized instances after capturing evidence (snapshots, logs) if needed, checks the bill, and documents the timeline for the incident report and any disclosure obligation.",
               "Snapshot one or two of the instances if forensics wants them, then terminate all 60 and any attached storage, and ask the provider about the charges. Record the timeline (push, first misuse, escalation, detection, containment) for the incident report, and involve legal about whether any customer data in the asset bucket triggers a disclosure duty."
             ),
           ],
@@ -373,7 +373,7 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
             part(
               "Prevent",
               "Applies least privilege (build-bot cannot touch IAM), replaces long-lived keys with short-lived credentials or workload identity federation for CI, adds secret scanning to repositories and pre-commit hooks, and restricts unused regions by policy.",
-              "Least privilege: no service identity may modify IAM unless that is its job, and build-bot's permissions shrink to deploying its own application. Replace long-lived keys for CI with short-lived credentials via federation from the CI system. Turn on secret scanning on all repositories with push blocking and pre-commit hooks. Restrict resource creation to approved regions with an organisation-level policy."
+              "Least privilege: no service identity may modify IAM unless that is its job, and build-bot's permissions shrink to deploying its own application. Replace long-lived keys for CI with short-lived credentials via federation from the CI system. Turn on secret scanning on all repositories with push blocking and pre-commit hooks. Restrict resource creation to approved regions with an organization-level policy."
             ),
             part(
               "Detect",
@@ -415,13 +415,13 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Diagnosis and fix",
-              "Identifies clock skew from lost NTP synchronisation (the servers drifted after their time source was replaced) breaking time-sensitive authentication (Kerberos/token validity), and fixes by pointing the servers at a reachable NTP source (the cloud provider's time service or a pool), resynchronising, and verifying the offset.",
+              "Identifies clock skew from lost NTP synchronization (the servers drifted after their time source was replaced) breaking time-sensitive authentication (Kerberos/token validity), and fixes by pointing the servers at a reachable NTP source (the cloud provider's time service or a pool), resynchronizing, and verifying the offset.",
               "Authentication tokens and Kerberos tickets have validity windows of minutes; the ERP servers are 19 minutes behind because their NTP source vanished, so every token looks expired. Point them at a reachable, reliable NTP source (the cloud provider's time service or at least two public pool servers), force a resync, and verify the offset is under a second. Then fix the on-premises appliance's address or decommission it as a source."
             ),
             part(
               "Prevention",
-              "Monitors NTP offset and stratum on servers with an alert, and uses redundant time sources so one appliance replacement cannot stop synchronisation.",
-              "Add NTP offset and synchronisation status to monitoring with an alert at, say, 500 ms of skew, and configure every server with at least two independent time sources so one replaced appliance never leaves a fleet drifting."
+              "Monitors NTP offset and stratum on servers with an alert, and uses redundant time sources so one appliance replacement cannot stop synchronization.",
+              "Add NTP offset and synchronization status to monitoring with an alert at, say, 500 ms of skew, and configure every server with at least two independent time sources so one replaced appliance never leaves a fleet drifting."
             ),
           ],
         },
@@ -444,9 +444,9 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
       slug: "design-ci-cd-pipeline",
       objective: "Building and managing CI/CD pipelines",
       kind: "build",
-      title: "Design a CI/CD pipeline for a containerised API",
+      title: "Design a CI/CD pipeline for a containerized API",
       brief:
-        "Linwood Payments deploys its containerised API by hand: a developer builds an image on a laptop, pushes it, and edits the production deployment at lunchtime. Releases break about once a month and take an hour to roll back. Requirements for the new pipeline: every change is tested and scanned before it can reach production, production deploys happen without downtime, a bad release is detected and reversed in minutes, and auditors can see who approved what. Design the pipeline.",
+        "Linwood Payments deploys its containerized API by hand: a developer builds an image on a laptop, pushes it, and edits the production deployment at lunchtime. Releases break about once a month and take an hour to roll back. Requirements for the new pipeline: every change is tested and scanned before it can reach production, production deploys happen without downtime, a bad release is detected and reversed in minutes, and auditors can see who approved what. Design the pipeline.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -456,7 +456,7 @@ export const CLOUDPLUS_LABS: SeedLabSet = {
             part(
               "Integration stages",
               "Triggers on every commit/pull request: build the image once in CI (not on laptops), run unit and integration tests, static analysis and dependency/image vulnerability scans, and fail the pipeline on test failures or critical findings; tags the image immutably (digest or version).",
-              "On every pull request: check out, build the image in the CI runner, run unit and integration tests, lint and static analysis, scan dependencies and the image for vulnerabilities, and fail on any test failure or critical finding. On merge to main, the same build is tagged with the commit SHA and version and pushed to the registry; the same artefact is promoted through every environment, never rebuilt."
+              "On every pull request: check out, build the image in the CI runner, run unit and integration tests, lint and static analysis, scan dependencies and the image for vulnerabilities, and fail on any test failure or critical finding. On merge to main, the same build is tagged with the commit SHA and version and pushed to the registry; the same artifact is promoted through every environment, never rebuilt."
             ),
             part(
               "Delivery stages",

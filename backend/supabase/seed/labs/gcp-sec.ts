@@ -69,7 +69,7 @@ export const GCPSEC_LABS: SeedLabSet = {
       slug: "retire-service-account-keys",
       objective: "Securing, auditing, and mitigating service account key usage",
       kind: "build",
-      title: "Retire user-managed service account keys across an organisation",
+      title: "Retire user-managed service account keys across an organization",
       brief:
         "Tallow & Reed, a fintech, has 212 user-managed service account keys across 60 projects. Some are in CI systems, some on developer laptops, some in a Kubernetes secret, and nobody knows which are still used. A recent audit finding requires that within 90 days no long-lived key exists unless a documented exception is approved, and that new keys cannot be created without one. Write the plan: how you find what is used, what each use is replaced with, how you turn the taps off, and how you prove it.",
       safetyNote: GENERAL_SAFETY,
@@ -157,7 +157,7 @@ export const GCPSEC_LABS: SeedLabSet = {
       kind: "build",
       title: "Write conditional grants and a deny policy for a contractor engagement",
       brief:
-        "Ironhollow Energy has hired Alder Consulting for an eight-week data-platform project. The consultants need BigQuery Data Editor on datasets whose names start with 'alder_' in the analytics project, Storage Object Viewer on one bucket, and nothing else; access must expire automatically on 31 January at 17:00 UTC with no manual clean-up. Separately, after an incident where an administrator deleted a logging bucket, the CISO wants a rule that nobody in the organisation, including project owners, can delete logging buckets or create service account keys, except a break-glass group. Write the grants and the deny policy.",
+        "Ironhollow Energy has hired Alder Consulting for an eight-week data-platform project. The consultants need BigQuery Data Editor on datasets whose names start with 'alder_' in the analytics project, Storage Object Viewer on one bucket, and nothing else; access must expire automatically on 31 January at 17:00 UTC with no manual clean-up. Separately, after an incident where an administrator deleted a logging bucket, the CISO wants a rule that nobody in the organization, including project owners, can delete logging buckets or create service account keys, except a break-glass group. Write the grants and the deny policy.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -176,7 +176,7 @@ export const GCPSEC_LABS: SeedLabSet = {
             ),
             part(
               "Deny policy",
-              "Creates an IAM deny policy at the organization level denying logging.buckets.delete and iam.serviceAccountKeys.create for all principals (principalSet://goog/public:all or the organisation's principal set) with an exception for the break-glass group; explains deny is evaluated before allow so even owners are blocked.",
+              "Creates an IAM deny policy at the organization level denying logging.buckets.delete and iam.serviceAccountKeys.create for all principals (principalSet://goog/public:all or the organization's principal set) with an exception for the break-glass group; explains deny is evaluated before allow so even owners are blocked.",
               "Attach a deny policy to the organization: deniedPrincipals principalSet://goog/public:all, deniedPermissions logging.googleapis.com/buckets.delete and iam.googleapis.com/serviceAccountKeys.create, exceptionPrincipals group:breakglass-admins@ironhollow.example. Deny rules are evaluated before any allow policy, so a project owner's broad role does not help; only the exception group can perform those actions."
             ),
             part(
@@ -196,7 +196,7 @@ export const GCPSEC_LABS: SeedLabSet = {
       kind: "build",
       title: "Build a VPC Service Controls perimeter around a data lake",
       brief:
-        "Moorcroft Clinical Research keeps trial data in BigQuery and Cloud Storage across two projects, trials-data and trials-analytics. A contractor recently copied a dataset to a BigQuery project in their own organisation using credentials that were legitimately granted. Requirements: Google API calls that move data out of the two projects to anything outside them must be blocked, even by authorised users; researchers may still access the data from managed laptops on the corporate network; an on-premises analysis cluster connected by Cloud Interconnect must reach BigQuery privately; a partner's project must be able to read one specific bucket. Nothing may break on day one.",
+        "Moorcroft Clinical Research keeps trial data in BigQuery and Cloud Storage across two projects, trials-data and trials-analytics. A contractor recently copied a dataset to a BigQuery project in their own organization using credentials that were legitimately granted. Requirements: Google API calls that move data out of the two projects to anything outside them must be blocked, even by authorized users; researchers may still access the data from managed laptops on the corporate network; an on-premises analysis cluster connected by Cloud Interconnect must reach BigQuery privately; a partner's project must be able to read one specific bucket. Nothing may break on day one.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -216,7 +216,7 @@ export const GCPSEC_LABS: SeedLabSet = {
             part(
               "Partner and on-prem",
               "Adds an ingress rule allowing the partner project's identities to call storage.objects.get on the one bucket (or an egress rule if data flows the other way), and routes the on-prem cluster to restricted.googleapis.com (199.36.153.4/30) over the Interconnect with DNS overriding *.googleapis.com, so only VPC-SC-supporting APIs are reachable.",
-              "Ingress rule: from the partner project (identity type or specific service account) to storage.googleapis.com, method storage.objects.get, limited to the shared bucket. For the on-prem cluster: advertise 199.36.153.4/30 over the Interconnect, and in on-prem DNS point *.googleapis.com at restricted.googleapis.com, so BigQuery is reached privately and only APIs that honour the perimeter answer; private.googleapis.com (199.36.153.8/30) would also reach APIs VPC-SC does not protect."
+              "Ingress rule: from the partner project (identity type or specific service account) to storage.googleapis.com, method storage.objects.get, limited to the shared bucket. For the on-prem cluster: advertise 199.36.153.4/30 over the Interconnect, and in on-prem DNS point *.googleapis.com at restricted.googleapis.com, so BigQuery is reached privately and only APIs that honor the perimeter answer; private.googleapis.com (199.36.153.8/30) would also reach APIs VPC-SC does not protect."
             ),
             part(
               "Rollout",
@@ -322,7 +322,7 @@ export const GCPSEC_LABS: SeedLabSet = {
               "Turn on sensitive data discovery for the dataset to profile every column, then run an inspection job on the tickets table with infoTypes PERSON_NAME, PHONE_NUMBER, EMAIL_ADDRESS, CREDIT_CARD_NUMBER and the national ID infoType for the country, so you know which columns and how much of the free text contain PII before choosing transformations."
             ),
             part(
-              "Pseudonymisation of identifiers",
+              "Pseudonymization of identifiers",
               "Uses deterministic encryption (or crypto-hash) with a Cloud KMS-wrapped key for customer_id and national_id so the same input always yields the same token (joinable, countable, reversible only with the key).",
               "customer_id and national_id: cryptoDeterministicConfig with a KMS-wrapped crypto key and a surrogate infoType, so each customer maps to one stable token across every export (counts per customer still work) and only the key holder could reverse it. Names, emails and phones in the free text: replace with the infoType name (redaction) or deterministic tokens if the ML team needs stable placeholders."
             ),
@@ -346,7 +346,7 @@ export const GCPSEC_LABS: SeedLabSet = {
       slug: "organisation-log-routing",
       objective: "Configuring log exports: log sinks and aggregated sinks",
       kind: "build",
-      title: "Route an organisation's audit logs to a central, tamper-resistant store",
+      title: "Route an organization's audit logs to a central, tamper-resistant store",
       brief:
         "Hartwell Insurance has 140 projects under four folders. The security team needs every project's Admin Activity and Data Access audit logs, plus VPC Flow Logs from production, in one place for 400 days, searchable, and unalterable by project owners. The SIEM team needs the same security logs streamed to their SIEM near real time. The finance team complains about the Cloud Logging bill, which is dominated by a chatty debug application in one project. Project teams must keep their own project logs for troubleshooting. Design the log routing.",
       safetyNote: GENERAL_SAFETY,
@@ -405,7 +405,7 @@ export const GCPSEC_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "The audit log shows the SetIamPolicy call used a user-managed key for exporter@health-prod from an IP address in a country where Aldergate has no staff. Event Threat Detection then raises a finding that the same service account listed all buckets in the organisation and tried to create a new service account key.",
+          text: "The audit log shows the SetIamPolicy call used a user-managed key for exporter@health-prod from an IP address in a country where Aldergate has no staff. Event Threat Detection then raises a finding that the same service account listed all buckets in the organization and tried to create a new service account key.",
           ask: "What do you do now?",
           parts: [
             part(
@@ -465,7 +465,7 @@ export const GCPSEC_LABS: SeedLabSet = {
             ),
             part(
               "Provider access",
-              "Enables Access Transparency (logs of Google personnel access with justification) organisation-wide and Access Approval on the production projects so Google must request and receive the fund's approval before accessing its content, with approvers in the fund's security team.",
+              "Enables Access Transparency (logs of Google personnel access with justification) organization-wide and Access Approval on the production projects so Google must request and receive the fund's approval before accessing its content, with approvers in the fund's security team.",
               "Enable Access Transparency so every access to the fund's content by Google staff produces a log entry with the reason and the ticket, and enable Access Approval on the production projects so such access requires an explicit approval from the fund's named approvers before it happens (with the option to require EU-based personnel via Assured Workloads' support controls). Non-production keeps Access Transparency logging only."
             ),
             part(
@@ -483,17 +483,17 @@ export const GCPSEC_LABS: SeedLabSet = {
       kind: "build",
       title: "Map a cardholder-data audit's requirements to Google Cloud controls",
       brief:
-        "Tamsin Ticketing processes card payments through a checkout service on GKE that talks to a tokenisation API and a Cloud SQL database, all in the project pay-prod. Marketing's website and analytics live in other projects. An external assessor has sent four requirements ahead of the audit: (1) systems that store, process or transmit cardholder data must be segmented from all other systems and the segmentation proven; (2) every administrative action and every access to cardholder data must be logged, with logs protected from tampering and retained for a year; (3) access to cardholder systems must be limited to named individuals with multi-factor authentication and reviewed quarterly; (4) the company must state which controls are Google's responsibility and which are its own. Map each to the Google Cloud controls you will show.",
+        "Tamsin Ticketing processes card payments through a checkout service on GKE that talks to a tokenization API and a Cloud SQL database, all in the project pay-prod. Marketing's website and analytics live in other projects. An external assessor has sent four requirements ahead of the audit: (1) systems that store, process or transmit cardholder data must be segmented from all other systems and the segmentation proven; (2) every administrative action and every access to cardholder data must be logged, with logs protected from tampering and retained for a year; (3) access to cardholder systems must be limited to named individuals with multi-factor authentication and reviewed quarterly; (4) the company must state which controls are Google's responsibility and which are its own. Map each to the Google Cloud controls you will show.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "For each requirement, name the Google Cloud controls that satisfy it and the artefact you will show the assessor.",
+          ask: "For each requirement, name the Google Cloud controls that satisfy it and the artifact you will show the assessor.",
           parts: [
             part(
               "Segmentation",
               "Isolates the in-scope workload in its own project(s) and VPC (or Shared VPC subnet) with Cloud NGFW rules allowing only required flows, a VPC Service Controls perimeter around pay-prod's data services, and GKE network policies between pods; proves it with firewall rule exports, flow logs and a connectivity test.",
-              "Scope is the pay-prod project: its own VPC with Cloud NGFW rules that allow only the checkout, tokenisation and database flows and deny everything else (logging on), a VPC Service Controls perimeter around pay-prod's Cloud SQL and Cloud Storage so other projects cannot reach the data through APIs, and GKE network policies so only the checkout pods reach the tokenisation service. Evidence: the firewall policy export, Network Intelligence Center connectivity tests from a marketing VM failing to reach the database, and VPC Flow Logs."
+              "Scope is the pay-prod project: its own VPC with Cloud NGFW rules that allow only the checkout, tokenization and database flows and deny everything else (logging on), a VPC Service Controls perimeter around pay-prod's Cloud SQL and Cloud Storage so other projects cannot reach the data through APIs, and GKE network policies so only the checkout pods reach the tokenization service. Evidence: the firewall policy export, Network Intelligence Center connectivity tests from a marketing VM failing to reach the database, and VPC Flow Logs."
             ),
             part(
               "Audit log coverage",
@@ -508,7 +508,7 @@ export const GCPSEC_LABS: SeedLabSet = {
             part(
               "Shared responsibility",
               "Writes a responsibility matrix: Google is responsible for physical security, hardware, host OS and the managed services' infrastructure (evidenced by Google's compliance reports and attestations), while Tamsin is responsible for IAM, data classification, network configuration, GKE workload security, key management and logging; cites the Compliance Reports Manager for Google's attestations.",
-              "Produce a matrix: Google secures the data centres, hardware, hypervisor and the infrastructure of GKE, Cloud SQL and Cloud Storage, evidenced by the PCI DSS attestation of compliance available from Google's Compliance Reports Manager; Tamsin owns identities and IAM, firewall and perimeter configuration, GKE node and workload hardening, Cloud SQL users and encryption keys, audit-log configuration and retention, and the application's own card handling. The assessor sees Google's report for Google's half and Tamsin's configuration evidence for its own."
+              "Produce a matrix: Google secures the data centers, hardware, hypervisor and the infrastructure of GKE, Cloud SQL and Cloud Storage, evidenced by the PCI DSS attestation of compliance available from Google's Compliance Reports Manager; Tamsin owns identities and IAM, firewall and perimeter configuration, GKE node and workload hardening, Cloud SQL users and encryption keys, audit-log configuration and retention, and the application's own card handling. The assessor sees Google's report for Google's half and Tamsin's configuration evidence for its own."
             ),
           ],
         },

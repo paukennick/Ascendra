@@ -88,7 +88,8 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(() => ({ config, me, refresh }), [config, me, refresh]);
   const copy = signal ? signalCopy(signal) : null;
   // REQ-144: unrestricted accounts are never offered a plan.
-  const canUpgrade = me?.tier !== "pro" && !hasUnrestricted(user);
+  // REQ-170: with category plans, Pro in one category can still need another.
+  const canUpgrade = !me?.coversEverything && !hasUnrestricted(user);
 
   return (
     <BillingCtx.Provider value={value}>
@@ -99,7 +100,20 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
         message={copy?.body}
         onCancel={() => setSignal(null)}
         options={[
-          ...(copy?.showPlans && canUpgrade ? [{ label: "See plans", variant: "primary" as const, onPress: () => router.push("/plans") }] : []),
+          ...(copy?.showPlans && canUpgrade
+            ? [
+                {
+                  label: "See plans",
+                  variant: "primary" as const,
+                  onPress: () =>
+                    router.push(
+                      signal?.kind === "upgrade" && signal.scope
+                        ? { pathname: "/plans", params: { scope: signal.scope, tier: signal.requiredTier } }
+                        : "/plans"
+                    ),
+                },
+              ]
+            : []),
           ...(signal?.kind === "upgrade" && signal.feature === "all_courses"
             ? [{ label: "Change my free course", onPress: () => router.push("/settings/free-course") }]
             : []),

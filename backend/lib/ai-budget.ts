@@ -1,8 +1,10 @@
 import { query } from "@/lib/db";
 import { callCostUsd } from "@/lib/ai-pricing";
+import { PREGEN_PURPOSE_PREFIX } from "@/lib/ai-calls";
 import { UserFacingError } from "@/lib/http";
 import { isUnrestricted, noteCeilingReached } from "@/lib/account-access";
 import { CEILING_REACHED_MESSAGE, unrestrictedCeilingUsd } from "@/lib/account-access-config";
+import { AiSpendUnavailableError, poolSpendUsd } from "@/lib/ai-spend-ledger";
 
 // Audit 3 H4 (FAIL-294, and adversary finding 8): a per-learner daily AI spend budget.
 //
@@ -15,10 +17,10 @@ import { CEILING_REACHED_MESSAGE, unrestrictedCeilingUsd } from "@/lib/account-a
 // learner caused -- grading, chat, the guard's judge, regenerations.
 //
 // What it gates: the open-ended spenders, coach chat and lesson regenerate.
-// Grading is NOT blocked when the budget runs out: it is cheap (well under a
-// tenth of a cent), already rate-limited, and the core of learning, and
-// refusing to grade an answer the learner wrote would cost them more than it
-// saves. It still counts toward the total.
+// REQ-202 replaced "grading is never blocked" (it was an exemption that left
+// the 13 grading and generating routes with no cap at all): every model call
+// is now under a pool of its own in lib/ai-spend-gate.ts, and grading has its
+// own daily budget instead of none.
 //
 // Defaults (env-configurable, read per call):
 //   AI_DAILY_BUDGET_USD     0.50  -- about 3x a heavy learner's day (~$5/month,
@@ -41,16 +43,31 @@ export function dailyBudgetUsd(env: Record<string, string | undefined> = process
 
 // What this learner's model calls cost over the last 24 hours, in USD.
 export async function spendLast24hUsd(userId: string): Promise<number> {
-  return spendWhereUsd(userId, `created_at > now() - interval '24 hours'`, []);
+  return spendWhereUsd(`user_id = $1 and created_at > now() - interval '24 hours'`, [userId]);
 }
 
 // REQ-122: the same sum since a given time (the monthly per-tier AI cap,
 // lib/entitlements.ts). Same (user_id, created_at) index.
 export async function spendSinceUsd(userId: string, since: Date): Promise<number> {
-  return spendWhereUsd(userId, `created_at >= $2`, [since.toISOString()]);
+  return spendWhereUsd(`user_id = $1 and created_at >= $2`, [userId, since.toISOString()]);
 }
 
-async function spendWhereUsd(userId: string, window: string, extra: unknown[]): Promise<number> {
+// REQ-201: every model call since a given time, whoever caused it (learners,
+// shared lesson generation, re-checks, crons) -- the global daily AI ceiling
+// (lib/ai-access.ts). Uses the ai_calls (created_at) index from migration 028.
+//
+// REQ-208: shared-lesson pre-generation (purposes `pregen`, `pregen_fact_check`)
+// is NOT in this sum. It is a planned, owner-started job with its own hard
+// cap (the run's max_usd and a dedicated Console workspace with a spend
+// limit), and a $50 run would otherwise reach a $5 daily ceiling at once and
+// pause chat and lesson regeneration for learners for the rest of the UTC
+// day. The ceiling exists to stop runaway learner-driven spend. The rows are
+// still in ai_calls, so a query over the table sees them.
+export async function globalSpendSinceUsd(since: Date): Promise<number> {
+  return spendWhereUsd(`created_at >= $1 and purpose not like $2`, [since.toISOString(), `${PREGEN_PURPOSE_PREFIX}%`]);
+}
+
+async function spendWhereUsd(where: string, params: unknown[]): Promise<number> {
   const rows = await query<{ model: string; input: number; output: number; read: number; write: number; long_input: number; long_output: number; long_read: number; long_write: number }>(
     `select model,
             coalesce(sum(input_tokens) filter (where not long), 0)::float8 as input,
@@ -64,9 +81,9 @@ async function spendWhereUsd(userId: string, window: string, extra: unknown[]): 
        from (select model, input_tokens, output_tokens, cache_read_tokens, cache_write_tokens,
                     coalesce(input_tokens, 0) + coalesce(cache_read_tokens, 0) + coalesce(cache_write_tokens, 0) > 100000 as long
                from ai_calls
-              where user_id = $1 and ${window}) c
+              where ${where}) c
       group by model`,
-    [userId, ...extra]
+    params
   );
   let usd = 0;
   for (const r of rows) {
@@ -101,19 +118,40 @@ export class AiBudgetError extends UserFacingError {
 // the same 24 hours) -- raised, never removed. Its access is only looked up
 // once the everyday budget is reached, so other learners pay no extra read.
 // At the ceiling it is logged, recorded and the owners are emailed.
+//
+// REQ-202 (F1): this is the route-level look, made early so a learner gets
+// the kind answer before any work is done. The enforcement is the gate in the
+// model-call layer (lib/ai-spend-gate.ts), which also reserves the call's cost.
+// Two changes here:
+//   - The everyday budget counts the COACH pool only. Grading has its own
+//     (AI_DAILY_GRADING_BUDGET_USD), so a heavy legitimate grader no longer
+//     uses up the coach. The REQ-144 ceiling still counts every pool.
+//   - A database error is no longer read as "no spend" (it used to be, which
+//     let every learner through while the database was failing). It fails
+//     closed with AiSpendUnavailableError, a 503.
 export async function requireAiBudget(userId: string, env: NodeJS.ProcessEnv = process.env): Promise<void> {
   const budget = dailyBudgetUsd(env);
-  let spent: number | null = null;
-  const spend = async () => (spent ??= await spendLast24hUsd(userId).catch(() => 0));
-  if (budget !== null && (await spend()) < budget) return;
+  if (budget !== null && (await readSpend(userId, "coach")) < budget) return;
   const unrestricted = await isUnrestricted(userId, env).catch(() => false);
   if (!unrestricted) {
     if (budget === null) return;
     throw new AiBudgetError();
   }
   const ceiling = unrestrictedCeilingUsd(env);
-  const total = await spend();
+  const total = await readSpend(userId, "all");
   if (total < ceiling) return;
   await noteCeilingReached(userId, total, ceiling, env);
   throw new AiBudgetError(CEILING_REACHED_MESSAGE);
+}
+
+async function readSpend(userId: string, pool: "coach" | "all"): Promise<number> {
+  try {
+    return await poolSpendUsd((sql, params) => query(sql, params) as never, userId, pool);
+  } catch (err) {
+    // 42P01: no ai_calls table yet, so nothing has ever been spent.
+    if ((err as { code?: unknown } | null)?.code === "42P01") return 0;
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[ai-budget] could not read the spend, refusing (fail closed): ${msg.slice(0, 200)}`);
+    throw new AiSpendUnavailableError();
+  }
 }

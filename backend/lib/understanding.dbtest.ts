@@ -6,6 +6,7 @@ process.env.CATALOG_REVIEW_AGENT_TOKEN ??= "review-agent-test-token";
 // (lib/item-quality.dbtest.ts); here the fake model answers only the
 // feature's own calls, so the gate is off, as it was before REQ-114.
 process.env.ITEM_FACT_CHECK = "off";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -18,7 +19,9 @@ import { presentationOrder, presentationSeed, shownIndexOf } from "./choice-orde
 import { ensureConceptSets, ensurePrerequisites, generateLearnedSets } from "./understanding-ai";
 import {
   claimInsight,
+  insightStatus,
   editPrerequisites,
+  finishInsight,
   learnedSetCandidates,
   misconceptionPromptBlock,
   PrerequisiteEditError,
@@ -54,6 +57,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `un-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const auth = (u: string) => ({ authorization: `Bearer ${signAccessToken({ sub: u, email: `${u}@example.test` })}` });
@@ -186,11 +190,11 @@ describe("comparison cards (generated once per course, mocked model)", () => {
       return CONCEPT_SETS;
     };
     // Two at once: the claim lets only one call the model.
-    const [a, b] = await Promise.all([ensureConceptSets(track), ensureConceptSets(track)]);
+    const [a, b] = await Promise.all([ensureConceptSets(track, null), ensureConceptSets(track, null)]);
     assert.ok([a, b].includes("ready"));
     assert.ok([a, b].every((x) => x === "ready" || x === "generating"));
     assert.equal(calls, 1);
-    assert.equal(await ensureConceptSets(track), "ready");
+    assert.equal(await ensureConceptSets(track, null), "ready");
     assert.equal(calls, 1, "a ready course is never generated again");
     const sets = await query(`select * from concept_sets where track_id = $1`, [track]);
     assert.equal(sets.length, 1, "the one-concept set is dropped");
@@ -366,6 +370,27 @@ describe("explain-it-back", () => {
     assert.equal(res.diagnosis.sentence, "You may be mixing up roles with labels.");
   });
 
+  // REQ-218 (FAIL-1081): the replay was bound to the objective, kind and stage
+  // only, so an id reused with a different explanation answered with the first
+  // explanation's verdict and the new text was never graded.
+  test("a replayed client id is bound to the explanation text: the same text replays, another text is a 409", async () => {
+    const u = await newUser();
+    await giveGuided(u, o[1]);
+    respond = () => graded("correct");
+    const cid = randomUUID();
+    const first = await explainPost(post(u, { answer: OWN, clientAttemptId: cid }), ctx("id", o[1]));
+    assert.equal(first.status, 200);
+    const calls = sent.length;
+    const same = await explainPost(post(u, { answer: `  ${OWN}  `, clientAttemptId: cid }), ctx("id", o[1]));
+    assert.equal(same.status, 200);
+    assert.equal(sent.length, calls, "the replay made no model call");
+    const other = await explainPost(post(u, { answer: `${OWN} But I would also add that roles can be nested in some systems.`, clientAttemptId: cid }), ctx("id", o[1]));
+    assert.equal(other.status, 409);
+    assert.equal(sent.length, calls);
+    const n = await queryOne<{ n: number }>(`select count(*)::int as n from attempts where user_id = $1 and assessment_type = 'explain_back'`, [u]);
+    assert.equal(n!.n, 1);
+  });
+
   test("too short is refused kindly without a model call", async () => {
     const u = await newUser();
     await giveGuided(u, o[1]);
@@ -383,8 +408,8 @@ describe("prerequisite remediation", () => {
       // 2 -> 4 (RBAC builds on identity), 4 -> 2 would be a cycle, 9 is out of range.
       return { edges: [{ objective: 2, prerequisite: 4 }, { objective: 4, prerequisite: 2 }, { objective: 1, prerequisite: 9 }] };
     };
-    assert.equal(await ensurePrerequisites(track), "ready");
-    assert.equal(await ensurePrerequisites(track), "ready");
+    assert.equal(await ensurePrerequisites(track, null), "ready");
+    assert.equal(await ensurePrerequisites(track, null), "ready");
     assert.equal(calls, 1);
     const edges = await query<{ objective_id: string; prerequisite_id: string }>(
       `select objective_id, prerequisite_id from objective_prerequisites where track_id = $1`, [track]
@@ -462,12 +487,57 @@ describe("learned comparison cards", () => {
         ],
       };
     };
-    assert.equal(await generateLearnedSets(track), 1);
-    assert.equal(await generateLearnedSets(track), 0);
+    assert.equal(await generateLearnedSets(track, null), 1);
+    assert.equal(await generateLearnedSets(track, null), 0);
     assert.equal(calls, 1);
     const s = await queryOne<{ source: string }>(`select source from concept_sets where track_id = $1 and source = 'learned'`, [track]);
     assert.equal(s?.source, "learned");
     assert.equal((await learnedSetCandidates(track)).length, 0);
+  });
+});
+
+describe("REQ-216: comparison cards are held back only on low confidence", () => {
+  async function freshTrack(): Promise<string> {
+    const t = randomUUID();
+    const un = randomUUID();
+    await query(`insert into subject_tracks (id, code, title, track_type, user_id) values ($1, $2, 'G1 cards', 'certification', null)`, [t, `G1C-${run}-${t.slice(0, 4)}`]);
+    await query(`insert into course_units (id, track_id, title, sort_order) values ($1, $2, 'U', 1)`, [un, t]);
+    for (const [i, title] of ["Access control models", "Role-based access control", "Identity basics"].entries()) {
+      await query(`insert into objectives (id, unit_id, title, sort_order) values ($1, $2, $3, $4)`, [randomUUID(), un, title, i]);
+    }
+    return t;
+  }
+
+  test("FAIL-1011: listed disclaimers alone do not hold a card back", async () => {
+    const t = await freshTrack();
+    try {
+      respond = () => ({ sets: CONCEPT_SETS.sets.map((s) => ({ ...s, confidence: "medium", uncertainClaims: ["the scenario is invented"] })) });
+      assert.equal(await ensureConceptSets(t, null), "ready");
+      assert.equal((await query(`select 1 from concept_sets where track_id = $1`, [t])).length, 1);
+      assert.equal((await query(`select 1 from item_holdbacks where track_id = $1`, [t])).length, 0);
+    } finally {
+      await query(`delete from subject_tracks where id = $1`, [t]);
+    }
+  });
+
+  test("FAIL-1011: every card low-confidence twice finishes 'failed' (retried later), not 'ready' with nothing", async () => {
+    const t = await freshTrack();
+    try {
+      const prompts: string[] = [];
+      respond = (body) => {
+        prompts.push(userText(body));
+        return { sets: CONCEPT_SETS.sets.map((s) => ({ ...s, confidence: "low", uncertainClaims: ["unsure of the model"] })) };
+      };
+      assert.equal(await ensureConceptSets(t, null), "failed");
+      assert.equal(prompts.length, 2, "one steered retry");
+      assert.doesNotMatch(prompts[0], /unsure of the model/);
+      assert.match(prompts[1], /unsure of the model/);
+      assert.equal((await query(`select 1 from concept_sets where track_id = $1`, [t])).length, 0);
+      assert.equal((await query(`select 1 from item_holdbacks where track_id = $1 and item_kind = 'comparison'`, [t])).length, 4, "two cards held on each of two attempts");
+      assert.equal(await insightStatus(t, "concept_sets"), "failed");
+    } finally {
+      await query(`delete from subject_tracks where id = $1`, [t]);
+    }
   });
 });
 
@@ -476,18 +546,22 @@ describe("claims and account data", () => {
     respond = () => {
       throw new Error("model down");
     };
-    assert.equal(await ensureConceptSets(privateTrack), "failed");
+    assert.equal(await ensureConceptSets(privateTrack, null), "failed");
+    assert.equal(await claimInsight(privateTrack, "concept_sets", randomUUID()), false);
+    await query(`update course_insights set claimed_at = now() - interval '11 minutes' where track_id = $1`, [privateTrack]);
+    const retry = randomUUID();
+    assert.equal(await claimInsight(privateTrack, "concept_sets", retry), true);
+    assert.equal(await finishInsight(privateTrack, "concept_sets", retry, "failed", null), true);
     // REQ-113 (Audit 3 mobile L4, FAIL-268): the app is told the cards failed
     // to generate, rather than shown "no look-alike concepts were found".
+    // Asked last: the route starts a background retry, which would race the
+    // back-off claims above once they are past the back-off (CI, Nov 11).
     const owner = (await queryOne<{ user_id: string }>(`select user_id from subject_tracks where id = $1`, [privateTrack]))!.user_id;
     const failedList = await (await comparisonsGet(get(owner), ctx("id", privateTrack))).json();
     assert.equal(failedList.failed, true);
     assert.equal(failedList.pending, false);
-    assert.equal(await claimInsight(privateTrack, "concept_sets", randomUUID()), false);
-    await query(`update course_insights set claimed_at = now() - interval '11 minutes' where track_id = $1`, [privateTrack]);
-    assert.equal(await claimInsight(privateTrack, "concept_sets", randomUUID()), true);
     // A course with fewer than two objectives has nothing to compare: ready, no call.
-    assert.equal(await ensureConceptSets(otherTrack), "ready");
+    assert.equal(await ensureConceptSets(otherTrack, null), "ready");
   });
 
   test("a learner's misconceptions and refreshers are in their export and go with the account", async () => {

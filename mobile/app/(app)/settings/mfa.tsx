@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Image, Platform, Share, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import { useNavigation, useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 import { api, ApiError } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import {
@@ -24,12 +24,14 @@ import { withBackgroundHold } from "@/lib/backgroundHold";
 import { backupCodesText, isShareDismissal, mfaLeaveGuard, type MfaView } from "@/lib/mfaLeaveGuard";
 import { installWebLeaveGuard } from "@/lib/webLeaveGuard";
 import { colors, radius } from "@/lib/theme";
-import { reauthPromptFor } from "@/lib/reauth";
+import { needsReauth, reauthFields, reauthPromptFor } from "@/lib/reauth";
+import { useGoogleAuthRequest } from "@/auth/googleSignIn";
+import { useGoBack } from "@/lib/useGoBack";
 
 type MfaMethod = "totp" | "email";
 
 export default function MfaSettings() {
-  const router = useRouter();
+  const goBack = useGoBack("/settings");
   const navigation = useNavigation();
   const { user, refreshUser, status } = useAuth();
   // Read inside the beforeRemove listener: a sign-out or lock must never be
@@ -126,6 +128,7 @@ export default function MfaSettings() {
   // needs a current code, a backup code or the password.
   const [reauthSecret, setReauthSecret] = useState("");
   const hasPassword = !!user?.hasPassword;
+  const { clientId: googleClientId, signInAsync: googleSignInAsync } = useGoogleAuthRequest();
 
   // A denied clipboard (web permission, some browsers) used to reject
   // unhandled here (FAIL-069); the secret is on screen to type instead.
@@ -166,33 +169,33 @@ export default function MfaSettings() {
 
   // Tapping this is the learner's confirmation that the codes are saved. The
   // view ref is set at once (state only updates on the next render, which
-  // would be after router.back() has already hit the guard), and the codes
+  // would be after goBack() has already hit the guard), and the codes
   // are dropped from memory.
   function finishBackupCodes() {
     viewRef.current = "status";
     setBackupCodes([]);
     setView("status");
-    router.back();
+    goBack();
   }
 
-  async function startTotpSetup(reauth?: string) {
-    if (user?.mfaEnabled && reauth === undefined) {
+  // REQ-203 (FAIL-860): the server asks the learner to confirm it's them
+  // before an authenticator is added, whether or not two-factor is already
+  // on (any account with a password, a code or a Google link).
+  async function startTotpSetup(fields?: { reauth?: string; googleIdToken?: string }) {
+    if (!fields && needsReauth(user)) {
       setError(null);
       setReauthSecret("");
       setView("totp-reauth");
       return;
     }
-    if (reauth !== undefined && !reauth) {
+    if (fields && !fields.reauth && !fields.googleIdToken) {
       setError(reauthPromptFor(user).hint);
       return;
     }
     setError(null);
     setBusy(true);
     try {
-      const res = await api.post<{ secret: string; qrDataUrl: string }>(
-        "/api/auth/mfa/setup",
-        reauth !== undefined ? { reauth } : undefined
-      );
+      const res = await api.post<{ secret: string; qrDataUrl: string }>("/api/auth/mfa/setup", fields);
       setReauthSecret("");
       setManualSecret(res.secret);
       setQrDataUrl(res.qrDataUrl);
@@ -205,6 +208,23 @@ export default function MfaSettings() {
     }
   }
 
+  // A Google-only account without two-factor confirms by signing in with
+  // Google again; the ID token goes to the server as the proof.
+  async function confirmWithGoogle() {
+    setError(null);
+    let idToken: string | null = null;
+    try {
+      idToken = await withBackgroundHold(() => googleSignInAsync());
+    } catch {
+      idToken = null;
+    }
+    if (!idToken) {
+      setError("Google sign-in didn't finish. Try again.");
+      return;
+    }
+    await startTotpSetup(reauthFields(reauthPromptFor(user), idToken));
+  }
+
   async function confirmTotpSetup() {
     if (!code.trim()) {
       setError("Enter the 6-digit code from your authenticator app.");
@@ -214,13 +234,16 @@ export default function MfaSettings() {
     setBusy(true);
     try {
       const res = await api.post<{ backupCodes: string[] }>("/api/auth/mfa/enable", { code: code.trim() });
-      await refreshUser();
+      // REQ-217 (FAIL-1047): two-factor is on as soon as the server said so, and
+      // the backup codes are shown once and never kept -- so they come on
+      // screen first, and a failed profile reload cannot take them away.
       if (res.backupCodes.length > 0) {
         setBackupCodes(res.backupCodes);
         setView("backup-codes");
       } else {
         setView("status");
       }
+      await refreshUser().catch(() => undefined);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Couldn't confirm that code.");
     } finally {
@@ -265,13 +288,16 @@ export default function MfaSettings() {
     setBusy(true);
     try {
       const res = await api.post<{ backupCodes: string[] }>("/api/auth/mfa/email/enable", { code: code.trim() });
-      await refreshUser();
+      // REQ-217 (FAIL-1047): two-factor is on as soon as the server said so, and
+      // the backup codes are shown once and never kept -- so they come on
+      // screen first, and a failed profile reload cannot take them away.
       if (res.backupCodes.length > 0) {
         setBackupCodes(res.backupCodes);
         setView("backup-codes");
       } else {
         setView("status");
       }
+      await refreshUser().catch(() => undefined);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Couldn't confirm that code.");
     } finally {
@@ -302,7 +328,7 @@ export default function MfaSettings() {
         setNeedsConfirmation(true);
         return;
       }
-      await refreshUser();
+      await refreshUser().catch(() => undefined);
       setPassword("");
       setConfirmationCode("");
       setNeedsConfirmation(false);
@@ -314,16 +340,22 @@ export default function MfaSettings() {
     }
   }
 
-  async function regenerate() {
-    if (!password) {
-      setError("Enter your password.");
+  // REQ-219 (FAIL-1101): the same proofs as every other confirm-it's-you
+  // screen (src/lib/reauth.ts): the password, an authenticator or backup code,
+  // or -- for a Google-only account -- a fresh Google sign-in. Regenerating
+  // used to accept a password only, which a Google-only account doesn't have.
+  async function regenerate(googleIdToken?: string) {
+    const prompt = reauthPromptFor(user);
+    const proof = googleIdToken ? { googleIdToken } : reauthFields(prompt, password);
+    if (!proof.reauth && !proof.googleIdToken) {
+      setError(prompt.hint);
       return;
     }
     setError(null);
     setBusy(true);
     try {
       const res = await api.post<{ backupCodes: string[] }>("/api/auth/mfa/backup-codes", {
-        password,
+        ...proof,
         method: targetMethod,
       });
       setBackupCodes(res.backupCodes);
@@ -334,6 +366,21 @@ export default function MfaSettings() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function regenerateWithGoogle() {
+    setError(null);
+    let idToken: string | null = null;
+    try {
+      idToken = await withBackgroundHold(() => googleSignInAsync());
+    } catch {
+      idToken = null;
+    }
+    if (!idToken) {
+      setError("Google sign-in didn't finish. Try again.");
+      return;
+    }
+    await regenerate(idToken);
   }
 
   if (view === "backup-codes") {
@@ -371,21 +418,43 @@ export default function MfaSettings() {
     return (
       <Screen>
         <H2>Confirm it's you</H2>
-        <Muted>Two-factor is already on, so adding an authenticator app needs one more check.</Muted>
+        <Muted>Adding an authenticator app changes how you sign in, so it needs one more check.</Muted>
         <Muted>{prompt.hint}</Muted>
         {error ? <ErrorBanner message={error} /> : null}
         <Card>
-          <TextField
-            label={prompt.kind === "secret" ? prompt.label : "Authenticator or backup code"}
-            value={reauthSecret}
-            onChangeText={setReauthSecret}
-            secureTextEntry={prompt.kind === "secret" && prompt.secure}
-            placeholder={prompt.kind === "secret" && prompt.secure ? "••••••••" : "123456"}
-            textContentType={prompt.kind === "secret" && prompt.secure ? "password" : "oneTimeCode"}
-            autoComplete={prompt.kind === "secret" && prompt.secure ? "current-password" : "one-time-code"}
-            icon="lock"
-          />
-          <Button label="Continue" icon="check-circle" onPress={() => startTotpSetup(reauthSecret)} loading={busy} />
+          {prompt.kind === "secret" ? (
+            <>
+              <TextField
+                label={prompt.label}
+                value={reauthSecret}
+                onChangeText={setReauthSecret}
+                secureTextEntry={prompt.secure}
+                placeholder={prompt.secure ? "••••••••" : "123456"}
+                textContentType={prompt.secure ? "password" : "oneTimeCode"}
+                autoComplete={prompt.secure ? "current-password" : "one-time-code"}
+                icon="lock"
+              />
+              <Button
+                label="Continue"
+                icon="check-circle"
+                onPress={() => startTotpSetup(reauthFields(prompt, reauthSecret))}
+                loading={busy}
+              />
+            </>
+          ) : (
+            <>
+              <Button
+                label={prompt.label}
+                icon="check-circle"
+                onPress={confirmWithGoogle}
+                loading={busy}
+                disabled={!googleClientId}
+              />
+              {!googleClientId ? (
+                <Muted>Google sign-in isn't available here. Use the app on your phone to add an authenticator.</Muted>
+              ) : null}
+            </>
+          )}
         </Card>
         <Button
           label="Cancel"
@@ -466,6 +535,7 @@ export default function MfaSettings() {
 
   if (view === "disable" || view === "regenerate") {
     const isDisable = view === "disable";
+    const regeneratePrompt = reauthPromptFor(user);
     const targetLabel = targetMethod === "totp" ? "authenticator app codes" : "email codes";
     return (
       <Screen>
@@ -477,11 +547,11 @@ export default function MfaSettings() {
               : hasPassword
                 ? "This removes it as a sign-in step. Enter your password to confirm."
                 : "This removes it as a sign-in step. We'll email you a code to confirm."
-            : "This invalidates the existing backup codes for this method and issues 10 new ones. Enter your password to confirm."}
+            : `This invalidates the existing backup codes for this method and issues 10 new ones. ${reauthPromptFor(user).hint}`}
         </Muted>
         {error ? <ErrorBanner message={error} /> : null}
         <Card>
-          {hasPassword || !isDisable ? (
+          {isDisable && hasPassword ? (
             <TextField
               label="Password"
               value={password}
@@ -490,6 +560,18 @@ export default function MfaSettings() {
               placeholder="••••••••"
               textContentType="password"
               autoComplete="current-password"
+              icon="lock"
+            />
+          ) : null}
+          {!isDisable && regeneratePrompt.kind === "secret" ? (
+            <TextField
+              label={regeneratePrompt.label}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={regeneratePrompt.secure}
+              placeholder={regeneratePrompt.secure ? "••••••••" : "123456"}
+              textContentType={regeneratePrompt.secure ? "password" : "oneTimeCode"}
+              autoComplete={regeneratePrompt.secure ? "current-password" : "one-time-code"}
               icon="lock"
             />
           ) : null}
@@ -505,13 +587,26 @@ export default function MfaSettings() {
               icon="mail"
             />
           ) : null}
-          <Button
-            label={isDisable ? "Turn off" : "Regenerate codes"}
-            variant={isDisable ? "danger" : "primary"}
-            icon={isDisable ? "shield-off" : "refresh-cw"}
-            onPress={isDisable ? disable : regenerate}
-            loading={busy}
-          />
+          {!isDisable && regeneratePrompt.kind === "google" ? (
+            <>
+              <Button
+                label={regeneratePrompt.label}
+                icon="check-circle"
+                onPress={regenerateWithGoogle}
+                loading={busy}
+                disabled={!googleClientId}
+              />
+              {!googleClientId ? <Muted>Google sign-in isn't available here. Use the app on your phone.</Muted> : null}
+            </>
+          ) : (
+            <Button
+              label={isDisable ? "Turn off" : "Regenerate codes"}
+              variant={isDisable ? "danger" : "primary"}
+              icon={isDisable ? "shield-off" : "refresh-cw"}
+              onPress={isDisable ? disable : () => regenerate()}
+              loading={busy}
+            />
+          )}
         </Card>
         <Button
           label="Cancel"

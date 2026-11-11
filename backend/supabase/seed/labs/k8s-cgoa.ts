@@ -79,7 +79,7 @@ export const CGOA_LABS: SeedLabSet = {
     },
     {
       slug: "spot-the-not-gitops",
-      objective: "Recognise GitOps terminology misuse: 'GitOps' claimed for a CI pipeline that pushes with kubectl, or for a system with no reconciler",
+      objective: "Recognize GitOps terminology misuse: 'GitOps' claimed for a CI pipeline that pushes with kubectl, or for a system with no reconciler",
       kind: "build",
       title: "Judge four 'GitOps' claims from vendor and team descriptions",
       brief:
@@ -147,7 +147,7 @@ export const CGOA_LABS: SeedLabSet = {
             part(
               "Continuously reconciled",
               "Violated: selfHeal is off so detected drift is never corrected, prune is off so deleted resources linger, and items 4 and 5 deliberately create drift the design tolerates for up to 48 hours; reconciliation here is detection only, every 3 minutes, with correction disabled.",
-              "Continuously reconciled: Argo CD compares every 3 minutes but cannot act -- selfHeal off means the hotfix drift (4) and the nightly patches (5) stand until someone backports them, and prune off means a resource removed from Git keeps running. '48 hours to backport' institutionalises drift. The principle requires agents to continuously attempt to apply the desired state, which this design switches off."
+              "Continuously reconciled: Argo CD compares every 3 minutes but cannot act -- selfHeal off means the hotfix drift (4) and the nightly patches (5) stand until someone backports them, and prune off means a resource removed from Git keeps running. '48 hours to backport' institutionalizes drift. The principle requires agents to continuously attempt to apply the desired state, which this design switches off."
             ),
           ],
         },
@@ -215,7 +215,7 @@ export const CGOA_LABS: SeedLabSet = {
       slug: "pulled-automatically-vs-push",
       objective: "Pulled automatically: software agents pull the desired state from the source rather than having changes pushed to them, and why pull matters for security and reliability",
       kind: "case",
-      title: "Defend pull-based delivery to a sceptical security team",
+      title: "Defend pull-based delivery to a skeptical security team",
       brief:
         "At the fictional telecom Brightwater Mobile, the security team objects to installing Argo CD: 'An agent in every production cluster with permission to change anything is a bigger risk than our locked-down CI runner that pushes releases.' The platform team asks you to answer them.",
       safetyNote: GENERAL_SAFETY,
@@ -295,7 +295,7 @@ export const CGOA_LABS: SeedLabSet = {
             ),
             part(
               "Smoke tests and notifications",
-              "Smoke tests after deployment are post-delivery verification: run them from a Job or an external monitor triggered by the reconciler's success (Flux notification/alert, Argo CD PostSync hook, or progressive delivery with Flagger analysing metrics), and send notifications from the reconciler's events rather than from CI, which no longer knows when the deploy happened.",
+              "Smoke tests after deployment are post-delivery verification: run them from a Job or an external monitor triggered by the reconciler's success (Flux notification/alert, Argo CD PostSync hook, or progressive delivery with Flagger analyzing metrics), and send notifications from the reconciler's events rather than from CI, which no longer knows when the deploy happened.",
               "Smoke tests verify delivery, so they run after the reconciler reports success: an Argo CD PostSync hook Job, or Flux's notification controller triggering a test pipeline on a successful reconciliation, or -- better -- Flagger running a canary with metric analysis and automatic rollback. Slack notifications come from the reconciler (Flux Alert/Provider, Argo CD notifications), because CI finished when the commit merged and does not know when production converged. The boundary: CI ends when the desired state is updated; CD is the reconciler plus whatever verifies the result."
             ),
           ],
@@ -357,7 +357,7 @@ export const CGOA_LABS: SeedLabSet = {
       kind: "build",
       title: "Pick GitOps patterns for a 40-cluster retailer",
       brief:
-        "The fictional supermarket chain Ashworth's runs 40 Kubernetes clusters: one per regional distribution centre, plus two central clusters. Each cluster runs the same platform add-ons and a store-operations app that must be rolled out region by region, with the ability to hold a region back. Three teams own different parts. They are choosing GitOps patterns before picking a tool.",
+        "The fictional supermarket chain Ashworth's runs 40 Kubernetes clusters: one per regional distribution center, plus two central clusters. Each cluster runs the same platform add-ons and a store-operations app that must be rolled out region by region, with the ability to hold a region back. Three teams own different parts. They are choosing GitOps patterns before picking a tool.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -372,7 +372,7 @@ export const CGOA_LABS: SeedLabSet = {
             part(
               "Reconciler architecture",
               "Hub-and-spoke with a reconciler per cluster (in-cluster agents) managed from a central 'management' definition, or a central Argo CD managing remote clusters; choose in-cluster agents for resilience (each DC keeps reconciling if the WAN drops) and a central ApplicationSet/Flux bootstrap to keep agent config uniform; trade-off: 40 agents to upgrade versus a central single point of failure and WAN dependence.",
-              "In-cluster reconcilers on every DC cluster, bootstrapped and kept uniform from a central definition (an ApplicationSet with a cluster generator in a central Argo CD acting only as the 'agent of agents', or Flux bootstrap per cluster from one management repo). Each distribution centre keeps converging even if its WAN link to head office fails -- important for stores. Trade-off: 40 agent installations to upgrade and monitor, instead of one central Argo CD whose outage or WAN loss would freeze every region."
+              "In-cluster reconcilers on every DC cluster, bootstrapped and kept uniform from a central definition (an ApplicationSet with a cluster generator in a central Argo CD acting only as the 'agent of agents', or Flux bootstrap per cluster from one management repo). Each distribution center keeps converging even if its WAN link to head office fails -- important for stores. Trade-off: 40 agent installations to upgrade and monitor, instead of one central Argo CD whose outage or WAN loss would freeze every region."
             ),
             part(
               "Environment promotion and holding back a region",
@@ -403,7 +403,7 @@ export const CGOA_LABS: SeedLabSet = {
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "Facts from the review:\n - Rolling update: maxSurge 25%, maxUnavailable 0, readiness probe passing (the bug returned HTTP 500 only for orders with a promo code).\n - All traffic shifted to 9.2 within 90 seconds.\n - Error ratio and p95 latency are already in Prometheus, labelled by version.\n - The team deploys with Argo CD; Argo Rollouts is installed but unused.\n - Reverting took 9 minutes because the revert PR needed two approvals and a CI run.",
+          text: "Facts from the review:\n - Rolling update: maxSurge 25%, maxUnavailable 0, readiness probe passing (the bug returned HTTP 500 only for orders with a promo code).\n - All traffic shifted to 9.2 within 90 seconds.\n - Error ratio and p95 latency are already in Prometheus, labeled by version.\n - The team deploys with Argo CD; Argo Rollouts is installed but unused.\n - Reverting took 9 minutes because the revert PR needed two approvals and a CI run.",
           ask: "Explain why the rolling update could not protect them, choose a progressive delivery pattern for this service, and specify how metrics drive it.",
           parts: [
             part(
@@ -413,12 +413,12 @@ export const CGOA_LABS: SeedLabSet = {
             ),
             part(
               "Pattern choice",
-              "Canary via Argo Rollouts: shift 5%, then 25%, then 50% with pauses, gated by an AnalysisTemplate on the version-labelled error ratio and p95 latency, auto-abort on failure; blue/green is the alternative if traffic splitting is unavailable, giving instant switch-back but exposing 100% at once; feature flags handle the promo-code path specifically.",
+              "Canary via Argo Rollouts: shift 5%, then 25%, then 50% with pauses, gated by an AnalysisTemplate on the version-labeled error ratio and p95 latency, auto-abort on failure; blue/green is the alternative if traffic splitting is unavailable, giving instant switch-back but exposing 100% at once; feature flags handle the promo-code path specifically.",
               "Convert the Deployment to an Argo Rollouts Rollout with a canary strategy: setWeight 5 -> pause 5m -> setWeight 25 -> pause 10m -> setWeight 50 -> pause 10m -> 100, with an analysis step at each pause. Only 5% of users would have met the bug, and the rollout would have aborted itself inside five minutes. Blue/green would give an instant switch back to 9.1 but still exposes everyone during the window, so canary fits this failure better. Add a feature flag around the new promo-code logic so a code path can be turned off faster than any deploy."
             ),
             part(
               "Metrics-driven promotion",
-              "An AnalysisTemplate querying Prometheus for the canary version's error ratio (e.g. < 1%) and p95 latency (< 500 ms) over each interval, with failureLimit so a transient blip does not abort; success advances the next step automatically, failure aborts and scales the canary to zero -- rollback in seconds with no PR; the metrics already exist, labelled by version, which makes this feasible.",
+              "An AnalysisTemplate querying Prometheus for the canary version's error ratio (e.g. < 1%) and p95 latency (< 500 ms) over each interval, with failureLimit so a transient blip does not abort; success advances the next step automatically, failure aborts and scales the canary to zero -- rollback in seconds with no PR; the metrics already exist, labeled by version, which makes this feasible.",
               "AnalysisTemplate (Prometheus provider): metric error-ratio = sum(rate(http_requests_total{app=\"orders\",version=\"{{args.canary-version}}\",code=~\"5..\"}[2m])) / sum(rate(http_requests_total{app=\"orders\",version=\"{{args.canary-version}}\"}[2m])), successCondition result < 0.01, interval 1m, failureLimit 2; metric p95 from histogram_quantile(0.95, ...) with successCondition < 0.5. Each pause runs the analysis; passing promotes to the next weight automatically, failing aborts the rollout and routes 100% back to the stable ReplicaSet in seconds -- no PR, no approvals. The version label already in the metrics is what makes the canary measurable; the rollout's own stable/canary labels can be used instead."
             ),
           ],
@@ -430,11 +430,11 @@ export const CGOA_LABS: SeedLabSet = {
             part(
               "Abort versus desired state",
               "An aborted Rollout is not drift the way a kubectl edit is: the Rollout resource itself is the declared desired state and its strategy declares 'abort on failed analysis', so the controller is reconciling exactly what Git asked for; the Rollout reports Degraded/Aborted and Argo CD shows the Application Degraded, which is the feedback loop telling the team to decide -- revert the image in Git (making 9.1 desired again) or fix forward with 9.3; leaving it aborted indefinitely is the thing to avoid.",
-              "Not a violation. The declaration in Git is a Rollout whose strategy says: shift traffic in steps and abort if analysis fails. Serving 9.1 after an abort is the declared behaviour for a failed 9.2, and the Rollout status (Degraded, aborted) plus the Argo CD Application health surface it as feedback. What the team must then do is make desired state honest: either revert the image to 9.1 in Git (so the Rollout becomes Healthy and Synced) or ship a fixed 9.3. Leaving Git at 9.2 and the cluster aborted for days is where it becomes drift in spirit."
+              "Not a violation. The declaration in Git is a Rollout whose strategy says: shift traffic in steps and abort if analysis fails. Serving 9.1 after an abort is the declared behavior for a failed 9.2, and the Rollout status (Degraded, aborted) plus the Argo CD Application health surface it as feedback. What the team must then do is make desired state honest: either revert the image to 9.1 in Git (so the Rollout becomes Healthy and Synced) or ship a fixed 9.3. Leaving Git at 9.2 and the cluster aborted for days is where it becomes drift in spirit."
             ),
             part(
               "Release windows that keep hotfixes",
-              "Encode the window declaratively rather than by human discipline: Argo CD sync windows on the AppProject (deny window Friday 16:00-Monday 08:00 for the production Applications, with manualSync allowed for a labelled hotfix path) or Argo Rollouts pauses with an explicit human promote outside hours; hotfixes bypass through the manual sync with a break-glass record, keeping the audit trail in Argo CD.",
+              "Encode the window declaratively rather than by human discipline: Argo CD sync windows on the AppProject (deny window Friday 16:00-Monday 08:00 for the production Applications, with manualSync allowed for a labeled hotfix path) or Argo Rollouts pauses with an explicit human promote outside hours; hotfixes bypass through the manual sync with a break-glass record, keeping the audit trail in Argo CD.",
               "Put the policy in the platform, not in a wiki: an Argo CD sync window on the production AppProject -- kind: deny, schedule \"0 16 * * 5\", duration 64h, applications [orders-prod] -- blocks automated and manual syncs through the weekend; set manualSync: true on the window so an on-call engineer can still argocd app sync for a genuine hotfix, which Argo CD logs as a manual operation by a named user. The canary strategy still guards the hotfix itself. Friday release discipline becomes a reviewable YAML rule with a documented exception path, which is exactly the GitOps habit."
             ),
           ],
@@ -448,7 +448,7 @@ export const CGOA_LABS: SeedLabSet = {
       kind: "build",
       title: "Express the same delivery in Argo CD and in Flux",
       brief:
-        "The fictional publisher Elmbridge Press wants to deploy its catalogue service from the config repo https://git.elmbridge.example/platform/config.git, path apps/catalogue/overlays/prod, branch main, into namespace catalogue on the production cluster, with automatic sync, pruning, drift correction and a 2-minute reconciliation interval. They have not chosen between Argo CD and Flux and want to see both.",
+        "The fictional publisher Elmbridge Press wants to deploy its catalog service from the config repo https://git.elmbridge.example/platform/config.git, path apps/catalogue/overlays/prod, branch main, into namespace catalog on the production cluster, with automatic sync, pruning, drift correction and a 2-minute reconciliation interval. They have not chosen between Argo CD and Flux and want to see both.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -458,17 +458,17 @@ export const CGOA_LABS: SeedLabSet = {
             part(
               "Argo CD Application",
               "An argoproj.io/v1alpha1 Application in the argocd namespace with source repoURL/path/targetRevision, destination server or name and namespace, syncPolicy automated {prune: true, selfHeal: true}, syncOptions CreateNamespace=true; the reconciliation interval is a controller-wide setting (timeout.reconciliation, default 3m) rather than per Application.",
-              "apiVersion: argoproj.io/v1alpha1\nkind: Application\nmetadata: {name: catalogue-prod, namespace: argocd}\nspec:\n  project: default\n  source:\n    repoURL: https://git.elmbridge.example/platform/config.git\n    targetRevision: main\n    path: apps/catalogue/overlays/prod\n  destination:\n    server: https://kubernetes.default.svc\n    namespace: catalogue\n  syncPolicy:\n    automated: {prune: true, selfHeal: true}\n    syncOptions: [CreateNamespace=true]\nThe polling interval is global in Argo CD (argocd-cm timeout.reconciliation: 120s), not per Application; webhooks from the Git host make it near-instant."
+              "apiVersion: argoproj.io/v1alpha1\nkind: Application\nmetadata: {name: catalog-prod, namespace: argocd}\nspec:\n  project: default\n  source:\n    repoURL: https://git.elmbridge.example/platform/config.git\n    targetRevision: main\n    path: apps/catalogue/overlays/prod\n  destination:\n    server: https://kubernetes.default.svc\n    namespace: catalog\n  syncPolicy:\n    automated: {prune: true, selfHeal: true}\n    syncOptions: [CreateNamespace=true]\nThe polling interval is global in Argo CD (argocd-cm timeout.reconciliation: 120s), not per Application; webhooks from the Git host make it near-instant."
             ),
             part(
               "Flux GitRepository and Kustomization",
               "A source.toolkit.fluxcd.io GitRepository (url, ref.branch main, interval 2m) and a kustomize.toolkit.fluxcd.io Kustomization (sourceRef, path, interval 2m, prune true, targetNamespace, wait/health checks); Flux's drift correction is inherent -- every interval it re-applies -- so there is no separate selfHeal flag.",
-              "apiVersion: source.toolkit.fluxcd.io/v1\nkind: GitRepository\nmetadata: {name: platform-config, namespace: flux-system}\nspec:\n  interval: 2m\n  url: https://git.elmbridge.example/platform/config.git\n  ref: {branch: main}\n---\napiVersion: kustomize.toolkit.fluxcd.io/v1\nkind: Kustomization\nmetadata: {name: catalogue-prod, namespace: flux-system}\nspec:\n  interval: 2m\n  sourceRef: {kind: GitRepository, name: platform-config}\n  path: ./apps/catalogue/overlays/prod\n  prune: true\n  targetNamespace: catalogue\n  wait: true\n  timeout: 5m\nFlux separates fetching (GitRepository) from applying (Kustomization); each has its own interval. Drift correction needs no flag: every interval the Kustomization server-side-applies the rendered manifests, undoing live edits."
+              "apiVersion: source.toolkit.fluxcd.io/v1\nkind: GitRepository\nmetadata: {name: platform-config, namespace: flux-system}\nspec:\n  interval: 2m\n  url: https://git.elmbridge.example/platform/config.git\n  ref: {branch: main}\n---\napiVersion: kustomize.toolkit.fluxcd.io/v1\nkind: Kustomization\nmetadata: {name: catalog-prod, namespace: flux-system}\nspec:\n  interval: 2m\n  sourceRef: {kind: GitRepository, name: platform-config}\n  path: ./apps/catalogue/overlays/prod\n  prune: true\n  targetNamespace: catalog\n  wait: true\n  timeout: 5m\nFlux separates fetching (GitRepository) from applying (Kustomization); each has its own interval. Drift correction needs no flag: every interval the Kustomization server-side-applies the rendered manifests, undoing live edits."
             ),
             part(
               "Sync and health reporting",
               "Argo CD: sync status (Synced/OutOfSync) from comparing desired to live, and health (Healthy/Progressing/Degraded/Suspended/Missing) from built-in and Lua health checks, visible in UI/CLI (argocd app get); Flux: Ready condition on the Kustomization with reasons (ReconciliationSucceeded, BuildFailed, HealthCheckFailed) and the applied revision, visible via flux get kustomizations and kubectl, with wait: true turning resource health into the Ready condition.",
-              "Argo CD reports two things per Application: Sync (does live match Git?) and Health (are the resources working?), the latter from built-in checks per kind plus custom Lua -- argocd app get catalogue-prod shows both and the synced revision. Flux reports a Ready condition on the Kustomization with a reason and message, plus status.lastAppliedRevision; with wait: true the Kustomization is Ready only when the applied workloads report healthy. flux get kustomizations shows revision, Ready and the message; the same is in kubectl describe."
+              "Argo CD reports two things per Application: Sync (does live match Git?) and Health (are the resources working?), the latter from built-in checks per kind plus custom Lua -- argocd app get catalog-prod shows both and the synced revision. Flux reports a Ready condition on the Kustomization with a reason and message, plus status.lastAppliedRevision; with wait: true the Kustomization is Ready only when the applied workloads report healthy. flux get kustomizations shows revision, Ready and the message; the same is in kubectl describe."
             ),
             part(
               "A failing reconciliation",
@@ -481,7 +481,7 @@ export const CGOA_LABS: SeedLabSet = {
     },
     {
       slug: "choose-tooling",
-      objective: "Choose tooling for a given organisation and justify the choice",
+      objective: "Choose tooling for a given organization and justify the choice",
       kind: "case",
       title: "Recommend GitOps tooling for a regulated mid-size company",
       brief:
@@ -504,8 +504,8 @@ export const CGOA_LABS: SeedLabSet = {
             ),
             part(
               "When Flux would win, and the commercial wrapper",
-              "Flux would be the choice if the team valued Helm-native releases, minimal footprint and composability over a built-in UI, or already used Flux's ecosystem; the commercial platform adds UI, multi-cluster governance and support for a licence and some lock-in -- reasonable for a three-person team if budget exists, but the underlying principles and manifests should remain portable.",
-              "Flux would win for a team that wants true Helm releases, a small footprint and Kubernetes-native composability, and that is content with an add-on UI or kubectl for audit evidence. The commercial wrapper buys a polished UI, multi-cluster governance, RBAC and vendor support -- attractive for a three-person platform team -- at the price of licence cost and some dependency on the vendor's abstractions. Whichever is chosen, keep the Applications/Kustomizations and all desired state in plain, portable manifests so the choice can be revisited."
+              "Flux would be the choice if the team valued Helm-native releases, minimal footprint and composability over a built-in UI, or already used Flux's ecosystem; the commercial platform adds UI, multi-cluster governance and support for a license and some lock-in -- reasonable for a three-person team if budget exists, but the underlying principles and manifests should remain portable.",
+              "Flux would win for a team that wants true Helm releases, a small footprint and Kubernetes-native composability, and that is content with an add-on UI or kubectl for audit evidence. The commercial wrapper buys a polished UI, multi-cluster governance, RBAC and vendor support -- attractive for a three-person platform team -- at the price of license cost and some dependency on the vendor's abstractions. Whichever is chosen, keep the Applications/Kustomizations and all desired state in plain, portable manifests so the choice can be revisited."
             ),
           ],
         },
@@ -516,7 +516,7 @@ export const CGOA_LABS: SeedLabSet = {
             part(
               "Unknown status and the repository credential",
               "Unknown means Argo CD could not even compare -- here the repo-server cannot authenticate to Git after the token rotation; fix by updating the repository credential (argocd repo add --upsert or the repository Secret with the argocd.argoproj.io/secret-type: repository label), then refresh the apps; explains the two Unknown apps share that repo while the 41 Synced ones use another repo or cached state.",
-              "Sync Status Unknown is a comparison failure, not drift: the repo-server failed to fetch the config repo because the stored deploy token is dead. Update the credential declaratively -- the repository Secret in the argocd namespace labelled argocd.argoproj.io/secret-type: repository with the new token (or argocd repo add https://git.rowantrust.example/platform/config.git --username argocd --password <new token> --upsert) -- then argocd app get payments-prod --refresh. Store that Secret through the same sealed/external-secret path as everything else so the next rotation is a commit, not a surprise. Prefer a GitHub/GitLab app or SSH deploy key with no expiry over personal tokens."
+              "Sync Status Unknown is a comparison failure, not drift: the repo-server failed to fetch the config repo because the stored deploy token is dead. Update the credential declaratively -- the repository Secret in the argocd namespace labeled argocd.argoproj.io/secret-type: repository with the new token (or argocd repo add https://git.rowantrust.example/platform/config.git --username argocd --password <new token> --upsert) -- then argocd app get payments-prod --refresh. Store that Secret through the same sealed/external-secret path as everything else so the next rotation is a commit, not a surprise. Prefer a GitHub/GitLab app or SSH deploy key with no expiry over personal tokens."
             ),
             part(
               "Read-only access for auditors",

@@ -5784,6 +5784,2493 @@
         "CIDP 8-week element and Wallerian timing not re-read in full text",
         "Nick approved following AANEM: the ECS screening objective in backend/supabase/seed/tracks/pt-abpts.ts was reworded (lymphedema is no contraindication to needle EMG; defer or limit needle EMG below 50,000 platelets), with the AANEM 2005 position statement cited inline and in value-sources.ts (ecs-pretest-screening-case)"
       ]
+    },
+    {
+      "id": "REQ-169",
+      "category": "feature",
+      "title": "Intake form (study profile): what the learner wants to learn, skippable, editable in Settings",
+      "description": "Nick 2026-11-09: a skippable intake in the first run and Settings > Study profile asks goal, target exam(s) or course(s) with optional exam dates (up to five), experience, weekly study time and optionally use (personal, work, teaching a class). The answers write each named course's study plan (exam date and an even share of weekly hours), suggest placement for anyone with some experience, and with BILLING_ENABLED on suggest a category plan and a length (the cheapest published way to cover the time to the exam; about 10 weeks suggests 3 months) from the courses' categories and the exam date only. The intake never changes or carries a price (no personalised pricing; New York and Connecticut laws). Teaching a class shows CLASS_CONTACT_LINE instead of a plan. Works with billing off for study-plan personalisation. Migration 060 learner_intake and learner_intake_targets; GET/PUT /api/intake.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/060_intake_and_category_plans.sql",
+        "backend/lib/intake.ts",
+        "backend/lib/intake-suggest.ts",
+        "backend/app/api/intake/route.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/scripts/rollback-release-2026-11-07.sql",
+        "mobile/src/lib/intake.ts",
+        "mobile/src/components/IntakeForm.tsx",
+        "mobile/src/components/IntakeResult.tsx",
+        "mobile/app/(app)/welcome.tsx",
+        "mobile/app/(app)/settings/study-profile.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/app/(app)/_layout.tsx",
+        "docs/billing.md",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "acceptance_criteria": [
+        "Every answer optional and skippable; skip remembered",
+        "Saving writes each named course's study plan",
+        "Other learners' private courses are a 404 and every query is scoped to user_id",
+        "No plan suggestion and no price while BILLING_ENABLED is off",
+        "The suggestion uses only course categories and exam date and has no price field",
+        "Teaching a class shows the class contact line and no plan",
+        "In the account export and deleted with the account"
+      ],
+      "validation_required": [
+        "npm test (backend and mobile)",
+        "npm run test:db on a fresh database",
+        "typecheck backend and mobile",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "docs/billing.md Study profile",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md 060 rows",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Weekly hours are split evenly across courses and overwrite each named course's plan hours on save",
+        "Courses map to plans by catalog category; health informatics counts as clinical",
+        "Nick 2026-11-09: weekly hours from the study profile fill in only plans that have no hours yet; existing plan hours are never overwritten (the earlier risk note about overwriting no longer applies)."
+      ]
+    },
+    {
+      "id": "REQ-170",
+      "category": "feature",
+      "title": "Category-based pricing (IT and cloud, PM, fitness, all-access, clinical), behind BILLING_ENABLED",
+      "description": "Nick 2026-11-09: plans by category with one published price each for everyone. IT and cloud, project management and fitness Plus (12.99/29.99/79.99) and Pro (19.99/44.99/129.99); all-access every non-clinical course with Pro features (29.99/69.99/199); Clinical Pro (49/99) and a clinical add-on for all-access holders (29 a month). Prices from config (BILLING_PRICE_<FAMILY>_<PERIOD>_USD). A learner's level on a course is the highest among plans covering its catalog category (health informatics stays clinical); other courses are on Free terms. Every gated route passes its course. Entitlements carry family and scope (migration 060); grants cover every course. Per-plan AI cap = half the yearly (or cheapest) monthly take after fees; a learner's cap is the sum over plans; discounts never lower it and don't stack. Verified group discounts (REQ-166) are capped at 25% (a larger setting is refused). Owner-granted unrestricted access (REQ-144) opens every category, clinical included, without payment, capped at all-access plus the clinical add-on (20.16); owners have no monthly cap. No founding-member discount on any platform (Nick 2026-11-09, second decision: removed because the App Store can't offer it). 24 store products documented. Replaces the unlaunched Plus/Pro products. Nick, 2026-11-09 (later): these prices are approved as the baseline; Pro's new-lesson-version allowance drops from 15 to 10 a week to fit the Pro AI cap.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/billing-config.ts",
+        "backend/lib/entitlements.ts",
+        "backend/lib/billing-webhooks.ts",
+        "backend/lib/stripe-checkout.ts",
+        "backend/lib/founding.ts",
+        "backend/lib/discount-choice.ts",
+        "backend/lib/discount-codes-cli.ts",
+        "backend/app/api/billing/**",
+        "backend/app/api (gated routes)",
+        "backend/lib/labs.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/lab-attempts.ts",
+        "backend/supabase/migrations/060_intake_and_category_plans.sql",
+        "backend/.env.example",
+        "mobile/src/lib/billing.ts",
+        "mobile/src/billing/BillingContext.tsx",
+        "mobile/app/(app)/plans.tsx",
+        "docs/billing.md"
+      ],
+      "acceptance_criteria": [
+        "BILLING_ENABLED off: everyone Pro on every course and the config route says only enabled false",
+        "A category plan opens its own courses only and other categories are on Free terms",
+        "All-access covers every non-clinical course and not clinical",
+        "The clinical add-on is refused without all-access",
+        "Upgrade prompts name the course's plan and carry its scope",
+        "The AI cap is the sum of the plans held and no plan goes negative at the cap at list or 20 or 40 percent off",
+        "Founding off by default; never more seats than the limit under parallel checkouts; lapsed holds free seats; one discount only",
+        "Webhooks store family and scope and hold a higher plan's paid period on a downgrade"
+      ],
+      "validation_required": [
+        "npm test (backend and mobile)",
+        "npm run test:db on a fresh database",
+        "typecheck backend and mobile",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "docs/billing.md",
+        "backend/.env.example",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Prices not final; Nick reviews before merge",
+        "Founding price lock is not possible with App Store offers; not offered on iOS",
+        "Play developer-determined offers are app-enforced",
+        "Worst case margin 40 percent founding on yearly Plus at full cap is 0.59 a month; verified percentages above about 49 lose money at the cap on yearly lengths",
+        "Holding a category plan plus another category requires all-access in the stores",
+        "Superseded by the second decision of 2026-11-09: the founding-member discount was removed entirely (code, migration table, config, docs). The acceptance line and risk note about founding seats, and the 40 percent worst-case margin, no longer apply; worst case is now 25 percent verified on yearly category Plus at the full cap, 1.47 a month."
+      ]
+    },
+    {
+      "id": "REQ-168",
+      "category": "operations",
+      "title": "Rolling housekeeping for release backups (tables and schemas): kept 30 days, dropped weekly after",
+      "description": "Nick 2026-11-09: release backups are kept 30 days and then dropped automatically within 7 days after. A weekly GitHub Actions workflow (Tuesdays 09:17 UTC; workflow_dispatch with dry_run defaulting to true) using the PROD_DATABASE_URL secret and production-database environment like migrate-production.yml runs backend/scripts/backup-housekeeping.ts. It drops tables in schema public and schemas (pg_namespace) whose name is exactly backup_release_ plus 8 digits that form a real UTC date more than 30 days before the run date; exactly 30 days and future dates are kept; anything else is never touched. Tables are dropped without CASCADE. A matching schema is dropped with DROP SCHEMA CASCADE after every table in it is logged with its row count, and is refused (run fails) if any object outside it depends on it. Each backup dropped or that would be dropped is logged with date, age and row counts; connection strings are never printed.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        ".github/workflows/backup-housekeeping.yml",
+        "backend/scripts/backup-housekeeping-lib.ts",
+        "backend/scripts/backup-housekeeping-lib.test.ts",
+        "backend/scripts/backup-housekeeping.ts",
+        "backend/lib/backup-housekeeping.dbtest.ts",
+        "backend/package.json",
+        "docs/deploy-runbook-integration.md",
+        "docs/legal/data-inventory.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Only public tables and schemas named exactly backup_release_YYYYMMDD with a real date are candidates",
+        "A backup is dropped only when its date is more than 30 days before the UTC run date (exactly 30 days and future dates are kept)",
+        "Bad names and malformed dates and backup-named tables in other schemas are never touched",
+        "Tables are dropped without CASCADE; only an exact-named schema is dropped with CASCADE and only after each of its tables is logged with its row count",
+        "An expired schema that anything outside it depends on is refused and the run fails",
+        "Manual runs default to a dry run that drops nothing",
+        "No secret or connection string is printed",
+        "backup_release_20261107 is kept by the weekly runs through 2026-12-01 and first dropped by the run on 2026-12-08"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test (unit tests for the name and date filter and the schema path)",
+        "npm run test:db (integration test against local Postgres including schemas)",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "docs/deploy-runbook-integration.md release backups section",
+        "docs/legal/data-inventory.md retention"
+      ],
+      "risk_notes": [
+        "Weekly cadence: a backup lives 30 to 37 days",
+        "The Supabase advisor's RLS-disabled flag on backup_release_20261107 is a false positive: checked on production 2026-11-09 that anon and authenticated and authenticator and service_role have no USAGE on the schema and no table grants"
+      ]
+    },
+    {
+      "id": "REQ-175",
+      "category": "legal/compatibility",
+      "title": "Hotfix: old app builds can accept the previous Terms; app-version header and minimum supported version",
+      "description": "Nick 2026-11-09: after PR #67 moved Terms and Privacy to 2026-11-09, POST /api/onboarding/terms accepted only that version, so app builds that carry and send 2026-11-07 failed with 'version must be the current terms version (2026-11-09)' and could never pass the Terms gate (no OTA possible: EXPO_TOKEN unset). The app (native and web) now sends X-Ascendra-App: <semver>+<build> and X-Ascendra-Platform on every request (mobile/src/lib/appVersion.ts, src/updates/appIdentity.ts). A request without X-Ascendra-App is a legacy client (backend/lib/client-version.ts). For legacy clients only, /api/onboarding/terms, /api/legal/accept and the register and Google sign-up acceptance also accept the immediately previous versions (PREVIOUS_LEGAL_VERSIONS in lib/legal.ts), record exactly the version sent, and the onboarding terms state, /api/auth/me legalPending count the previous version as satisfying the gate. Clients that send the header still need the current version, so an updated app asks once for 2026-11-09 on the existing Agree page. MIN_APP_VERSION (env, semver; unset or unreadable means no minimum): proxy.ts answers 426 {code: update_required, minVersion, storeUrl} to a headered request below it (or with an unreadable header) and the app shows an Update required screen with the store link on native or Reload on web. Legacy requests are not version-checked.",
+      "priority": "critical",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/client-version.ts",
+        "backend/lib/legal.ts",
+        "backend/lib/onboarding.ts",
+        "backend/proxy.ts",
+        "backend/app/api/onboarding/**",
+        "backend/app/api/legal/accept/route.ts",
+        "backend/app/api/auth/register/route.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/app/api/auth/me/route.ts",
+        "mobile/src/api/client.ts",
+        "mobile/src/lib/appVersion.ts",
+        "mobile/src/updates/appIdentity.ts",
+        "mobile/src/components/UpdateRequired.tsx",
+        "mobile/app/_layout.tsx",
+        "tests",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A request without X-Ascendra-App can accept 2026-11-07 at /api/onboarding/terms and /api/legal/accept and at sign-up and is recorded as 2026-11-07 never 2026-11-09",
+        "For such a request the onboarding terms gate is satisfied by 2026-11-07",
+        "A request with the header gets 400 for 2026-11-07 and needsAcceptance true until it accepts 2026-11-09",
+        "An unreadable header is not legacy",
+        "MIN_APP_VERSION unset means no 426; set it answers 426 update_required to headered requests below it",
+        "The app sends the header on every request and shows Update required on 426"
+      ],
+      "validation_required": [
+        "backend and mobile typecheck",
+        "npm test both packages",
+        "npm run test:db (lib/legacy-terms.dbtest.ts)",
+        "omni gate",
+        "CI",
+        "production health after deploy"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Legacy is self-declared by omitting a header; omitting it only lets a caller accept and be recorded for the older text it says it saw",
+        "The study notice (REQ-165) is still required server-side for clinical courses and labs; old builds cannot show it and get the existing 'update the app' message there",
+        "PREVIOUS_LEGAL_VERSIONS must be moved forward whenever LEGAL_VERSIONS is bumped",
+        "Retiring legacy builds entirely needs a separate decision since headerless requests are not version-checked",
+        "iOS store link needs IOS_APP_STORE_URL"
+      ]
+    },
+    {
+      "id": "REQ-191",
+      "category": "security/auth",
+      "title": "Sign-up, email verification and recovery: surfaced send failures, scanner-safe links, reset verifies",
+      "description": "Lead 2026-11-09: production has no EMAIL_FROM so mail goes from onboarding@resend.dev (delivered only to the Resend account owner); lib/email.ts ignored Resend's { data, error } result so routes said 'check your email' when nothing was sent; production shows an unverified 2026-11-08 sign-up with two unused verification tokens. (1) Every send in lib/email.ts checks the result and throws EmailSendError (kind, Resend code, status; no address, token or provider message). Register, resend-verification and forgot-password keep their enumeration-safe answers and log one JSON line (event email_send_failed); best-effort alerts log the same way; signed-in sends (MFA code, email-change confirmation) answer 503. /api/health adds email: ok|unconfigured (production with EMAIL_FROM unset or @resend.dev) as a warning on a 200. (2) /verify-email, /confirm-email-change and /cancel-email-change only read the token on GET and render a button; a server action (POST) spends it. A used link on a verified account says 'Your email is already verified. You can log in.' REQ-116 set_password behaviour is unchanged and the page that spends it links to the reset form. (3) A completed password reset sets email_verified_at if null and spends pending verification links. The app's Check your email screen distinguishes a refused login from a fresh sign-up and offers resend and Forgot password. Google sign-up already marks verified only when Google says email_verified. No migration.",
+      "priority": "critical",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/email.ts",
+        "backend/lib/email-errors.ts",
+        "backend/lib/http.ts",
+        "backend/lib/auth/emailTokens.ts",
+        "backend/app/verify-email",
+        "backend/app/confirm-email-change",
+        "backend/app/cancel-email-change",
+        "backend/app/_components/LinkPage.tsx",
+        "backend/app/api/auth/register",
+        "backend/app/api/auth/resend-verification",
+        "backend/app/api/auth/forgot-password",
+        "backend/app/api/auth/reset-password",
+        "backend/app/api/health",
+        "mobile/app/(auth)/verify-email-pending.tsx",
+        "mobile/app/(auth)/login.tsx",
+        "mobile/app/(auth)/register.tsx",
+        "mobile/src/lib/verifyEmailPending.ts"
+      ],
+      "acceptance_criteria": [
+        "A Resend error result throws EmailSendError and is logged without PII",
+        "Opening any email link (GET) changes nothing; only the button POST spends it",
+        "A reset on an unverified account lets it log in",
+        "REQ-116 set_password path unchanged and its reset link shown",
+        "Each fix has a test that fails with it reverted",
+        "Backend and mobile unit tests and tsc pass; test:db passes on a fresh DB with all migrations and the seed run twice"
+      ],
+      "validation_required": [
+        "npm test (backend and mobile)",
+        "npm run test:db",
+        "npx tsc --noEmit (backend and mobile)",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/operations-runbook.md",
+        "backend/.env.example",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Mail still reaches nobody until EMAIL_FROM is set to a Resend-verified domain (owner action)",
+        "Email links now need one extra click",
+        "Some scanners may submit forms; none known to among common gateways (inferred)",
+        "Correction to the scanner note above: whether any mail scanner submits forms (POST) was not checked; if one does, the link is spent as before"
+      ]
+    },
+    {
+      "id": "REQ-181",
+      "category": "billing",
+      "title": "Owner monthly AI safety cap ($35)",
+      "description": "Owners (OWNER_EMAILS) had no monthly AI spending cap. Nick decided 2026-11-09 that owners get a high safety cap of $35 a month: coach chat and lesson regenerate pause at it exactly like a plan's monthly cap, grading and review never stop. Config OWNER_MONTHLY_AI_CAP_USD, default 35, cannot be switched off; applies with the billing switch on or off. Granted unrestricted accounts unchanged on master.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/account-access-config.ts",
+        "backend/lib/entitlements.ts",
+        "backend/lib/account-access-config.test.ts",
+        "backend/lib/account-access.dbtest.ts",
+        "backend/.env.example",
+        "docs/billing.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "An owner at or over $35 of model spend this calendar month (UTC) gets the aiPaused 429 on chat and regenerate",
+        "Grading keeps working at the cap",
+        "OWNER_MONTHLY_AI_CAP_USD overrides the cap and off/0/junk fall back to 35",
+        "The cap applies with BILLING_ENABLED on and off"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/billing.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-176",
+      "category": "Mobile release infrastructure",
+      "title": "OTA update workflow that publishes only to builds whose runtime fingerprint matches",
+      "description": "Add .github/workflows/eas-update.yml (workflow_dispatch with channel, message and dry_run inputs; also push to ops/eas-update). It runs expo-doctor, computes the Android and iOS runtime fingerprints, lists finished EAS builds and recent update groups, and writes to the job summary whether each platform's runtime matches a finished build on the target channel. Dry run reports only. Otherwise it exports the bundle with the matching build profile's eas.json env, checks it contains the production API URL and no private-network URL, and runs eas update --skip-bundler for matching platforms only; when nothing matches it publishes nothing and shows the fingerprint diff against the newest build. Decision logic in .github/scripts/eas-ota.mjs with node:test tests. Never runs eas build or eas submit.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        ".github/workflows/eas-update.yml",
+        ".github/scripts/eas-ota.mjs",
+        ".github/scripts/eas-ota.test.mjs",
+        "docs/deploy-runbook-mastery.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A dry run reports the token check the builds with platform profile channel runtime and date and a per-platform MATCH or NO MATCH verdict",
+        "A non-dry run publishes only platforms with a finished build on the channel whose runtime equals the local fingerprint and only from master's tip",
+        "The bundle is checked for the eas.json EXPO_PUBLIC_API_URL and for private-network URLs before upload",
+        "No step prints EXPO_TOKEN and the workflow never runs eas build or eas submit"
+      ],
+      "validation_required": [
+        "test",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "deployment"
+      ],
+      "risk_notes": [
+        "The fingerprint is computed from a clean CI checkout; a build made from a dev machine with uncommitted native-input changes (for example the old mobile/.gitignore CRLF diff noted in REQ-058) can differ for that reason alone and the diff shows it",
+        "eas update:list and the build list are capped at 10 and 50 entries",
+        "Push-trigger publishing relies on the [ota:publish] marker in the head commit message"
+      ]
+    },
+    {
+      "id": "REQ-183",
+      "category": "content",
+      "title": "Content audit fixes: AWS, Azure and Google Cloud courses, and the GCP DevOps re-author to the guide live on 2026-11-23",
+      "description": "Nick 2026-11-09 'do the fixes' on the content accuracy audit (findings-aws.md, findings-azure-gcp.md). AWS: C1 the CLF-C02 support objective now lists customer service and communities, Basic Support, AWS Business Support+, AWS Enterprise Support and AWS Unified Operations (guide revision 1.3, 2026-10-29, re-read live; all four domains re-compared, weights 24/30/34/12 unchanged); M1 the SAP DR lab uses ARC Region switch plan evaluation and service quota checks instead of readiness checks (closed to new customers); M3 the DEA throttling numbers are consistent (about 1,500 writes/s, 80% to one key, 1,300 of 2,000 WCU consumed); m1 Large Bandwidth Tunnels (5 Gbps), m3 regional NAT gateways need no public subnet, m4 air-gapped vault customer managed key option, m5 visibility timeout at least 6x the function timeout, m6 2,557 days, m7 'Amazon Quick' in CLF and SAA (DEA and DOP guides still say QuickSight, so unchanged). M2, m2 and m8 are generated lessons, left to another agent. Azure: M1 AZ-104 'Configuring Azure Disk Encryption for virtual machines'; M2 DP-300 'secure enclaves' and its outline marked current (Skills measured as of October 27, 2026); minor Hyperscale replicas, Azure SQL log backups about every 10 minutes, AI-901 Data Zone Batch. GCP: C1 the GKE Pod range key now requires max Pods per node 32 or fewer with a /18 (or a /16 at the default 110) and rejects /19; the private services access range moved out of a regional block; M4 impersonation logging needs IAM Data Access audit logs; M3 GCPDEVOPS re-authored to the new guide (18/30/18/22/12 with the new agent, MCP, NCC, short-lived credential, feedback-loop and token-cost topics) as new units at sort_order 5-9, the old five units retired at 2026-11-23T12:00Z, effectiveDate 2026-11-23, all 11 labs re-checked and pointed at the new units (two re-pointed); minor Cloud Run concurrency 80 x vCPU (gcloud/Terraform), BigQuery email mask XXXXX@domain, seven dead GCP guide URLs replaced with the live PDFs, PCA 'Gemini Enterprise Agent Platform (formerly Vertex AI)'. The AZ-104 extra blob soft-delete objective is left in place: removing it would shift the sort order learners' mastery is matched on.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/tracks/gcp.ts",
+        "backend/supabase/seed/labs/aws-ans.ts",
+        "backend/supabase/seed/labs/aws-dea.ts",
+        "backend/supabase/seed/labs/aws-dva.ts",
+        "backend/supabase/seed/labs/aws-sap.ts",
+        "backend/supabase/seed/labs/aws-soa.ts",
+        "backend/supabase/seed/labs/awssaa.ts",
+        "backend/supabase/seed/labs/gcp-ace.ts",
+        "backend/supabase/seed/labs/gcp-dev.ts",
+        "backend/supabase/seed/labs/gcp-devops.ts",
+        "backend/supabase/seed/labs/gcp-net.ts",
+        "backend/supabase/seed/labs/gcp-pca.ts",
+        "backend/supabase/seed/labs/gcp-pde.ts",
+        "backend/supabase/seed/labs/microsoft-ai901.ts",
+        "backend/supabase/seed/labs/microsoft-az104.ts",
+        "backend/supabase/seed/labs/microsoft-az305.ts",
+        "backend/supabase/seed/labs/microsoft-dp300.ts",
+        "backend/lib/labs-audit-cloud.test.ts",
+        ".ai/requirements/requirements.json",
+        ".ai/failures/failure-ledger.json",
+        ".ai/project-map.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "CLF support objective matches the current CLF-C02 guide",
+        "SAP DR lab recommends ARC Region switch plan evaluation, not readiness checks",
+        "DEA throttling numbers are internally consistent",
+        "GKE Pod range key matches GKE's per-node CIDR rule and rejects a /19",
+        "AZ-104 and DP-300 objectives match the live study guides at the same sort order",
+        "GCPDEVOPS active units are the guide live on 2026-11-23 at 18/30/18/22/12; the old units stay, retired from 2026-11-23T12:00Z; all 11 labs sit on active objectives at the hybrid density 2/3/2/2/2",
+        "No GCP track links a guide URL that returns 404"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test (includes lib/labs-audit-cloud.test.ts, catalog blueprints and the lab density/source tests)",
+        "npm run test:db on a fresh Postgres 16 with all migrations, seed run twice",
+        "seed from origin/master then this branch: GCPDEVOPS old labs retired, new labs active",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Must merge before 2026-11-23 for the DevOps switch to land on time",
+        "Until 2026-11-23T12:00Z GCPDEVOPS lists both unit sets (as AWSSAP did for SAP-C03); exam domains and readiness use the new units now",
+        "The 11 DevOps labs move to new objective rows: earlier lab runs stay on the retired copies, so a learner who started one sees a fresh lab",
+        "The retired DevOps units' titles gain '(guide before November 23, 2026)' because unit titles must be unique and three section names are unchanged",
+        "Changed labs reset to needs_expert_review on the next seed",
+        "AZ-104 keeps one objective (blob soft delete) that the guide does not list"
+      ]
+    },
+    {
+      "id": "REQ-184",
+      "category": "content",
+      "title": "Content audit fixes: CompTIA and security courses (Security+ V7/V8, Network+, Linux+, CySA+, PenTest+, CloudNetX, Server+, AutoOps+, A+, SecAI+)",
+      "description": "Nick 2026-11-09 'do the fixes' on the content accuracy audit (findings-comptia.md). Critical C1: the Security+ V7 objective swapped 'control types' and 'categories'; reworded in place to SY0-701 (categories technical/managerial/operational/physical; types preventive/deterrent/detective/corrective/compensating/directive). Major: M1 Network+ lab adds the /24 before deleting the /16 (reproduced in a network namespace: deleting first drops the default route); M2 Linux+ archive script checks gzip with an explicit if ! (reproduced: set -e ignored the failure in an && list, exited 0 and miscounted); M3 Security+ V8 CVSS lab brief now says exploitation in the wild has been reported so E:A and the 9.3 key stand (a PoC alone is E:P 8.9, computed); M4 EPSS percentiles set from the FIRST EPSS API on 2026-11-09 (0.93/0.91 about the 99.8th, 0.6 the 99.1st, 0.55 the 99.0th). Minor m1-m11 and m13-m15 fixed (impossible travel now has a location and distance; fail-secure locks keep mechanical free egress; SPF at most 10 lookups; useradd -e is the first day disabled, so 2027-02-01; anacron works in whole-day periods; CVE-2021-41773 vs CVE-2021-42013; a localhost-only listener answers with RST, not silence; a cloud /22 has 1,019 usable addresses; ROA max length 24; the JSON error text is labelled Python 3.12 with the 3.13 wording given; missing headers scored 2.3 Low; A+ malware removal has all seven steps; 'every other night' made explicit; SecAI+ comment records Document Version 4.0). m12 is in a generated lesson, out of scope. Objective rewording keeps sort order, so mastery mapping is unchanged.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/tracks/comptia.ts",
+        "backend/supabase/seed/labs/comptia-networkplus.ts",
+        "backend/supabase/seed/labs/comptia-linuxplus.ts",
+        "backend/supabase/seed/labs/comptia-cloudnetx.ts",
+        "backend/supabase/seed/labs/comptia-serverplus.ts",
+        "backend/supabase/seed/labs/comptia-autoopsplus.ts",
+        "backend/supabase/seed/labs/security-secplus.ts",
+        "backend/supabase/seed/labs/security-secplusv8.ts",
+        "backend/supabase/seed/labs/security-cysaplus.ts",
+        "backend/supabase/seed/labs/security-pentestplus.ts",
+        "backend/lib/labs-audit-comptia.test.ts",
+        ".ai/requirements/requirements.json",
+        ".ai/failures/failure-ledger.json",
+        ".ai/project-map.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Security+ V7 objective names control categories and control types as SY0-701 does, at the same sort order",
+        "Network+ lab command order keeps the default route (add /24, then delete /16)",
+        "The Linux+ model script exits 1, keeps the original and removes the partial .gz when gzip fails (run in a test)",
+        "The Security+ V8 CVSS brief supports E:A; the key stays 9.3 and names the 8.9 E:P alternative",
+        "EPSS percentiles match the FIRST API within rounding on 2026-11-09",
+        "Every clear minor finding fixed, or listed with the reason it was not"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test (includes lib/labs-audit-comptia.test.ts and the lab density/source tests)",
+        "npm run test:db on a fresh Postgres 16 with all migrations, seed run twice",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Changed labs reset to needs_expert_review on the next seed (content hash changes), as every lab edit does",
+        "The cached SECPLUS lesson on the C1 objective is regenerated by another agent; until then it still teaches the swapped terms",
+        "No objective was added, removed or reordered"
+      ]
+    },
+    {
+      "id": "REQ-185",
+      "category": "content",
+      "title": "Clinical, fitness and PT content fixes from the 2026-11-09 content audit",
+      "description": "Apply the Critical, Major and clear Minor findings in findings-nursing.md, findings-fitness.md and findings-pt.md: CCRN DKA lab to the 2024 hyperglycemic crises consensus; nursing objective corrections (VT, clozapine REMS, sentinel event, newborn apnea, hypoglycaemia foods); SSC 2026 sepsis source; MSHI fees exception; NCLEX-PN value sources; NSCA outline dates and fitness wording; PT ISNCSCI ZPP, febrile neutropenia, oxygen targets, NPTE range labels and minors; per-lab value sources for every fitness and PT lab with the REQ-142 test widened to those track codes.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "DKA lab teaches K above 3.5 and ketone/pH/bicarbonate resolution",
+        "Objective rewording keeps sort order",
+        "Every ACE/ACSM/NCCPT/NSCA/NPTE/DPT/ABPTS lab has value sources or a reason",
+        "NSCA effective dates 2025-07-01",
+        "npm test and test:db pass after seeding twice"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run test:db on fresh Postgres 16 with all migrations and two seeds",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/source-reliability-standard.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "NCCPT weights (fitness M3) left unchanged pending the April 2026 manual",
+        "Generated-lesson findings handled by another agent",
+        "REQ/FAIL ids may collide with parallel fix PRs"
+      ]
+    },
+    {
+      "id": "REQ-186",
+      "category": "content",
+      "title": "Fix the 2026-11-09 content audit findings for Kubernetes, project management and academic/dev labs",
+      "description": "Nick 2026-11-09 (\"do the fixes\"): apply the audit's Major findings and clear Minor findings in the Kubernetes and containers labs (K1-K12: CKA, CKS, KCA, CCA, CNPE, CNPA), the PMI labs and PMP track (M1, M2, m1-m3, stale allowlist notes) and the academic and dev content (JS null-body crash and byte limit, MSCS OWASP password parameters and the increasing-scores premise, CMPCBS C-minimum gates, UNIV 104 title, a HIPAA line, the Node race example, Python free-threading and modern typing). Each fix re-checked against the current upstream source on the day and cited with a dated source. Generated lessons (M2-M4, lessons 6, 10, 13, 22) are out of scope.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/k8s-cka.ts",
+        "backend/supabase/seed/labs/k8s-cks.ts",
+        "backend/supabase/seed/labs/k8s-kca.ts",
+        "backend/supabase/seed/labs/k8s-cca.ts",
+        "backend/supabase/seed/labs/k8s-cnpe.ts",
+        "backend/supabase/seed/labs/k8s-cnpa.ts",
+        "backend/supabase/seed/labs/k8s-ckad.ts",
+        "backend/supabase/seed/labs/k8s-capa.ts",
+        "backend/supabase/seed/labs/k8s-dca.ts",
+        "backend/supabase/seed/labs/k8s-pca.ts",
+        "backend/supabase/seed/labs/k8s-otca.ts",
+        "backend/supabase/seed/labs/pm-cpmai.ts",
+        "backend/supabase/seed/labs/pm-pgmp.ts",
+        "backend/supabase/seed/labs/pm-pfmp.ts",
+        "backend/supabase/seed/labs/pm-acp.ts",
+        "backend/supabase/seed/labs/dev-javascript.ts",
+        "backend/supabase/seed/labs/dev-python.ts",
+        "backend/supabase/seed/labs/academic-mscs.ts",
+        "backend/supabase/seed/labs/academic-cmpcbs.ts",
+        "backend/supabase/seed/tracks/pm.ts",
+        "backend/supabase/seed/tracks/kubernetes.ts",
+        "backend/supabase/seed/tracks/cncf-ecosystem.ts",
+        "backend/supabase/seed/data.ts",
+        "backend/lib/labs-containers.test.ts",
+        "backend/lib/labs-audit-k8s-pm-academic.test.ts",
+        "CHANGELOG.md",
+        ".ai/failures/failure-ledger.json"
+      ],
+      "acceptance_criteria": [
+        "Every Major finding in scope is fixed and pinned by a regression test",
+        "Objective titles are reworded only, never reordered, added or removed",
+        "Each corrected claim cites a source dated 2026-11-09",
+        "The JS model-answer server is executed by the test and answers null with 422 and keeps serving"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "All labs stay needs_expert_review",
+        "Three objective titles were reworded (CKA etcd, KCA failureAction, CNPE Crossplane) plus the PYTHON typing and CMPCBS UNIV 104 titles; mastery maps by sort order, so learners keep their progress",
+        "EX188 and CBA minors were not itemised in the audit and were left"
+      ]
+    },
+    {
+      "id": "REQ-177",
+      "category": "security",
+      "title": "Lock after time away (native and web) and client security/update hardening",
+      "description": "Nick 2026-11-09: show the lock screen after a short time away instead of only at launch (native) or a full sign-out (web). A Settings choice (Security > Lock Ascendra: Immediately, 1, 5 or 15 minutes; default 5; device preference) sets how long. Native: returning from the background after that long shows a lock overlay over the still-mounted screens (no lost lesson, lab or exam state); unlock with biometrics with the device passcode as the OS fallback when biometric unlock is on, otherwise by re-entering the password (or an authenticator/backup code, or Google, for accounts without a password) through the new POST /api/auth/unlock (lib/auth/reauth.ts checkReauth, same per-account try budget). This replaces the 1.5 s background sign-out (no biometrics) and background re-lock (biometrics). Returns inside a background hold (share sheet, picker) and absences under 1.5 s never lock. Web: no input or a hidden tab for that long (at least 1 minute of idle) shows the same lock with the password; the 30-minute hard sign-out is unchanged and still runs while locked. A cold start or reload that resumes a session locks if a lock was open or the last-seen time is missing or old enough. Also: native screens are covered while the app is not in front (iOS app-switcher snapshot); a 401 with reauthRequired is no longer refreshed and resent (FAIL-562); silent OTA apply skips every screen holding an attempt in progress (labs, exams, quizzes, review and unit checks, explain-back, placement), not only lesson/PBQ/chat. Web version check (lead, 2026-11-09): expo-updates is off on the web, so a tab kept its old bundle until reloaded. build-webapp.sh bakes VERCEL_GIT_COMMIT_SHA into the bundle as EXPO_PUBLIC_WEB_BUILD_ID; GET /api/version (no DB, no auth, Cache-Control no-store) returns the deployed commit; the web app compares them on focus (at most once a minute) and every 10 minutes and shows the update banner with Reload on a mismatch (never automatic). A 426 update_required reloads the tab by itself only on a screen without work in progress (lesson, lab, sim, exam, PBQ, quiz, review, unit check, explain-back, placement, chat) and at most once per bundle per 10 minutes; elsewhere the Update required screen asks. The native silent-apply rule shares the same protected-screen list (mobile/src/lib/webVersion.ts).",
+      "priority": "high",
+      "status": "proposed",
+      "minimum_access_scope": [
+        "mobile/src/lib/autoLock.ts",
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/components/AppLock.tsx",
+        "mobile/app/_layout.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/updates/useAppUpdates.ts",
+        "backend/app/api/auth/unlock/route.ts",
+        "tests",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Native: back after the chosen time shows the lock over the same screen and unlocking returns to it with its state",
+        "Biometric unlock falls back to the device passcode",
+        "Without biometrics the password (or code or Google) unlocks via /api/auth/unlock",
+        "Web locks after the chosen idle or hidden time and still signs out at 30 minutes",
+        "A restart or reload cannot skip an open or due lock",
+        "Settings offers Immediately 1 5 15 minutes defaulting to 5",
+        "A wrong password is not refreshed and resent"
+      ],
+      "validation_required": [
+        "mobile and backend typecheck",
+        "npm test both",
+        "npm run test:db (lib/app-lock.dbtest.ts)",
+        "omni gate",
+        "CI",
+        "manual check on a device (not done: no device in this session)"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Behaviour change: without biometrics",
+        "leaving the app no longer signs out; the session stays and a password lock guards it (refresh token remains in SecureStore as for remember-me cold starts)",
+        "Default 5 minutes is looser than today's biometric re-lock after 1.5 s in the background; Immediately restores it",
+        "RN Modals opened by a screen (choice sheets",
+        "the study-notice sheet) draw above the overlay",
+        "Android recents snapshot still shows content without FLAG_SECURE (needs expo-screen-capture and a store build)",
+        "Not verified on a physical device",
+        "Web bundles from before #76 send no app header, so they never get a 426; they rely on the banner, which only bundles with this change have. Older open tabs still need a manual reload once."
+      ]
+    },
+    {
+      "id": "REQ-192",
+      "category": "security",
+      "title": "Session hardening: logout revokes server-side, web refresh token in an httpOnly cookie, lock above sheets",
+      "description": "Nick 2026-11-09 (approved via lead). (1) A plain logout revokes the session on the server on every platform; with biometric unlock it was left live up to 30 days. Native sends the refresh token, or with only a sealed token the bearer access token (POST /api/auth/logout ends that token's refresh family); the sealed copy is deleted and a per-device flag (ascendra_biometric_session = 0) sends the next launch to sign-in while the biometric preference stays on. (2) The web refresh token moves from sessionStorage to an httpOnly; Secure; SameSite=Strict browser-session cookie on Path=/api/auth/refresh, set on login, MFA verify, Google sign-in and refresh for requests with X-Ascendra-Platform: web; web responses carry no refreshToken. Cookie refresh and DELETE /api/auth/refresh (web logout) require an Origin in the allowed origins, APP_BASE_URL or the request's own origin, plus the platform header. Native keeps secure-store and body refresh. An old web tab's sessionStorage token is deleted then exchanged once in the body for the cookie; failure falls back to sign-in. Tabs serialize refresh with Web Locks. CORS allows credentials for allowed origins. (3) Every Modal goes through SheetModal, hidden while the lock overlay is up (opener stays mounted).",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/auth/refreshCookie.ts",
+        "backend/lib/auth/tokens.ts",
+        "backend/app/api/auth/refresh/route.ts",
+        "backend/app/api/auth/logout/route.ts",
+        "backend/app/api/auth/logout-all/route.ts",
+        "backend/app/api/auth/login/route.ts",
+        "backend/app/api/auth/mfa/verify/route.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/proxy.ts",
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/lib/sessionStore.ts",
+        "mobile/src/lib/secureStorage.ts",
+        "mobile/src/components/SheetModal.tsx",
+        "mobile/src/components",
+        "tests",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Logout revokes the session server-side on native with and without biometric unlock and on web",
+        "Web responses carry no refresh token and set an HttpOnly Secure SameSite=Strict cookie on /api/auth/refresh",
+        "Cookie refresh rotates and a replay revokes the family",
+        "A cookie refresh or web logout from a foreign or missing Origin is refused with 403 and spends nothing",
+        "An old sessionStorage token is exchanged once or falls back to sign-in without a loop",
+        "Native login/refresh/logout unchanged",
+        "Logout-all and session listing work with cookie sessions",
+        "No sheet draws above the lock"
+      ],
+      "validation_required": [
+        "npm run test:db (lib/session-cookie.dbtest.ts)",
+        "npm test both",
+        "typecheck both",
+        "omni gate",
+        "manual check on a device and browser (not done: none in this session)"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Web sign-in now persists across tabs (one cookie per browser) instead of per tab",
+        "Requires Origin header on web refresh: a deployment origin outside ALLOWED_ORIGINS/APP_BASE_URL/own host gets 403",
+        "The 'Use password instead' fallback on the launch lock still cannot revoke the sealed session (token unreadable without the prompt)"
+      ]
+    },
+    {
+      "id": "REQ-187",
+      "category": "content",
+      "title": "Generated content pipeline accuracy (2026-11-09 audit)",
+      "description": "Audit 2026-11-09 prompts-and-pipeline findings and generated-lesson findings: never serve a key the checker disputed (R3/P1); deterministic distractor lint and shuffled stored answer position (R5/P6); fact-checker at least as strong as the writer with thinking, regenerations fact-checked, verify-by-execution interface (R4/P3/P7); chat coach agreement flags KEY_SUSPECT (R12/P9); teaching text held back on self-reported doubt (P8); dated current-facts block per course from the seed (R10); authored lessons for degree-advising objectives (R1); re-check job for content stored before 2026-11-07 (R6); lesson-fix tooling and workflows to void or correct the audited wrong lessons in production.",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/content-validator.ts",
+        "backend/lib/fact-check.ts",
+        "backend/lib/verify-execution.ts",
+        "backend/lib/current-facts.ts",
+        "backend/lib/coach-context.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/degree-advising.ts",
+        "backend/lib/chat-dispute.ts",
+        "backend/lib/lesson-fixes.ts",
+        "backend/lib/recheck-stored.ts",
+        "backend/lib/coach-quiz.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/scripts/lesson-fixes.ts",
+        "backend/scripts/lesson-fixes-2026-11-09.ts",
+        "backend/scripts/recheck-stored.ts",
+        "backend/package.json",
+        ".github/workflows/lesson-fixes.yml",
+        ".github/workflows/content-recheck.yml",
+        "docs/content-review.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A practice half the checker disputes after one retry is never stored or served",
+        "Distractor lint refuses length cues absolute words above-options count mismatches self-labels and positional explanations",
+        "The fact-checker uses the writer model with thinking and checks regenerations",
+        "A coach reply agreeing a verdict was wrong records a key_suspect flag",
+        "Uncertain teach text is retried once then held back",
+        "Every prompt carries a dated current-facts block for catalog courses",
+        "Degree-advising objectives are served authored lessons",
+        "Pre-gate content can be re-checked and failures pulled",
+        "The audited wrong lessons can be voided or corrected in production through a workflow"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/content-review.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-195",
+      "category": "content",
+      "title": "CMPCBS as general CS/math courses; school degree-plan and non-CS gen-ed content retired",
+      "description": "Nick, 2026-11-09: 'liberty degree lesson should be removed unless they can be reframed as general course titles. Content should be accurate to the course type.' The CMPCBS track mirrored one university's degree completion plan and named it. Rename the track to Computer Science Degree Foundations; retitle the major course units as general courses taught from dated open textbooks; reframe college composition and the two religion surveys (as neutral academic surveys) in place with authored, sourced lessons; retire (never delete or reorder) degree-plan logistics objectives; stop serving or generating lessons for retired objectives; replace REQ-187's authored degree-advising lessons; remove the school's catalog and course codes from the labs. Later the same day (Nick): 'Remove English and religious courses that aren't CS.' College composition and both religion surveys are retired too (units 0 and 5, ids and positions kept), and their authored lessons are deleted; the track teaches only CS, math and information-systems courses.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/seed-lib.ts",
+        "backend/supabase/seed/labs/academic-cmpcbs.ts",
+        "backend/lib/authored-lessons.ts",
+        "backend/lib/authored-lessons-cmpcbs.ts",
+        "backend/lib/degree-advising.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/lesson-fixes.ts",
+        "backend/lib/recheck-stored.ts",
+        "backend/lib/current-facts.ts",
+        "backend/lib/coach-context.ts",
+        "backend/lib/content-currency.ts",
+        "backend/lib/visibility.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/scripts/lesson-fixes.ts",
+        "backend/scripts/lesson-fixes-2026-11-09.ts",
+        "backend/scripts/currency-report.ts",
+        ".github/workflows/lesson-fixes.yml",
+        "docs/content-review.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "No school name in the track's learner-facing titles or descriptions",
+        "Retired objectives are not listed served or generated",
+        "Reframed objectives are served authored lessons that cite dated sources",
+        "Re-seeding master then the branch keeps every objective row id by position and learners' mastery",
+        "Every active unit names at least one dated open reference"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db on fresh Postgres 16 after master seed then branch seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/content-review.md"
+      ],
+      "risk_notes": [
+        "Track code CMPCBS (derived from the school's plan code CMPC-BS) is unchanged and shown on the mobile course card; renaming it needs a data move",
+        "Existing answers on the three reframed objectives are kept (not voided); mastery from REQ-187 advising lessons would carry over if those were applied first",
+        "The three labs whose briefs changed go back to needs_expert_review",
+        "The gen-ed survey units have no lab yet",
+        "Checks 2026-11-09: npm test 728/728; test:db 605/605 on fresh Postgres 16 after master seed then branch seed twice."
+      ]
+    },
+    {
+      "id": "REQ-196",
+      "category": "content",
+      "title": "Sandboxed fact-checking, re-checking and fact-checker eval",
+      "description": "Nick 2026-11-09: 'Sandbox the fact checking and rechecking content' and 'Run simulations in the sandbox to determine the fact checker needs.' Verify-by-execution leaves the request path: items are served after the model fact-check and queued exec_unverified; an hourly GitHub Actions job runs the programs in a docker --network none container (no env, read-only, ephemeral scratch, CPU/memory/pids/time/output caps) and stages disagreements. The pre-gate re-check runs as the least-privilege content_recheck role (migration 064), under a dollar cap with a dry-run estimate, off ai_calls, and only stages findings; a person decides with npm run items -- confirm|clear. A workflow_dispatch eval harness scores Haiku and the writer's model, with and without thinking, plus sandboxed execution, on the 2026-11-09 audit's known-bad items and equal known-good items, and recommends per family the cheapest variant with recall >=95% and false holds <=5%.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sandbox-runner.ts",
+        "backend/lib/exec-checks.ts",
+        "backend/lib/staging.ts",
+        "backend/lib/recheck-guard.ts",
+        "backend/lib/run-budget.ts",
+        "backend/lib/factcheck-eval.ts",
+        "backend/lib/recheck-stored.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/fact-check.ts",
+        "backend/supabase/migrations/064_recheck_role.sql",
+        ".github/workflows/content-sandbox.yml",
+        ".github/workflows/content-recheck.yml",
+        ".github/workflows/factcheck-eval.yml",
+        "docs/content-review.md"
+      ],
+      "acceptance_criteria": [
+        "No model-written code runs in the request path",
+        "Sandbox escape probes (network/env/filesystem/root/fork bomb/timeout/memory/output) fail against real Docker",
+        "Jobs refuse a role that can write item_status or content",
+        "Workflows refuse to run without RECHECK_DATABASE_URL",
+        "Re-check and sandbox findings are staged and change nothing served until a person confirms",
+        "Model calls capped per run with an estimate printed first and kept out of ai_calls",
+        "Eval reports recall/false-hold/cost per check and per 1000/latency per variant and family with the recommendation rule"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db on fresh Postgres 16",
+        "npm run test:sandbox against Docker",
+        "actionlint",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/content-review.md (Sandboxed fact-checking; Re-check database user)"
+      ],
+      "risk_notes": [
+        "Up to about an hour of serving an item whose program would disagree (accepted by Nick via lead)",
+        "Real eval numbers need the ANTHROPIC_API_KEY secret",
+        "Supabase session-pooler username format for a custom role to confirm on first run"
+      ]
+    },
+    {
+      "id": "REQ-189",
+      "category": "labs",
+      "title": "Interactive lab answer types: order, match, select, command, numeric (rule-graded, no AI cost)",
+      "description": "Nick approved track one of interactive labs: rubric parts can carry an interactive spec (order, match, select/hotspot, command, numeric) stored inside the existing labs.rubric JSON (no migration). The server sends each part's control without its key (order shuffled deterministically, never in key order; ids are hashes of item text), grades it by rule with per-type partial credit and no model call, and reveals the key with the criteria and reference answer only after the step is graded; later case steps are still withheld. Mixed steps send only the written parts to the model. Answers stay one string per part, so drafts, replay and lab_run_steps are unchanged. Apps below X-Ascendra-Client 2 get the options written into the step text and a written answer to an interactive part is graded by the model. labContentProblems rejects malformed specs (duplicate order items, match without a unique solution, select with no or every line correct, unreadable or duplicate commands, loose numeric tolerances, a model answer that does not state its key). The mobile app renders accessible controls (48 dp targets, drag plus up/down and screen-reader actions for order). Pilot: 40 labs converted in course files the concurrent audit fixes do not touch.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/lab-interactive.ts",
+        "backend/lib/lab-content.ts",
+        "backend/lib/lab-grading.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/client-protocol.ts",
+        "backend/app/api/labs/**",
+        "backend/supabase/seed/labs/**",
+        "backend/supabase/seed/seed-lib.ts",
+        "mobile/src/lib/labInteractive.ts",
+        "mobile/src/lib/labs.ts",
+        "mobile/src/components/LabInteractive.tsx",
+        "mobile/app/(app)/course/[trackId]/lab/[labId].tsx",
+        "mobile/src/api/client.ts",
+        "docs/labs.md",
+        "CHANGELOG.md",
+        "tests"
+      ],
+      "acceptance_criteria": [
+        "Each interactive type is graded by rule with its documented partial credit and no model call",
+        "The key never reaches the app before the step is graded",
+        "A malformed interactive part fails the seed and npm test",
+        "A step with written and interactive parts sends only the written parts to the model",
+        "An app below protocol 2 can still answer every part",
+        "40 pilot labs converted with objectives and step order unchanged",
+        "Clinical and fitness labs keep a written part in every step"
+      ],
+      "validation_required": [
+        "npm test (backend)",
+        "npm run test:db on fresh Postgres 16 with all migrations and seeding twice",
+        "mobile npm test and typecheck",
+        "backend typecheck",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Converted labs get a new content hash so they return to needs_expert_review",
+        "Security+ AWS SAA and Network+ were not converted because concurrent audit fixes touch those files",
+        "Command matching only accepts listed forms and option aliases"
+      ]
+    },
+    {
+      "id": "REQ-198",
+      "category": "catalog/feature",
+      "title": "PT School Prerequisites Refresher course and a DPT study path (refresher, DPT, NPTE-PT)",
+      "description": "Nick-approved 2026-11-09. New catalog course PTPREREQ, 'PT School Prerequisites Refresher' (graduate, physical-therapy subcategory like DPT, under the one study notice). It refreshes the undergraduate prerequisites DPT programs commonly require, scoped on APTA's PT admissions page and ACAPT's 2012 common core prerequisites (both read 2026-11-09), with depth from OpenStax Anatomy and Physiology 2e, Chemistry 2e, College Physics 2e, Biology 2e, Psychology 2e and Introductory Statistics 2e and dated sources per unit (PTPREREQ_UNIT_SOURCES). 11 units and 95 objectives. The first six units (cells and tissues, musculoskeletal anatomy, muscle physiology, biomechanics, nervous, cardiovascular) hold 62 objectives. No weights and no credential. 17 written-answer labs at hybrid density, because the interactive answer types of REQ-189 are not on the base. A study path is seed data (backend/supabase/seed/paths.ts, keyed by track code): dpt-student = PTPREREQ (before or at the start of the program), then DPT (during), then NPTEPT (final year, about 6 to 9 months before graduating). GET /api/courses/:id/path (lib/study-paths.ts) resolves it, and the course page (StudyPathPanel) shows Recommended before and after plus the whole path on all three courses. No migration (066 released to the lead). The intake form (#73) is not used, because its goal list is a check constraint in migration 060.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/pt-prereq.ts",
+        "backend/supabase/seed/labs/pt-prereq.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/paths.ts",
+        "backend/lib/study-paths.ts",
+        "backend/app/api/courses/[id]/path/route.ts",
+        "mobile/src/lib/studyPath.ts",
+        "mobile/src/components/StudyPathPanel.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "tests",
+        "docs/study-paths.md",
+        "docs/catalog-backlog.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "PTPREREQ seeds idempotently with 11 units and 95 objectives and every unit has dated sources",
+        "Title and description say it is a refresher and name no exam body's mark",
+        "17 labs pass the content rules at hybrid density with one lab per objective",
+        "GET /api/courses/:id/path returns before and after for PTPREREQ and DPT and NPTEPT and [] for other courses and 404 for an invisible course",
+        "The DPT and NPTE-PT and refresher course pages show Recommended before and after",
+        "No migration"
+      ],
+      "validation_required": [
+        "npm test (backend and mobile)",
+        "backend and mobile typecheck (no new errors)",
+        "npm run migrate --all and npm run seed twice and npm run test:db on fresh Postgres 16",
+        "omni gate",
+        "omni map from a fresh clone"
+      ],
+      "documentation_required": [
+        "docs/study-paths.md",
+        "docs/catalog-backlog.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Content not reviewed by a licensed PT educator; served under the study notice as built",
+        "Interactive answer types (REQ-189) not used; convert torque/physics/stats labs when it merges",
+        "After REQ-194 (hidden_at) merges coursePaths should skip hidden courses (none of the three are hidden)",
+        "OpenStax CMS lists CC BY-NC-SA while pt-dpt.ts says CC BY 4.0; no text reproduced"
+      ]
+    },
+    {
+      "id": "REQ-194",
+      "category": "content",
+      "title": "Retitle 85 exam-prep courses so no exam body's mark is used as our product name; hide the Red Hat and Docker courses",
+      "description": "Nick (2026-11-09): rename titles that could infringe; every title must still say which exam it prepares for. Following REQ-097 (CompTIA) and REQ-174 (NREMT), the 85 '<mark> Coach' titles for AWS, Microsoft, Google Cloud, PMI, NCSBN, AACN, FSBPT, ABPTS, the Linux Foundation/CNCF, Docker, Red Hat, NASM, ACE, ACSM, NSCA and ISSA/NCCPT become 'Prep for the <official exam name> Exam'. Each body's own trademark guidelines were read on 2026-11-09 (URLs in CHANGELOG). Symbols follow the owner where its guidelines ask (PMI as pmi.org/certifications shows them; Linux Foundation registered marks; NSCA; Red Hat). A notice line is appended to descriptions where the body asks for one (Microsoft, PMI, Linux Foundation, Docker, Red Hat). Red Hat: no EX course numbers in title or description and Red Hat not the leading word. Docker: the Docker mark kept out of the title. Codes, units and objective order unchanged. Not reviewed by a lawyer. Follow-up (Nick, 2026-11-09): EX188 and EX280 (Red Hat) and DCA (Docker) are hidden from the catalog, not deleted. Red Hat's guidelines (https://www.redhat.com/en/about/trademark-guidelines-and-policies, read 2026-11-09) say certification training needs a Red Hat certified training partner and bar its course numbers, which are these courses' codes; Docker's (https://www.docker.com/legal/trademark-guidelines/, read 2026-11-09) keep the Docker mark out of program titles. Migration 065 adds nullable subject_tracks.hidden_at (no backfill); the seed sets and clears it from each track's hiddenAt. A hidden course is left out of GET /api/courses (listedOrStarted), which every course search in the app filters on the device, and can't be newly started (startableTrack: free-course pick, new study session, first-run pick, setting a plan). Learners with activity on it (study session, answer, mastery, lesson progress, study plan or free-course pick) keep it listed and keep full access; study routes stay on visibleTrack. Content is kept so it can come back.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/tracks/gcp.ts",
+        "backend/supabase/seed/tracks/pm.ts",
+        "backend/supabase/seed/tracks/nursing.ts",
+        "backend/supabase/seed/tracks/ccrn.ts",
+        "backend/supabase/seed/tracks/ccrn-peds-neo.ts",
+        "backend/supabase/seed/tracks/pt.ts",
+        "backend/supabase/seed/tracks/pt-abpts.ts",
+        "backend/supabase/seed/tracks/kubernetes.ts",
+        "backend/supabase/seed/tracks/cncf-ecosystem.ts",
+        "backend/supabase/seed/tracks/docker.ts",
+        "backend/supabase/seed/tracks/redhat-openshift.ts",
+        "backend/supabase/seed/tracks/fitness.ts",
+        "backend/lib/catalog-trademarks.test.ts",
+        "CHANGELOG.md",
+        "backend/supabase/migrations/065_track_hidden_at.sql",
+        "backend/lib/progress-sql.ts",
+        "backend/lib/visibility.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/courses/route.ts",
+        "backend/app/api/courses/[id]/plan/route.ts",
+        "backend/app/api/sessions/route.ts",
+        "backend/app/api/onboarding/first-run/route.ts",
+        "backend/app/api/billing/free-course/route.ts",
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/seed-lib.ts",
+        "backend/supabase/seed/seed.ts",
+        "backend/lib/catalog-hidden.dbtest.ts",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "acceptance_criteria": [
+        "No covered course is titled '<mark> Coach'; every covered title reads 'Prep for the ... Exam' and names the exam",
+        "Notice lines present where the body's guidelines ask",
+        "Track codes and unit and objective order unchanged so the seed updates rows in place",
+        "Only degree and skill courses keep a Coach title (test-enforced)",
+        "EX188, EX280 and DCA (and no other course) are hidden by the seed; their units, objectives and labs are still seeded",
+        "A hidden course is not in GET /api/courses for a learner with no activity on it, so app search can't find it",
+        "Free-course pick, new study session, first-run pick and setting a plan on a hidden course return 404 for a learner with no activity on it",
+        "A learner with a study session, answer, mastery or free-course pick on a hidden course still sees it listed and can open and study it",
+        "Migration 065 is idempotent, has rollback notes and a /api/health schema probe"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "mobile tests",
+        "DB tests on fresh Postgres 16 with all migrations and the seed run twice",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog",
+        "deploy runbook migration tables"
+      ],
+      "risk_notes": [
+        "Not reviewed by a lawyer",
+        "Docker's guidelines keep the Docker mark out of program titles so the DCA title says 'Mirantis DCA' - Nick to confirm it is clear enough",
+        "NASM and ACE terms say their marks need written permission for any use; descriptive use relies on nominative fair use",
+        "Live titles change only on the next npm run seed",
+        "Red Hat and Docker courses hidden rather than deleted: learners with activity on them keep access, so the courses stay reachable for them",
+        "Study routes keep visibleTrack by design: a learner who knows a hidden course's id can still open it and answer, which then counts as activity and lists it for them",
+        "Apply migration 065 before deploying the backend, then npm run seed; until the seed runs nothing is hidden"
+      ]
+    },
+    {
+      "id": "REQ-174",
+      "category": "content",
+      "title": "NREMT EMT and EMR courses with labs",
+      "description": "Add the National Registry EMT and Emergency Medical Responder cognitive-exam courses under a new Emergency Medical Services subcategory (migration 061), built on NREMT's current test plans, with hybrid-density case and build labs whose clinical values cite dated guidelines and stay within each level's national scope of practice.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/ems.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/ems-sources.ts",
+        "backend/supabase/seed/labs/ems-emt.ts",
+        "backend/supabase/seed/labs/ems-emr.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/migrations/061_ems_taxonomy.sql",
+        "backend/lib/schema-status.ts",
+        "backend/lib/labs-ems.test.ts",
+        "backend/scripts/generate-labs.ts",
+        "docs/deploy-runbook-integration.md",
+        "docs/labs.md",
+        "docs/catalog-backlog.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Units, ranges and item facts match NREMT's EMT and EMR test plans read on the day",
+        "Every lab names an exact active objective and passes the content rules",
+        "Each course follows the hybrid density unit by unit with one lab per objective",
+        "Every lab cites a dated clinical guideline or reference or says why not",
+        "No lab grades an action outside the level's national scope",
+        "Migration 061 has a schema probe and runbook rows"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/labs.md",
+        "docs/catalog-backlog.md",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "risk_notes": [
+        "All labs are needs_expert_review until an EMS clinical reviewer reads them",
+        "Weights are midpoints of NREMT's published ranges (EMT sums to 99)",
+        "State protocols may narrow or widen national scope",
+        "Clinical guideline sources carry 6-month recheck dates",
+        "Titles retitled per Nick's approval (2026-11-09) on the REQ-097 pattern and NREMT's trademark page: 'Prep for the National Registry <level> Exam', descriptions end with an independence and non-affiliation statement and the mark attribution; codes and objective order unchanged. Not reviewed by a lawyer."
+      ]
+    },
+    {
+      "id": "REQ-182",
+      "category": "content",
+      "title": "NREMT Paramedic and AEMT courses with labs",
+      "description": "Add the National Registry Paramedic and Advanced EMT certification-exam courses (ALS test plans from 2024-07-01, including the Clinical Judgment domain) under the Emergency Medical Services subcategory, with hybrid-density case and build labs whose doses cite dated guidelines and stay within each level's national scope of practice.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/ems.ts",
+        "backend/supabase/seed/labs/ems-sources.ts",
+        "backend/supabase/seed/labs/ems-paramedic.ts",
+        "backend/supabase/seed/labs/ems-aemt.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/lib/labs-ems.test.ts",
+        "docs/labs.md",
+        "docs/catalog-backlog.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Domains and ranges and format match NREMT's Paramedic and AEMT test plans read on the day",
+        "Every lab names an exact active objective and passes the content rules",
+        "Each course follows the hybrid density unit by unit with one lab per objective",
+        "Every lab cites a dated clinical guideline or reference or says why not",
+        "No AEMT lab grades an action outside AEMT national scope"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/labs.md",
+        "docs/catalog-backlog.md"
+      ],
+      "risk_notes": [
+        "All labs are needs_expert_review until an EMS clinical reviewer reads them",
+        "Weights are midpoints of NREMT's published ranges (Paramedic 102 and AEMT 101)",
+        "Local protocols vary in ALS drugs and doses",
+        "Clinical guideline sources carry 6-month recheck dates",
+        "Titles per Nick's approval (2026-11-09), REQ-097 pattern and NREMT's trademark page: 'Prep for the National Registry <level> Exam' with the non-affiliation statement and mark attribution in each description; codes and objective order unchanged. Not reviewed by a lawyer."
+      ]
+    },
+    {
+      "id": "REQ-200",
+      "category": "operations",
+      "title": "Free encrypted nightly database backup with a restore drill",
+      "description": "Nick 2026-11-09: the Supabase Free plan has no downloadable backups. A GitHub Actions workflow 'Nightly database backup' (.github/workflows/db-backup.yml; daily 11:23 UTC and workflow_dispatch) uses the PROD_DATABASE_URL secret in the production-database environment like migrate-production.yml, installs a PostgreSQL 17 client, and streams pg_dump --format=custom --no-owner --no-privileges of the whole database through age to the public key in the repository variable or secret BACKUP_AGE_RECIPIENT (the private key stays in Nick's password manager). The plaintext dump never touches disk. The repository is public, so nothing about the database is readable without the key: the dump .age file, manifest.json.age (the manifest -- size, sha256 of the dump file, public table count, row counts of app_users/attempts/mastery read in the same snapshot as the dump, server version, timestamp; no user data -- piped from jq into age, format 2) and checksums.json (the only plaintext: a format number and the sha256 of the two .age files) are uploaded as an artifact with retention-days 30. Workflow logs print no counts, versions or sizes. backend/scripts/restore-drill.sh checks both sha256 values, decrypts the manifest in memory with the same key, restores a downloaded backup into a fresh local database after supabase-roles.sql and verifies counts exactly and migrate --status; backend/scripts/ci/backup-drill-test.sh runs dump-encrypt-decrypt-restore-verify in CI with a throwaway keypair and database and fails if a count, table name or version appears in plaintext or in the run output.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        ".github/workflows/db-backup.yml",
+        ".github/workflows/ci.yml",
+        "backend/scripts/db-backup.sh",
+        "backend/scripts/restore-drill.sh",
+        "backend/scripts/ci/backup-drill-test.sh",
+        "docs/operations-runbook.md",
+        "docs/restore-drill.md",
+        "docs/legal/data-inventory.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Runs daily at an off-peak non-:00 UTC minute and by workflow_dispatch",
+        "Uses the existing PROD_DATABASE_URL secret and production-database environment",
+        "pg_dump is a PostgreSQL 17 client and at least the server's major version",
+        "Whole-database custom-format dump with --no-owner --no-privileges streamed into age with no plaintext on disk",
+        "Artifact holds only the .age file and manifest.json and is kept 30 days",
+        "Refuses to run without PROD_DATABASE_URL or BACKUP_AGE_RECIPIENT and refuses a private key as recipient",
+        "Never prints the connection string",
+        "Fails when the encrypted backup is under 1 MB",
+        "Manifest records size and sha256 and table count and app_users/attempts/mastery row counts and server version and timestamp and no user data",
+        "Restore drill checks sha256 then restores into a fresh local database after supabase-roles.sql and requires table and row counts to match the manifest and migrate --status current",
+        "CI test proves dump-encrypt-decrypt-restore-verify and that a wrong key or changed file or count mismatch fails"
+      ],
+      "validation_required": [
+        "actionlint",
+        "shellcheck",
+        "npm test",
+        "backend/scripts/ci/backup-drill-test.sh against local Postgres",
+        "omni gate",
+        "CI backup-drill job",
+        "first manual run of the workflow in production by Nick followed by restore-drill.sh"
+      ],
+      "documentation_required": [
+        "docs/operations-runbook.md Backups",
+        "docs/restore-drill.md nightly backup section",
+        "docs/legal/data-inventory.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Up to 24 h of data loss and no point-in-time recovery",
+        "The manifest is public so the user count is visible",
+        "pg_dump of the whole Supabase database through the Session pooler and snapshot import through it are untested against production until the first run",
+        "Losing the private key makes every backup unreadable",
+        "An account deleted today stays in the previous 30 days of backups",
+        "SUPERSEDES the note 'The manifest is public so the user count is visible': since 2026-11-10 the manifest is encrypted (manifest.json.age); the artifact's only plaintext is checksums.json (format and two sha256 values). Backups made before that change (format 1) keep a plaintext manifest.json until they expire in 30 days and cannot be drilled by the current restore-drill.sh.",
+        "OPEN, owner decision: the privacy policy does not yet disclose the 30-day encrypted backups at GitHub (GitHub as processor; a deleted account stays in backups up to 30 days). Bumping the Privacy version makes every existing account pass the blocking /agree screen at next launch, and builds already installed cannot show the new text without a store release (no OTA). Draft text kept outside the repo; not committed."
+      ]
+    },
+    {
+      "id": "REQ-197",
+      "category": "product/engagement",
+      "title": "Smart study reminders, service emails, dictation tip, next store build plan",
+      "description": "Nick-approved 2026-11-09. (1) Local study reminders built from GET /api/reminders/plan: one topic a day ranked Needs review, then days overdue x exam weight, then lapses (fixed_v1 ladder; DuePriority interface for FSRS later); title '<course>: <topic>' <=40, body 'Due for review · N questions, ~M min[ · exam in D days]' <=60; never 'fading' or a percentage; skip days with nothing due; at most one a day within quiet hours; device-only 'Show topic on lock screen' (default on). Web has none and says so. (2) Exam change notice, exam countdown (14 and 3 days, readiness or 'unconfirmed', 3 weakest), opt-in weekly digest (List-Unsubscribe one-click; refuses without MAIL_POSTAL_ADDRESS and DIGEST_EMAIL_FROM) via Resend; per-kind preference, signed unsubscribe, verified addresses only, idempotent per user/kind/period; daily Vercel cron with CRON_SECRET, small batches; dark until SERVICE_EMAILS_ENABLED=true with the Privacy Policy update. (3) Migration 063 email_preferences and service_email_log. (4) No guilt or marketing copy, tested. (5) One-time keyboard dictation tip on lab, explain-back and coach fields (iOS/Android); fields no longer truncate. (6) docs/next-store-build-plan.md.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/reminder-plan.ts",
+        "backend/lib/reminder-plan-store.ts",
+        "backend/lib/service-emails.ts",
+        "backend/lib/service-email-copy.ts",
+        "backend/lib/exam-changes.ts",
+        "backend/lib/email.ts",
+        "backend/lib/email-errors.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/reminders",
+        "backend/app/api/account/email-preferences",
+        "backend/app/api/email/unsubscribe",
+        "backend/app/api/cron/service-emails",
+        "backend/app/unsubscribe",
+        "backend/supabase/migrations/063_service_emails.sql",
+        "backend/vercel.json",
+        "mobile/src/lib/reminders.ts",
+        "mobile/src/lib/reminderScheduler.ts",
+        "mobile/src/lib/emailPrefs.ts",
+        "mobile/src/lib/dictation.ts",
+        "mobile/src/components/DictationHint.tsx",
+        "mobile/app/(app)/settings",
+        "docs/next-store-build-plan.md"
+      ],
+      "acceptance_criteria": [
+        "Reminder title <=40 and body <=60 chars with no fading or percentage",
+        "No reminder on a day with nothing due and at most one a day",
+        "Lock-screen off shows generic text",
+        "Each service email at most once per user kind and period",
+        "Never sent to unverified addresses or opted-out kinds",
+        "Digest refuses without postal address and sender",
+        "Copy test rejects streak guilt and marketing",
+        "Dictated text is never truncated"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db on fresh Postgres 16",
+        "mobile npm test",
+        "both typechecks",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/deploy-runbook-integration.md",
+        "docs/operations-runbook.md",
+        "docs/legal/data-inventory.md",
+        "backend/.env.example",
+        "docs/next-store-build-plan.md"
+      ],
+      "risk_notes": [
+        "Privacy Policy must be updated before SERVICE_EMAILS_ENABLED is turned on",
+        "Migration numbers 060-062 belong to other branches"
+      ]
+    },
+    {
+      "id": "REQ-162",
+      "category": "feature",
+      "title": "Sim engine v1 implementation (Phase 1a)",
+      "description": "Implements docs/sims.md Phase 1a steps 3-7 (REQ-141 is the design). Engine major 1 in backend/lib/sim/engine/v1/ (pure TypeScript, own deterministic maths, no imports outside the folder, generated copy in mobile/src/sim/engine/v1/): expression parser and type checker, safe evaluator, the tick contract of 5.3, scoring and the Good/Mediocre/Bad rating, the validator and content linter with the bounded path search, the zod schema with a compile-time and run-time conformance test, the content hash and client document, and the draft v1 semantics corpus (22 hand-computed cases) with property tests. Step 5 has its first port: tamponade after CABG (CCRNADULT) with seven golden paths matched to the revised prototype (recorded by npm run sim:golden, compared by lib/sim/ports.test.ts). The Hermes and browser CI jobs run the engine itself (corpus and golden replays) through a transpiled one-script bundle. npm run sims:lint / sims:validate and a client-document key-leak test. Still open: the cloud, project and fitness ports, step 6 (paper scenarios or ports of the security, terminal and data prototypes), step 7 (freeze).",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/sim/**",
+        "backend/scripts/sim-corpus.ts",
+        "backend/scripts/sim-cross-runtime.ts",
+        "mobile/src/sim/**",
+        "backend/supabase/seed/sims/**",
+        "docs/sims/paper/**",
+        ".github/workflows/ci.yml",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "v1 corpus and property tests pass on Node and under the mobile copy",
+        "zod schema mutually assignable with engine types",
+        "four prototypes ported with Good/Mediocre/Bad golden paths matching the prototype drivers",
+        "three paper scenarios written",
+        "cross-runtime jobs run the corpus",
+        "omni gate passes"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Corpus is a draft: hashes may change until the step-7 freeze",
+        "golden ports and paper scenarios not yet written",
+        "cross-runtime jobs still run the step-2 fixture not the corpus",
+        "Prototype recordings (<slug>.prototype.json) are re-made only by hand: the prototypes live outside the repository",
+        "Tamponade port: deliberate differences from the prototype are listed in docs/sims.md 3.2; contraindicated actions are not named (reviewer or Nick to confirm)",
+        "Linter: the per-sim safety note is no longer required (REQ-165, one study notice); an unreached time_up is a warning",
+        "Update 2026-11-09: the cross-runtime jobs now run the engine corpus and golden replays (the fixture still runs too); the tamponade port and its golden paths are written; three ports and the paper scenarios are not",
+        "Update 2026-11-09 (later): TicketBurst (AWSSAA) port done and matched to cloud.html exactly; PMP, fitness, security, terminal, data (and PT from the fixed file) still to port; no freeze"
+      ]
+    },
+    {
+      "id": "REQ-190",
+      "category": "feature",
+      "title": "Sim difficulty bands, the code/ACLS module and the Phase 1b app screen",
+      "description": "Nick's priority after PR #64 (docs/sims.md 19.4). (1) Difficulty bands: a band file is a JSON merge-patch (RFC 7396, plus append for arrays) over a base scenario source, compiled and validated as its own document with its own content hash; the band linter checks that patched paths exist and that no threshold is looser than the base. First band: the TicketBurst launch day at SAP-C03 level (Region impairment, leaked-key multi-account event, migration cutover, RPO 1 min, RTO 10 min, budget 2400, extra catalogue entries, the failing AZ hidden, objective tags) with Good/Mediocre/Bad golden paths. (2) modules/code-acls@1: a document-level fragment spliced before validation (state code_*, inputs entry, protocol, etiology, scope, returnPhase, onEntry, onRosc), compressions as integer command params from the tap pad with a paced non-tap mode, rosc/no-rosc endings, AHA 2025 and STS 2017 sources; tamponade is the first host. (3) Phase 1b: routes, migration 062, schema probe and the mobile sim screen for these scenarios.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/sim/**",
+        "backend/scripts/sim-golden.ts",
+        "backend/scripts/sim-golden/**",
+        "backend/supabase/seed/sims/**",
+        "mobile/src/sim/**",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "band compiles and passes the linter with Good/Mediocre/Bad golden paths and every non-timeout ending reached",
+        "band lint rejects missing paths and looser thresholds",
+        "code module passes on a fixture host and on tamponade with golden paths",
+        "tamponade's seven prototype paths still match the prototype up to the arrest",
+        "phase 1b routes and screen (pending)",
+        "omni gate passes"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "SAP-C03 used instead of SAP-C02 (C02 retires 2026-11-16)",
+        "na criterion score is an engine scoring change before the major-1 freeze",
+        "Part 3 built (Phase 1b server and the first app screen, docs/sims.md 22): migration 062, the sim routes, the seed, the app screen with the tap pad and the paced alternative. Scope grew beyond the listed paths: backend/lib/sims.ts, backend/lib/sim-grading.ts, backend/app/api/sims/**, backend/supabase/migrations/062_sim_engine.sql, backend/supabase/seed/sims-seed.ts and seed.ts, lib/grading-service.ts, lib/billing-config.ts (the sims feature), lib/schema-status.ts, lib/account-export.ts, docs/deploy-runbook-integration.md, mobile/app/(app)/course/[trackId]/{sims,sim/[simId],index}.tsx, mobile/src/api/client.ts and src/lib/studyNotice.ts.",
+        "Left open (docs/sims.md 22, Not built yet): the sim item kind and Report a problem, the review queue entry, metrics view and stale report, resume/lease routes, observability counters; in the app the write-ahead journal, protected route, keep-awake, waveforms and the on-device accessibility pass.",
+        "Content choices for Nick: tamponade now counts toward 'Care of the patient after cardiac surgery' (its own objective title was not in the CCRN catalog); TicketBurst secondary objectives remapped to AWSSAA titles; SIMS_RENDERERS default bedside,board; screen.board binding added to the schema (display-only)."
+      ]
+    },
+    {
+      "id": "REQ-199",
+      "category": "feature",
+      "title": "Sim follow-ups: on-device command journal and Report a problem on a sim",
+      "description": "Two follow-ups to REQ-190's sim feature (docs/sims.md 22). (1) Persist each unsent sim command with its client seq and tick to device storage (AsyncStorage on native, localStorage on web, wrapped) before sending, clear on server acknowledgement, replay on resume through the idempotent step route, and discard with a plain notice when the run ended elsewhere, another device holds or moved the run, or the sim version changed; protect /sim/ from OTA reloads via the useAppUpdates protected-route list. (2) A 'sim' item kind in the report/item_status pipeline (migration 067, number assigned by the lead): reports carry sim id, version, the run's tick and state hash and the learner's note; they join the content review queue; a confirmed report pulls the sim version from rotation and voids its attempts; Report a problem on the sim and debrief screens.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/sim/**",
+        "mobile/src/updates/**",
+        "mobile/src/lib/localData.ts",
+        "mobile/src/lib/reportProblem.ts",
+        "mobile/src/components/ReportProblem.tsx",
+        "mobile/app/(app)/course/[trackId]/sim/**",
+        "backend/lib/sims.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/item-report.ts",
+        "backend/lib/content-review-queue.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/items/report/**",
+        "backend/supabase/migrations/067_sim_item_kind.sql",
+        "docs/sims.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "kill mid-run: the journal persists and replays to the same state",
+        "duplicate replay is idempotent",
+        "a stale journal (ended run / other version / moved on / lease lost) is discarded with a plain notice",
+        "/sim/ is on the OTA protected list",
+        "a sim report records version + tick + state hash + note",
+        "reports join the review queue and quarantine or confirmation pulls the version and voids its attempts",
+        "Report a problem on the sim and debrief screens",
+        "omni gate passes"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "test:db"
+      ],
+      "documentation_required": [
+        "changelog",
+        "docs/sims.md 22.1",
+        "deploy runbook rows for 067"
+      ],
+      "risk_notes": [
+        "migration 067 swaps item_kind checks on three tables (brief ACCESS EXCLUSIVE)",
+        "the 050 schema probe now accepts the 067 check"
+      ]
+    },
+    {
+      "id": "REQ-201",
+      "category": "feature",
+      "title": "AI access modes: full AI for owners and invited pilot accounts while billing is off; global daily AI ceiling",
+      "description": "AI_ACCESS_MODE all|granted|paid (default all = behaviour before REQ-201; independent of BILLING_ENABLED; unknown values treated as granted with a health warning). granted: full AI for owners (OWNER_EMAILS) and account_access grants; everyone else keeps every course and non-AI feature but has no coach chat and no lesson regenerate (403 aiAccess limited_preview) and AI-graded written answers (grade_open, explain-back, lab steps and report, sim reasoning, PBQ, unit check) count against Free's daily graded-answer allowance (429 aiAccess graded_limit); multiple choice, interactive labs, sim scoring and review never counted; shared lessons on first open, quiz-me, guess-feedback, PBQ scenario writing, exam items, review writing, unit-check writing and item re-checks stay open (scope approved by Nick 2026-11-09). paid: billing tiers; with billing off only owners, grants and live paid entitlements get full AI. AI_GLOBAL_DAILY_CEILING_USD (unset = none; recommended 5, Nick 2026-11-09): total ai_calls spend per UTC day, cached 60 s; at it chat and regenerate pause for all but owners (429 paused) and first generation of a shared lesson answers being prepared (429 preparing); grading, review and every other AI call keep working and still count. /api/auth/me ai {mode, full} outside the default mode. Settings > Access bulk invite (up to 50 addresses) and per-grant AI line. Mobile: coach limited-preview panel, regenerate hidden with note, server words for limits, no plan or price. No migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/ai-access-config.ts",
+        "backend/lib/ai-access.ts",
+        "backend/lib/ai-budget.ts",
+        "backend/lib/entitlements.ts",
+        "backend/lib/health.ts",
+        "backend/lib/account-access-config.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/unit-check.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/app/api/objectives/[id]/lesson/prefetch-next/route.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/app/api/objectives/[id]/explain-back/route.ts",
+        "backend/app/api/objectives/[id]/lab/report/route.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/app/api/auth/me/route.ts",
+        "backend/app/api/access/grants/route.ts",
+        "mobile/src/lib/aiAccess.ts",
+        "mobile/src/lib/access.ts",
+        "mobile/src/lib/regenerateError.ts",
+        "mobile/src/types/index.ts",
+        "mobile/app/(app)/course/[trackId]/chat.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/app/(app)/settings/access.tsx",
+        "docs/billing.md",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "AI_ACCESS_MODE unset or all is byte-for-byte the previous behaviour",
+        "granted blocks coach and regenerate for an ordinary learner with a structured 403 and no model call",
+        "granted counts AI-graded written answers against Free's daily allowance and never multiple choice or review",
+        "granted never applies the one-course rule",
+        "owners and granted accounts have full AI with nothing counted",
+        "paid follows billing tiers and with billing off is paid-only",
+        "global ceiling pauses chat and regenerate for all but owners and never grading",
+        "global ceiling answers being prepared for an ungenerated shared lesson",
+        "open AI calls keep working at the ceiling and count toward it",
+        "learner-facing copy shows no plan or price",
+        "bulk invite of up to 50 addresses in Settings Access"
+      ],
+      "validation_required": [
+        "backend npm test and typecheck",
+        "mobile npm test and typecheck",
+        "npm run test:db on fresh Postgres 16 including lib/ai-access.dbtest.ts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/billing.md",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Open AI paths (exam items",
+        "review writing",
+        "re-checks",
+        "quiz-me",
+        "guess-feedback",
+        "PBQ scenarios) are bounded only by rate limits and continue past the ceiling",
+        "Granted pilot accounts keep the 20 USD daily safety ceiling with billing off",
+        "The 60 s per-instance cache lets spend pass the ceiling by about a minute of traffic",
+        "granted left on after billing launch limits paying learners (health warning)"
+      ]
+    },
+    {
+      "id": "REQ-202",
+      "category": "security",
+      "title": "AI spend gate: no account can make the server spend outside a cap",
+      "description": "Nick 2026-11-09 (pre-launch audit batch F1; the Anthropic credit is $218). One spend gate inside the shared model-call layer (lib/ai-calls.ts loggedCall, reached by callClaude and callClaudeStructured; lib/ai-spend-gate.ts, lib/ai-spend-ledger.ts): every call carrying a userId is held to that learner's daily pool before it is sent -- coach (AI_DAILY_BUDGET_USD, default 0.50) or grading (AI_DAILY_GRADING_BUDGET_USD, default 0.25, a pool of its own so a heavy grader keeps the coach) -- by reserving its worst-case cost under a per-learner advisory lock as an ai_calls row (error_code 'reserved') and settling that same row with the real usage; an unsettled reservation keeps counting for 24 hours. userId is a required CallOptions field (null only for operator scripts, listed). The check fails closed (503) when the database cannot answer, in the gate, requireAiBudget and requireAiAllowance. Structured calls use messages.create and parse locally so usage is recorded even when the answer does not parse. Sprint and mock generation looks before it starts (canAffordAiSpend) and draws from the bank only when the learner cannot afford it; GENERATION_RATE 40 to 12 an hour. A first (shared) lesson generation, lab questions, course insights and item re-checks are charged to the learner whose request started them; the lesson GET and prefetch rate goes from 20 per 10 minutes to 20 per hour; re-checks are capped at 10 started per learner per day. The Anthropic client gets a 90 s timeout and one retry; the AI routes export maxDuration (at most 300, the Hobby plan ceiling with Fluid compute). setGlobalCeilingCheck is the hook for the REQ-201 global daily ceiling. No migration (a reservation is an ai_calls row).",
+      "priority": "critical",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/ai-spend-gate.ts",
+        "backend/lib/ai-spend-ledger.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/lib/anthropic.ts",
+        "backend/lib/ai-budget.ts",
+        "backend/lib/entitlements.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/understanding-ai.ts",
+        "backend/lib/lesson-experience.ts",
+        "backend/app/api"
+      ],
+      "acceptance_criteria": [
+        "A test account at its cap starts 12 sprints and the model is called 0 times",
+        "25 concurrent calls at 0.49 of 0.50 never settle above the cap plus one call",
+        "A parse failure records non-zero usage",
+        "Every AI route and call site is enumerated from the source by a table-driven test that fails on a new one that bypasses the gate",
+        "The spend checks fail closed",
+        "The Anthropic client has a timeout and one retry and the AI routes export maxDuration"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db seeded twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/billing.md",
+        "backend/.env.example"
+      ],
+      "risk_notes": [
+        "A killed function leaves its estimate counting for 24 hours",
+        "The REQ-201 global ceiling must be wired into setGlobalCeilingCheck after the rebase",
+        "B11 (2026-11-10): the REQ-201 global ceiling is wired into the gate (FAIL-964): non-grading model calls pause at the ceiling, owners, the grading pool and pregen purposes pass; REQ-201's list of open AI paths no longer holds for the writers"
+      ]
+    },
+    {
+      "id": "REQ-208",
+      "category": "operations",
+      "title": "Pre-generate launch-course lessons from GitHub Actions with a hard budget",
+      "description": "Shared catalog lessons are pre-generated for the launch courses (DPT, PTPREREQ, CCRNADULT, AWSSAA, AWSMLA, SECPLUS, CNA, Nick 2026-11-09) through the Message Batches API (50% off), run only by the manual 'Pre-generate lessons' workflow so nobody handles the API key or the database URL: workflow_dispatch only, contents: read, the production-database environment, PROD_DATABASE_URL plus a separate ANTHROPIC_PREGEN_API_KEY (a dedicated Console workspace with its own spend limit; never the app's key), refuses to start if either secret is missing, prints counts, the estimate and batch ids only, uploads a counts-only JSON artifact. Budget guard: --tracks is a priority order; the cap (--max-usd, default 110: the whole launch set, 845 lessons, is an upper bound of $100.23 on the batch-10 seed) is checked against an upper bound (every request at max_tokens with the Batches discount, plus the live fact-check at its max_tokens) and fills whole units in order, stopping at the first unit that does not fit; the estimate prints per-track counts and cost and where the cutoff falls; submit refuses when nothing fits, without tracks and max_usd, or while a batch is running. Flow matches the app's lesson pipeline: two batches so practice is written from the teaching text (FAIL-527 rule), verify-by-execution requested and queued (REQ-196), the app's own checkedIntro/checkedPractice (writer doubt, fact-check gate, holdbacks), shuffled answer position, retired/hidden/authored objectives left out, insert-if-absent so content fixes and learners' lessons are never overwritten. Spend lands in ai_calls as purpose pregen / pregen_fact_check and is excluded from AI_GLOBAL_DAILY_CEILING_USD so a run cannot pause learners. --dry-run builds every request and sends nothing. Runbook: Pre-generating lessons. No migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/pregen.ts",
+        "backend/scripts/pregenerate.ts",
+        "backend/scripts/pregenerate-lib.ts",
+        "backend/lib/ai-budget.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/lib/fact-check.ts",
+        ".github/workflows/pregenerate.yml",
+        "docs/operations-runbook.md"
+      ],
+      "acceptance_criteria": [
+        "Workflow is manual",
+        "read-only and refuses without both secrets",
+        "Submit never passes max_usd and cuts whole units in priority order",
+        "Collect saves only through the app's gates and never overwrites an existing lesson",
+        "Pregen spend is in ai_calls but outside the global ceiling",
+        "--dry-run sends nothing"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "integration_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "runbook"
+      ],
+      "risk_notes": [
+        "Live API acceptance of the batch request shapes and the real cost per lesson are unverified (no key here): run estimate then a small submit first",
+        "The upper bound is about 2-3x the likely cost so a run may leave cap unspent",
+        "Fact-checks run one after another so a large collect takes hours",
+        "Cap raised to 110 (Nick via the lead, 2026-11-09): the pregen Console workspace limit is 110; the runbook starts with a trial of limit 25 and max_usd 5, then estimates again before the full submit."
+      ]
+    },
+    {
+      "id": "REQ-203",
+      "category": "security",
+      "title": "Account security: proof before adding sign-in methods, attempt limits, session races, logout that really revokes",
+      "description": "Nick approved fix batch F2 on 2026-11-09 after the pre-launch audit (FAIL-860..871). (1) Adding an authenticator needs a password, code or fresh Google proof for any account that has one (not only when MFA is on); turning MFA on (authenticator or email) emails a security alert. (2) Connecting a Google account needs the same proof, ends every other session (refresh families and token version) in the same transaction as the link while keeping the current one, and emails an alert naming the Google address (FAIL-871). Nick decided on 2026-11-09 that the Google address need NOT equal the account address. (3) The pending email-MFA code allows 5 tries per 10 minutes and is dropped after 5 misses. (4) Backup-code regeneration spends the shared reauth budget before the password check. (5) Reauth counts wrong guesses toward the 10-per-15-minute lockout, not correct ones (an attempt is counted while checked and given back when correct); successes have a separate ceiling of 120 per 15 minutes. (6) A refresh token replayed within 10 seconds of its own rotation (two tabs at once) gets its own live token in the same family, at most 6 per rotation, instead of revoking the family; later replays still revoke it. (7) Logout accepts a validly signed but expired access token (no older than 30 days) and ends its family; logout and web DELETE /api/auth/refresh with an already-rotated refresh token end the whole family. (8) A junk body token no longer clears a valid web cookie; only a failing cookie is cleared. (9) change-password, mfa/enable, mfa/email/enable and backup-code regeneration run their writes in one transaction, and the two enables consume the pending secret atomically. (10) Deleting an account without a password needs a Google proof or a code. The 15-minute access-token lifetime after a normal logout is unchanged (accepted by Nick). No migration.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/auth/reauth.ts",
+        "backend/lib/auth/rateLimit.ts",
+        "backend/lib/auth/tokens.ts",
+        "backend/app/api/auth/mfa",
+        "backend/app/api/auth/oauth/google/link/route.ts",
+        "backend/app/api/auth/logout/route.ts",
+        "backend/app/api/auth/refresh/route.ts",
+        "backend/app/api/auth/change-password/route.ts",
+        "backend/app/api/account/route.ts",
+        "backend/lib/account-security.dbtest.ts",
+        "backend/lib/auth-races.dbtest.ts",
+        "backend/lib/session-cookie.dbtest.ts",
+        "backend/lib/auth-hardening.dbtest.ts",
+        "mobile/app/(app)/settings/mfa.tsx",
+        "mobile/app/(app)/account.tsx",
+        "mobile/src/lib/reauth.ts",
+        "mobile/src/lib/reauth.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A stolen access token alone cannot add an authenticator",
+        "link Google or delete a Google-only account",
+        "5 wrong email-MFA codes drop the pending code",
+        "Correct unlocks never lock the learner out and wrong guesses still do",
+        "Two simultaneous refreshes keep the session and a late replay still revokes the family",
+        "Logout ends the session whether the access token is expired or the refresh token already rotated",
+        "A multi-statement credential write is all-or-nothing"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend npm run test:db seeded twice",
+        "mobile typecheck and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-204",
+      "category": "data-correctness",
+      "title": "Learning-data correctness (batch F3)",
+      "description": "Fixes from the 2026-11-09 pre-launch audit that left learner data wrong or learners locked out: exam start double-submit and concurrent starts, the six hour held-back cooldown applied to every learner, a retryable queue error treated as a holdback, held-back and unsent-email refusals hidden behind a 5xx, wrong lesson keys coming back in mock exams, cleared items that could never be pulled again, a failed regenerate wiping the saved position and keeping its weekly use, retired objectives still reachable, repeats counted as spaced review, GET /api/attempts?limit=-1 returning 500, and objectives retitled in place keeping content for the old title. Migration 069.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "each finding has a regression test against a real database that fails on batch-9",
+        "schema probe for 069",
+        "mobile shows the server's held-back message"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db seeded twice",
+        "mobile npm test and tsc",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "FAIL-884 changes the unsent-email status from 503 to 409: an app build that branches on 503 for email would need to follow",
+        "existing item_holdbacks rows count as shared-scope holdbacks until their six hours pass",
+        "a retitled objective's generated content is regenerated on the next visit (model cost)",
+        "B13 (2026-11-10): placement applies lessonServableSql (FAIL-894); shared holdback scope split from the learner charged (FAIL-967). Other lesson_content readers not audited: exam-items.ts, review-store.ts"
+      ]
+    },
+    {
+      "id": "REQ-205",
+      "category": "legal",
+      "title": "Legal and privacy batch F4: owner decisions, honest retention, 16+, consent on every model route, support inbox",
+      "description": "Nick 2026-11-09. Fill the legal text (operator Nicholas Pauken, State of Washington, 16+, support address default support@ascendra-learn.com in one constant plus SUPPORT_EMAIL, AI request counts 12 months) and drop the draft banner. Disclose GitHub, the 30-day encrypted backups, the in-database backup_release copies (30 days, at most 37) and Sentry; rebuild the data inventory from the real tables with a kept-after-deletion column. One combined legal version bump to 2026-11-10 without trapping installed builds (X-Ascendra-Legal header, three client generations). A neutral I-am-16-or-older confirmation on email and first-time Google sign-up, enforced and recorded server-side (migration 070, no date of birth). Account deletion erases report notes and their review-queue copies; ai_calls purged after 12 months. Export: sign-in events scoped since account creation, the avatar, a JSON file download on web. requireStudyNotice on every route that sends learner text to the model. AI_PROVIDER=local refused in production. A signed, rate-limited Resend inbound webhook forwards support mail to SUPPORT_FORWARD_TO.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/src/content/legal.ts",
+        "mobile/src/lib/legal.ts",
+        "backend/lib/legal.ts",
+        "backend/lib/support-contact.ts",
+        "backend/lib/age-confirmation.ts",
+        "backend/lib/report-notes.ts",
+        "backend/lib/retention.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/inbound-email.ts",
+        "backend/lib/env-check.ts",
+        "backend/app/api/account/route.ts",
+        "backend/app/api/auth/register/route.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/app/api/inbound/email/route.ts",
+        "backend/app/delete-account/page.tsx",
+        "the learner-text POST routes",
+        "backend/supabase/migrations/070_age_confirmation.sql",
+        "backend/lib/schema-status.ts",
+        "mobile/app/(auth)",
+        "mobile/app/(app)/account.tsx",
+        "docs/legal/data-inventory.md",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "No bracketed placeholder or draft banner in any legal page; the delete-account page never falls back to a placeholder",
+        "An installed build that sends X-Ascendra-App and the 2026-11-09 versions can accept without a 400 or a loop; an updated app is asked once",
+        "Sign-up without ageConfirmed true is refused and creates nothing on both paths; the confirmation is recorded",
+        "After DELETE /api/account no item_flags note or review-queue copy remains anywhere",
+        "ai_calls older than 12 months is purged",
+        "Export sign-in events are limited to this account and include the avatar; web export downloads a JSON file",
+        "Each model route returns 403 study_notice_required until the notice is accepted",
+        "AI_PROVIDER=local stops production startup",
+        "The inbound webhook verifies the Svix signature and fails closed without secret key or forward address",
+        "The inventory names every table with a user_id"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "data_validation",
+        "security_review",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data_model",
+        "deployment"
+      ],
+      "risk_notes": [
+        "Installed builds cannot be updated by OTA (EXPO_TOKEN unset) so they keep the 2026-11-09 text and cannot create accounts until a store release",
+        "Contact address is a proposed default Nick has not confirmed",
+        "Legal text has had no lawyer review",
+        "No retention period is set for the support inbox or for billing_events",
+        "B14 (2026-11-10): on a gated course (nursing, PT, fitness) a missing study notice is answered by requireAcknowledgementForObjective with the same words but no code field; only the other model routes send code study_notice_required. Not changed"
+      ]
+    },
+    {
+      "id": "REQ-206",
+      "category": "fix",
+      "title": "Web screens and accessibility: the lock blocks keyboard and screen readers, Back always works, forms submit on Enter",
+      "description": "Batch F5 of the pre-launch audit fixes. The app lock makes the screens under it inert and hidden from assistive tech, takes focus and traps Tab. Back buttons fall back to a parent screen after a reload or deep link, and a missing course offers a way out instead of Retry. Signed-in screens wait for the session. Sign-up has its own accessible Checkbox. Enter submits login, sign-up, reset, MFA and the lock. Headings carry levels, pages have titles and a main landmark, verdicts and coach replies are announced, the course card has no button inside a button, and several labels, copy lines and lost-state cases are fixed. Keyboard Tab order on the web screens is covered by a repeatable Playwright script (mobile/e2e/tab-order.e2e.mjs). Dark-only theming is unchanged.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/app",
+        "mobile/src/components",
+        "mobile/src/lib",
+        "mobile/src/auth/AuthContext.tsx",
+        "CHANGELOG.md",
+        ".ai/failures"
+      ],
+      "acceptance_criteria": [
+        "Tab never leaves the lock and Enter on a control under it does nothing",
+        "Back on a fresh load goes to the parent screen",
+        "A reload on /account/sessions sends no request before the session is restored",
+        "Terms checkbox is at least 48 dp with role checkbox and its links outside it",
+        "Enter submits login/register/reset/MFA/lock",
+        "axe violations on the audited pages do not rise and the region rule falls"
+      ],
+      "validation_required": [
+        "typecheck",
+        "test",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "No migration. Header Back button is still absent after a reload on screens that rely on the stack header; in-page Back buttons are fixed. verify-email and MFA screens lose their email/token after a reload by design (src/lib/handoff.ts). Live announcements for the post-exam review list (ExamQuestion",
+        "feedback) are not added: static review lists",
+        "not live updates.",
+        "Keyboard Tab order was checked on every form and interactive web screen with mobile/e2e/tab-order.e2e.mjs (31 screens and sheets: order follows the page, visible focus, no trap outside modals, nothing hidden or off screen receives focus, no clickable element the keyboard cannot reach). It found no Tab-order defect in the F5 build or in the batch-9 build, so no new FAIL entry was needed and none was free (FAIL-920..939 is fully used). The sim screen was not reached (no openable sim in the seed data); model-dependent screens were audited in start, empty or mocked states. Run it by hand before a release: see mobile/e2e/README.md.",
+        "B15 (2026-11-10): AgeCheckbox (REQ-205) is a thin wrapper over the shared Checkbox; the Tab-order script (scripts) needs a web export and was not run in this release assembly"
+      ]
+    },
+    {
+      "id": "REQ-207",
+      "category": "security",
+      "title": "Operations hardening: least-privilege DB role, DB TLS and timeouts, error-report scrubbing, CSP/HSTS, health ledger check, CI supply chain, Nick's lockdown guide",
+      "description": "Nick 2026-11-09 (approved via lead), batch F6, from the pre-launch audit. (1) Migration 071: NOLOGIN app_runtime role (DML on app tables via per-table RLS policies, not BYPASSRLS; select-only on schema_migrations; no rollback copies; no DDL), app_runtime_sync() for later migrations, EXECUTE revoked from PUBLIC/anon/authenticated on the project's functions with a fixed search_path, role-level statement_timeout/idle/jit, and the 064 read policies on objectives/course_units limited to catalog tracks; schema probe; test:db also run as app_runtime. (2) DB TLS: DATABASE_CA_CERT / PGSSLROOTCERT pin the CA when set; unset keeps today's behaviour. (3) Startup statement_timeout on non-pooler hosts; migration runner session lock_timeout; migrate workflow timeout and no swallowed status; rollback-064/071 scripts and notes. (4) Error reports sent with after(); logs carry name, code and a masked, truncated message. (5) CSP (enforced; report-only switch) and HSTS; static route containment and hashed-only immutable. (6) /api/health: ledger vs shipped migrations, commit SHA, 503 on missing production EMAIL_FROM, details only with CRON_SECRET; keepalive stops printing the body. (7) CI: read-only permissions, Node 24 everywhere, EXPO_TOKEN per step, dependabot, sandbox image digests, blocking mobile audit gate with lockfile fix; every third-party action pinned to a commit SHA with a vX.Y.Z comment (pin-actions.mjs resolves tags with git ls-remote). (8) Read-only Supabase MCP without account; recheck guard refuses SELECT on app_users/refresh_tokens/auth_events and CREATEROLE; sandbox failure opens an issue. (9) docs/ops/2026-11-10-lockdown-and-db-rotation.md, plus the transaction-pooler session-state report.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/071_app_runtime_role.sql",
+        "backend/lib",
+        "backend/app/api/health",
+        "backend/next.config.js",
+        "backend/security-headers.js",
+        ".github",
+        ".mcp.json",
+        "mobile/package-lock.json",
+        "docs/ops"
+      ],
+      "acceptance_criteria": [
+        "app_runtime has no DDL",
+        "no BYPASSRLS",
+        "no ledger write",
+        "and the db suite passes as it except owner-only steps",
+        "No PUBLIC execute and a fixed search_path on project functions",
+        "TLS is verified when a CA is configured and unchanged when not",
+        "Health 503s on an unrecorded migration or missing production EMAIL_FROM and shows no names to the public",
+        "No console CSP violations on sign-in sign-up home course lesson chat account",
+        "Logs never carry a whole error object",
+        "Nick's guide covers every manual step with rollback"
+      ],
+      "validation_required": [
+        "npm test both",
+        "npm run test:db seeded twice",
+        "db tests as app_runtime",
+        "typecheck both",
+        "Playwright CSP check",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/ops/2026-11-10-lockdown-and-db-rotation.md",
+        "docs/ops/2026-11-10-transaction-pooler-session-state.md",
+        "docs/ops/db-tls.md",
+        "docs/ops/csp.md",
+        "docs/ops/migration-rollbacks.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Pooler behaviour not tested against a real Supavisor",
+        "CSP style-src keeps unsafe-inline for react-native-web",
+        "Mobile lockfile moves 61 packages (native fingerprint may change)",
+        "B16 (2026-11-10): after a real restore run 071 again (psql --single-transaction -f), then set app_runtime's password again (FAIL-897)"
+      ]
+    },
+    {
+      "id": "REQ-209",
+      "category": "feature",
+      "title": "Sim pacing: study pace 3x, focused start, skip offer, teaching prompts, chapters",
+      "description": "Nick, 2026-11-09: a running-phase sim case took 30 to 60 real minutes on a phone. For scenarios with a running phase in a clinical or fitness track only: (1) a logged pace command, Study 3x (default) or Exam realism 1x, chosen at launch and changeable mid-run, with the server speed bound charging each tick at its logged pace; (2) an optional focused start reached through the engine with no learner actions, with fair scoring (onset-based timing unchanged, recognition criterion na when the start is after the expert recognition point); (3) a Skip to the next change offer after about 30 quiet real seconds using the existing skip, logged and in the debrief; (4) unscored teaching prompts answered by choice with sourced rationales (4 on tamponade); (5) chapters with Continue or Save and finish later via checkpoint and resume. Engine minor 1; runs begun before it replay at 1x unchanged; IT, cloud and PM sims untouched. Migration 073 allows the new command types.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim/**",
+        "backend/lib/sims.ts",
+        "backend/lib/sims.dbtest.ts",
+        "backend/lib/schema-status.ts",
+        "backend/supabase/migrations/073_sim_pacing_commands.sql",
+        "backend/supabase/seed/sims/CCRNADULT/**",
+        "mobile/src/sim/**",
+        "mobile/app/(app)/course/[trackId]/sim/**",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "existing goldens match at 1x and non-clinical goldens are byte-identical",
+        "legitimate 3x accepted and a client faster than its logged pace refused",
+        "a run with no logged pace replays at 1x and a pre-change run and checkpoint resume",
+        "non-clinical sims never advance on their own (10 idle minutes tested)",
+        "pace and skip offer and chapters in the app with spoken labels and pause at every speed",
+        "teaching prompts unscored with cited sources"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db seeded twice",
+        "sims:lint",
+        "sim:sync-engine --check",
+        "mobile typecheck and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "ESC 2025 myocarditis and pericarditis guideline supersedes the 2015 one cited and could not be read",
+        "Sagrista-Sauleda 2008 data are medical not post-surgical tamponade",
+        "begin evolves 780 ticks synchronously on the UI thread and is unmeasured on Hermes",
+        "apply migration 073 before the backend that writes pace commands"
+      ]
+    },
+    {
+      "id": "REQ-210",
+      "category": "documentation",
+      "title": "Docs batch D1: README, release notes and runbooks for releases 2026-11-10 and 2026-11-11",
+      "description": "Docs only, no app code. README describes the app as shipped (sims, interactive labs, AI access modes and spend limits, account security, 16+, web accessibility), the current production status and every setting the server reads (names and purpose, never values). Release notes for 2026-11-10 and 2026-11-11. Sims doc status and pacing summary, store build plan status, the per-batch deploy flow with ops branches pushed without --force once protect-ops exists, and lockdown progress (steps 0, 1.1-1.3, 2 and 3 done 2026-11-10; 1.4-1.5 and 4 remain).",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "README.md",
+        "docs/"
+      ],
+      "acceptance_criteria": [
+        "README lists every env var the backend reads with purpose and no values",
+        "Release notes exist for 2026-11-10 and 2026-11-11 following docs/release-YYYY-MM-DD.md",
+        "Ops runbook records lockdown steps done and remaining",
+        "Deploy runbook describes the per-batch flow and non-force ops pushes"
+      ],
+      "validation_required": [
+        "omni gate",
+        "omni map from a fresh clone"
+      ],
+      "documentation_required": [
+        "README.md",
+        "docs/release-2026-11-10.md",
+        "docs/release-2026-11-11.md",
+        "docs/sims.md",
+        "docs/next-store-build-plan.md",
+        "docs/operations-runbook.md",
+        "docs/deploy-runbook-integration.md",
+        "docs/ops/2026-11-10-lockdown-and-db-rotation.md"
+      ],
+      "risk_notes": [
+        "Production settings and lockdown progress are as reported by Nick and not read from Vercel or GitHub settings"
+      ]
+    },
+    {
+      "id": "REQ-212",
+      "category": "Mobile authentication",
+      "title": "Login workflows on Android: biometric unlock stays on through sign-in and Create account; autofill hints checked",
+      "description": "Nick reported on the 2026-11-11 Android preview build that biometrics are turned off when navigating to Create account and that saved username and password are not offered on the login screen. Biometrics (FAIL-1002 and FAIL-1003): leaving the launch lock with 'Use password instead' and tapping the login screen's biometric button after a logout both deleted the device's biometric preference; now only Sign out of all devices does. Autofill: the login and register hints are unchanged since before batch-10 and reach the native field (checked in react-native's Android TextInput); no code cause was found for the reported symptom and it needs a device check. The MFA code field gained its missing Android hint (FAIL-1004).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib/sessionStore.ts",
+        "mobile/app/(auth)/login.tsx",
+        "mobile/app/(auth)/mfa-challenge.tsx",
+        "mobile/src/lib/loginWorkflow.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "With biometric unlock on 'Use password instead' leads to sign-in and the preference is still on afterwards",
+        "Only Sign out of all devices or the Settings toggle turns biometric unlock off",
+        "The login biometric button appears only while a sealed session is on the device",
+        "Login keeps username plus current-password and register keeps username plus new-password and TextField forwards them",
+        "The MFA code field carries autoComplete one-time-code",
+        "mobile tsc and npm test pass"
+      ],
+      "validation_required": [
+        "typescript_format",
+        "unit_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Code reading and node tests only: the Android app was not run here so the OS prompt and the autofill service are unobserved",
+        "The biometric preference is one per device: a different account signed in on the device has its session sealed too (unchanged)",
+        "'Use password instead' cannot revoke the sealed token on the server (reading it needs the biometric prompt) so that session expires on its own as before",
+        "JavaScript only: no app.json or plugin change"
+      ]
+    },
+    {
+      "id": "REQ-211",
+      "category": "feature",
+      "title": "Owner-only 'Send a test error' button to confirm Sentry receives server errors",
+      "description": "Nick, 2026-11-10: after setting ERROR_TRACKER_DSN there was no safe way to confirm reports arrive. Settings > Access (owner only) gains 'Send a test error', which posts to POST /api/access/error-tracker-test. The route requires the owner, allows five a day (auth_events 'error_tracker_test'), sends one labelled event through the same store endpoint as reportError, waits for Sentry's answer (5 s timeout) and returns { configured, delivered, status }. No migration.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/error-tracker.ts",
+        "backend/app/api/access/error-tracker-test/route.ts",
+        "backend/lib/error-reporting.test.ts",
+        "backend/lib/account-access.dbtest.ts",
+        "mobile/src/lib/access.ts",
+        "mobile/src/lib/access.test.ts",
+        "mobile/app/(app)/settings/access.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "non-owners get 403 and nothing is sent",
+        "no DSN reports configured false and sends nothing",
+        "a 2xx from Sentry reports delivered; a refusal or network failure is reported, never thrown",
+        "the sixth call in a day is a 429 and sends nothing",
+        "the owner sees a plain-language result on the Access screen"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db (owner and app_runtime)",
+        "mobile typecheck and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "the test event appears as a real error in Sentry and should be resolved there"
+      ]
+    },
+    {
+      "id": "REQ-213",
+      "category": "bugfix",
+      "title": "PBQ scenarios generate: fewer false holdbacks, one retry, and the held-back message reaches the app",
+      "description": "Nick, 2026-11-10: generating PBQs failed every time. The PBQ prompt tells the writer that the invented setting and wording caveats are not uncertain claims; a held-back scenario is written once more; a second holdback answers 409 with the held-back message. Real uncertain facts are still held back and logged (REQ-114). FAIL-1005 (2026-11-10 evening): for PBQs only the writer's low confidence holds a scenario back; claims listed at medium or high confidence are logged and the scenario is served.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/app/api/pbq/route.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/pbq-holdback.dbtest.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a held-back first scenario is followed by one more attempt and the second is served",
+        "two held-back scenarios answer 409 with the held-back message; nothing stored; both logged",
+        "a confident scenario costs one call",
+        "the PBQ prompt excludes invented settings and wording caveats from uncertainClaims",
+        "a medium-confidence scenario with a listed claim is served on the first call"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db (owner and app_runtime)",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "a held-back attempt now costs up to two fast-model calls (about a cent)"
+      ]
+    },
+    {
+      "id": "REQ-214",
+      "category": "chore",
+      "title": "Retire the 2026-11-07 production-state rehearsal CI job",
+      "description": "Nick, 2026-11-10: retire it. The job applied every migration (now up to 073) and then ran only the 2026-11-07 rollback, so the schema comparison could never pass after the first later release; it failed on every master run since batch 5. The job is removed from ci.yml; the script and the 11-07 rollback file are kept and marked historical; the deploy runbook says so. Per-migration rollbacks stay tested in lib/rollback-scripts.dbtest.ts.",
+      "priority": "low",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".github/workflows/ci.yml",
+        "backend/scripts/rehearse-production-migration.sh",
+        "backend/scripts/rollback-release-2026-11-07.sql",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "ci.yml has no rehearsal job and still parses",
+        "the script and the 11-07 rollback say they are historical"
+      ],
+      "validation_required": [
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "none: no production behaviour changes"
+      ]
+    },
+    {
+      "id": "REQ-218",
+      "category": "bugfix",
+      "title": "Learning-data integrity (G3): quarantine in review prep, review spacing floor, Independent needs a later session, exam submit and other races",
+      "description": "Nick, 2026-11-10 (audit batch G3, audit of 2026-11-11, approved incl. low-priority). Review prep serves pulled items (H1); a review due on a UTC calendar day can be minutes after the last one and a correct answer jumps a rung (H8; an item is now due only 24 h after its last review (Nick, 2026-11-10 21:22: a full day)); Independent mastery needs a later-session confirmation (24 h after the first unassisted format win; migration 074 restates mastery_detail and recomputes stored levels); exam submit claims the session before reading, records no attempt for items now confirmed wrong or objectives retired mid-session, reuses a stored attempt, and an expired timed session is submitted before the next start abandons it (M1, M2, M5); a sim reasoning answer cannot be stored after the run ended (M3); confirming an item wrong resolves the error_log rows and deletes the misconceptions of the voided attempts (M4); lab restart cannot race a graded last step; the first PBQ or unit-check answer is decided under a per-scenario lock; explain-back replay is bound to the answer text; a re-check claim expires.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/review-store.ts",
+        "backend/lib/review-scheduler.ts",
+        "backend/lib/review-step.ts",
+        "backend/lib/reminder-plan-store.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/grading-service.ts",
+        "backend/lib/replay-binding.ts",
+        "backend/app/api/objectives/[id]/explain-back/route.ts",
+        "backend/app/api/exam/sessions/[id]/submit/route.ts",
+        "backend/supabase/migrations/074_*.sql",
+        "backend/lib/schema-status.ts",
+        "backend/lib/learning-data-g3.dbtest.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a pulled review item is never picked for a session; a review is not due until 18 h after the last one and an early correct answer does not climb a rung; Independent needs unassisted correct format wins 24 h apart; stored levels follow after recompute; submit claims then grades; no attempt for confirmed-wrong items or retired objectives; reasoning refused after the run ended; confirm-wrong clears error_log and misconceptions; lab restart cannot complete an abandoned run; two first PBQ answers give one unassisted and one repeat; explain-back replay with another answer is 409; an old re-check claim is taken over"
+      ],
+      "validation_required": [
+        "build",
+        "test",
+        "typecheck",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Independent is harder to reach (needs a second sitting): levels drop on recompute until learners return; reviews appear up to 18 h later than the date alone; the exam submit now runs in one transaction"
+      ]
+    },
+    {
+      "id": "REQ-217",
+      "category": "mobile",
+      "title": "G2: phone sessions and app screens (audit 2026-11-11)",
+      "description": "Fixes from the 2026-11-11 audit for the mobile app's session handling and screens: biometric re-seal on every silent refresh (H4), any refresh failure signing out (H5), all /api/auth routes skipping refresh-and-retry and sign-out-everywhere reporting success on failure (H6), plus M9, M11-M14 and the lower-priority list. JavaScript only: ships as an over-the-air update. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/",
+        "CHANGELOG.md",
+        ".ai/"
+      ],
+      "acceptance_criteria": [
+        "Silent refresh never prompts for or writes the sealed key",
+        "Only a 401 from refresh signs the device out",
+        "Only signed-out /api/auth routes skip refresh-and-retry",
+        "Sign out of all devices reports success only on 200",
+        "Each listed screen finding fixed or documented as accepted"
+      ],
+      "validation_required": [
+        "cd mobile && npx tsc --noEmit",
+        "cd mobile && npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Two items accepted and documented (FAIL-1065, FAIL-1066); export file share deferred (FAIL-1055). Several fixes need a phone check."
+      ]
+    },
+    {
+      "id": "REQ-221",
+      "category": "operations",
+      "title": "Operations and docs audit fixes (G6): restore into a fresh cluster, CRON_SECRET health check, env docs, Android preview workflow",
+      "description": "Audit of 2026-11-11, batch G6 (Nick approved 2026-11-10). H9: a restore into a cluster without the app_runtime and content_recheck roles fails (about 120 pg_restore errors); the drill and runbook now create both roles first and re-apply 071 then 064's grants, and CI restores on a second Postgres server that never saw them. CRON_SECRET is required in production (/api/health reports misconfigured). apply-migration header corrected; runbook: after hand-applied SQL run app_runtime_sync() then migrate --status. .env.example and the runbook list 17 missing settings. Data inventory names the scheduled purge-auth-data cron (09:30 UTC). Backup workflow comments name production-backup. build-android-preview.yml added to master (pinned, Node 24, tolerant summary). No migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/scripts/restore-drill.sh",
+        "backend/scripts/restore/",
+        "backend/scripts/ci/backup-drill-test.sh",
+        "backend/lib/required-env.ts",
+        "backend/.env.example",
+        "backend/supabase/apply-migration.ts",
+        "docs/operations-runbook.md",
+        "docs/restore-drill.md",
+        "docs/legal/data-inventory.md",
+        ".github/workflows/",
+        ".github/scripts/eas-build-summary.mjs",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a plain restore into a fresh cluster fails and the drill passes there",
+        "restored roles have the source's privileges",
+        "CRON_SECRET missing in production is misconfigured",
+        "every listed env name is in .env.example and the runbook",
+        "the Android preview workflow is pinned and its summary never throws"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backup-drill-test.sh on two clusters",
+        "node --test .github/scripts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/operations-runbook.md",
+        "docs/restore-drill.md"
+      ],
+      "risk_notes": [
+        "production Vercel must have CRON_SECRET or /api/health turns 503 after the next deploy",
+        "the Android preview workflow's EAS JSON shape is untested against live EAS"
+      ]
+    },
+    {
+      "id": "REQ-215",
+      "category": "chore",
+      "title": "Raise the repo's agent turn limits (60/80 to 150/200)",
+      "description": "Nick, 2026-11-10: fix what makes agents stop at their limit. Every reviewer and builder in .claude/agents/ was capped at 60 turns (coordinator and release-validator at 80); on this codebase four of six audit reviewers and several fix-batch builders stopped before reporting and had to be resumed. Reviewers and builders now allow 150 turns, coordinator and release-validator 200.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".claude/agents/*.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every .claude/agents file sets maxTurns 150 or 200"
+      ],
+      "validation_required": [
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "a runaway agent can now use more turns before it stops; the lead still caps work by instruction"
+      ]
+    },
+    {
+      "id": "REQ-224",
+      "category": "content",
+      "title": "EPPP course (Prep for the EPPP), Mental Health category and the 18+ mature-content gate",
+      "description": "Batch EPPP-A (Nick, 2026-11-10). Mental health courseware first wave is NCE, NCMHCE, ASWB Clinical, EPPP and a WA psychology jurisprudence course; EPPP first. Migration 077: mental-health category (psychology, counseling, social work licensure) and mature_content_confirmations (per account, category, notice version; timestamp, min age 18, source). Prep for the EPPP: ASPPB Part 1-Knowledge domains at published weights, objectives incl. the three sim objectives, ASPPB format and scoring, WA rule. 18+ gate: server 403 mature_content_required on every mental health course route (shared gate, course open, start routes, intake), accept/state routes, export, delete by cascade, schema probe; app notice on intake pick, Explore category, and any refused request (API client asks and resends once). Mental health is clinical: study notice, lab/sim framing, 3x default sim pace, clinical plan.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/eppp.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/migrations/077_mental_health_mature_content.sql",
+        "backend/lib/mature-content.ts",
+        "backend/lib/auth/requireAcknowledgement.ts",
+        "backend/lib/http.ts",
+        "backend/lib/visibility.ts",
+        "backend/app/api/mature-content/",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/app/api/intake/route.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/lab-grading.ts",
+        "backend/lib/billing-config.ts",
+        "backend/lib/prompts.ts",
+        "mobile/src/lib/matureContent.ts",
+        "mobile/src/auth/MatureContentContext.tsx",
+        "mobile/src/components/MatureContentNotice.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/components/IntakeForm.tsx",
+        "mobile/app/(app)/explore.tsx",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "EPPP units are the eight ASPPB domains at 10/13/11/12/16/15/7/16",
+        "the three sim objectives exist with exact titles",
+        "a mental health course route without the 18+ confirmation answers 403 mature_content_required and never 5xx",
+        "the confirmation is recorded with timestamp and notice version and is exported and deleted with the account",
+        "the app asks on intake pick and Explore category and on any refused request",
+        "mental health sims default to 3x pace"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "migrations and seed twice on throwaway Postgres",
+        "npm run test:db as owner",
+        "mature-content and related dbtests as app_runtime",
+        "mobile tsc and npm test"
+      ],
+      "documentation_required": [
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Privacy Policy text does not yet mention the 18+ confirmation (needs a legal version bump; Nick's decision)",
+        "ASPPB's October 2026 integrated handbook was not readable here",
+        "Washington Part 2 not required is inferred"
+      ]
+    },
+    {
+      "id": "REQ-220",
+      "category": "content",
+      "title": "Course content fixes from the 2026-11-11 audit (batch G5) and a US English spelling sweep",
+      "description": "Nick approved batch G5 on 2026-11-10 (audit https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh, H7, M18, M19 and the content lows), plus the US spelling sweep (Nick, 2026-11-10, via the lead session). Security+ V7 covers every SY0-701 sub-objective; its practice exams offer multi-select and drag-and-drop; its incident-response lab leads with the exam's seven steps. PT: the 2026 APTA Code of Ethics, the 2021 Medicare maintenance-therapy rule, 1.8 kg = 4 lb, sarcopenia wording. Study-emphasis weights (CNA, LPN/VN, ADN, BSN) are never shown as an exam blueprint. The lesson writer and fact-checker get each unit's dated key values. CCRN: HAP/VAP instead of the retired HCAP category. Clinical framing follows the profession. Tamponade sim version 2 (focused start, brief pace, CVP per bolus). Learner-facing text is US English, except the Terms/Privacy text (Nick, 2026-11-10: converted with the next legal version, see backend/lib/legal.ts) and published sim text. AWS MLA-C02 question format verified against AWS's exam guide and certification page on 2026-11-10: unchanged. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/",
+        "backend/lib/",
+        "backend/app/",
+        "mobile/app/",
+        "mobile/src/",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "lib/secplus-v7-coverage.test.ts: every SY0-701 sub-objective's topics are in its domain's unit",
+        "existing objectives are only retired in place and appended to, never reworded under the same id (spelling-only retitles excepted and kept as the same objective)",
+        "a study-emphasis course shows no exam weights on any app build (server-side)",
+        "lib/us-spelling.test.ts passes; legal text and published sims excluded with reasons",
+        "sims:lint 0 errors; goldens keep every outcome, rating and score",
+        "seed twice, test:db, npm test and mobile tests pass"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db",
+        "npm run sims:lint",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "backend/lib/legal.ts (legal spelling note)"
+      ],
+      "risk_notes": [
+        "Clinical values were taken from official or cited sources where reachable; the heart-failure table's own pound figure (PMC10847087) and the full APTA policy page could not be opened; see the commit messages.",
+        "Tamponade version 2 is needs_expert_review: if version 1 is approved in production, version 1 keeps being served until version 2 is approved.",
+        "The spelling sweep retitles many objectives; the seed keeps their lessons because the change is spelling-only."
+      ]
+    },
+    {
+      "id": "REQ-219",
+      "category": "security",
+      "title": "Fix batch G4: accounts and security (audit 2026-11)",
+      "description": "Nick approved fix batch G4 on 2026-11-10 after the audit (FAIL-1100..1129). (1) Turning off the last two-factor method is decided and written under a row lock; sign-in treats 'on with no method' as off. (2) Backup-code regeneration takes the shared proofs (Google re-auth or a code). (3) A rejected Google token is a 401 not reported to the error tracker, with a per-IP limit; the Google link route answers the same. (4) Google sign-in that attaches to an existing account mails its address (Nick's decision). (5) Per-IP ceiling on login. (6) Error reports drop the query string; the reset token is handed to the verify-email page in a cookie, not the redirect URL. (7) Terms and Privacy agreement is enforced on the server: requireUser answers 403 terms_required for an account that has not accepted what its client must accept (X-Ascendra-App / X-Ascendra-Legal rules of lib/legal.ts), except accept, onboarding, auth/me (read), account export and delete, logout-all and support (Nick's decision; onboarding and support added so the app can read the gate state and a person can ask for help). (8) Lows: sessions listed and ended by family; max password length on change and reset; a password change spends reset links and sign-in challenges; sign-in codes count against the per-address mail limit; authenticator codes work once (totp_last_step); previous Terms versions are a list; support content reports need a visible objective; inbound email deliveries are deduplicated by svix-id; catalog review findings are validated and stored in one transaction; the paid-access rule is shared with lib/entitlements.ts. Migration 075.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/app/api/auth",
+        "backend/lib/auth",
+        "backend/lib/legal.ts",
+        "backend/lib/error-tracker.ts",
+        "backend/instrumentation.ts",
+        "backend/app/verify-email",
+        "backend/app/api/support/route.ts",
+        "backend/app/api/inbound/email/route.ts",
+        "backend/app/api/catalog/review-findings/route.ts",
+        "backend/lib/ai-access.ts",
+        "backend/lib/entitlements.ts",
+        "backend/supabase/migrations/075_accounts_security_g4.sql",
+        "backend/lib/schema-status.ts",
+        "mobile/app/(app)/settings/mfa.tsx",
+        "mobile/app/(app)/account/sessions.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Two simultaneous MFA turn-offs never leave the flag on with no method or skip the last-method code",
+        "A Google-only account regenerates backup codes with Google or a code",
+        "A rejected Google token is a 401 and not reported",
+        "An account that has not agreed is refused 403 terms_required on every signed-in route except the open list and a build that accepted its own older text is not refused",
+        "An authenticator code works once",
+        "A replayed inbound delivery forwards once"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend npm run test:db seeded twice and as app_runtime",
+        "mobile typecheck and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        ".ai/checklists/pre-completion.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-216",
+      "category": "bugfix",
+      "title": "Generation gate: block only on low confidence or a disagreeing check; learner errors are 4xx; plain reasons",
+      "description": "Audit of 2026-11-11, batch G1 (Nick approved 2026-11-10). Generated lessons, quiz questions, review questions, unit checks, comparison cards, exam items and PBQs are held back only on the writer's low confidence or a fact-check that disagrees with the key; listed disclaimers are logged. One retry steered with the first attempt's claims. When held, the learner is told the reason in plain words with a 409; a failed fact-check call is retryable, not a holdback. Review says 'couldn't be prepared' instead of 'nothing due'. Every UserFacingError is a 4xx and the app keeps the server's words for 502/503. The lesson intro handed out is kept when the practice half fails. Distractor lint narrowed. Labs (REQ-123 generation, scripts/generate-labs.ts) are on the same rule: held only on the writer's low confidence, a broken content rule or a checker that finds a wrong reference answer, something unsafe or a step that depends on an earlier answer; one steered retry; the operator is told why in plain words; a failed checker call is retryable with no holdback. Lows: PBQ and unit-check waiters, unit-check single flight, rate-limit message, bad course date, counted-use give-backs on labs and sims, grading-claim expiry, chat single flight, soft global ceiling documented.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/generation-gate.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/fact-check.ts",
+        "backend/lib/http.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/coach-quiz.ts",
+        "backend/lib/review-service.ts",
+        "backend/lib/unit-check.ts",
+        "backend/lib/understanding-ai.ts",
+        "backend/lib/exam-items.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/content-validator.ts",
+        "backend/lib/pbq-scenarios.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/app/api/courses/route.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/lab-generation.ts",
+        "backend/scripts/generate-labs.ts",
+        "mobile/src/lib/errorMessage.ts",
+        "mobile/src/lib/regenerateError.ts",
+        "CHANGELOG.md",
+        "docs/billing.md"
+      ],
+      "acceptance_criteria": [
+        "a listed disclaimer at medium or high confidence never holds an item back",
+        "low confidence or a disagreeing check holds it and the retry is steered with the claims",
+        "a held item answers 409 with the reason",
+        "a failed fact-check call is a retryable 409 with no holdback",
+        "review with due items but nothing prepared returns unavailable and no empty session",
+        "no UserFacingError is a 5xx",
+        "the app shows the server's words for 502/503",
+        "the accepted lesson intro is reused when practice fails",
+        "read-only/two-factor/three-way handshake are not rejected by the lint",
+        "a lab is held only on low confidence, a content rule, or a checker disagreement; a listed or unconfirmed claim stores it; the retry is steered; a failed checker call is retryable with no holdback row"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db (owner and app_runtime)",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/billing.md"
+      ],
+      "risk_notes": [
+        "a held item can now cost up to two writer calls; the kept lesson intro is per server process; labs have no learner request path (written offline by scripts/generate-labs.ts), so the reason is the operator outcome line, not an HTTP 409; a lab held for something the checker called unsafe stays held (stricter than disagreeing with the key, deliberate for clinical and fitness labs)"
+      ]
+    },
+    {
+      "id": "REQ-228",
+      "category": "docs/process",
+      "title": "Ship notes: What's new, in-app text and docs updated with every shipment, with a CI guard",
+      "description": "Nick, 2026-11-10: update What's new and the associated docs whenever a shipment goes out, update the in-app documents; identify and fix other items like this. (1) What's new entries for everything learners got since 2026-11-07, gated by feature flags. (2) In-app explanatory text (FAQ, About, lesson and course copy, notices, emails, coach prompt) checked against master and fixed; Terms/Privacy left for the next legal version and listed. (3) Repo docs describing shipped behavior fixed (except files PR #117 rewrites). (4) Release playbook Ship notes step, pre-completion line, and a CI test that fails when a learner-facing CHANGELOG entry is newer than the newest release note. (5) Other per-shipment drift found, fixed or guarded.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/release-notes.ts",
+        "backend/lib/release-notes.test.ts",
+        "backend/lib/ship-notes.test.ts",
+        "mobile/src/content/legal.ts",
+        "CHANGELOG.md",
+        ".ai/playbooks/release.md",
+        ".ai/checklists/pre-completion.md",
+        "docs/"
+      ],
+      "acceptance_criteria": [
+        "What's new covers 2026-11-07 to master",
+        "Stale in-app text fixed or listed",
+        "Ship-notes CI guard fails on a forgotten note",
+        "Release playbook and checklist have the step"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-222",
+      "category": "content",
+      "title": "Sim library batch S2a: CCRN Adult sepsis, DKA and acute ischemic stroke scenarios",
+      "description": "Nick approved a sim library on 2026-11-10 (quality over speed). Three CCRN Adult bedside scenarios on engine 1.1 with no engine, renderer or schema change: sepsis to septic shock, DKA first six hours, acute ischemic stroke (in-hospital alert, LVO). Each: sourced params with checkedAt 2026-11-10, clinical outcome profile with noProgress, a reasoning moment, every class reachable, critical criteria in the target condition, KPIs, expert path, debrief, unscored teaching prompts with sources, chapters, five golden paths. Registered in lib/sim/documents.ts under existing CCRN objectives. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/CCRNADULT/",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/documents.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "sims:lint clean for the three documents",
+        "golden replays match",
+        "each document has Good Mediocre and Bad golden paths",
+        "seed twice is idempotent",
+        "sims dbtest passes"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "npm run seed twice on a throwaway Postgres",
+        "lib/sims.dbtest.ts",
+        "mobile tsc and npm test"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.3",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "teaching-model numbers are authored and flagged",
+        "SSC 2026 read only through secondary summaries"
+      ]
+    },
+    {
+      "id": "REQ-223",
+      "category": "content",
+      "title": "Sim library batch S2b: CCRN post-op hemorrhage, CNA choking and fall",
+      "description": "Nick approved a sim library on 2026-11-10 (quality over speed). Three scenarios on the existing bedside renderer and engine 1.1, no engine or renderer change: CCRNADULT/bleeding-after-whipple (hemorrhagic shock after a Whipple: recognition from trends, blood early, MTP, crystalloid as a bridge, calcium, warming, escalation), CNA/resident-chokes-at-lunch and CNA/resident-found-on-floor (nurse-aide scope only). Sourced params with checkedAt, reasoning moment, endings for every class, critical criteria, KPIs, expert path, debriefs, teaching prompts, chapters and a focused start where useful, golden paths Good/Mediocre/Bad. Seed fix: re-check dates clamp to the month's end (FAIL-1190).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/CCRNADULT/bleeding-after-whipple.sim.json",
+        "backend/supabase/seed/sims/CCRNADULT/bleeding-after-whipple.golden.json",
+        "backend/supabase/seed/sims/CNA/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/content-hash.ts",
+        "backend/lib/sim/documents.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "CNA sims are classified clinical and get study pace by default",
+        "npm run seed is idempotent on a fresh database"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "sim:cross-runtime engine-print",
+        "npm run seed twice plus lib/sims.dbtest.ts",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "authored timing and physiology estimates are flagged in their source notes",
+        "the European trauma bleeding guideline 2023 full text could not be read; its points are confirmed from summaries",
+        "at 3x the choking crisis is fast; learners can switch to 1x"
+      ]
+    },
+    {
+      "id": "REQ-225",
+      "category": "feature",
+      "title": "Sims: client session screen type (people layer) and the first three EPPP cases (EPPP-B)",
+      "description": "A client session renderer (screen type session) for mental-health courses behind SIMS_RENDERERS and on by default, and three EPPP scenarios registered by course code and exact objective title: suicide risk and safety planning, duty to warn and protect (Washington), and a DSM-5-TR diagnostic intake. Nick approved 2026-11-10 (quality over speed).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/EPPP",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "session renderer behind SIMS_RENDERERS with session@1 capability",
+        "accessibility to the bedside and board standard",
+        "three EPPP scenarios with golden paths Good Mediocre Bad",
+        "seed resolves course code and objective title and fails clearly",
+        "no engine stepping change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture",
+        "sims DB tests",
+        "mobile tsc and npm test"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.3",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "FAIL-1222 open: tamponade code_epiHarm unreachable on the server in jsonb key order; needs Nick's decision (engine ending order or content fix). EPPP course must land before npm run seed (seed stops plainly until then)."
+      ]
+    },
+    {
+      "id": "REQ-227",
+      "category": "feature",
+      "title": "Sims: explicit ending order (engine 1.2, endingOrder) so the server and the app always agree",
+      "description": "Endings were checked in the key order of the document's endings map, which the server's jsonb column does not keep (shorter keys first), so the server could end a run differently from the app and from the golden paths; on the live tamponade case full-dose epinephrine reached ROSC instead of its harm ending (FAIL-1222). Nick approved the engine approach 2026-11-10. Engine minor 2 adds an optional endingOrder list (every ending with a when, once; never time_up); a document without it is stepped exactly as before, so every older version, hash and stored run replays unchanged. The validator requires it from minor 2 when two endings have a when; the content linter errors when a document without it ends a golden path differently in written, reversed or jsonb key order; modules list their own order. All 12 seeded documents and the module fixture host are migrated (tamponade's epinephrine harm path now reaches harm).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims",
+        "backend/scripts",
+        "mobile/src/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "endingOrder lets the author set the order endings are checked in",
+        "result never depends on key order",
+        "older versions and stored runs replay unchanged",
+        "every seeded sim migrated",
+        "lint error for an order-dependent ending set",
+        "storage-order test passes for every sim with no todo"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle",
+        "sims session and runtime-role dbtests",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 4.1 4.5 5.3 22.6",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "a new content hash puts each migrated sim back into expert review",
+        "an app still on engine 1.1 cannot open a minor-2 version and falls back only to an approved runnable version",
+        "runs open on the old version keep the old order until they end",
+        "teaching prompts have the same key-order flaw (FAIL-1250)"
+      ]
+    },
+    {
+      "id": "REQ-226",
+      "category": "security",
+      "title": "G4 follow-ups: separate hourly budget for emailed sign-in codes; app opens the Terms screen on terms_required",
+      "description": "Two follow-ups to batch G4 (REQ-219) approved by Nick. (1) Emailed sign-in codes (POST /api/auth/mfa/challenge/send-email-code) shared the five-an-hour per-address mail budget (mayEmail, event mail_to_address) with password-reset, verification, registration and email-change mails, so someone who knew an email-only account's password could use up the budget and block the learner's sign-in codes for up to an hour. Sign-in codes now have their own per-address hourly budget (event mfa_code_mail_to, five an hour, stored in auth_events like every other limit; no migration), and the other mails keep theirs. (2) The server answers 403 { code: terms_required } from signed-in routes when the account has not accepted the current Terms and Privacy Policy; a build that skipped its launch prompt showed that as error text. The mobile API client now hands that code to the onboarding provider, which reloads the launch state (GET /api/onboarding, a termsOptional route) so the launch gate opens the existing Terms acceptance screen. Mirrors study_notice_required (FAIL-1061); JavaScript only, so it ships over the air.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/auth/mailLimit.ts",
+        "backend/app/api/auth/mfa/challenge/send-email-code",
+        "backend/lib/accounts-security-g4.dbtest.ts",
+        "mobile/src/api/client.ts",
+        "mobile/src/auth/OnboardingContext.tsx",
+        "mobile/src/lib/legal.ts"
+      ],
+      "acceptance_criteria": [
+        "A reset",
+        "verification",
+        "registration or email-change mail does not use up the sign-in code budget and a sign-in code does not use up theirs",
+        "The sign-in code budget still caps itself at five an hour per address with a plain 429",
+        "A 403 terms_required from any signed-in request reloads the launch state once at a time and opens the Terms screen; it is not retried and does not loop",
+        "No migration and no native or app.json change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend npm run test:db (new and affected dbtests) on a throwaway local Postgres",
+        "mobile npx tsc --noEmit",
+        "mobile npm test",
+        "./omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        ".ai/failures/failure-ledger.json"
+      ],
+      "risk_notes": [
+        "A sign-in code now adds up to five mails an hour on top of five other mails an hour to the same address (ten an hour in total per address); the per-challenge cap of 3 per 10 minutes is unchanged",
+        "Implemented and verified on fix/g4b-followups; awaiting Nick's review and merge."
+      ]
     }
   ]
 }

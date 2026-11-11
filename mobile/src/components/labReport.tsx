@@ -183,7 +183,7 @@ export function LabCard({ objectiveId, userId }: { objectiveId: string; userId: 
       ) : busy ? (
         <Loading label="Getting the report questions..." />
       ) : (
-        <Button label="I did the lab -- write a short report" icon="clipboard" variant="ghost" onPress={startReport} />
+        <Button label="I did the lab: write a short report" icon="clipboard" variant="ghost" onPress={startReport} />
       )}
       {error ? <ErrorBanner message={error} /> : null}
     </View>

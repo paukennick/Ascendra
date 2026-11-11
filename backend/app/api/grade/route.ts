@@ -1,4 +1,6 @@
+import { consumeGradedAnswer } from "@/lib/ai-access";
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError, readJson } from "@/lib/http";
+import { requireStudyNotice } from "@/lib/study-notice";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import {
   findClientAttempt,
@@ -14,7 +16,7 @@ import {
 } from "@/lib/grading-service";
 import { ALREADY_REVISED, retryRefusal } from "@/lib/revision";
 import { validClientAttemptId } from "@/lib/lesson-progress";
-import { visibleObjective, normUuid } from "@/lib/visibility";
+import { taughtObjective, normUuid } from "@/lib/visibility";
 import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
@@ -34,6 +36,10 @@ import { flagItem, lessonItemId } from "@/lib/item-quality";
 import { inBackground } from "@/lib/understanding-ai";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 import { consumeAllowance, requireCourseAccess } from "@/lib/entitlements";
+
+// REQ-202: seconds this route may run (one fast-model grade). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
 
 export const dynamic = "force-dynamic";
 
@@ -101,19 +107,23 @@ export async function POST(req: Request) {
     }
 
     const authUser = await requireUser(req);
+    // REQ-205 (FAIL-907): a written answer goes to the model, so the study
+    // notice that says so must have been accepted -- checked here, not only in
+    // the app. A multiple-choice answer sends nothing and is not held up.
+    if (format === "open") await requireStudyNotice(authUser.id);
 
     // REQ-129: ids in the body are untrusted; the objective must be in a track
     // the caller can see, and a unitId sent alongside must be its own unit.
     // REQ-135: from here on the id is the canonical (lowercase) one the
     // visibility check returns, so lock keys, the shuffle seed and replay
     // comparisons match however the client spelled it.
-    const objective = await visibleObjective(body.objectiveId, authUser.id);
+    const objective = await taughtObjective(body.objectiveId, authUser.id);
     if (!objective) return notFound("Objective not found");
     if (unitId && objective.unit_id !== normUuid(unitId)) return badRequest("objectiveId does not belong to unitId");
     const objectiveId = objective.id;
     await requireAcknowledgementForObjective(objectiveId, authUser.id);
     // REQ-122: a Free learner studies one course (no-op while billing is off).
-    await requireCourseAccess(authUser.id, objective.track_id);
+    const courseTier = await requireCourseAccess(authUser.id, objective.track_id); // REQ-170: the tier on this course
 
     const found = await lessonCheckFor(authUser.id, objectiveId, stage);
     if (found.status === "no-lesson") return notFound("No lesson for this objective yet");
@@ -250,7 +260,7 @@ export async function POST(req: Request) {
       // REQ-122: Free gets a few graded typed answers a day (Plus and Pro
       // are not counted; nothing is counted while billing is off). Given
       // back if grading fails. Multiple choice above is never counted.
-      const use = await consumeAllowance(authUser.id, "graded_answer");
+      const use = await consumeGradedAnswer(authUser.id, () => consumeAllowance(authUser.id, "graded_answer", courseTier)); // REQ-201
       // REQ-076: grade in the voice of the learner's actual track/exam.
       const ctx = await coachContextForObjective(objectiveId);
       let graded: Awaited<ReturnType<typeof gradeFreeResponse>>;
@@ -304,7 +314,7 @@ export async function POST(req: Request) {
     if (isDuplicateRetry(err)) return conflict(ALREADY_REVISED);
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof IdempotencyConflictError) return conflict(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

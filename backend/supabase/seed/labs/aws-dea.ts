@@ -99,7 +99,7 @@ export const AWSDEA_LABS: SeedLabSet = {
       kind: "build",
       title: "Orchestrate a daily pipeline that can fail halfway",
       brief:
-        "Riverbend Health's daily pipeline has five stages: (1) copy yesterday's claims extract from an SFTP drop to S3; (2) run a Glue job to standardise it; (3) run a Glue crawler to pick up new partitions; (4) load the result into Redshift with COPY; (5) refresh three downstream Glue jobs that can run in parallel. Today it is a cron script on one EC2 instance that runs the steps in sequence and emails on failure. Last week stage 4 failed after stage 2 had already run; the on-call engineer re-ran the whole script and the Redshift table ended up with duplicates. The team wants a managed orchestration that retries, alerts and never double-loads.",
+        "Riverbend Health's daily pipeline has five stages: (1) copy yesterday's claims extract from an SFTP drop to S3; (2) run a Glue job to standardize it; (3) run a Glue crawler to pick up new partitions; (4) load the result into Redshift with COPY; (5) refresh three downstream Glue jobs that can run in parallel. Today it is a cron script on one EC2 instance that runs the steps in sequence and emails on failure. Last week stage 4 failed after stage 2 had already run; the on-call engineer re-ran the whole script and the Redshift table ended up with duplicates. The team wants a managed orchestration that retries, alerts and never double-loads.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -113,7 +113,7 @@ export const AWSDEA_LABS: SeedLabSet = {
             ),
             part(
               "Service integrations and waiting",
-              "Uses the Step Functions optimised integrations for Glue (StartJobRun with .sync so the state waits for completion) and for Redshift (Redshift Data API ExecuteStatement, polling or a callback), and the crawler via StartCrawler plus a wait/poll loop since crawlers have no sync integration.",
+              "Uses the Step Functions optimized integrations for Glue (StartJobRun with .sync so the state waits for completion) and for Redshift (Redshift Data API ExecuteStatement, polling or a callback), and the crawler via StartCrawler plus a wait/poll loop since crawlers have no sync integration.",
               "Glue job states use glue:startJobRun.sync so the workflow waits for the job to finish; the crawler uses StartCrawler followed by a Wait/GetCrawler loop until it is READY; the COPY runs through the Redshift Data API (ExecuteStatement, then DescribeStatement until FINISHED). The parallel refresh is a Parallel state with three .sync Glue branches."
             ),
             part(
@@ -172,13 +172,13 @@ export const AWSDEA_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "The stream is fine. The Lambda consumer's DynamoDB writes now throw ProvisionedThroughputExceededException on a table in provisioned mode with 2,000 WCU. CloudWatch shows consumed WCU averaging only 900, but ThrottledRequests is non-zero. The table's partition key is the page URL, and one landing page gets 70% of clicks.",
+          text: "The stream is fine. The Lambda consumer pre-aggregates each batch, so it writes about 1,500 items per second (each under 1 KB) to a DynamoDB table in provisioned mode with 2,000 WCU. The writes now throw ProvisionedThroughputExceededException. CloudWatch shows consumed WCU averaging about 1,300, well under 2,000, but ThrottledRequests is non-zero. The table's partition key is the page URL, and one landing page accounts for 80% of the writes.",
           ask: "Explain the DynamoDB throttling and redesign the key.",
           parts: [
             part(
               "Why DynamoDB throttles below the table's capacity",
               "Explains that throughput is spread across partitions and any one partition delivers at most 3,000 read units and 1,000 write units per second; a hot key (one page URL) concentrates writes on one partition, so it throttles while the table average looks low.",
-              "Table capacity is split across partitions, and a single partition can deliver at most 3,000 read units and 1,000 write units per second. With the page URL as the key, 70% of 9,000 writes land on one item collection, far past one partition's 1,000 WCU, so that partition throttles while the table-wide average sits at 900."
+              "Table capacity is split across partitions, and a single partition can deliver at most 3,000 read units and 1,000 write units per second. With the page URL as the key, 80% of about 1,500 writes per second -- about 1,200 -- land on one item collection, past one partition's 1,000 WCU, so that partition throttles while table-wide consumption sits at about 1,300 of the 2,000 provisioned. Raising the table's WCU would not help: the limit is per partition."
             ),
             part(
               "Key redesign",
@@ -212,8 +212,8 @@ export const AWSDEA_LABS: SeedLabSet = {
             ),
             part(
               "Redshift sort key and compression",
-              "Uses a sort key led by ship_date (compound sort key ship_date, then carrier_id) so range filters prune blocks via zone maps; lets Redshift choose column encodings (ENCODE AUTO) or picks them from ANALYZE COMPRESSION, and notes vacuum/analyze or automatic table optimisation keeps it effective.",
-              "SORTKEY (ship_date, carrier_id): the ship_date filter on nearly every query lets zone maps skip blocks, and carrier_id helps the common grouping. Use ENCODE AUTO (or ANALYZE COMPRESSION) for column encodings, and rely on automatic table optimisation / VACUUM so the sort stays effective as 5 million rows arrive daily."
+              "Uses a sort key led by ship_date (compound sort key ship_date, then carrier_id) so range filters prune blocks via zone maps; lets Redshift choose column encodings (ENCODE AUTO) or picks them from ANALYZE COMPRESSION, and notes vacuum/analyze or automatic table optimization keeps it effective.",
+              "SORTKEY (ship_date, carrier_id): the ship_date filter on nearly every query lets zone maps skip blocks, and carrier_id helps the common grouping. Use ENCODE AUTO (or ANALYZE COMPRESSION) for column encodings, and rely on automatic table optimization / VACUUM so the sort stays effective as 5 million rows arrive daily."
             ),
             part(
               "DynamoDB base table",
@@ -235,12 +235,12 @@ export const AWSDEA_LABS: SeedLabSet = {
       kind: "build",
       title: "Lay out an S3 data lake so Athena queries are fast and cheap",
       brief:
-        "Greyfield Energy lands smart-meter readings in S3 as about 40,000 small gzip-compressed JSON files a day (around 20 KB each, 800 MB a day in total, 3 years of history). Analysts query with Amazon Athena, almost always filtering by reading date and region, and often by a single meter_id. Queries scan everything, take minutes and cost more each month. Write the optimisation plan.",
+        "Greyfield Energy lands smart-meter readings in S3 as about 40,000 small gzip-compressed JSON files a day (around 20 KB each, 800 MB a day in total, 3 years of history). Analysts query with Amazon Athena, almost always filtering by reading date and region, and often by a single meter_id. Queries scan everything, take minutes and cost more each month. Write the optimization plan.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Write the lake layout and optimisation plan.",
+          ask: "Write the lake layout and optimization plan.",
           parts: [
             part(
               "File format and compression",
@@ -314,7 +314,7 @@ export const AWSDEA_LABS: SeedLabSet = {
             part(
               "Snapshot and orphan clean-up",
               "Sets a retention (for example vacuum_max_snapshot_age_seconds) that still allows the time travel the team relies on, then runs VACUUM orders to expire old snapshots and remove orphan files; notes VACUUM shortens how far back time travel can go.",
-              "ALTER TABLE orders SET TBLPROPERTIES ('vacuum_max_snapshot_age_seconds'='604800') to keep seven days of snapshots -- enough for the Wednesday-style recovery -- then VACUUM orders to expire older snapshots and delete orphan files. Once expired, those snapshots cannot be time-travelled to, so the retention is a business decision, not just a storage one."
+              "ALTER TABLE orders SET TBLPROPERTIES ('vacuum_max_snapshot_age_seconds'='604800') to keep seven days of snapshots -- enough for the Wednesday-style recovery -- then VACUUM orders to expire older snapshots and delete orphan files. Once expired, those snapshots cannot be time-traveled to, so the retention is a business decision, not just a storage one."
             ),
           ],
         },
@@ -381,7 +381,7 @@ export const AWSDEA_LABS: SeedLabSet = {
           parts: [
             part(
               "Logs",
-              "Enables continuous logging for Glue jobs to CloudWatch Logs (driver and executor logs, with a sensible retention period) and Step Functions execution logging to a log group, and standardises structured log lines (run id, job name, stage) so a run can be traced end to end.",
+              "Enables continuous logging for Glue jobs to CloudWatch Logs (driver and executor logs, with a sensible retention period) and Step Functions execution logging to a log group, and standardizes structured log lines (run id, job name, stage) so a run can be traced end to end.",
               "Turn on Glue continuous logging to CloudWatch Logs with a retention policy (for example 90 days, longer to S3 for audit), enable Step Functions execution logging at ALL or ERROR level to its own log group, and have every job log structured JSON with the Step Functions execution id so one query follows a run across jobs."
             ),
             part(

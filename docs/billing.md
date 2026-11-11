@@ -1,6 +1,16 @@
-# Paid plans and payments (REQ-122, REQ-124)
+# Paid plans and payments (REQ-122, REQ-124, REQ-170)
 
-Ascendra has three plans -- Free, Plus and Pro -- fully built and **off**.
+**REQ-170 (Nick, 2026-11-09): plans are by category.** IT and cloud,
+project management and fitness each have a Plus and a Pro plan; all-access
+covers every non-clinical course with Pro's features; clinical is its own
+Pro plan, with a cheaper add-on for all-access holders. There is **one
+published price per plan for everyone** -- no personalised pricing (the New
+York and Connecticut personalised-pricing laws are the reason). The intake
+form (REQ-169, "Study profile" below) only *suggests* a plan and a length;
+nothing a learner answers ever changes a price. See "Category plans" below;
+Free, Plus and Pro remain the feature levels inside a plan.
+
+Ascendra has three feature levels -- Free, Plus and Pro -- fully built and **off**.
 One server setting, `BILLING_ENABLED`, turns them on. Until then every
 learner is treated as Pro, the app shows no plan, price or upgrade prompt
 anywhere, and nothing behaves differently from before (the $0.50 daily AI
@@ -101,31 +111,114 @@ applies only from then. Upgrades apply at once.
   hours after access ended (`FINISH_IN_PROGRESS_HOURS`; not after a refund
   or a revocation), while a new scenario needs the plan.
 
-### Prices
+### Prices (REQ-170, proposed -- not final)
 
-| Plan | Monthly | 3 months | Yearly |
-|---|---|---|---|
-| Plus | $5.99 | $13.99 | $34.99 |
-| Pro | $9.99 | $22.99 | $59.99 |
+| Plan | Covers | Monthly | 3 months | Yearly |
+|---|---|---|---|---|
+| IT and cloud Plus / Pro | AWS, Azure, Google Cloud, CompTIA, Kubernetes, programming | $12.99 / $19.99 | $29.99 / $44.99 | $79.99 / $129.99 |
+| Project management Plus / Pro | PMI and other PM courses | $12.99 / $19.99 | $29.99 / $44.99 | $79.99 / $129.99 |
+| Fitness Plus / Pro | Personal trainer, strength and conditioning | $12.99 / $19.99 | $29.99 / $44.99 | $79.99 / $129.99 |
+| All access (Pro features) | Every non-clinical course, academic ones included | $29.99 | $69.99 | $199 |
+| Clinical Pro | Nursing and physical therapy | $49 | $99 | -- |
+| Clinical add-on (all-access holders only) | Nursing and physical therapy | $29 | -- | -- |
 
-These are US list prices in `backend/lib/billing-config.ts` (each overridable
-with `BILLING_PRICE_<PLAN>_USD`, e.g. `BILLING_PRICE_PLUS_MONTHLY_USD`). The
-app shows the **store's** price, in the learner's currency, whenever the
-store gives one; the US price is only a fallback. Set regional prices in
-App Store Connect and Google Play.
+These are US list prices in `backend/lib/billing-config.ts`
+(`PLAN_FAMILIES`). Each is overridable with
+`BILLING_PRICE_<FAMILY>_<PERIOD>_USD` (e.g. `BILLING_PRICE_PM_PLUS_MONTHLY_USD`),
+which can also **add** a length that has no default (e.g.
+`BILLING_PRICE_CLINICAL_PRO_YEARLY_USD`). The app shows the **store's**
+price, in the learner's currency, whenever the store gives one; the US price
+is only a fallback. Set regional prices in App Store Connect and Google
+Play. The plans screen says under every price list: "Every plan has one
+published price, the same for everyone. Your answers to the study questions
+never change it."
+
+### Category plans: who gets what (REQ-170)
+
+- Which plan covers a course comes from its catalog category
+  (`EDUCATION_CATEGORY_PLAN` in `billing-config.ts`): the AWS, Azure, Google
+  Cloud, CompTIA, cloud-native, IT and development categories are IT and
+  cloud; the PM categories are project management; health and fitness is
+  fitness; healthcare and nursing (including physical therapy and health
+  informatics) is clinical. Anything else ("other", e.g. academics) is
+  covered only by all-access. A learner's own course comes with any paid
+  plan.
+- A learner's level **on a course** is the highest level among their plans
+  that cover it. Every gated route passes its course (`requireFeature(user,
+  feature, course)`), so Project management Pro never opens Pro features in
+  an IT course. A course no plan covers is on Free terms: the one free
+  course still applies to the other categories.
+- An upgrade prompt names the plan for that course ("The AI coach comes
+  with Project management Plus") and carries `upgrade.scope`, so the app's
+  "See plans" opens on that category.
+- One non-clinical plan at a time in the stores (one App Store subscription
+  group; Play replaces the plan the same way). Two categories means
+  all-access. Clinical is held beside it.
+- Grants (comps, the launch comp) have no scope: they cover every course,
+  clinical included.
+- Downgrades keep the higher plan's paid period, as before; "higher" is the
+  plan's rank (all-access over a category's Pro over its Plus). Moving
+  between two categories at the same level is a crossgrade (App Store:
+  immediate; Play: at the end of the paid period).
 
 ### The AI cap (never losing money on a learner)
 
-Each paid plan has one monthly AI spending cap, the same for every billing
-length: half of what the plan's yearly price brings in per month after store
-and card fees. Plus: about **$1.29**; Pro: about **$2.21**
-(`AI_MONTHLY_CAP_PLUS_USD`, `AI_MONTHLY_CAP_PRO_USD`; `off` removes one).
-Spend is summed from `ai_calls` for the calendar month (UTC). At the cap,
-**coach chat and lesson regenerate pause** with a kind message naming the
-day they open again. **Grading and review never stop.** Learners see
-allowances (messages a day, versions a week, mocks a month), never dollars.
-A unit test (`lib/billing-config.test.ts`) checks that no plan, at any
-length, goes negative for a learner who uses the AI right up to the cap.
+Each plan has one monthly AI spending cap, the same for every billing
+length: half of what the plan's **yearly** price brings in per month after
+store and card fees (70% bought in the stores at 15%, 30% on the web at
+2.9% + $0.30). A plan without a yearly length (clinical) uses its cheapest
+month instead. A learner holding two plans (a category and clinical) has
+the sum of both caps; a held period and its new plan count once.
+
+| Plan | Cap a month | Override |
+|---|---|---|
+| IT and cloud / PM / fitness Plus | $2.95 | `AI_MONTHLY_CAP_<FAMILY>_USD`, e.g. `AI_MONTHLY_CAP_PM_PLUS_USD` |
+| IT and cloud / PM / fitness Pro | $4.80 | |
+| All access | $7.35 | `AI_MONTHLY_CAP_ALL_ACCESS_USD` |
+| Clinical Pro | $14.61 (from $99 for 3 months) | `AI_MONTHLY_CAP_CLINICAL_PRO_USD` |
+| Clinical add-on | $12.81 | `AI_MONTHLY_CAP_CLINICAL_ADDON_USD` |
+| A grant (no plan) | Plus $2.95, Pro $7.35 | `AI_MONTHLY_CAP_PLUS_USD`, `AI_MONTHLY_CAP_PRO_USD` |
+| Unrestricted access (REQ-144), granted by the owner | $20.16: all-access plus the clinical add-on, the most a paying learner can hold | `AI_MONTHLY_CAP_UNRESTRICTED_USD` |
+| An owner (`OWNER_EMAILS`) | $35 safety cap (REQ-181), billing switch on or off | `OWNER_MONTHLY_AI_CAP_USD` |
+
+`off` removes a cap. A verified discount never lowers it, and only one
+discount ever applies. Spend is summed from `ai_calls` for the calendar month (UTC).
+At the cap, **coach chat and lesson regenerate pause** with a kind message
+naming the day they open again. **Grading and review are not paused by the
+monthly cap** (they have the daily grading pool, below). Learners
+see allowances (messages a day, versions a week, mocks a month), never
+dollars. Unit tests (`lib/billing-config.test.ts`) check that no plan, at
+any length, goes negative for a learner who uses the AI right up to the
+cap, at list price and at 20% and 25% off.
+
+#### Margins (AI cost only, per learner per month, after fees)
+
+Typical use is 30% of the cap; worst case is 100%. Percentages are of the
+month's take after fees. The only discount is a verified group discount
+(REQ-166), at most 25% (below); there is no founding-member discount (Nick,
+2026-11-09: removed on every platform, as the App Store can't offer it).
+
+| Plan and length | Take | Typical: list / 20% / 25% off | Worst: list / 20% / 25% off |
+|---|---|---|---|
+| Category Plus, monthly $12.99 | $11.42 | $10.54 / $8.24 / $7.66 | $8.47 / $6.17 / $5.59 |
+| Category Plus, 3 months $29.99 | $8.83 | $7.95 / $6.17 / $5.73 | $5.88 / $4.11 / $3.67 |
+| Category Plus, yearly $79.99 | $5.90 | $5.02 / $3.83 / $3.54 | $2.95 / $1.77 / **$1.47** |
+| Category Pro, monthly $19.99 | $17.63 | $16.19 / $12.64 / $11.76 | $12.83 / $9.28 / $8.40 |
+| Category Pro, 3 months $44.99 | $13.26 | $11.82 / $9.16 / $8.50 | $8.46 / $5.80 / $5.14 |
+| Category Pro, yearly $129.99 | $9.59 | $8.15 / $6.23 / $5.75 | $4.79 / $2.87 / $2.39 |
+| All access, monthly $29.99 | $26.49 | $24.29 / $18.97 / $17.64 | $19.14 / $13.82 / $12.50 |
+| All access, 3 months $69.99 | $20.65 | $18.44 / $14.31 / $13.27 | $13.30 / $9.16 / $8.13 |
+| All access, yearly $199 | $14.69 | $12.49 / $9.55 / $8.81 | $7.34 / $4.40 / $3.67 |
+| Clinical Pro, monthly $49 | $43.34 | $38.96 / $30.27 / $28.10 | $28.73 / $20.04 / $17.87 |
+| Clinical Pro, 3 months $99 | $29.22 | $24.83 / $18.99 / $17.52 | $14.61 / $8.76 / $7.30 |
+| Clinical add-on, monthly $29 | $25.61 | $21.77 / $16.63 / $15.34 | $12.80 / $7.66 / $6.38 |
+
+Worst case overall: a learner with the largest allowed discount (25%) on a
+yearly category Plus plan who uses the whole cap every month leaves **$1.47
+a month (25% of that month's take)**. Every plan's yearly (or cheapest)
+length would break even at a discount of just under 50%, because the cap is
+half the undiscounted take; the 25% limit keeps every plan positive at the
+cap with room to spare (a unit test checks list, 20% and 25%).
 
 Allowance counts are rolling windows (24 hours, 7 days, 30 days), counted in
 `allowance_uses` under a lock so parallel requests can't overrun them. A use
@@ -135,6 +228,78 @@ configurable per kind and tier: `BILLING_ALLOWANCE_<KIND>_<TIER>` with
 and `TIER` one of `FREE`, `PLUS`, `PRO` (a number, `0` for not included, or
 `none` for no count). Pro's coach is `BILLING_ALLOWANCE_COACH_MESSAGE_PRO`
 (default 60).
+
+### The AI spend gate (REQ-202)
+
+The monthly caps above only stop the coach and lesson regenerate. Until the
+2026-11-09 audit nothing else was capped: about 13 model routes (grading,
+labs, units, review, quiz, re-checks) ran with no check, a loop of sprints
+could start about 960 writer-plus-fact-check generations a day, and the first
+generation of a shared lesson was charged to nobody. Nick's Anthropic credit is
+finite, so one check now sits inside the model-call layer
+(`lib/ai-calls.ts` `loggedCall`, reached by every `callClaude` and
+`callClaudeStructured`) and applies to every account, Free included.
+
+- **Two daily pools per learner**, each a rolling 24 hours of `ai_calls`:
+  **coach** (everything that writes: chat and its guards, lesson text,
+  practice and exam items, labs, re-checks) at `AI_DAILY_BUDGET_USD`
+  (default $0.50), and **grading** (a learner's own answers: typed answers,
+  PBQs, lab steps, review and unit checks, explain-back, guess feedback) at
+  `AI_DAILY_GRADING_BUDGET_USD` (default $0.25). Grading has its own pool, so
+  a heavy legitimate grader keeps the coach and the reverse. `off` or `0`
+  removes a pool's cap. An owner or unrestricted account has the
+  REQ-144 ceiling over both pools instead.
+- **Reserve, then settle.** Before a call is sent its worst-case cost (the
+  prompt as an uncached write, plus `max_tokens` of answer) is reserved as an
+  `ai_calls` row (`error_code = 'reserved'`) under a per-learner advisory lock,
+  and refused if spend plus reservations plus this call would pass the cap.
+  When the call ends the same row is updated to the real usage. A function
+  killed in between leaves the estimate, which keeps counting for 24 hours.
+  No migration: a reservation is an ordinary `ai_calls` row.
+- **Fails closed.** If the database cannot say what was spent, the call is
+  refused with a 503 ("paused for a moment"), in the gate, in
+  `requireAiBudget` and in `requireAiAllowance`.
+- **Sprints and mocks** look at the coach budget before generating and, when
+  it cannot cover a generation, are built from the bank only (a sprint over
+  an empty bank answers 429 with the budget message). Generation is 12 an
+  hour (was 40).
+- **Who is charged.** A first (shared) lesson, lab questions and course
+  insights are charged to the learner whose request started them; the lesson
+  GET and prefetch rate is 20 an hour (was 20 per 10 minutes). A re-check is
+  charged to the reporter, who can start 10 a day.
+- **Every call states its learner.** `userId` is required on `callClaude`
+  and `callClaudeStructured` (`null` only for operator scripts), and
+  `lib/ai-spend-gate.test.ts` enumerates every call site and every route
+  that reaches one from the source, failing on a new one.
+- **The global daily ceiling** (`AI_GLOBAL_DAILY_CEILING_USD`, REQ-201) is
+  the gate's default `setGlobalCeilingCheck` hook in `lib/ai-spend-gate.ts`
+  (FAIL-964). It runs first for every call, with or without a learner, so the
+  ceiling covers every path above that writes or checks content. Owners, the
+  grading pool and `pregen*` purposes pass it (see the ceiling table below).
+  **The global daily ceiling is soft, with headroom (REQ-216, FAIL-1024).**
+  It reads the day's summed spend (reservations not yet settled included) and
+  refuses at the ceiling; it takes no lock across "read, then reserve", because
+  one global lock on every model call would serialize the whole app's AI use.
+  The sum is cached 60 s per server instance, except that once spend is within
+  20% of the ceiling (`CEILING_FRESH_FRACTION`) every check reads fresh. What is
+  left is calls that read before any of them has reserved: an overshoot of at
+  most the calls in flight times their reserved estimates. Set
+  `AI_GLOBAL_DAILY_CEILING_USD` with that headroom in mind; the per-learner
+  budgets below are the hard limits.
+
+Worst case per account, any rolling 24 hours: coach $0.50 plus grading $0.25
+= **$0.75** (settled spend can pass a pool's cap only by the amount a call's
+real cost exceeds its estimate, which is an upper bound). An owner or
+unrestricted account: the $20 ceiling.
+
+### Function duration
+
+The AI routes export `maxDuration` (60 to 300 seconds, never more). The plan
+is Hobby; Hobby with Fluid compute allows up to 300 s (without Fluid, 60 s,
+and a larger value fails the deploy). The Anthropic client times out an
+attempt at 90 s and retries once. Pro allows more, but nothing here needs it;
+the long routes are the lesson GET, prefetch-next and exam session creation
+(300 s).
 
 ### The free course
 
@@ -184,12 +349,14 @@ Backend (Vercel). All optional until you turn plans on.
 | `REVENUECAT_WEBHOOK_AUTH` | The Authorization header value you type into RevenueCat's webhook settings. Long and random. |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` from the Stripe webhook endpoint. |
 | `STRIPE_SECRET_KEY` | `sk_live_...` (or `sk_test_...` to test). Server only. Without it web checkout answers 503. |
-| `STRIPE_PRICE_PLUS_MONTHLY` ... `STRIPE_PRICE_PRO_YEARLY` | The six Stripe price ids. A plan without one shows "Not available yet" on the web. |
+| `STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY` ... `STRIPE_PRICE_CLINICAL_ADDON_MONTHLY` | The 24 Stripe price ids, `STRIPE_PRICE_<PLAN ID>` (REQ-170). A plan without one shows "Not available yet" on the web. |
 | `BILLING_WEB_RETURN_URL` | Where Stripe Checkout and the portal return (e.g. `https://www.ascendra-learn.com`). Falls back to `APP_URL`. |
-| `AI_MONTHLY_CAP_PLUS_USD`, `AI_MONTHLY_CAP_PRO_USD` | The caps (defaults 1.29 / 2.21). |
+| `AI_MONTHLY_CAP_<FAMILY>_USD` | Per-plan caps (REQ-170; defaults in "The AI cap"). `AI_MONTHLY_CAP_PLUS_USD` / `_PRO_USD` are the caps of grants. |
 | `BILLING_ALLOWANCE_<KIND>_<TIER>` | Allowance overrides (above). |
 | `BILLING_FREE_COURSE_SWITCH_DAYS` | Default 7. |
-| `BILLING_PRICE_<PLAN>_USD` | Fallback display prices. |
+| `BILLING_PRICE_<FAMILY>_<PERIOD>_USD` | Fallback display prices, e.g. `BILLING_PRICE_ALL_ACCESS_YEARLY_USD`. |
+| `AI_ACCESS_MODE` | REQ-201: `all` (default), `granted` (full AI for owners and Settings > Access grants only) or `paid`. Independent of `BILLING_ENABLED`. See "AI access modes". |
+| `AI_GLOBAL_DAILY_CEILING_USD` | REQ-201: total AI spend per UTC day across everyone; unset = none. Recommended production value `5`. |
 
 App (EAS build env, `mobile/eas.json` `build.production.env`):
 
@@ -202,47 +369,100 @@ The purchases SDK starts only when the server says plans are on **and** the
 key for that platform is in the build. Never put RevenueCat's secret key or
 any Stripe key in the app.
 
-## Product ids to create
+## Product ids to create (REQ-170)
 
 Create these with exactly these ids (they are what `billing-config.ts`
-matches on).
+matches on). The first pricing page's six ids (`ascendra.plus.monthly` ...)
+were never created and are no longer sold.
 
-**App Store Connect** -- one subscription group "Ascendra", six
-auto-renewable subscriptions; Pro ranked above Plus so a change is an
-upgrade:
+**App Store Connect** -- two subscription groups, 24 auto-renewable
+subscriptions. Enrol in the App Store Small Business Program (15%).
 
-- `ascendra.plus.monthly`, `ascendra.plus.quarterly`, `ascendra.plus.yearly`
-- `ascendra.pro.monthly`, `ascendra.pro.quarterly`, `ascendra.pro.yearly`
+Group **"Ascendra"** (one non-clinical plan at a time). Rank all-access
+highest, then the three Pro plans at one level, then the three Plus plans
+at one level:
 
-Enrol in the App Store Small Business Program (15%).
+- `ascendra.it_cloud_plus.monthly`, `ascendra.it_cloud_plus.quarterly`, `ascendra.it_cloud_plus.yearly`
+- `ascendra.it_cloud_pro.monthly`, `ascendra.it_cloud_pro.quarterly`, `ascendra.it_cloud_pro.yearly`
+- `ascendra.pm_plus.monthly`, `ascendra.pm_plus.quarterly`, `ascendra.pm_plus.yearly`
+- `ascendra.pm_pro.monthly`, `ascendra.pm_pro.quarterly`, `ascendra.pm_pro.yearly`
+- `ascendra.fitness_plus.monthly`, `ascendra.fitness_plus.quarterly`, `ascendra.fitness_plus.yearly`
+- `ascendra.fitness_pro.monthly`, `ascendra.fitness_pro.quarterly`, `ascendra.fitness_pro.yearly`
+- `ascendra.all_access.monthly`, `ascendra.all_access.quarterly`, `ascendra.all_access.yearly`
 
-**Google Play Console** -- two subscriptions, each with three auto-renewing
-base plans:
+Group **"Ascendra Clinical"** (one level):
 
-- subscription `ascendra_plus`, base plans `monthly`, `three-month`, `yearly`
-- subscription `ascendra_pro`, base plans `monthly`, `three-month`, `yearly`
+- `ascendra.clinical_pro.monthly`, `ascendra.clinical_pro.quarterly`
+- `ascendra.clinical_addon.monthly`
 
-(RevenueCat reports these as `ascendra_plus:monthly` and so on.)
+**Google Play Console** -- nine subscriptions; base plans `monthly`,
+`three-month`, `yearly` where the plan has that length:
+
+- `ascendra_it_cloud_plus`, `ascendra_it_cloud_pro`, `ascendra_pm_plus`,
+  `ascendra_pm_pro`, `ascendra_fitness_plus`, `ascendra_fitness_pro`,
+  `ascendra_all_access` -- all three base plans
+- `ascendra_clinical_pro` -- `monthly`, `three-month`
+- `ascendra_clinical_addon` -- `monthly`
+
+(RevenueCat reports these as `ascendra_pm_plus:three-month` and so on.)
+For verified discounts, add the `verified-<group>` offers (below). There is
+no founding offer.
 
 **RevenueCat** -- one project with the iOS and Android apps:
 
-- Entitlements `plus` and `pro`. Attach the three Plus products to `plus`
-  and the three Pro products to `pro`.
-- Offering `default` (set as current) with the six products as packages,
-  using custom package identifiers equal to the plan ids: `plus_monthly`,
-  `plus_quarterly`, `plus_yearly`, `pro_monthly`, `pro_quarterly`,
-  `pro_yearly` (the built-in `$rc_monthly` can only be used once per
-  offering). The app matches packages by store product id, so a different
-  package name still works.
+- Nine entitlements named after the plans: `it_cloud_plus`, `it_cloud_pro`,
+  `pm_plus`, `pm_pro`, `fitness_plus`, `fitness_pro`, `all_access`,
+  `clinical_pro`, `clinical_addon`; attach each plan's App Store and Play
+  products to its entitlement. (The server reads the product id; the
+  entitlement is the fallback.)
+- Offering `default` (set as current) with the 24 products as packages,
+  using custom package identifiers equal to the plan ids
+  (`it_cloud_plus_monthly` ... `clinical_addon_monthly`). The app matches
+  packages by store product id, so a different package name still works.
 - App user id: the app logs in with the Ascendra account id; leave
   "transfer behaviour" at its default.
 - Webhook: URL below, Authorization header = `REVENUECAT_WEBHOOK_AUTH`.
 
-**Stripe** -- two products (Plus, Pro), each with three recurring prices
-(monthly, every 3 months, yearly) in USD (add currencies as you like). Put
-the six `price_...` ids in the `STRIPE_PRICE_*` variables. Turn on the
-customer portal (Settings > Billing > Customer portal) with cancel and
+**Stripe** -- nine products, one recurring price per length (24 prices) in
+USD. Put each `price_...` id in `STRIPE_PRICE_<PLAN ID>`, e.g.
+`STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY`, `STRIPE_PRICE_ALL_ACCESS_YEARLY`,
+`STRIPE_PRICE_CLINICAL_ADDON_MONTHLY`. A plan without one shows "Not
+available yet" on the web. Turn on the customer
+portal (Settings > Billing > Customer portal) with cancel and
 payment-method update.
+
+## Study profile: the intake form (REQ-169)
+
+New learners are asked, once and skippably, what they want to learn: their
+goal, the exam(s) or course(s) they're preparing for (up to five, each with
+an optional exam date), their experience, weekly study time and, optionally,
+what they'll use it for (personal, work, or teaching a class). It is step 2
+of the first run and editable any time in Settings > Study profile
+(`GET/PUT /api/intake`, `lib/intake.ts`, migration 060's `learner_intake` and
+`learner_intake_targets`).
+
+- **Study plan**: saving writes each named course's exam date into its
+  study plan (the same `study_plans` row the course's plan screen edits).
+  The weekly hours fill in **only plans that have no hours yet** (an even
+  share per new plan); hours a plan already has are never overwritten (Nick,
+  2026-11-09). Experience other than "new" suggests the
+  quick placement check.
+- **Plan suggestion** (only with `BILLING_ENABLED` on): from the courses'
+  categories and the latest exam date only -- never experience, goal, hours
+  or use (`lib/intake-suggest.ts`). One category gives that plan, several
+  (or an "other" course) give all-access, clinical with anything else gives
+  all-access with the clinical add-on. The length is the cheapest way to
+  cover the time to the exam at the published prices (an exam about 10
+  weeks away suggests 3 months). The suggestion has no price of its own: the
+  plans screen opens on it, marks the length "Suggested for you", and shows
+  the same published price as for everyone.
+- **Teaching a class**: no personal plan is suggested; the app shows
+  "Using Ascendra with a class? Contact us" (`CLASS_CONTACT_LINE`, REQ-166)
+  with `SUPPORT_EMAIL`.
+- **Billing off**: the form works the same for the study plan; nothing
+  about plans or prices appears.
+- The answers are in the account export (`intake`, `intakeTargets`) and are
+  deleted with the account.
 
 ## Webhook URLs
 
@@ -320,15 +540,18 @@ limits whatever the tier and **whether or not `BILLING_ENABLED` is on**.
 
 | Lifted for owner and unrestricted | Never lifted |
 |---|---|
-| Every plan feature (coach, regenerate, explain-back, unit checks, comparisons, Quiz me, mock exams, PBQs, readiness), every course, every lab (not just the sample) | Sign-in, MFA, session checks, rate limits (chat 30 per 10 min, regenerate, grading, access changes) |
-| Plan allowances (no `allowance_uses` row is written) and the per-tier monthly AI cap | Course disclaimers and acknowledgements, the lab disclaimer |
+| Every plan feature (coach, regenerate, explain-back, unit checks, comparisons, Quiz me, mock exams, PBQs, readiness), every course in **every category, clinical included** (REQ-170: no payment, no free-course limit, no upgrade prompt), every lab (not just the sample) | Sign-in, MFA, session checks, rate limits (chat 30 per 10 min, regenerate, grading, access changes) |
+| Plan allowances (no `allowance_uses` row is written). The monthly AI cap: for owners, a **$35** monthly safety cap instead (REQ-181, below, billing switch on or off); for unrestricted grants, the highest a paying learner can hold -- all-access plus the clinical add-on, **$20.16** (REQ-170, Nick 2026-11-09; was no cap) | Course disclaimers and acknowledgements, the lab disclaimer |
 | The $0.50 daily AI budget, **raised** to the safety ceiling below | Access checks: another learner's private courses and data stay invisible (unrestricted is not admin) |
 | Early access to features behind a switch that is off for everyone else | |
 
-How: `tierFor` answers Pro for them (Pro has every feature; a unit test
-fails if a feature is ever added above Pro), `consumeAllowance`,
-`allowanceStatus` and the monthly cap return "no limit" for them
-(`lib/entitlements.ts`), and `requireAiBudget` uses the ceiling
+How: `tierFor`, `tierForCourse` and `requireCourseAccess` answer Pro for
+them on every course whatever its category (Pro has every feature; a unit
+test fails if a feature is ever added above Pro), `consumeAllowance` and
+`allowanceStatus` return "no limit", and the monthly cap is
+`unrestrictedCapUsd` for a grant and `ownerMonthlyCapUsd` for an owner (`lib/entitlements.ts`;
+`lib/intake-plans.dbtest.ts` checks a granted, unpaid learner end to end on
+clinical, PM and IT courses), and `requireAiBudget` uses the ceiling
 (`lib/ai-budget.ts`). With the switch off nothing reads the access tables
 for plan gates (everyone already has everything); the AI budget looks the
 level up only once a learner is over the everyday budget.
@@ -345,6 +568,18 @@ working, the server logs `[ai-ceiling]`, records a `ceiling_reached` row in
 `account_access_events`, and emails every owner (at most once per account
 per 24 hours). The ceiling can be changed but not switched off ("off" or 0
 fall back to $20), and it applies even if `AI_DAILY_BUDGET_USD` is off.
+
+### The owner's monthly AI safety cap
+
+Owners (`OWNER_EMAILS`) also have a monthly cap: **$35** of model spend per
+calendar month (UTC), set by `OWNER_MONTHLY_AI_CAP_USD` (Nick, 2026-11-09).
+At the cap the coach and lesson regenerate pause with the same message and
+`aiPaused` body as a plan's monthly cap, and open again on the 1st; grading
+and review never stop. It applies whether or not `BILLING_ENABLED` is on,
+because it is a safety stop rather than a plan limit, and like the ceiling
+it cannot be switched off ("off", 0 or junk fall back to $35). The daily
+ceiling above still applies on top of it. A granted (non-owner)
+unrestricted account is not affected by this setting.
 
 ### Early access
 
@@ -400,7 +635,8 @@ Deleting the learner's account deletes both.
 
 1. Vercel -> the backend project -> Settings -> Environment Variables: add
    `OWNER_EMAILS=paukennick2@gmail.com` for **Production and Preview**.
-   Optional: `AI_UNRESTRICTED_DAILY_CEILING_USD` (default 20).
+   Optional: `AI_UNRESTRICTED_DAILY_CEILING_USD` (default 20) and
+   `OWNER_MONTHLY_AI_CAP_USD` (default 35).
 2. Apply migration 056 with the routine deploy: push the release commit to
    `ops/migrate-production` (docs/deploy-runbook-integration.md, "Routine
    deploys") and wait for "Schema is current". Additive; the code before
@@ -416,6 +652,122 @@ Server-side access works at once for every installed app version (the
 gates are on the server). The Settings > Access screen and the "Unrestricted
 access" plan line need the new app: on the web on the next deploy, on
 phones with the next app update. Until then Nick can grant with the CLI.
+
+## AI access modes and the global AI ceiling (REQ-201)
+
+Nick, 2026-11-09 ("Go with C right now"): everyone gets the core
+experience, invited pilot learners get full AI, and AI becomes paid-only
+once billing is on. Two server settings, read on every request, so they are
+changed in Vercel without new code. Code: `lib/ai-access-config.ts` (the
+rules and words) and `lib/ai-access.ts` (the checks).
+
+### `AI_ACCESS_MODE`
+
+| Value | Who gets full AI | Everyone else |
+| --- | --- | --- |
+| unset / empty / `all` | everyone, through the plan gates exactly as before REQ-201 (billing off: everyone is Pro; only the $0.50 daily budget limits AI) | -- |
+| `granted` | owners (`OWNER_EMAILS`) and owner-granted accounts (Settings > Access) | the Free AI experience, below |
+| `paid` | billing on: the plans decide, as designed (REQ-122, REQ-170). Billing off: owners, granted accounts and learners holding a live paid entitlement (a comp) | billing off: the Free AI experience |
+
+It is independent of `BILLING_ENABLED`. An unrecognised value is treated as
+`granted` (spend less, lock nobody out of courses) and shows as a warning in
+`/api/health`, as does `granted` left on while `BILLING_ENABLED` is on
+(paying learners outside the pilot would get the Free AI experience).
+
+**The Free AI experience** (for a learner the mode limits), with every
+course and every non-AI feature still open -- no one-course rule, no plan
+or price shown:
+
+- Coach chat: refused, 403 `{ error, aiAccess: { state: "limited_preview", feature: "coach", mode, resetsAt: null } }`, "The AI coach is in limited preview, ...". No model call.
+- Lesson regenerate (new lesson versions): the same, `feature: "regenerate"`.
+- AI-graded written answers -- grade_open, explain-back, lab written parts
+  (lab steps and lab report), sim reasoning, PBQ and unit check -- share
+  Free's daily graded-answer allowance (`BILLING_ALLOWANCE_GRADED_ANSWER_FREE`,
+  default 3, rolling 24 hours, counted in `allowance_uses` like the plan's
+  count; given back if grading fails). Past it: 429 `{ aiAccess: { state:
+  "graded_limit", feature: "written_grading", limit, used, resetsAt } }`.
+- Never counted: multiple choice, interactive labs, sim scoring, review.
+- Open to every learner in this mode (Nick, 2026-11-09, scope approved with
+  REQ-201): shared catalog lessons on first open, Quiz me, guess feedback, PBQ
+  scenario writing, mock and sprint exam items, review question writing,
+  unit-check writing and item re-checks. Every one is recorded in `ai_calls`
+  and counts toward the global ceiling's total; at the ceiling every one but
+  guess feedback (a grader) is paused, see below.
+
+`GET /api/auth/me` carries `ai: { mode, full }` when the mode is `granted`
+or `paid` (absent in `all`, so the default response is unchanged); the app
+shows the coach and "Regenerate lesson" as limited preview from it.
+
+### `AI_GLOBAL_DAILY_CEILING_USD`
+
+Total model spend across all learners and shared generation per UTC day,
+summed from `ai_calls` (the `created_at` index from migration 028) and
+reused for 60 seconds per server instance. Unset, empty, `off` or 0: no
+ceiling (the code has no default). **Recommended production value: `5`**
+(Nick, 2026-11-09).
+
+Not in the sum (REQ-208): pre-generation (`ai_calls` purposes `pregen` and
+`pregen_fact_check`, docs/operations-runbook.md "Pre-generating lessons"). It is
+a planned, owner-started job with its own hard cap (the run's `max_usd` and a
+dedicated Console workspace with a spend limit), and a $50 run would otherwise
+pass a $5 ceiling at once and pause chat, regenerate and first-time shared
+lessons for learners for the rest of the UTC day. The rows stay in `ai_calls`.
+
+When the day's total reaches it, until midnight UTC:
+
+| Blocked (everyone except owners) | Only counted, never blocked |
+| --- | --- |
+| Coach chat: 429 `aiAccess.state: "paused"` | grade_open, explain-back, guess feedback, lab steps and report, sim reasoning, PBQ grading, unit-check and review grading (the grading pool) |
+| Lesson regenerate: 429 `paused` | Pre-generation (`pregen`, `pregen_fact_check`): an operator script with its own budget, also left out of the sum |
+| First generation of a shared lesson nobody has opened: 429 `preparing`, "This lesson is being prepared. Please try again later." (prefetch-next skips it) | Lessons already generated, served as usual |
+| Every other model call, at the model-call layer (REQ-202, FAIL-964), as a 429 `paused`: Quiz me, PBQ scenarios, exam and sprint item generation (a sprint is built from the bank instead), review and unit-check question writing, item re-checks, lab questions and generation, fact-checks, cron and catalog jobs | |
+
+Owners are never paused. The ceiling check is `globalCeilingReached()` in
+`lib/ai-access.ts`; the spend gate calls it (lazily imported) before any
+per-learner work, and refuses with `ceilingPausedError()`.
+
+Granted accounts are capped as REQ-144 says, not by the mode: with billing
+off they have the $20 daily safety ceiling (`AI_UNRESTRICTED_DAILY_CEILING_USD`)
+instead of the $0.50 budget, so the global ceiling is the backstop for a
+large pilot group.
+
+### Inviting the pilot group
+
+Settings > Access (owners only). The email field takes one address or up to
+50 pasted at once (commas, spaces or one per line), with one end date and
+note for all of them -- use the note `AI pilot` to tell pilot grants apart
+(no schema change: it is the existing note). Every address must be valid or
+none is granted; an owner's address is reported, not granted. Each address
+is an ordinary audited grant; a bulk add uses one unit of the owner's
+access-change rate limit per 10 addresses and sends the owner one summary
+email. While the mode is `granted` or `paid`, each grant shows "Full AI
+access" (active), "Full AI access once they sign up" (waiting) or "No AI
+pilot access (ended)". API: `POST /api/access/grants { emails, until?, note? }`
+-> `{ results: [{ email, outcome: "granted" | "owner", grant }] }`;
+`GET /api/access/grants` adds `aiMode`. The CLI (`npm run access:grant`)
+still takes one address at a time.
+
+### Switching modes (runbook)
+
+Nick sets these himself in Vercel, or asks the lead to:
+
+1. Vercel -> backend project -> Settings -> Environment Variables ->
+   **Production**: `AI_ACCESS_MODE=granted` and
+   `AI_GLOBAL_DAILY_CEILING_USD=5`. (Preview: optional, same values to test.)
+2. Redeploy (Vercel applies new variables on the next deployment):
+   Deployments -> the latest production deployment -> Redeploy.
+3. Check: `/api/health` has no AI warning; signed in as an owner,
+   `GET /api/auth/me` shows `"ai": {"mode": "granted", "full": true}`; an
+   account not in Settings > Access shows `"full": false` and its coach tab
+   says "The AI coach is in limited preview".
+4. Invite the pilot learners in Settings > Access (note `AI pilot`).
+5. At billing launch: set `AI_ACCESS_MODE=paid` together with
+   `BILLING_ENABLED=true`, and redeploy.
+6. To undo: delete `AI_ACCESS_MODE` (or set `all`) and redeploy -- exactly the
+   behaviour before REQ-201. Deleting `AI_GLOBAL_DAILY_CEILING_USD` removes the
+   ceiling. No migration or data change either way; the graded answers
+   counted meanwhile are ordinary `allowance_uses` rows that age out in 24
+   hours.
 
 ## Verified discounts (REQ-166)
 
@@ -438,12 +790,13 @@ Nick's rules:
 - **No stacking.** A learner gets one discount: the largest among their live
   verifications. On the web a verified coupon replaces the promotion-code box
   at Stripe Checkout (Stripe takes one or the other), so a promo code such as
-  a future founding-member offer can't be added on top. On Google Play one
+  a promotion code can't be added on top. On Google Play one
   offer is bought, and on the App Store one offer code is redeemed per
   subscription.
 - **The full AI cap.** A discounted learner keeps their plan's whole monthly
-  AI cap. The cap is set per tier from the list price (`monthlyAiCapUsd`,
-  above), and nothing in it reads what the learner paid. A unit test
+  AI cap. The cap is set per plan from the list price (`familyCapUsd`,
+  above), and nothing in it reads what the learner paid. REQ-170: the
+  published percentage is at most 25%. A unit test
   (`lib/verified-discounts-config.test.ts`) pins this.
 
 ### When it is on
@@ -487,7 +840,7 @@ never to one taken from the request.
 | Where | How | What Nick sets up |
 |---|---|---|
 | Web (Stripe) | `POST /api/billing/checkout` adds the group's coupon (`discounts[0][coupon]`) in place of the promotion-code box | One coupon per group (below), id in `STRIPE_COUPON_<GROUP>` |
-| Google Play | The plans screen buys the base plan's **developer-determined offer** for the group (RevenueCat `purchaseSubscriptionOption`); with no such offer the regular price is bought | One offer per group on each of the six base plans (below) |
+| Google Play | The plans screen buys the base plan's **developer-determined offer** for the group (RevenueCat `purchaseSubscriptionOption`); with no such offer the regular price is bought | One offer per group on each base plan (below) |
 | App Store | The discount page hands the learner a **one-time offer code** for the plan they pick, from a pool Nick uploads; the app opens Apple's redemption sheet (or the redemption link) | Offer codes per group and product, uploaded with `npm run discounts:codes` |
 
 Google Play promo codes can't carry a percentage off a subscription (Google:
@@ -517,7 +870,7 @@ only while the server says discounts are available.
 |---|---|
 | `VERIFIED_DISCOUNTS_ENABLED` | The switch (off unless set to something other than `0`/`false`/`off`/`no`). |
 | `VERIFIED_DISCOUNT_GROUPS` | Comma list replacing the default set `military,responder,nurse,student`. Add `teacher` to offer teachers. |
-| `DISCOUNT_PERCENT_<GROUP>` | The published percentage, a whole number 1-90. **No default**: a group without one isn't offered. Nick hasn't set them yet (likely a flat 20%). It must match the Stripe coupon and the store offers. |
+| `DISCOUNT_PERCENT_<GROUP>` | The published percentage, a whole number **1-25** (REQ-170, Nick 2026-11-09: capped at 25%; a larger value is refused and the group isn't offered -- `npm run discounts:codes -- --config` lists it under `rejectedPercents`). **No default**: a group without one isn't offered. Nick hasn't set them yet (likely a flat 20%). It must match the Stripe coupon and the store offers. |
 | `STRIPE_COUPON_<GROUP>` | The Stripe coupon id for the group. Without it, web checkout charges the regular price and the page says the discount is app-only. |
 | `PLAY_OFFER_<GROUP>` | The Play offer id (default `verified-<group>`). |
 | `APP_STORE_OFFER_REDEEM_URL` | App Store Connect's example redemption link with the code left off (optional; the app opens Apple's redemption sheet first). |
@@ -538,7 +891,7 @@ their values) and which groups are on offer.
    `STRIPE_COUPON_<GROUP>`. Don't make these promotion codes: they are
    applied by the server, never typed.
 3. **Google Play Console** (each subscription > each base plan > Add offer):
-   on all six base plans, one offer per group with offer id
+   on every base plan, one offer per group with offer id
    `verified-<group>` (e.g. `verified-military`), eligibility *Developer
    determined*, and one phase *Discounted recurring payment* at the published
    percentage for as many periods as a year (12 monthly, 4 three-month, 1
@@ -553,8 +906,8 @@ their values) and which groups are on offer.
    the CSV and load it:
    ```sh
    cd backend
-   npm run discounts:codes -- --import codes.csv --group military --product ascendra.pro.yearly --expires 2027-05-01 --dry-run
-   npm run discounts:codes -- --import codes.csv --group military --product ascendra.pro.yearly --expires 2027-05-01
+   npm run discounts:codes -- --import codes.csv --group military --product ascendra.it_cloud_pro.yearly --expires 2027-05-01 --dry-run
+   npm run discounts:codes -- --import codes.csv --group military --product ascendra.it_cloud_pro.yearly --expires 2027-05-01
    npm run discounts:codes -- --status    # free / issued per group and product, next expiry
    ```
    Refill before a batch expires. Optionally copy the offer's example
@@ -615,5 +968,7 @@ and [Understanding subscriptions](https://support.google.com/googleplay/android-
 - [ ] Verified discounts (REQ-166): set the percentages, the Stripe coupons,
       the Play offers and the App Store code pool, and a provider (REQ-167),
       before `VERIFIED_DISCOUNTS_ENABLED` ("Verified discounts" above).
+- [ ] Switch `AI_ACCESS_MODE` from `granted` to `paid` with `BILLING_ENABLED`
+      (REQ-201; `/api/health` warns while `granted` is left on).
 - [ ] Watch real AI spend for a month (`npm run metrics`, `ai_calls`) and tune
       the caps and allowances.

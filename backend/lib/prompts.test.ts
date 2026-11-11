@@ -190,7 +190,12 @@ describe("structured-output schemas", () => {
       confidence: "high",
       uncertainClaims: [],
     };
-    assert.deepEqual(lessonPracticeSchema.parse(practice), practice);
+    // REQ-187: soloVerification is required by the API schema but parses as
+    // null when absent (stored and mocked outputs predate it).
+    assert.deepEqual(lessonPracticeSchema.parse(practice), { ...practice, soloVerification: null });
+    const verified = { ...practice, soloVerification: { language: "python", code: "print(6)", expected: "6" } };
+    assert.deepEqual(lessonPracticeSchema.parse(verified), verified);
+    assert.throws(() => lessonPracticeSchema.parse({ ...practice, soloVerification: { language: "ruby", code: "p 6", expected: "6" } }));
     assert.throws(() => lessonPracticeSchema.parse({ ...practice, fadeOptionReasons: ["only one"] }));
     assert.throws(() => lessonPracticeSchema.parse({ ...practice, soloOptionReasons: undefined }));
   });

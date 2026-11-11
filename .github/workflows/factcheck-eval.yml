@@ -1,0 +1,117 @@
+# REQ-196: which fact-checker does each subject family need? Runs the
+# labelled set from the 2026-11-09 content audit (22 known-bad, 22
+# known-good; backend/lib/fixtures/factcheck-eval-set.json) through each
+# checker variant -- Haiku and Sonnet, each with and without thinking, each
+# with and without sandboxed code execution -- and reports catch rate,
+# false holds, cost per check and per 1,000, and latency, overall and per
+# family, with a recommendation (backend/lib/factcheck-eval.ts).
+#
+# Manual only. It never touches production: the database is a fresh
+# Postgres in this job (every migration plus the catalog seed, for the
+# course context the prompts use). The model key is the ANTHROPIC_API_KEY
+# repository secret (as live-evals.yml); usage is tallied in the job and
+# never reaches any ai_calls table, so it cannot count toward a learner's or
+# the owner's AI cap. Put that key in its own Console workspace with a spend
+# limit to keep it off the app's organization spend too. budget is a hard cap (default $5): the estimate is
+# printed first, and each call starts only if the run can afford the most
+# it could cost. Results (results.json, summary.md) are uploaded as the
+# "factcheck-eval-results" artifact and written to the job page.
+# mock: a fake model, no key and no cost -- tests the harness only.
+name: Fact-checker eval
+on:
+  workflow_dispatch:
+    inputs:
+      budget:
+        description: "Hard cap in USD for the whole run (max 25)"
+        type: string
+        default: "5"
+      variants:
+        description: "all, or a comma list of: haiku,haiku+think,sonnet,sonnet+think"
+        type: string
+        default: all
+      exec:
+        description: "Also score the sandboxed-execution variants"
+        type: boolean
+        default: true
+      mock:
+        description: "Fake model (no key, no cost): tests the harness only"
+        type: boolean
+        default: false
+concurrency:
+  group: factcheck-eval
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  eval:
+    name: Fact-checker eval (costs money unless mock)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ascendra
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/ascendra
+      PGSSLMODE: disable
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Check the API key secret is set
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MOCK: ${{ inputs.mock }}
+        run: |
+          if [ "$MOCK" != "true" ] && [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::Add the repository secret ANTHROPIC_API_KEY, or run with mock."
+            exit 1
+          fi
+      - run: npm ci
+      - name: Supabase's API roles (026 and 052 revoke from them)
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/ci/supabase-roles.sql
+      - name: Apply every migration and seed the catalog (a throwaway database)
+        run: npm run migrate -- --all && npm run seed
+      - name: Build the sandbox images and run the escape tests
+        if: inputs.exec
+        run: |
+          docker build -t ascendra-sandbox-python:1 -f sandbox/python.Dockerfile sandbox
+          docker pull node:22-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d
+          npm run test:sandbox
+      - name: Run the eval (the estimate prints first)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BUDGET: ${{ inputs.budget }}
+          VARIANTS: ${{ inputs.variants }}
+          EXEC: ${{ inputs.exec }}
+          MOCK: ${{ inputs.mock }}
+        run: |
+          set -- --run --budget "$BUDGET" --out eval-results/factcheck
+          if [ "$VARIANTS" != "all" ]; then set -- "$@" --variants "$VARIANTS"; fi
+          if [ "$EXEC" != "true" ]; then set -- "$@" --no-exec; fi
+          if [ "$MOCK" = "true" ]; then set -- "$@" --mock; fi
+          npm run eval:factcheck -- "$@"
+      - name: Write the summary to the job page
+        if: always()
+        run: |
+          if [ -f eval-results/factcheck/summary.md ]; then cat eval-results/factcheck/summary.md >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: factcheck-eval-results
+          path: backend/eval-results/factcheck/
+          if-no-files-found: warn
+          retention-days: 30

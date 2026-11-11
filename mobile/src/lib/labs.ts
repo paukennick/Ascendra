@@ -4,6 +4,7 @@
 // kept until graded, with the client attempt id of what was already sent so
 // a resend after the app was killed is replayed, not graded twice).
 // src/lib/labs.test.ts covers it.
+import type { InteractiveInput, InteractiveKey } from "./labInteractive.ts";
 
 export type LabKind = "build" | "case";
 export type Verdict = "correct" | "partial" | "incorrect";
@@ -35,6 +36,9 @@ export interface LabStepView {
   text: string;
   ask: string;
   parts: string[];
+  // REQ-189: lines up with `parts`; null for a written part, else the
+  // control to show. Older servers omit it (every part is written).
+  inputs?: (InteractiveInput | null)[];
 }
 
 export interface LabStepResult {
@@ -44,8 +48,11 @@ export interface LabStepResult {
   partScores: { part: string; score: PartScoreValue | string; comment: string }[];
   missedParts: string[];
   fixNext: string | null;
+  // The answers in words (an interactive part's choices written out).
   answers: string[];
-  reference: { label: string; criteria: string; modelAnswer: string }[];
+  // REQ-189: the answers exactly as sent, to mark the controls.
+  responses?: string[];
+  reference: { label: string; criteria: string; modelAnswer: string; key?: InteractiveKey }[];
 }
 
 export interface LabFinal {
@@ -216,6 +223,9 @@ export interface LabDraft {
 }
 
 export const LAB_PART_MAX = 4000;
+// REQ-197: a restored draft part may run over the send limit (dictation) and
+// is kept whole for the learner to shorten; canSubmit holds the send back.
+export const LAB_PART_KEEP_MAX = 4 * LAB_PART_MAX;
 
 export function labDraftPayload(d: LabDraft): string | null {
   if (!d.parts.some((p) => p.trim()) && !d.sentId) return null;
@@ -234,7 +244,7 @@ export function parseLabDraft(payload: string | null, partCount: number): LabDra
   const r = o as Record<string, unknown>;
   const stored = r.parts;
   if (!Array.isArray(stored)) return null;
-  const parts = Array.from({ length: partCount }, (_, i) => (typeof stored[i] === "string" ? (stored[i] as string).slice(0, LAB_PART_MAX) : ""));
+  const parts = Array.from({ length: partCount }, (_, i) => (typeof stored[i] === "string" ? (stored[i] as string).slice(0, LAB_PART_KEEP_MAX) : ""));
   return {
     parts,
     sentId: typeof r.sentId === "string" ? r.sentId : null,

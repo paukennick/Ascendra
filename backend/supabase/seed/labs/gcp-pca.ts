@@ -36,7 +36,7 @@ import { source } from "../sources";
 //     (docs.cloud.google.com/compute/docs/instances/spot).
 
 const HARBORLINE =
-  "Case study: Harborline Logistics (fictional). Company overview: a European freight forwarder with 2,400 staff, 11 warehouses and a customer portal used by 9,000 shipping customers. Existing environment: two leased data centres (Rotterdam, Hamburg) running a Java shipment-tracking monolith on 60 VMs against an Oracle database, a nightly batch that reprices 4 million shipments, and a warehouse scanner system that must keep working if the WAN link fails. Business requirements: exit the Hamburg data centre within 18 months; give customers live shipment tracking with sub-second page loads across Europe; add a predictive-ETA feature; cut infrastructure spend 25%; keep all customer data in the EU. Technical requirements: the tracking API must survive the loss of a region with no more than 5 minutes of data loss; the Oracle licence will not be renewed; warehouse scanners need local operation during WAN outages; all changes to production go through a reviewed pipeline. Executive statement (CEO): \"Our customers now compare us with digital-native forwarders. I want tracking that feels instant, an ETA we can stand behind, and a cost base that lets us invest in it.\"";
+  "Case study: Harborline Logistics (fictional). Company overview: a European freight forwarder with 2,400 staff, 11 warehouses and a customer portal used by 9,000 shipping customers. Existing environment: two leased data centers (Rotterdam, Hamburg) running a Java shipment-tracking monolith on 60 VMs against an Oracle database, a nightly batch that reprices 4 million shipments, and a warehouse scanner system that must keep working if the WAN link fails. Business requirements: exit the Hamburg data center within 18 months; give customers live shipment tracking with sub-second page loads across Europe; add a predictive-ETA feature; cut infrastructure spend 25%; keep all customer data in the EU. Technical requirements: the tracking API must survive the loss of a region with no more than 5 minutes of data loss; the Oracle license will not be renewed; warehouse scanners need local operation during WAN outages; all changes to production go through a reviewed pipeline. Executive statement (CEO): \"Our customers now compare us with digital-native forwarders. I want tracking that feels instant, an ETA we can stand behind, and a cost base that lets us invest in it.\"";
 
 export const GCPPCA_LABS: SeedLabSet = {
   trackCode: "GCPPCA",
@@ -80,12 +80,12 @@ export const GCPPCA_LABS: SeedLabSet = {
             part(
               "Replacing Oracle",
               "Chooses a managed database that meets the 5-minute RPO across regions and the EU-only rule: Spanner in an EU multi-region or dual-region configuration (strongly consistent, up to 99.999% SLA) or Cloud SQL / AlloyDB for PostgreSQL with a cross-region replica (cheaper, more migration work for schema compatibility, async replication); names the trade-off and ties it to 'Oracle not renewed' and 'RPO 5 minutes'.",
-              "Replace Oracle with a managed relational service. Spanner in an EU dual-region or multi-region configuration gives synchronous replication across regions (RPO effectively zero, up to 99.999% availability on Enterprise Plus) and removes the licence, at the cost of schema and SQL changes and a higher price. The cheaper path is AlloyDB or Cloud SQL for PostgreSQL with a cross-region read replica, whose asynchronous replication must be measured against the 5-minute RPO. Both keep data in EU locations. The choice is a cost-versus-consistency trade-off the business must sign off."
+              "Replace Oracle with a managed relational service. Spanner in an EU dual-region or multi-region configuration gives synchronous replication across regions (RPO effectively zero, up to 99.999% availability on Enterprise Plus) and removes the license, at the cost of schema and SQL changes and a higher price. The cheaper path is AlloyDB or Cloud SQL for PostgreSQL with a cross-region read replica, whose asynchronous replication must be measured against the 5-minute RPO. Both keep data in EU locations. The choice is a cost-versus-consistency trade-off the business must sign off."
             ),
             part(
               "Nightly repricing batch and predictive ETA",
-              "Moves the batch to Dataflow (or a batch job on GKE/Cloud Run jobs) reading from BigQuery, with BigQuery as the analytical store for shipment history, and builds the ETA model on that history with Vertex AI / BigQuery ML served as a prediction endpoint called by the tracking service; ties to 'predictive ETA' and 'cost base'.",
-              "Land shipment history in BigQuery and run the 4-million-shipment repricing as a Dataflow batch (or a Cloud Run job) that scales for the hour it runs and costs nothing otherwise. Train the ETA model on that history (BigQuery ML or a custom model on Vertex AI) and expose it as a prediction endpoint the tracking service calls. This serves the ETA requirement and turns the nightly fixed cost into pay-per-run."
+              "Moves the batch to Dataflow (or a batch job on GKE/Cloud Run jobs) reading from BigQuery, with BigQuery as the analytical store for shipment history, and builds the ETA model on that history with Gemini Enterprise Agent Platform (formerly Vertex AI) / BigQuery ML served as a prediction endpoint called by the tracking service; ties to 'predictive ETA' and 'cost base'.",
+              "Land shipment history in BigQuery and run the 4-million-shipment repricing as a Dataflow batch (or a Cloud Run job) that scales for the hour it runs and costs nothing otherwise. Train the ETA model on that history (BigQuery ML or a custom model on Gemini Enterprise Agent Platform, formerly Vertex AI) and expose it as a prediction endpoint the tracking service calls. This serves the ETA requirement and turns the nightly fixed cost into pay-per-run."
             ),
             part(
               "Warehouse scanners during WAN outages",
@@ -95,7 +95,7 @@ export const GCPPCA_LABS: SeedLabSet = {
             part(
               "Cost and the 18-month exit",
               "Sequences the exit (rehost Hamburg workloads first, Oracle replacement in parallel, decompose later), and names the levers for the 25% target: pay-per-use batch, right-sized containers, committed use discounts for the steady tier, Spot for restartable work, and retiring the Hamburg lease.",
-              "Phase it: rehost Hamburg's VMs to Compute Engine first to make the 18-month exit, run the Oracle replacement in parallel, and decompose the monolith after. The 25% comes from retiring the lease, pay-per-run batch, right-sized containers, committed use discounts on the always-on tier and Spot VMs for the restartable batch, measured monthly against the current data-centre cost."
+              "Phase it: rehost Hamburg's VMs to Compute Engine first to make the 18-month exit, run the Oracle replacement in parallel, and decompose the monolith after. The 25% comes from retiring the lease, pay-per-run batch, right-sized containers, committed use discounts on the always-on tier and Spot VMs for the restartable batch, measured monthly against the current data-center cost."
             ),
           ],
         },
@@ -166,7 +166,7 @@ export const GCPPCA_LABS: SeedLabSet = {
           parts: [
             part(
               "Network ownership",
-              "Uses a Shared VPC: a host project owned by the platform team with subnets per region and tier, and service projects per workload/environment that attach to it; explains it centralises firewall and routing while letting teams own their compute, and that a single global VPC already spans both regions.",
+              "Uses a Shared VPC: a host project owned by the platform team with subnets per region and tier, and service projects per workload/environment that attach to it; explains it centralizes firewall and routing while letting teams own their compute, and that a single global VPC already spans both regions.",
               "One Shared VPC host project owned by the platform team, with subnets in europe-west4 and europe-west1 for each tier (web, services, data). Tracking, batch and ETA live in their own service projects attached to the host. A VPC is global, so both regions sit in one network with central firewall and routing, while teams keep ownership of their own compute."
             ),
             part(
@@ -180,8 +180,8 @@ export const GCPPCA_LABS: SeedLabSet = {
               "Services call each other through regional internal Application Load Balancers (or the mesh if GKE is used) on private addresses only, with firewall rules keyed to service accounts rather than IP ranges. An organization policy forbids external IPs on VMs, so nothing internal is reachable from the internet by accident."
             ),
             part(
-              "Warehouses and the remaining data centre",
-              "Connects the Rotterdam data centre and warehouses with Cloud Interconnect (Dedicated or Partner) with HA VPN as backup, Cloud Router with global dynamic routing so on-premises reaches both regions, and non-overlapping IP planning; warehouse scanners use the local gateway from the architecture.",
+              "Warehouses and the remaining data center",
+              "Connects the Rotterdam data center and warehouses with Cloud Interconnect (Dedicated or Partner) with HA VPN as backup, Cloud Router with global dynamic routing so on-premises reaches both regions, and non-overlapping IP planning; warehouse scanners use the local gateway from the architecture.",
               "Cloud Interconnect from Rotterdam (Partner if no colocation presence, Dedicated for high bandwidth) with HA VPN as a backup path, Cloud Routers using global dynamic routing so on-premises routes reach subnets in both regions. Warehouses connect over the Rotterdam link or SD-WAN/VPN, and their local gateways buffer scans when the link is down. IP ranges are planned so nothing overlaps."
             ),
             part(
@@ -240,7 +240,7 @@ export const GCPPCA_LABS: SeedLabSet = {
       kind: "build",
       title: "Design the security controls for a regulated health-data platform",
       brief:
-        "Caldera Health Analytics is a fictional company processing hospital records for research in Google Cloud. Requirements from the compliance officer: data must never leave the EU or the company's own projects, even if someone with access copies it; administrators may reach the console only from managed devices on the corporate identity provider; every read of patient data by a person must be recorded and kept for the regulator's six-year review window; no project in the organisation may expose SSH or RDP to the internet; and all of this must apply automatically to new projects.",
+        "Caldera Health Analytics is a fictional company processing hospital records for research in Google Cloud. Requirements from the compliance officer: data must never leave the EU or the company's own projects, even if someone with access copies it; administrators may reach the console only from managed devices on the corporate identity provider; every read of patient data by a person must be recorded and kept for the regulator's six-year review window; no project in the organization may expose SSH or RDP to the internet; and all of this must apply automatically to new projects.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -249,7 +249,7 @@ export const GCPPCA_LABS: SeedLabSet = {
           parts: [
             part(
               "Data cannot leave the company's projects",
-              "Uses VPC Service Controls: a service perimeter around the projects holding patient data covering BigQuery, Cloud Storage and related APIs, with ingress/egress rules for the few sanctioned flows, explaining it blocks exfiltration via the APIs even by an authorised identity, which IAM alone cannot do.",
+              "Uses VPC Service Controls: a service perimeter around the projects holding patient data covering BigQuery, Cloud Storage and related APIs, with ingress/egress rules for the few sanctioned flows, explaining it blocks exfiltration via the APIs even by an authorized identity, which IAM alone cannot do.",
               "A VPC Service Controls perimeter around the data projects, restricting BigQuery, Cloud Storage, Healthcare and related APIs, with explicit ingress and egress rules only for sanctioned flows. IAM says who may read; the perimeter stops a permitted identity from copying data to a bucket or project outside, which is the exfiltration case the officer described."
             ),
             part(
@@ -347,7 +347,7 @@ export const GCPPCA_LABS: SeedLabSet = {
           parts: [
             part(
               "What it adds",
-              "Recognises a contributing cause in the earlier postmortem: an unverified recommendation with no capacity check, and a systemic pattern (changes driven by assumption rather than measurement); adds 'ask why' until the process gap is reached.",
+              "Recognizes a contributing cause in the earlier postmortem: an unverified recommendation with no capacity check, and a systemic pattern (changes driven by assumption rather than measurement); adds 'ask why' until the process gap is reached.",
               "The earlier incident report recommended more connections without checking the database's 300-connection ceiling, so the fix for one incident caused the next. The deeper cause is a process that produces recommendations without measurement or review, which the five-whys exposes."
             ),
             part(
@@ -363,9 +363,9 @@ export const GCPPCA_LABS: SeedLabSet = {
       slug: "capex-opex-tco-decision",
       objective: "Optimizing cost and resources: CapEx versus OpEx",
       kind: "build",
-      title: "Advise on a data-centre refresh versus a cloud move",
+      title: "Advise on a data-center refresh versus a cloud move",
       brief:
-        "Stillwater Mutual is a fictional insurer whose servers reach end of life next year. Option A: a hardware refresh costing 6 million (capital expenditure) for equipment expected to last five years, plus the existing data-centre lease and staff. Option B: move to Google Cloud, where the finance team estimates 1.5 million a year at today's usage, all operating expenditure. Workload facts: a steady core of 400 virtual machines runs 24/7 and is predictable; a claims-processing batch runs 4 hours a night and can be interrupted and resumed; development environments are used 50 hours a week; and usage drops by a third every year's second half. The CFO asks for a recommendation on total cost of ownership and on what the company must change to make option B's number real.",
+        "Stillwater Mutual is a fictional insurer whose servers reach end of life next year. Option A: a hardware refresh costing 6 million (capital expenditure) for equipment expected to last five years, plus the existing data-center lease and staff. Option B: move to Google Cloud, where the finance team estimates 1.5 million a year at today's usage, all operating expenditure. Workload facts: a steady core of 400 virtual machines runs 24/7 and is predictable; a claims-processing batch runs 4 hours a night and can be interrupted and resumed; development environments are used 50 hours a week; and usage drops by a third every year's second half. The CFO asks for a recommendation on total cost of ownership and on what the company must change to make option B's number real.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -379,8 +379,8 @@ export const GCPPCA_LABS: SeedLabSet = {
             ),
             part(
               "Levers for the steady core",
-              "Applies committed use discounts to the predictable 24/7 core (resource-based CUDs up to 55% for most machine series, up to 70% for memory-optimised; or compute flexible CUDs where machine types may change), after right-sizing with recommender data, explaining the commitment trade-off.",
-              "The 400 always-on VMs are what commitments are for: right-size them first using recommender data, then cover the baseline with committed use discounts, resource-based for a fixed machine family (Google quotes up to 55% off, up to 70% for memory-optimised machines) or compute flexible commitments if the machine mix will change. The trade-off is that the commitment is paid whether or not the capacity is used."
+              "Applies committed use discounts to the predictable 24/7 core (resource-based CUDs up to 55% for most machine series, up to 70% for memory-optimized; or compute flexible CUDs where machine types may change), after right-sizing with recommender data, explaining the commitment trade-off.",
+              "The 400 always-on VMs are what commitments are for: right-size them first using recommender data, then cover the baseline with committed use discounts, resource-based for a fixed machine family (Google quotes up to 55% off, up to 70% for memory-optimized machines) or compute flexible commitments if the machine mix will change. The trade-off is that the commitment is paid whether or not the capacity is used."
             ),
             part(
               "Levers for the batch and dev",
@@ -390,7 +390,7 @@ export const GCPPCA_LABS: SeedLabSet = {
             part(
               "Governance that keeps the number",
               "Puts in place budgets with threshold alerts per department, labels for cost allocation and billing export to BigQuery for showback/chargeback, quotas on sandbox projects, and a regular review of recommender findings; explains OpEx needs continuous management where CapEx was a one-time decision.",
-              "OpEx is only cheaper if it is managed: budgets with alerts per department, a labelling standard with billing export to BigQuery for showback, quotas on non-production projects, and a monthly review of rightsizing and idle-resource recommendations. Hardware was one decision every five years; cloud cost is a continuous practice."
+              "OpEx is only cheaper if it is managed: budgets with alerts per department, a labeling standard with billing export to BigQuery for showback, quotas on non-production projects, and a monthly review of rightsizing and idle-resource recommendations. Hardware was one decision every five years; cloud cost is a continuous practice."
             ),
           ],
         },
@@ -415,7 +415,7 @@ export const GCPPCA_LABS: SeedLabSet = {
             part(
               "State",
               "Moves state to a remote backend in a Cloud Storage bucket with object versioning (the GCS backend provides state locking), one state per environment/component, with access limited to the pipeline's service account; explains why shared folders and laptops fail.",
-              "Use the GCS backend: a versioned Cloud Storage bucket per organisation with a state prefix per environment and component. The backend locks state during an apply, so two concurrent applies cannot corrupt it, and versioning lets you recover a bad state. Only the pipeline's service account can write to the bucket."
+              "Use the GCS backend: a versioned Cloud Storage bucket per organization with a state prefix per environment and component. The backend locks state during an apply, so two concurrent applies cannot corrupt it, and versioning lets you recover a bad state. Only the pipeline's service account can write to the bucket."
             ),
             part(
               "Structure",
@@ -442,7 +442,7 @@ export const GCPPCA_LABS: SeedLabSet = {
       kind: "build",
       title: "Define the test strategy before a public launch",
       brief:
-        "Lumen Learning is a fictional education company launching a new enrolment service on Cloud Run with Cloud SQL and Pub/Sub, expected to take 2,000 sign-ups a minute on launch day with a target of 99% of requests under 500 milliseconds. Today the team has some unit tests that run on laptops, no integration tests, and has never load-tested. The release is in six weeks. Recommend what to test, with which kind of test, where it runs, and what decides go or no-go.",
+        "Lumen Learning is a fictional education company launching a new enrollment service on Cloud Run with Cloud SQL and Pub/Sub, expected to take 2,000 sign-ups a minute on launch day with a target of 99% of requests under 500 milliseconds. Today the team has some unit tests that run on laptops, no integration tests, and has never load-tested. The release is in six weeks. Recommend what to test, with which kind of test, where it runs, and what decides go or no-go.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -456,7 +456,7 @@ export const GCPPCA_LABS: SeedLabSet = {
             ),
             part(
               "Integration tests",
-              "Adds integration tests in Cloud Build against real or emulated dependencies (the Pub/Sub emulator, a test Cloud SQL instance or container) exercising the enrolment flow end to end, run on merge or nightly, catching contract and configuration errors unit tests cannot.",
+              "Adds integration tests in Cloud Build against real or emulated dependencies (the Pub/Sub emulator, a test Cloud SQL instance or container) exercising the enrollment flow end to end, run on merge or nightly, catching contract and configuration errors unit tests cannot.",
               "Add integration tests that exercise a real sign-up: service, database and messaging together, using the Pub/Sub emulator and a disposable PostgreSQL (container or test Cloud SQL instance) started as Cloud Build steps. Run them on merge and nightly. They catch what mocks hide: schema mismatches, permissions, message formats."
             ),
             part(
@@ -556,7 +556,7 @@ export const GCPPCA_LABS: SeedLabSet = {
             part(
               "Process improvements",
               "Proposes decoupling deploy from release with feature flags so pricing logic can be enabled per customer segment and turned off without a deployment, automating the canary analysis and rollback in the pipeline, smaller and more frequent releases, and recording the release and its metrics in Cloud Deploy and audit logs for traceability.",
-              "Separate deploying code from releasing behaviour: put the pricing logic behind a feature flag so it can be enabled for a segment and switched off instantly without a rollout. Automate the canary verification and rollback in the Cloud Deploy pipeline so no one watches dashboards by hand, ship smaller changes more often so each release carries less risk, and keep the release record (what, who approved, metrics) in Cloud Deploy and the audit logs."
+              "Separate deploying code from releasing behavior: put the pricing logic behind a feature flag so it can be enabled for a segment and switched off instantly without a rollout. Automate the canary verification and rollback in the Cloud Deploy pipeline so no one watches dashboards by hand, ship smaller changes more often so each release carries less risk, and keep the release record (what, who approved, metrics) in Cloud Deploy and the audit logs."
             ),
           ],
         },

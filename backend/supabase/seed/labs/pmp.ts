@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart } from "./types";
 import { source } from "../sources";
 
 // REQ-123 pilot: PMP (PMI Examination Content Outline, July 2026).
@@ -35,12 +35,12 @@ export const PMP_LABS: SeedLabSet = {
             part(
               "First action",
               "Meets the two developers (privately, promptly) to understand the source and context of the conflict before choosing a resolution, rather than deciding for them, escalating to the sponsor, or ignoring it.",
-              "Talk with Amara and Tomas together, privately and soon, to understand what each is optimising for (time, maintainability, risk) and what the disagreement is really about before choosing how to resolve it."
+              "Talk with Amara and Tomas together, privately and soon, to understand what each is optimizing for (time, maintainability, risk) and what the disagreement is really about before choosing how to resolve it."
             ),
             part(
               "Resolution approach",
               "Aims for collaborating/problem-solving: agree on objective decision criteria (for example cost, schedule impact, quality, maintainability) and evaluate both options against them.",
-              "Collaborate: agree on the criteria that matter for the project (delivery date, licence cost, accessibility, long-term maintenance), compare both options against them and let the evidence decide."
+              "Collaborate: agree on the criteria that matter for the project (delivery date, license cost, accessibility, long-term maintenance), compare both options against them and let the evidence decide."
             ),
           ],
         },
@@ -67,7 +67,7 @@ export const PMP_LABS: SeedLabSet = {
       objective:
         "Engaging stakeholders: identifying and analyzing them, tailoring communication to their needs, and executing a stakeholder engagement plan",
       kind: "build",
-      title: "Analyse stakeholders and plan their engagement",
+      title: "Analyze stakeholders and plan their engagement",
       brief:
         "Your project replaces a regional hospital group's staff rostering system. Stakeholders: (1) the chief operating officer, who funds it and has final say but rarely asks about it; (2) ward managers, who will use it daily and fear losing their spreadsheets; (3) the payroll team, who need its data but have little influence over its design; (4) the IT security lead, who can block go-live and is currently unaware of the project.",
       safetyNote: GENERAL_SAFETY,
@@ -177,10 +177,10 @@ export const PMP_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Analyse the network.",
+          ask: "Analyze the network.",
           parts: [
             part("Critical path and duration", "Identifies A-B-D-F as the critical path with a project duration of 14 days (the other path A-C-E-F is 10 days).", "Paths: A-B-D-F = 3+4+5+2 = 14 days; A-C-E-F = 3+2+3+2 = 10 days. Critical path A-B-D-F, project duration 14 days."),
-            part("Float on C", "Calculates total float of 4 days for activity C (early start 3, late start 7).", "C: early start 3, early finish 5; late finish 9 (E must finish by 12 for F), late start 7. Total float = 7 - 3 = 4 days."),
+            numericPart("Float on C (days)", "Total float of 4 days for activity C (early start 3, late start 7). Met at exactly 4.", "C: early start 3, early finish 5; late finish 9 (E must finish by 12 for F), late start 7. Total float = 7 - 3 = 4 days.", { answer: 4, tolerance: 0, unit: "days" }),
             part("D slips 2 days", "States that D is on the critical path, so the project finishes 2 days late (day 16) unless recovered.", "D is critical with zero float, so the finish moves from day 14 to day 16 unless the team crashes or fast-tracks later work."),
             part("C slips 3 days", "States that the project end date does not move because C has 4 days of float, leaving 1 day of float on that path.", "No change to the finish date: C has 4 days of float, so a 3-day slip leaves 1 day on the A-C-E-F path."),
           ],
@@ -203,7 +203,7 @@ export const PMP_LABS: SeedLabSet = {
           parts: [
             part("Variances", "CV = EV - AC = -$15,000 and SV = EV - PV = -$20,000, both read as unfavourable.", "CV = 60,000 - 75,000 = -$15,000 (over budget). SV = 60,000 - 80,000 = -$20,000 (behind schedule)."),
             part("Indices", "CPI = EV / AC = 0.80 and SPI = EV / PV = 0.75, both below 1.", "CPI = 60,000 / 75,000 = 0.80; SPI = 60,000 / 80,000 = 0.75 -- getting 80 cents of value per dollar and doing 75% of the planned work."),
-            part("Forecast", "EAC = BAC / CPI = $250,000 (assuming current cost performance continues), ETC = EAC - AC = $175,000, VAC = BAC - EAC = -$50,000, with the assumption stated.", "If cost performance continues: EAC = 200,000 / 0.80 = $250,000; ETC = 250,000 - 75,000 = $175,000; VAC = 200,000 - 250,000 = -$50,000."),
+            numericPart("Forecast EAC", "EAC = BAC / CPI = 200,000 / 0.80 = $250,000, assuming current cost performance continues. Met within $1.", "If cost performance continues: EAC = 200,000 / 0.80 = $250,000; ETC = 250,000 - 75,000 = $175,000; VAC = 200,000 - 250,000 = -$50,000.", { answer: 250000, tolerance: 1, unit: "USD" }),
             part("Status and action", "Reports the project as over budget and behind schedule and proposes a sensible next step (root-cause analysis of the variance, corrective actions, and a change request if baselines must change), not simply 'work harder'.", "Over budget and behind schedule. Find the cause (estimates, scope creep, productivity), agree corrective actions with the team, and if the baseline can't be recovered, raise a change request with the revised forecast for the sponsor's decision."),
           ],
         },
@@ -291,7 +291,7 @@ export const PMP_LABS: SeedLabSet = {
           parts: [
             part(
               "Risk to issue",
-              "Recognises the risk has occurred and is now an issue: logs it in the issue log with an owner and updates the risk register.",
+              "Recognizes the risk has occurred and is now an issue: logs it in the issue log with an owner and updates the risk register.",
               "The risk has happened, so it is now an issue: record it in the issue log with an owner and due date, and update the risk register entry (risk occurred, response triggered)."
             ),
             part(

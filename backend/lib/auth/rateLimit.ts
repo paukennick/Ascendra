@@ -1,4 +1,10 @@
+import { createHash } from "node:crypto";
 import { query, queryOne, withTransaction } from "../db";
+
+// REQ-216 (low, FAIL-1018): what a learner reads when a limit is reached. The
+// message used to name the internal event ("Too many lesson_regenerate
+// attempts"), which means nothing to a learner and leaks our event names.
+export const RATE_LIMIT_MESSAGE = "You're doing that a bit too often. Please wait a few minutes and try again.";
 
 export class RateLimitError extends Error {}
 
@@ -33,7 +39,7 @@ export async function checkRateLimit(
   );
   const count = row ? parseInt(row.count, 10) : 0;
   if (count >= opts.max) {
-    throw new RateLimitError(`Too many ${eventType} attempts. Try again later.`);
+    throw new RateLimitError(RATE_LIMIT_MESSAGE);
   }
 }
 
@@ -53,6 +59,24 @@ export const MFA_USER_LOCKED_MESSAGE =
   "That's a lot of code attempts, so sign-in codes for this account are paused for 15 minutes to keep it safe. " +
   "Nothing is wrong with your account. Wait a little, then try again with a fresh code or a backup code.";
 
+// REQ-219: the per-IP counters below key their auth_events rows by a hash of the
+// address, not the address: account deletion removes every row holding the
+// learner's IP (lib/auth/retention.ts), and these rows belong to no account.
+export function ipCounterKey(ip: string): string {
+  return createHash("sha256").update(`ip-counter:${ip}`).digest("hex").slice(0, 32);
+}
+
+// REQ-219 (FAIL-1102): Google sign-ins per IP address (the route's own check
+// before the token is verified), as register limits sign-ups per IP.
+export const GOOGLE_SIGNIN_IP_LIMIT = { max: 30, windowMinutes: 15 };
+
+// REQ-219 (FAIL-1105): password checks per IP address across every address
+// tried, ahead of login's per-(address, IP) pair. Wrong guesses count; a
+// correct password gives its attempt back, so a school or office behind one
+// address is limited by its failures, not its sign-ins.
+export const LOGIN_IP_EVENT = "login_ip";
+export const LOGIN_IP_LIMIT = { max: 60, windowMinutes: 15 };
+
 // REQ-135: check-and-record as one atomic step. checkRateLimit followed by
 // recordAuthEvent is two statements, so N requests sent at once all read
 // "under the limit" before any of them records, and all N get through --
@@ -68,28 +92,39 @@ export async function consumeRateLimit(
   identifier: string,
   limit: { max: number; windowMinutes: number },
   opts: { userId?: string | null; ip?: string | null } = {}
-): Promise<void> {
+): Promise<string> {
   const id = identifier.toLowerCase();
   // REQ-118 (Audit 3 MEDIUM-8): count and record are one statement (the
   // insert only happens when the count is under the limit), so a call is
   // four round trips (begin, lock, count-and-record, commit) instead of six.
   // Still atomic: the lock is its own, earlier statement, so the counting
   // statement's snapshot is taken after the previous holder committed.
+  // REQ-203: returns the recorded event's id so a caller that learns the
+  // attempt was legitimate can give it back (refundRateLimit).
   const recorded = await withTransaction(async (tx) => {
     await tx.query(`select pg_advisory_xact_lock(hashtext($1))`, [`rate:${eventType}:${id}`]);
-    const row = await tx.queryOne<{ recorded: boolean }>(
+    const row = await tx.queryOne<{ id: string | null }>(
       `with c as (
          select count(*)::int as n from auth_events
           where event_type = $1 and identifier = $2 and created_at > now() - make_interval(mins => $3)
        ), ins as (
          insert into auth_events (event_type, identifier, user_id, ip)
          select $1, $2, $5::uuid, $6::varchar from c where c.n < $4::int
-         returning 1
+         returning id
        )
-       select exists (select 1 from ins) as recorded`,
+       select (select id::text from ins) as id`,
       [eventType, id, limit.windowMinutes, limit.max, opts.userId ?? null, opts.ip ?? null]
     );
-    return row?.recorded === true;
+    return row?.id ?? null;
   });
-  if (!recorded) throw new RateLimitError(`Too many ${eventType} attempts. Try again later.`);
+  if (!recorded) throw new RateLimitError(RATE_LIMIT_MESSAGE);
+  return recorded;
+}
+
+// REQ-203 (FAIL-864): gives back one attempt that consumeRateLimit recorded.
+// Used when the attempt turned out to be correct, so a lockout counts wrong
+// guesses and not right answers. The attempt was already counted while it was
+// in flight, so concurrent guesses still can't exceed the limit.
+export async function refundRateLimit(eventId: string): Promise<void> {
+  await query(`delete from auth_events where id = $1`, [eventId]);
 }

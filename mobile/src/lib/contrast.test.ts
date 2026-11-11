@@ -76,7 +76,7 @@ describe("contrast helpers", () => {
     assert.ok(contrastRatio(colors.border, colors.cardAlt) < NON_TEXT, "old field outline 1.20:1");
   });
 
-  test("ensureContrast lifts only as far as needed and leaves a passing colour alone", () => {
+  test("ensureContrast lifts only as far as needed and leaves a passing color alone", () => {
     assert.equal(ensureContrast("#FFFFFF", colors.card, 4.5), "#FFFFFF");
     const lifted = ensureContrast("#7A2E2E", colors.card, 3);
     assert.ok(contrastRatio(lifted, colors.card) >= 3);

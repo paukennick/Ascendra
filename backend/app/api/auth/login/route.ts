@@ -1,10 +1,12 @@
 import { queryOne } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { verifyPassword, verifyDummyPassword } from "@/lib/auth/passwords";
-import { consumeRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, refundRateLimit, recordAuthEvent, RateLimitError, LOGIN_IP_EVENT, LOGIN_IP_LIMIT, ipCounterKey } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
+import { mfaStepRequired } from "@/lib/auth/mfaMethodOff";
 import { completeLogin } from "@/lib/auth/session";
+import { sessionResponse } from "@/lib/auth/refreshCookie";
 import {
   reserveLoginAttempt,
   clearLoginFailures,
@@ -47,6 +49,23 @@ export async function POST(req: Request) {
     const ip = getClientIp(req);
     const userAgent = getUserAgent(req);
 
+    // REQ-219 (FAIL-1105): the pair limit below is keyed by address, so one
+    // IP trying a different address each time is never stopped by it. A
+    // per-IP ceiling across every address comes first. An attempt is counted
+    // while it is checked and given back when the password proves correct, so
+    // it is wrong guesses that fill it. Over the ceiling answers exactly like
+    // a wrong password (same status, message and bcrypt cost).
+    let ipAttempt: string | null = null;
+    if (ip) {
+      try {
+        ipAttempt = await consumeRateLimit(LOGIN_IP_EVENT, ipCounterKey(ip), LOGIN_IP_LIMIT);
+      } catch (err) {
+        if (!(err instanceof RateLimitError)) throw err;
+        await verifyDummyPassword(password);
+        return unauthorized(LOGIN_FAILED);
+      }
+    }
+
     // At most LOGIN_PAIR_LIMIT checks per (address, IP), counted atomically
     // before anything else, for known and unknown addresses alike.
     try {
@@ -85,6 +104,7 @@ export async function POST(req: Request) {
     }
     await clearLoginFailures(user.id);
     await clearLoginPairs(normalizedEmail);
+    if (ipAttempt) await refundRateLimit(ipAttempt);
 
     if (!user.email_verified_at) {
       return new Response(
@@ -98,7 +118,7 @@ export async function POST(req: Request) {
 
     const meta = { deviceLabel: typeof deviceLabel === "string" ? deviceLabel : null, userAgent, ip };
 
-    if (user.mfa_enabled) {
+    if (mfaStepRequired(user)) {
       await recordAuthEvent("login_mfa_challenge", normalizedEmail, { ip, userId: user.id });
       const challengeToken = await createLoginChallenge(user.id, meta);
       return ok({
@@ -110,7 +130,7 @@ export async function POST(req: Request) {
 
     await recordAuthEvent("login_success", normalizedEmail, { ip, userId: user.id });
     const session = await completeLogin(user, meta);
-    return ok(session);
+    return sessionResponse(req, session);
   } catch (err) {
     return serverError(err);
   }

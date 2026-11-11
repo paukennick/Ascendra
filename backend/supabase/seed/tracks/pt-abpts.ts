@@ -176,9 +176,10 @@
 //     The Cardiovascular & Pulmonary objective therefore names only pH
 //     7.35-7.45 and PaCO2 35-45 mm Hg, matching nursing.ts; no HCO3 or PaO2
 //     range appears.
-//   - Oxygen-saturation targets (92-98%, 88-92% in chronic hypercapnia) rest
-//     on the Oxygen Therapy chapter alone; no Tier 1 source was opened for
-//     them and none of the files on hand contradict them.
+//   - Oxygen-saturation targets: first written as 92-98% (88-92% in chronic
+//     hypercapnia) from the Oxygen Therapy chapter alone; corrected
+//     2026-11-09 to the BTS 2017 guideline's 94-98% (88-92% with a risk of
+//     hypercapnic respiratory failure), see the correction note below.
 //   - Exercise in pregnancy: the Pregnancy and Exercise chapter (2023) gives
 //     150 minutes a week; ACOG's own opinion was not opened. Kept as a
 //     StatPearls figure; no conflicting source on file.
@@ -197,6 +198,20 @@
 //
 // Inline tag key: Tier 1 tags as listed above; SP-xxx = StatPearls chapter
 // in the list below. Where an objective carries two tags, both were checked.
+//
+// Corrected 2026-11-09 (content audit; reworded in place, order unchanged):
+//   - febrile neutropenia: ANC below 500, or expected below 500 within
+//     48 hours (IDSA 2010, Freifeld et al., Clin Infect Dis 2011, DOI
+//     10.1093/cid/cir073; wording checked in the Johns Hopkins ABX Guide);
+//   - oxygen targets: 94-98%, or 88-92% with a risk of hypercapnic
+//     respiratory failure (BTS 2017 emergency oxygen guideline);
+//   - phase II cardiac rehab: up to 36 sessions (CMS billing article A53775:
+//     "generally a total of 36 sessions over a maximum of 36 weeks"),
+//     usually about 12 weeks at three a week;
+//   - relapsing-remitting MS: about 85% at diagnosis (MS International
+//     Federation, "Types of MS");
+//   - stress fractures: 0.7% to 20% of sports medicine clinic injuries
+//     (Fredericson et al., Top Magn Reson Imaging 2006;17:309).
 //
 // StatPearls chapters cited (tag, title, first author, update date,
 // literature-archive article ID):
@@ -347,7 +362,7 @@ const PASSING = "Scaled score of 500; criterion-referenced standard set by ABPTS
 const DURATION = 360;
 
 const BASE_ELIGIBILITY =
-  "Current, unrestricted US physical therapist licence, plus either 2,000 hours of direct patient care in the specialty within the last 10 years (at least 500 within the last 3) or an ABPTRFE-accredited residency in the specialty completed within the last 10 years.";
+  "Current, unrestricted US physical therapist license, plus either 2,000 hours of direct patient care in the specialty within the last 10 years (at least 500 within the last 3) or an ABPTRFE-accredited residency in the specialty completed within the last 10 years.";
 
 // REQ-142: the outline's version is the edition of the Description of
 // Specialty Practice it is built from. ABPTS states the edition only on some
@@ -408,14 +423,14 @@ const COMMON = {
 export const ABPTS_OCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSOCS",
-  title: "Orthopaedic Clinical Specialist (OCS) Coach",
+  title: "Prep for the ABPTS Orthopedic Clinical Specialist (OCS) Exam",
   description:
-    "ABPTS board certification in orthopaedic physical therapy, on the 2026 outline: 30% specialty knowledge, 60% patient management, and a body-region table that puts the lumbar spine, shoulder and knee at the top.",
+    "ABPTS board certification in orthopedic physical therapy, on the 2026 outline: 30% specialty knowledge, 60% patient management, and a body-region table that puts the lumbar spine, shoulder and knee at the top.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics",
   credential: abptsCredential({
     slug: "orthopaedic-clinical-specialist",
-    name: "Board-Certified Clinical Specialist in Orthopaedic Physical Therapy (OCS)",
+    name: "Board-Certified Clinical Specialist in Orthopedic Physical Therapy (OCS)",
     url: "https://specialization.apta.org/become-a-specialist/orthopaedics",
     dspEdition: "2026 Description of Specialty Practice (2022-2025 revalidation)",
     outlineUrl:
@@ -427,13 +442,13 @@ export const ABPTS_OCS_TRACK: SeedTrack = {
     {
       title: "Knowledge for specialty practice",
       weight: 30,
-      gate: "Explain the tissue-level mechanism and healing timeline behind an orthopaedic presentation, and the exam, imaging and pharmacology facts that change management.",
+      gate: "Explain the tissue-level mechanism and healing timeline behind an orthopedic presentation, and the exam, imaging and pharmacology facts that change management.",
       objectives: [
         "Regional anatomy and arthrokinematics of the spine, pelvis and extremities at a specialist level",
         "Tissue healing, load tolerance and the mechanobiology behind progression decisions",
         "Pain science applied to persistent musculoskeletal pain and its influence on examination and intervention",
-        "Diagnostic imaging in orthopaedics: what each modality shows and when findings matter clinically",
-        "Pharmacology relevant to orthopaedic patients: analgesics, corticosteroids, anticoagulants and their exercise implications",
+        "Diagnostic imaging in orthopedics: what each modality shows and when findings matter clinically",
+        "Pharmacology relevant to orthopedic patients: analgesics, corticosteroids, anticoagulants and their exercise implications",
         "Medical screening and differential diagnosis for red flags masquerading as musculoskeletal pain",
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
         "Classify low back pain by duration (acute under 6 weeks, chronic beyond 12 weeks) and explain why routine imaging is held back: disc degeneration shows up in more than 80% of adults over 50, with or without symptoms", // SP-LBP
@@ -447,11 +462,11 @@ export const ABPTS_OCS_TRACK: SeedTrack = {
       weight: 10,
       gate: "Defend a management decision with the evidence, the patient's values and the system constraints -- all three, named explicitly.",
       objectives: [
-        "Clinical reasoning frameworks for orthopaedic diagnosis and treatment selection",
+        "Clinical reasoning frameworks for orthopedic diagnosis and treatment selection",
         "Professionalism and ethical practice in a specialist role",
         "Communication with patients, referrers and the care team about prognosis and expectations",
-        "Education of patients, students and colleagues in orthopaedic practice",
-        "Systems-based practice: payment, access and care pathways affecting orthopaedic management",
+        "Education of patients, students and colleagues in orthopedic practice",
+        "Systems-based practice: payment, access and care pathways affecting orthopedic management",
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
         "Plan knee arthroplasty rehab through shared decision-making, weighing patient preference against out-of-pocket cost, limits on covered visits and transport barriers when choosing setting and format", // TKA-CPG
         "Frame low back pain prognosis honestly: earlier episodes, intense symptoms, depression and fear-avoidant behavior all raise the odds of chronic disabling pain", // SP-LBP
@@ -528,7 +543,7 @@ export const ABPTS_OCS_TRACK: SeedTrack = {
 export const ABPTS_GCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSGCS",
-  title: "Geriatric Clinical Specialist Coach",
+  title: "Prep for the ABPTS Geriatric Clinical Specialist Exam",
   description:
     "ABPTS board certification in geriatric physical therapy: examination (25%) and intervention (25%) for the older adult, with the multisystem conditions -- falls, sarcopenia, dementia, fractures, heart failure -- the outline names.",
   sourceUrl:
@@ -545,9 +560,9 @@ export const ABPTS_GCS_TRACK: SeedTrack = {
     {
       title: "Knowledge areas: foundation, clinical and behavioral sciences",
       weight: 15,
-      gate: "Separate normal ageing from pathology in a presentation, and name the behavioral factor most likely to decide adherence.",
+      gate: "Separate normal aging from pathology in a presentation, and name the behavioral factor most likely to decide adherence.",
       objectives: [
-        "Physiology of ageing across systems and how it changes normal values, exercise response and healing",
+        "Physiology of aging across systems and how it changes normal values, exercise response and healing",
         "Clinical sciences of the common geriatric conditions: osteoporosis, osteoarthritis, heart failure, COPD, diabetes, dementia and Parkinson disease",
         "Behavioral sciences: cognition, depression, motivation and caregiver dynamics in older adults",
         "Pharmacology in older adults: polypharmacy, fall-risk medications and exercise interactions",
@@ -647,7 +662,7 @@ export const ABPTS_GCS_TRACK: SeedTrack = {
 export const ABPTS_NCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSNCS",
-  title: "Neurologic Clinical Specialist Coach",
+  title: "Prep for the ABPTS Neurologic Clinical Specialist Exam",
   description:
     "ABPTS board certification in neurologic physical therapy: 60% patient management across stroke, spinal cord injury, brain injury, Parkinson disease, multiple sclerosis, vestibular and balance disorders, with the knowledge, reasoning and systems domains the outline weights around it.",
   sourceUrl:
@@ -675,7 +690,7 @@ export const ABPTS_NCS_TRACK: SeedTrack = {
         "Know the incomplete spinal cord syndromes: central cord (the most common, arms weaker than legs), anterior cord from anterior spinal artery compromise, and Brown-Sequard hemisection with same-side weakness and opposite-side pain and temperature loss", // SP-SCI
         "Explain spasticity as a velocity-dependent rise in tone with exaggerated stretch reflexes from lost supraspinal inhibition, part of the upper motor neuron syndrome with a positive Babinski sign", // SP-SPAS
         "Recognize cerebellar dysfunction (ataxia, dysmetria, nystagmus, dysarthria, imbalance and gait disorder) and causes of bilateral involvement such as multiple sclerosis and posterior circulation stroke", // SP-CER
-        "Know relapsing-remitting multiple sclerosis is the first course in about 70% to 80% of patients, and that fatigue, spasticity, pain, bladder problems and depression are common symptom targets", // SP-MS
+        "Know relapsing-remitting multiple sclerosis is the first course in about 85% of patients, and that fatigue, spasticity, pain, bladder problems and depression are common symptom targets", // SP-MS
       ],
     },
     {
@@ -752,7 +767,7 @@ export const ABPTS_NCS_TRACK: SeedTrack = {
 export const ABPTS_CCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSCCS",
-  title: "Cardiovascular & Pulmonary Clinical Specialist Coach",
+  title: "Prep for the ABPTS Cardiovascular & Pulmonary Clinical Specialist Exam",
   description:
     "ABPTS board certification in cardiovascular and pulmonary physical therapy: case-history examination weighted toward evaluation (30%), with the outline's own frequently-, occasionally- and rarely-seen diagnoses.",
   sourceUrl: "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
@@ -852,9 +867,9 @@ export const ABPTS_CCS_TRACK: SeedTrack = {
         "Risk-factor modification and self-management education",
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
         "Screen for contraindications to exercise in cardiac rehab: unstable angina, acute decompensated heart failure, complex ventricular arrhythmias, severe pulmonary hypertension, intracavitary thrombus, severe or symptomatic aortic stenosis", // SP-CR
-        "Structure cardiac rehab by phase: phase I inpatient bedside mobility and education, phase II supervised outpatient care after cardiology clearance (usually 3 to 6 weeks, up to 12), phase III independent maintenance", // SP-CR
+        "Structure cardiac rehab by phase: phase I inpatient bedside mobility and education, phase II supervised outpatient care after cardiology clearance (up to 36 sessions, usually over about 12 weeks), phase III independent maintenance", // SP-CR
         "Build pulmonary rehab exercise from endurance, interval (for those who can't sustain continuous work) and resistance training, combining all three for the most benefit, and set oxygen by rest and exercise needs", // SP-PR
-        "Titrate supplemental oxygen to target saturations: about 92% to 98% for most patients, 88% to 92% for chronic hypercapnic conditions such as COPD", // SP-O2
+        "Titrate supplemental oxygen to target saturations: 94% to 98% for most patients, 88% to 92% for those at risk of hypercapnic respiratory failure, such as COPD", // SP-O2
         "Prevent and treat postoperative atelectasis (usually within 72 hours of general anesthesia) with deep breathing, early walking, incentive spirometry, an acapella device, chest physiotherapy and good pain control", // SP-ATEL
         "Protect the femoral insertion site for an intra-aortic balloon pump: don't flex the leg, and know walking isn't possible while a femoral device is in place", // SP-IABP
         "Include airway clearance in cystic fibrosis care, alongside nutrition and infection control, recognizing CFTR modulators now treat the underlying protein defect", // SP-CF
@@ -889,7 +904,7 @@ export const ABPTS_CCS_TRACK: SeedTrack = {
 export const ABPTS_PCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSPCS",
-  title: "Pediatric Clinical Specialist Coach",
+  title: "Prep for the ABPTS Pediatric Clinical Specialist Exam",
   description:
     "ABPTS board certification in pediatric physical therapy: examination, evaluation and intervention (20% each) across cerebral palsy, developmental disabilities, congenital and genetic conditions, from the NICU to the school setting.",
   sourceUrl:
@@ -1004,7 +1019,7 @@ export const ABPTS_PCS_TRACK: SeedTrack = {
 export const ABPTS_SCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSSCS",
-  title: "Sports Clinical Specialist Coach",
+  title: "Prep for the ABPTS Sports Clinical Specialist Exam",
   description:
     "ABPTS board certification in sports physical therapy: clinical intervention (35%) and assessment (30%) for athletes, plus emergency management, injury prevention, performance and the sports science behind it.",
   sourceUrl:
@@ -1061,7 +1076,7 @@ export const ABPTS_SCS_TRACK: SeedTrack = {
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
         "Use the SCAT6 for sideline concussion assessment (Child SCAT6 for ages 5 to 12), remembering that over 90% of concussions occur without loss of consciousness", // SP-CONC
         "After a head injury, send to emergency care for severe headache, seizures, focal deficits, loss of consciousness or worsening mental status, and consider cervical spine injury, intracranial bleeding and skull fracture", // SP-CONC
-        "Recognize stress fractures as overload injuries, about 20% of sports medicine injuries; flag high-risk sites (femoral neck, anterior tibia, tarsal navicular, talus, sesamoids, 5th metatarsal) where non-union risk is high", // SP-SF
+        "Recognize stress fractures as overload injuries, 0.7% to 20% of sports medicine clinic injuries; flag high-risk sites (femoral neck, anterior tibia, tarsal navicular, talus, sesamoids, 5th metatarsal) where non-union risk is high", // SP-SF
         "Recognize medial tibial stress syndrome as repetitive-loading pain along the tibial border that sits at the early end of a continuum that can progress to tibial stress fracture", // SP-MTSS
         "Know that a fall in FEV1 of 10% or more after an exercise challenge confirms exercise-induced bronchoconstriction, graded mild, moderate or severe by the size of the fall", // SP-EIB
         "Recognize hamstring strain in sports with high-speed running such as sprinting, soccer and football, knowing every hamstring muscle crosses hip and knee except the short head of biceps femoris", // SP-HAM
@@ -1110,7 +1125,7 @@ export const ABPTS_SCS_TRACK: SeedTrack = {
 export const ABPTS_ONC_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSONC",
-  title: "Oncologic Clinical Specialist Coach",
+  title: "Prep for the ABPTS Oncologic Clinical Specialist Exam",
   description:
     "ABPTS board certification in oncologic physical therapy: intervention and instruction (27%) and examination (23%) for people living with and beyond cancer, across treatment effects, lymphedema, fatigue and survivorship.",
   sourceUrl:
@@ -1168,7 +1183,7 @@ export const ABPTS_ONC_TRACK: SeedTrack = {
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
         "Treat new back pain in anyone with a cancer history as possible metastatic cord compression: back pain is the presenting symptom in 80 to 95%, often constant, worse at night and with coughing or sneezing", // SP-SCC
         "Escalate cord compression signs right away: bilateral leg symptoms, patchy weakness, multi-dermatome sensory loss, urinary retention or incontinence, fecal incontinence and gait change", // SP-SCC
-        "Recognize febrile neutropenia (temperature of 38.3 C once or 38 C sustained for an hour, with ANC below 1500) as an emergency; ANC below 500 is severe and below 100 profound", // SP-FN
+        "Recognize febrile neutropenia (temperature of 38.3 C once or 38 C sustained for an hour, with ANC below 500 or expected to fall below 500 within 48 hours) as an emergency; ANC below 100 is profound", // SP-FN
         "Know thrombocytopenia starts below 150,000/uL and the mild band (100,000-150,000) is usually symptom-free, while the link between count and bleeding risk is not settled", // SP-PLT
         "Investigate self-reported swelling, heaviness or numbness in anyone at risk of upper-quadrant lymphedema, and use the Norman Questionnaire or Morbidity Screening Tool if a questionnaire helps", // LYMDX-CPG
         "Use bioimpedance to catch early breast-cancer lymphedema (L-Dex over 10 above a preoperative baseline, or over 7.1 without one); use volume, not bioimpedance, once fibrosis sets in", // LYMDX-CPG
@@ -1231,7 +1246,7 @@ export const ABPTS_ONC_TRACK: SeedTrack = {
 export const ABPTS_ECS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSECS",
-  title: "Clinical Electrophysiologic Specialist Coach",
+  title: "Prep for the ABPTS Clinical Electrophysiologic Specialist Exam",
   description:
     "ABPTS board certification in clinical electrophysiologic physical therapy: electrodiagnostic tests and measures (15%) and the evaluation of normal and abnormal electrophysiologic findings (25%), on the outline's own 200-item blueprint.",
   sourceUrl:
@@ -1346,7 +1361,7 @@ export const ABPTS_ECS_TRACK: SeedTrack = {
 export const ABPTS_PWCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSPWCS",
-  title: "Pelvic & Women's Health Clinical Specialist (PWCS) Coach",
+  title: "Prep for the ABPTS Pelvic & Women's Health Clinical Specialist (PWCS) Exam",
   description:
     "ABPTS board certification in pelvic and women's health physical therapy (renamed from Women's Health in September 2025): patient and client management across pelvic floor dysfunction, urinary and bowel dysfunction, pregnancy and postpartum, lymphedema and sexual dysfunction.",
   sourceUrl:
@@ -1432,7 +1447,7 @@ export const ABPTS_PWCS_TRACK: SeedTrack = {
 export const ABPTS_WMS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSWMS",
-  title: "Wound Management Clinical Specialist Coach",
+  title: "Prep for the ABPTS Wound Management Clinical Specialist Exam",
   description:
     "ABPTS board certification in wound management physical therapy: wound clinical sciences, examination, evaluation and diagnosis (12-13% each) and interventions (14%) for pressure, vascular, neuropathic, surgical and burn wounds.",
   sourceUrl:

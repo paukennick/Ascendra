@@ -5,6 +5,7 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { getClientIp } from "@/lib/auth/util";
 import { mayEmail } from "@/lib/auth/mailLimit";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { logEmailFailure } from "@/lib/email-errors";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +44,8 @@ export async function POST(req: Request) {
         `insert into password_reset_tokens (user_id, token_hash, expires_at, requested_ip) values ($1, $2, $3, $4)`,
         [user.id, tokenHash, expiresAt, ip]
       );
-      await sendPasswordResetEmail(normalizedEmail, rawToken);
+      // REQ-191: logged, answer unchanged (enumeration-safe).
+      await sendPasswordResetEmail(normalizedEmail, rawToken).catch((err) => logEmailFailure("auth/forgot-password", err));
     }
 
     return ok({ message: GENERIC_MESSAGE });

@@ -25,9 +25,11 @@ import { source } from "../sources";
 //   - Load by goal (NSCA, summarised by the DoD Human Performance Resource
 //     Center): strength at least 85% 1RM for 6 or fewer reps; hypertrophy
 //     67-85% for 6-12; muscular endurance under 67% for 12 or more.
-//   - Energy systems by duration of all-out work (NSCA Basics of Strength and
-//     Conditioning Manual): phosphagen dominant up to about 20-30 s, fast
-//     glycolysis about 30 s to 2-3 min, oxidative beyond about 3 min.
+//   - Energy systems by duration of all-out work: phosphagen (stored ATP and
+//     creatine phosphate) for about the first 15 s (OpenStax Anatomy and
+//     Physiology 2e, 10.3, read 2026-11-09 -- the one convention the fitness
+//     labs use), fast glycolysis from there to about 2-3 min, oxidative
+//     beyond about 3 min (NSCA Basics of Strength and Conditioning Manual).
 //   - Session RPE (Foster et al. 2001): CR-10 rating x session minutes =
 //     training load in arbitrary units (Haddad et al., Front Neurosci 2017).
 //   - Exertional heat stroke: NATA position statement -- core temperature
@@ -55,7 +57,7 @@ export const NSCACSCS_LABS: SeedLabSet = {
     source("https://www.hprc-online.org/articles/one-rep-max-for-strength", "reference", "2026-11-07"),
     source("https://www.nsca.com/uploadedFiles/NSCA/Resources/PDF/Publications/basics_of_strength_and_conditioning_manual.pdf", "reference", "2026-11-07"),
     source("https://www.frontiersin.org/articles/10.3389/fnins.2017.00612/full", "reference", "2026-11-07"),
-    source("https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf", "clinical_guideline", "2026-11-07"),
+    source("https://doi.org/10.4085/1062-6050-50.9.07", "clinical_guideline", "2026-11-09"),
     source("https://pubmed.ncbi.nlm.nih.gov/37752011/", "reference", "2026-11-07"),
   ],
   labs: [
@@ -213,8 +215,8 @@ export const NSCACSCS_LABS: SeedLabSet = {
             ),
             part(
               "Arousal regulation",
-              "Chooses a calming technique suited to over-arousal (for example slow diaphragmatic breathing or a short relaxation routine) and practises it in training first.",
-              "Two slow breaths with a long exhale before approaching the bar, practised in every heavy training session for three weeks."
+              "Chooses a calming technique suited to over-arousal (for example slow diaphragmatic breathing or a short relaxation routine) and practices it in training first.",
+              "Two slow breaths with a long exhale before approaching the bar, practiced in every heavy training session for three weeks."
             ),
             part(
               "Self-talk and attention",

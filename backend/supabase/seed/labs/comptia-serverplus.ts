@@ -32,7 +32,7 @@ export const SERVERPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose a RAID level and plan capacity for a database server",
       brief:
-        "Ironwood Veterinary Group is building a database server with eight 4 TB SAS drives in a hardware RAID controller. Requirements: at least 20 TB usable; the array must survive the loss of any two drives at once; the database is write-heavy. The current data set is 14 TB and has grown 25% a year for three years, a rate the practice expects to continue. The team also wants a ninth drive bay used sensibly, and later they plan to add a second server that shares storage for a virtualisation cluster, and ask whether that should be a NAS or a SAN.",
+        "Ironwood Veterinary Group is building a database server with eight 4 TB SAS drives in a hardware RAID controller. Requirements: at least 20 TB usable; the array must survive the loss of any two drives at once; the database is write-heavy. The current data set is 14 TB and has grown 25% a year for three years, a rate the practice expects to continue. The team also wants a ninth drive bay used sensibly, and later they plan to add a second server that shares storage for a virtualization cluster, and ask whether that should be a NAS or a SAN.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -56,8 +56,8 @@ export const SERVERPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Shared storage for the cluster",
-              "Recommends a SAN (block storage over iSCSI or Fibre Channel) for a virtualisation cluster's VM datastores, since both hosts need block-level access to shared LUNs for live migration and failover, and explains a NAS (file-level SMB/NFS) suits shared file data; notes NFS datastores are a valid middle ground on some hypervisors.",
-              "For two hosts sharing virtual-machine storage, use a SAN: block-level LUNs presented over iSCSI (on a dedicated storage network) or Fibre Channel, which the hypervisors' clustered file system shares so a VM can migrate or fail over between hosts. A NAS presents files over SMB/NFS and is the right answer for shared documents and backups, not for a block-level cluster datastore -- though NFS datastores are supported by some hypervisors if block storage is out of budget."
+              "Recommends a SAN (block storage over iSCSI or Fiber Channel) for a virtualization cluster's VM datastores, since both hosts need block-level access to shared LUNs for live migration and failover, and explains a NAS (file-level SMB/NFS) suits shared file data; notes NFS datastores are a valid middle ground on some hypervisors.",
+              "For two hosts sharing virtual-machine storage, use a SAN: block-level LUNs presented over iSCSI (on a dedicated storage network) or Fiber Channel, which the hypervisors' clustered file system shares so a VM can migrate or fail over between hosts. A NAS presents files over SMB/NFS and is the right answer for shared documents and backups, not for a block-level cluster datastore -- though NFS datastores are supported by some hypervisors if block storage is out of budget."
             ),
           ],
         },
@@ -74,7 +74,7 @@ export const SERVERPLUS_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Write the install plan: rack layout and units used, the power maths for normal and failover conditions, the cooling figure and airflow rules, and the cabling and labelling standard.",
+          ask: "Write the install plan: rack layout and units used, the power maths for normal and failover conditions, the cooling figure and airflow rules, and the cabling and labeling standard.",
           parts: [
             part(
               "Rack layout",
@@ -92,9 +92,9 @@ export const SERVERPLUS_LABS: SeedLabSet = {
               "Heat: 1,650 W x 3.412 = about 5,630 BTU/h for facilities to add to the room's cooling load. Install every chassis front-to-back with intakes in the cold aisle; fill gaps with blanking panels and seal cable cut-outs so hot exhaust cannot loop back to an intake. Check the switch's airflow direction: if its ports face the rear (hot aisle), order the port-side-intake/reverse-airflow version so it does not breathe hot air. Keep inlet temperature within the vendors' specified range and monitor it with the rack's sensors."
             ),
             part(
-              "Cabling and labelling",
-              "Routes power on one side and data on the other (or separated), uses correct-length patch cords with hook-and-loop ties (no zip ties on fibre), labels both ends of every cable and each power cord with its PDU/outlet, colour-codes by function (for example management vs. production vs. storage), and records it all in the rack diagram/asset system.",
-              "Power cords to PDU A on the left rear, PDU B on the right rear, each labelled with device and outlet (e.g. SRV01-PSU1 -> PDU-A-07). Data cabling on the opposite side from power, with horizontal cable managers, patch cords cut to length, hook-and-loop ties only (zip ties crush fibre and twisted pair). Colour code: blue production, yellow management/iDRAC-iLO, green storage/iSCSI. Label both ends of every cable with source and destination port, and update the rack elevation diagram and asset records before leaving the room."
+              "Cabling and labeling",
+              "Routes power on one side and data on the other (or separated), uses correct-length patch cords with hook-and-loop ties (no zip ties on fiber), labels both ends of every cable and each power cord with its PDU/outlet, color-codes by function (for example management vs. production vs. storage), and records it all in the rack diagram/asset system.",
+              "Power cords to PDU A on the left rear, PDU B on the right rear, each labeled with device and outlet (e.g. SRV01-PSU1 -> PDU-A-07). Data cabling on the opposite side from power, with horizontal cable managers, patch cords cut to length, hook-and-loop ties only (zip ties crush fiber and twisted pair). Color code: blue production, yellow management/iDRAC-iLO, green storage/iSCSI. Label both ends of every cable with source and destination port, and update the rack elevation diagram and asset records before leaving the room."
             ),
           ],
         },
@@ -165,12 +165,12 @@ export const SERVERPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Web tier",
-              "Puts both web servers behind a load balancer (hardware/virtual appliance or a redundant pair) with health checks that pull a failed node out, chooses session persistence (sticky sessions) or, better, externalises sessions to a shared store so any node can serve any user; terminates TLS at the balancer.",
+              "Puts both web servers behind a load balancer (hardware/virtual appliance or a redundant pair) with health checks that pull a failed node out, chooses session persistence (sticky sessions) or, better, externalizes sessions to a shared store so any node can serve any user; terminates TLS at the balancer.",
               "A load balancer pair (active/standby with its own floating IP) in front of the two web servers, distributing requests round-robin or least-connections. Health checks hit a /health page every few seconds and remove a server that fails, so users never see it. For logins, either enable cookie-based session persistence so a user stays on one node, or -- better -- move the session state to a shared cache/database so a node failure does not log anyone out. TLS terminates on the balancer with the certificate installed there."
             ),
             part(
               "Failover test plan",
-              "Tests under controlled conditions and measures: move the database role between nodes gracefully, then hard-fail the active node (power off) and time the recovery (RTO) and check for data loss; pull the heartbeat cable to prove quorum behaviour; stop a web server and confirm the balancer removes it; schedules the test regularly and documents results.",
+              "Tests under controlled conditions and measures: move the database role between nodes gracefully, then hard-fail the active node (power off) and time the recovery (RTO) and check for data loss; pull the heartbeat cable to prove quorum behavior; stop a web server and confirm the balancer removes it; schedules the test regularly and documents results.",
               "In a maintenance window, with a monitoring client running continuous queries: 1) planned move of the database role to node 2 -- note the client reconnect time; 2) power off the active node -- time until the virtual IP answers on the survivor (the measured RTO) and confirm the last committed transactions are present; 3) disconnect the heartbeat network only -- the cluster must keep running on the side with the witness vote, not start the service twice; 4) stop the web service on one node -- the balancer's health check should drop it within seconds and users continue. Record times and surprises; repeat after every patch cycle and at least quarterly."
             ),
           ],
@@ -181,9 +181,9 @@ export const SERVERPLUS_LABS: SeedLabSet = {
       slug: "virtualization-host-sizing",
       objective: "Virtualization: host vs. guest, resource allocation, and cloud models",
       kind: "build",
-      title: "Size virtualisation hosts and set resource controls for twenty VMs",
+      title: "Size virtualization hosts and set resource controls for twenty VMs",
       brief:
-        "Thornbury Logistics is consolidating twenty physical servers onto virtualisation hosts. Each host has two 16-core processors (32 physical cores, 64 threads) and 512 GB of RAM. The twenty VMs each need 4 vCPUs and 16 GB of RAM; one of them is a latency-sensitive database that must never wait for CPU and must always have its full memory. The company wants the environment to survive the loss of one host without any VM going down for long. They also ask whether the two public-facing web VMs would be better as a cloud deployment and what that would be called.",
+        "Thornbury Logistics is consolidating twenty physical servers onto virtualization hosts. Each host has two 16-core processors (32 physical cores, 64 threads) and 512 GB of RAM. The twenty VMs each need 4 vCPUs and 16 GB of RAM; one of them is a latency-sensitive database that must never wait for CPU and must always have its full memory. The company wants the environment to survive the loss of one host without any VM going down for long. They also ask whether the two public-facing web VMs would be better as a cloud deployment and what that would be called.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -243,7 +243,7 @@ export const SERVERPLUS_LABS: SeedLabSet = {
             part(
               "Accounts and host security",
               "Removes or disables default/vendor accounts, enforces key-based SSH for the ops team with no root login, applies least privilege via sudo, sets a strong password policy for any local accounts, enables mandatory access control (SELinux enforcing/AppArmor), installs endpoint protection or file-integrity monitoring, and ships logs to the SIEM with time synced.",
-              "Delete the image's default accounts (or lock them), create named accounts for the ops team in an admin group with sudo rules, disable root SSH login and password authentication, and set a password policy for any remaining local accounts. Keep SELinux in enforcing mode (or AppArmor profiles loaded) for the web server. Install the endpoint protection/file-integrity agent, enable NTP, and forward auth, web and system logs to the SIEM. Apply the organisation's benchmark (for example a CIS profile) with a configuration scanner and fix the findings."
+              "Delete the image's default accounts (or lock them), create named accounts for the ops team in an admin group with sudo rules, disable root SSH login and password authentication, and set a password policy for any remaining local accounts. Keep SELinux in enforcing mode (or AppArmor profiles loaded) for the web server. Install the endpoint protection/file-integrity agent, enable NTP, and forward auth, web and system logs to the SIEM. Apply the organization's benchmark (for example a CIS profile) with a configuration scanner and fix the findings."
             ),
             part(
               "Verification",
@@ -258,14 +258,14 @@ export const SERVERPLUS_LABS: SeedLabSet = {
       slug: "decommission-three-servers",
       objective: "Decommissioning: media destruction, recycling, and asset management",
       kind: "build",
-      title: "Decommission three servers and sanitise their media properly",
+      title: "Decommission three servers and sanitize their media properly",
       brief:
         "Oakhaven Regional Bank is retiring three servers: a file server with six 2 TB spinning hard drives that held customer documents; a database server with four 1.9 TB SSDs that held account data and uses hardware encryption (self-encrypting drives); and a web server with two small SSDs that never held sensitive data. Regulators require proof that customer data cannot be recovered from any retired media. The hard drives of the file server will be reused inside the bank; everything else goes to an e-waste recycler. Write the decommissioning plan.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Write the plan: the pre-checks before power-off, the sanitisation method for each kind of media and why, the records that prove it, and the infrastructure clean-up.",
+          ask: "Write the plan: the pre-checks before power-off, the sanitization method for each kind of media and why, the records that prove it, and the infrastructure clean-up.",
           parts: [
             part(
               "Before power-off",
@@ -273,19 +273,19 @@ export const SERVERPLUS_LABS: SeedLabSet = {
               "Confirm with the business owners in writing that each system is no longer needed; check for lingering dependencies (connections in the firewall and switch logs, DNS names still referenced, backup and monitoring jobs). Take a final backup and verify a restore, and confirm with compliance which data must be retained and where it now lives -- destroying the only copy of a record under a retention rule is its own violation. Record the asset tags, model and serial number of every drive, since the certificates will be matched to those serials."
             ),
             part(
-              "Sanitisation by media type",
-              "Spinning drives to be reused: software overwrite (purge-level wipe with verification) -- degaussing would also destroy them for reuse; self-encrypting SSDs: cryptographic erase (destroy the media encryption key) plus the vendor's secure-erase command, since overwriting does not reliably reach all SSD cells and degaussing does nothing to flash; drives leaving the organisation with sensitive history should also be physically destroyed (shredded) if policy requires; the non-sensitive web SSDs still get a secure erase before recycling.",
-              "File server HDDs (reused internally): a verified software overwrite with a wiping tool that reports completion per drive, followed by a read-back verification; not degaussing, which would also erase the servo tracks and make the drives unusable. Database SEDs: issue the cryptographic erase (destroy the drive's media encryption key through the controller or vendor tool) and then the ATA/NVMe secure-erase command; an ordinary overwrite is unreliable on SSDs because of wear-levelling and spare blocks, and a degausser has no effect on flash. Because they held account data and leave the building, shred them physically as well, per the bank's policy. Web server SSDs: secure erase, then to the recycler -- cheap insurance even though no sensitive data was stored."
+              "Sanitization by media type",
+              "Spinning drives to be reused: software overwrite (purge-level wipe with verification) -- degaussing would also destroy them for reuse; self-encrypting SSDs: cryptographic erase (destroy the media encryption key) plus the vendor's secure-erase command, since overwriting does not reliably reach all SSD cells and degaussing does nothing to flash; drives leaving the organization with sensitive history should also be physically destroyed (shredded) if policy requires; the non-sensitive web SSDs still get a secure erase before recycling.",
+              "File server HDDs (reused internally): a verified software overwrite with a wiping tool that reports completion per drive, followed by a read-back verification; not degaussing, which would also erase the servo tracks and make the drives unusable. Database SEDs: issue the cryptographic erase (destroy the drive's media encryption key through the controller or vendor tool) and then the ATA/NVMe secure-erase command; an ordinary overwrite is unreliable on SSDs because of wear-leveling and spare blocks, and a degausser has no effect on flash. Because they held account data and leave the building, shred them physically as well, per the bank's policy. Web server SSDs: secure erase, then to the recycler -- cheap insurance even though no sensitive data was stored."
             ),
             part(
               "Records and chain of custody",
-              "Produces a sanitisation record per drive (serial, method, tool and version, operator, date, verification result), a certificate of destruction from the recycler/shredding vendor listing serials, and a signed chain-of-custody form for drives in transit; updates the asset register to 'disposed' with those references.",
-              "For every drive: a sanitisation certificate stating serial number, method (overwrite / cryptographic erase / shred), tool and version, operator name, date and verification result. Drives shipped for shredding travel in sealed, tamper-evident containers with a chain-of-custody form signed at each handover, and the vendor returns a certificate of destruction listing each serial. The asset register entries move to 'disposed' with the certificate numbers attached, and the e-waste recycler's environmental certification is kept on file."
+              "Produces a sanitization record per drive (serial, method, tool and version, operator, date, verification result), a certificate of destruction from the recycler/shredding vendor listing serials, and a signed chain-of-custody form for drives in transit; updates the asset register to 'disposed' with those references.",
+              "For every drive: a sanitization certificate stating serial number, method (overwrite / cryptographic erase / shred), tool and version, operator name, date and verification result. Drives shipped for shredding travel in sealed, tamper-evident containers with a chain-of-custody form signed at each handover, and the vendor returns a certificate of destruction listing each serial. The asset register entries move to 'disposed' with the certificate numbers attached, and the e-waste recycler's environmental certification is kept on file."
             ),
             part(
               "Infrastructure clean-up",
-              "Removes the servers from Active Directory/identity (computer accounts, service accounts), DNS and DHCP reservations, monitoring and backup jobs, firewall rules and load-balancer pools, switch port descriptions and VLAN assignments, licences and support contracts; updates documentation and diagrams.",
-              "Delete the computer objects and any service accounts used only by these servers; remove their A/PTR records and DHCP reservations; retire them in monitoring and remove their backup jobs (keeping the retained backups); delete firewall rules and load-balancer pool members that reference their addresses; shut down and clear the switch ports; reclaim OS and application licences and cancel hardware support; update the rack elevation, network diagrams and the CMDB. Then the addresses and rack units can be safely reused."
+              "Removes the servers from Active Directory/identity (computer accounts, service accounts), DNS and DHCP reservations, monitoring and backup jobs, firewall rules and load-balancer pools, switch port descriptions and VLAN assignments, licenses and support contracts; updates documentation and diagrams.",
+              "Delete the computer objects and any service accounts used only by these servers; remove their A/PTR records and DHCP reservations; retire them in monitoring and remove their backup jobs (keeping the retained backups); delete firewall rules and load-balancer pool members that reference their addresses; shut down and clear the switch ports; reclaim OS and application licenses and cancel hardware support; update the rack elevation, network diagrams and the CMDB. Then the addresses and rack units can be safely reused."
             ),
           ],
         },
@@ -300,7 +300,7 @@ export const SERVERPLUS_LABS: SeedLabSet = {
       kind: "case",
       title: "Handle a degraded RAID array and a failing power supply",
       brief:
-        "You are on call for Ashgrove Insurance. At 06:20 the monitoring system reports a storage alert on FILE03, a server with a hardware RAID 5 array of eight 4 TB drives and a global hot spare, holding the claims document share. Users have not noticed anything yet. The server is in a locked data-centre cage you can reach in 30 minutes.",
+        "You are on call for Ashgrove Insurance. At 06:20 the monitoring system reports a storage alert on FILE03, a server with a hardware RAID 5 array of eight 4 TB drives and a global hot spare, holding the claims document share. Users have not noticed anything yet. The server is in a locked data-center cage you can reach in 30 minutes.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -400,7 +400,7 @@ export const SERVERPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Work out the restore chain, RPO and RTO of a backup schedule",
       brief:
-        "Juniper Hill Accountants back up their 2 TB document server with a full backup every Sunday at 01:00 and an incremental backup every other night at 01:00. Backups land on a local backup appliance that can restore at about 200 MB/s. On a Thursday at 14:00 a ransomware infection encrypts the server and it must be rebuilt from backup. Management asks: exactly which backup sets are needed, how much work is lost, how long the restore will take, and whether the plan would survive the backup appliance itself being hit. They also ask how they would know any of this works before a real disaster.",
+        "Juniper Hill Accountants back up their 2 TB document server with a full backup every Sunday at 01:00 and an incremental backup at 01:00 on each of the other six nights (Monday to Saturday). Backups land on a local backup appliance that can restore at about 200 MB/s. On a Thursday at 14:00 a ransomware infection encrypts the server and it must be rebuilt from backup. Management asks: exactly which backup sets are needed, how much work is lost, how long the restore will take, and whether the plan would survive the backup appliance itself being hit. They also ask how they would know any of this works before a real disaster.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -425,7 +425,7 @@ export const SERVERPLUS_LABS: SeedLabSet = {
             part(
               "Recovery test plan",
               "Schedules regular restore tests that measure actual RTO and verify data: monthly file-level restores from a random set, quarterly full server restore to isolated hardware or a VM with a checksum/spot-check of documents and an application test, an annual failover exercise of the whole DR plan, with results and gaps recorded and the plan updated.",
-              "Monthly: restore a random sample of files from a random incremental and compare checksums to the originals. Quarterly: full bare-metal (or VM) restore of the document server into an isolated network, timed end to end, with users validating a sample of documents -- that measured time becomes the documented RTO. Annually: a full exercise of the DR plan, including the off-site copy and the ransomware scenario (pretend the appliance is lost), so the team practises the real runbook. Record every test, the time it took and what failed; fix the gaps and update the plan."
+              "Monthly: restore a random sample of files from a random incremental and compare checksums to the originals. Quarterly: full bare-metal (or VM) restore of the document server into an isolated network, timed end to end, with users validating a sample of documents -- that measured time becomes the documented RTO. Annually: a full exercise of the DR plan, including the off-site copy and the ransomware scenario (pretend the appliance is lost), so the team practices the real runbook. Record every test, the time it took and what failed; fix the gaps and update the plan."
             ),
           ],
         },

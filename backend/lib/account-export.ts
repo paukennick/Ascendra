@@ -50,11 +50,18 @@ export const EXPORT_EXCLUDED_TABLES: Record<string, string> = {
   mastery_backup_031: "rollback backup, dropped after 30 days",
   mastery_backup_041: "rollback backup, dropped after 30 days",
   mastery_backup_045: "rollback backup, dropped after 30 days",
+  mastery_backup_074: "rollback backup, dropped after 30 days",
   grading_claims: "a seconds-long grading lease (REQ-117), no content",
 };
 
 export const EXPORT_SECTIONS = {
-  profile: "select id, email, display_name, created_at, whats_new_seen_id from app_users where id = $1",
+  // REQ-205: the profile photo (a small JPEG, at most ~30 KB as base64, stored
+  // on app_users since migration 004) and the age confirmation (migration 070).
+  profile: `select id, email, display_name, created_at, whats_new_seen_id, age_confirmed_at, age_confirmed_min,
+                   case when avatar_image is not null
+                        then 'data:' || coalesce(avatar_content_type, 'image/jpeg') || ';base64,' || replace(encode(avatar_image, 'base64'), E'\n', '')
+                   end as avatar_data_url
+              from app_users where id = $1`,
   tracks: "select * from subject_tracks where user_id = $1 order by created_at asc, id asc",
   favorites: "select track_id, created_at from course_favorites where user_id = $1 order by created_at asc, track_id asc",
   mastery: "select * from mastery where user_id = $1 order by id asc",
@@ -103,6 +110,10 @@ export const EXPORT_SECTIONS = {
   // Then REQ-119's first-run record, learning events and exam results.
   legalAcceptances:
     "select user_id, document, version, source, accepted_at from legal_acceptances where user_id = $1 order by accepted_at asc, document asc, version asc",
+  // REQ-224 (migration 077): the 18+ confirmations for mature-content
+  // categories (mental health): category, notice version, age, where, when.
+  matureContentConfirmations:
+    "select user_id, category_slug, notice_version, min_age, source, confirmed_at from mature_content_confirmations where user_id = $1 order by confirmed_at asc, category_slug asc, notice_version asc",
   onboarding: "select * from learner_onboarding where user_id = $1 order by user_id asc",
   learnerEvents: "select * from learner_events where user_id = $1 order by created_at asc, id asc",
   examOutcomes: "select * from exam_outcomes where user_id = $1 order by exam_date asc, id asc",
@@ -110,16 +121,38 @@ export const EXPORT_SECTIONS = {
   // learner's answers. A finished run's attempt is also under attempts.
   labRuns: "select * from lab_runs where user_id = $1 order by started_at asc, id asc",
   labRunSteps: "select * from lab_run_steps where user_id = $1 order by created_at asc, run_id asc, step_index asc",
+  // REQ-190 (migration 062): sim runs with their debrief, every command the
+  // learner sent, and their written reasoning with its grade. The replay
+  // checkpoint is engine state derived from the commands, so it is left out.
+  simRuns: `select id, sim_id, sim_version_id, seed, engine_version, started_at, status, last_seq, last_tick,
+                   realtime_ticks, skipped_ticks, offline_ticks, revealed, ending_id, outcome_class, rating, ended_at,
+                   score, attempt_id
+              from sim_runs where user_id = $1 order by started_at asc, id asc`,
+  simRunCommands: `select c.run_id, c.seq, c.tick, c.type, c.payload, c.received_at
+                     from sim_run_commands c join sim_runs r on r.id = c.run_id
+                    where r.user_id = $1 order by r.started_at asc, c.run_id asc, c.seq asc`,
+  simRunReasoning: "select * from sim_run_reasoning where user_id = $1 order by created_at asc, run_id asc, moment_id asc",
   // REQ-125 (migration 051): when the learner accepted the clinical or
   // fitness lab disclaimer, and which version.
+  // REQ-197 (migration 063): the learner's email choices, and which service
+  // emails were sent when (no address or content is stored).
+  emailPreferences: "select exam_changes, exam_countdown, weekly_digest, updated_at from email_preferences where user_id = $1 order by user_id asc",
+  serviceEmails:
+    "select kind, period_key, status, attempts, created_at, sent_at from service_email_log where user_id = $1 order by created_at asc, id asc",
   labDisclaimerAcknowledgements:
     "select family, version, acknowledged_at from lab_disclaimer_acknowledgements where user_id = $1 order by acknowledged_at asc, id asc",
   // REQ-116 (audit 3, low): the learner's own sign-in log and devices, with
-  // the IP addresses recorded. Events are matched by user id or by the
-  // account's address (events before sign-in carry only the address).
+  // the IP addresses recorded. Events are matched by user id, or by the
+  // account's address for events before sign-in (they carry only the
+  // address) -- but only those logged since this account was created
+  // (REQ-205, FAIL-904): an address can be freed and registered again, and
+  // an earlier holder's attempts are not this person's data.
   // Sessions leave out the token hash. Kept for 90 days (lib/auth/retention.ts).
   signInEvents: `select event_type, ip, created_at from auth_events
-                  where user_id = $1 or identifier = (select email from app_users where id = $1)
+                  where user_id = $1
+                     or (user_id is null
+                         and identifier = (select email from app_users where id = $1)
+                         and created_at >= (select created_at from app_users where id = $1))
                   order by created_at asc, id asc`,
   // REQ-093: sign-in providers linked to the account (no tokens).
   linkedAccounts: "select provider, email, created_at from oauth_accounts where user_id = $1 order by created_at asc, provider asc",
@@ -128,12 +161,17 @@ export const EXPORT_SECTIONS = {
   // REQ-122 (migration 049): plans paid for or given, the payment events
   // received for the account (type, time, outcome -- no payload), the free
   // course choice and counted allowance uses.
-  entitlements: `select id, tier, source, product_id, plan, status, period_end, store, created_at, updated_at
+  entitlements: `select id, tier, family, scope, source, product_id, plan, status, period_end, store, created_at, updated_at
                    from entitlements where user_id = $1 order by created_at asc, id asc`,
   billingEvents: `select provider, event_type, occurred_at, received_at, outcome
                     from billing_events where user_id = $1 order by received_at asc, id asc`,
   freeCourse: "select * from free_course_choice where user_id = $1 order by user_id asc",
   allowanceUses: "select kind, used_at from allowance_uses where user_id = $1 order by used_at asc, id asc",
+  // REQ-169 (migration 060): the learner's answers to the intake form and
+  // the courses and exam dates they named.
+  intake: "select goal, experience, weekly_hours, use_for, skipped, created_at, updated_at from learner_intake where user_id = $1 order by user_id asc",
+  intakeTargets:
+    "select track_id, exam_date, position, created_at from learner_intake_targets where user_id = $1 order by position asc, track_id asc",
   // REQ-144: unrestricted access given to this account, and its audit trail
   // (who gave, changed or ended it, and when). The giver is named, not their
   // email address.

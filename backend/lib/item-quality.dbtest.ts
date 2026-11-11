@@ -5,6 +5,7 @@
 // auto-flag, the report route, and the fact-check gate in each generator.
 // The model is a fake client or an injected checker; no API key.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -25,11 +26,12 @@ import {
 } from "./item-quality";
 import type { CheckItem, CheckVerdict, FactChecker } from "./fact-check";
 import { bankItems, generateForObjective } from "./exam-items";
-import { unseenItems } from "./review-store";
+import { prepareContext } from "./review-store";
 import { nextDiscriminationItem } from "./understanding-store";
 import { getLessonFor, saveLesson, SHARED } from "./lesson-store";
-import { gateQuizItem } from "./coach-quiz";
-import { checkedPractice, type LessonGenerator, type ObjectiveRow } from "./lesson-generation";
+import { writeCheckedQuizItem } from "./coach-quiz";
+import { FactCheckUnavailableError, HeldForAccuracyError } from "./generation-gate";
+import { checkedPractice, ContentHeldBackError, NOT_SERVED_MARK, type LessonGenerator, type ObjectiveRow } from "./lesson-generation";
 import { UserFacingError } from "./http";
 import { POST as gradePost } from "../app/api/grade/route";
 import { POST as reportPost } from "../app/api/items/report/route";
@@ -53,6 +55,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `iq-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const auth = (u: string) => ({ authorization: `Bearer ${signAccessToken({ sub: u, email: `${u}@example.test` })}`, "content-type": "application/json" });
@@ -202,7 +205,7 @@ describe("flags and quarantine (H2)", () => {
     const broken: FactChecker = async () => {
       throw new Error("model down");
     };
-    assert.deepEqual(await recheckItem(examRef(id, objs[1]), broken), { ran: false, agreed: null, quarantined: false });
+    assert.deepEqual(await recheckItem(examRef(id, objs[1]), broken, null), { ran: false, agreed: null, quarantined: false });
     assert.equal((await queryOne<{ n: number }>(`select count(*)::int as n from item_flags where item_id = $1 and source = 'recheck'`, [id]))!.n, 0);
   });
 
@@ -210,15 +213,18 @@ describe("flags and quarantine (H2)", () => {
     const u = await newUser();
     const ri = await queryOne<{ id: string }>(
       `insert into review_items (objective_id, source_hash, question, choices, correct_index, why, model)
-       values ($1, 'h1', 'Review q', $2, 1, 'w', 'test') returning id`,
+       values ($1, md5('HTTPS defaults to port 443.'), 'Review q', $2, 1, 'w', 'test') returning id`,
       [objs[2], JSON.stringify(CHOICES)]
     );
-    assert.equal((await unseenItems(u, objs[2], "h1")).length, 1);
+    // REQ-218 (H1): the session builder reads its candidates through prepareContext
+    // (it replaced unseenItems), so the pulled-item filter is checked there.
+    const unseen = async () => (await prepareContext(u, [objs[2]])).get(objs[2])!.unseen.length;
+    assert.equal(await unseen(), 1);
     const ref: ItemRef = { kind: "review", itemId: ri!.id, objectiveId: objs[2], question: "Review q" };
     for (let i = 0; i < 3; i++) await recordFlag(ref, { userId: await newUser(), source: "learner" });
-    assert.equal((await unseenItems(u, objs[2], "h1")).length, 0);
+    assert.equal(await unseen(), 0);
     assert.equal(await clearItem(ref, "checked, key is right"), true);
-    assert.equal((await unseenItems(u, objs[2], "h1")).length, 1);
+    assert.equal(await unseen(), 1);
 
     const set = await queryOne<{ id: string }>(
       `insert into concept_sets (track_id, source, set_key, how_to_tell, dimensions) values ($1, 'generated', $2, 'h', '[]') returning id`,
@@ -411,7 +417,7 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
     ...extra,
   });
 
-  test("exam bank: an uncertain item is held without a check; the rest are checked in ONE call and only agreements publish", async () => {
+  test("exam bank: a low-confidence item is held without a check; the rest are checked in ONE call and only agreements publish", async () => {
     const u = await newUser();
     const o = objs[3];
     keys.set("Agreed stem", [1]);
@@ -421,7 +427,7 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
         ? agreeAll(b)
         : {
             items: [
-              mcItem("Uncertain stem", 1, { confidence: "medium", uncertainClaims: ["the 2026 default port changed"] }),
+              mcItem("Uncertain stem", 1, { confidence: "low", uncertainClaims: ["the 2026 default port changed"] }),
               mcItem("Agreed stem", 1),
               mcItem("Disputed stem", 1),
             ],
@@ -438,6 +444,27 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
     assert.deepEqual(held[0].claims, ["the 2026 default port changed"]);
   });
 
+  test("exam bank (REQ-216): listed claims alone do not hold an item back; a disagreeing check does, and an all-held batch is written once more with the claims", async () => {
+    const u = await newUser();
+    const o = objs[3];
+    keys.set("Listed stem", [1]);
+    keys.set("Wrong stem", [0]);
+    onParse = (b) => (isFactCheck(b) ? agreeAll(b) : { items: [mcItem("Listed stem", 1, { confidence: "medium", uncertainClaims: ["may differ by version"] })] });
+    const listed = await generateForObjective({ objectiveId: o, formats: ["multiple_choice"], exhibits: false, allowed: ["multiple_choice"], userId: u });
+    assert.deepEqual(listed.stored.map((x) => x.stem), ["Listed stem"]);
+    assert.equal(listed.held, 0);
+    // Everything held: the writer is asked again, steered with the claims.
+    parsedCalls.length = 0;
+    let writer = 0;
+    onParse = (b) => (isFactCheck(b) ? agreeAll(b) : (writer++, { items: [mcItem("Wrong stem", 1)] }));
+    const held = await generateForObjective({ objectiveId: o, formats: ["multiple_choice"], exhibits: false, allowed: ["multiple_choice"], userId: u });
+    assert.equal(held.stored.length, 0);
+    assert.equal(held.held, 2, "held on both attempts");
+    assert.equal(writer, 2, "one retry");
+    const writerCalls = parsedCalls.filter((c) => !isFactCheck(c));
+    assert.match(String(writerCalls[1].messages[0].content), /previous draft was not used because of these claims/);
+  });
+
   test("exam bank: when the check itself fails, nothing publishes (fails closed); with the gate off, all valid items do", async () => {
     const u = await newUser();
     const o = objs[3];
@@ -447,7 +474,11 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
     };
     const closed = await generateForObjective({ objectiveId: o, formats: ["multiple_choice"], exhibits: false, allowed: ["multiple_choice"], userId: u });
     assert.equal(closed.stored.length, 0);
-    assert.equal((await queryOne<{ reason: string }>(`select reason from item_holdbacks where objective_id = $1 order by created_at desc limit 1`, [o]))!.reason, "fact_check_error");
+    // REQ-216: a failed check CALL says nothing about the item: nothing is
+    // logged as a holdback, and it is reported as unchecked (retryable).
+    assert.equal(closed.unchecked, 1);
+    assert.equal(closed.held, 0);
+    assert.equal((await query<{ n: number }>(`select count(*)::int as n from item_holdbacks where objective_id = $1 and reason = 'fact_check_error'`, [o]))[0].n, 0);
     process.env.ITEM_FACT_CHECK = "off";
     try {
       const open = await generateForObjective({ objectiveId: o, formats: ["multiple_choice"], exhibits: false, allowed: ["multiple_choice"], userId: u });
@@ -457,22 +488,56 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
     }
   });
 
-  test("Quiz me: an uncertain or disputed question is held back with a message; an agreed one passes", async () => {
+  test("Quiz me (REQ-216): low confidence or a disagreeing check holds a question back twice with a reason; listed claims and an agreed one pass", async () => {
     const u = await newUser();
     const o = objs[0];
     const item = { question: "Default HTTPS port?", choices: CHOICES, correctIndex: 1, hints: ["a", "b"], explanation: "e", confidence: "high" as const, uncertainClaims: [] as string[] };
-    await assert.rejects(gateQuizItem(o, "Objective 1", { ...item, uncertainClaims: ["x"] }, u), UserFacingError);
-    assert.equal(parsedCalls.length, 0, "no check for an uncertain item");
-    keys.set("Default HTTPS port?", [3]);
-    onParse = agreeAll;
-    await assert.rejects(gateQuizItem(o, "Objective 1", item, u), UserFacingError);
+    const steers: Array<string | null | undefined> = [];
+    const gen = (made: typeof item | (Omit<typeof item, "confidence"> & { confidence: "low" })) => async (_o: string, _u: string, steer?: string | null) => {
+      steers.push(steer);
+      return made as never;
+    };
+    const holds = async () => (await query<{ reason: string }>(`select reason from item_holdbacks where objective_id = $1 and item_kind = 'quiz' order by created_at, id`, [o])).map((r) => r.reason);
+    // Low confidence twice: held, the retry is steered, the checker never runs.
+    await assert.rejects(
+      writeCheckedQuizItem(o, "Objective 1", u, gen({ ...item, confidence: "low", uncertainClaims: ["x"] })),
+      (e: unknown) => e instanceof HeldForAccuracyError && e.status === 409 && /wasn't confident/.test(e.message)
+    );
+    assert.equal(parsedCalls.length, 0, "no check for a low-confidence item");
+    assert.equal(steers[0], null);
+    assert.match(String(steers[1]), /- x/, "the retry is steered with the first attempt's claims");
+    // Listed claims alone (confidence high) do not hold it back: it is checked and passes.
     keys.set("Default HTTPS port?", [1]);
-    await gateQuizItem(o, "Objective 1", item, u);
-    const reasons = await query<{ reason: string }>(`select reason from item_holdbacks where objective_id = $1 and item_kind = 'quiz' order by created_at`, [o]);
-    assert.deepEqual(reasons.map((r) => r.reason), ["uncertain", "fact_check"]);
+    onParse = agreeAll;
+    await writeCheckedQuizItem(o, "Objective 1", u, gen({ ...item, uncertainClaims: ["version may differ"] }));
+    // The independent answer disagrees with the key: held twice, says why.
+    keys.set("Default HTTPS port?", [3]);
+    await assert.rejects(writeCheckedQuizItem(o, "Objective 1", u, gen(item)), (e: unknown) => e instanceof HeldForAccuracyError && /different answer/.test((e as Error).message));
+    keys.set("Default HTTPS port?", [1]);
+    await writeCheckedQuizItem(o, "Objective 1", u, gen(item));
+    assert.deepEqual(await holds(), ["uncertain", "uncertain", "fact_check", "fact_check"]);
   });
 
-  test("shared lesson: a disputed practice half is regenerated once; a second failure is kept and logged", async () => {
+  test("Quiz me (REQ-216): a failed fact-check CALL is a retryable 409, logs no holdback", async () => {
+    const u = await newUser();
+    const o = objs[1];
+    const item = { question: "Default SSH port?", choices: CHOICES, correctIndex: 1, hints: ["a", "b"], explanation: "e", confidence: "high" as const, uncertainClaims: [] as string[] };
+    onParse = () => {
+      throw new Error("provider down");
+    };
+    await assert.rejects(
+      writeCheckedQuizItem(o, "Objective 2", u, async () => item as never),
+      (e: unknown) => e instanceof FactCheckUnavailableError && e.status === 409
+    );
+    const n = (await query<{ n: number }>(`select count(*)::int as n from item_holdbacks where objective_id = $1 and item_kind = 'quiz'`, [o]))[0].n;
+    assert.equal(n, 0);
+    onParse = agreeAll;
+  });
+
+  // REQ-187 (audit 2026-11-09 R3/P1): a second failure is NOT served any
+  // more (it used to be kept and logged 'served_after_retry'), and a
+  // learner's own regenerate is fact-checked too (R4).
+  test("lesson: a disputed practice half is regenerated once; a second failure is never served; regenerates are checked too", async () => {
     const o = objs[1];
     const objRow: ObjectiveRow = { title: "Objective 2", unit_title: "Ports", track_title: "Web basics", ctx: null };
     const practice = (tag: string) => ({
@@ -497,15 +562,15 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
     assert.equal(steers.length, 1);
     assert.match(steers[0]!, /held back/);
     const alwaysFails = checker(DISAGREE);
-    const kept = await checkedPractice(o, objRow, practice("first"), { shared: true, gen: gen(alwaysFails), meta: {} });
-    assert.equal(kept.fadeProblem, "fade retry 2");
-    const reasons = await query<{ reason: string }>(`select reason from item_holdbacks where objective_id = $1 and item_kind = 'lesson' order by created_at`, [o]);
-    assert.deepEqual(reasons.map((r) => r.reason), ["fact_check", "fact_check", "served_after_retry"]);
-    // A learner's own regenerate is not fact-checked (not shared); its writer's
-    // uncertainty still triggers the one retry.
+    await assert.rejects(checkedPractice(o, objRow, practice("first"), { shared: true, gen: gen(alwaysFails), meta: {} }), ContentHeldBackError);
+    const held = await query<{ reason: string; claims: string[] }>(`select reason, claims from item_holdbacks where objective_id = $1 and item_kind = 'lesson' order by created_at`, [o]);
+    assert.deepEqual(held.map((r) => r.reason), ["fact_check", "fact_check", "fact_check"]);
+    assert.equal(held[2].claims[0], NOT_SERVED_MARK);
+    assert.ok(!held.some((r) => r.reason === "served_after_retry"));
+    // A learner's own regenerate is now fact-checked as well.
     const none = checker(DISAGREE);
-    const own = await checkedPractice(o, objRow, practice("own"), { shared: false, gen: gen(none), meta: {} });
-    assert.equal(own.fadeProblem, "fade own");
-    assert.equal(none.calls, 0);
+    await assert.rejects(checkedPractice(o, objRow, practice("own"), { shared: false, gen: gen(none), meta: { userId: undefined } }), ContentHeldBackError);
+    assert.equal(none.calls, 2, "checked, and the retry checked");
   });
+
 });

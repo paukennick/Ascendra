@@ -1,9 +1,10 @@
 import { getLessonFor } from "@/lib/lesson-store";
+import { requireStudyNotice } from "@/lib/study-notice";
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError, readJson } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { guessFeedbackPrompt, guessFeedbackSchema } from "@/lib/prompts";
 import { loadObjective } from "@/lib/lesson-generation";
-import { visibleObjective } from "@/lib/visibility";
+import { taughtObjective } from "@/lib/visibility";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForObjective,
@@ -12,6 +13,10 @@ import {
 import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { requireCourseAccessForObjective } from "@/lib/entitlements";
+
+// REQ-202: seconds this route may run (one fast-model call). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
 
 export const dynamic = "force-dynamic";
 
@@ -34,9 +39,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!g.ok) return badRequest(g.error);
 
     const user = await requireUser(req);
+    // REQ-205 (FAIL-907): this route sends what the learner wrote to the model, so
+    // the study notice that says so must have been accepted -- checked here, not
+    // only in the app.
+    await requireStudyNotice(user.id);
     // REQ-129: 404 for an objective in another user's private track, before
     // anything is read, rate-limited or sent to Anthropic.
-    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
+    if (!(await taughtObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     await requireCourseAccessForObjective(user.id, id); // REQ-122: Free studies one course
 
@@ -78,7 +87,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return ok({ feedback, guessMatch: guessMatch ?? null });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

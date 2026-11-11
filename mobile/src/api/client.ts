@@ -2,7 +2,11 @@
 // set in .env.local for local dev or in eas.json for production builds — see mobile/.env.example.
 
 import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "../lib/errorMessage.ts";
-import { studyNoticeGate } from "../lib/studyNotice.ts";
+import { isTermsRequired, LEGAL_VERSION_HEADER, TERMS_VERSION } from "../lib/legal.ts";
+import { isSignedOutAuthRoute, refreshOutcome, type RefreshResult } from "../lib/sessionStore.ts";
+import { isStudyNoticeRequired, studyNoticeGate } from "../lib/studyNotice.ts";
+import { askMatureConfirmation, hasMatureContentHandler, MatureContentDeclinedError, matureRefusalCategory } from "../lib/matureContent.ts";
+import { APP_PLATFORM_HEADER, APP_VERSION, APP_VERSION_HEADER, appHeaders, readUpdateRequired, type AppIdentity, type UpdateRequired } from "../lib/appVersion.ts";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 
@@ -31,13 +35,13 @@ export class ApiError extends Error {
 // AuthContext itself needs to call `api.post(...)`, so a direct import here
 // would be circular.
 let getAccessToken: (() => string | null) | null = null;
-let refreshAccessToken: (() => Promise<boolean>) | null = null;
+let refreshAccessToken: (() => Promise<RefreshResult>) | null = null;
 let onAuthExpired: (() => void) | null = null;
 let setAccessToken: ((token: string) => void) | null = null;
 
 export function registerAuthHooks(hooks: {
   getAccessToken: () => string | null;
-  refresh: () => Promise<boolean>;
+  refresh: () => Promise<RefreshResult>;
   onAuthExpired: () => void;
   setAccessToken?: (token: string) => void;
 }): void {
@@ -81,9 +85,58 @@ export function reissuedAccessToken(data: unknown): string | null {
 // POST /api/objectives/:id/hint. A request without the header is treated as
 // an app build from before this (no hint flow) and is sent the Solo choices
 // in the lesson, with the hint recorded (backend/lib/client-protocol.ts).
+// Protocol 2 (REQ-189): the app also renders interactive lab parts; below
+// 2 the server writes their options into the step text instead
+// (backend/lib/client-protocol.ts LAB_INTERACTIVE_PROTOCOL).
 // Raise it only together with the server's own check.
 export const CLIENT_PROTOCOL_HEADER = "X-Ascendra-Client";
-export const CLIENT_PROTOCOL = 1;
+export const CLIENT_PROTOCOL = 2;
+
+// REQ-175: the app build, sent on every request (src/lib/appVersion.ts).
+// src/updates/appIdentity.ts fills in the build and platform when the app
+// loads; until then (and in tests) the version alone is sent, so a request
+// is never mistaken for a pre-header build.
+let identityHeaders: Record<string, string> = { [APP_VERSION_HEADER]: `${APP_VERSION}+unknown` };
+
+export function setAppIdentity(identity: AppIdentity): void {
+  identityHeaders = appHeaders(identity);
+}
+
+// REQ-192: the web app's refresh token is an httpOnly cookie the server
+// sets on /api/auth/refresh (backend/lib/auth/refreshCookie.ts), so web
+// requests carry credentials (the Expo dev server is cross-origin; the
+// deployed app is same-origin). Native never sends cookies.
+export function isWebClient(): boolean {
+  return identityHeaders[APP_PLATFORM_HEADER] === "web";
+}
+
+// REQ-175: the server answers 426 { code: "update_required" } when this
+// build is below MIN_APP_VERSION. The root layout registers this to show the
+// "Update required" screen; the request still throws its ApiError.
+let onUpdateRequired: ((info: UpdateRequired) => void) | null = null;
+
+export function registerUpdateRequiredHook(hook: ((info: UpdateRequired) => void) | null): void {
+  onUpdateRequired = hook;
+}
+
+// REQ-217 (FAIL-1061): the server says the study notice is not accepted; the
+// onboarding provider registers this to reload its state (which opens the notice).
+let onStudyNoticeRequired: (() => void) | null = null;
+
+export function registerStudyNoticeRequiredHook(hook: (() => void) | null): void {
+  onStudyNoticeRequired = hook;
+}
+
+// REQ-226 (FAIL-1241): the server says the Terms and Privacy Policy are not
+// accepted (403 terms_required). Same shape as the study notice above: the
+// onboarding provider registers this to reload the launch state, whose gate
+// opens the Terms screen. The request is not retried; the screen still gets
+// its ApiError.
+let onTermsRequired: (() => void) | null = null;
+
+export function registerTermsRequiredHook(hook: (() => void) | null): void {
+  onTermsRequired = hook;
+}
 
 export const DEFAULT_TIMEOUT_MS = 15_000;
 export const MODEL_TIMEOUT_MS = 180_000;
@@ -129,6 +182,7 @@ const MODEL_ROUTES: readonly RegExp[] = [
   /^\/api\/units\/[^/?]+\/check(?:$|\?)/, // REQ-108: unit check written and graded
   /^\/api\/coach\/quiz(?:$|\?)/, // REQ-110: first ask of an objective writes its question
   /^\/api\/labs\/[^/?]+\/submit(?:$|\?)/, // REQ-123: a lab step is graded
+  /^\/api\/sims\/runs\/[^/?]+\/reasoning(?:$|\?)/, // REQ-190: a sim's written reasoning is graded
 ];
 
 export function requestTimeoutMs(path: string, override?: number): number {
@@ -139,6 +193,8 @@ export function requestTimeoutMs(path: string, override?: number): number {
 export interface RequestOptions {
   // Milliseconds before the request is abandoned with RequestTimeoutError.
   timeoutMs?: number;
+  // REQ-190: extra request headers (the sim routes read x-sim-caps).
+  headers?: Record<string, string>;
 }
 
 async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: number): Promise<T> {
@@ -153,11 +209,14 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
   let text: string;
   try {
     res = await fetch(`${BASE_URL}${path}`, {
+      ...(isWebClient() ? { credentials: "include" as const } : {}),
       ...options,
       signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
         [CLIENT_PROTOCOL_HEADER]: String(CLIENT_PROTOCOL),
+        ...identityHeaders,
+        [LEGAL_VERSION_HEADER]: TERMS_VERSION,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers ?? {}),
       },
@@ -183,6 +242,28 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
     const status = res.ok ? 502 : res.status;
     const err = new ApiError(httpErrorMessage(status, data, body.ok), status, data);
     if (!body.ok) (err as ApiError & { unreadable?: boolean }).unreadable = true;
+    const update = readUpdateRequired(status, data);
+    if (update && onUpdateRequired) {
+      try {
+        onUpdateRequired(update);
+      } catch {
+        /* the screen must never break the request's own error handling */
+      }
+    }
+    if (isStudyNoticeRequired(status, data) && onStudyNoticeRequired) {
+      try {
+        onStudyNoticeRequired();
+      } catch {
+        /* never let the reload break the request's own error handling */
+      }
+    }
+    if (isTermsRequired(status, data) && onTermsRequired) {
+      try {
+        onTermsRequired();
+      } catch {
+        /* never let the reload break the request's own error handling */
+      }
+    }
     if ((status === 402 || status === 429) && data && onBillingRefusal) {
       try {
         onBillingRefusal(status, data);
@@ -198,31 +279,67 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
   return data as T;
 }
 
-// One silent refresh-and-retry on a 401, never for /api/auth/* itself
-// (a 401 from login is just "wrong password", not "needs a refresh", and
-// retrying refresh's own 401 would recurse). A timeout is never retried
-// here: the screen's own Retry decides, reusing any idempotency key.
+export function isReauthRefusal(data: unknown): boolean {
+  return !!data && typeof data === "object" && (data as { reauthRequired?: unknown }).reauthRequired === true;
+}
+
+// One silent refresh-and-retry on a 401, except for the routes a signed-out
+// person calls (isSignedOutAuthRoute: a 401 from login is just "wrong
+// password", and retrying refresh's own 401 would recurse). REQ-217
+// (FAIL-1042): the other /api/auth/ routes -- logout-all, unlock, sessions --
+// need the session and do refresh. A timeout is never retried here: the
+// screen's own Retry decides, reusing any idempotency key.
+//
+// REQ-217 (FAIL-1041): when the refresh fails, only a 401 from it (the server
+// ended the session) signs the device out. Anything else -- offline, a
+// timeout, a 5xx -- throws that failure to the screen, which shows its calm
+// message and a retry, and the session stays.
+//
+// REQ-224: a 403 { code: "mature_content_required" } (a mental health course
+// opened or started without the 18+ confirmation) shows the mature-content
+// notice and, once it is confirmed and recorded, sends the request once more.
+// Closing the notice throws MatureContentDeclinedError; nothing else is sent.
 async function request<T>(
   path: string,
   options: RequestInit = {},
   opts: RequestOptions = {},
-  alreadyRetried = false
+  alreadyRetried = false,
+  matureAsked = false
 ): Promise<T> {
   const timeoutMs = requestTimeoutMs(path, opts.timeoutMs);
   // REQ-165: the study notice (with its AI data disclosure) comes before the first request
   // that sends the learner's own text to the AI provider.
   if (!alreadyRetried) await studyNoticeGate(options.method, path);
   try {
-    return await rawRequest<T>(path, options, timeoutMs);
+    return await rawRequest<T>(path, opts.headers ? { ...options, headers: { ...(options.headers as Record<string, string> | undefined), ...opts.headers } } : options, timeoutMs);
   } catch (err) {
+    // REQ-177: a 401 that says "confirm it's you" (wrong password or code,
+    // lib/auth/reauth.ts) is about what was typed, not the session. Refreshing
+    // and resending it spent a second try from the 10-per-15-minutes budget
+    // and rotated the refresh token for nothing.
     const canRetry =
-      err instanceof ApiError && err.status === 401 && !alreadyRetried && refreshAccessToken && !path.startsWith("/api/auth/");
+      err instanceof ApiError &&
+      err.status === 401 &&
+      !isReauthRefusal(err.data) &&
+      !alreadyRetried &&
+      refreshAccessToken &&
+      !isSignedOutAuthRoute(path);
     if (canRetry) {
-      const refreshed = await refreshAccessToken!();
-      if (refreshed) {
-        return request<T>(path, options, opts, true);
+      const result = await refreshAccessToken!();
+      const outcome = refreshOutcome(result);
+      if (outcome === "refreshed") {
+        return request<T>(path, options, opts, true, matureAsked);
       }
-      onAuthExpired?.();
+      if (outcome === "expired") {
+        onAuthExpired?.();
+      } else if (typeof result === "object" && result.error instanceof Error) {
+        throw result.error;
+      }
+    }
+    const mature = err instanceof ApiError ? matureRefusalCategory(err.status, err.data) : null;
+    if (mature && !matureAsked && hasMatureContentHandler() && !path.startsWith("/api/mature-content")) {
+      if (!(await askMatureConfirmation(mature, path.startsWith("/api/intake") ? "intake" : "course"))) throw new MatureContentDeclinedError();
+      return request<T>(path, options, opts, alreadyRetried, true);
     }
     throw err;
   }
