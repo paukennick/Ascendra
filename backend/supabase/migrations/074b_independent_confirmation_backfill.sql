@@ -74,6 +74,9 @@ create table if not exists mastery_backup_074 (
     backed_up_at timestamptz not null default now()
 );
 create index if not exists idx_mastery_backup_074_user on mastery_backup_074(user_id);
+-- RLS on every public table (052's probe); app_runtime_sync() below adds the
+-- app_runtime policy and grants.
+alter table mastery_backup_074 enable row level security;
 
 insert into mastery_backup_074 (mastery_id, user_id, objective_id, status, score_0_4, evidence, updated_at)
 select id, user_id, objective_id, status, score_0_4, evidence, updated_at from mastery
@@ -91,3 +94,6 @@ select m.id, m.user_id, m.objective_id, m.updated_at, true
  where m.updated_at = now()
    and not exists (select 1 from mastery_backup_074 b where b.mastery_id = m.id)
 on conflict (mastery_id) do nothing;
+
+-- 4. app_runtime (REQ-207): the new table gets its policy and grants.
+select app_runtime_sync();
