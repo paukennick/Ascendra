@@ -7694,6 +7694,43 @@
       "risk_notes": [
         "a runaway agent can now use more turns before it stops; the lead still caps work by instruction"
       ]
+    },
+    {
+      "id": "REQ-225",
+      "category": "feature",
+      "title": "Sims: client session screen type (people layer) and the first three EPPP cases (EPPP-B)",
+      "description": "A client session renderer (screen type session) for mental-health courses behind SIMS_RENDERERS and on by default, and three EPPP scenarios registered by course code and exact objective title: suicide risk and safety planning, duty to warn and protect (Washington), and a DSM-5-TR diagnostic intake. Nick approved 2026-11-10 (quality over speed).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/EPPP",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "session renderer behind SIMS_RENDERERS with session@1 capability",
+        "accessibility to the bedside and board standard",
+        "three EPPP scenarios with golden paths Good Mediocre Bad",
+        "seed resolves course code and objective title and fails clearly",
+        "no engine stepping change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture",
+        "sims DB tests",
+        "mobile tsc and npm test"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.3",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "FAIL-1222 open: tamponade code_epiHarm unreachable on the server in jsonb key order; needs Nick's decision (engine ending order or content fix). EPPP course must land before npm run seed (seed stops plainly until then)."
+      ]
     }
   ]
 }
