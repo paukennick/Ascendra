@@ -12254,6 +12254,57 @@
       ],
       "prevention_notes": "ci.yml runs the summary tests; workflow-hardening and operations-g6 tests cover pins, Node and token placement",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1190",
+      "date": "2026-11-10",
+      "title": "Sim seed stops on an impossible source re-check date",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "npm run seed failed: date/time field value out of range: \"2027-04-31\" while inserting sim_versions.sources_recheck_by for CCRNADULT/bleeding-after-whipple.",
+      "how_detected": "npm run seed on a throwaway Postgres during REQ-223",
+      "root_cause": "earliestRecheck's addMonths added months to the year and month but kept the day, so any source checked on the 29th, 30th or 31st could land on a day the target month does not have. The existing documents all used dates early in the month, so it never surfaced.",
+      "requirement": "REQ-223",
+      "affected": [
+        "backend/lib/sim/content-hash.ts",
+        "backend/supabase/seed/sims-seed.ts"
+      ],
+      "fix_summary": "addMonths clamps the day to the last day of the target month and is exported for a test.",
+      "fix_commits": [
+        "556df08"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts::source re-check dates are real calendar dates"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every seeded document's earliest re-check date is asserted to be a real calendar date at 6 and 12 months; the engine's staleness check in validate.ts has the same arithmetic but only compares strings, left for an engine change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1191",
+      "date": "2026-11-10",
+      "title": "Fall sim time_up debrief repeated its ending narrative",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim/documents.test.ts 'client document leaks nothing server-only' failed: CNA/resident-found-on-floor: server-only text reaches the client: The run reached its time limit.",
+      "how_detected": "backend npm test after the third scenario's commit",
+      "root_cause": "The server-only debrief body for time_up was written with the same sentence as the client-visible ending narrative, so the leak test could not tell them apart; the debrief text must differ from anything the client document carries.",
+      "requirement": "REQ-223",
+      "affected": [
+        "backend/supabase/seed/sims/CNA/resident-found-on-floor.sim.json"
+      ],
+      "fix_summary": "The time_up debrief now says what was left undone (the note and the huddle).",
+      "fix_commits": [
+        "556df08"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts::client document leaks nothing server-only"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The leak test runs on every seeded document under npm test.",
+      "recurrence_of": ""
     }
   ]
 }
