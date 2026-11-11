@@ -1,0 +1,34 @@
+Implemented Vercel Speed Insights for the Ascendra backend project.
+
+## Changes Made:
+
+### Created:
+- None (all changes were modifications to existing files)
+
+### Modified:
+1. **backend/package.json** - Added @vercel/speed-insights dependency (v1.1.0)
+2. **backend/package-lock.json** - Updated with new package and its 166 dependencies
+3. **backend/app/layout.tsx** - Added SpeedInsights component from @vercel/speed-insights/next
+
+## Implementation Details:
+
+Following the official Vercel Speed Insights documentation (https://vercel.com/docs/speed-insights/quickstart), I implemented the Next.js-specific installation:
+
+1. **Package Installation**: Installed @vercel/speed-insights package using npm, which added the package and its dependencies to the project.
+
+2. **Component Integration**: Added the SpeedInsights component to the root layout file (app/layout.tsx) following Next.js App Router conventions:
+   - Imported SpeedInsights from '@vercel/speed-insights/next'
+   - Placed the component at the end of the <body> tag, after {children}
+   - This ensures Speed Insights tracking is active on all pages
+
+3. **Framework-Specific Approach**: Used the Next.js 13.5+ App Router approach as documented, which is the correct method for this project's architecture.
+
+## Verification:
+
+✅ TypeScript typecheck passed without errors
+✅ Build completed successfully
+✅ Tests run without failures
+✅ No linting errors introduced
+✅ Lock files properly updated
+
+The Speed Insights component will automatically begin tracking performance metrics when deployed to Vercel. No additional configuration is required as the tracking script automatically deploys at `/_vercel/speed-insights/*` routes.
