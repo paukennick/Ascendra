@@ -871,7 +871,7 @@ describe("schema", () => {
     const status = await checkSchema(async (sql) => (await dbPool.query<{ ok: boolean }>(sql)).rows);
     assert.ok(!status.missing.some((m) => m.migration === "073_sim_pacing_commands.sql"), JSON.stringify(status.missing));
     const sql = readFileSync(join(__dirname, "..", "supabase", "migrations", "073_sim_pacing_commands.sql"), "utf8");
-    const c = await dbPool.connect();
+    const c = await ownerClient(); // replaying a migration is an owner job (REQ-207)
     try {
       await c.query("begin");
       await c.query(sql);
