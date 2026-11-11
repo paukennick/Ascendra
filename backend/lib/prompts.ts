@@ -91,6 +91,27 @@ export function quoteTitle(title: string): string {
   return JSON.stringify(one.length > 160 ? `${one.slice(0, 157)}...` : one);
 }
 
+// REQ-220 (FAIL-1140): the reasoning model named in clinical framing
+// follows the profession. The healthcare category holds nursing, physical
+// therapy and EMS courses; a PT course was told to reason by "the nursing
+// process".
+const NURSING_SUBCATEGORIES = new Set([
+  "nclex-preparation",
+  "nursing-licensure",
+  "nursing-degrees",
+  "nursing-specialty-certifications",
+  "advanced-practice-nursing",
+  "patient-care-fundamentals",
+]);
+export function clinicalReasoningFrame(subcategorySlug: string | null | undefined): string {
+  if (subcategorySlug === "physical-therapy")
+    return "the physical therapy patient/client management model -- examination, evaluation, diagnosis, prognosis, plan of care, intervention and outcomes -- and the physical therapist's or assistant's scope";
+  if (subcategorySlug === "emergency-medical-services")
+    return "scene safety, the primary assessment with life threats treated as found, then history, secondary assessment and reassessment, within the EMS provider's scope";
+  if (subcategorySlug && NURSING_SUBCATEGORIES.has(subcategorySlug)) return "the nursing process or clinical-reasoning cycle";
+  return "the profession's own clinical-reasoning model and scope of practice";
+}
+
 export function domainFraming(ctx?: CoachContext): string {
   if (!ctx) return "";
   const lines: string[] = [];
@@ -108,7 +129,7 @@ export function domainFraming(ctx?: CoachContext): string {
     lines.push(
       "This is clinical exam-preparation content, not clinical guidance for a real patient. Align to the " +
         "published content outline, use standard clinical terminology, and reason the way the exam expects " +
-        "(safety and priority first; the nursing process or clinical-reasoning cycle; evidence-based " +
+        `(safety and priority first; ${clinicalReasoningFrame(ctx.subcategorySlug)}; evidence-based ` +
         "practice). Where real guidelines vary by jurisdiction or institution, say so rather than asserting one."
     );
   }

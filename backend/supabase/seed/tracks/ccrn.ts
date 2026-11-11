@@ -196,6 +196,10 @@ const NURSING_DISCLAIMER_KEY = "nursing-clinical-content";
 // 3 hours, 150 multiple-choice items (125 scored, 25 unscored pretest).
 // Category weights: 13 / 12 / 21 / 18 / 16 / 20.
 // ---------------------------------------------------------------------------
+// REQ-220: a line using a retired term is retired in place (id and history
+// kept) and its replacement appended to the same unit.
+const CCRN_REQ220_RETIRED_AT = "2026-11-10T00:00:00Z";
+
 export const CCRN_ADULT_TRACK: SeedTrack = {
   code: "CCRNADULT",
   title: "Prep for the CCRN (Adult) Exam",
@@ -330,7 +334,10 @@ export const CCRN_ADULT_TRACK: SeedTrack = {
         "Support a patient with pulmonary hemorrhage through bronchoscopic control of bleeding (vasoconstrictors, tamponade, iced-saline lavage)",
         "Give ventilated patients stress-ulcer and venous-thromboembolism prophylaxis, and monitor corticosteroid-treated patients for hyperglycemia and infection",
         "Assess and treat pain in intubated patients alongside sedation, using behavioral pain tools when the patient cannot self-report",
+        // REQ-220 (FAIL-1139): replaces the retired HCAP category (Kalil et al., IDSA/ATS HAP/VAP guideline, Clin Infect Dis 2016;63(5):e61-e111).
+        "Classify pneumonia as community-acquired, hospital-acquired (HAP), ventilator-associated (VAP) or aspiration -- the 2016 IDSA/ATS guideline retired the 'healthcare-associated pneumonia' category -- and reduce aspiration risk in the critically ill",
       ],
+      objectiveRetiredAt: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, CCRN_REQ220_RETIRED_AT, null, null, null, null],
     },
     {
       title: "Endocrine, Hematology/Immunology, GI, Renal/GU, Integumentary",

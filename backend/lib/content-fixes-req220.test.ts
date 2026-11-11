@@ -88,3 +88,27 @@ describe("REQ-220 study-emphasis weights (FAIL-1136)", () => {
     assert.equal(r.coveragePercent, 50, "one of two objectives, not 80% of an exam");
   });
 });
+
+describe("REQ-220 clinical framing follows the profession (FAIL-1140)", () => {
+  test("PT and EMS courses are not told to reason by the nursing process; nursing courses still are", async () => {
+    const { domainFraming } = await import("./prompts");
+    const base = { trackTitle: "T", trackType: "certification", categorySlug: "healthcare-nursing", categoryName: "Healthcare & Nursing" };
+    const pt = domainFraming({ ...base, subcategorySlug: "physical-therapy" });
+    assert.doesNotMatch(pt, /nursing process/);
+    assert.match(pt, /patient\/client management model/);
+    const ems = domainFraming({ ...base, subcategorySlug: "emergency-medical-services" });
+    assert.doesNotMatch(ems, /nursing process/);
+    assert.match(ems, /primary assessment/);
+    assert.match(domainFraming({ ...base, subcategorySlug: "nclex-preparation" }), /the nursing process/);
+    assert.doesNotMatch(domainFraming({ ...base, subcategorySlug: "health-informatics" }), /nursing process/);
+  });
+});
+
+describe("REQ-220 CCRN pneumonia terms (FAIL-1139)", () => {
+  test("the retired 'healthcare-associated pneumonia' category is no longer taught as current", () => {
+    const lines = active("CCRNADULT").filter((o) => /pneumonia/i.test(o) && /Classify/.test(o));
+    assert.equal(lines.length, 1);
+    assert.match(lines[0], /hospital-acquired \(HAP\), ventilator-associated \(VAP\)/);
+    assert.doesNotMatch(lines[0], /community-acquired, healthcare-associated,/);
+  });
+});

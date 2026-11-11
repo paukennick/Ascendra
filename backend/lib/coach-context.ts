@@ -19,6 +19,9 @@ export interface CoachContext {
   categorySlug?: string | null;
   categoryName?: string | null;
   subcategoryName?: string | null;
+  // REQ-220: the subcategory's slug, so clinical framing can follow the
+  // profession (nursing, physical therapy, EMS) rather than the category.
+  subcategorySlug?: string | null;
   credentialName?: string | null;
   providerName?: string | null;
   examCode?: string | null;
@@ -36,6 +39,7 @@ interface ContextRow {
   category_slug: string | null;
   category_name: string | null;
   subcategory_name: string | null;
+  subcategory_slug: string | null;
   credential_name: string | null;
   provider_name: string | null;
   exam_code: string | null;
@@ -51,6 +55,7 @@ function rowToContext(row: ContextRow): CoachContext {
     categorySlug: row.category_slug,
     categoryName: row.category_name,
     subcategoryName: row.subcategory_name,
+    subcategorySlug: row.subcategory_slug,
     credentialName: row.credential_name,
     providerName: row.provider_name,
     examCode: row.exam_code,
@@ -77,7 +82,7 @@ const TRACK_JOINS = `
 const TRACK_FIELDS = `
   st.title as track_title, st.track_type::text as track_type,
   case when st.user_id is null then st.code end as track_code,
-  ec.slug as category_slug, ec.name as category_name, esc.name as subcategory_name,
+  ec.slug as category_slug, ec.name as category_name, esc.name as subcategory_name, esc.slug as subcategory_slug,
   c.name as credential_name, cp.name as provider_name, ce.exam_code`;
 
 export async function coachContextForTrack(trackId: string): Promise<CoachContext | null> {
