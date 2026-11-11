@@ -2,6 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
+import { useAuth } from "@/auth/AuthContext";
+import { Alert } from "@/lib/alert";
+import { reasoningDraftKey } from "@/lib/drafts";
 import { Badge, Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, Screen } from "@/components/ui";
 import { colors, spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
@@ -46,6 +49,7 @@ export default function SimScreen() {
   const [info, setInfo] = useState<SimInfo | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const sim = useSimRun(simId);
+  const { user } = useAuth();
   const announcer = useRef(newAnnouncer());
   // REQ-209: the launch card's pick; the scenario's default pace until changed.
   const [pick, setPick] = useState<LaunchChoice | null>(null);
@@ -118,7 +122,21 @@ export default function SimScreen() {
             <>
               {sim.error ? <ErrorBanner message={sim.error} onRetry={() => sim.start(false)} /> : null}
               <Button label={info.openRun ? "Continue the run" : "Start the simulation"} icon="play" onPress={() => sim.start(false)} />
-              {info.openRun ? <Button label="Start over" variant="link" size="sm" fullWidth={false} onPress={() => sim.start(true)} /> : null}
+              {info.openRun ? (
+                <Button
+                  label="Start over"
+                  variant="link"
+                  size="sm"
+                  fullWidth={false}
+                  onPress={() =>
+                    // REQ-217 (FAIL-1052): it throws away the run in progress.
+                    Alert.alert("Start over?", "This discards the run in progress and begins a new one. Nothing from the discarded run counts toward mastery.", [
+                      { text: "Keep my run", style: "cancel" },
+                      { text: "Start over", style: "destructive", onPress: () => void sim.start(true) },
+                    ])
+                  }
+                />
+              ) : null}
             </>
           )}
         </>
@@ -167,6 +185,8 @@ export default function SimScreen() {
             </Card>
           ) : null}
           {sim.notice ? <Card><View accessibilityLiveRegion="polite"><Muted>{sim.notice}</Muted></View></Card> : null}
+          {/* REQ-217 (FAIL-1053): a reload that failed left this view frozen with nothing said. */}
+          {sim.status === "error" && sim.error ? <ErrorBanner message={sim.error} onRetry={() => sim.start(false)} retryLabel="Reload the run" /> : null}
           {sim.status === "lease_lost" ? <Button label="Continue on this device" icon="smartphone" onPress={() => sim.start(false)} /> : null}
           {view.banner ? <Card><View accessibilityLiveRegion="polite"><Body>{view.banner}</Body></View></Card> : null}
 
@@ -179,6 +199,7 @@ export default function SimScreen() {
             <ReasoningCard
               key={view.reasoning.id}
               question={view.reasoning.question}
+              draftKey={user ? reasoningDraftKey(user.id, s.runId, view.reasoning.id) : null}
               onSubmit={sim.submitReasoning}
               onSkip={() => sim.closeReasoning(false)}
               onContinue={() => sim.closeReasoning(true)}
@@ -193,7 +214,13 @@ export default function SimScreen() {
           {view.outputs.map((o) => <Card key={o.key}><Body>{o.text}</Body></Card>)}
           <EventLog log={view.log} finding={view.finding} />
           {sim.status === "finishing" ? <Loading label="Confirming the ending with the server..." /> : null}
-          {!view.ended ? <Button label="End the run" variant="link" size="sm" fullWidth={false} accessibilityLabel="End the run early. Nothing is recorded for mastery." onPress={() => { sim.quit(); }} /> : null}
+          {!view.ended ? <Button label="End the run" variant="link" size="sm" fullWidth={false} accessibilityLabel="End the run early. Nothing is recorded for mastery." onPress={() => {
+            // REQ-217 (FAIL-1052): ending early records nothing for mastery; one tap shouldn't do it.
+            Alert.alert("End the run?", "Nothing from this run is recorded for mastery.", [
+              { text: "Keep going", style: "cancel" },
+              { text: "End the run", style: "destructive", onPress: () => { sim.quit(); } },
+            ]);
+          }} /> : null}
           {/* REQ-199: the moment the learner saw (tick, state hash) goes with the report. */}
           <ReportProblem
             key={`report-${s.runId}`}

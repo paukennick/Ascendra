@@ -208,8 +208,21 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s --health-timeout 5s --health-retries 10
+      # FAIL-1160: a SECOND server for the restore, which has never seen the
+      # app's roles (roles belong to the cluster, and the source above gets
+      # app_runtime and content_recheck from its migrations). Restoring into
+      # the source's own cluster hid that a dump cannot restore without them.
+      postgres-restore:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       ADMIN_URL: postgres://postgres:postgres@localhost:5432/postgres
+      RESTORE_ADMIN_URL: postgres://postgres:postgres@localhost:5433/postgres
       PGSSLMODE: disable
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -255,7 +268,7 @@ jobs:
       # this fails on any OTHER high or critical advisory in the production
       # dependencies, and on a listed one that has been fixed (so the list
       # shrinks). Moderate and low are printed, not blocking.
-      - run: node --test .github/scripts/audit-gate.test.mjs .github/scripts/pin-lib.test.mjs
+      - run: node --test .github/scripts/audit-gate.test.mjs .github/scripts/pin-lib.test.mjs .github/scripts/eas-build-summary.test.mjs
       - name: npm audit (production dependencies, blocking)
         run: |
           npm audit --omit=dev --json > "$RUNNER_TEMP/mobile-audit.json" || true

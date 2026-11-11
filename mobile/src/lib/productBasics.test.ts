@@ -189,10 +189,12 @@ describe("study reminders (M7)", () => {
     assert.equal(shiftTime(0, -15), 24 * 60 - 15);
     assert.equal(shiftTime(24 * 60 - 15, 15), 0);
   });
-  test("the settings are per user and swept by Log out", () => {
+  test("the settings are per user, and Log out keeps them (REQ-217, FAIL-1057)", () => {
     const key = reminderKey("user-1");
-    assert.equal(localDataOwner(key), "user-1");
-    assert.deepEqual(userLocalDataKeys([key, reminderKey("user-2"), "ascendra.reminders"], "user-1"), [key]);
+    assert.equal(localDataOwner(key), "user-1", "still owned, so a signed-out user's write is blocked");
+    assert.deepEqual(userLocalDataKeys([key, reminderKey("user-2"), "ascendra.reminders"], "user-1"), [], "the setting is not swept");
+    const plan = "ascendra.reminderPlan.user-1";
+    assert.deepEqual(userLocalDataKeys([key, plan], "user-1"), [plan], "the plan names topics and is swept");
   });
 });
 

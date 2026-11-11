@@ -18,6 +18,7 @@ const PROD = {
   RESEND_API_KEY: "r",
   AUTH_ENCRYPTION_KEY: Buffer.alloc(32, 1).toString("base64"),
   CHOICE_ORDER_SECRET: "c",
+  CRON_SECRET: "cr",
   ANTHROPIC_API_KEY: "k",
   EMAIL_FROM: "Ascendra <no-reply@ascendra-learn.com>",
 };

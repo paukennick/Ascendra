@@ -70,3 +70,19 @@ export function friendlyError(err: unknown, opts: { kept?: boolean } = {}): stri
   }
   return "Something didn't work. Try again in a moment." + suffix;
 }
+
+// REQ-217 (FAIL-1045): the message for a failed sign-in-screen request. Offline,
+// a timeout and a server answer show their own calm text; only an error with no
+// message of its own gets the screen's fallback. These screens used to check
+// `err instanceof ApiError`, so being offline read "Something went wrong".
+export function messageOr(err: unknown, fallback: string): string {
+  if (err instanceof Error) {
+    const own =
+      (err as { friendly?: boolean }).friendly ||
+      err.name === "RequestTimeoutError" ||
+      isNetworkFailure(err) ||
+      typeof (err as { status?: unknown }).status === "number";
+    if (own) return friendlyError(err);
+  }
+  return fallback;
+}

@@ -214,7 +214,7 @@ export default function MfaSettings() {
     setError(null);
     let idToken: string | null = null;
     try {
-      idToken = await googleSignInAsync();
+      idToken = await withBackgroundHold(() => googleSignInAsync());
     } catch {
       idToken = null;
     }
@@ -234,13 +234,16 @@ export default function MfaSettings() {
     setBusy(true);
     try {
       const res = await api.post<{ backupCodes: string[] }>("/api/auth/mfa/enable", { code: code.trim() });
-      await refreshUser();
+      // REQ-217 (FAIL-1047): two-factor is on as soon as the server said so, and
+      // the backup codes are shown once and never kept -- so they come on
+      // screen first, and a failed profile reload cannot take them away.
       if (res.backupCodes.length > 0) {
         setBackupCodes(res.backupCodes);
         setView("backup-codes");
       } else {
         setView("status");
       }
+      await refreshUser().catch(() => undefined);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Couldn't confirm that code.");
     } finally {
@@ -285,13 +288,16 @@ export default function MfaSettings() {
     setBusy(true);
     try {
       const res = await api.post<{ backupCodes: string[] }>("/api/auth/mfa/email/enable", { code: code.trim() });
-      await refreshUser();
+      // REQ-217 (FAIL-1047): two-factor is on as soon as the server said so, and
+      // the backup codes are shown once and never kept -- so they come on
+      // screen first, and a failed profile reload cannot take them away.
       if (res.backupCodes.length > 0) {
         setBackupCodes(res.backupCodes);
         setView("backup-codes");
       } else {
         setView("status");
       }
+      await refreshUser().catch(() => undefined);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Couldn't confirm that code.");
     } finally {
@@ -322,7 +328,7 @@ export default function MfaSettings() {
         setNeedsConfirmation(true);
         return;
       }
-      await refreshUser();
+      await refreshUser().catch(() => undefined);
       setPassword("");
       setConfirmationCode("");
       setNeedsConfirmation(false);
