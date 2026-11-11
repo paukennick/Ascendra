@@ -14,7 +14,7 @@ import { pacingEligible } from "./server-run.ts";
 
 const docOf = (slug: string): ScenarioDoc => loadDocument(EPPP_SESSION_DOCUMENTS.find((e) => e.slug === slug)!);
 const clone = (d: ScenarioDoc): ScenarioDoc => JSON.parse(JSON.stringify(d)) as ScenarioDoc;
-const errors = (d: ScenarioDoc): string[] => validateScenario(d).map((p) => (typeof p === "string" ? p : `${p.path}: ${p.message}`));
+const errors = (d: ScenarioDoc): string[] => validateScenario(d).map(String);
 
 function driver(doc: ScenarioDoc) {
   const run: Run = createRun(doc, 1);

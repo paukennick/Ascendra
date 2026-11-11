@@ -1508,28 +1508,28 @@
       "label": "Left at risk",
       "class": "harm",
       "terminal": true,
-      "when": "documented and (not siKnown or (dispo != \"ed\" and (count(plan) == 0 or not meansAsked)))",
+      "when": "documented and not walkedOut and (not siKnown or (dispo != \"ed\" and (count(plan) == 0 or not meansAsked)))",
       "narrative": "Theo went home with his risk {siKnown ? \"known but\" : \"never\"} {siKnown ? \"not acted on\" : \"assessed\"}: no safety plan or no question about the handgun in his closet."
     },
     "safeOutpatient": {
       "label": "Safe for now, with a plan",
       "class": "target",
       "terminal": true,
-      "when": "documented and not walkedOut and siKnown and timeAt(siAskedAt) <= safetyWindow and methodAsked and intentAsked and planAsked and historyAsked and meansSecured and count(plan) >= planComplete and \"pros\" in plan and followUp == \"call48\" and riskDoc == \"moderate\" and dispo == \"outpatient\" and not contractUsed and rapport >= allianceTarget",
+      "when": "documented and not walkedOut and siKnown and timeAt(siAskedAt) <= safetyWindow and methodAsked and intentAsked and planAsked and historyAsked and meansSecured and count(plan) >= planComplete and \"pros\" in plan and followUp == \"call48\" and riskDoc == \"moderate\" and dispo == \"outpatient\" and not contractUsed and rapport >= allianceTarget and not (not siKnown or (dispo != \"ed\" and (count(plan) == 0 or not meansAsked)))",
       "narrative": "Theo left with a written safety plan in his own words, his sister on the way to collect the handgun, 988 in his phone and a call from you in two days."
     },
     "edReferral": {
       "label": "Sent for an emergency evaluation",
       "class": "recovered",
       "terminal": true,
-      "when": "documented and dispo == \"ed\"",
+      "when": "documented and not walkedOut and dispo == \"ed\" and not (not siKnown or (dispo != \"ed\" and (count(plan) == 0 or not meansAsked)))",
       "narrative": "Theo agreed, reluctantly, to an emergency evaluation. He was assessed and sent home that evening; he says he is not sure he will come back."
     },
     "safeGaps": {
       "label": "Safe for now, with gaps",
       "class": "recovered",
       "terminal": true,
-      "when": "documented",
+      "when": "documented and not walkedOut and dispo != \"ed\" and not (not siKnown or (dispo != \"ed\" and (count(plan) == 0 or not meansAsked))) and not (documented and not walkedOut and siKnown and timeAt(siAskedAt) <= safetyWindow and methodAsked and intentAsked and planAsked and historyAsked and meansSecured and count(plan) >= planComplete and \"pros\" in plan and followUp == \"call48\" and riskDoc == \"moderate\" and dispo == \"outpatient\" and not contractUsed and rapport >= allianceTarget)",
       "narrative": "Theo left with some protection in place, but parts of the assessment, the plan or the follow-up were late or missing."
     },
     "time_up": {

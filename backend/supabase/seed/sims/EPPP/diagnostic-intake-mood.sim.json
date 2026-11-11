@@ -1121,7 +1121,7 @@
       }
     },
     "noProgress": {
-      "when": "documented and dx == \"defer\"",
+      "when": "documented and siAsked and dx == \"defer\"",
       "class": "recovered",
       "rationale": "Deferring the diagnosis after one session is safe when the information is incomplete; it delays treatment but harms no one, so it is recovered, not harm.",
       "source": {
@@ -1151,7 +1151,7 @@
       "label": "No suicide screen",
       "class": "harm",
       "terminal": true,
-      "when": "documented and not siAsked",
+      "when": "documented and not siAsked and not (dx == \"mdd\" or dx == \"adj\")",
       "narrative": "Jamie left a depression intake without anyone asking about thoughts of death or suicide."
     },
     "accurate": {
@@ -1165,14 +1165,14 @@
       "label": "Diagnosis deferred",
       "class": "recovered",
       "terminal": true,
-      "when": "documented and dx == \"defer\"",
+      "when": "documented and siAsked and dx == \"defer\"",
       "narrative": "You deferred the diagnosis pending more information. Safe, but Jamie leaves without an answer, and treatment waits."
     },
     "gaps": {
       "label": "A diagnosis, with gaps",
       "class": "recovered",
       "terminal": true,
-      "when": "documented",
+      "when": "documented and siAsked and (dx == \"bp2\" or dx == \"bp1\") and not (documented and not walkedOut and dx == \"bp2\" and next == \"workup\" and hypoDetail and moodAsked and neuroAsked and cogAsked and courseAsked and substanceAsked and medicalAsked and siAsked and rapport >= allianceTarget)",
       "narrative": "The diagnosis or the next step is not wrong in a way that hurts Jamie now, but the criteria below show what is missing."
     },
     "time_up": {

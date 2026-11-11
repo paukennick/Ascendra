@@ -1233,7 +1233,7 @@
       "label": "No one was protected",
       "class": "harm",
       "terminal": true,
-      "when": "documented and not (policeNotified and victimWarned)",
+      "when": "documented and not overShared and not (policeNotified and victimWarned)",
       "narrative": "Evan went home with his rifle and his plan for Saturday, and {threatActual ? \"the threat you heard\" : \"a threat you never uncovered\"} reached no one who could act on it."
     },
     "protected": {
@@ -1247,14 +1247,14 @@
       "label": "Protected, after an early disclosure",
       "class": "recovered",
       "terminal": true,
-      "when": "documented and premature",
+      "when": "documented and not overShared and premature and (policeNotified and victimWarned)",
       "narrative": "The calls were made before you knew there was a threat. It turned out there was one, but the disclosure was a guess, and Evan's trust took the hit."
     },
     "protectedGaps": {
       "label": "Protected, with gaps",
       "class": "recovered",
       "terminal": true,
-      "when": "documented",
+      "when": "documented and not overShared and not premature and (policeNotified and victimWarned) and not (documented and not walkedOut and not overShared and not premature and threatActual and timeAt(exploredAt) <= safetyWindow and policeNotified and victimWarned and clientTold and meansRemoved and consulted and threatDoc == \"actual\" and actionsDoc == \"both\" and rapport >= allianceTarget)",
       "narrative": "The duty was discharged, but parts of the assessment, the work with Evan or the record were late or missing."
     },
     "time_up": {
