@@ -11,6 +11,7 @@ import { Body, Button, CONTENT_MAX_WIDTH, EmptyState, ErrorBanner, H1, LiveAnnou
 import { CHAT_DRAFT_MAX, chatDraftKey, chatDraftPayload, chatDraftText } from "@/lib/drafts";
 import { colors, radius, spacing } from "@/lib/theme";
 import { useStoredDraft } from "@/lib/useStoredDraft";
+import { useKeyboardOverlap } from "@/lib/useKeyboardOverlap";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ReportCoachReply } from "@/components/ReportCoachReply";
 import { COACH_PREVIEW_BODY, COACH_PREVIEW_TITLE, aiAccessSignalOf, hasFullAi } from "@/lib/aiAccess";
@@ -48,6 +49,9 @@ export default function ChatScreen() {
   // REQ-165: edge-to-edge (Android 15+ targets, enforced at API 36) draws
   // under the navigation bar; keep the message box above it.
   const insets = useSafeAreaInsets();
+  // REQ-217 (FAIL-1062): Android 15+ no longer resizes for the keyboard.
+  const wrapRef = useRef<View>(null);
+  const overlap = useKeyboardOverlap(wrapRef);
 
   // REQ-131: an unsent message survives leaving the screen. Per user and
   // course; a prefill from the lesson shortcut wins over an older draft, and
@@ -115,6 +119,7 @@ export default function ChatScreen() {
   }
 
   return (
+    <View ref={wrapRef} style={{ flex: 1, backgroundColor: colors.bg, paddingBottom: overlap }}>
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.bg }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -122,7 +127,7 @@ export default function ChatScreen() {
     >
       <View
         role="main"
-        style={{ padding: spacing.lg, paddingBottom: spacing.lg + insets.bottom, gap: spacing.xs, flex: 1, width: "100%", maxWidth: CONTENT_MAX_WIDTH, alignSelf: "center" }}
+        style={{ padding: spacing.lg, paddingBottom: spacing.lg + (overlap > 0 ? 0 : insets.bottom), gap: spacing.xs, flex: 1, width: "100%", maxWidth: CONTENT_MAX_WIDTH, alignSelf: "center" }}
       >
         {/* REQ-206 (FAIL-929): a new coach reply is read out (a screen reader got nothing). */}
         <LiveAnnouncement message={announce} />
@@ -261,6 +266,7 @@ export default function ChatScreen() {
         )}
       </View>
     </KeyboardAvoidingView>
+    </View>
   );
 }
 

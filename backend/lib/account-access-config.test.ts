@@ -92,7 +92,7 @@ describe("plans", () => {
 });
 
 describe("grant input", () => {
-  test("email is required and normalised; until is a future date; note is optional and bounded", () => {
+  test("email is required and normalized; until is a future date; note is optional and bounded", () => {
     assert.deepEqual(parseGrantInput({ email: "  Friend@Example.COM " }, NOW), { email: "friend@example.com", until: null, note: null });
     const g = parseGrantInput({ email: "a@b.co", until: "2027-06-30", note: " founding tester " }, NOW);
     assert.ok(typeof g !== "string");

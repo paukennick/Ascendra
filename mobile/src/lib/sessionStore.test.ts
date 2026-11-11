@@ -39,7 +39,9 @@ describe("refresh", () => {
     const del = refresh.indexOf("plan.migratingLegacy) await secureStorage.deleteItem(REFRESH_TOKEN_KEY)");
     const post = refresh.indexOf('api.post<{ accessToken: string; refreshToken?: string }>(');
     assert.ok(del > 0 && post > del, "delete before the request");
-    assert.match(refresh, /catch \{\s*await clearAuth\(\);\s*return false;/, "a failed exchange signs out, it does not retry");
+    // REQ-217 (FAIL-1041): only the server's 401 signs out; the old rule (any failure signs out) is gone.
+    assert.match(refresh, /if \(failure\.expired\) await clearAuth\(\);\s*return failure;/, "a refused exchange signs out, it does not retry");
+    assert.doesNotMatch(refresh, /catch \{\s*await clearAuth\(\);/, "an unreachable server no longer signs out");
     // The web app never writes the refresh token to storage.
     assert.doesNotMatch(src, /secureStorage\.setItem\(REFRESH_TOKEN_KEY, res\.refreshToken\)/);
   });

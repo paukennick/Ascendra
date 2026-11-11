@@ -69,7 +69,7 @@ import { source } from "../sources";
 //   ACSM's Guidelines for Exercise Testing and Prescription, 11th ed.: stop
 //   for angina, SBP >= 250 or DBP >= 115 mm Hg, a fall in SBP of more than
 //   10 mm Hg with increasing workload, signs of poor perfusion; weight gain
-//   of 1.8 kg (3 lb) or more over 1-3 days is a relative contraindication.
+//   of 1.8 kg (4 lb) or more over 1-3 days is a relative contraindication.
 //   ACSM's own site returned HTTP 403, so the ACSM values are cited through
 //   this peer-reviewed table.
 // - Hypoglycemia: ADA, Hypoglycemia guidelines for health care
@@ -139,7 +139,7 @@ export const NPTEPT_LABS: SeedLabSet = {
             part(
               "Red flags",
               "Names at least three of: history of cancer, unexplained weight loss, constant/night pain not eased by position or rest, age over 50, no mechanical pattern; explains that together they raise suspicion of a serious (non-musculoskeletal) cause.",
-              "Previous prostate cancer, 6 kg unexplained weight loss, constant pain that wakes him and doesn't change with position, age 64, and no mechanical behaviour. Together they point away from simple mechanical back pain."
+              "Previous prostate cancer, 6 kg unexplained weight loss, constant pain that wakes him and doesn't change with position, age 64, and no mechanical behavior. Together they point away from simple mechanical back pain."
             ),
             part(
               "Leading concern",
@@ -159,7 +159,7 @@ export const NPTEPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Decision",
-              "Does not continue physical therapy management for now; refers him to his physician/oncologist promptly (same week or sooner per local pathway), and gives emergency advice (go to emergency care at once if leg weakness, numbness, saddle anaesthesia or bladder/bowel change appear).",
+              "Does not continue physical therapy management for now; refers him to his physician/oncologist promptly (same week or sooner per local pathway), and gives emergency advice (go to emergency care at once if leg weakness, numbness, saddle anesthesia or bladder/bowel change appear).",
               "Refer promptly to his oncologist or primary care physician for medical work-up before any PT treatment. Safety-net: if he develops leg weakness, numbness, saddle numbness, or bladder or bowel change, he goes to the emergency department immediately."
             ),
             part(
@@ -192,8 +192,8 @@ export const NPTEPT_LABS: SeedLabSet = {
             ),
             part(
               "Classification and prognosis",
-              "Classifies acute LBP with related (referred) lower-extremity pain and centralization/directional preference (e.g. MDT derangement or TBC 'specific exercise' group), and states that centralization is a favourable prognostic sign.",
-              "Acute low back pain with referred leg pain that centralizes with extension -- a directional-preference (specific exercise) subgroup. Centralization is a favourable prognostic sign."
+              "Classifies acute LBP with related (referred) lower-extremity pain and centralization/directional preference (e.g. MDT derangement or TBC 'specific exercise' group), and states that centralization is a favorable prognostic sign.",
+              "Acute low back pain with referred leg pain that centralizes with extension -- a directional-preference (specific exercise) subgroup. Centralization is a favorable prognostic sign."
             ),
           ],
         },
@@ -208,7 +208,7 @@ export const NPTEPT_LABS: SeedLabSet = {
             ),
             part(
               "Education",
-              "Gives active, reassuring education: favourable prognosis, staying active and returning to normal or modified work, avoiding bed rest and avoiding threatening pathoanatomical explanations; addresses sitting (breaks, lumbar support).",
+              "Gives active, reassuring education: favorable prognosis, staying active and returning to normal or modified work, avoiding bed rest and avoiding threatening pathoanatomical explanations; addresses sitting (breaks, lumbar support).",
               "Back pain like this usually settles well; staying active and keeping working with modified lifting helps more than rest. No bed rest. Break up sitting every 20-30 minutes and use a lumbar roll. I avoid scary structural explanations."
             ),
           ],
@@ -273,7 +273,7 @@ export const NPTEPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognise",
-              "Recognises signs consistent with possible deep vein thrombosis (unilateral calf swelling, warmth, tenderness after recent surgery).",
+              "Recognizes signs consistent with possible deep vein thrombosis (unilateral calf swelling, warmth, tenderness after recent surgery).",
               "Unilateral calf swelling, warmth and tenderness three weeks after knee replacement could be a deep vein thrombosis."
             ),
             part(
@@ -309,7 +309,7 @@ export const NPTEPT_LABS: SeedLabSet = {
       kind: "case",
       title: "Nine months after a stroke: getting faster walking",
       brief:
-        "A fictional 58-year-old bus dispatcher had a left middle cerebral artery stroke 9 months ago. She walks independently with a single-point cane, comfortable gait speed 0.45 m/s on the 10-metre walk test, and wants to walk to the bus stop and back to work part-time. She takes a beta-blocker. Her physician has cleared her for aerobic exercise.",
+        "A fictional 58-year-old bus dispatcher had a left middle cerebral artery stroke 9 months ago. She walks independently with a single-point cane, comfortable gait speed 0.45 m/s on the 10-meter walk test, and wants to walk to the bus stop and back to work part-time. She takes a beta-blocker. Her physician has cleared her for aerobic exercise.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -328,7 +328,7 @@ export const NPTEPT_LABS: SeedLabSet = {
             ),
             part(
               "Dosing with a beta-blocker",
-              "Recognises the beta-blocker blunts heart-rate response, so uses perceived exertion (and/or a heart-rate range from a measured response) to set intensity, and monitors BP, symptoms and safety (guarding/harness for falls).",
+              "Recognizes the beta-blocker blunts heart-rate response, so uses perceived exertion (and/or a heart-rate range from a measured response) to set intensity, and monitors BP, symptoms and safety (guarding/harness for falls).",
               "Because the beta-blocker blunts her heart rate, I set intensity mainly by rating of perceived exertion, with heart rate and blood pressure checked before, during and after, and a harness or close guarding at higher speeds."
             ),
           ],
@@ -393,8 +393,8 @@ export const NPTEPT_LABS: SeedLabSet = {
             ),
             part(
               "Documentation and prevention",
-              "Documents signs, BP readings, trigger, actions and response; plans prevention (check catheter/tubing and bag before positioning, avoid tight straps) and teaches him and caregivers to recognise and direct care for AD.",
-              "Document symptoms, BP trend, the kinked tubing, actions and recovery. Before each session check the catheter, tubing and bag; teach him to recognise the signs and tell staff what to do, and suggest a wallet card."
+              "Documents signs, BP readings, trigger, actions and response; plans prevention (check catheter/tubing and bag before positioning, avoid tight straps) and teaches him and caregivers to recognize and direct care for AD.",
+              "Document symptoms, BP trend, the kinked tubing, actions and recovery. Before each session check the catheter, tubing and bag; teach him to recognize the signs and tell staff what to do, and suggest a wallet card."
             ),
           ],
         },
@@ -426,11 +426,11 @@ export const NPTEPT_LABS: SeedLabSet = {
             ),
             part(
               "Cueing for freezing",
-              "Uses external cues (auditory such as a metronome, visual such as floor lines, or attentional strategies) for freezing of gait, practised in doorways and turns.",
-              "External cues for freezing: metronome beats set slightly above his comfortable cadence and visual lines on the floor at doorways; practise wide arc turns with a counting strategy."
+              "Uses external cues (auditory such as a metronome, visual such as floor lines, or attentional strategies) for freezing of gait, practiced in doorways and turns.",
+              "External cues for freezing: metronome beats set slightly above his comfortable cadence and visual lines on the floor at doorways; practice wide arc turns with a counting strategy."
             ),
             part(
-              "Strength and behaviour change",
+              "Strength and behavior change",
               "Adds progressive resistance training and behaviour-change/community exercise strategies (goal setting, golf-related tasks, a community program) to keep activity up long term.",
               "Progressive resistance training twice a week (legs, trunk, rotation for golf); agree weekly activity goals with him and link him to a community exercise class he'll keep going to."
             ),
@@ -455,13 +455,13 @@ export const NPTEPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Decision",
-              "Does not progress exercise today; recognises signs of worsening heart failure (weight gain of 1.8 kg/3 lb or more over 1-3 days, orthopnea, new oedema, dyspnoea at rest) as reasons to hold or limit exercise.",
-              "No walk today. A 2 kg gain overnight (above the 1.8 kg / 3 lb in 1-3 days flag), new orthopnea, new ankle oedema and breathlessness at rest are signs his heart failure is worsening."
+              "Does not progress exercise today; recognizes signs of worsening heart failure (weight gain of 1.8 kg/4 lb or more over 1-3 days, orthopnea, new edema, dyspnea at rest) as reasons to hold or limit exercise.",
+              "No walk today. A 2 kg gain overnight (above the 1.8 kg / 4 lb in 1-3 days flag), new orthopnea, new ankle edema and breathlessness at rest are signs his heart failure is worsening."
             ),
             part(
               "Action",
               "Reports the findings to the nurse and physician promptly, documents them, and limits activity to what the team approves (e.g. positioning, gentle bed-level activity) until he is reassessed.",
-              "Tell the nurse and the physician now with the weight, orthopnea and oedema, document it, and keep him to bed or chair level until the team reviews his diuretics."
+              "Tell the nurse and the physician now with the weight, orthopnea and edema, document it, and keep him to bed or chair level until the team reviews his diuretics."
             ),
           ],
         },
@@ -482,7 +482,7 @@ export const NPTEPT_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "The team finds new ischaemic changes on his ECG and changes his medication. He is cleared again 3 days later.",
+          text: "The team finds new ischemic changes on his ECG and changes his medication. He is cleared again 3 days later.",
           ask: "How do you set and monitor his next sessions?",
           parts: [
             part(
@@ -545,15 +545,15 @@ export const NPTEPT_LABS: SeedLabSet = {
       kind: "build",
       title: "Classify four wounds and name what changes the plan",
       brief:
-        "On a wound clinic list are four fictional patients. (A) 71-year-old: shallow, irregular wound above the medial malleolus with heavy drainage, brown discoloration of the surrounding skin and leg oedema that is worse at the end of the day; pedal pulses present. (B) 78-year-old smoker: small round wound with a pale base on the lateral side of the fifth toe; shiny hairless skin, absent pedal pulses; pain worse lying with the legs up, better hanging over the bed. (C) 59-year-old with diabetes: wound under the first metatarsal head surrounded by callus; cannot feel a monofilament on the foot. (D) 84-year-old bed-bound: sacral wound with full-thickness skin loss; subcutaneous fat and granulation tissue are visible across the whole base; no bone, tendon or muscle visible; no slough or eschar.",
+        "On a wound clinic list are four fictional patients. (A) 71-year-old: shallow, irregular wound above the medial malleolus with heavy drainage, brown discoloration of the surrounding skin and leg edema that is worse at the end of the day; pedal pulses present. (B) 78-year-old smoker: small round wound with a pale base on the lateral side of the fifth toe; shiny hairless skin, absent pedal pulses; pain worse lying with the legs up, better hanging over the bed. (C) 59-year-old with diabetes: wound under the first metatarsal head surrounded by callus; cannot feel a monofilament on the foot. (D) 84-year-old bed-bound: sacral wound with full-thickness skin loss; subcutaneous fat and granulation tissue are visible across the whole base; no bone, tendon or muscle visible; no slough or eschar.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
           text: "",
           ask: "For each wound, name the type (or stage) and one management implication that follows from it.",
           parts: [
-            part("Wound A", "Venous (insufficiency) ulcer; implication: compression therapy (after arterial status is confirmed adequate) and elevation.", "Venous leg ulcer -- medial gaiter area, heavy exudate, hemosiderin staining, oedema. Compression (once arterial supply is confirmed adequate) and elevation."),
-            part("Wound B", "Arterial (ischaemic) ulcer; implication: no compression and no debridement of dry ischaemic tissue until vascular assessment; refer for vascular evaluation.", "Arterial ulcer -- distal, punched-out, pale base, absent pulses, rest pain eased by dependency. Avoid compression and refer for vascular assessment before any debridement."),
+            part("Wound A", "Venous (insufficiency) ulcer; implication: compression therapy (after arterial status is confirmed adequate) and elevation.", "Venous leg ulcer -- medial gaiter area, heavy exudate, hemosiderin staining, edema. Compression (once arterial supply is confirmed adequate) and elevation."),
+            part("Wound B", "Arterial (ischemic) ulcer; implication: no compression and no debridement of dry ischemic tissue until vascular assessment; refer for vascular evaluation.", "Arterial ulcer -- distal, punched-out, pale base, absent pulses, rest pain eased by dependency. Avoid compression and refer for vascular assessment before any debridement."),
             part("Wound C", "Neuropathic (diabetic) plantar ulcer; implication: offloading (e.g. total contact cast or offloading device) and callus management, plus foot protection education.", "Neuropathic diabetic ulcer at a pressure point under callus, loss of protective sensation. Offload it (total contact cast or removable walker) and manage the callus."),
             part("Wound D", "Stage 3 pressure injury (full-thickness skin loss with visible fat, no fascia/muscle/tendon/bone, base visible so it is stageable); implication: pressure redistribution/repositioning plus moist wound care.", "Stage 3 pressure injury: full-thickness loss with fat visible, nothing deeper, base fully visible. Pressure redistribution surface and repositioning, with moist wound healing."),
           ],
@@ -575,7 +575,7 @@ export const NPTEPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Interpretation",
-              "Recognises signs of a diabetes-related foot infection (spreading erythema, warmth, swelling, purulent drainage, malodour) with systemic signs (fever, rising glucose), so it may be moderate-to-severe.",
+              "Recognizes signs of a diabetes-related foot infection (spreading erythema, warmth, swelling, purulent drainage, malodor) with systemic signs (fever, rising glucose), so it may be moderate-to-severe.",
               "Spreading redness, warmth, swelling and purulent, smelly drainage mean the ulcer is infected; fever and high glucose suggest it is spreading or systemic."
             ),
             part(
@@ -616,7 +616,7 @@ export const NPTEPT_LABS: SeedLabSet = {
       steps: [
         {
           text: "First visit: lying blood pressure 132/78 mm Hg, HR 72. After 2 minutes standing: 104/70 mm Hg, HR 78, and she feels lightheaded.",
-          ask: "Which systems interact here, and what do you prioritise first?",
+          ask: "Which systems interact here, and what do you prioritize first?",
           parts: [
             part(
               "Interactions",
@@ -625,7 +625,7 @@ export const NPTEPT_LABS: SeedLabSet = {
             ),
             part(
               "Priority",
-              "Prioritises safety: reports the orthostatic hypotension and medication list to the physician for review, and teaches immediate strategies (slow staged rising, ankle pumps before standing, hydration as allowed) before progressing upright training.",
+              "Prioritizes safety: reports the orthostatic hypotension and medication list to the physician for review, and teaches immediate strategies (slow staged rising, ankle pumps before standing, hydration as allowed) before progressing upright training.",
               "First, safety: tell her physician about the orthostatic drop and her medicines (antihypertensive, sleeping tablet) for review, and teach staged rising -- sit a minute, ankle pumps, then stand holding support."
             ),
           ],
@@ -636,7 +636,7 @@ export const NPTEPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Exercise choices",
-              "Includes progressive balance and gait training, aerobic and resistance training suited to PD, while avoiding loaded or end-range spinal flexion and twisting because of osteoporosis, and emphasising extensor strengthening.",
+              "Includes progressive balance and gait training, aerobic and resistance training suited to PD, while avoiding loaded or end-range spinal flexion and twisting because of osteoporosis, and emphasizing extensor strengthening.",
               "Balance and gait training with cueing, aerobic walking or cycling, and resistance work with spinal extensor strengthening; avoid loaded spinal flexion and twisting (sit-ups, toe-touches)."
             ),
             part(
@@ -666,7 +666,7 @@ export const NPTEPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Stage",
-              "ISL stage I: pitting oedema that reduces with elevation, no fibrosis.",
+              "ISL stage I: pitting edema that reduces with elevation, no fibrosis.",
               "ISL stage I -- early, pitting swelling that subsides with elevation and no fibrosis."
             ),
             part(
@@ -682,7 +682,7 @@ export const NPTEPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Reclassify and escalate",
-              "Recognises progression (stage II: no longer reduces with elevation) and moves to complete decongestive therapy.",
+              "Recognizes progression (stage II: no longer reduces with elevation) and moves to complete decongestive therapy.",
               "It's progressed to stage II -- no longer reduced by elevation. Escalate to complete decongestive therapy."
             ),
             part(
@@ -698,7 +698,7 @@ export const NPTEPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Hold and refer",
-              "Recognises probable cellulitis, holds MLD and compression bandaging, and refers her urgently to her physician for antibiotics; resumes CDT only when cleared.",
+              "Recognizes probable cellulitis, holds MLD and compression bandaging, and refers her urgently to her physician for antibiotics; resumes CDT only when cleared.",
               "This looks like cellulitis: no MLD or bandaging today; send her urgently to her physician for antibiotics, and restart CDT only when the infection is treated and she is cleared."
             ),
           ],
@@ -735,7 +735,7 @@ export const NPTEPT_LABS: SeedLabSet = {
             part(
               "Exercise dose",
               "Prescribes exercise at least 150 minutes to 3 hours per week, kept up for 6 to 12 months, built around progressive, challenging balance training (plus strength), per the 2025 falls CPG.",
-              "At least 150 minutes to 3 hours a week of exercise for 6-12 months, centred on balance training that keeps getting harder, plus leg strengthening."
+              "At least 150 minutes to 3 hours a week of exercise for 6-12 months, centered on balance training that keeps getting harder, plus leg strengthening."
             ),
             part(
               "Multifactorial parts",
@@ -744,7 +744,7 @@ export const NPTEPT_LABS: SeedLabSet = {
             ),
             part(
               "Making it achievable",
-              "Uses shared goal setting and behaviour-change strategies (short bouts spread through the day, a written home program, a community or group class, tracking), with the bus as a meaningful goal.",
+              "Uses shared goal setting and behavior-change strategies (short bouts spread through the day, a written home program, a community or group class, tracking), with the bus as a meaningful goal.",
               "Agree the bus trip as the goal, break the dose into 10-15 minute home sessions most days plus a twice-weekly group class, and give her a simple log to track it."
             ),
           ],
@@ -759,7 +759,7 @@ export const NPTEPT_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose and fit a device for three patients",
       brief:
-        "Three fictional patients need a device today. (A) A 24-year-old athlete, non-weight-bearing on the right after ankle fracture fixation, with good balance and upper-body strength. (B) A 70-year-old with left hemiparesis after a stroke who walks with mild unsteadiness and needs a little support; the left arm cannot grip. (C) An 83-year-old with generalised weakness and poor balance who is weight-bearing as tolerated on both legs and gets breathless quickly.",
+        "Three fictional patients need a device today. (A) A 24-year-old athlete, non-weight-bearing on the right after ankle fracture fixation, with good balance and upper-body strength. (B) A 70-year-old with left hemiparesis after a stroke who walks with mild unsteadiness and needs a little support; the left arm cannot grip. (C) An 83-year-old with generalized weakness and poor balance who is weight-bearing as tolerated on both legs and gets breathless quickly.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -863,7 +863,7 @@ export const NPTEPT_LABS: SeedLabSet = {
             ),
             part(
               "Screen",
-              "Screens with vital signs (temperature), questions about jaundice, stool/urine colour, fever and abdominal pain, and palpation of the right upper quadrant (e.g. Murphy sign).",
+              "Screens with vital signs (temperature), questions about jaundice, stool/urine color, fever and abdominal pain, and palpation of the right upper quadrant (e.g. Murphy sign).",
               "Temperature and vital signs; ask about fever, yellow skin or eyes, dark urine or pale stools, and abdominal pain; palpate the right upper quadrant and check Murphy sign."
             ),
           ],

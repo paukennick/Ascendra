@@ -9,7 +9,7 @@ import { isUuid } from "@/lib/visibility";
 // REQ-108: shared error mapping for the review-loop routes.
 export function reviewRouteError(err: unknown) {
   if (err instanceof AuthError) return unauthorized(err.message);
-  if (err instanceof AcknowledgementError) return forbidden(err.message);
+  if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
   if (err instanceof ReviewError) return NextResponse.json({ error: err.message }, { status: err.status });
   if (err instanceof GradingInProgressError) return NextResponse.json({ error: err.message }, { status: 409 });
   return serverError(err);

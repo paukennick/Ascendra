@@ -296,6 +296,27 @@ const NICE_PFMT = ptGuideline("https://www.nice.org.uk/guidance/QS77/chapter/qua
 
 type ValueSources = Record<string, SourceRef[] | { none: string }>;
 
+// REQ-173: ABPTS Clinical Electrophysiologic Specialist (pt-abpts-ecs.ts),
+// read 2026-11-09. AANEM bleeding-risk guidance: caution below 50,000
+// platelets (INR above about 1.5-2.0); don't routinely stop anticoagulants
+// or defer EMG. AANEM 2005 position: no contraindication in lymphedema or
+// prosthetic joints, judge each case. The ECS screening objective now says
+// the same (reworded with Nick's approval; it used to forbid needle EMG in
+// a lymphedematous limb). AAEM/AAN/AAPM&R
+// 2002 CTS practice parameter. AAEM 1999 ulnar-at-elbow parameter is not
+// used. Practical Neurology 2024 LEMS review (secondary; cites the 100% and
+// 60% increment criteria). Goncalves 2025 on cervical radiculopathy EDX.
+// EAN/PNS CIDP 2021 (abstract only; 8-week element not re-read). Robinson
+// 2000 AANEM minimonograph (abstract only).
+const ECS_CHECKED = "2026-11-09";
+const AANEM_BLEEDING_RISK = source("https://www.aanem.org/about-aanem/news-express/news/2021/03/31/patient-safety-emg-ncs-and-risk-of-bleeding", "clinical_guideline", ECS_CHECKED);
+const AANEM_UNCOMMON_CONTEXTS_2005 = source("https://doi.org/10.1002/mus.20238", "clinical_guideline", ECS_CHECKED);
+const AANEM_CTS_PARAMETER_2002 = source("https://www.aanem.org/clinical-practice-resources/guidelines/guideline/practice-parameter-for-edx-studies-in-cts-summary-statement-(including-literature-review)", "clinical_guideline", ECS_CHECKED);
+const LEMS_REVIEW_2024 = source("https://practicalneurology.com/articles/2024-apr/diagnosis-and-treatment-of-lambert-eaton-myasthenic-syndrome", "reference", ECS_CHECKED);
+const CERVICAL_RADICULOPATHY_EDX_2025 = source("https://doi.org/10.1055/s-0045-1812893", "reference", ECS_CHECKED);
+const EAN_PNS_CIDP_2021 = source("https://doi.org/10.1111/ene.14959", "clinical_guideline", ECS_CHECKED);
+const ROBINSON_NERVE_INJURY_2000 = source("https://pubmed.ncbi.nlm.nih.gov/10842261/", "reference", ECS_CHECKED);
+
 const NO_VALUE = "Quotes no clinical threshold, dose or target (recognition, priorities, communication or ethics).";
 const CASE_DATA = "Its numbers are the fictional patient's own readings, not a threshold or dose the lab teaches.";
 
@@ -380,6 +401,19 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "pn-trends-against-baseline": { none: CASE_DATA },
     "pn-anaphylaxis-first-dose": { none: "Names intramuscular epinephrine as the first drug without a dose; the other numbers are the client's own readings." },
   },
+  // REQ-173
+  ABPTSECS: {
+    "ecs-nerve-injury-grades": [ROBINSON_NERVE_INJURY_2000],
+    "ecs-presynaptic-nmj-case": [LEMS_REVIEW_2024],
+    "ecs-pretest-screening-case": [AANEM_BLEEDING_RISK, AANEM_UNCOMMON_CONTEXTS_2005],
+    "ecs-muscle-selection-c7-vs-radial": [CERVICAL_RADICULOPATHY_EDX_2025],
+    "ecs-timing-after-humeral-fracture-case": [ROBINSON_NERVE_INJURY_2000],
+    "ecs-axonal-vs-demyelinating-tables": { none: "Interprets against the fictional laboratory's own stated reference limits; teaches no population norm." },
+    "ecs-carpal-tunnel-sensory-first-case": [AANEM_CTS_PARAMETER_2002],
+    "ecs-cervical-radiculopathy-emg-case": [CERVICAL_RADICULOPATHY_EDX_2025],
+    "ecs-formulate-diagnosis-polyneuropathy-case": [EAN_PNS_CIDP_2021],
+    "ecs-preganglionic-plexus-injury": [CERVICAL_RADICULOPATHY_EDX_2025],
+  },
   // REQ-174: NREMT EMT. Sources in ems-sources.ts (read 2026-11-09). The
   // Scope of Practice Model is a "reference" (12-month re-check) and backs
   // what the EMT may do; the clinical values rest on clinical guidelines.
@@ -457,9 +491,9 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "ace-clearance-insulin-case": [ACSM_SCREENING_2015],
     "ace-five-movement-screen": { none: "Reads movement compensations in ACE's five primary movements; the rep count is the client's own." },
     "ace-ift-phase-placement": [ACE_IFT],
-    "ace-multi-setting-week": { none: "Adapts one programme across settings; no threshold or dose." },
+    "ace-multi-setting-week": { none: "Adapts one program across settings; no threshold or dose." },
     "ace-hip-hinge-cueing": { none: "Coaching cues for a hip hinge; no threshold or dose." },
-    "ace-lapse-sdoh-case": { none: "A behaviour-change conversation (ACE ABC approach); the session lengths are the client's plan." },
+    "ace-lapse-sdoh-case": { none: "A behavior-change conversation (ACE ABC approach); the session lengths are the client's plan." },
     "ace-reassessment-progression": [ACE_IFT],
     "ace-pregnancy-modification-case": [ACOG_CO804],
     "ace-park-bootcamp-risk-case": [NATA_HEAT_2015],
@@ -479,8 +513,8 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "nccpt-label-trend-supplement-case": [FDA_PERCENT_DV],
     "nccpt-basic-assessment-battery": [AHA_BP_2025, CDC_BMI],
     "nccpt-reassessment-interpretation": { none: CASE_DATA },
-    "nccpt-linear-vs-undulating": { none: "Compares periodization models; the rep ranges are example programmes, not a threshold." },
-    "nccpt-arthritis-case": { none: "Programme emphasis and pain-guided dosing for knee osteoarthritis; no threshold or dose." },
+    "nccpt-linear-vs-undulating": { none: "Compares periodization models; the rep ranges are example programs, not a threshold." },
+    "nccpt-arthritis-case": { none: "Program emphasis and pain-guided dosing for knee osteoarthritis; no threshold or dose." },
     "nccpt-checkpoints-bent-row": { none: "Kinetic-chain checkpoints on one exercise; no threshold or dose." },
     "nccpt-progress-overtraining-case": { none: CASE_DATA },
     "nccpt-in-home-incident-case": { none: NO_VALUE },
@@ -543,7 +577,7 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "gcs-did-she-really-improve": [PERERA_2006, BERG_MDC_2009],
   },
   ABPTSNCS: {
-    "ncs-localize-three-lesions": { none: "Localises lesions from the examination findings; no threshold or dose." },
+    "ncs-localize-three-lesions": { none: "Localizes lesions from the examination findings; no threshold or dose." },
     "ncs-plasticity-principles-to-plan": [KLEIM_2008],
     "ncs-which-setting-after-the-stroke": [STROKE_REHAB_2016],
     "ncs-acute-vertigo-triage": [HINTS_2009, VESTIBULAR_CPG_2022],
@@ -665,7 +699,7 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "pt-likelihood-ratio-calc": { none: "2x2 arithmetic on the fictional study's counts." },
   },
   NPTEPTA: {
-    "pta-back-pain-new-red-flag": { none: "Recognise and report a new red flag; no threshold or dose." },
+    "pta-back-pain-new-red-flag": { none: "Recognize and report a new red flag; no threshold or dose." },
     "pta-tka-within-plan": [TKA_CPG_2026],
     "pta-soap-note": { none: CASE_DATA },
     "pta-autonomic-dysreflexia": [PVA_AD],

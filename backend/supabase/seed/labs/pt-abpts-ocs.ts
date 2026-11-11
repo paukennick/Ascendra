@@ -71,11 +71,11 @@ export const ABPTSOCS_LABS: SeedLabSet = {
       kind: "case",
       title: "Back pain that is not behaving mechanically",
       brief:
-        "A fictional 68-year-old man is referred by direct access to an outpatient orthopaedic clinic for 'mechanical low back pain', 7 weeks' duration. He describes a deep, constant thoracolumbar ache that is now waking him at 3 a.m. and is not eased by lying down or changing position. He has lost about 5 kg without trying. Past history: prostate cancer treated with radiotherapy 4 years ago, 'in remission'. No bladder or bowel change, no saddle numbness, no leg weakness. He took paracetamol with little effect and has had no imaging. This is exam practice with a fictional patient, not clinical guidance.",
+        "A fictional 68-year-old man is referred by direct access to an outpatient orthopedic clinic for 'mechanical low back pain', 7 weeks' duration. He describes a deep, constant thoracolumbar ache that is now waking him at 3 a.m. and is not eased by lying down or changing position. He has lost about 5 kg without trying. Past history: prostate cancer treated with radiotherapy 4 years ago, 'in remission'. No bladder or bowel change, no saddle numbness, no leg weakness. He took paracetamol with little effect and has had no imaging. This is exam practice with a fictional patient, not clinical guidance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
-          text: "On examination: lumbar flexion and extension both reproduce a deep ache without a clear directional preference; repeated movements neither centralise nor peripheralise anything. Percussion over T12-L2 is tender. Neurological screen (L2-S1 myotomes, dermatomes, reflexes) is normal. Straight leg raise is negative. Gait is normal.",
+          text: "On examination: lumbar flexion and extension both reproduce a deep ache without a clear directional preference; repeated movements neither centralize nor peripheralize anything. Percussion over T12-L2 is tender. Neurological screen (L2-S1 myotomes, dermatomes, reflexes) is normal. Straight leg raise is negative. Gait is normal.",
           ask: "What is your working hypothesis about the pain source, and what do you do with this referral today?",
           parts: [
             part(
@@ -85,7 +85,7 @@ export const ABPTSOCS_LABS: SeedLabSet = {
             ),
             part(
               "Action today",
-              "Refers the patient back to the physician (or oncology) the same day for medical evaluation and imaging, communicates the specific findings in writing, and does not begin manual therapy or loaded exercise until the cause is clarified; explains the plan to the patient without alarming or minimising.",
+              "Refers the patient back to the physician (or oncology) the same day for medical evaluation and imaging, communicates the specific findings in writing, and does not begin manual therapy or loaded exercise until the cause is clarified; explains the plan to the patient without alarming or minimizing.",
               "Call the referring physician/his oncology team today and send a written summary of the red flags and exam findings asking for urgent medical review and imaging. Hold off on manipulation and loaded exercise. Tell him plainly that his pattern needs a medical check before physiotherapy continues, and arrange to stay involved once the work-up is done."
             ),
           ],
@@ -102,7 +102,7 @@ export const ABPTSOCS_LABS: SeedLabSet = {
             part(
               "What you can still do",
               "Offers appropriate care within those limits: pain-free mobility and gentle range of motion, walking and low-impact aerobic conditioning, hip and lower-limb strengthening in supported positions, posture and transfer training, energy conservation and falls-risk reduction, with clear coordination with oncology.",
-              "Plenty is still safe and useful: a graded walking programme, supported hip and leg strengthening (for example sit-to-stand, step-ups within comfort), gentle thoracic and hip mobility without spinal end-range loading, transfer and lifting technique, balance work and falls prevention, and fatigue management around his radiotherapy. Keep oncology informed and reassess every visit."
+              "Plenty is still safe and useful: a graded walking program, supported hip and leg strengthening (for example sit-to-stand, step-ups within comfort), gentle thoracic and hip mobility without spinal end-range loading, transfer and lifting technique, balance work and falls prevention, and fatigue management around his radiotherapy. Keep oncology informed and reassess every visit."
             ),
           ],
         },
@@ -110,11 +110,11 @@ export const ABPTSOCS_LABS: SeedLabSet = {
     },
     {
       slug: "ocs-who-needs-imaging-today",
-      objective: "Diagnostic imaging in orthopaedics: what each modality shows and when findings matter clinically",
+      objective: "Diagnostic imaging in orthopedics: what each modality shows and when findings matter clinically",
       kind: "build",
       title: "Three referrals: who needs imaging today?",
       brief:
-        "You run a fictional direct-access orthopaedic clinic. Three fictional patients arrive the same afternoon. Patient A: a 24-year-old who inverted her ankle playing netball 2 hours ago; she has lateral malleolar swelling, is tender along the posterior edge of the distal 6 cm of the fibula, and could not take four steps either at the time or now. Patient B: a 34-year-old rear-ended at low speed yesterday, now with neck pain; she was ambulatory at the scene, has no midline tenderness, no extremity paresthesias, no dangerous mechanism, and can actively rotate her neck 45 degrees each way. Patient C: a 45-year-old with 5 weeks of non-radiating low back pain, no trauma, no red flags, a normal neurological screen, and a strong wish for 'a scan to see what is wrong'. Fictional patients; exam practice, not clinical guidance.",
+        "You run a fictional direct-access orthopedic clinic. Three fictional patients arrive the same afternoon. Patient A: a 24-year-old who inverted her ankle playing netball 2 hours ago; she has lateral malleolar swelling, is tender along the posterior edge of the distal 6 cm of the fibula, and could not take four steps either at the time or now. Patient B: a 34-year-old rear-ended at low speed yesterday, now with neck pain; she was ambulatory at the scene, has no midline tenderness, no extremity paresthesias, no dangerous mechanism, and can actively rotate her neck 45 degrees each way. Patient C: a 45-year-old with 5 weeks of non-radiating low back pain, no trauma, no red flags, a normal neurological screen, and a strong wish for 'a scan to see what is wrong'. Fictional patients; exam practice, not clinical guidance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -142,7 +142,7 @@ export const ABPTSOCS_LABS: SeedLabSet = {
     },
     {
       slug: "ocs-medication-review-before-loading",
-      objective: "Pharmacology relevant to orthopaedic patients: analgesics, corticosteroids, anticoagulants and their exercise implications",
+      objective: "Pharmacology relevant to orthopedic patients: analgesics, corticosteroids, anticoagulants and their exercise implications",
       kind: "build",
       title: "Medication review before you load the tendon",
       brief:
@@ -155,8 +155,8 @@ export const ABPTSOCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Anticoagulant",
-              "Recognises that apixaban raises bleeding and bruising risk (so deep soft-tissue techniques and aggressive end-range forcing are moderated and haemarthrosis/haematoma watched for) while also indicating that DVT remains a concern to screen for (calf pain, swelling, warmth) and that signs of bleeding (unexplained bruising, melaena, haematuria) are reported to the prescriber.",
-              "Apixaban: she bruises and bleeds more easily, so avoid aggressive soft-tissue work or forced end-range stretching of the knee and watch for a swelling, warm, tense joint (haemarthrosis) or large haematomas. She is anticoagulated for a reason: still screen each visit for calf pain, swelling and warmth (DVT) and send any unexplained bruising, black stools or blood in urine to the prescriber."
+              "Recognizes that apixaban raises bleeding and bruising risk (so deep soft-tissue techniques and aggressive end-range forcing are moderated and haemarthrosis/haematoma watched for) while also indicating that DVT remains a concern to screen for (calf pain, swelling, warmth) and that signs of bleeding (unexplained bruising, melena, hematuria) are reported to the prescriber.",
+              "Apixaban: she bruises and bleeds more easily, so avoid aggressive soft-tissue work or forced end-range stretching of the knee and watch for a swelling, warm, tense joint (hemarthrosis) or large hematomas. She is anticoagulated for a reason: still screen each visit for calf pain, swelling and warmth (DVT) and send any unexplained bruising, black stools or blood in urine to the prescriber."
             ),
             part(
               "Fluoroquinolone and heel pain",
@@ -182,7 +182,7 @@ export const ABPTSOCS_LABS: SeedLabSet = {
       kind: "build",
       title: "A prognosis conversation and the note that goes with it",
       brief:
-        "A fictional 42-year-old warehouse worker is 6 weeks into his third episode of low back pain in 2 years, off work for 3 weeks. STarT Back Screening Tool: total 7 of 9, psychosocial subscale 5 of 5 (high risk). He believes his 'disc has slipped out', is afraid that bending will make it worse, and his GP has asked you for an opinion and whether an MRI should be ordered. Examination: no red flags, normal neurological screen, flexion limited and painful with a directional preference for extension that centralises his buttock pain, and marked guarding. Fictional patient; exam practice, not clinical guidance.",
+        "A fictional 42-year-old warehouse worker is 6 weeks into his third episode of low back pain in 2 years, off work for 3 weeks. STarT Back Screening Tool: total 7 of 9, psychosocial subscale 5 of 5 (high risk). He believes his 'disc has slipped out', is afraid that bending will make it worse, and his GP has asked you for an opinion and whether an MRI should be ordered. Examination: no red flags, normal neurological screen, flexion limited and painful with a directional preference for extension that centralizes his buttock pain, and marked guarding. Fictional patient; exam practice, not clinical guidance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -191,13 +191,13 @@ export const ABPTSOCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Prognosis conversation",
-              "Gives an honest, non-catastrophising prognosis in plain language: recurrent episodes and high psychosocial scores (fear, catastrophising, low mood) raise the chance of persistent disabling pain, so the plan deliberately targets those factors; reframes the 'slipped disc' belief, explains that the spine is strong and that his back can tolerate graded movement, sets expectations (improvement over weeks with active care, flare-ups are normal), and ties the plan to a work-return goal.",
+              "Gives an honest, non-catastrophizing prognosis in plain language: recurrent episodes and high psychosocial scores (fear, catastrophizing, low mood) raise the chance of persistent disabling pain, so the plan deliberately targets those factors; reframes the 'slipped disc' belief, explains that the spine is strong and that his back can tolerate graded movement, sets expectations (improvement over weeks with active care, flare-ups are normal), and ties the plan to a work-return goal.",
               "Something like: 'Your back is strong and nothing has slipped out of place. The reason this episode is dragging on is less about damage and more about how much it has frightened you and taken you out of work -- those are the things we can change. Most people in your position improve over the next few weeks with movement-based treatment, and flare-ups along the way are normal, not a sign of harm. We will start with the extension movements that already ease your leg pain, build up bending and lifting step by step, and plan your return to the warehouse with your employer.'"
             ),
             part(
               "Note to the GP",
               "Writes a concise referrer note: clinical impression (recurrent non-specific low back pain with a directional preference, high STarT Back risk), absence of red flags and neurological deficit, plan (stratified care: active, exercise-based treatment with a psychologically informed approach and graded return to work), expected timeline and review points, and what would prompt re-referral.",
-              "Impression: recurrent non-specific low back pain, 6 weeks, extension directional preference with centralisation, no red flags, neurological screen normal. STarT Back high risk (7/9, psychosocial 5/5) with fear-avoidance and belief in a 'slipped disc'. Plan: stratified, psychologically informed physiotherapy -- education and reassurance, directional-preference exercise progressing to graded loading and lifting, and a graded return-to-work plan with his employer; review at 3 and 6 weeks. Will re-refer for any red flag, new neurological deficit, or failure to progress by 6 weeks."
+              "Impression: recurrent non-specific low back pain, 6 weeks, extension directional preference with centralization, no red flags, neurological screen normal. STarT Back high risk (7/9, psychosocial 5/5) with fear-avoidance and belief in a 'slipped disc'. Plan: stratified, psychologically informed physiotherapy -- education and reassurance, directional-preference exercise progressing to graded loading and lifting, and a graded return-to-work plan with his employer; review at 3 and 6 weeks. Will re-refer for any red flag, new neurological deficit, or failure to progress by 6 weeks."
             ),
             part(
               "The MRI question",
@@ -227,13 +227,13 @@ export const ABPTSOCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Vascular screening",
-              "Applies the IFOMPT cervical framework: takes a vascular-focused history (headache or neck pain 'unlike any other', recent trauma, dizziness, visual disturbance, facial paraesthesia, dysphagia/dysarthria, unsteadiness), examines cranial nerves and the neurological system, records blood pressure and interprets the raised reading as a risk factor needing medical follow-up, and notes that positional (premanipulative) tests are no longer recommended because they do not predict risk.",
+              "Applies the IFOMPT cervical framework: takes a vascular-focused history (headache or neck pain 'unlike any other', recent trauma, dizziness, visual disturbance, facial paresthesia, dysphagia/dysarthria, unsteadiness), examines cranial nerves and the neurological system, records blood pressure and interprets the raised reading as a risk factor needing medical follow-up, and notes that positional (premanipulative) tests are no longer recommended because they do not predict risk.",
               "Use the IFOMPT framework. Ask specifically about dissection features: a new head or neck pain 'unlike any other', dizziness, visual change, facial numbness, speech or swallowing difficulty, unsteadiness or weakness -- she denies these and describes a familiar tension-type headache. Examine cranial nerves and the upper motor neuron screen. Record BP: 148/94 with smoking and recent trauma is a risk factor pattern, so refer the hypertension to her GP; premanipulative positional testing adds nothing and is not recommended."
             ),
             part(
               "Ligamentous and bony screening",
-              "Checks upper cervical ligamentous integrity and instability signs given the trauma mechanism (for example alar ligament and transverse ligament tests, Sharp-Purser, and symptoms such as lump-in-throat, metallic taste, bilateral paraesthesia, drop attacks), confirms the C-spine rule was applied, and states that any positive instability finding is a contraindication to manipulation and a referral.",
-              "She had the Canadian C-Spine Rule applied and cleared. Because of the trauma, still screen craniovertebral ligaments and instability symptoms (Sharp-Purser and alar/transverse ligament stress tests; ask about a lump in the throat, metallic taste, lip or bilateral hand paraesthesia, drop attacks). Any positive finding means no manipulation and a medical referral for imaging."
+              "Checks upper cervical ligamentous integrity and instability signs given the trauma mechanism (for example alar ligament and transverse ligament tests, Sharp-Purser, and symptoms such as lump-in-throat, metallic taste, bilateral paresthesia, drop attacks), confirms the C-spine rule was applied, and states that any positive instability finding is a contraindication to manipulation and a referral.",
+              "She had the Canadian C-Spine Rule applied and cleared. Because of the trauma, still screen craniovertebral ligaments and instability symptoms (Sharp-Purser and alar/transverse ligament stress tests; ask about a lump in the throat, metallic taste, lip or bilateral hand paresthesia, drop attacks). Any positive finding means no manipulation and a medical referral for imaging."
             ),
           ],
         },
@@ -248,8 +248,8 @@ export const ABPTSOCS_LABS: SeedLabSet = {
             ),
             part(
               "Intervention plan",
-              "Plans CPG-consistent care: cervical mobilisation or manipulation (upper cervical and thoracic as indicated, with consent and within the negative screening), combined with exercise -- deep neck flexor and scapulothoracic strengthening, mobility and sustained self-stretches -- active education and encouragement to stay active, and a review of the plan with reassessment of pain, ROM and NDI at two weeks.",
-              "Weeks 1-2: upper cervical (C2-3) and mid-cervical mobilisation, thoracic manipulation if she consents and screening stays clear, each session paired with exercise -- craniocervical flexion endurance, scapular strengthening, active rotation and extension mobility and a sustained C1-2 self-stretch -- plus advice to stay active and keep working. Reassess rotation, headache frequency and the NDI at two weeks, and expect to add progressive strengthening from week three."
+              "Plans CPG-consistent care: cervical mobilization or manipulation (upper cervical and thoracic as indicated, with consent and within the negative screening), combined with exercise -- deep neck flexor and scapulothoracic strengthening, mobility and sustained self-stretches -- active education and encouragement to stay active, and a review of the plan with reassessment of pain, ROM and NDI at two weeks.",
+              "Weeks 1-2: upper cervical (C2-3) and mid-cervical mobilization, thoracic manipulation if she consents and screening stays clear, each session paired with exercise -- craniocervical flexion endurance, scapular strengthening, active rotation and extension mobility and a sustained C1-2 self-stretch -- plus advice to stay active and keep working. Reassess rotation, headache frequency and the NDI at two weeks, and expect to add progressive strengthening from week three."
             ),
           ],
         },
@@ -264,8 +264,8 @@ export const ABPTSOCS_LABS: SeedLabSet = {
             ),
             part(
               "Next step",
-              "Moves toward discharge: transitions to an independent strengthening and mobility programme, plans a last review or a self-management check-in, confirms the GP is following up the blood pressure, and gives clear criteria for returning.",
-              "Progress to discharge: hand over an independent programme (deep neck flexor and scapular strengthening, mobility, posture breaks), confirm the GP has taken on the blood pressure, and book one final review or a check-in call. Tell her to come back early for new or different headache, dizziness, visual or speech symptoms, or arm symptoms."
+              "Moves toward discharge: transitions to an independent strengthening and mobility program, plans a last review or a self-management check-in, confirms the GP is following up the blood pressure, and gives clear criteria for returning.",
+              "Progress to discharge: hand over an independent program (deep neck flexor and scapular strengthening, mobility, posture breaks), confirm the GP has taken on the blood pressure, and book one final review or a check-in call. Tell her to come back early for new or different headache, dizziness, visual or speech symptoms, or arm symptoms."
             ),
           ],
         },
@@ -281,18 +281,18 @@ export const ABPTSOCS_LABS: SeedLabSet = {
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
-          text: "Examination: right calf pain to the lateral foot, worse sitting and bending; repeated extension in standing and prone centralises the calf pain to the buttock and then to the back; flexion peripheralises it. Right ankle plantarflexion is 4/5, right Achilles reflex diminished, light touch reduced on the lateral foot. Straight leg raise positive at 40 degrees on the right. No bladder or bowel change, no saddle numbness, left leg normal.",
+          text: "Examination: right calf pain to the lateral foot, worse sitting and bending; repeated extension in standing and prone centralizes the calf pain to the buttock and then to the back; flexion peripheralizes it. Right ankle plantarflexion is 4/5, right Achilles reflex diminished, light touch reduced on the lateral foot. Straight leg raise positive at 40 degrees on the right. No bladder or bowel change, no saddle numbness, left leg normal.",
           ask: "Classify the presentation, state the likely level, and write the first week's management.",
           parts: [
             part(
               "Classification and level",
-              "Classifies as low back pain with radiating (radicular) pain showing centralisation with extension -- directional preference extension -- and localises the root to S1 (lateral foot sensation, Achilles reflex, plantarflexion weakness); notes the deficit is mild and stable, which allows conservative care with monitoring.",
-              "Acute low back pain with related (radicular) leg pain, extension directional preference: repeated extension centralises, flexion peripheralises. Signs point to the right S1 root (lateral foot, diminished Achilles reflex, 4/5 plantarflexion, positive SLR at 40 degrees). A mild, stable deficit can be managed conservatively with close monitoring."
+              "Classifies as low back pain with radiating (radicular) pain showing centralization with extension -- directional preference extension -- and localizes the root to S1 (lateral foot sensation, Achilles reflex, plantarflexion weakness); notes the deficit is mild and stable, which allows conservative care with monitoring.",
+              "Acute low back pain with related (radicular) leg pain, extension directional preference: repeated extension centralizes, flexion peripheralizes. Signs point to the right S1 root (lateral foot, diminished Achilles reflex, 4/5 plantarflexion, positive SLR at 40 degrees). A mild, stable deficit can be managed conservatively with close monitoring."
             ),
             part(
               "First week",
-              "Prescribes CPG-consistent care: repeated extension/directional-preference exercise frequently through the day with monitoring for centralisation, advice to stay active and avoid prolonged sitting/flexion loading in the acute phase, education about expected recovery, optional manual therapy, and explicit neurological re-check each visit with written red-flag advice (progressive weakness, bladder or bowel change, saddle numbness).",
-              "Repeated prone extensions many times a day as long as the calf pain keeps centralising; walking and staying active; limit long sitting and loaded bending for now; honest education that most radicular episodes improve over weeks. Recheck strength, reflex and sensation each visit. Give written safety-net advice: come to the emergency department for new bladder or bowel trouble, saddle numbness, or worsening leg weakness."
+              "Prescribes CPG-consistent care: repeated extension/directional-preference exercise frequently through the day with monitoring for centralization, advice to stay active and avoid prolonged sitting/flexion loading in the acute phase, education about expected recovery, optional manual therapy, and explicit neurological re-check each visit with written red-flag advice (progressive weakness, bladder or bowel change, saddle numbness).",
+              "Repeated prone extensions many times a day as long as the calf pain keeps centralizing; walking and staying active; limit long sitting and loaded bending for now; honest education that most radicular episodes improve over weeks. Recheck strength, reflex and sensation each visit. Give written safety-net advice: come to the emergency department for new bladder or bowel trouble, saddle numbness, or worsening leg weakness."
             ),
           ],
         },
@@ -302,8 +302,8 @@ export const ABPTSOCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition",
-              "Recognises possible cauda equina syndrome: new urinary retention/hesitancy, saddle (perianal) sensory loss and new bilateral leg symptoms, and states it is a surgical emergency regardless of improving back pain.",
-              "This is possible cauda equina syndrome: new urinary hesitancy/retention, saddle anaesthesia and new bilateral leg involvement. It does not matter that his back feels better -- this is a surgical emergency."
+              "Recognizes possible cauda equina syndrome: new urinary retention/hesitancy, saddle (perianal) sensory loss and new bilateral leg symptoms, and states it is a surgical emergency regardless of improving back pain.",
+              "This is possible cauda equina syndrome: new urinary hesitancy/retention, saddle anesthesia and new bilateral leg involvement. It does not matter that his back feels better -- this is a surgical emergency."
             ),
             part(
               "Action",
@@ -336,7 +336,7 @@ export const ABPTSOCS_LABS: SeedLabSet = {
       kind: "build",
       title: "Neurogenic or vascular claudication?",
       brief:
-        "A fictional 72-year-old man reports bilateral buttock and calf 'heaviness' that comes on after walking about 150 metres and stops him. He is a former smoker with hypertension. He says he can push a shopping trolley around a supermarket for 40 minutes without trouble, finds cycling easy, and notices that walking downhill or down stairs is worse than going up. Standing still does not help much; sitting for a few minutes does. Lumbar extension in standing for 30 seconds reproduces the leg heaviness; flexion relieves it. Pedal pulses are palpable but weak bilaterally; feet are warm with normal hair and skin. Fictional patient; exam practice, not clinical guidance.",
+        "A fictional 72-year-old man reports bilateral buttock and calf 'heaviness' that comes on after walking about 150 meters and stops him. He is a former smoker with hypertension. He says he can push a shopping trolley around a supermarket for 40 minutes without trouble, finds cycling easy, and notices that walking downhill or down stairs is worse than going up. Standing still does not help much; sitting for a few minutes does. Lumbar extension in standing for 30 seconds reproduces the leg heaviness; flexion relieves it. Pedal pulses are palpable but weak bilaterally; feet are warm with normal hair and skin. Fictional patient; exam practice, not clinical guidance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -350,13 +350,13 @@ export const ABPTSOCS_LABS: SeedLabSet = {
             ),
             part(
               "Vascular work-up",
-              "Recognises that weak pedal pulses in a former smoker with hypertension warrant a vascular assessment (ankle-brachial index and medical review for peripheral artery disease) via the physician, and that a diagnosis of stenosis does not exclude PAD; adds a check for other mimics (hip osteoarthritis, neuropathy).",
+              "Recognizes that weak pedal pulses in a former smoker with hypertension warrant a vascular assessment (ankle-brachial index and medical review for peripheral artery disease) via the physician, and that a diagnosis of stenosis does not exclude PAD; adds a check for other mimics (hip osteoarthritis, neuropathy).",
               "Weak pedal pulses in a 72-year-old ex-smoker with hypertension mean PAD needs ruling in or out: ask his physician for an ankle-brachial index and vascular review. Also screen the hips (OA can mimic buttock claudication) and sensation (neuropathy), because stenosis and PAD commonly travel together."
             ),
             part(
               "Management",
-              "Writes a stenosis-appropriate plan: flexion-biased exercise and positioning, hip and trunk strengthening, cycling or body-weight-supported/inclined treadmill walking for conditioning, manual therapy as tolerated, pacing with a walking programme that uses flexion rest breaks, education, and clear referral criteria (progressive neurological deficit, bladder or bowel change, or vascular findings).",
-              "For the stenosis: flexion-biased mobility and positioning, hip flexor and hamstring flexibility, hip and trunk strengthening, cycling for cardiovascular fitness and a graded walking programme with planned sitting or flexion breaks, with the treadmill set to an incline if he tolerates it better. Educate him that the condition is manageable and that fitness protects him. Refer urgently for progressive weakness, falls, or bladder/bowel change, and to the vascular pathway if the ABI is abnormal."
+              "Writes a stenosis-appropriate plan: flexion-biased exercise and positioning, hip and trunk strengthening, cycling or body-weight-supported/inclined treadmill walking for conditioning, manual therapy as tolerated, pacing with a walking program that uses flexion rest breaks, education, and clear referral criteria (progressive neurological deficit, bladder or bowel change, or vascular findings).",
+              "For the stenosis: flexion-biased mobility and positioning, hip flexor and hamstring flexibility, hip and trunk strengthening, cycling for cardiovascular fitness and a graded walking program with planned sitting or flexion breaks, with the treadmill set to an incline if he tolerates it better. Educate him that the condition is manageable and that fitness protects him. Refer urgently for progressive weakness, falls, or bladder/bowel change, and to the vascular pathway if the ABI is abnormal."
             ),
           ],
         },
@@ -381,12 +381,12 @@ export const ABPTSOCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Assessment and risk",
-              "Identifies anterior instability after a first traumatic dislocation in a young contact athlete with intact cuff and axillary nerve, and explains honestly that recurrence risk is high in this age and sport profile, so a surgical opinion (stabilisation) is a reasonable discussion alongside rehabilitation.",
-              "Traumatic anterior instability with a positive apprehension/relocation sign, cuff and axillary nerve intact. At 19 in a collision sport his recurrence risk is high, so he should hear both options now: a dedicated rehabilitation programme and an orthopaedic opinion about stabilisation surgery."
+              "Identifies anterior instability after a first traumatic dislocation in a young contact athlete with intact cuff and axillary nerve, and explains honestly that recurrence risk is high in this age and sport profile, so a surgical opinion (stabilization) is a reasonable discussion alongside rehabilitation.",
+              "Traumatic anterior instability with a positive apprehension/relocation sign, cuff and axillary nerve intact. At 19 in a collision sport his recurrence risk is high, so he should hear both options now: a dedicated rehabilitation program and an orthopedic opinion about stabilization surgery."
             ),
             part(
               "Six-week plan",
-              "Writes a staged plan: early protected motion avoiding the provocative abduction-external-rotation range, progressive rotator cuff and scapular stabiliser strengthening, proprioceptive and closed-chain work, then return-to-sport criteria (symmetrical strength, no apprehension, sport-specific loading) with a realistic timeline and advice on contact.",
+              "Writes a staged plan: early protected motion avoiding the provocative abduction-external-rotation range, progressive rotator cuff and scapular stabilizer strengthening, proprioceptive and closed-chain work, then return-to-sport criteria (symmetrical strength, no apprehension, sport-specific loading) with a realistic timeline and advice on contact.",
               "Weeks 1-2: protected active motion short of the apprehension range, isometric cuff and scapular work. Weeks 3-6: progressive cuff (especially external rotation and subscapularis) and periscapular strengthening, closed-chain and perturbation work, gradually into abduction-external rotation. No contact until strength is near-symmetrical, apprehension is gone and he passes sport-specific tests -- and the surgical conversation happens in parallel."
             ),
           ],
@@ -397,13 +397,13 @@ export const ABPTSOCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Interpretation",
-              "Recognises that in an older patient a dislocation commonly tears the rotator cuff rather than the labrum, and that the active-passive gap with a positive lag sign suggests a significant cuff tear (likely supraspinatus/infraspinatus), while reduced deltoid sensation and weakness point to an axillary nerve injury.",
+              "Recognizes that in an older patient a dislocation commonly tears the rotator cuff rather than the labrum, and that the active-passive gap with a positive lag sign suggests a significant cuff tear (likely supraspinatus/infraspinatus), while reduced deltoid sensation and weakness point to an axillary nerve injury.",
               "At 62 the weak link is the cuff, not the labrum: a big active-passive gap and a positive external rotation lag sign suggest a substantial posterosuperior cuff tear. Reduced lateral deltoid sensation with deltoid weakness means the axillary nerve was injured in the dislocation."
             ),
             part(
               "Action",
-              "Refers promptly to orthopaedics for imaging (ultrasound or MRI) because an acute traumatic cuff tear in an active patient is time-sensitive for repair, documents and communicates the axillary nerve findings (and asks about electrodiagnostic follow-up if they persist), and in the meantime maintains passive and assisted range, scapular work and pain management without heavy loading.",
-              "Contact the orthopaedic team this week for imaging (ultrasound or MRI): an acute traumatic cuff tear is time-sensitive if repair is being considered, and the axillary nerve findings need documenting and monitoring (nerve conduction studies if not recovering). Meanwhile: passive and assisted elevation, scapular setting, gentle isometrics, pain management, no heavy loading."
+              "Refers promptly to orthopedics for imaging (ultrasound or MRI) because an acute traumatic cuff tear in an active patient is time-sensitive for repair, documents and communicates the axillary nerve findings (and asks about electrodiagnostic follow-up if they persist), and in the meantime maintains passive and assisted range, scapular work and pain management without heavy loading.",
+              "Contact the orthopedic team this week for imaging (ultrasound or MRI): an acute traumatic cuff tear is time-sensitive if repair is being considered, and the axillary nerve findings need documenting and monitoring (nerve conduction studies if not recovering). Meanwhile: passive and assisted elevation, scapular setting, gentle isometrics, pain management, no heavy loading."
             ),
           ],
         },
@@ -424,13 +424,13 @@ export const ABPTSOCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Fracture rehabilitation",
-              "Plans progressive rehabilitation consistent with the surgeon's clearance: active and passive mobility for extension, flexion and forearm rotation (including end-range holds and joint mobilisation as tolerated), scar and oedema management, graded grip and forearm strengthening, functional task practice, with monitoring for tendon irritation over the plate and complex regional pain signs.",
-              "With no restrictions at 7 weeks: daily active and passive wrist extension/flexion and supination with sustained end-range holds, wrist and radioulnar joint mobilisation as tolerated, scar and swelling care, then graded grip and forearm strengthening (putty, light weights, functional tasks like jar opening). Watch for flexor tendon irritation over the volar plate and for disproportionate pain, swelling or colour change (CRPS) that should go back to the surgeon."
+              "Plans progressive rehabilitation consistent with the surgeon's clearance: active and passive mobility for extension, flexion and forearm rotation (including end-range holds and joint mobilization as tolerated), scar and edema management, graded grip and forearm strengthening, functional task practice, with monitoring for tendon irritation over the plate and complex regional pain signs.",
+              "With no restrictions at 7 weeks: daily active and passive wrist extension/flexion and supination with sustained end-range holds, wrist and radioulnar joint mobilization as tolerated, scar and swelling care, then graded grip and forearm strengthening (putty, light weights, functional tasks like jar opening). Watch for flexor tendon irritation over the volar plate and for disproportionate pain, swelling or color change (CRPS) that should go back to the surgeon."
             ),
             part(
               "The numbness",
               "Identifies carpal tunnel syndrome (median neuropathy at the wrist) as the most likely cause -- night numbness in the thumb, index and middle fingers relieved by shaking, little finger spared, after a distal radius fracture -- confirms with provocative tests (for example Phalen, Tinel at the carpal tunnel, carpal compression), examines thenar strength and two-point discrimination, screens the cervical spine (C6 radiculopathy) as a differential, and manages with night splinting in neutral, nerve-gliding and activity modification while informing the surgeon, with escalation (electrodiagnosis, surgical opinion) for weakness, thenar wasting or constant numbness.",
-              "Classic carpal tunnel syndrome after a distal radius fracture: nocturnal paraesthesia in the median distribution eased by the flick manoeuvre, little finger spared. Confirm with Phalen, Tinel at the carpal tunnel and carpal compression, check thenar (APB) strength and two-point discrimination, and screen C6 radiculopathy. Start a neutral wrist splint at night, median nerve gliding and activity changes, and tell the surgeon. Constant numbness, thenar weakness or wasting means electrodiagnostic testing and a surgical opinion."
+              "Classic carpal tunnel syndrome after a distal radius fracture: nocturnal paresthesia in the median distribution eased by the flick maneuver, little finger spared. Confirm with Phalen, Tinel at the carpal tunnel and carpal compression, check thenar (APB) strength and two-point discrimination, and screen C6 radiculopathy. Start a neutral wrist splint at night, median nerve gliding and activity changes, and tell the surgeon. Constant numbness, thenar weakness or wasting means electrodiagnostic testing and a surgical opinion."
             ),
             part(
               "Measuring change",
@@ -460,8 +460,8 @@ export const ABPTSOCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Running decision",
-              "Uses criteria rather than time alone: full extension, no reactive effusion, a quadriceps symmetry index that meets the programme's pre-running threshold (his 68% does not, whatever threshold is used) and good single-leg control before running; so delays running, or allows only a very gradual walk-jog start once effusion and strength criteria are met, and explains why.",
-              "Not quite yet. He has the motion, but a quadriceps index of 68% and a knee that still swells after training say the quads are not ready to absorb impact. Set the gate as no reactive effusion, a quadriceps index at the programme's pre-running threshold, and clean single-leg squat control; then begin a graded walk-jog progression. Re-test in 2 weeks."
+              "Uses criteria rather than time alone: full extension, no reactive effusion, a quadriceps symmetry index that meets the program's pre-running threshold (his 68% does not, whatever threshold is used) and good single-leg control before running; so delays running, or allows only a very gradual walk-jog start once effusion and strength criteria are met, and explains why.",
+              "Not quite yet. He has the motion, but a quadriceps index of 68% and a knee that still swells after training say the quads are not ready to absorb impact. Set the gate as no reactive effusion, a quadriceps index at the program's pre-running threshold, and clean single-leg squat control; then begin a graded walk-jog progression. Re-test in 2 weeks."
             ),
             part(
               "Next phase",
@@ -508,7 +508,7 @@ export const ABPTSOCS_LABS: SeedLabSet = {
             ),
             part(
               "Staged plan and criteria",
-              "Plans CPG-consistent early functional rehabilitation rather than immobilisation: protected weight-bearing with external support, early active range of motion and progressive loading, manual therapy as indicated for pain and dorsiflexion, then balance and neuromuscular training (a key component for preventing recurrence), progressing to hopping, cutting and sport-specific drills; gates each stage on criteria such as pain-free walking, symmetrical dorsiflexion, single-leg balance and hop symmetry.",
+              "Plans CPG-consistent early functional rehabilitation rather than immobilization: protected weight-bearing with external support, early active range of motion and progressive loading, manual therapy as indicated for pain and dorsiflexion, then balance and neuromuscular training (a key component for preventing recurrence), progressing to hopping, cutting and sport-specific drills; gates each stage on criteria such as pain-free walking, symmetrical dorsiflexion, single-leg balance and hop symmetry.",
               "Early functional rehab, not a cast: a lace-up brace with weight-bearing as tolerated, active ROM and cryotherapy from now, manual therapy for pain and dorsiflexion as needed. Gate 1 (pain-free walking, swelling settling): calf and peroneal strengthening and single-leg balance. Gate 2 (symmetrical dorsiflexion, 30-second single-leg stance on firm and foam): hopping, landing and change of direction. Gate 3 (hop tests above 90% of the left, no apprehension cutting): sport-specific drills then full practice with the brace for the first weeks back."
             ),
             part(

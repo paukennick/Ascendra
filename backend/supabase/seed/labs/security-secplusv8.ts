@@ -64,7 +64,7 @@ export const SECPLUSV8_LABS: SeedLabSet = {
             part(
               "Ownership, stakeholders, approval",
               "Names a change owner, the stakeholders to notify (e-commerce/business, DBA, on-call), and that the CAB must approve before implementation rather than an engineer patching ad hoc.",
-              "Change owner: the database administrator. Stakeholders: e-commerce business owner, application team, on-call lead, customer support. The CAB reviews and approves before any change; an urgent patch can go through an emergency change process, but it is still authorised and recorded, not applied on a whim."
+              "Change owner: the database administrator. Stakeholders: e-commerce business owner, application team, on-call lead, customer support. The CAB reviews and approves before any change; an urgent patch can go through an emergency change process, but it is still authorized and recorded, not applied on a whim."
             ),
             part(
               "Impact analysis and maintenance window",
@@ -167,7 +167,7 @@ export const SECPLUSV8_LABS: SeedLabSet = {
       kind: "case",
       title: "Investigate a prompt-injection incident in an AI assistant",
       brief:
-        "Solace Software (fictional) built an internal AI assistant that answers staff questions and can call two tools: a document-search tool over the company wiki and an email-send tool. A support engineer reports the assistant emailed a summary of an internal salary document to an outside address after they asked it to 'summarise the latest HR policy page'. You investigate using the OWASP Top 10 for LLM Applications and MITRE ATLAS as references. No real salary data is reproduced here.",
+        "Solace Software (fictional) built an internal AI assistant that answers staff questions and can call two tools: a document-search tool over the company wiki and an email-send tool. A support engineer reports the assistant emailed a summary of an internal salary document to an outside address after they asked it to 'summarize the latest HR policy page'. You investigate using the OWASP Top 10 for LLM Applications and MITRE ATLAS as references. No real salary data is reproduced here.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -203,7 +203,7 @@ export const SECPLUSV8_LABS: SeedLabSet = {
             part(
               "Guardrails and monitoring",
               "Adds input/output guardrails (filter or flag instructions in retrieved content, scan outputs for sensitive data) and logs/monitors tool use so an anomalous external send is caught.",
-              "Add guardrails that detect and neutralise instruction-like text in retrieved documents and that screen outputs for sensitive data before sending, and log every tool call so an external email of an HR document raises an alert. Defence in depth, since no single filter is perfect against injection."
+              "Add guardrails that detect and neutralize instruction-like text in retrieved documents and that screen outputs for sensitive data before sending, and log every tool call so an external email of an HR document raises an alert. Defense in depth, since no single filter is perfect against injection."
             ),
           ],
         },
@@ -231,7 +231,7 @@ export const SECPLUSV8_LABS: SeedLabSet = {
             ),
             part(
               "Attack surface and diversity",
-              "Minimises attack surface (only the web app exposed, admin interfaces off the internet) and may note defense diversity (not relying on one vendor/one control to catch everything).",
+              "Minimizes attack surface (only the web app exposed, admin interfaces off the internet) and may note defense diversity (not relying on one vendor/one control to catch everything).",
               "Only the web application is internet-exposed; management interfaces are on an internal/out-of-band path. Reducing exposed services shrinks the attack surface, and layering different control types (firewall plus IPS plus segmentation) means one bypass does not defeat everything."
             ),
             part(
@@ -301,8 +301,8 @@ export const SECPLUSV8_LABS: SeedLabSet = {
           parts: [
             part(
               "SPF",
-              "Publishes an SPF TXT record listing the authorised sending sources (Google Workspace include, the marketing platform include) ending in a fail/softfail; explains SPF authorises sending servers for the envelope domain.",
-              "Publish one SPF TXT record naming every legitimate source, e.g. v=spf1 include:_spf.google.com include:<marketing-platform> -all. SPF lets receivers check the sending server is authorised for the domain; -all tells them to reject other sources. (One SPF record only; it may cause at most 10 DNS lookups, per RFC 7208.)"
+              "Publishes an SPF TXT record listing the authorized sending sources (Google Workspace include, the marketing platform include) ending in a fail/softfail; explains SPF authorizes sending servers for the envelope domain.",
+              "Publish one SPF TXT record naming every legitimate source, e.g. v=spf1 include:_spf.google.com include:<marketing-platform> -all. SPF lets receivers check the sending server is authorized for the domain; -all tells them to reject other sources. (One SPF record only; it may cause at most 10 DNS lookups, per RFC 7208.)"
             ),
             part(
               "DKIM",
@@ -328,9 +328,9 @@ export const SECPLUSV8_LABS: SeedLabSet = {
       objective:
         "Password concepts: passkey, password managers, passwordless, and password best practices -- length, complexity, reuse, expiration, age, compromised credential monitoring, account auditing, policy report",
       kind: "build",
-      title: "Modernise a password policy to current guidance",
+      title: "Modernize a password policy to current guidance",
       brief:
-        "Fieldstone University (fictional) IT runs this policy: passwords are exactly 8 characters, must include upper, lower, number and symbol, expire every 60 days, and cannot be written down. Helpdesk is flooded with reset calls, and users cycle Password1!, Password2!, and so on. Leadership asks you to modernise the policy in line with current NIST guidance (SP 800-63B) and to improve real-world security.",
+        "Fieldstone University (fictional) IT runs this policy: passwords are exactly 8 characters, must include upper, lower, number and symbol, expire every 60 days, and cannot be written down. Helpdesk is flooded with reset calls, and users cycle Password1!, Password2!, and so on. Leadership asks you to modernize the policy in line with current NIST guidance (SP 800-63B) and to improve real-world security.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {

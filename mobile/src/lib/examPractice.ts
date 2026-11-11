@@ -124,3 +124,11 @@ export function submitWarning(c: NavCounts): string {
 export function navLabel(i: number, item: Pick<ExamItem, "answered" | "flagged">): string {
   return `Question ${i + 1}, ${item.answered ? "answered" : "not answered"}${item.flagged ? ", flagged for review" : ""}`;
 }
+
+// REQ-217 (FAIL-1049): whether leaving a running exam screen must first save
+// the answers and warn about unsaved ones. Never against a sign-out, session
+// expiry or lock, which remove the screen on purpose, nor once leaving has
+// been confirmed.
+export function examLeaveGuard(allowLeave: boolean, signedIn: boolean): boolean {
+  return !allowLeave && signedIn;
+}

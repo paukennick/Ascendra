@@ -12072,6 +12072,1064 @@
       "recurrence_of": "FAIL-1000"
     },
     {
+      "id": "FAIL-1070",
+      "date": "2026-11-10",
+      "title": "Review sessions could pick a pulled (quarantined or confirmed wrong) question",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Review sessions could pick a pulled (quarantined or confirmed wrong) question (Audit 2026-11-11 H1)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "prepareContext (the session builder's one-query read of unseen cached questions) had no pulled-item filter; unseenItems(), which had it, was no longer called",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/review-store.ts"
+      ],
+      "fix_summary": "review-store.ts prepareContext adds servableSql('review', ri.id); unseenItems removed",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts",
+        "backend/lib/item-quality.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A query that replaces another carries over every filter of the one it replaces; item-quality.dbtest.ts now checks the filter on the live read path",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1071",
+      "date": "2026-11-10",
+      "title": "A review was 'due' minutes after the last one and a correct answer then climbed a rung",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A review was 'due' minutes after the last one and a correct answer then climbed a rung (Audit H8)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "Due dates are UTC calendar days: an answer at 23:50 was due at 00:00. Nothing required elapsed time, so a correct answer counted as a spaced review",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/review-scheduler.ts",
+        "backend/lib/review-step.ts",
+        "backend/lib/review-store.ts"
+      ],
+      "fix_summary": "A review is due only when its date has come and 24 h (MIN_REVIEW_GAP_HOURS; first set at 18, changed to a full day by Nick, 2026-11-10) have passed since the last review or enrolment: scheduler, advanceDueSchedule, dueObjectives, nextDueOn. Elapsed time, not the learner's local date, because the app sends that date and the server only checks it to within a day",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts",
+        "backend/lib/review-scheduler.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A spacing rule is stated in elapsed time; a test enrols at 23:50",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1072",
+      "date": "2026-11-10",
+      "title": "One correct unassisted answer in the first sitting made an objective Independent",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "One correct unassisted answer in the first sitting made an objective Independent (Owner decision)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "mastery_detail opened Independent on a single format win with accuracy over the threshold; no later evidence was required (Nick, 2026-11-10: a follow-up session is needed)",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/supabase/migrations/074_independent_confirmation.sql"
+      ],
+      "fix_summary": "Migration 074 restates mastery_detail: Independent and Transfer-ready need a second unassisted correct format win spacing_gap_hours (24 h) after the first; 074b backs up and recomputes every learner",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts",
+        "backend/lib/mastery-model.dbtest.ts",
+        "backend/lib/mastery-integrity.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A change to the mastery rule is a migration with a recompute and a test that a stored level follows",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1073",
+      "date": "2026-11-10",
+      "title": "Exam submit read a snapshot while saves were still accepted, and recorded attempts before flipping the session out of in_progress",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Exam submit read a snapshot while saves were still accepted, and recorded attempts before flipping the session out of in_progress (Audit M1, M5)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "submitSession read the items, recorded each attempt in its own transaction, and only then locked the session. A save in that window was acknowledged and never graded; an abandoned session's answers were counted",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/exam-sessions.ts"
+      ],
+      "fix_summary": "submitIn: one transaction that locks the session row, flips it to submitted, then reads, grades and records; saveItem takes the row FOR SHARE so a save is refused after the claim",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "State changes that decide what a later read may see are claimed under a row lock before the read",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1074",
+      "date": "2026-11-10",
+      "title": "An exam attempt was recorded for an item already confirmed wrong",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "An exam attempt was recorded for an item already confirmed wrong (Audit M2)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "submit recorded every answered item without looking at item_status",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/item-quality.ts"
+      ],
+      "fix_summary": "submit skips items with a confirmed_wrong status; the exam item rows are locked FOR SHARE and confirmWrongIn takes the conflicting lock, so a confirm in flight is waited for",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A recorder reads the pulled state under the same lock the puller takes",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1075",
+      "date": "2026-11-10",
+      "title": "Confirming an item wrong left the voided attempts' error_log rows and learner misconceptions",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Confirming an item wrong left the voided attempts' error_log rows and learner misconceptions (Audit M4)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "confirmWrongIn voided the attempts and recomputed mastery only",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/item-quality.ts"
+      ],
+      "fix_summary": "confirmWrongIn resolves the error_log rows and deletes learner_misconceptions of the voided attempts in the same transaction",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Anything derived from an answer is cleared with the answer",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1076",
+      "date": "2026-11-10",
+      "title": "An exam submit could get stuck after a partial failure, and ran without a duration limit",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "An exam submit could get stuck after a partial failure, and ran without a duration limit (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "Attempts were committed one at a time; a retry after the answer was edited hit the exam: client id conflict. The route had no maxDuration",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/exam-sessions.ts",
+        "backend/app/api/exam/sessions/[id]/submit/route.ts"
+      ],
+      "fix_summary": "The submit is one transaction (a failure rolls the claim back); an attempt already stored under the client id is reused; the submit route exports maxDuration = 120",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A multi-step write that a retry must repeat is one transaction",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1077",
+      "date": "2026-11-10",
+      "title": "Exam submit wrote evidence to an objective retired mid-session",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Exam submit wrote evidence to an objective retired mid-session (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "submit recorded attempts without the retired_at check",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/exam-sessions.ts"
+      ],
+      "fix_summary": "submit skips objectives or units retired by now (isActive); the answer still counts in the score",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every writer of evidence applies retired_at (FAIL-889)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1078",
+      "date": "2026-11-10",
+      "title": "An expired timed exam session was discarded unmarked by the next start",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "An expired timed exam session was discarded unmarked by the next start (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "createSession abandoned any in_progress session of the course and mode, whatever its deadline",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/exam-sessions.ts"
+      ],
+      "fix_summary": "The start submits sessions past their deadline (savepoint, falling back to abandon on failure) before abandoning the rest",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Old state is destroyed only after its value is kept (FAIL-887)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1079",
+      "date": "2026-11-10",
+      "title": "An automated re-check claim never expired",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "An automated re-check claim never expired (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "item_flags_one_recheck kept a claim forever if the process died between claim and result, so the item could never be re-checked",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/item-quality.ts"
+      ],
+      "fix_summary": "A claim with no result older than RECHECK_CLAIM_MINUTES (15) is taken over; a finished one is never re-run",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A claim row has an expiry",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1080",
+      "date": "2026-11-10",
+      "title": "Two first answers to one PBQ or unit-check item were both counted as unassisted",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Two first answers to one PBQ or unit-check item were both counted as unassisted (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "The first-answer check for a unit-wide answer ran with no lock, because only an objective was locked",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "recordAttemptTx takes a per-(learner, scenario or item) advisory transaction lock before deciding the assist reason",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A first-answer decision is made under a lock",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1081",
+      "date": "2026-11-10",
+      "title": "Explain-back replay by client id was not bound to the answer text",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Explain-back replay by client id was not bound to the answer text (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "replayMatches compared objective, kind and stage only, so a reused id with a different explanation returned the first verdict and never graded the new text",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/replay-binding.ts",
+        "backend/app/api/objectives/[id]/explain-back/route.ts"
+      ],
+      "fix_summary": "replayMatches takes the answer (trimmed); the route binds it and a different text is a 409",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/understanding.dbtest.ts",
+        "backend/lib/security-a3.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A replay by client id is bound to everything that was submitted (REQ-135)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1082",
+      "date": "2026-11-10",
+      "title": "A lab restart racing a graded last step let the abandoned run finish and record an attempt",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A lab restart racing a graded last step let the abandoned run finish and record an attempt (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "recordStep inserted the step and finished the run without locking it or checking abandoned_at",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/labs.ts"
+      ],
+      "fix_summary": "recordStep locks the run row and refuses a finished or abandoned run; openRun only abandons a run not yet completed",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The writer of a terminal state locks the row it ends",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1083",
+      "date": "2026-11-10",
+      "title": "A sim reasoning answer was stored after the run had ended",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A sim reasoning answer was stored after the run had ended (Audit M3)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "The insert after grading did not lock the run or check its status, so an answer graded while finish ran was stored against an ended run",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/sims.ts"
+      ],
+      "fix_summary": "The insert takes the run row FOR SHARE and refuses with 409 run_ended unless it is open (finishRun holds it FOR UPDATE); the graded-answer use is given back",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sims.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A write that follows a slow external call re-checks the state it depends on under a lock",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1040",
+      "date": "2026-11-10",
+      "title": "Every silent token refresh asked for a fingerprint, and a cancelled prompt signed the learner out",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "With biometric unlock on, each silent refresh wrote the sealed key, which prompts on Android; cancelling it signed out after the server had already rotated the token",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "AuthContext.refresh re-sealed the rotated token with requireAuthentication on every refresh and called clearAuth on any failure in that block",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib/sessionStore.ts"
+      ],
+      "fix_summary": "Silent refresh keeps the token in memory and marks the sealed copy stale; it is sealed at sign-in, unlock and when the app goes to the background; a failed seal falls back to the plain key and never signs out",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1041",
+      "date": "2026-11-10",
+      "title": "Any failed refresh (offline, timeout, 5xx) wiped the session",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A train tunnel or a server hiccup signed the learner out and cost them their session",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "refresh() and the cold-start path called clearAuth on every failure, not only on the server's 401",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/components/SessionRetry.tsx"
+      ],
+      "fix_summary": "Only a 401 from refresh signs out; otherwise the token is kept, the failure is thrown to the screen, and a cold start shows Try again / Sign out",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1042",
+      "date": "2026-11-10",
+      "title": "Every /api/auth/ route skipped refresh-and-retry",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "An expired access token made unlock, sessions, change-password and the two-factor routes fail with a 401 instead of refreshing",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "client.ts exempted the whole /api/auth/ prefix to protect login and refresh from recursion",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/api/client.ts",
+        "mobile/src/lib/sessionStore.ts"
+      ],
+      "fix_summary": "Only the signed-out routes are exempt (isSignedOutAuthRoute); the rest refresh once and retry",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1043",
+      "date": "2026-11-10",
+      "title": "Sign out of all devices said it worked when the server call failed",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A 401 from logout-all was swallowed; this phone was cleared and other devices stayed signed in",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "logoutAll caught every error, then cleared local state unconditionally",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/app/(app)/account.tsx"
+      ],
+      "fix_summary": "logoutAll returns {ok,error}; local state is cleared only after a 200; the account screen shows the failure",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1044",
+      "date": "2026-11-10",
+      "title": "TextField dropped keyboardType",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Number and email fields opened the full text keyboard",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "keyboardType was destructured out of the props and never passed to TextInput",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/components/ui.tsx"
+      ],
+      "fix_summary": "Pass it through",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1045",
+      "date": "2026-11-10",
+      "title": "Offline on a sign-in screen read 'Something went wrong'",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Login, register, forgot password, two-factor and resend showed a generic message when offline",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The screens only used the message of an ApiError; a NetworkError is not one",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(auth)",
+        "mobile/src/lib/errorMessage.ts"
+      ],
+      "fix_summary": "messageOr shows the offline, timeout and server messages and falls back only for an error with no message of its own",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1046",
+      "date": "2026-11-10",
+      "title": "An unguarded storage read at launch could leave the app on the splash screen",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A throwing keystore read of the biometric preference stopped the launch effect",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The read had no catch",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx"
+      ],
+      "fix_summary": "Read as 'no preference' on error",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1047",
+      "date": "2026-11-10",
+      "title": "A failed profile reload after turning on two-factor hid the backup codes",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Codes are shown once; if the reload after enabling failed, the screen said the code was wrong and the codes were lost",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "refreshUser() ran before the codes were put on screen, inside the same try",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/settings/mfa.tsx"
+      ],
+      "fix_summary": "Show the codes first; the reload is best effort",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1048",
+      "date": "2026-11-10",
+      "title": "The exam start id changed on every press",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A retry after a lost answer started a second exam session",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "clientSessionId: Crypto.randomUUID() inside the press handler",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/exam.tsx",
+        "mobile/src/lib/pendingId.ts"
+      ],
+      "fix_summary": "Kept in a ref per course, mode and timing until a start succeeds",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1049",
+      "date": "2026-11-10",
+      "title": "The back gesture left a running exam without saving or warning",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Header back, the system gesture and Android back skipped the flush and the unsaved-answers warning",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Only the Leave and finish later button flushed",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/exam.tsx",
+        "mobile/src/lib/examPractice.ts"
+      ],
+      "fix_summary": "A beforeRemove guard runs the same flush and warning, then completes the back action",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1050",
+      "date": "2026-11-10",
+      "title": "A sim reasoning answer already graded showed an error and a box that could not be submitted",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After a lost reply the 409 already_graded left the learner stuck; the typed answer lived only in memory",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The app ignored the result the 409 carries and kept the draft only in React state",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/sim/useSimRun.ts",
+        "mobile/src/sim/SimPanels.tsx",
+        "mobile/src/sim/runtime/reasoningReplay.ts"
+      ],
+      "fix_summary": "Show the 409's result; keep the draft on the device under a key the logout sweep removes",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1051",
+      "date": "2026-11-10",
+      "title": "Lab Start over discarded the run on one tap and a failed restart said nothing",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "No confirmation; the startError was never shown there",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Button called start(true) directly",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lab/[labId].tsx"
+      ],
+      "fix_summary": "Confirm first; show startError with a retry",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1052",
+      "date": "2026-11-10",
+      "title": "Sim End the run and Start over discarded work on one tap",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "No confirmation",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Buttons called quit() and start(true) directly",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/sim/[simId].tsx"
+      ],
+      "fix_summary": "Both confirm first",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1053",
+      "date": "2026-11-10",
+      "title": "A sim run frozen after a failed reload",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The run view stayed on screen with every control disabled and no message",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The error was shown only on the start view",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/sim/[simId].tsx"
+      ],
+      "fix_summary": "Show the error with Reload the run in the run view",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1054",
+      "date": "2026-11-10",
+      "title": "A stale lab step kept showing after a 409",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Answering a step already answered elsewhere gave an error on a step that could never be sent",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The 409 did not reload the lab",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lab/[labId].tsx"
+      ],
+      "fix_summary": "A 409 on submit reloads the lab",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1055",
+      "date": "2026-11-10",
+      "title": "A big data export through the phone's share sheet failed or closed the app",
+      "status": "mitigated",
+      "severity": "medium",
+      "symptom": "Share.share carried the whole export as text through Binder",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "No size check",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/account.tsx",
+        "mobile/src/lib/accountExport.ts"
+      ],
+      "fix_summary": "Over 200,000 characters the phone points to the web download; a real file share needs expo-file-system and expo-sharing, which is a build, not an update (deferred)",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A size check stops the crash; a real file share needs expo-file-system and expo-sharing (a build, not an update) and is deferred. The listed test pins the check.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1056",
+      "date": "2026-11-10",
+      "title": "Google re-auth on account and two-factor screens could lock the app on return",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The Google tab reports background on Android and the lock fired on return",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "signInAsync was called without withBackgroundHold",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/account.tsx",
+        "mobile/app/(app)/settings/mfa.tsx"
+      ],
+      "fix_summary": "Wrapped",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1057",
+      "date": "2026-11-10",
+      "title": "Signing out wiped the study reminder setting",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The next sign-in found reminders off",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The logout sweep removed ascendra.reminders.<user>",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/lib/localData.ts"
+      ],
+      "fix_summary": "The setting stays; notifications are cancelled at sign-out and return with it at sign-in; the plan (topic names) is still swept",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts",
+        "mobile/src/lib/productBasics.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1058",
+      "date": "2026-11-10",
+      "title": "Overlapping reminder applies interleaved",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Two quick changes could leave reminders doubled or missing",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "applyReminders was cancel-then-schedule with no ordering",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/lib/reminderScheduler.ts",
+        "mobile/src/lib/serialQueue.ts"
+      ],
+      "fix_summary": "Every schedule change runs through one serial queue",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1059",
+      "date": "2026-11-10",
+      "title": "Tapping a reminder did not open Review",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "It opened wherever the app was last left",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "No notification response handler",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/lib/useReminderTap.ts",
+        "mobile/app/_layout.tsx"
+      ],
+      "fix_summary": "useReminderTap routes a study reminder to /review once signed in",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1060",
+      "date": "2026-11-10",
+      "title": "A PBQ unit list that failed to load said 'No units yet'",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A network failure read as an empty course",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "catch set units to []",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/pbq.tsx"
+      ],
+      "fix_summary": "Show the error with a retry",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1061",
+      "date": "2026-11-10",
+      "title": "study_notice_required left the learner at an error with no way to the notice",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The server refused a request until the notice was accepted; the app's copy of the state said otherwise",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Nothing reloaded the onboarding state on that code",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/api/client.ts",
+        "mobile/src/auth/OnboardingContext.tsx",
+        "mobile/src/lib/studyNotice.ts"
+      ],
+      "fix_summary": "The client reports it and the onboarding provider reloads, which opens the notice screen",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1062",
+      "date": "2026-11-10",
+      "title": "The keyboard covered inputs on Android 15+",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Edge-to-edge Android no longer resizes for the keyboard; KeyboardAvoidingView was iOS only",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Reliance on adjustResize",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/components/ui.tsx",
+        "mobile/src/lib/useKeyboardOverlap.ts",
+        "mobile/app/(app)/course/[trackId]/chat.tsx"
+      ],
+      "fix_summary": "Screen and the coach chat pad themselves by the measured keyboard overlap on Android 35+; iOS uses automaticallyAdjustKeyboardInsets (needs a phone check)",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1063",
+      "date": "2026-11-10",
+      "title": "The biometric switch failed silently and was offered on weak-biometric phones",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Sealing needs a strong biometric; a failed write threw out of the switch",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "No catch; availability checked hardware and enrolment only",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/settings.tsx",
+        "mobile/src/lib/biometric.ts",
+        "mobile/src/auth/AuthContext.tsx"
+      ],
+      "fix_summary": "Offered only when SecureStore says sealing can work; failures are caught and explained; enabling writes the preference last and restores the plain token on failure",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1064",
+      "date": "2026-11-10",
+      "title": "Plan-locked unit check and comparisons rendered blank or misleading",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The server answers 200 with locked; the screens showed a title only or 'No look-alike concepts were found'",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The screens ignored the locked field",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/unit-check.tsx",
+        "mobile/app/(app)/course/[trackId]/compare.tsx",
+        "mobile/src/lib/featureLock.ts"
+      ],
+      "fix_summary": "Show the server's message",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1065",
+      "date": "2026-11-10",
+      "title": "Use password instead leaves the old sealed session live on the server",
+      "status": "mitigated",
+      "severity": "low",
+      "symptom": "The deleted sealed token's session stays until it expires and shows in Active sessions",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Revoking needs the sealed token, which needs the prompt the learner is declining",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx"
+      ],
+      "fix_summary": "Accepted and documented in code; needs a backend route to end a named session from the new one",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Documented in AuthContext.tsx; needs a backend route that ends a named session.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1066",
+      "date": "2026-11-10",
+      "title": "The web lock markers are in localStorage",
+      "status": "mitigated",
+      "severity": "low",
+      "symptom": "Someone at an unlocked browser can edit them",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Browser storage is editable",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/lib/autoLock.ts"
+      ],
+      "fix_summary": "Accepted and documented: clearing the marker alone still locks (last-seen is not advanced while locked, and a missing one locks); a test pins it",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-1160",
       "date": "2026-11-10",
       "title": "A restore into a cluster without app_runtime and content_recheck failed, and the CI drill could not see it",
@@ -12253,6 +13311,2012 @@
         ".ai/checklists/pre-completion.md"
       ],
       "prevention_notes": "ci.yml runs the summary tests; workflow-hardening and operations-g6 tests cover pins, Node and token placement",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1084",
+      "date": "2026-11-10",
+      "title": "The reminder plan announced a review before the review screen served it",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A reminder could fire for a review whose date had come but whose 24 h minimum gap had not (Nick's follow-up to FAIL-1071)",
+      "how_detected": "Coordinator review of PR #127",
+      "root_cause": "dueThrough in reminder-plan-store.ts read due_on only; FAIL-1071 added the elapsed-time floor to the due queue and not to the reminder plan",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/reminder-plan-store.ts"
+      ],
+      "fix_summary": "dueThrough plans a scheduled objective for the later of its date and the day its 24 h gap ends",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every reader of review_schedule.due_on applies the floor: dueObjectives, nextDueOn, advanceDueSchedule, dueThrough (service-emails count is approximate by design)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1200",
+      "date": "2026-11-10",
+      "title": "Shared acknowledgement 403 carried no code, so the app could not tell which acknowledgement was missing",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Routes behind requireAcknowledgementFor* answered 403 { error, acknowledgementRequired: true } with no code, while requireStudyNotice answered { code: 'study_notice_required' }; adding a second gate (18+ mature content) made the two indistinguishable to the app",
+      "how_detected": "review while adding the REQ-224 mature-content gate",
+      "root_cause": "forbidden(message) in lib/http.ts took only a message, and every route mapped AcknowledgementError with forbidden(err.message), so anything the error knew beyond its text was dropped at the one place all ~40 routes pass through",
+      "requirement": "REQ-224",
+      "affected": [
+        "backend/lib/http.ts",
+        "backend/lib/auth/requireAcknowledgement.ts",
+        "backend/app/api",
+        "backend/lib/exam-route-errors.ts",
+        "backend/lib/review-routes.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/sims.ts"
+      ],
+      "fix_summary": "AcknowledgementError carries extra ({ code: study_notice_required } by default, mature_content_required for MatureContentError); forbidden(message, extra) merges it and every route passes err.extra; serverError answers an escaped AcknowledgementError with the same 403 instead of a 500",
+      "fix_commits": [
+        "9e2034b"
+      ],
+      "regression_tests": [
+        "backend/lib/mature-content.dbtest.ts::teaching routes refuse through the shared gate; the study notice still comes first",
+        "backend/lib/mature-content.dbtest.ts::starting a mental health course (a study session) is refused through serverError as a 403",
+        "not a 500"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Refusals the learner can act on carry a stable code in the body; the gate's error type owns that code, so a new gate cannot lose it at the route",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1130",
+      "date": "2026-11-10",
+      "title": "Security+ V7 was missing whole SY0-701 sub-objectives (3.3, 4.2, 4.7, 5.5) and parts of 1.2, 2.4, 4.1",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Readiness could say 'ready' without data protection, asset management, automation or audits being taught",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "The course was written at headline level and never checked against CompTIA's objective list",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "One appended objective per official sub-objective; two IAM lines outside 4.6 retired in place",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/secplus-v7-coverage.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The test lists every SY0-701 (v5.0) sub-objective's topics",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1131",
+      "date": "2026-11-10",
+      "title": "Security+ V7 practice exams were single-answer only",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "No 'choose two' or ordering/matching items for SY0-701",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "The seed's question-format text named only 'multiple choice and performance-based'",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Format text now states single/multiple response, drag-and-drop and performance-based, per CompTIA's page",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/exam-formats.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1132",
+      "date": "2026-11-10",
+      "title": "Security+ V7 incident-response lab used NIST 800-61r3 CSF IDs instead of the exam's seven steps",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The lab taught a framework newer than the one SY0-701 4.8 tests",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "Lab written from NIST r3",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/labs/security-secplus.ts"
+      ],
+      "fix_summary": "Lab leads with preparation, detection, analysis, containment, eradication, recovery, lessons learned; NIST as a mapping",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/secplus-v7-coverage.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1133",
+      "date": "2026-11-10",
+      "title": "PT courses taught superseded APTA ethics documents",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The DPT course taught the 2020 Code's eight principles; NPTE-PTA cited the PTA Standards of Ethical Conduct",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "APTA replaced both with one Code effective 2026-01-01",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/tracks/pt-dpt.ts",
+        "backend/supabase/seed/tracks/pt.ts"
+      ],
+      "fix_summary": "Retired in place; replacements name the 2026 Code's principles and nine Ethical Commitments",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-fixes-req220.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1134",
+      "date": "2026-11-10",
+      "title": "PT courses taught the pre-2021 Medicare maintenance rule for PTAs",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Said a PTA may not deliver skilled maintenance programs",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "CMS MM12071 (effective 2021-01-01) lets the PT delegate furnishing maintenance therapy; the BPM text quoted predates it",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/tracks/pt-dpt.ts",
+        "backend/supabase/seed/tracks/pt.ts",
+        "backend/supabase/seed/labs/pt-nptepta.ts"
+      ],
+      "fix_summary": "Retired and replaced in DPT and NPTE-PTA",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-fixes-req220.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1135",
+      "date": "2026-11-10",
+      "title": "Heart-failure weight flag printed 1.8 kg as 3 lb",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Three PT labs said '1.8 kg (3 lb)'",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "Unit conversion error (1.8 kg = 3.97 lb)",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/labs/pt-dpt.ts",
+        "backend/supabase/seed/labs/pt-nptept.ts",
+        "backend/supabase/seed/labs/pt-nptepta.ts"
+      ],
+      "fix_summary": "Now 4 lb; a test checks every kg/lb pair in the seed",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-fixes-req220.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Generic kg/lb conversion check",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1136",
+      "date": "2026-11-10",
+      "title": "CNA, LPN/VN, ADN and BSN study-emphasis weights were shown as exam blueprints",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "'% of exam' labels, blueprint-weighted readiness, the study plan and the coach prompt used our own weights as an exam's",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "Nothing distinguished a vendor blueprint from our emphasis",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/seed-lib.ts",
+        "backend/supabase/seed/tracks/nursing.ts",
+        "backend/lib/readiness.ts",
+        "backend/lib/coach-context.ts",
+        "backend/lib/study-plan-store.ts",
+        "backend/lib/service-emails.ts",
+        "backend/app/api/courses/[id]/route.ts"
+      ],
+      "fix_summary": "credential.domainWeights 'study_emphasis'; exam_domains unweighted; the server (STUDY_EMPHASIS_TRACK_CODES, read from subject_tracks so every database role can use it) drops the weights from every blueprint use",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/study-emphasis-weights.dbtest.ts",
+        "backend/lib/exam-blueprints.dbtest.ts",
+        "backend/lib/content-fixes-req220.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Server-side, so every installed app build is covered",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1137",
+      "date": "2026-11-10",
+      "title": "Sarcopenia taught as protein change only",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "DPT line said ageing changes existing fibres' protein, not cell number",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "OpenStax A&P 2e 10.6: ageing fibres die",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/tracks/pt-dpt.ts"
+      ],
+      "fix_summary": "Retired and replaced",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-fixes-req220.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1138",
+      "date": "2026-11-10",
+      "title": "Learner-facing text mixed British and US spelling",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Seed, app and server text used British spellings",
+      "how_detected": "Owner request (Nick, 2026-11-10, via the lead session)",
+      "root_cause": "No spelling standard or check",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/",
+        "backend/app/",
+        "backend/lib/",
+        "mobile/app/",
+        "mobile/src/",
+        "backend/lib/lesson-fixes.ts"
+      ],
+      "fix_summary": "2,718 words converted in string content; seed keeps lessons on spelling-only retitles; legal text and published sims excluded with reasons; lesson-fix lookups accept the pre-sweep British title",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/us-spelling.test.ts",
+        "backend/lib/us-spelling-seed.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "lib/us-spelling.test.ts fails on listed British words in learner-facing strings",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1139",
+      "date": "2026-11-10",
+      "title": "CCRN taught the retired 'healthcare-associated pneumonia' category",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Pneumonia classification included HCAP",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "2016 IDSA/ATS HAP/VAP guideline removed it",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/tracks/ccrn.ts"
+      ],
+      "fix_summary": "Retired and replaced with HAP/VAP",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-fixes-req220.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1140",
+      "date": "2026-11-10",
+      "title": "PT and EMS courses were told to reason by the nursing process",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Prompt framing keyed on the healthcare category",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "Framing ignored the subcategory",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/lib/prompts.ts",
+        "backend/lib/coach-context.ts"
+      ],
+      "fix_summary": "Framing follows the subcategory",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-fixes-req220.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1141",
+      "date": "2026-11-10",
+      "title": "Lesson writer and fact-checker never saw the units' dated key values",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A CNA lesson could contradict the lab's 2025 AHA choking sequence",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "Unit sources carried no values and multi-unit batches carried no unit references",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/data.ts",
+        "backend/lib/current-facts.ts",
+        "backend/lib/fact-check.ts",
+        "backend/lib/review-prompts.ts",
+        "backend/lib/review-service.ts",
+        "backend/supabase/seed/tracks/nursing.ts",
+        "backend/supabase/seed/tracks/ccrn.ts"
+      ],
+      "fix_summary": "UnitSource.keyValues reach the current-facts block, review writer and checker items; launch-course values added where the seed records them",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-fixes-req220.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1142",
+      "date": "2026-11-10",
+      "title": "Tamponade focused start gave away its key cue and asked the scored question ~60 s in",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Summary named the drainage stop; question at tick 840 after a 780 start",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "Authored summary and start tick",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/sims/CCRNADULT/tamponade-after-cabg.sim.json"
+      ],
+      "fix_summary": "Version 2: no cue in the summary; start at 720 so >= 120 sim s before the question",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/pacing.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Test holds the 120 s floor",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1143",
+      "date": "2026-11-10",
+      "title": "Tamponade brief said the clock runs in real time while the default is 3x",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Start screen 'How it works' contradicted the pace",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "Brief predates REQ-209 pacing",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/sims/CCRNADULT/tamponade-after-cabg.sim.json"
+      ],
+      "fix_summary": "Version 2 brief states 3x by default and 1x on request",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/pacing.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1144",
+      "date": "2026-11-10",
+      "title": "Tamponade CVP model disagreed with its own teaching prompt",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Model +0.6 mmHg per 500 mL vs taught ~3 mmHg",
+      "how_detected": "2026-11-11 audit (https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh)",
+      "root_cause": "Prototype value kept",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/supabase/seed/sims/CCRNADULT/tamponade-after-cabg.sim.json",
+        "backend/supabase/seed/sims/CCRNADULT/tamponade-after-cabg.golden.json",
+        "backend/lib/sim/ports.test.ts"
+      ],
+      "fix_summary": "Version 2: cvpPer500 = 3; goldens' CVP snapshots updated, outcomes unchanged",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/pacing.test.ts",
+        "backend/lib/sim/ports.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1100",
+      "date": "2026-11-10",
+      "title": "Two simultaneous 'turn off' requests left two-factor 'on' with no method and skipped the last-method code",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "An account could end with mfa_enabled = true, no authenticator and no email codes: sign-in asked for a code step it could never pass, and neither request needed the emailed confirmation code.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "Each disable route read the OTHER method's state, decided from it whether this was the last method, and wrote mfa_enabled = <other still on> as three separate steps. Two requests (one per method) each saw the other still on, so both wrote true.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/mfa/disable/route.ts",
+        "backend/app/api/auth/mfa/email/disable/route.ts",
+        "backend/lib/auth/mfaMethodOff.ts",
+        "backend/app/api/auth/login/route.ts"
+      ],
+      "fix_summary": "The decision and the write are one transaction with the user row locked (lib/auth/mfaMethodOff.ts turnOffMfaMethod); a method that became the last since the caller looked answers 409 and writes nothing; sign-in treats 'on with no method' as off (mfaStepRequired); migration 075 repairs rows already in that state.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A decision that depends on another row's state is made and written under one lock (checklist: Account security).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1101",
+      "date": "2026-11-10",
+      "title": "A Google-only account could not regenerate its backup codes",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The backup-codes route demanded a password; an account without one always got 'Incorrect password'.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The route compared a password only and was never moved to the shared confirm-it's-you check (lib/auth/reauth.ts) the other routes use.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/mfa/backup-codes/route.ts",
+        "mobile/app/(app)/settings/mfa.tsx"
+      ],
+      "fix_summary": "The route uses checkReauth (password, authenticator or backup code, or a fresh Google sign-in) with the shared budget; the mobile screen offers the matching proof.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every route that asks the caller to confirm it's them goes through checkReauth.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1102",
+      "date": "2026-11-10",
+      "title": "A rejected Google ID token was a 500 reported to the error tracker, and the sign-in route had no per-IP limit",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Any stale, forged or wrong-app token produced a server error and an error-tracker event; one address could hammer the route.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "verifyGoogleIdToken let the library's rejection escape as a plain Error, which serverError treats as ours; the route had no limit like register's.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/lib/auth/oauth.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/app/api/auth/oauth/google/link/route.ts",
+        "backend/lib/auth/rateLimit.ts"
+      ],
+      "fix_summary": "verifyGoogleIdToken throws GoogleTokenError for a rejected token (a transport or configuration fault still throws its own error); the sign-in and link routes answer 401 without reporting; sign-in has a per-IP limit (30 per 15 minutes, keyed by a hash of the address).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A caller's bad input is a 4xx and not reported; per-IP counters store a hash, not the address.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1103",
+      "date": "2026-11-10",
+      "title": "Google sign-in that attached to an existing password account told its owner nothing",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Anyone who controlled a Google account with the same verified address got a new way into a password account with no notice to the account's inbox (the explicit link route does mail).",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The sign-in route's attach path inserted the oauth_accounts row and logged in; only the link route sent the alert.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/oauth/google/route.ts"
+      ],
+      "fix_summary": "A first attach to an existing, verified account mails the account address a 'Google sign-in connected' alert (Nick's decision); later sign-ins and new accounts mail nothing.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every path that adds a sign-in method mails the account address (checklist: Account security).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1105",
+      "date": "2026-11-10",
+      "title": "Login had no per-IP ceiling",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The five-try limit is per (address, IP) pair, so one IP trying a different address each time was never stopped by it.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The only limits were per pair and per account.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/login/route.ts",
+        "backend/lib/auth/rateLimit.ts"
+      ],
+      "fix_summary": "A per-IP ceiling (60 wrong password checks per 15 minutes) comes before the pair check; an attempt is counted while checked and given back when the password is right; over the ceiling answers exactly like a wrong password.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A limit keyed by one dimension has a ceiling on the other.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1106",
+      "date": "2026-11-10",
+      "title": "Error reports sent the request path with its query string, which carries one-time tokens",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Verification, reset and email-change tokens (in ?token=) reached the error tracker.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "instrumentation.ts passed request.path, which Next documents as including the query, as the route.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/instrumentation.ts",
+        "backend/lib/error-tracker.ts"
+      ],
+      "fix_summary": "routeOnly strips the query and fragment in instrumentation.ts and again in errorEvent.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts",
+        "backend/lib/accounts-g4.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Nothing from a URL beyond its path goes to a third party.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1107",
+      "date": "2026-11-10",
+      "title": "The verify-email result page's redirect URL carried the password-reset token",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The one-hour reset token sat in /verify-email?result=set_password&reset=<token>: in request logs, error reports and browser history.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The server action handed the token to the next page through the query string.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/verify-email/actions.ts",
+        "backend/app/verify-email/page.tsx",
+        "backend/lib/reset-handoff.ts"
+      ],
+      "fix_summary": "The action stores it in a short-lived httpOnly cookie scoped to /verify-email (lib/reset-handoff.ts); the page reads the cookie; a browser that refuses it is pointed to 'Forgot password'.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts",
+        "backend/lib/email-verification.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Nothing sensitive goes in a redirect URL (checklist: Web screens).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1108",
+      "date": "2026-11-10",
+      "title": "The next Terms bump would have stranded builds that declared the version before it",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "PREVIOUS_LEGAL_VERSIONS held one generation; at the next bump the old previous would move out and builds still declaring it could no longer accept their own text.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The acceptable generations were a fixed current/previous/undeclared/legacy set, not a list.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/lib/legal.ts"
+      ],
+      "fix_summary": "Previous generations are a list (EARLIER_LEGAL_VERSIONS beside PREVIOUS_LEGAL_VERSIONS); a build declaring any of them accepts exactly that one; the rule is a pure function tested against a simulated bump.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts",
+        "backend/lib/terms-enforcement.dbtest.ts",
+        "backend/lib/terms-enforcement.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The bump procedure in the checklist pushes the old previous onto EARLIER_LEGAL_VERSIONS.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1109",
+      "date": "2026-11-10",
+      "title": "Terms and Privacy agreement was enforced only by the app",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A request made without the app, or by a build that skipped the prompt, got every signed-in route whether or not the account had agreed.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The launch gate was client-side; requireUser checked identity only.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/lib/auth/requireUser.ts",
+        "backend/lib/legal.ts",
+        "backend/lib/test-setup.ts"
+      ],
+      "fix_summary": "requireUser reads the account's acceptances in its existing query and answers 403 { code: 'terms_required' } with a plain message unless the account accepted what its client must accept (legalContext rules unchanged); open routes: accept, onboarding, auth/me read, account export and delete, logout-all, support. dbtests are preloaded with enforcement off (lib/test-setup.ts) and the enforcement suites turn it on.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts",
+        "backend/lib/terms-enforcement.dbtest.ts",
+        "backend/lib/terms-enforcement.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A new signed-in route is enforced by default; the sweep test lists the open routes.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1110",
+      "date": "2026-11-10",
+      "title": "Revoking a listed session revoked one token row, not its family; the list showed duplicate sessions",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A session holding a second live token (a replayed rotation) stayed signed in after 'sign out this device', and appeared twice; the screen said 'immediately' though the access token lives 15 more minutes.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The routes listed and revoked refresh_tokens rows, not families.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/sessions/route.ts",
+        "backend/app/api/auth/sessions/[id]/route.ts",
+        "mobile/app/(app)/account/sessions.tsx"
+      ],
+      "fix_summary": "The list is one entry per family; DELETE revokes the family (revokeRefreshFamily); the screen's wording says up to 15 more minutes.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Revoke by family_id, never one token (checklist: Account security).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1111",
+      "date": "2026-11-10",
+      "title": "No maximum password length on change and reset",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A multi-megabyte new password was hashed.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "Register capped passwords at 1024 characters; change-password and reset-password did not.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/change-password/route.ts",
+        "backend/app/api/auth/reset-password/route.ts",
+        "backend/lib/auth/passwords.ts"
+      ],
+      "fix_summary": "One MAX_PASSWORD_LENGTH in lib/auth/passwords.ts used by all three.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "One constant for a limit several routes share.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1112",
+      "date": "2026-11-10",
+      "title": "A password change left pending reset links and sign-in challenges valid",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A reset link mailed earlier, or a sign-in code step earned with the old password, still worked after the change.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "change-password ended sessions but, unlike reset-password, did not spend the other outstanding credentials.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/change-password/route.ts"
+      ],
+      "fix_summary": "The same transaction marks the account's reset tokens and login challenges consumed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A route that changes a credential spends every other outstanding credential in the same transaction.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1113",
+      "date": "2026-11-10",
+      "title": "An authenticator code could be used twice inside its window",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Someone who saw a code could reuse it for up to 90 seconds, at sign-in or as a proof.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "Nothing remembered which 30-second step was last accepted.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/lib/auth/mfa.ts",
+        "backend/app/api/auth/mfa/verify/route.ts",
+        "backend/lib/auth/reauth.ts",
+        "backend/app/api/auth/mfa/enable/route.ts",
+        "backend/supabase/migrations/075_accounts_security_g4.sql"
+      ],
+      "fix_summary": "app_users.totp_last_step (migration 075); spendTotpCode accepts only a later step with one guarded UPDATE, at sign-in and in reauth; enabling records its own code's step.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A single-use code is spent atomically.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1114",
+      "date": "2026-11-10",
+      "title": "Emailed sign-in codes skipped the per-address mail limit",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Each new sign-in attempt (a new challenge) could email the address again without the hourly limit every other mail has.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "send-email-code only had the per-challenge cap.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/mfa/challenge/send-email-code/route.ts"
+      ],
+      "fix_summary": "The route spends mayEmail(address) and answers a plain 429 over the limit.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Anything that mails an address goes through mayEmail (checklist: Auth and abuse).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1115",
+      "date": "2026-11-10",
+      "title": "A support content report looked up an objective without visibility",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Any objective id, including in another learner's private course, was confirmed to exist and mailed to support.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The route queried objectives by id alone.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/support/route.ts"
+      ],
+      "fix_summary": "It uses visibleObjective(id, userId).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Client-supplied ids go through lib/visibility.ts (checklist: Auth and abuse).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1116",
+      "date": "2026-11-10",
+      "title": "The inbound email webhook had no replay protection",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A replayed or retried delivery forwarded the same message again.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "Nothing recorded the Svix delivery id.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/inbound/email/route.ts",
+        "backend/lib/inbound-email.ts",
+        "backend/lib/retention.ts",
+        "backend/supabase/migrations/075_accounts_security_g4.sql"
+      ],
+      "fix_summary": "inbound_email_events (migration 075): claim by svix-id, release on failure so retries work, complete on success, stale claims taken over after 5 minutes, purged after 7 days.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A webhook records its delivery id.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1117",
+      "date": "2026-11-10",
+      "title": "Catalog review findings were stored unchecked",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Wrong types, non-http URLs, oversized text and a future checkedAt were stored; a future date pushed a track's next review out of sight; the two writes were separate statements.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The route inserted the body's fields as sent.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/catalog/review-findings/route.ts"
+      ],
+      "fix_summary": "The fields are validated, checkedAt is capped at now, and the finding and the freshness update share one transaction.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A machine caller's input is validated like a learner's.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1118",
+      "date": "2026-11-10",
+      "title": "The paid-access rule was duplicated with a hard-coded 24 hour grace",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Changing the grace in lib/entitlements.ts would have left 'paying' in paid AI mode disagreeing.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "lib/ai-access.ts carried its own copy of the SQL with 24 typed in.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/lib/ai-access.ts",
+        "backend/lib/entitlements.ts"
+      ],
+      "fix_summary": "GIVES_ACCESS and GRACE_HOURS are exported from lib/entitlements.ts and reused; a paid-mode test covers active, canceled, within and past the grace, and expired.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A shared rule is defined once.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1010",
+      "date": "2026-11-10",
+      "title": "A learner-facing error went out as a 5xx, so the app hid its words",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "UserFacingError defaulted to 503 and several throw sites used 502/503; the app shows 'something went wrong on our side' for any 5xx. Regeneration also said 'check your connection' for a server message",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "A status default of 503 and per-site 5xx codes; the app dropped the server's text for every 5xx",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/http.ts",
+        "backend/lib/stripe-checkout.ts",
+        "backend/lib/content-validator.ts",
+        "backend/lib/ai-spend-ledger.ts",
+        "mobile/src/lib/errorMessage.ts",
+        "mobile/src/lib/regenerateError.ts"
+      ],
+      "fix_summary": "UserFacingError is always 4xx (default 409, a 5xx request is clamped); every throw site fixed; AI-paused message is a 429; the app keeps the server's error for 502/503 and regenerate shows server words",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts",
+        "mobile/src/lib/errorMessage.test.ts",
+        "mobile/src/lib/regenerateError.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts scans every source file for a UserFacingError with a 5xx status",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1011",
+      "date": "2026-11-10",
+      "title": "Comparison cards finished 'ready' with no cards when every card was held back",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Production: 4 of 4 comparison cards held for disclaimers; the course was marked ready and never retried",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "Any listed claim held a card, and a generation that saved nothing still finished as ready",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/understanding-ai.ts"
+      ],
+      "fix_summary": "Low confidence or a disagreeing check holds a card; one steered retry; nothing saved with anything held or unchecked finishes 'failed' (retried on a later visit)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/understanding.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "understanding.dbtest.ts: listed disclaimers save the card; low twice ends failed",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1012",
+      "date": "2026-11-10",
+      "title": "The distractor lint rejected correct questions",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Questions with 'Read-only access', 'two-factor' or 'three-way handshake' failed the lint and the generation failed",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "The word splitter broke hyphenated compounds apart ('only'), the count request matched 'two-factor', and cue words were checked against the right answer",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "Hyphenated compounds are one word; a number starting a compound is not a count request; cue words only in distractors; a second lint-only failure is logged and served",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts lint cases",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1013",
+      "date": "2026-11-10",
+      "title": "A lesson intro was regenerated after its practice half failed",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The learner read an intro, the practice half failed, and the next request wrote a different intro before trying practice again",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "The accepted intro was not kept anywhere once generation failed",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/lesson-generation.ts"
+      ],
+      "fix_summary": "The accepted intro is kept (per process, 30 minutes) and reused; only practice is retried; the cooldown after a content-check failure is 10 minutes, and a lesson held back says why",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-holdback.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "lesson-holdback.dbtest.ts: retry reuses the intro; one intro call in total",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1014",
+      "date": "2026-11-10",
+      "title": "Listed disclaimers held back lessons, quiz, review, unit check and exam items; a failed fact-check call was treated as a holdback",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Production item_holdbacks: lesson_intro 3 of 9 held for disclaimers; a provider error on the fact-check logged a holdback and could start a cooldown",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "uncertaintyOf blocked on any listed claim and the gate failed closed by recording a holdback on the content",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/item-quality.ts",
+        "backend/lib/fact-check.ts",
+        "backend/lib/generation-gate.ts",
+        "backend/lib/coach-quiz.ts",
+        "backend/lib/review-service.ts",
+        "backend/lib/unit-check.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/exam-items.ts",
+        "backend/app/api/pbq/route.ts"
+      ],
+      "fix_summary": "Block only on the writer's low confidence or a fact-check that disagrees with the key; log listed disclaimers; one retry steered with the claims; a held item is a 409 naming the reason; a failed fact-check call is a retryable 409 with no holdback",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts",
+        "backend/lib/generation-gate.dbtest.ts",
+        "backend/lib/item-quality.dbtest.ts",
+        "backend/lib/lesson-holdback.dbtest.ts",
+        "backend/lib/pbq-holdback.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.ts is the one gate; the pre-completion checklist names it",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1015",
+      "date": "2026-11-10",
+      "title": "A PBQ waiter regenerated after the holder's scenario was held back",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A second request waiting on the lease took it and wrote again after the first was refused",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "The waiter treated 'nothing stored' as 'the holder failed'",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/pbq-scenarios.ts"
+      ],
+      "fix_summary": "A waiter that finds a holdback logged since it started gets the same 409 and does not generate",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.dbtest.ts PBQ waiter test",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1016",
+      "date": "2026-11-10",
+      "title": "Review reported 'nothing due' when reviews were due but none could be prepared, and left an empty session",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Due items, no question could be written: the app said nothing was due",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "startSession returned null for an empty session, the same answer as 'nothing due'",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/review-service.ts",
+        "backend/lib/review-store.ts",
+        "backend/app/api/review/sessions/route.ts",
+        "mobile/app/(app)/review-session.tsx"
+      ],
+      "fix_summary": "Returns session null with unavailable N and a message; the empty session row is removed; the app shows 'couldn't be prepared' with Try again",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-honesty.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "mastery-honesty.dbtest.ts FAIL-1016",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1017",
+      "date": "2026-11-10",
+      "title": "Two requests for one unit check each wrote and paid for a check",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Concurrent requests both found nothing unseen and both called the model",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "No single-flight on unit-check writing",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/unit-check.ts"
+      ],
+      "fix_summary": "Writing takes the learner's lease for the unit (the PBQ lease); waiters serve what was stored or get the holder's 409",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.dbtest.ts unit check tests",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1018",
+      "date": "2026-11-10",
+      "title": "Rate-limit messages showed internal event names",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "'Too many lesson_regenerate attempts. Try again later.'",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "The message was built from the event name",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/auth/rateLimit.ts"
+      ],
+      "fix_summary": "One plain sentence",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1019",
+      "date": "2026-11-10",
+      "title": "A bad date on course create was a 500",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sourceVerifiedAt 'soon' reached the INSERT and failed with Postgres 22007",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "No validation of the two date fields; 22007/22008 were not client-input codes",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/app/api/courses/route.ts",
+        "backend/lib/http.ts",
+        "backend/lib/text-input.ts"
+      ],
+      "fix_summary": "isCalendarDate check with 400 naming the field; 22007 and 22008 answer 400",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts isCalendarDate",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1020",
+      "date": "2026-11-10",
+      "title": "A lab step counted a graded use that was not given back when nothing was stored",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The use is counted before grading; a failed write or a replayed copy kept it",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "Release only on a grader throw",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/lab-routes.ts",
+        "backend/lib/ai-access.ts"
+      ],
+      "fix_summary": "releaseOnce; released on grader throw, write failure and replay",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts source checks",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1021",
+      "date": "2026-11-10",
+      "title": "Sim reasoning kept its counted use when the grader threw",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "gradeSimReasoning threw after the use was counted",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "Release only on the grader's own failed flag",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/sims.ts"
+      ],
+      "fix_summary": "releaseOnce; released on throw, write failure and a stored duplicate",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts source checks",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1022",
+      "date": "2026-11-10",
+      "title": "Grading claim expired at 120 s while PBQ grading may run 180 s",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A slow live grade could be taken over and graded twice",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "CLAIM_EXPIRY_SECONDS below the longest grading route",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/grading-claims.ts"
+      ],
+      "fix_summary": "200 s, and a test keeps it above the longest grading route's maxDuration",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1023",
+      "date": "2026-11-10",
+      "title": "Two copies of one chat message each paid for a reply",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Racing copies passed the stored-reply check and both called the model",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "No in-flight claim on the chat message id",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/app/api/chat/route.ts"
+      ],
+      "fix_summary": "withGradingClaim on chat:<message id>; waiters replay the stored reply",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts source check",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1024",
+      "date": "2026-11-10",
+      "title": "The global AI ceiling could be passed by a stale cached sum",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Cached 60 s per instance",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "The check reads a cached sum and takes no lock",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/ai-access.ts",
+        "backend/lib/ai-access-config.ts",
+        "docs/billing.md"
+      ],
+      "fix_summary": "Fresh read within 20% of the ceiling; documented as soft with headroom (a lock on every model call was judged too large)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "docs/billing.md section",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1025",
+      "date": "2026-11-10",
+      "title": "A sprint or mock whose every item was held back said 'no practice questions yet'",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Questions were written and held back; the learner was told there were none",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "The session did not know items were held",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/exam-items.ts"
+      ],
+      "fix_summary": "generateForObjective reports held and unchecked; the session says every question was held back, or could not be checked",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.dbtest.ts FAIL-1025",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1026",
+      "date": "2026-11-10",
+      "title": "Generated labs were held back on any listed claim, and a failed checker call was logged as a holdback",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A lab whose writer listed a harmless claim (or whose checker could not confirm one) was held back with no retry; a checker call that threw was written to item_holdbacks as fact_check_error, as if the lab had failed",
+      "how_detected": "Nick asked on 2026-11-10 for labs to follow the same rule as the other generated items",
+      "root_cause": "lab-generation.ts predated the REQ-216 gate: saveGeneratedLab used uncertaintyOf (any listed claim), judgeLabCheck published only on zero reasons including unsupportedClaims, had no steered retry, and treated a thrown checker as a verdict on the lab",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/lab-generation.ts",
+        "backend/scripts/generate-labs.ts",
+        "backend/lib/generation-gate.ts"
+      ],
+      "fix_summary": "saveGeneratedLab runs on generateGated: holds only on low confidence, a content rule (new problemsOf, reason invalid) or a checker disagreement (labCheckVerdict); one steered retry via modelLabWriter; held twice returns a plain-words outcome (describeSaveOutcome); a failed or empty checker call is held_check_error, retryable, no holdback row",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts",
+        "backend/lib/labs.dbtest.ts",
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "labs.dbtest.ts: listed and unconfirmed claims store, the retry is steered once, a thrown checker leaves no holdback row; ai-spend-gate.test.ts registers the new operator-only writer call",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1145",
+      "date": "2026-11-11",
+      "title": "Lab key-suspect flag test slept a fixed 200 ms",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "CI Database job failed once on PR #130: item_flags row not yet written when checked",
+      "how_detected": "CI run 42970940992 (passed on re-run)",
+      "root_cause": "The key-suspect flag is written after the response; the test waited a fixed 200 ms instead of for the row",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/lib/labs.dbtest.ts"
+      ],
+      "fix_summary": "Poll for the flag row (up to 5 s) instead of a fixed sleep",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1260",
+      "date": "2026-11-11",
+      "title": "Merge-conflict markers left in the pre-completion checklist on master",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "<<<<<<< HEAD / ======= / >>>>>>> origin/master around the REQ-216 and REQ-217 items in .ai/checklists/pre-completion.md",
+      "how_detected": "review",
+      "root_cause": "The G1-G6 merge into feature/eppp-course (e2930c0) committed an unresolved conflict in a markdown file; no check reads text files for markers, and the checklist is prose so nothing failed",
+      "requirement": "REQ-228",
+      "affected": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "fix_summary": "Both sides kept; markers removed",
+      "fix_commits": [
+        "f9bdc11"
+      ],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts::no merge-conflict markers in instructions and docs"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "ship-notes.test.ts fails CI on conflict markers in .ai/, docs/ and the top-level docs",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1261",
+      "date": "2026-11-11",
+      "title": "What's new stopped at 2026-11-07 through two releases",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The in-app What's new still showed the 2026-11-07 note after releases 2026-11-10 and 2026-11-11 and batches G1-G6 and EPPP shipped about thirty learner-visible changes",
+      "how_detected": "review",
+      "root_cause": "Writing the note was left to a later docs pass; the release playbook had no ship-notes step and nothing failed when a learner-facing change shipped without a note",
+      "requirement": "REQ-228",
+      "affected": [
+        "backend/lib/release-notes.ts"
+      ],
+      "fix_summary": "Notes 2026-11-10, 2026-11-11 and 2026-11-11-b with covers; sims and aiCeiling gates",
+      "fix_commits": [
+        "23ab5bc",
+        "e7337bb"
+      ],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts",
+        "backend/lib/release-notes.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md",
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "CHANGELOG entries since REQ-228 are tagged learner-facing or internal; a learner-facing one needs a note whose covers names it, or a stated reason, or CI fails",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1262",
+      "date": "2026-11-11",
+      "title": "Lesson screen said one correct solo answer earns Independent",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Solo note: 'a correct free-response answer earns Independent'; Independent advice: 'come back tomorrow' for Transfer-ready; contradicted migration 074 (REQ-218) and 045's 72-hour, two-format Transfer-ready rule",
+      "how_detected": "review",
+      "root_cause": "REQ-218 changed the rule in SQL only (G3 touched no mobile file); the explanation lived as inline strings in the lesson screen with no test tying it to the rule",
+      "requirement": "REQ-228",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/content/legal.ts"
+      ],
+      "fix_summary": "Text moved to mobile/src/lib/masteryAdvice.ts and rewritten; FAQ mastery answer updated",
+      "fix_commits": [
+        "2b70ea1"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/masteryAdvice.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Ship notes step 3 names masteryAdvice.ts and the FAQ; the test pins the confirmation wording",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1263",
+      "date": "2026-11-11",
+      "title": "FAQ, About and Sources escaped the US-spelling check",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "'licence' in the FAQ and Sources, 'organisation' in Sources, after REQ-220 claimed learner text was US English",
+      "how_detected": "review",
+      "root_cause": "us-spelling-scope.ts excludes mobile/src/content/legal.ts whole to leave the Terms and Privacy for their next version, but the file also holds FAQ, About, Sources, Cookies and Disclaimer",
+      "requirement": "REQ-228",
+      "affected": [
+        "backend/lib/us-spelling-scope.ts",
+        "mobile/src/content/legal.ts"
+      ],
+      "fix_summary": "Spellings fixed; a test reads FAQ, About and Sources from legal.ts",
+      "fix_commits": [
+        "2b70ea1"
+      ],
+      "regression_tests": [
+        "backend/lib/us-spelling.test.ts::legal.ts pages that are not Terms or Privacy are US English"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "The new test covers the non-legal pages in the excluded file",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1264",
+      "date": "2026-11-11",
+      "title": "Coach and delete-account page described older behavior",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The coach had no account of REQ-218's confirmation rule; /delete-account said confirm with your password (Google-only accounts have none since REQ-203), listed course disclaimers, and omitted the study profile, labs, sims, exam results and the 18+ confirmation",
+      "how_detected": "review",
+      "root_cause": "Features that changed these behaviors (REQ-203, REQ-169, REQ-165, REQ-218, REQ-224) updated code and the inventory but not the descriptive text elsewhere",
+      "requirement": "REQ-228",
+      "affected": [
+        "backend/lib/prompts.ts",
+        "backend/app/delete-account/page.tsx"
+      ],
+      "fix_summary": "Coach rules state the rule; delete-account page lists proof options and what is deleted",
+      "fix_commits": [
+        "aa993b0"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Descriptive prose; legal-privacy-f4.test.ts already pins the delete-account page's retention facts",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Ship notes step 3 lists coachRules and the backend's public pages",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1265",
+      "date": "2026-11-11",
+      "title": "Data inventory stopped at migration 070 and placed the web token in sessionStorage",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Inventory said migrations 001-070; missing totp_last_step and inbound_email_events (075) and its 7-day purge; said the web token lives in sessionStorage and there are no cookies, though REQ-192 moved it to the ascendra_rt httpOnly cookie",
+      "how_detected": "review",
+      "root_cause": "The DB test only checks tables with a user_id; columns, user-less tables and on-device storage had no check, and nothing tied the inventory to the migration count",
+      "requirement": "REQ-228",
+      "affected": [
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "Inventory updated to 077; device table corrected",
+      "fix_commits": [
+        "1a2832a"
+      ],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts::the data inventory is checked against every migration"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "CI fails when the inventory's 'up to migration NNN' is older than the newest migration",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1266",
+      "date": "2026-11-11",
+      "title": "content-review.md described holdbacks before REQ-216",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Doc said listed uncertain claims hold content back and a held objective waits 6 hours",
+      "how_detected": "review",
+      "root_cause": "REQ-216 changed lib/generation-gate.ts and the cooldown without updating the doc",
+      "requirement": "REQ-228",
+      "affected": [
+        "docs/content-review.md"
+      ],
+      "fix_summary": "Doc rewritten for the REQ-216 rules",
+      "fix_commits": [
+        "1c4fe0c"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Prose; the rule itself is tested in lib/generation-gate.test.ts",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Ship notes step 4",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1267",
+      "date": "2026-11-11",
+      "title": "Taxonomy doc counted 14 categories",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "education-taxonomy.md said 14 primary categories; migrations 019, 057 and 077 make 21",
+      "how_detected": "review",
+      "root_cause": "Category-adding migrations did not touch the taxonomy doc",
+      "requirement": "REQ-228",
+      "affected": [
+        "docs/education-taxonomy.md"
+      ],
+      "fix_summary": "Count and sources corrected",
+      "fix_commits": [
+        "fe92db5"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Prose count; checked by hand against the migrations",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Ship notes step 4",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1268",
+      "date": "2026-11-11",
+      "title": "Support process missed question reports, coach-reply reports, the support inbox and lesson-fixes",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "docs/support-process.md listed three request kinds and told the operator to delete lesson_content rows by hand",
+      "how_detected": "review",
+      "root_cause": "REQ-114, REQ-165, REQ-187, REQ-205 and REQ-219 added intake paths and the lesson-fixes tool without updating the process doc",
+      "requirement": "REQ-228",
+      "affected": [
+        "docs/support-process.md"
+      ],
+      "fix_summary": "Doc covers all intake paths and the lessons:fix workflow; EMS and mental health in the clinical triage",
+      "fix_commits": [
+        "4474586"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Process prose",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Ship notes step 4",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1269",
+      "date": "2026-11-11",
+      "title": "Play listing draft out of date with the catalog and decisions",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Listing said 'practise', a 1/7/21-day review ladder, omitted EMS, mental health, Kubernetes and programming, and left the minimum age open after Nick set 16",
+      "how_detected": "review",
+      "root_cause": "Store text is only revisited at store submission; no release step pointed at it",
+      "requirement": "REQ-228",
+      "affected": [
+        "docs/play-store/listing-draft.md"
+      ],
+      "fix_summary": "Store text, audience and health declaration updated; Data safety flagged as not re-checked",
+      "fix_commits": [
+        "9cdb7cb"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Store copy; checked at submission",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Ship notes step 4 names the listing",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1270",
+      "date": "2026-11-11",
+      "title": "No step or check made shipments update What's new and the docs that describe them",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Learner-facing text and docs drifted across every 2026-11-10/11 shipment (FAIL-1261 to FAIL-1269)",
+      "how_detected": "review",
+      "root_cause": "The release playbook said only 'README and design docs match'; the pre-completion list had no What's new item; nothing in CI linked CHANGELOG entries to release notes",
+      "requirement": "REQ-228",
+      "affected": [
+        ".ai/playbooks/release.md",
+        ".ai/checklists/pre-completion.md",
+        "backend/lib/ship-notes.test.ts",
+        "CHANGELOG.md"
+      ],
+      "fix_summary": "Ship notes playbook step, checklist line, CHANGELOG tag convention and the ship-notes CI test",
+      "fix_commits": [
+        "f9bdc11",
+        "e7337bb"
+      ],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md",
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "CI fails on an untagged or uncovered learner-facing entry",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1190",
+      "date": "2026-11-10",
+      "title": "Sim seed stops on an impossible source re-check date",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "npm run seed failed: date/time field value out of range: \"2027-04-31\" while inserting sim_versions.sources_recheck_by for CCRNADULT/bleeding-after-whipple.",
+      "how_detected": "npm run seed on a throwaway Postgres during REQ-223",
+      "root_cause": "earliestRecheck's addMonths added months to the year and month but kept the day, so any source checked on the 29th, 30th or 31st could land on a day the target month does not have. The existing documents all used dates early in the month, so it never surfaced.",
+      "requirement": "REQ-223",
+      "affected": [
+        "backend/lib/sim/content-hash.ts",
+        "backend/supabase/seed/sims-seed.ts"
+      ],
+      "fix_summary": "addMonths clamps the day to the last day of the target month and is exported for a test.",
+      "fix_commits": [
+        "556df08"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts::source re-check dates are real calendar dates"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every seeded document's earliest re-check date is asserted to be a real calendar date at 6 and 12 months; the engine's staleness check in validate.ts has the same arithmetic but only compares strings, left for an engine change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1191",
+      "date": "2026-11-10",
+      "title": "Fall sim time_up debrief repeated its ending narrative",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim/documents.test.ts 'client document leaks nothing server-only' failed: CNA/resident-found-on-floor: server-only text reaches the client: The run reached its time limit.",
+      "how_detected": "backend npm test after the third scenario's commit",
+      "root_cause": "The server-only debrief body for time_up was written with the same sentence as the client-visible ending narrative, so the leak test could not tell them apart; the debrief text must differ from anything the client document carries.",
+      "requirement": "REQ-223",
+      "affected": [
+        "backend/supabase/seed/sims/CNA/resident-found-on-floor.sim.json"
+      ],
+      "fix_summary": "The time_up debrief now says what was left undone (the note and the huddle).",
+      "fix_commits": [
+        "556df08"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts::client document leaks nothing server-only"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The leak test runs on every seeded document under npm test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1220",
+      "date": "2026-11-10",
+      "title": "Sim lint warned 'a wait is pending at every boundary' for turn-based paths",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims:lint warned that the learner could skip at almost every moment of a running phase on every golden path of the EPPP sessions, which have no running phase",
+      "how_detected": "lint while authoring the EPPP sessions",
+      "root_cause": "replayGoldenPath started waitAlways true and only ever cleared it at a running-phase boundary, so a path that never visited a running phase kept it true",
+      "requirement": "REQ-225",
+      "affected": [
+        "backend/lib/sim/engine/v1/validate.ts"
+      ],
+      "fix_summary": "count running-phase boundaries and warn only when there was at least one",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/session.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "the warning text names a running phase; its condition now requires one",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1221",
+      "date": "2026-11-10",
+      "title": "EPPP session endings depended on key order the jsonb document column does not keep",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "golden paths through the routes ended differently on the server (state hash mismatch): the catch-all 'with gaps' ending fired before the intended one",
+      "how_detected": "lib/sims-session.dbtest.ts (server hash vs golden hash)",
+      "root_cause": "the engine evaluates endings in Object.keys order, and sim_versions.document/client_document are jsonb, which return keys shortest first then bytewise; the documents relied on first-match precedence with a catch-all",
+      "requirement": "REQ-225",
+      "affected": [
+        "backend/supabase/seed/sims/EPPP/suicide-risk-safety-plan.sim.json",
+        "backend/supabase/seed/sims/EPPP/duty-to-protect-threat.sim.json",
+        "backend/supabase/seed/sims/EPPP/diagnostic-intake-mood.sim.json"
+      ],
+      "fix_summary": "each ending's condition excludes the others, so order does not matter",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/storage-order.test.ts",
+        "backend/lib/sims-session.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "storage-order.test.ts replays every seeded golden path with its maps in jsonb order; docs/sims.md 22.3 finding 2",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1222",
+      "date": "2026-11-10",
+      "title": "Tamponade full-dose epinephrine harm ending is unreachable on the server (jsonb key order)",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "with the document in jsonb key order, golden path codeFullEpi reaches ROSC and phase 2 instead of code_epiHarm (harm)",
+      "how_detected": "backend/lib/sim/storage-order.test.ts (REQ-225)",
+      "root_cause": "the code/ACLS module's non-terminal code_rosc and terminal code_epiHarm both hold at ROSC after 1 mg epinephrine; jsonb puts code_rosc first, and the engine takes the first true ending in key order",
+      "requirement": "REQ-227",
+      "affected": [
+        "backend/supabase/seed/sims/modules/code-acls@1.module.json",
+        "backend/supabase/seed/sims/CCRNADULT/tamponade-after-cabg.sim.json",
+        "backend/lib/sim/engine/v1/engine.ts"
+      ],
+      "fix_summary": "Engine minor 2 adds an explicit endingOrder list (engine.ts endingCheckOrder, validate.ts endingOrderRules, schema.ts); the engine checks endings in that order whatever the key order. Tamponade, the code/ACLS module and every seeded sim are migrated to it. Epinephrine at full dose reaches code_epiHarm (harm) on the server and in the app. Runs open on the old version keep the old (jsonb) order until they end.",
+      "fix_commits": [
+        "44ebd6f",
+        "9bbdd5d",
+        "bb62943"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/storage-order.test.ts",
+        "backend/lib/sim/ending-order.test.ts",
+        "backend/lib/sims.dbtest.ts",
+        "backend/lib/sims-session.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "validator requires endingOrder from minor 2 when two endings have a when; sims:lint errors when a document without it ends a golden path differently in written, reversed or jsonb key order; storage-order.test.ts replays every seeded document in jsonb and reversed order with no todo; pre-completion checklist item for sim documents",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1250",
+      "date": "2026-11-10",
+      "title": "Teaching prompts are offered in key order (teachingDue), the same flaw as FAIL-1222",
+      "status": "open",
+      "severity": "low",
+      "symptom": "with a document's teaching map in reversed key order, a golden path's teach command is rejected ('teaching prompt X is not offered now'): bleeding-after-whipple and resident-found-on-floor",
+      "how_detected": "REQ-227: the widened storage-order test (every object reversed) found it",
+      "root_cause": "teachingAvailable/teachingDue take the first due prompt in Object.keys(doc.teaching) order, and the server's jsonb column does not keep key order. Not a production bug today because the app and the server both read the same jsonb order, and jsonb order passes every golden path; it breaks if the two ever read different orders or a document relies on file order.",
+      "requirement": "REQ-227",
+      "affected": [
+        "backend/lib/sim/engine/v1/engine.ts",
+        "backend/supabase/seed/sims/CCRNADULT/bleeding-after-whipple.sim.json",
+        "backend/supabase/seed/sims/CNA/resident-found-on-floor.sim.json"
+      ],
+      "fix_summary": "",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "open: storage-order.test.ts documents the exclusion; the regression test lands with the fix",
+      "prevention_rules": [],
+      "prevention_notes": "not fixed in REQ-227 (it orders endings only; Nick's approval covered endings). A teachingOrder list in a later minor, or mutually exclusive prompt conditions, would close it; storage-order.test.ts skips that map in its reversal until then, and docs/sims.md 22.6 says so",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1251",
+      "date": "2026-11-10",
+      "title": "Merge conflict markers committed in .ai/checklists/pre-completion.md on master",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "the pre-completion checklist on origin/master has <<<<<<< HEAD / ======= / >>>>>>> origin/master around the REQ-216 and REQ-217 bullets, so the checklist text read by every agent was corrupt",
+      "how_detected": "reading the checklist while starting REQ-227",
+      "root_cause": "two parallel branches (G1 and G2) each added a bullet at the same place; a merge was committed with the conflict unresolved and no check scans tracked files for markers",
+      "requirement": "REQ-227",
+      "affected": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "fix_summary": "kept both bullets, removed the markers",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/conflict-markers.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "conflict-markers.test.ts fails the backend suite when any tracked text file has a marker at the start of a line",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1240",
+      "date": "2026-11-10",
+      "title": "Emailed sign-in codes shared the five-an-hour per-address mail budget with reset and verification mails",
+      "status": "open",
+      "severity": "medium",
+      "symptom": "Someone who knew an email-only account's password (or, for the reverse direction, anyone who knew the address) could use up the five-an-hour per-address mail budget, after which the learner's sign-in codes answered 429 for up to an hour; sign-in codes in turn used up the budget password-reset links needed.",
+      "how_detected": "Review of batch G4 (REQ-219); approved follow-up",
+      "root_cause": "REQ-219 (FAIL-1114) put the sign-in code route under mayEmail, whose single counter (auth_events event mail_to_address, keyed by address) every address-targeted mail shares. Reset and verification routes are open to anyone who knows an address, so a stranger could spend the one shared budget.",
+      "requirement": "REQ-226",
+      "affected": [
+        "backend/lib/auth/mailLimit.ts",
+        "backend/app/api/auth/mfa/challenge/send-email-code/route.ts"
+      ],
+      "fix_summary": "mayEmailSignInCode: its own event (mfa_code_mail_to), five an hour per address, same auth_events storage and key; the route uses it, mayEmail is unchanged for every other mail. No migration.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts::FAIL-1240: sign-in codes have their own hourly mail budget"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Each kind of mail that someone other than the account holder can trigger, and each that the holder needs in order to get in, has its own named per-address budget in lib/auth/mailLimit.ts; a new mail kind picks one on purpose. The checklist's auth-and-abuse line names it.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1241",
+      "date": "2026-11-10",
+      "title": "A 403 terms_required showed as error text with no way to the Terms screen",
+      "status": "open",
+      "severity": "medium",
+      "symptom": "Since REQ-219 the server answers signed-in routes with 403 { code: terms_required } until the account accepts the current Terms and Privacy Policy. A build whose launch prompt never ran (the onboarding request failed or the state was stale) showed the server's sentence as error text on every screen and never opened the Terms screen, so the learner could not act on it.",
+      "how_detected": "Review of batch G4 (REQ-219); approved follow-up",
+      "root_cause": "Only the launch gate (GET /api/onboarding, read once per sign-in) opened the Terms screen. The API client had a hook for study_notice_required (FAIL-1061) that reloads that state, but nothing for terms_required, added server-side in REQ-219 without the matching client path.",
+      "requirement": "REQ-226",
+      "affected": [
+        "mobile/src/api/client.ts",
+        "mobile/src/auth/OnboardingContext.tsx",
+        "mobile/src/lib/legal.ts"
+      ],
+      "fix_summary": "isTermsRequired and registerTermsRequiredHook: the client hands a 403 terms_required to the onboarding provider, which reloads the launch state (one reload at a time, and none when the state already says the Terms are waiting); the gate then opens /agree. Nothing is retried. JavaScript only.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/termsRequired.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A refusal code the server adds for a state the app's launch gate owns (terms_required, study_notice_required) gets a client hook in the same change; the checklist's legal-version line says so, and mobile/src/lib/termsRequired.test.ts checks the wiring.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1271",
+      "date": "2026-11-11",
+      "title": "What's new note shrank to one item with sims off",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "whats-new.dbtest: newest note had fewer than 3 items in CI (SIMS_ENABLED off)",
+      "how_detected": "CI Database job on PR #135",
+      "root_cause": "Three of the four items in note 2026-11-11-c were gated on sims item by item, so with the flag off the note showed one item",
+      "requirement": "REQ-228",
+      "affected": [
+        "backend/lib/release-notes.ts"
+      ],
+      "fix_summary": "Gate the sims note whole; the sign-in item joins note 2026-11-11-b (covers REQ-226)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/release-notes.test.ts",
+        "backend/lib/whats-new.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1272",
+      "date": "2026-11-11",
+      "title": "What's new seen-route tests assumed the newest written note is shown",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "whats-new.dbtest: POST /api/whats-new/seen with LATEST_RELEASE_NOTE_ID answered 400 'That release note doesn't exist.' in CI",
+      "how_detected": "CI Database job on PR #135",
+      "root_cause": "The newest note (2026-11-11-c) is gated on sims, off in CI; the seen route correctly accepts only a note the server shows, but the tests sent the newest written id",
+      "requirement": "REQ-228",
+      "affected": [
+        "backend/lib/whats-new.dbtest.ts"
+      ],
+      "fix_summary": "Seen-route tests use the newest shown note; sign-up tests keep the newest written id (new accounts start past every note, gated or not)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/whats-new.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Ran the suite with SIMS_ENABLED off and on",
       "recurrence_of": ""
     }
   ]

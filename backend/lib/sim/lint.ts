@@ -7,7 +7,9 @@ import { readFileSync } from "node:fs";
 import { compileEntry } from "./documents.ts";
 import type { DocumentEntry } from "./documents.ts";
 import { goldenFileSchema, schemaProblems } from "./schema.ts";
-import { lintScenario, replayGolden } from "./engine/v1/validate.ts";
+import { lintScenario, replayGolden, replayGoldenPath } from "./engine/v1/validate.ts";
+import { stateHash } from "./engine/v1/index.ts";
+import { jsonbKeyOrder, reverseKeyOrder, withKeyOrder } from "./key-order.ts";
 import type { GoldenFile, GoldenResult, SafetyFamily } from "./engine/v1/validate.ts";
 import type { Problem, ScenarioDoc } from "./engine/v1/types.ts";
 
@@ -32,6 +34,43 @@ function readJson(path: string, problems: Problem[], label: string): unknown {
     problems.push({ level: "error", path: label, message: `cannot read: ${(e as Error).message}` });
     return null;
   }
+}
+
+// REQ-227 (FAIL-1222): an ending set whose result depends on key order is an
+// error. The engine checks endings in the document's `endingOrder` (minor 2),
+// or, without one, in the key order of `endings`, which the server's jsonb
+// column does not keep. So a document without `endingOrder` is replayed with
+// its keys as written, reversed and in jsonb order, and every golden path
+// must end the same way (ending, class, rating, score and state hash) in all
+// three. A document with `endingOrder` cannot depend on key order (the engine
+// reads the list), so it is not replayed here; the storage-order test replays
+// it anyway. Only the golden paths are searched: an overlap no path reaches
+// is not seen, which is why a new document declares `endingOrder` (the
+// validator requires it from minor 2 whenever two endings have a `when`).
+export function endingOrderProblems(doc: ScenarioDoc, golden: GoldenFile | null): Problem[] {
+  if (doc.endingOrder !== undefined || !golden) return [];
+  const orders: [string, (keys: string[]) => string[]][] = [
+    ["as written", (k) => k],
+    ["reversed", reverseKeyOrder],
+    ["jsonb", jsonbKeyOrder],
+  ];
+  const problems: Problem[] = [];
+  const copies = orders.map(([label, order]) => ({ label, doc: withKeyOrder(JSON.parse(JSON.stringify(doc)) as ScenarioDoc, order) }));
+  for (const p of golden.paths) {
+    const seen = copies.map((c) => {
+      const r = replayGoldenPath(c.doc, structuredClone(p), (run) => stateHash(run.state));
+      const d = r.debrief;
+      return { label: c.label, key: r.error ? `error ${r.error}` : `${d.ending} / ${d.outcomeClass} / ${d.rating} / ${d.processScore} / ${r.stateHash}`, ending: r.error ? "error" : d.ending ?? "no ending" };
+    });
+    if (new Set(seen.map((x) => x.key)).size > 1) {
+      problems.push({
+        level: "error",
+        path: `endings`,
+        message: `golden path ${p.id} ends differently depending on key order (${seen.map((x) => `${x.label}: ${x.ending}`).join("; ")}); declare endingOrder (engine minor 2) so the order is explicit`,
+      });
+    }
+  }
+  return problems;
 }
 
 // `full` false = schema only (sims:validate); true adds the semantic and
@@ -61,6 +100,7 @@ export function checkDocument(entry: DocumentEntry, opts: { full: boolean; now?:
   if (opts.full && doc) {
     goldenResults = golden ? replayGolden(doc, golden) : [];
     problems.push(...lintScenario(doc, { now: opts.now, safetyFamily: safetyFamilyOf(doc), golden, goldenResults, searchNodes: opts.searchNodes ?? 4000 }));
+    problems.push(...endingOrderProblems(doc, golden));
   }
   return { entry, doc, golden, problems, goldenResults };
 }

@@ -3,6 +3,12 @@
 For Nick, one evening, phone or desktop. REQ-207. Do the steps in order. Each
 step says what you will see, how long, and how to undo it.
 
+**Progress (reported by Nick):** step 0, steps 1.1 to 1.3, step 2 and step 3
+were done on 2026-11-10. Still to do: 1.4 and 1.5 (rulesets), step 4
+(reviewer gate, delete the repository-level `PROD_DATABASE_URL`) and the
+optional step 5. Tracked in
+[operations-runbook.md](../operations-runbook.md#production-status).
+
 Menu names in GitHub, Supabase and Vercel move around. If a label is not
 where this says, look for the same words nearby.
 

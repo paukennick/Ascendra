@@ -74,7 +74,7 @@ export function labContentProblems(lab: LabContent): string[] {
         p.push(...interactiveProblems(part.interactive, typeof part.modelAnswer === "string" ? part.modelAnswer : "", `step ${i + 1} part ${j + 1}`));
       }
       const key = (part?.label ?? "").trim().toLowerCase();
-      if (labels.has(key)) p.push(`step ${i + 1} has two parts labelled "${part.label}"`);
+      if (labels.has(key)) p.push(`step ${i + 1} has two parts labeled "${part.label}"`);
       labels.add(key);
     });
   });

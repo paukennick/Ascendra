@@ -414,10 +414,10 @@ describe("M2 + L2: generated lessons are checked before they are shared (FAIL-29
     await query(`delete from objectives where id = $1`, [o]);
   });
 
-  test("invalid twice: a clean 503-style error, and nothing is stored", async () => {
+  test("invalid twice: a clean 409 error, and nothing is stored", async () => {
     parseQueue = [badPractice, badPractice];
     const o3 = (await loadObjective(obj3))!;
-    await assert.rejects(() => claudeGenerator.practice(o3), (e: unknown) => e instanceof InvalidContentError && (e as InvalidContentError).status === 503);
+    await assert.rejects(() => claudeGenerator.practice(o3), (e: unknown) => e instanceof InvalidContentError && (e as InvalidContentError).status === 409);
     const stored = await queryOne(`select 1 from lesson_content where objective_id=$1`, [obj3]);
     assert.equal(stored, null);
   });

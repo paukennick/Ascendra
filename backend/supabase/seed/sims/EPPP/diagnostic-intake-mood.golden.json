@@ -1,0 +1,1074 @@
+{
+  "slug": "diagnostic-intake-mood",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Consent, the episode, a suicide screen, a behavior-based screen for highs, rule-outs and family history; bipolar II with a workup",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "limits",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reflect",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "askMood",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "askNeuro",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 11,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "askCog",
+          "seq": 9,
+          "tick": 11
+        },
+        {
+          "type": "choose",
+          "prompt": "switchDx",
+          "choice": "hypo",
+          "seq": 10,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 14,
+          "seq": 11,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "askSI",
+          "seq": 12,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 17,
+          "seq": 13,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "askCourse",
+          "seq": 14,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 7,
+          "to": 20,
+          "seq": 15,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "askHypo",
+          "seq": 16,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 8,
+          "to": 23,
+          "seq": 17,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "askHypoDetail",
+          "seq": 18,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 9,
+          "to": 26,
+          "seq": 19,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "askSubstance",
+          "seq": 20,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 10,
+          "to": 28,
+          "seq": 21,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "askMedical",
+          "seq": 22,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 11,
+          "to": 30,
+          "seq": 23,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "askFamily",
+          "seq": 24,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 12,
+          "to": 32,
+          "seq": 25,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "reflect",
+          "seq": 26,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 13,
+          "to": 34,
+          "seq": 27,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 28,
+          "tick": 34
+        },
+        {
+          "type": "reason",
+          "moment": "formulation",
+          "answered": true,
+          "seq": 29,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "diagnosis": "bp2",
+            "plan": "workup"
+          },
+          "seq": 30,
+          "tick": 34
+        }
+      ],
+      "expect": {
+        "ending": "accurate",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "maniaScreen": "met",
+          "episode": "met",
+          "ruleOuts": "met",
+          "siScreen": "met",
+          "hypoDefined": "met",
+          "diagnosis": "met",
+          "nextStep": "met",
+          "alliance": "met",
+          "consent": "met"
+        },
+        "kpis": {
+          "groups": 4,
+          "rapportEnd": 6,
+          "minutes": 34
+        },
+        "stateHash": "e82641dfa073c235"
+      },
+      "reasoning": {
+        "formulation": "met"
+      }
+    },
+    {
+      "id": "noMedical",
+      "title": "The right diagnosis without asking about medical causes; psychotherapy only",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "limits",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reflect",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "askMood",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "askNeuro",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 11,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "askCog",
+          "seq": 9,
+          "tick": 11
+        },
+        {
+          "type": "choose",
+          "prompt": "switchDx",
+          "choice": "hypo",
+          "seq": 10,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 14,
+          "seq": 11,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "askSI",
+          "seq": 12,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 17,
+          "seq": 13,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "askCourse",
+          "seq": 14,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 7,
+          "to": 20,
+          "seq": 15,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "askHypo",
+          "seq": 16,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 8,
+          "to": 23,
+          "seq": 17,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "askHypoDetail",
+          "seq": 18,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 9,
+          "to": 26,
+          "seq": 19,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "askSubstance",
+          "seq": 20,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 10,
+          "to": 28,
+          "seq": 21,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "reflect",
+          "seq": 22,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 11,
+          "to": 30,
+          "seq": 23,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 24,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "formulation",
+          "answered": true,
+          "seq": 25,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "diagnosis": "bp2",
+            "plan": "therapy"
+          },
+          "seq": 26,
+          "tick": 30
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 85,
+        "criteria": {
+          "maniaScreen": "met",
+          "episode": "met",
+          "ruleOuts": "partial",
+          "siScreen": "met",
+          "hypoDefined": "met",
+          "diagnosis": "met",
+          "nextStep": "partial",
+          "alliance": "met",
+          "consent": "met"
+        },
+        "kpis": {
+          "groups": 4,
+          "rapportEnd": 6,
+          "minutes": 30
+        },
+        "stateHash": "f87aab24e3c66d0f"
+      },
+      "reasoning": {
+        "formulation": "partial"
+      }
+    },
+    {
+      "id": "deferred",
+      "title": "The episode and 'ever been manic?', no consent talk; deferred, psychotherapy only",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "reflect",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "askMood",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "askNeuro",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "askCog",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "choose",
+          "prompt": "switchDx",
+          "choice": "family",
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 12,
+          "seq": 9,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "askSI",
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 15,
+          "seq": 11,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "askCourse",
+          "seq": 12,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 18,
+          "seq": 13,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "askFunction",
+          "seq": 14,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 7,
+          "to": 20,
+          "seq": 15,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "askManicLabel",
+          "seq": 16,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 8,
+          "to": 21,
+          "seq": 17,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "askSubstance",
+          "seq": 18,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 9,
+          "to": 23,
+          "seq": 19,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 20,
+          "tick": 23
+        },
+        {
+          "type": "reason",
+          "moment": "formulation",
+          "answered": true,
+          "seq": 21,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "diagnosis": "defer",
+            "plan": "therapy"
+          },
+          "seq": 22,
+          "tick": 23
+        }
+      ],
+      "expect": {
+        "ending": "deferred",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "maniaScreen": "partial",
+          "episode": "met",
+          "ruleOuts": "partial",
+          "siScreen": "met",
+          "hypoDefined": "missed",
+          "diagnosis": "partial",
+          "nextStep": "partial",
+          "alliance": "partial",
+          "consent": "missed"
+        },
+        "kpis": {
+          "groups": 4,
+          "rapportEnd": 4,
+          "minutes": 23
+        },
+        "stateHash": "d80ecae1de38ba41"
+      },
+      "reasoning": {
+        "formulation": "partial"
+      }
+    },
+    {
+      "id": "unipolar",
+      "title": "'Classic depression' after 'ever been manic?': MDD and an antidepressant",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "limits",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "askMood",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "askNeuro",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "askCog",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "choose",
+          "prompt": "switchDx",
+          "choice": "stressor",
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 12,
+          "seq": 9,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "askSI",
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 15,
+          "seq": 11,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "askCourse",
+          "seq": 12,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 18,
+          "seq": 13,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "askManicLabel",
+          "seq": 14,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 7,
+          "to": 19,
+          "seq": 15,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "rushDx",
+          "seq": 16,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 8,
+          "to": 20,
+          "seq": 17,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 18,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "formulation",
+          "answered": true,
+          "seq": 19,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "diagnosis": "mdd",
+            "plan": "antidep"
+          },
+          "seq": 20,
+          "tick": 20
+        }
+      ],
+      "expect": {
+        "ending": "unipolar",
+        "class": "harm",
+        "rating": "bad",
+        "score": 40,
+        "criteria": {
+          "maniaScreen": "partial",
+          "episode": "met",
+          "ruleOuts": "missed",
+          "siScreen": "met",
+          "hypoDefined": "missed",
+          "diagnosis": "missed",
+          "nextStep": "missed",
+          "alliance": "partial",
+          "consent": "met"
+        },
+        "kpis": {
+          "groups": 4,
+          "rapportEnd": 3,
+          "minutes": 20
+        },
+        "stateHash": "a2f18160f818652c"
+      },
+      "reasoning": {
+        "formulation": "missed"
+      }
+    },
+    {
+      "id": "noScreen",
+      "title": "Finds the high but never asks about suicide; bipolar I",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "limits",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reflect",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "askMood",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "askNeuro",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 11,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "askCog",
+          "seq": 9,
+          "tick": 11
+        },
+        {
+          "type": "choose",
+          "prompt": "switchDx",
+          "choice": "hypo",
+          "seq": 10,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 14,
+          "seq": 11,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "askHypo",
+          "seq": 12,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 17,
+          "seq": 13,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "askHypoDetail",
+          "seq": 14,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 7,
+          "to": 20,
+          "seq": 15,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "askMedical",
+          "seq": 16,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 8,
+          "to": 22,
+          "seq": 17,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 18,
+          "tick": 22
+        },
+        {
+          "type": "reason",
+          "moment": "formulation",
+          "answered": true,
+          "seq": 19,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "diagnosis": "bp1",
+            "plan": "workup"
+          },
+          "seq": 20,
+          "tick": 22
+        }
+      ],
+      "expect": {
+        "ending": "noScreen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 60,
+        "criteria": {
+          "maniaScreen": "met",
+          "episode": "partial",
+          "ruleOuts": "partial",
+          "siScreen": "missed",
+          "hypoDefined": "met",
+          "diagnosis": "missed",
+          "nextStep": "met",
+          "alliance": "partial",
+          "consent": "met"
+        },
+        "kpis": {
+          "groups": 3,
+          "rapportEnd": 5,
+          "minutes": 22
+        },
+        "stateHash": "12f4b156e1e8e336"
+      },
+      "reasoning": {
+        "formulation": "partial"
+      }
+    },
+    {
+      "id": "rupture",
+      "title": "Three quick labels: Jamie walks out",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "rushDx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rushDx",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "rushDx",
+          "seq": 5,
+          "tick": 2
+        }
+      ],
+      "expect": {
+        "ending": "walkout",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "maniaScreen": "missed",
+          "episode": "missed",
+          "ruleOuts": "missed",
+          "siScreen": "missed",
+          "hypoDefined": "missed",
+          "diagnosis": "missed",
+          "nextStep": "missed",
+          "alliance": "missed",
+          "consent": "missed"
+        },
+        "kpis": {
+          "groups": 0,
+          "rapportEnd": 0,
+          "minutes": 2
+        },
+        "stateHash": "1c86b0cf2651ff65"
+      },
+      "reasoning": {
+        "formulation": "missed"
+      }
+    }
+  ]
+}

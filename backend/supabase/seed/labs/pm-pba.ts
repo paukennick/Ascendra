@@ -39,7 +39,7 @@ export const PMIPBA_LABS: SeedLabSet = {
           text: "",
           ask: "Determine the value proposition.",
           parts: [
-            numericPart("Annual savings (before licences)", "Handling saves $108,000 (3,600 h -> 900 h at $40) and rework saves $13,500 (720 -> 180 invoices at $25): $121,500 a year. Met within $1.", "Handling now: 18,000 x 12 min = 3,600 h x $40 = $144,000. After: 18,000 x 3 min = 900 h x $40 = $36,000. Saving $108,000. Rework now: 4% x 18,000 = 720 x $25 = $18,000; after: 1% = 180 x $25 = $4,500. Saving $13,500. Total = $121,500 a year.", { answer: 121500, tolerance: 1, unit: "USD" }),
+            numericPart("Annual savings (before licenses)", "Handling saves $108,000 (3,600 h -> 900 h at $40) and rework saves $13,500 (720 -> 180 invoices at $25): $121,500 a year. Met within $1.", "Handling now: 18,000 x 12 min = 3,600 h x $40 = $144,000. After: 18,000 x 3 min = 900 h x $40 = $36,000. Saving $108,000. Rework now: 4% x 18,000 = 720 x $25 = $18,000; after: 1% = 180 x $25 = $4,500. Saving $13,500. Total = $121,500 a year.", { answer: 121500, tolerance: 1, unit: "USD" }),
             part(
               "Payback and ROI",
               "Nets off the licence (121,500 - 20,000 = $101,500 a year), calculates payback (180,000 / 101,500 = 1.77 years, about 21 months) and a 3-year ROI ((3 x 101,500 - 180,000) / 180,000 = 69%), noting these are undiscounted.",
@@ -66,7 +66,7 @@ export const PMIPBA_LABS: SeedLabSet = {
       kind: "case",
       title: "Find out what stakeholders actually value",
       brief:
-        "Pelham County's library service is replacing its events-booking website. Stakeholders: the head of libraries (budget holder), branch event organisers, the accessibility officer, and residents who book events.",
+        "Pelham County's library service is replacing its events-booking website. Stakeholders: the head of libraries (budget holder), branch event organizers, the accessibility officer, and residents who book events.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -75,29 +75,29 @@ export const PMIPBA_LABS: SeedLabSet = {
           parts: [
             part(
               "Techniques per group",
-              "Chooses suitable techniques per stakeholder group (for example interviews with the head of libraries and accessibility officer, a workshop or focus group with organisers, a survey or observation for residents) and explains the fit.",
-              "Interview the head of libraries and the accessibility officer one-to-one (few people, specialist views); run a workshop with event organisers to map their current booking process; survey residents online and at branches, and observe a few booking an event."
+              "Chooses suitable techniques per stakeholder group (for example interviews with the head of libraries and accessibility officer, a workshop or focus group with organizers, a survey or observation for residents) and explains the fit.",
+              "Interview the head of libraries and the accessibility officer one-to-one (few people, specialist views); run a workshop with event organizers to map their current booking process; survey residents online and at branches, and observe a few booking an event."
             ),
             part(
               "Values, not wish lists",
               "Focuses elicitation on underlying values/outcomes (why something matters, what success looks like) rather than feature lists, for example by asking about goals and pain points and ranking them.",
-              "Ask what each group is trying to achieve and what frustrates them now, then ask them to rank those outcomes. Features come later; first we learn that organisers value fewer no-shows and residents value booking in under two minutes."
+              "Ask what each group is trying to achieve and what frustrates them now, then ask them to rank those outcomes. Features come later; first we learn that organizers value fewer no-shows and residents value booking in under two minutes."
             ),
           ],
         },
         {
-          text: "Findings: organisers rank \"fewer no-shows\" first; residents rank \"quick booking on a phone\" first; the accessibility officer says the site must meet the accessibility standard the council has adopted; the head of libraries ranks \"lower running cost\" first.",
-          ask: "Turn this into a baseline for prioritising requirements.",
+          text: "Findings: organizers rank \"fewer no-shows\" first; residents rank \"quick booking on a phone\" first; the accessibility officer says the site must meet the accessibility standard the council has adopted; the head of libraries ranks \"lower running cost\" first.",
+          ask: "Turn this into a baseline for prioritizing requirements.",
           parts: [
             part(
               "Baseline",
-              "Records each stakeholder group's ranked values in a form usable for later prioritisation (for example a stakeholder-value matrix), treating the accessibility standard as a mandatory constraint rather than a preference.",
-              "Stakeholder-value matrix: organisers -- 1 fewer no-shows; residents -- 1 quick mobile booking; head of libraries -- 1 lower running cost. The accessibility standard is a mandatory constraint that every requirement must meet, not something traded off."
+              "Records each stakeholder group's ranked values in a form usable for later prioritization (for example a stakeholder-value matrix), treating the accessibility standard as a mandatory constraint rather than a preference.",
+              "Stakeholder-value matrix: organizers -- 1 fewer no-shows; residents -- 1 quick mobile booking; head of libraries -- 1 lower running cost. The accessibility standard is a mandatory constraint that every requirement must meet, not something traded off."
             ),
             part(
               "Confirming it",
               "Validates the baseline with the stakeholders (for example plays it back for confirmation) and notes how it will be used to rank requirements.",
-              "Play the matrix back to each group to confirm it, then use it to score candidate requirements: a reminder-message feature that cuts no-shows scores high for organisers and supports lower cost."
+              "Play the matrix back to each group to confirm it, then use it to score candidate requirements: a reminder-message feature that cuts no-shows scores high for organizers and supports lower cost."
             ),
           ],
         },
@@ -119,8 +119,8 @@ export const PMIPBA_LABS: SeedLabSet = {
           parts: [
             part(
               "Roles and responsibilities",
-              "Assigns clear roles: who elicits/documents (business analyst), who prioritises (product owner or sponsor's delegate), who approves (named approvers per requirement type), who is consulted (security, finance), with one approver per decision.",
-              "Business analyst: elicits, documents, maintains traceability. Product owner (customer-service lead): prioritises the backlog. Approvers: operations director for scope; finance for billing rules; IT security for security requirements. Vendor: consulted on feasibility, informed of approved changes."
+              "Assigns clear roles: who elicits/documents (business analyst), who prioritizes (product owner or sponsor's delegate), who approves (named approvers per requirement type), who is consulted (security, finance), with one approver per decision.",
+              "Business analyst: elicits, documents, maintains traceability. Product owner (customer-service lead): prioritizes the backlog. Approvers: operations director for scope; finance for billing rules; IT security for security requirements. Vendor: consulted on feasibility, informed of approved changes."
             ),
             part(
               "Elicitation and analysis methods",
@@ -356,14 +356,14 @@ export const PMIPBA_LABS: SeedLabSet = {
       objective:
         "Analyzing and communicating identified gaps/deltas between solution scope, requirements, and what was actually built",
       kind: "build",
-      title: "Analyse the gaps before sign-off",
+      title: "Analyze the gaps before sign-off",
       brief:
         "Moorcroft Dental Group's patient-recall system is ready for sign-off. Requirements vs what was built: (R1) send recall reminders by SMS and email -- built for SMS only; (R2) let patients rebook from the reminder link -- built; (R3) a report of recall response rates by practice -- built for the group total only, not by practice; (R4) not in requirements, but the developers added a birthday-message feature.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Analyse and communicate the gaps.",
+          ask: "Analyze and communicate the gaps.",
           parts: [
             part(
               "Gaps identified",

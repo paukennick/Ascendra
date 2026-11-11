@@ -39,12 +39,16 @@ export function parseBody(text: string): { ok: true; data: unknown } | { ok: fal
 
 // The message for an HTTP error response. A JSON `error` string from our own
 // server is written for learners and kept (wrong password, rate limit, not
-// found...), except a 5xx, which says nothing useful to them. A body that
-// isn't our JSON (a portal or proxy page) gets the calm message.
+// found...), except a 500, which says nothing useful to them. REQ-216 (H3):
+// a 502 or 503 keeps the server's sentence too: the server answers a model
+// outage ("The AI coach is busy...") or a paused feature in words written for
+// the learner. A body that isn't our JSON (a portal or proxy page) gets the
+// calm message.
 export function httpErrorMessage(status: number, data: unknown, parsed: boolean): string {
   if (!parsed) return UNREADABLE_MESSAGE;
   const serverText = data && typeof data === "object" ? (data as { error?: unknown }).error : undefined;
-  if (status >= 500) return SERVER_MESSAGE;
+  if (status >= 500 && !(status === 502 || status === 503)) return SERVER_MESSAGE;
+  if (status >= 500 && !(typeof serverText === "string" && serverText.trim())) return SERVER_MESSAGE;
   if (typeof serverText === "string" && serverText.trim()) return serverText;
   if (status === 429) return "That's a lot of requests in a short time. Wait a minute and try again.";
   if (status === 404) return "That couldn't be found. It may have been removed.";
@@ -65,4 +69,20 @@ export function friendlyError(err: unknown, opts: { kept?: boolean } = {}): stri
     if (typeof (err as { status?: unknown }).status === "number") return err.message + suffix;
   }
   return "Something didn't work. Try again in a moment." + suffix;
+}
+
+// REQ-217 (FAIL-1045): the message for a failed sign-in-screen request. Offline,
+// a timeout and a server answer show their own calm text; only an error with no
+// message of its own gets the screen's fallback. These screens used to check
+// `err instanceof ApiError`, so being offline read "Something went wrong".
+export function messageOr(err: unknown, fallback: string): string {
+  if (err instanceof Error) {
+    const own =
+      (err as { friendly?: boolean }).friendly ||
+      err.name === "RequestTimeoutError" ||
+      isNetworkFailure(err) ||
+      typeof (err as { status?: unknown }).status === "number";
+    if (own) return friendlyError(err);
+  }
+  return fallback;
 }

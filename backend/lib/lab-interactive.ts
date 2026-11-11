@@ -711,7 +711,7 @@ export function interactiveProblems(spec: unknown, modelAnswer: string, where: s
       if (shapes.some((x) => !x)) p.push(`${where}: an accepted command can't be read (unclosed quote?)`);
       else {
         const keys = shapes.map((x) => JSON.stringify(x));
-        if (new Set(keys).size !== keys.length) p.push(`${where}: two accepted commands are the same after normalising`);
+        if (new Set(keys).size !== keys.length) p.push(`${where}: two accepted commands are the same after normalizing`);
       }
       if (acc[0] && !modelAnswer.includes(acc[0])) p.push(`${where}: the model answer must quote the first accepted command`);
       break;

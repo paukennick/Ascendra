@@ -63,7 +63,7 @@ export const AWSANS_LABS: SeedLabSet = {
       kind: "build",
       title: "Design redundant hybrid connectivity for a payments processor",
       brief:
-        "Kestrel Payments runs its card-authorization system in a data centre in Frankfurt and is moving the settlement platform to AWS (eu-central-1). Settlement traffic averages 600 Mbps with bursts to 1.8 Gbps and must keep flowing through the loss of any single device, fibre path or colocation facility: the business has written a 99.99% connectivity target into its risk register. During the migration a second, non-critical analytics workload also needs a path to AWS, and the networking team wants a cheap fallback if both dedicated circuits are ever down at once. Address space is 10.20.0.0/16 on premises and 10.40.0.0/16 in AWS, with no overlap. You are the network architect writing the connectivity design.",
+        "Kestrel Payments runs its card-authorization system in a data center in Frankfurt and is moving the settlement platform to AWS (eu-central-1). Settlement traffic averages 600 Mbps with bursts to 1.8 Gbps and must keep flowing through the loss of any single device, fiber path or colocation facility: the business has written a 99.99% connectivity target into its risk register. During the migration a second, non-critical analytics workload also needs a path to AWS, and the networking team wants a cheap fallback if both dedicated circuits are ever down at once. Address space is 10.20.0.0/16 on premises and 10.40.0.0/16 in AWS, with no overlap. You are the network architect writing the connectivity design.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -73,7 +73,7 @@ export const AWSANS_LABS: SeedLabSet = {
             part(
               "Direct Connect resiliency model",
               "Chooses the maximum resiliency model (connections at two or more Direct Connect locations, each location with two connections terminating on separate devices) and ties it to the 99.99% target; names high resiliency (one connection at each of two locations, 99.9%) as insufficient for the stated target.",
-              "Maximum resiliency: two Direct Connect locations, and at each location two dedicated connections landing on separate AWS devices, from separate customer routers. That is the model AWS documents for a 99.99% SLA (provided the SLA's other conditions are met). High resiliency -- one connection in each of two locations -- protects against a fibre cut or a device failure and is documented at 99.9%, which does not meet the register's figure."
+              "Maximum resiliency: two Direct Connect locations, and at each location two dedicated connections landing on separate AWS devices, from separate customer routers. That is the model AWS documents for a 99.99% SLA (provided the SLA's other conditions are met). High resiliency -- one connection in each of two locations -- protects against a fiber cut or a device failure and is documented at 99.9%, which does not meet the register's figure."
             ),
             part(
               "Circuit sizing",
@@ -88,7 +88,7 @@ export const AWSANS_LABS: SeedLabSet = {
             part(
               "Failover control",
               "Uses BGP on every path and makes Direct Connect preferred over VPN (AWS prefers Direct Connect routes over VPN routes for the same prefix; or set the on-premises side to prefer the Direct Connect paths), with Bidirectional Forwarding Detection (BFD) on the Direct Connect sessions for fast failure detection, and plans a failover test rather than assuming it works.",
-              "Run BGP on all paths. For equal prefixes AWS prefers a Direct Connect path over a VPN path, so the VPN only carries traffic when both Direct Connect locations are down; on the customer routers prefer the Direct Connect neighbours too. Enable BFD on the Direct Connect BGP sessions so a failed path is detected in seconds. Schedule a failover test that takes one location down and measures what the settlement platform sees."
+              "Run BGP on all paths. For equal prefixes AWS prefers a Direct Connect path over a VPN path, so the VPN only carries traffic when both Direct Connect locations are down; on the customer routers prefer the Direct Connect neighbors too. Enable BFD on the Direct Connect BGP sessions so a failed path is detected in seconds. Schedule a failover test that takes one location down and measures what the settlement platform sees."
             ),
           ],
         },
@@ -120,7 +120,7 @@ export const AWSANS_LABS: SeedLabSet = {
             part(
               "On-premises-to-AWS preference",
               "Controls outbound preference on the customer routers (local preference set higher for routes learned over the facility A session, since AWS advertises the same VPC prefix on both VIFs), and says why MED is not the tool for this.",
-              "AWS advertises 10.60.0.0/16 on both sessions. On the customer side set a higher BGP local preference on routes learned from the facility A neighbour so outbound traffic prefers A and falls back to B. Do not rely on MED: it is only compared after the other attributes and is not how you express a local policy on your own routers."
+              "AWS advertises 10.60.0.0/16 on both sessions. On the customer side set a higher BGP local preference on routes learned from the facility A neighbor so outbound traffic prefers A and falls back to B. Do not rely on MED: it is only compared after the other attributes and is not how you express a local policy on your own routers."
             ),
             part(
               "A common mistake to avoid",
@@ -255,7 +255,7 @@ export const AWSANS_LABS: SeedLabSet = {
       slug: "multi-account-network-sharing",
       objective: "Multi-account networking with AWS Organizations and AWS Resource Access Manager: shared Transit Gateway, Direct Connect, VPC, Route 53",
       kind: "case",
-      title: "Share one network across a growing organisation",
+      title: "Share one network across a growing organization",
       brief:
         "Pell & Grange, an engineering consultancy, has moved to a multi-account AWS Organization: a network account owns the Transit Gateway, the Direct Connect gateway and a shared-services VPC; twelve workload accounts are being created under a Workloads organizational unit. The network team must give every workload account hybrid connectivity and DNS without handing over control of the shared pieces.",
       safetyNote: GENERAL_SAFETY,
@@ -289,12 +289,12 @@ export const AWSANS_LABS: SeedLabSet = {
         },
         {
           text: "Workload teams now report they can reach on premises but cannot resolve corp names; each account is building its own Resolver endpoints.",
-          ask: "How do you centralise DNS so twelve accounts do not each run forwarders?",
+          ask: "How do you centralize DNS so twelve accounts do not each run forwarders?",
           parts: [
             part(
               "Shared Resolver rules",
               "Keeps one set of Resolver outbound endpoints and forwarding rules in the network account and shares the rules with RAM to the Workloads OU, so each account only associates the shared rule with its VPCs; associates the central private hosted zones with workload VPCs where needed.",
-              "Build the outbound endpoint and the corp forwarding rule once in the network account, share the rule with RAM to the Workloads OU, and have each account associate it with its VPCs (no endpoints of their own). Private hosted zones stay in the network account and are associated with workload VPCs by authorisation plus association."
+              "Build the outbound endpoint and the corp forwarding rule once in the network account, share the rule with RAM to the Workloads OU, and have each account associate it with its VPCs (no endpoints of their own). Private hosted zones stay in the network account and are associated with workload VPCs by authorization plus association."
             ),
             part(
               "Optional: shared subnets",
@@ -395,7 +395,7 @@ export const AWSANS_LABS: SeedLabSet = {
       slug: "central-egress-inspection",
       objective: "Securing outbound traffic flows from AWS: Network Firewall, proxies, Gateway Load Balancers",
       kind: "build",
-      title: "Design centralised egress inspection for twenty VPCs",
+      title: "Design centralized egress inspection for twenty VPCs",
       brief:
         "Caldera Biotech has twenty workload VPCs attached to a Transit Gateway. Each has its own NAT gateway and unrestricted internet egress. Compliance now requires that all outbound traffic leave through one inspection point, that only an approved list of domains (software repositories, the company's SaaS vendors) be reachable, that attempts to reach anything else be logged and alerted, and that the design survive the loss of an Availability Zone. Write the egress design.",
       safetyNote: GENERAL_SAFETY,

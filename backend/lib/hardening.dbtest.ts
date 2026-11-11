@@ -661,7 +661,7 @@ describe("pool and transaction timeouts", () => {
     assert.deepEqual(s, { st: "20s", lt: "10s", it: "30s" });
   });
 
-  test("a statement over the transaction's statement_timeout is cancelled", async () => {
+  test("a statement over the transaction's statement_timeout is canceled", async () => {
     await assert.rejects(
       withTransaction(async (tx) => {
         await tx.query(`select set_config('statement_timeout', '200ms', true)`);

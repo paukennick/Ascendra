@@ -81,6 +81,11 @@ describe("replay binding (finding 3)", () => {
     assert.equal(replayMatches(stored, { kind: "quiz", stage: "discriminate", objectiveId: "aaaaaaaa-0000-0000-0000-000000000001" }), false);
     assert.equal(replayMatches(stored, { kind: "review", stage: "review", objectiveId: "bbbbbbbb-0000-0000-0000-000000000001" }), false);
     assert.equal(replayMatches({ kind: "unitcheck", unit_check_item_id: "x1" }, { kind: "unitcheck", unitCheckItemId: "x2" }), false);
+    // REQ-218: bound to the answer text, compared trimmed.
+    const ans = { kind: "quiz", stage: "explain", objective_id: "aaaaaaaa-0000-0000-0000-000000000001", answer: "My explanation." };
+    assert.equal(replayMatches(ans, { kind: "quiz", stage: "explain", objectiveId: "aaaaaaaa-0000-0000-0000-000000000001", answer: "  My explanation. " }), true);
+    assert.equal(replayMatches(ans, { kind: "quiz", stage: "explain", objectiveId: "aaaaaaaa-0000-0000-0000-000000000001", answer: "Another one." }), false);
+    assert.equal(replayMatches(ans, { kind: "quiz", stage: "explain", objectiveId: "aaaaaaaa-0000-0000-0000-000000000001" }), true, "a route that does not bind the answer is unchanged");
   });
   test("REQ-121: a lab report is bound to its lab objective", () => {
     const lab = { kind: "lab", stage: "lab", objective_id: null, lab_objective_id: "AAAAAAAA-0000-0000-0000-000000000002" };

@@ -1,11 +1,14 @@
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { bumpTokenVersion, revokeOtherSessions } from "@/lib/auth/sessionControl";
-import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
-import { verifyGoogleIdToken } from "@/lib/auth/oauth";
+import { ok, badRequest, unauthorized, tooManyRequests, serverError, readJson } from "@/lib/http";
+import { verifyGoogleIdToken, GoogleTokenError } from "@/lib/auth/oauth";
 import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
+import { mfaStepRequired } from "@/lib/auth/mfaMethodOff";
 import { completeLogin } from "@/lib/auth/session";
 import { sessionResponse } from "@/lib/auth/refreshCookie";
-import { recordAuthEvent } from "@/lib/auth/rateLimit";
+import { recordAuthEvent, consumeRateLimit, RateLimitError, GOOGLE_SIGNIN_IP_LIMIT, ipCounterKey } from "@/lib/auth/rateLimit";
+import { sendSecurityAlertEmail } from "@/lib/email";
+import { emailFailureHandler } from "@/lib/email-errors";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 import { recordSignupTermsAcceptance, signupAcceptedVersion, legalContext } from "@/lib/legal";
 import { LATEST_RELEASE_NOTE_ID } from "@/lib/release-notes";
@@ -48,12 +51,31 @@ export async function POST(req: Request) {
       return badRequest("idToken is required");
     }
 
-    const identity = await verifyGoogleIdToken(idToken);
+    // REQ-219 (FAIL-1102): per-IP limit like register's, ahead of the token
+    // check, so one address can't hammer it (or the account lookups behind
+    // it). Sized for shared networks: a legitimate sign-in is one call.
+    const ip = getClientIp(req);
+    if (ip) {
+      try {
+        await consumeRateLimit("oauth_google", ipCounterKey(ip), GOOGLE_SIGNIN_IP_LIMIT);
+      } catch (err) {
+        if (err instanceof RateLimitError) return tooManyRequests("Too many sign-in attempts from this network. Try again in a few minutes.");
+        throw err;
+      }
+    }
+
+    let identity;
+    try {
+      identity = await verifyGoogleIdToken(idToken);
+    } catch (err) {
+      // A rejected token is the caller's, not a fault of ours: 401, not reported.
+      if (err instanceof GoogleTokenError) return unauthorized("Google sign-in couldn't be confirmed. Try again.");
+      throw err;
+    }
     if (!identity.emailVerified) {
       return unauthorized("Google account email is not verified.");
     }
     const normalizedEmail = identity.email.toLowerCase().trim();
-    const ip = getClientIp(req);
     const meta = { deviceLabel: typeof deviceLabel === "string" ? deviceLabel : null, userAgent: getUserAgent(req), ip };
 
     const linked = await queryOne<UserRow>(
@@ -64,6 +86,7 @@ export async function POST(req: Request) {
     );
 
     let user: UserRow;
+    let existingVerified = false;
     if (linked) {
       user = linked;
     } else {
@@ -74,6 +97,7 @@ export async function POST(req: Request) {
       );
       if (existing) {
         user = existing;
+        existingVerified = !!existing.email_verified_at;
         // REQ-116 (audit 3, finding 8): an account nobody has verified may
         // have been registered by someone other than the inbox owner, who
         // chose its password. Google has just proved the inbox, so the
@@ -117,15 +141,29 @@ export async function POST(req: Request) {
         // under the Google button; existing accounts are asked on launch.
         await recordSignupTermsAcceptance(user.id, acceptedTermsVersion, "google_signup", termsCtx);
       }
-      await query(
+      const attached = await query<{ id: string }>(
         `insert into oauth_accounts (user_id, provider, provider_account_id, email)
          values ($1, 'google', $2, $3)
-         on conflict (provider, provider_account_id) do nothing`,
+         on conflict (provider, provider_account_id) do nothing
+         returning id`,
         [user.id, identity.providerAccountId, normalizedEmail]
       );
+      // REQ-219 (FAIL-1103, Nick's decision): Google sign-in that attaches to
+      // an account that already existed (and was verified, so it may have a
+      // password) is a new way into it, so the account's address is told, as
+      // the explicit link route does. A brand-new account, and an unverified
+      // one this sign-in just claimed (whose address Google proved), mail
+      // nothing.
+      if (attached.length > 0 && existingVerified) {
+        await sendSecurityAlertEmail(
+          user.email,
+          "Google sign-in connected to your Ascendra account",
+          `Someone just signed in to your Ascendra account with the Google account ${normalizedEmail}, which uses the same email address. Google sign-in is now connected to your account.`
+        ).catch(emailFailureHandler("auth/oauth/google"));
+      }
     }
 
-    if (user.mfa_enabled) {
+    if (mfaStepRequired(user)) {
       await recordAuthEvent("login_mfa_challenge", normalizedEmail, { ip, userId: user.id });
       const challengeToken = await createLoginChallenge(user.id, meta);
       return ok({

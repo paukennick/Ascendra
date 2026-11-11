@@ -28,7 +28,7 @@ import {
 import { BULK_GRANT_MAX, parseBulkGrantInput, splitEmailList } from "./account-access-config";
 
 describe("AI_ACCESS_MODE", () => {
-  test("unset or empty is all (today's behaviour)", () => {
+  test("unset or empty is all (today's behavior)", () => {
     assert.equal(aiAccessMode({}), "all");
     assert.equal(aiAccessMode({ AI_ACCESS_MODE: "" }), "all");
     assert.equal(aiAccessMode({ AI_ACCESS_MODE: "  " }), "all");
@@ -42,7 +42,7 @@ describe("AI_ACCESS_MODE", () => {
     }
   });
 
-  test("an unrecognised value fails toward spending less (granted) and is reported as invalid", () => {
+  test("an unrecognized value fails toward spending less (granted) and is reported as invalid", () => {
     for (const v of ["grant", "paid-only", "on", "true", "1"]) {
       assert.equal(aiAccessMode({ AI_ACCESS_MODE: v }), "granted", v);
       assert.equal(aiAccessModeIsValid({ AI_ACCESS_MODE: v }), false, v);
@@ -167,7 +167,7 @@ describe("health warnings", () => {
 
 describe("bulk invite input (Settings > Access)", () => {
   const NOW = new Date("2026-11-09T12:00:00Z");
-  test("addresses in a string or array, split, normalised and de-duplicated", () => {
+  test("addresses in a string or array, split, normalized and de-duplicated", () => {
     assert.deepEqual(splitEmailList("a@x.io, b@x.io;\nc@x.io  d@x.io"), ["a@x.io", "b@x.io", "c@x.io", "d@x.io"]);
     assert.deepEqual(splitEmailList(["a@x.io", 3, "b@x.io c@x.io"]), ["a@x.io", "b@x.io", "c@x.io"]);
     const r = parseBulkGrantInput({ emails: "A@X.io\na@x.io\nb@x.io", note: " AI pilot ", until: "2026-12-31" }, NOW);

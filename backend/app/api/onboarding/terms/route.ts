@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 // once more, for the current text.
 export async function POST(req: Request) {
   try {
-    const user = await requireUser(req);
+    const user = await requireUser(req, { termsOptional: true });
     const body = await req.json().catch(() => null);
     const ctx = legalContext(req);
     if (!isAcceptableTermsVersion(body?.version, ctx)) {

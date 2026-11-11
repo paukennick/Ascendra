@@ -20,6 +20,10 @@ import { source } from "../sources";
 // 2026-11-07): "PTAs may not provide evaluative or assessment services, make
 // clinical judgments or decisions; develop, manage, or furnish skilled
 // maintenance program services; or take responsibility for the service."
+// REQ-220: the "furnish ... maintenance" clause predates CMS MLN Matters
+// MM12071 (effective 2021-01-01; CY 2021 PFS final rule, 85 FR 84472),
+// under which the PT may delegate furnishing maintenance therapy to a PTA;
+// the PT still establishes the program. No rubric here relies on that clause.
 // Rubrics therefore mark an answer down when the learner evaluates,
 // re-plans or discharges on their own, and up when they hold, report and
 // defer to the PT. Supervision levels are left to "state law and the
@@ -34,7 +38,7 @@ import { source } from "../sources";
 // Values quoted as standards, verified 2026-11-07 (details and DOIs in the
 // pt-nptept.ts header): autonomic dysreflexia actions and the >20 mm Hg
 // systolic rise (PVA Consortium for Spinal Cord Medicine, 2020); exercise
-// stopping criteria and the 1.8 kg (3 lb) weight-gain flag in heart failure
+// stopping criteria and the 1.8 kg (4 lb) weight-gain flag in heart failure
 // (Taylor, Myers, Bonikowske, Heart Fail Rev 2024, adapted from ACSM GETP
 // 11th ed.); hypoglycemia levels and the 15 g / 15 minute rule (ADA
 // hypoglycemia guide, Standards of Care); 2026 APTA TKA CPG (no CPM for
@@ -77,7 +81,7 @@ export const NPTEPTA_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognise",
-              "Recognises saddle numbness, new urinary difficulty and bilateral leg symptoms as red flags for possible cauda equina syndrome needing urgent medical attention.",
+              "Recognizes saddle numbness, new urinary difficulty and bilateral leg symptoms as red flags for possible cauda equina syndrome needing urgent medical attention.",
               "Saddle numbness, new trouble passing urine and symptoms in both legs are red flags for cauda equina syndrome -- a medical emergency."
             ),
             part(
@@ -111,7 +115,7 @@ export const NPTEPTA_LABS: SeedLabSet = {
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
-          text: "Pain stayed 3/10 after last session and swelling has not increased. She asks whether she should rent a continuous passive motion machine \"because my neighbour had one\".",
+          text: "Pain stayed 3/10 after last session and swelling has not increased. She asks whether she should rent a continuous passive motion machine \"because my neighbor had one\".",
           ask: "How do you run today's session and answer her question?",
           parts: [
             part(
@@ -156,7 +160,7 @@ export const NPTEPTA_LABS: SeedLabSet = {
       kind: "build",
       title: "Write the PTA's SOAP note",
       brief:
-        "You are the PTA. A fictional 52-year-old carpenter is 6 weeks after rotator cuff repair, seen under the PT's plan (goal: active shoulder flexion to 140 degrees in 4 weeks; lift a 2 kg tool to shelf height). Today: he reports pain 2/10 at rest and 5/10 reaching overhead and says he slept through the night for the first time. You performed active-assisted flexion with a wand 3 x 10, scapular stabilisation exercises 3 x 10, and active flexion; measured active flexion 118 degrees (last week 104). He completed everything; pain rose to 4/10 during wand work and returned to 2/10 after 5 minutes of rest.",
+        "You are the PTA. A fictional 52-year-old carpenter is 6 weeks after rotator cuff repair, seen under the PT's plan (goal: active shoulder flexion to 140 degrees in 4 weeks; lift a 2 kg tool to shelf height). Today: he reports pain 2/10 at rest and 5/10 reaching overhead and says he slept through the night for the first time. You performed active-assisted flexion with a wand 3 x 10, scapular stabilization exercises 3 x 10, and active flexion; measured active flexion 118 degrees (last week 104). He completed everything; pain rose to 4/10 during wand work and returned to 2/10 after 5 minutes of rest.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -164,7 +168,7 @@ export const NPTEPTA_LABS: SeedLabSet = {
           ask: "Write the SOAP note.",
           parts: [
             part("Subjective", "Reports the patient's own report: pain at rest and overhead with ratings, the improved sleep.", "Reports pain 2/10 at rest, 5/10 reaching overhead; slept through the night for the first time since surgery."),
-            part("Objective", "Records interventions with dosage and objective measures (active flexion 118 degrees, prior 104), and response measured during the session.", "AAROM flexion with wand 3 x 10, scapular stabilisation 3 x 10, AROM flexion. Active flexion 118 degrees (104 last week). Pain 4/10 during wand work, back to 2/10 after 5 min rest."),
+            part("Objective", "Records interventions with dosage and objective measures (active flexion 118 degrees, prior 104), and response measured during the session.", "AAROM flexion with wand 3 x 10, scapular stabilization 3 x 10, AROM flexion. Active flexion 118 degrees (104 last week). Pain 4/10 during wand work, back to 2/10 after 5 min rest."),
             part("Assessment", "Describes response to treatment and progress toward the PT's established goals in objective terms (14 degrees gained, 22 to go toward 140), without a new diagnosis, prognosis or goal change.", "Tolerated session; pain settled with rest. Progressing toward flexion goal: +14 degrees this week, 22 degrees remaining to the 140-degree goal. Lifting goal not yet tested."),
             part("Plan", "Continues per the PT's plan of care, and notes anything for the PT (e.g. whether to start the lifting task when the plan allows); does not change frequency, goals or interventions.", "Continue per PT plan of care. Will review with the PT whether to begin the 2 kg shelf-lift task next session per the plan's progression."),
           ],
@@ -189,7 +193,7 @@ export const NPTEPTA_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognise",
-              "Recognises autonomic dysreflexia (lesion above T6; systolic BP more than 20 mm Hg above baseline with headache and flushing/sweating) as an emergency.",
+              "Recognizes autonomic dysreflexia (lesion above T6; systolic BP more than 20 mm Hg above baseline with headache and flushing/sweating) as an emergency.",
               "Autonomic dysreflexia: C6 injury, systolic about 70 mm Hg above his usual, headache, flushing and sweating. Emergency."
             ),
             part(
@@ -232,7 +236,7 @@ export const NPTEPTA_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognise",
-              "Recognises sudden facial droop, arm weakness and speech difficulty as warning signs of an acute stroke -- not part of his Parkinson disease.",
+              "Recognizes sudden facial droop, arm weakness and speech difficulty as warning signs of an acute stroke -- not part of his Parkinson disease.",
               "Sudden face droop, arm drift and slurred speech are stroke warning signs, different from his Parkinson symptoms."
             ),
             part(
@@ -294,7 +298,7 @@ export const NPTEPTA_LABS: SeedLabSet = {
           parts: [
             part(
               "Decision",
-              "Recognises the reading meets the plan's hold parameter and holds exercise despite no symptoms; notifies the supervising PT (who decides on contacting the physician); checks for symptoms such as headache, chest pain or vision change and escalates urgently if present.",
+              "Recognizes the reading meets the plan's hold parameter and holds exercise despite no symptoms; notifies the supervising PT (who decides on contacting the physician); checks for symptoms such as headache, chest pain or vision change and escalates urgently if present.",
               "Systolic 184 is over the plan's 180 hold limit on two readings, so no exercise today. I notify the PT, ask about headache, chest pain or vision changes, and get urgent help if any appear."
             ),
             part(
@@ -387,7 +391,7 @@ export const NPTEPTA_LABS: SeedLabSet = {
       kind: "case",
       title: "Guarding a patient who starts to fall",
       brief:
-        "You are the PTA practising sit-to-stand and short walks with a fictional 77-year-old with right hemiparesis after a stroke, under the PT's plan. She walks with a quad cane in her left hand and needs minimal assistance.",
+        "You are the PTA practicing sit-to-stand and short walks with a fictional 77-year-old with right hemiparesis after a stroke, under the PT's plan. She walks with a quad cane in her left hand and needs minimal assistance.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -431,12 +435,12 @@ export const NPTEPTA_LABS: SeedLabSet = {
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
-          text: "Today the redness extends well beyond the wound edge, the skin is hot and swollen, drainage is thick and green with an odour, the wound measures 4.6 x 3.5 cm, and he says it hurts much more. His temperature is 38.2 degrees C.",
+          text: "Today the redness extends well beyond the wound edge, the skin is hot and swollen, drainage is thick and green with an odor, the wound measures 4.6 x 3.5 cm, and he says it hurts much more. His temperature is 38.2 degrees C.",
           ask: "What do you do?",
           parts: [
             part(
               "Recognise",
-              "Recognises signs of wound infection/possible cellulitis (spreading redness, heat, swelling, purulent malodorous drainage, increased pain and size) with fever.",
+              "Recognizes signs of wound infection/possible cellulitis (spreading redness, heat, swelling, purulent malodorous drainage, increased pain and size) with fever.",
               "Spreading redness, heat, swelling, thick green smelly drainage, more pain, a bigger wound and a fever -- signs of infection, possibly spreading."
             ),
             part(
@@ -539,8 +543,8 @@ export const NPTEPTA_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognise",
-              "Recognises signs of worsening heart failure (weight gain of 1.8 kg/3 lb or more over 1-3 days, increased oedema, orthopnea).",
-              "A 2.3 kg gain in 2 days (over the 1.8 kg / 3 lb flag), more ankle swelling and needing an extra pillow suggest her heart failure is worsening."
+              "Recognizes signs of worsening heart failure (weight gain of 1.8 kg/4 lb or more over 1-3 days, increased edema, orthopnea).",
+              "A 2.3 kg gain in 2 days (over the 1.8 kg / 4 lb flag), more ankle swelling and needing an extra pillow suggest her heart failure is worsening."
             ),
             part(
               "Act within scope",
@@ -580,7 +584,7 @@ export const NPTEPTA_LABS: SeedLabSet = {
             part(
               "CDT session",
               "Carries out each component as planned: skin inspection and care, manual lymphatic drainage in the planned sequence (clearing proximal areas first), multilayer short-stretch bandaging with graded pressure, and the planned exercises with bandages on; measures as the plan directs.",
-              "Inspect and moisturise the skin, MLD clearing the trunk and proximal areas before the arm, then multilayer short-stretch bandaging firmer at the hand than near the shoulder, and her exercise routine in the bandages. Measure circumferences as the plan says."
+              "Inspect and moisturize the skin, MLD clearing the trunk and proximal areas before the arm, then multilayer short-stretch bandaging firmer at the hand than near the shoulder, and her exercise routine in the bandages. Measure circumferences as the plan says."
             ),
           ],
         },
@@ -590,7 +594,7 @@ export const NPTEPTA_LABS: SeedLabSet = {
           parts: [
             part(
               "Hold and report",
-              "Recognises probable infection (cellulitis), holds MLD and bandaging, notifies the supervising PT immediately so she can be referred urgently to her physician, and documents the findings.",
+              "Recognizes probable infection (cellulitis), holds MLD and bandaging, notifies the supervising PT immediately so she can be referred urgently to her physician, and documents the findings.",
               "This looks like cellulitis: no MLD or bandaging today. Notify the PT immediately so she's sent to her physician urgently, and document the redness, heat, pain and temperature."
             ),
             part(
@@ -670,7 +674,7 @@ export const NPTEPTA_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognise",
-              "Recognises black, tarry stools with upper abdominal pain and long-term NSAID use as possible upper GI bleeding needing medical evaluation.",
+              "Recognizes black, tarry stools with upper abdominal pain and long-term NSAID use as possible upper GI bleeding needing medical evaluation.",
               "Black, tarry stools, upper abdominal burning and weeks of anti-inflammatories could mean bleeding in the stomach -- he needs medical assessment."
             ),
             part(

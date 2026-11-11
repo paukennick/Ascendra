@@ -81,6 +81,14 @@ describe("examFormatsFromText: only the formats the exam uses", () => {
       { formats: ["multiple_choice", "multiple_response", "ordering", "matching"], exhibits: true }
     );
   });
+  test("the seeded Security+ V7 (SY0-701) text offers multi-select and drag-and-drop, not single-answer only (FAIL-1131)", async () => {
+    const { SECPLUS_TRACK } = await import("../supabase/seed/data");
+    assert.equal(examQuestionCount(SECPLUS_TRACK.credential?.questionFormat), 90);
+    assert.deepEqual(examFormatsFromText(SECPLUS_TRACK.credential?.questionFormat), {
+      formats: ["multiple_choice", "multiple_response", "ordering", "matching"],
+      exhibits: true,
+    });
+  });
   test("plain multiple choice, and no exam at all, are multiple choice only", () => {
     assert.deepEqual(examFormatsFromText("Maximum 70 questions; multiple choice"), { formats: ["multiple_choice"], exhibits: false });
     assert.deepEqual(examFormatsFromText(null), { formats: ["multiple_choice"], exhibits: false });

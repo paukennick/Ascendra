@@ -160,7 +160,7 @@ export const PYTHON_LABS: SeedLabSet = {
               "import json\n\nclass ConfigError(Exception):\n    \"\"\"The config file is present but unusable.\"\"\"\n\ndef load_port(path, default=8080):\n    try:\n        f = open(path)\n    except FileNotFoundError:\n        return default\n    try:\n        cfg = json.load(f)\n        port = int(cfg[\"server\"][\"port\"])\n    except json.JSONDecodeError as e:\n        raise ConfigError(f\"{path} is not valid JSON: {e}\") from e\n    except (KeyError, TypeError, ValueError) as e:\n        raise ConfigError(f\"{path} has no usable server.port: {e!r}\") from e\n    else:\n        return port\n    finally:\n        f.close()\n\n(A with-block around json.load is an equally good way to guarantee the close.)"
             ),
             part(
-              "Behaviour on the four inputs",
+              "Behavior on the four inputs",
               "Valid file -> 9000; missing file -> 8080; '{not json' -> raises ConfigError (wrapping JSONDecodeError) so startup stops; {\"server\": {}} -> raises ConfigError (wrapping KeyError 'port'). No input silently returns the default except the missing file.",
               "config.json with port 9000 -> 9000. Missing file -> 8080 (the only silent fallback). '{not json' -> ConfigError: 'broken.json is not valid JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'. {\"server\": {}} -> ConfigError: \"nokey.json has no usable server.port: KeyError('port')\". The chained 'from e' keeps the original traceback for whoever reads the log."
             ),
@@ -179,7 +179,7 @@ export const PYTHON_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Write the methods and explain the behaviour each one gives.",
+          ask: "Write the methods and explain the behavior each one gives.",
           parts: [
             part(
               "__eq__ (and what it needs alongside it)",

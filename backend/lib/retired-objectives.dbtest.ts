@@ -187,7 +187,7 @@ describe("FAIL-890: retired content stays out of review", () => {
     try {
       const o2 = randomUUID();
       await query(`insert into objectives (id, unit_id, title, sort_order) values ($1, $2, 'Second active', 5)`, [o2, unitOk]);
-      for (const o of [objActive, o2]) await query(`insert into review_schedule (user_id, objective_id, due_on) values ($1, $2, current_date - 1)`, [u, o]);
+      for (const o of [objActive, o2]) await query(`insert into review_schedule (user_id, objective_id, due_on, enrolled_at) values ($1, $2, current_date - 1, now() - interval '3 days')`, [u, o]);
       const first = await startOrResumeSession(u, null);
       assert.ok(first && !first.resumed);
       assert.equal((await query(`select 1 from review_session_items where session_id = $1`, [first!.id])).length, 2);
@@ -208,7 +208,7 @@ describe("FAIL-890: retired content stays out of review", () => {
     }
   });
 
-  test("the enrolment trigger does not enrol a retired objective (migration 069)", async () => {
+  test("the enrollment trigger does not enrol a retired objective (migration 069)", async () => {
     const u = randomUUID();
     await query(`insert into app_users (id, email) values ($1, $2)`, [u, `${u}@example.test`]);
     try {

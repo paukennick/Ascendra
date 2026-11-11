@@ -2,7 +2,7 @@ import { servableSql } from "@/lib/item-quality";
 import { isActive } from "@/lib/progress-sql";
 import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { recordAttemptTx, type AssistReason } from "@/lib/grading-service";
-import { utcDay } from "@/lib/review-scheduler";
+import { MIN_REVIEW_GAP_HOURS, utcDay } from "@/lib/review-scheduler";
 import { stepSchedule } from "@/lib/review-step";
 import { studyNoticeAcceptedSql } from "@/lib/study-notice";
 import {
@@ -36,11 +36,21 @@ export interface DueRow extends DueCandidate {
 // a miss is re-checked with a real answer, not a "Got it" tap). Only courses
 // the learner can see and has accepted the disclaimer for; objectives already
 // answered in a review today are left for another day.
-export async function dueObjectives(userId: string, today: string, trackId: string | null, q: Q = query): Promise<DueRow[]> {
+// REQ-218 (H8): a scheduled objective is due only when its date has come AND
+// MIN_REVIEW_GAP_HOURS have passed since its last review (or enrolment), as
+// lib/review-scheduler.ts isDueAt decides for the answer itself.
+export async function dueObjectives(
+  userId: string,
+  today: string,
+  trackId: string | null,
+  q: Q = query,
+  now: Date = new Date()
+): Promise<DueRow[]> {
   const rows = await q(
     `with sched as (
        select objective_id, due_on, step, lapses from review_schedule
         where user_id = $1 and due_on <= $2::date
+          and coalesce(last_reviewed_at, enrolled_at) <= $4::timestamptz - make_interval(hours => $5::int)
      ), err as (
        -- REQ-117 (T9, T14): only for objectives with no schedule. Once an
        -- objective is scheduled, a miss already steps its schedule back; the
@@ -78,7 +88,7 @@ export async function dueObjectives(userId: string, today: string, trackId: stri
            where s.user_id = $1 and si.answered_at is not null
              and si.answered_at >= ($2::date)::timestamp at time zone 'UTC'
              and si.answered_at < ($2::date + 1)::timestamp at time zone 'UTC')`,
-    [userId, today, trackId]
+    [userId, today, trackId, now, MIN_REVIEW_GAP_HOURS]
   );
   return rows.map((r) => ({
     objectiveId: r.objective_id,
@@ -137,13 +147,16 @@ export async function lastSessionStats(userId: string, q: Q = query): Promise<La
 }
 
 export async function nextDueOn(userId: string, trackId: string | null): Promise<string | null> {
+  // REQ-218 (H8): the day a review can actually be answered: its date, or the
+  // day its minimum gap ends, whichever is later.
   const r = await queryOne<{ d: string | null }>(
-    `select to_char(min(rs.due_on), 'YYYY-MM-DD') as d
+    `select to_char(min(greatest(rs.due_on,
+              ((coalesce(rs.last_reviewed_at, rs.enrolled_at) + make_interval(hours => $3::int)) at time zone 'UTC')::date)), 'YYYY-MM-DD') as d
        from review_schedule rs join objectives o on o.id = rs.objective_id
        join course_units cu on cu.id = o.unit_id
       where rs.user_id = $1 and ($2::uuid is null or cu.track_id = $2::uuid)
         and ${isActive("o")} and ${isActive("cu")}`,
-    [userId, trackId]
+    [userId, trackId, MIN_REVIEW_GAP_HOURS]
   );
   return r?.d ?? null;
 }
@@ -247,7 +260,7 @@ export async function startOrResumeSession(
       await tx.query(`update review_sessions set finished_at = now() where id = $1`, [head.open_id]);
     }
 
-    const due = await dueObjectives(userId, today, trackId, (t, p) => tx.query(t, p));
+    const due = await dueObjectives(userId, today, trackId, (t, p) => tx.query(t, p), now);
     if (!due.length) return null;
     const last = head && Number(head.answered) ? { answered: Number(head.answered), correct: Number(head.correct) } : null;
     const plan = planSession(due, last);
@@ -295,6 +308,16 @@ export async function dropUnpreparedItems(sessionId: string): Promise<number> {
     [sessionId]
   );
   return rows.length;
+}
+
+// REQ-216: a session whose every item was dropped (nothing could be prepared)
+// is deleted, so it does not sit as an empty row for the day. Only when it has
+// no items at all; a session with any item, answered or not, is never touched.
+export async function discardEmptySession(sessionId: string): Promise<void> {
+  await query(
+    `delete from review_sessions s where s.id = $1 and not exists (select 1 from review_session_items si where si.session_id = s.id)`,
+    [sessionId]
+  );
 }
 
 export async function assignItem(sessionId: string, position: number, reviewItemId: string): Promise<void> {
@@ -355,8 +378,8 @@ export interface PrepareContextRow {
 // REQ-118 (Audit 3 MEDIUM-4): everything prepareItems needs for a session's
 // open items in one query -- stored terms, the learner's covered terms, the
 // shared lesson text and the unseen cached questions for it -- instead of
-// four or five queries per item. Same filters as termsFor, coveredTerms,
-// getSharedLesson and unseenItems.
+// four or five queries per item. Same filters as termsFor, coveredTerms and
+// getSharedLesson, and the same pulled-item filter the per-item read had.
 export async function prepareContext(userId: string, objectiveIds: string[]): Promise<Map<string, PrepareContextRow>> {
   const out = new Map<string, PrepareContextRow>();
   if (!objectiveIds.length) return out;
@@ -370,6 +393,9 @@ export async function prepareContext(userId: string, objectiveIds: string[]): Pr
                     order by ri.generated_at, ri.id), '[]'::json)
                from review_items ri
               where ri.objective_id = o.id and ri.source_hash = md5(lc.teach)
+                -- REQ-218 (H1): a pulled (quarantined or confirmed wrong) question is not
+                -- picked. This query replaced unseenItems(), which had the filter.
+                and ${servableSql("review", "ri.id")}
                 and not exists (
                   select 1 from review_session_items si join review_sessions s on s.id = si.session_id
                    where s.user_id = $1 and si.review_item_id = ri.id and si.answered_at is not null)) as unseen
@@ -448,23 +474,6 @@ export interface ReviewItemRow {
   why: string;
   terms: string[];
   generated_at: string;
-}
-
-// Cached questions for the objective, written from this teaching text, that
-// this learner has not answered yet.
-export async function unseenItems(userId: string, objectiveId: string, sourceHash: string): Promise<ReviewItemRow[]> {
-  return query<ReviewItemRow & Record<string, unknown>>(
-    `select ri.id, ri.objective_id, ri.source_hash, ri.question, ri.choices, ri.correct_index, ri.why, ri.terms,
-            to_char(ri.generated_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US') as generated_at
-       from review_items ri
-      where ri.objective_id = $2 and ri.source_hash = $3
-        and ${servableSql("review", "ri.id")}
-        and not exists (
-          select 1 from review_session_items si join review_sessions s on s.id = si.session_id
-           where s.user_id = $1 and si.review_item_id = ri.id and si.answered_at is not null)
-      order by ri.generated_at, ri.id`,
-    [userId, objectiveId, sourceHash]
-  );
 }
 
 export async function insertReviewItem(item: {

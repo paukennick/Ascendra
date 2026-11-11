@@ -98,15 +98,25 @@ From the 2026-11-09 content audit (prompts and pipeline findings). Code:
 `chat-dispute.ts`, `lesson-fixes.ts`, `recheck-stored.ts`.
 
 - **A disputed key is never served.** A lesson's practice half that the
-  checker disputes (or the writer doubts) is regenerated once, steered away
-  from the claims. If the retry fails too, nothing is stored: the learner is
-  told the lesson is held for review and pointed to the lab and review, the
-  content is logged in `item_holdbacks` with the first claim
+  checker disputes (it picks a different answer from the key) or the writer
+  rates low confidence is regenerated once, steered away from the claims. If
+  the retry fails too, nothing is stored: the learner gets a 409 whose words
+  name the reason (`heldBackMessage`, for example "a second check picked a
+  different answer from the one it was written with") and is pointed to the lab and review, the content is logged in
+  `item_holdbacks` with the first claim
   `[not served: failed again after one retry]`, and the objective is not
-  tried again for 6 hours. Before REQ-187 the retry was served
-  (`served_after_retry`).
-- **Teaching text is held back the same way** when the writer lists
-  uncertain claims or low confidence: one steered retry, then not shown.
+  tried again for 10 minutes (REQ-216; it was 6 hours). Before REQ-187 the
+  retry was served (`served_after_retry`).
+- **Only low confidence or a disagreeing fact-check holds content back**
+  (REQ-216, `lib/generation-gate.ts`). Claims the writer merely lists as
+  uncertain ("this scenario is invented") are logged
+  (`noteListedClaims`) and never block. This applies to lessons, quiz,
+  review and unit-check questions, comparison cards, exam items, PBQs and
+  generated labs. Teaching text is held back the same way: one steered
+  retry, then not shown; an intro already shown is kept when only the
+  practice half fails.
+- **A fact-check call that fails is not a holdback.** The learner gets a
+  retryable 409 and no cooldown starts.
 - **The checker is at least as strong as the writer**: the writer's own model
   (`ANTHROPIC_MODEL`) at effort medium with thinking on, instead of the fast
   model with thinking off. A learner's own regenerate is checked too.

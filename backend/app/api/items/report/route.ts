@@ -54,7 +54,7 @@ export async function POST(req: Request) {
   } catch (err) {
     if (err instanceof ReportError) return err.status === 404 ? notFound(err.message) : badRequest(err.message);
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

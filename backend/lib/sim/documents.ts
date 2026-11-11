@@ -33,12 +33,41 @@ function band(course: string, slug: string): DocumentEntry {
 // Phase 1a step 5: the prototype ports. Tamponade after CABG (now hosting the
 // code/ACLS module, REQ-190) and the TicketBurst launch day (AWSSAA), plus its
 // SAP band (AWSSAP). The Lakeshore clinic app (PMP) and Dana's knee valgus
-// (NASMCPT) are deferred.
+// (NASMCPT) are deferred. REQ-222 (batch S2a): three more CCRN Adult cases
+// on the bedside renderer, authored without a prototype (golden paths from
+// scripts/sim-golden/<slug>.steps.ts).
 export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CCRNADULT", "tamponade-after-cabg"),
+  entry("CCRNADULT", "sepsis-to-septic-shock"),
+  entry("CCRNADULT", "dka-first-six-hours"),
+  entry("CCRNADULT", "acute-ischemic-stroke-lvo"),
   entry("AWSSAA", "ticketburst-launch-day"),
   band("AWSSAP", "ticketburst-launch-day-sap"),
+  // ---- REQ-223 (batch S2b): post-op hemorrhage (CCRN Adult), choking and a
+  // fall (CNA, nurse-aide scope). Keep these entries together. ----
+  entry("CCRNADULT", "bleeding-after-whipple"),
+  entry("CNA", "resident-chokes-at-lunch"),
+  entry("CNA", "resident-found-on-floor"),
+  // ---- end REQ-223 (S2b) ----
+  // ---- REQ-225 (EPPP-B): client-session scenarios, course EPPP ----------
+  // The EPPP course and these objective titles come from the EPPP course
+  // work (feature/eppp-course); the seed resolves each by course code and
+  // exact objective title and stops with a clear error until it is seeded.
+  // EPPP_SESSION_DOCUMENTS (below) lists the same entries for the tests.
+  entry("EPPP", "suicide-risk-safety-plan"),
+  entry("EPPP", "duty-to-protect-threat"),
+  entry("EPPP", "diagnostic-intake-mood"),
+  // ---- end REQ-225 (EPPP-B) -------------------------------------------
 ];
+
+// REQ-225: the EPPP client-session documents and the objective titles they
+// are registered to (each must be an active objective of course EPPP).
+export const EPPP_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "EPPP");
+export const EPPP_OBJECTIVES = [
+  "Assess suicide risk and plan safety in a clinical interview",
+  "Apply duty-to-warn and duty-to-protect obligations",
+  "Conduct a diagnostic intake using DSM-5-TR criteria",
+] as const;
 
 export interface Compiled {
   doc: ScenarioDoc | null; // null when the source, the band or a module failed

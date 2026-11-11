@@ -64,8 +64,9 @@ let TAMP: string;
 let TB: string;
 let PRIVATE_SIM: string;
 
-// REQ-209: the seeded tamponade case is engine minor 1, so the current app says 1.1.
-const CAPS = "protocol=1;engine=1.1;renderers=bedside@3,board@3";
+// REQ-227: the seeded documents declare engine minor 2 (endingOrder), so the current app says 1.2.
+const CAPS = "protocol=1;engine=1.2;renderers=bedside@3,board@3";
+const ENGINE_11 = "protocol=1;engine=1.1;renderers=bedside@3,board@3";
 // The app as shipped before REQ-209.
 const OLD_CAPS = "protocol=1;engine=1.0;renderers=bedside@3,board@3";
 
@@ -73,6 +74,8 @@ const OLD_CAPS = "protocol=1;engine=1.0;renderers=bedside@3,board@3";
 let score: "met" | "partial" | "missed" = "met";
 let gradeCalls = 0;
 let failModel = false;
+// REQ-218: runs while the grader is "thinking" (between the request's checks and its insert).
+let whileGrading: (() => Promise<void>) | null = null;
 
 async function newUser(): Promise<string> {
   const u = randomUUID();
@@ -193,6 +196,7 @@ before(async () => {
         const text = JSON.stringify(body);
         if (!text.includes("Rubric parts:")) throw new Error("unexpected model call");
         gradeCalls++;
+        if (whileGrading) await whileGrading();
         if (failModel) throw new Error("model down");
         const labels = [...text.matchAll(/\\n(\d+)\. ([^\\]+)\\n   Criteria:/g)].map((m) => m[2]);
         const out = {
@@ -217,6 +221,7 @@ beforeEach(() => {
   score = "met";
   gradeCalls = 0;
   failModel = false;
+  whileGrading = null;
 });
 
 after(async () => {
@@ -257,7 +262,7 @@ describe("switches, listing and capabilities", () => {
     assert.equal("reviewStatus" in byId[TAMP], false, "review status stays internal (19.4 item 5)");
     const old = await list(u, null);
     assert.ok(old.body.sims.every((s: any) => s.runnable === false));
-    const noBoard = await list(u, "protocol=1;engine=1.1;renderers=bedside@3");
+    const noBoard = await list(u, "protocol=1;engine=1.2;renderers=bedside@3");
     assert.equal(Object.fromEntries(noBoard.body.sims.map((s: any) => [s.id, s.runnable]))[TB], false);
   });
 
@@ -291,9 +296,20 @@ describe("switches, listing and capabilities", () => {
 describe("starting, resuming and the lease", () => {
   test("an app that cannot run the version gets 409 app_update_required", async () => {
     const u = await newUser();
-    const s = await start(u, TB, {}, "protocol=1;engine=1.1;renderers=board@2");
+    const s = await start(u, TB, {}, "protocol=1;engine=1.2;renderers=board@2");
     assert.equal(s.status, 409);
     assert.equal(s.body.code, "app_update_required");
+  });
+
+  test("REQ-227: the seeded sims need engine 1.2 (endingOrder); an app that still says 1.1 is told to update, not served the old order", async () => {
+    const u = await newUser();
+    const l = await list(u, ENGINE_11);
+    assert.ok(l.body.sims.length > 0 && l.body.sims.every((x: any) => x.runnable === false));
+    for (const id of [TAMP, TB]) {
+      const s = await start(u, id, {}, ENGINE_11);
+      assert.equal(s.status, 409, id);
+      assert.equal(s.body.code, "app_update_required", id);
+    }
   });
 
   test("start returns the client document without server-only parts; resume keeps the run and takes the lease", async () => {
@@ -476,6 +492,26 @@ describe("written reasoning (docs/sims.md 10)", () => {
     assert.equal(g.status, 200);
     assert.equal(g.body.status, "grader_failed");
     assert.equal(gradeCalls, 3);
+  });
+});
+
+describe("REQ-218 (FAIL-1083): a reasoning answer cannot be stored after the run ended", () => {
+  test("an answer graded while the run ends is refused (409 run_ended) and stores nothing", async () => {
+    const u = await newUser();
+    const path = pathOf(TB_GOLDEN, "reference");
+    const open = momentOpening(TB_DOC, path);
+    const s = await start(u, TB);
+    const runId = s.body.run.id as string;
+    await query(`update sim_runs set seed = $2 where id = $1`, [runId, path.seed]);
+    await sync(u, runId, { leaseEpoch: s.body.run.leaseEpoch, commands: path.commands.filter((c) => c.seq <= open.openedSeq) });
+    whileGrading = async () => {
+      await query(`update sim_runs set status = 'ended' where id = $1`, [runId]);
+    };
+    const g = await reason(u, runId, { momentId: open.moment, openedSeq: open.openedSeq, openedTick: open.openedTick, answer: "Two AZs behind an ALB, Multi-AZ RDS.", clientAttemptId: randomUUID() });
+    assert.equal(g.status, 409, JSON.stringify(g.body));
+    assert.equal(g.body.code, "run_ended");
+    assert.equal(gradeCalls, 1);
+    assert.equal((await query(`select 1 from sim_run_reasoning where run_id = $1`, [runId])).length, 0, "nothing stored against an ended run");
   });
 });
 
@@ -713,10 +749,10 @@ describe("pacing (REQ-209)", () => {
 
   test("focused start: begin evolves the run to the scenario's start point, as the engine's own replay does", async () => {
     const r = await fresh(TAMP_C, 5);
-    const a = await sync(clin, r.runId, { leaseEpoch: r.lease, commands: [{ seq: 1, tick: 0, type: "begin", start: "focused" }, { seq: 2, tick: 780, type: "pace", pace: 3 }], tick: 780 });
+    const a = await sync(clin, r.runId, { leaseEpoch: r.lease, commands: [{ seq: 1, tick: 0, type: "begin", start: "focused" }, { seq: 2, tick: 720, type: "pace", pace: 3 }], tick: 720 });
     assert.equal(a.status, 200, JSON.stringify(a.body));
-    assert.equal(a.body.tick, 780, "the 780 ticks before it cost no wall time");
-    const ref = replayRun({ doc: TAMP_DOC, seed: 1, from: null, commands: [{ seq: 1, tick: 0, type: "begin", start: "focused" }, { seq: 2, tick: 780, type: "pace", pace: 3 }], budget: 1e12 });
+    assert.equal(a.body.tick, 720, "the 720 ticks before it cost no wall time");
+    const ref = replayRun({ doc: TAMP_DOC, seed: 1, from: null, commands: [{ seq: 1, tick: 0, type: "begin", start: "focused" }, { seq: 2, tick: 720, type: "pace", pace: 3 }], budget: 1e12 });
     assert.equal(a.body.serverHash, stateHash(ref.run.state));
     assert.equal((await queryOne<{ realtime_ticks: number }>(`select realtime_ticks from sim_runs where id = $1`, [r.runId]))?.realtime_ticks, 0);
     // begin is first-command-only.
@@ -787,7 +823,7 @@ describe("pacing (REQ-209)", () => {
     const path = pathOf(TAMP_GOLDEN, "focused3x");
     const { debrief: d } = await playPath(clin, TAMP_C, TAMP_DOC, path);
     assert.equal(d.rating, "good");
-    assert.equal(d.focusedStart.tick, 780);
+    assert.equal(d.focusedStart.tick, 720);
   });
 
   test("a run begun before REQ-209: runs to Good, and the old app can resume it mid-run from a checkpoint that has no pace fields", async () => {

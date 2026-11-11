@@ -64,7 +64,7 @@ export const AWSSCS_LABS: SeedLabSet = {
       slug: "org-trail-log-archive",
       objective: "Configuring logging for AWS services: an organization-wide CloudTrail trail, a dedicated CloudWatch logging account, the CloudWatch Logs agent",
       kind: "build",
-      title: "Build the organisation's audit log foundation",
+      title: "Build the organization's audit log foundation",
       brief:
         "Dunmore Analytics has 35 accounts in an AWS Organization and has just failed an audit finding: 'API activity is not captured for every account; log files can be altered by account administrators.' You are to design the CloudTrail foundation: every account and Region covered including accounts created tomorrow; logs delivered to a Log Archive account nobody works in; proof that a file has not been changed; data-plane activity for two sensitive S3 buckets and all Lambda invocations; and the security team able to query the whole estate in one place.",
       safetyNote: GENERAL_SAFETY,
@@ -80,7 +80,7 @@ export const AWSSCS_LABS: SeedLabSet = {
             ),
             part(
               "Delivery to the Log Archive account",
-              "Delivers to an S3 bucket in the Log Archive account with a bucket policy allowing only cloudtrail.amazonaws.com to PutObject (conditioned on aws:SourceArn / the organisation id) and bucket-owner-full-control ACL, SSE-KMS with a key in the Log Archive account whose policy allows CloudTrail to encrypt, S3 Block Public Access on, versioning and Object Lock (compliance mode) for retention, and no human principals with write or delete.",
+              "Delivers to an S3 bucket in the Log Archive account with a bucket policy allowing only cloudtrail.amazonaws.com to PutObject (conditioned on aws:SourceArn / the organization id) and bucket-owner-full-control ACL, SSE-KMS with a key in the Log Archive account whose policy allows CloudTrail to encrypt, S3 Block Public Access on, versioning and Object Lock (compliance mode) for retention, and no human principals with write or delete.",
               "Bucket dunmore-log-archive in the Log Archive account: policy allows s3:PutObject only to the cloudtrail.amazonaws.com service principal with Condition aws:SourceArn = the trail ARN and s3:x-amz-acl = bucket-owner-full-control; SSE-KMS with a customer managed key in the Log Archive account (key policy grants CloudTrail GenerateDataKey/Decrypt with the encryption context); Block Public Access on; versioning plus Object Lock in compliance mode for the retention period; an SCP denies s3:DeleteObject / PutBucketPolicy on it for everyone."
             ),
             part(
@@ -90,8 +90,8 @@ export const AWSSCS_LABS: SeedLabSet = {
             ),
             part(
               "Data events and central querying",
-              "Adds data events (advanced event selectors) for the two sensitive buckets and for Lambda Invoke across the organisation, mindful of volume and cost, and sets up CloudTrail Lake (an organisation event data store) or Athena over the archive bucket so the security team queries all accounts in one place.",
-              "Advanced event selectors: S3 data events scoped to the two bucket ARNs (resources.ARN StartsWith) and Lambda data events (eventCategory Data, resources.type AWS::Lambda::Function) for all functions -- scoped so the trail does not log every bucket in the estate. For querying, an organisation-wide CloudTrail Lake event data store (or an Athena table over the archive bucket partitioned by account, Region and date) gives one SQL interface across all 35 accounts."
+              "Adds data events (advanced event selectors) for the two sensitive buckets and for Lambda Invoke across the organization, mindful of volume and cost, and sets up CloudTrail Lake (an organization event data store) or Athena over the archive bucket so the security team queries all accounts in one place.",
+              "Advanced event selectors: S3 data events scoped to the two bucket ARNs (resources.ARN StartsWith) and Lambda data events (eventCategory Data, resources.type AWS::Lambda::Function) for all functions -- scoped so the trail does not log every bucket in the estate. For querying, an organization-wide CloudTrail Lake event data store (or an Athena table over the archive bucket partitioned by account, Region and date) gives one SQL interface across all 35 accounts."
             ),
           ],
         },
@@ -212,7 +212,7 @@ export const AWSSCS_LABS: SeedLabSet = {
       slug: "incident-readiness-plan",
       objective: "Preparing services for incidents: provisioning access ahead of time, deploying security tools, minimizing blast radius, configuring AWS Shield Advanced",
       kind: "build",
-      title: "Prepare an organisation to respond before the incident",
+      title: "Prepare an organization to respond before the incident",
       brief:
         "Greyhaven Media runs a public video platform across 20 accounts. During a recent DDoS and a separate credential-theft incident the response was slow: responders had no access to the affected accounts, logs lived only in those accounts, and nobody knew which runbook applied. The CISO asks for an incident-readiness design covering access, tooling, blast radius and DDoS protection, to be in place before the next event.",
       safetyNote: GENERAL_SAFETY,
@@ -228,18 +228,18 @@ export const AWSSCS_LABS: SeedLabSet = {
             ),
             part(
               "Tools and evidence in place",
-              "Enables GuardDuty, Security Hub, Inspector and Macie organisation-wide with delegated administration, centralises CloudTrail and VPC flow logs in a Log Archive account, pre-creates a forensic account with an isolation VPC, evidence buckets with Object Lock and analysis instances/AMIs, and pre-stages SSM Automation runbooks for containment.",
-              "Security Tooling account as delegated admin for GuardDuty, Security Hub, Inspector and Macie across all 20 accounts; organisation CloudTrail and flow logs into the Log Archive account; a Forensics account with an isolated VPC, hardened analysis AMIs, Object Lock evidence buckets and KMS keys only responders can use; SSM Automation documents for isolate-instance, snapshot-volumes and revoke-role-sessions already deployed. Run a game day with AWS Fault Injection Service to prove they work."
+              "Enables GuardDuty, Security Hub, Inspector and Macie organization-wide with delegated administration, centralizes CloudTrail and VPC flow logs in a Log Archive account, pre-creates a forensic account with an isolation VPC, evidence buckets with Object Lock and analysis instances/AMIs, and pre-stages SSM Automation runbooks for containment.",
+              "Security Tooling account as delegated admin for GuardDuty, Security Hub, Inspector and Macie across all 20 accounts; organization CloudTrail and flow logs into the Log Archive account; a Forensics account with an isolated VPC, hardened analysis AMIs, Object Lock evidence buckets and KMS keys only responders can use; SSM Automation documents for isolate-instance, snapshot-volumes and revoke-role-sessions already deployed. Run a game day with AWS Fault Injection Service to prove they work."
             ),
             part(
-              "Minimising blast radius",
+              "Minimizing blast radius",
               "Separates workloads into accounts by environment and sensitivity (Organizations OUs with SCPs), uses distinct roles per service with least privilege, keeps secrets in Secrets Manager per account, and applies network segmentation (private subnets, VPC endpoints, no shared admin credentials).",
-              "One workload per account where practical, grouped in OUs (prod, non-prod, security, infrastructure) with SCPs that deny leaving the organisation and disabling security services; each service has its own narrowly scoped role; secrets stay in the owning account's Secrets Manager; private subnets and VPC endpoints so a compromise in one account cannot walk into another."
+              "One workload per account where practical, grouped in OUs (prod, non-prod, security, infrastructure) with SCPs that deny leaving the organization and disabling security services; each service has its own narrowly scoped role; secrets stay in the owning account's Secrets Manager; private subnets and VPC endpoints so a compromise in one account cannot walk into another."
             ),
             part(
               "DDoS protection",
               "Subscribes to AWS Shield Advanced on the internet-facing resources (CloudFront distributions, Route 53 hosted zones, ALBs, Global Accelerator), configures health-check-based detection, enables proactive engagement and grants the Shield Response Team access (SRT role) ahead of time, pairs it with AWS WAF rate-based rules and managed rule groups, and notes the cost-protection benefit.",
-              "Shield Advanced on the CloudFront distributions, the Route 53 hosted zones and the origin ALBs: associate Route 53 health checks for faster, more accurate detection, turn on proactive engagement so the Shield Response Team contacts the on-call, and pre-authorise the SRT with the AWSShieldDRTAccessPolicy role so they can apply WAF mitigations. AWS WAF web ACLs with rate-based rules and the managed rule groups sit in front; Shield Advanced also covers scaling costs from a DDoS."
+              "Shield Advanced on the CloudFront distributions, the Route 53 hosted zones and the origin ALBs: associate Route 53 health checks for faster, more accurate detection, turn on proactive engagement so the Shield Response Team contacts the on-call, and pre-authorize the SRT with the AWSShieldDRTAccessPolicy role so they can apply WAF mitigations. AWS WAF web ACLs with rate-based rules and the managed rule groups sit in front; Shield Advanced also covers scaling costs from a DDoS."
             ),
           ],
         },
@@ -254,7 +254,7 @@ export const AWSSCS_LABS: SeedLabSet = {
       kind: "build",
       title: "Design the edge protection for a public web application",
       brief:
-        "Linwood Marketplace serves a web application through CloudFront with an Application Load Balancer origin. Attackers have been (1) brute-forcing the login endpoint from thousands of IP addresses; (2) sending SQL injection and path traversal payloads; (3) bypassing CloudFront by calling the ALB's public DNS name directly; (4) scraping the catalogue from one country where the company does not trade. The security team also wants browser-side protections set by HTTP headers. Write the edge protection design.",
+        "Linwood Marketplace serves a web application through CloudFront with an Application Load Balancer origin. Attackers have been (1) brute-forcing the login endpoint from thousands of IP addresses; (2) sending SQL injection and path traversal payloads; (3) bypassing CloudFront by calling the ALB's public DNS name directly; (4) scraping the catalog from one country where the company does not trade. The security team also wants browser-side protections set by HTTP headers. Write the edge protection design.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -279,7 +279,7 @@ export const AWSSCS_LABS: SeedLabSet = {
             part(
               "Geography and browser headers",
               "Uses a WAF geo match rule (country codes) to block or challenge requests from the non-trading country (knowing geo IP is approximate and that CloudFront geographic restrictions are the alternative), and a CloudFront response headers policy to set Strict-Transport-Security, Content-Security-Policy, X-Content-Type-Options, X-Frame-Options and Referrer-Policy.",
-              "A geo match rule for that country code with action Block (or Challenge if there could be legitimate travellers), understanding geolocation is best-effort; CloudFront's own geographic restriction is a coarser alternative. Attach a response headers policy to the distribution setting Strict-Transport-Security (long max-age, includeSubDomains), a Content-Security-Policy, X-Content-Type-Options nosniff, X-Frame-Options DENY and Referrer-Policy, so browsers enforce the protections regardless of what the origin sends."
+              "A geo match rule for that country code with action Block (or Challenge if there could be legitimate travelers), understanding geolocation is best-effort; CloudFront's own geographic restriction is a coarser alternative. Attach a response headers policy to the distribution setting Strict-Transport-Security (long max-age, includeSubDomains), a Content-Security-Policy, X-Content-Type-Options nosniff, X-Frame-Options DENY and Referrer-Policy, so browsers enforce the protections regardless of what the origin sends."
             ),
           ],
         },
@@ -331,7 +331,7 @@ export const AWSSCS_LABS: SeedLabSet = {
       kind: "case",
       title: "Work through three IAM Access Analyzer findings",
       brief:
-        "Morrow Diagnostics enabled IAM Access Analyzer with the organisation as the zone of trust. The first report lists findings you must triage and fix without breaking legitimate integrations: a partner, a SaaS monitoring vendor and an internal data pipeline all depend on cross-account access.",
+        "Morrow Diagnostics enabled IAM Access Analyzer with the organization as the zone of trust. The first report lists findings you must triage and fix without breaking legitimate integrations: a partner, a SaaS monitoring vendor and an internal data pipeline all depend on cross-account access.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -340,7 +340,7 @@ export const AWSSCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Assessment and fix",
-              "Treats it as a real finding: Principal * is public access, limited only by an IP condition that is weak (anyone on that network, IP spoofing of ranges in some flows, and no identity); fixes by naming the partner's role ARN as the principal (and optionally keeping the IP condition as defence in depth), turning on S3 Block Public Access, and re-checking that the finding resolves.",
+              "Treats it as a real finding: Principal * is public access, limited only by an IP condition that is weak (anyone on that network, IP spoofing of ranges in some flows, and no identity); fixes by naming the partner's role ARN as the principal (and optionally keeping the IP condition as defense in depth), turning on S3 Block Public Access, and re-checking that the finding resolves.",
               'Yes. "Principal": "*" makes the bucket public to anyone who can send from that IP range -- no identity is checked. Rewrite the statement with "Principal": {"AWS": "arn:aws:iam::444455556666:role/LabResultsReader"} and keep the aws:SourceIp condition as a second factor if the partner wants it. Then enable Block Public Access on the bucket (it would reject the old statement) and confirm Access Analyzer marks the finding resolved.'
             ),
           ],
@@ -362,7 +362,7 @@ export const AWSSCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Intended access, excessive grant",
-              "Recognises the cross-account access as intended (archive the finding with an archive rule for that account) but narrows the key policy from kms:* to the operations the pipeline needs (kms:Decrypt, kms:GenerateDataKey, kms:DescribeKey) for the pipeline's role ARN, optionally with kms:ViaService, so the other account cannot schedule deletion or change the key policy; also reviews unused-access findings for the pipeline role.",
+              "Recognizes the cross-account access as intended (archive the finding with an archive rule for that account) but narrows the key policy from kms:* to the operations the pipeline needs (kms:Decrypt, kms:GenerateDataKey, kms:DescribeKey) for the pipeline's role ARN, optionally with kms:ViaService, so the other account cannot schedule deletion or change the key policy; also reviews unused-access findings for the pipeline role.",
               'The access itself is intended, so create an archive rule for findings where the principal is account 222233334444 and the resource is this key. But kms:* to that account\'s root would let anyone there call ScheduleKeyDeletion or PutKeyPolicy; cut it to {"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::222233334444:role/PipelineExecution"},"Action":["kms:Decrypt","kms:GenerateDataKey","kms:DescribeKey"],"Resource":"*","Condition":{"StringEquals":{"kms:ViaService":"s3.eu-west-1.amazonaws.com"}}}. Then run Access Analyzer unused-access findings on the pipeline role to trim what it never calls.'
             ),
           ],
@@ -399,7 +399,7 @@ export const AWSSCS_LABS: SeedLabSet = {
             ),
             part(
               "Contractor session: s3:GetObject on holloway-data/reports/q3.pdf and on holloway-data/raw/file.csv",
-              "reports/q3.pdf allowed (SCP allows; identity policy s3:* on the bucket objects; boundary includes GetObject; session policy includes GetObject on reports/*; no deny), raw/file.csv denied because the session policy limits the session to reports/* -- the session policy further intersects the role's effective permissions; summarises the rule: an explicit deny anywhere wins, then the request must be allowed by the SCP, the permissions boundary, the session policy and (for same-account access) either the identity policy or the resource policy.",
+              "reports/q3.pdf allowed (SCP allows; identity policy s3:* on the bucket objects; boundary includes GetObject; session policy includes GetObject on reports/*; no deny), raw/file.csv denied because the session policy limits the session to reports/* -- the session policy further intersects the role's effective permissions; summarizes the rule: an explicit deny anywhere wins, then the request must be allowed by the SCP, the permissions boundary, the session policy and (for same-account access) either the identity policy or the resource policy.",
               "reports/q3.pdf: allowed -- SCP permits, identity policy grants s3:* on the bucket's objects, the boundary includes GetObject, the session policy includes GetObject on reports/*, and no deny applies. raw/file.csv: denied -- the session policy scopes this session to reports/*, so GetObject elsewhere is implicitly denied even though the role could normally read it. Rule: any explicit deny wins; otherwise the request must pass the SCP, the permissions boundary and the session policy, and be allowed by the identity policy or (same account) the resource policy."
             ),
           ],
@@ -429,7 +429,7 @@ export const AWSSCS_LABS: SeedLabSet = {
             ),
             part(
               "Regulated database",
-              "Recognises that AWS KMS's own HSMs are FIPS 140-3 Security Level 3 validated, so the validation level alone is met by standard KMS; the deciding requirement is single-tenant HSMs under exclusive customer control, which points to an AWS CloudHSM cluster -- either used directly or as an AWS KMS custom key store (CloudHSM key store) so AWS services can still integrate through KMS.",
+              "Recognizes that AWS KMS's own HSMs are FIPS 140-3 Security Level 3 validated, so the validation level alone is met by standard KMS; the deciding requirement is single-tenant HSMs under exclusive customer control, which points to an AWS CloudHSM cluster -- either used directly or as an AWS KMS custom key store (CloudHSM key store) so AWS services can still integrate through KMS.",
               "The FIPS 140-3 Level 3 requirement alone is satisfied by standard AWS KMS, whose HSMs carry that validation. The single-tenant, exclusive-control requirement is what forces AWS CloudHSM: run a CloudHSM cluster and create a KMS custom key store (CloudHSM key store) backed by it, so the database's KMS key lives in the customer-controlled HSMs while RDS/EBS integrate through the normal KMS interface. Using CloudHSM directly is the alternative if no AWS-service integration is needed."
             ),
             part(
@@ -490,9 +490,9 @@ export const AWSSCS_LABS: SeedLabSet = {
       slug: "organization-policy-set",
       objective: "Organization policies that manage permissions: service control policies, resource control policies, AI service opt-out policies, declarative policies",
       kind: "build",
-      title: "Write the organisation's policy set",
+      title: "Write the organization's policy set",
       brief:
-        "Thistlewood Group has 40 accounts and four requirements for the whole organisation. (1) No account may disable CloudTrail or GuardDuty, leave the organisation, or operate outside eu-west-1 and eu-west-2 except for global services. (2) No S3 bucket, KMS key or SQS queue in any member account may ever be accessed by a principal outside the organisation, whatever a bucket policy says. (3) Every EC2 instance must use IMDSv2 and no AMI or EBS snapshot may be shared publicly, enforced even for service-linked roles and console defaults. (4) The company does not want its content used to improve AWS AI services. Write the four policies and say which policy type does what.",
+        "Thistlewood Group has 40 accounts and four requirements for the whole organization. (1) No account may disable CloudTrail or GuardDuty, leave the organization, or operate outside eu-west-1 and eu-west-2 except for global services. (2) No S3 bucket, KMS key or SQS queue in any member account may ever be accessed by a principal outside the organization, whatever a bucket policy says. (3) Every EC2 instance must use IMDSv2 and no AMI or EBS snapshot may be shared publicly, enforced even for service-linked roles and console defaults. (4) The company does not want its content used to improve AWS AI services. Write the four policies and say which policy type does what.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -506,7 +506,7 @@ export const AWSSCS_LABS: SeedLabSet = {
             ),
             part(
               "Resource control policy",
-              "Writes an RCP that denies s3:*, kms:*, sqs:* (supported RCP services) on all resources when aws:PrincipalOrgID is not the organisation's id (with an exception for AWS service principals via aws:PrincipalIsAWSService), explaining an RCP caps access to resources by external principals regardless of the resource policy and does not affect the management account.",
+              "Writes an RCP that denies s3:*, kms:*, sqs:* (supported RCP services) on all resources when aws:PrincipalOrgID is not the organization's id (with an exception for AWS service principals via aws:PrincipalIsAWSService), explaining an RCP caps access to resources by external principals regardless of the resource policy and does not affect the management account.",
               'RCP: {"Effect":"Deny","Principal":"*","Action":["s3:*","kms:*","sqs:*"],"Resource":"*","Condition":{"StringNotEqualsIfExists":{"aws:PrincipalOrgID":"o-xxxxxxxxxx"},"BoolIfExists":{"aws:PrincipalIsAWSService":"false"}}}. An RCP is evaluated on the resource side: even if someone writes a bucket policy granting an outside account, the RCP denies it. It covers member accounts only, not resources in the management account, and only the services that support RCPs (S3, KMS, SQS, STS, Secrets Manager and others).'
             ),
             part(
@@ -516,7 +516,7 @@ export const AWSSCS_LABS: SeedLabSet = {
             ),
             part(
               "AI services opt-out policy",
-              "Writes an AI services opt-out policy with default optOut for all services (services: default: opt_out_policy @@assign optOut) attached at the root, explaining it stops content from being used to develop and improve AWS AI services across the organisation.",
+              "Writes an AI services opt-out policy with default optOut for all services (services: default: opt_out_policy @@assign optOut) attached at the root, explaining it stops content from being used to develop and improve AWS AI services across the organization.",
               'AI services opt-out policy at the root: {"services":{"default":{"opt_out_policy":{"@@assign":"optOut"}}}}. It opts every account out of having its content used to develop or improve AWS AI services (with @@operators_allowed_for_child_policies set so child OUs cannot opt back in).'
             ),
           ],
@@ -537,7 +537,7 @@ export const AWSSCS_LABS: SeedLabSet = {
           ask: "What do you enable, and what does it change?",
           parts: [
             part(
-              "Centralised root access",
+              "Centralized root access",
               "Enables centralized root access for member accounts (IAM, from the management account, with trusted access and optionally a delegated administrator), which removes the root user credentials -- password, access keys, signing certificates, MFA -- from member accounts and prevents root sign-in and credential recovery there; privileged root-only actions are then performed through sts:AssumeRoot from the management or delegated admin account.",
               "Turn on centralized root access in IAM from the management account (enable trusted access for IAM in Organizations, and name a delegated administrator account for IAM if desired). Then delete the root credentials of every member account using the IAMDeleteRootUserCredentials task (and audit them first with IAMAuditRootUserCredentials). Member root users can no longer sign in or recover a password; the handful of root-only tasks are done as short-lived sessions through sts:AssumeRoot, each logged in CloudTrail."
             ),

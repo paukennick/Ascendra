@@ -1,0 +1,664 @@
+{
+  "slug": "acute-ischemic-stroke-lvo",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: alert at once, LKW 09:40, glucose, NIHSS, screen, BP under 185/110, tenecteplase before the CTA, thrombectomy call at the CTA read",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alert",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "lkw",
+          "params": {
+            "when": "correct"
+          },
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "nihss",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "screen",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "labetalol",
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "ct",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "bpCheckT",
+          "instance": 2,
+          "to": 320,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "nicardipine",
+          "params": {
+            "rate": "5"
+          },
+          "seq": 10,
+          "tick": 320
+        },
+        {
+          "type": "skip",
+          "timer": "ncctT",
+          "instance": 3,
+          "to": 920,
+          "seq": 11,
+          "tick": 320
+        },
+        {
+          "type": "skip",
+          "timer": "ncctT",
+          "instance": 3,
+          "to": 920,
+          "seq": 12,
+          "tick": 620
+        },
+        {
+          "type": "act",
+          "action": "lytic",
+          "seq": 13,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 14,
+          "tick": 920
+        },
+        {
+          "type": "skip",
+          "timer": "ctaT",
+          "instance": 4,
+          "to": 1520,
+          "seq": 15,
+          "tick": 920
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 16,
+          "tick": 1520
+        },
+        {
+          "type": "act",
+          "action": "evt",
+          "seq": 17,
+          "tick": 1520
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 18,
+          "tick": 1820
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 19,
+          "tick": 2720
+        }
+      ],
+      "expect": {
+        "ending": "toThrombectomy",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "lastKnownWell": "met",
+          "glucose": "met",
+          "alert": "met",
+          "nihss": "met",
+          "screen": "met",
+          "bpBefore": "met",
+          "lyticTime": "met",
+          "thrombectomy": "met",
+          "bpAfter": "met",
+          "neuroChecks": "met"
+        },
+        "kpis": {
+          "toAlert": 20,
+          "toLytic": 920,
+          "lkwToLytic": 3320,
+          "ctaToCall": 0,
+          "toAngio": 3320
+        },
+        "stateHash": "325a02fe982aa3cc"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "slowSafe",
+      "title": "Slow but safe: alert at 8 min, onset recorded as unknown, thrombolysis at 70 min, the thrombectomy call only after it (about 37 min after the CTA), checks every 20-25 min",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alert",
+          "seq": 1,
+          "tick": 480
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 480
+        },
+        {
+          "type": "act",
+          "action": "lkw",
+          "params": {
+            "when": "unknown"
+          },
+          "seq": 3,
+          "tick": 480
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 4,
+          "tick": 480
+        },
+        {
+          "type": "act",
+          "action": "ct",
+          "seq": 5,
+          "tick": 480
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 6,
+          "tick": 1800
+        },
+        {
+          "type": "act",
+          "action": "nihss",
+          "seq": 7,
+          "tick": 1800
+        },
+        {
+          "type": "act",
+          "action": "screen",
+          "seq": 8,
+          "tick": 1800
+        },
+        {
+          "type": "act",
+          "action": "labetalol",
+          "seq": 9,
+          "tick": 3300
+        },
+        {
+          "type": "skip",
+          "timer": "bpCheckT",
+          "instance": 4,
+          "to": 3600,
+          "seq": 10,
+          "tick": 3300
+        },
+        {
+          "type": "act",
+          "action": "nicardipine",
+          "params": {
+            "rate": "5"
+          },
+          "seq": 11,
+          "tick": 3600
+        },
+        {
+          "type": "act",
+          "action": "lytic",
+          "seq": 12,
+          "tick": 4200
+        },
+        {
+          "type": "act",
+          "action": "evt",
+          "seq": 13,
+          "tick": 4200
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 14,
+          "tick": 4200
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 15,
+          "tick": 5580
+        }
+      ],
+      "expect": {
+        "ending": "toThrombectomyLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "lastKnownWell": "partial",
+          "glucose": "met",
+          "alert": "partial",
+          "nihss": "partial",
+          "screen": "met",
+          "bpBefore": "met",
+          "lyticTime": "partial",
+          "thrombectomy": "missed",
+          "bpAfter": "met",
+          "neuroChecks": "partial"
+        },
+        "kpis": {
+          "toAlert": 480,
+          "toLytic": 4200,
+          "lkwToLytic": 6600,
+          "ctaToCall": 2220,
+          "toAngio": 6000
+        },
+        "stateHash": "42a71490a8916390"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "lyticHighBp",
+      "title": "Failure: thrombolytic given with BP 196/106",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alert",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "lkw",
+          "params": {
+            "when": "correct"
+          },
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "nihss",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "screen",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "ct",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "ncctT",
+          "instance": 2,
+          "to": 920,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "ncctT",
+          "instance": 2,
+          "to": 920,
+          "seq": 8,
+          "tick": 620
+        },
+        {
+          "type": "act",
+          "action": "lytic",
+          "seq": 9,
+          "tick": 920
+        },
+        {
+          "type": "skip",
+          "timer": "ctaT",
+          "instance": 3,
+          "to": 1520,
+          "seq": 10,
+          "tick": 920
+        }
+      ],
+      "expect": {
+        "ending": "bleed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 68,
+        "criteria": {
+          "lastKnownWell": "met",
+          "glucose": "met",
+          "alert": "met",
+          "nihss": "met",
+          "screen": "met",
+          "bpBefore": "missed",
+          "lyticTime": "met",
+          "thrombectomy": "missed",
+          "bpAfter": "partial",
+          "neuroChecks": "met"
+        },
+        "kpis": {
+          "toAlert": 20,
+          "toLytic": 920,
+          "lkwToLytic": 3320,
+          "ctaToCall": -1,
+          "toAngio": -1
+        },
+        "stateHash": "2da76c5b0386a0db"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    },
+    {
+      "id": "bpDrift",
+      "title": "Failure: BP brought under 185/110 with one labetalol dose, then left to drift above 180/105 with no checks",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alert",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "lkw",
+          "params": {
+            "when": "correct"
+          },
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "nihss",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "screen",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "labetalol",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "ct",
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "bpCheckT",
+          "instance": 2,
+          "to": 320,
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "ncctT",
+          "instance": 3,
+          "to": 920,
+          "seq": 9,
+          "tick": 320
+        },
+        {
+          "type": "skip",
+          "timer": "ncctT",
+          "instance": 3,
+          "to": 920,
+          "seq": 10,
+          "tick": 620
+        },
+        {
+          "type": "act",
+          "action": "lytic",
+          "seq": 11,
+          "tick": 920
+        },
+        {
+          "type": "skip",
+          "timer": "ctaT",
+          "instance": 4,
+          "to": 1520,
+          "seq": 12,
+          "tick": 920
+        },
+        {
+          "type": "skip",
+          "timer": "ctaT",
+          "instance": 4,
+          "to": 1520,
+          "seq": 13,
+          "tick": 1013
+        },
+        {
+          "type": "skip",
+          "timer": "ctaT",
+          "instance": 4,
+          "to": 1520,
+          "seq": 14,
+          "tick": 1329
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 15,
+          "tick": 1520
+        },
+        {
+          "type": "act",
+          "action": "evt",
+          "seq": 16,
+          "tick": 1520
+        }
+      ],
+      "expect": {
+        "ending": "bleed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 77,
+        "criteria": {
+          "lastKnownWell": "met",
+          "glucose": "met",
+          "alert": "met",
+          "nihss": "met",
+          "screen": "met",
+          "bpBefore": "met",
+          "lyticTime": "met",
+          "thrombectomy": "met",
+          "bpAfter": "missed",
+          "neuroChecks": "missed"
+        },
+        "kpis": {
+          "toAlert": 20,
+          "toLytic": 920,
+          "lkwToLytic": 3320,
+          "ctaToCall": 0,
+          "toAngio": -1
+        },
+        "stateHash": "c906f1480efd375e"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "noThrombectomy",
+      "title": "Failure: late alert, discovery time as last known well, no glucose, no thrombolysis and no thrombectomy call",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alert",
+          "seq": 1,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "lkw",
+          "params": {
+            "when": "discovery"
+          },
+          "seq": 2,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "nicardipine",
+          "params": {
+            "rate": "7.5"
+          },
+          "seq": 3,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "ct",
+          "seq": 4,
+          "tick": 1200
+        },
+        {
+          "type": "skip",
+          "timer": "ctaT",
+          "instance": 4,
+          "to": 2700,
+          "seq": 5,
+          "tick": 1200
+        },
+        {
+          "type": "skip",
+          "timer": "ctaT",
+          "instance": 4,
+          "to": 2700,
+          "seq": 6,
+          "tick": 1500
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 7,
+          "tick": 1800
+        },
+        {
+          "type": "skip",
+          "timer": "ctaT",
+          "instance": 4,
+          "to": 2700,
+          "seq": 8,
+          "tick": 1800
+        },
+        {
+          "type": "skip",
+          "timer": "ctaT",
+          "instance": 4,
+          "to": 2700,
+          "seq": 9,
+          "tick": 2100
+        }
+      ],
+      "expect": {
+        "ending": "time_up",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "lastKnownWell": "missed",
+          "glucose": "missed",
+          "alert": "missed",
+          "nihss": "missed",
+          "screen": "missed",
+          "bpBefore": "na",
+          "lyticTime": "missed",
+          "thrombectomy": "missed",
+          "bpAfter": "na",
+          "neuroChecks": "na"
+        },
+        "kpis": {
+          "toAlert": 1200,
+          "toLytic": -1,
+          "lkwToLytic": -1,
+          "ctaToCall": -1,
+          "toAngio": -1
+        },
+        "stateHash": "29d212ef4ef2d203"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}

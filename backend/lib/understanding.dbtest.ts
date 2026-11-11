@@ -19,6 +19,7 @@ import { presentationOrder, presentationSeed, shownIndexOf } from "./choice-orde
 import { ensureConceptSets, ensurePrerequisites, generateLearnedSets } from "./understanding-ai";
 import {
   claimInsight,
+  insightStatus,
   editPrerequisites,
   finishInsight,
   learnedSetCandidates,
@@ -369,6 +370,27 @@ describe("explain-it-back", () => {
     assert.equal(res.diagnosis.sentence, "You may be mixing up roles with labels.");
   });
 
+  // REQ-218 (FAIL-1081): the replay was bound to the objective, kind and stage
+  // only, so an id reused with a different explanation answered with the first
+  // explanation's verdict and the new text was never graded.
+  test("a replayed client id is bound to the explanation text: the same text replays, another text is a 409", async () => {
+    const u = await newUser();
+    await giveGuided(u, o[1]);
+    respond = () => graded("correct");
+    const cid = randomUUID();
+    const first = await explainPost(post(u, { answer: OWN, clientAttemptId: cid }), ctx("id", o[1]));
+    assert.equal(first.status, 200);
+    const calls = sent.length;
+    const same = await explainPost(post(u, { answer: `  ${OWN}  `, clientAttemptId: cid }), ctx("id", o[1]));
+    assert.equal(same.status, 200);
+    assert.equal(sent.length, calls, "the replay made no model call");
+    const other = await explainPost(post(u, { answer: `${OWN} But I would also add that roles can be nested in some systems.`, clientAttemptId: cid }), ctx("id", o[1]));
+    assert.equal(other.status, 409);
+    assert.equal(sent.length, calls);
+    const n = await queryOne<{ n: number }>(`select count(*)::int as n from attempts where user_id = $1 and assessment_type = 'explain_back'`, [u]);
+    assert.equal(n!.n, 1);
+  });
+
   test("too short is refused kindly without a model call", async () => {
     const u = await newUser();
     await giveGuided(u, o[1]);
@@ -471,6 +493,51 @@ describe("learned comparison cards", () => {
     const s = await queryOne<{ source: string }>(`select source from concept_sets where track_id = $1 and source = 'learned'`, [track]);
     assert.equal(s?.source, "learned");
     assert.equal((await learnedSetCandidates(track)).length, 0);
+  });
+});
+
+describe("REQ-216: comparison cards are held back only on low confidence", () => {
+  async function freshTrack(): Promise<string> {
+    const t = randomUUID();
+    const un = randomUUID();
+    await query(`insert into subject_tracks (id, code, title, track_type, user_id) values ($1, $2, 'G1 cards', 'certification', null)`, [t, `G1C-${run}-${t.slice(0, 4)}`]);
+    await query(`insert into course_units (id, track_id, title, sort_order) values ($1, $2, 'U', 1)`, [un, t]);
+    for (const [i, title] of ["Access control models", "Role-based access control", "Identity basics"].entries()) {
+      await query(`insert into objectives (id, unit_id, title, sort_order) values ($1, $2, $3, $4)`, [randomUUID(), un, title, i]);
+    }
+    return t;
+  }
+
+  test("FAIL-1011: listed disclaimers alone do not hold a card back", async () => {
+    const t = await freshTrack();
+    try {
+      respond = () => ({ sets: CONCEPT_SETS.sets.map((s) => ({ ...s, confidence: "medium", uncertainClaims: ["the scenario is invented"] })) });
+      assert.equal(await ensureConceptSets(t, null), "ready");
+      assert.equal((await query(`select 1 from concept_sets where track_id = $1`, [t])).length, 1);
+      assert.equal((await query(`select 1 from item_holdbacks where track_id = $1`, [t])).length, 0);
+    } finally {
+      await query(`delete from subject_tracks where id = $1`, [t]);
+    }
+  });
+
+  test("FAIL-1011: every card low-confidence twice finishes 'failed' (retried later), not 'ready' with nothing", async () => {
+    const t = await freshTrack();
+    try {
+      const prompts: string[] = [];
+      respond = (body) => {
+        prompts.push(userText(body));
+        return { sets: CONCEPT_SETS.sets.map((s) => ({ ...s, confidence: "low", uncertainClaims: ["unsure of the model"] })) };
+      };
+      assert.equal(await ensureConceptSets(t, null), "failed");
+      assert.equal(prompts.length, 2, "one steered retry");
+      assert.doesNotMatch(prompts[0], /unsure of the model/);
+      assert.match(prompts[1], /unsure of the model/);
+      assert.equal((await query(`select 1 from concept_sets where track_id = $1`, [t])).length, 0);
+      assert.equal((await query(`select 1 from item_holdbacks where track_id = $1 and item_kind = 'comparison'`, [t])).length, 4, "two cards held on each of two attempts");
+      assert.equal(await insightStatus(t, "concept_sets"), "failed");
+    } finally {
+      await query(`delete from subject_tracks where id = $1`, [t]);
+    }
   });
 });
 

@@ -309,8 +309,10 @@ describe("mastery evidence (REQ-123)", () => {
     );
     assert.deepEqual(a, { kind: "labtask", assessment_type: "lab_build", objective_id: OBJ_BUILD, format: "open", assisted: false });
     const m = await mastery(u, OBJ_BUILD);
-    assert.equal(m!.status, "Independent", m!.evidence);
+    // REQ-218: one correct unassisted run is Guided until a later sitting confirms it.
+    assert.equal(m!.status, "Guided", m!.evidence);
     assert.match(m!.evidence, /unassisted formats: performance/);
+    assert.match(m!.evidence, /Independent needs a second correct unassisted answer/);
     assert.equal(await mastery(u, OBJ_SIBLING), null, "not unit-wide");
     const detail = await queryOne<{ weighted_accuracy: string; evidence_weight: string }>(`select * from mastery_detail($1, $2)`, [u, OBJ_BUILD]);
     assert.equal(Number(detail!.weighted_accuracy), 1);
@@ -457,11 +459,44 @@ describe("client attempt ids", () => {
   });
 });
 
+describe("REQ-218 (FAIL-1082): a restart cannot race a graded last step", () => {
+  test("a last step graded while the run is restarted is refused: no attempt, the old run stays abandoned", async () => {
+    const u = await newUser();
+    const r = await startRun(u, BUILD);
+    gradeDelayMs = 400; // the restart lands after the step was checked, before it is stored
+    const body = { runId: r.body.run.id, step: 0, answers: ["Execution role", "GetObject on uploads only"], clientAttemptId: randomUUID() };
+    const inFlight = submit(u, BUILD, body);
+    await new Promise((res) => setTimeout(res, 150));
+    const restarted = await startRun(u, BUILD, true);
+    assert.equal(restarted.status, 200);
+    assert.notEqual(restarted.body.run.id, r.body.run.id);
+    const out = await inFlight;
+    assert.equal(out.status, 409, JSON.stringify(out.body));
+    const n = await queryOne<{ n: number }>(`select count(*)::int as n from attempts where user_id = $1 and lab_id = $2`, [u, BUILD]);
+    assert.equal(n!.n, 0, "no attempt for a run that was abandoned");
+    const run1 = await queryOne<{ completed_at: string | null; abandoned_at: string | null }>(`select completed_at, abandoned_at from lab_runs where id = $1`, [r.body.run.id]);
+    assert.equal(run1!.completed_at, null);
+    assert.ok(run1!.abandoned_at);
+    assert.equal((await query(`select 1 from lab_run_steps where run_id = $1`, [r.body.run.id])).length, 0);
+  });
+
+  test("a restart racing a last step that finishes first leaves the run finished, not abandoned", async () => {
+    const u = await newUser();
+    const r = await startRun(u, BUILD);
+    const done = await submit(u, BUILD, { runId: r.body.run.id, step: 0, answers: ["Execution role", "GetObject on uploads only"], clientAttemptId: randomUUID() });
+    assert.equal(done.status, 200);
+    await startRun(u, BUILD, true);
+    const row = await queryOne<{ completed_at: string | null; abandoned_at: string | null }>(`select completed_at, abandoned_at from lab_runs where id = $1`, [r.body.run.id]);
+    assert.ok(row!.completed_at);
+    assert.equal(row!.abandoned_at, null);
+  });
+});
+
 describe("Report a problem, quarantine and voiding", () => {
   test("a lab can be reported; enough reports pull it; confirming it wrong voids its attempts and recomputes mastery", async () => {
     const learner = await newUser();
     await finishBuild(learner);
-    assert.equal((await mastery(learner, OBJ_BUILD))!.status, "Independent");
+    assert.equal((await mastery(learner, OBJ_BUILD))!.status, "Guided"); // REQ-218: one sitting
     const threshold = await quarantineThreshold();
     for (let i = 0; i < threshold; i++) {
       const u = i === 0 ? learner : await newUser();
@@ -475,7 +510,7 @@ describe("Report a problem, quarantine and voiding", () => {
     const voided = await confirmItemWrong({ kind: "lab", itemId: BUILD, objectiveId: OBJ_BUILD, question: "Lab build" }, "test");
     assert.ok(voided >= 1);
     const m = await mastery(learner, OBJ_BUILD);
-    assert.notEqual(m!.status, "Independent", "the voided lab no longer counts");
+    assert.notEqual(m!.status, "Guided", "the voided lab no longer counts");
     await query(`delete from item_status where item_kind = 'lab' and item_id = $1`, [BUILD]);
     await query(`delete from item_flags where item_kind = 'lab' and item_id = $1`, [BUILD]);
   });
@@ -484,8 +519,13 @@ describe("Report a problem, quarantine and voiding", () => {
     const u = await newUser();
     classification = "key-suspect";
     await finishBuild(u);
-    await new Promise((r) => setTimeout(r, 200));
-    const f = await queryOne<{ source: string }>(`select source from item_flags where item_kind = 'lab' and item_id = $1 and user_id = $2`, [BUILD, u]);
+    // The flag is written after the response (fire-and-forget), so poll for
+    // it instead of sleeping a fixed time (FAIL-1145: a 200 ms sleep flaked on CI).
+    let f: { source: string } | null = null;
+    for (let i = 0; i < 50 && !f; i++) {
+      f = await queryOne<{ source: string }>(`select source from item_flags where item_kind = 'lab' and item_id = $1 and user_id = $2`, [BUILD, u]);
+      if (!f) await new Promise((r) => setTimeout(r, 100));
+    }
     assert.equal(f?.source, "key_suspect");
     await query(`delete from item_flags where item_kind = 'lab' and item_id = $1`, [BUILD]);
   });
@@ -530,26 +570,81 @@ describe("generated labs: every gate before storing", () => {
   });
   const pass = async () => ({ referenceAnswersCorrect: true, safe: true, problems: [], unsupportedClaims: [] });
 
-  test("uncertain, malformed, disputed or unchecked content is held back; clean content is stored for expert review once", async () => {
-    const base = { objectiveId: OBJ_SIBLING, kind: "build" as const, model: "test" };
-    assert.equal(await saveGeneratedLab({ ...base, generated: gen({ uncertainClaims: ["a quota"] }), checker: pass }), "held_uncertain");
+  const base = { objectiveId: OBJ_SIBLING, kind: "build" as const, model: "test" };
+  const labHoldbacks = async () =>
+    (await query<{ reason: string }>(`select reason from item_holdbacks where item_kind = 'lab' and objective_id = $1 order by created_at, id`, [OBJ_SIBLING])).map((h) => h.reason);
+  const clearLabs = () => query(`delete from labs where objective_id = $1`, [OBJ_SIBLING]);
+  const wrong = async () => ({ referenceAnswersCorrect: false, safe: true, problems: ["wrong"], unsupportedClaims: [] });
+
+  // REQ-216 (FAIL-1026): labs hold only on the writer's low confidence, a content rule or a
+  // disagreeing check; claims merely listed or unconfirmed are logged; one steered retry.
+  test("low confidence, malformed or disputed content is held back; clean content is stored for expert review once", async () => {
+    const before = (await labHoldbacks()).length;
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen({ confidence: "low", uncertainClaims: ["a quota"] }), checker: pass }), "held_uncertain");
     assert.equal(await saveGeneratedLab({ ...base, generated: gen({ steps: [] }), checker: pass }), "held_invalid");
-    assert.equal(
-      await saveGeneratedLab({ ...base, generated: gen(), checker: async () => ({ referenceAnswersCorrect: false, safe: true, problems: ["wrong"], unsupportedClaims: [] }) }),
-      "held_check"
-    );
-    assert.equal(
-      await saveGeneratedLab({ ...base, generated: gen(), checker: async () => { throw new Error("network"); } }),
-      "held_check_error"
-    );
-    const held = await query(`select reason from item_holdbacks where item_kind = 'lab' and objective_id = $1 order by created_at`, [OBJ_SIBLING]);
-    assert.deepEqual(held.map((h: any) => h.reason), ["uncertain", "fact_check", "fact_check", "fact_check_error"]);
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: wrong }), "held_check");
+    assert.deepEqual((await labHoldbacks()).slice(before), ["uncertain", "fact_check", "fact_check"]);
     assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: pass }), "saved");
     assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: pass }), "exists");
     const row = await queryOne<{ source: string; review_status: string; slug: string }>(`select source, review_status, slug from labs where objective_id = $1`, [OBJ_SIBLING]);
     assert.deepEqual({ source: row!.source, review_status: row!.review_status }, { source: "generated", review_status: "needs_expert_review" });
     assert.match(row!.slug, /^gen-[0-9a-f]{12}$/);
-    await query(`delete from labs where objective_id = $1`, [OBJ_SIBLING]);
+    await clearLabs();
+  });
+
+  test("claims the writer merely listed, or the checker could not confirm, do not hold a lab back", async () => {
+    const before = (await labHoldbacks()).length;
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen({ confidence: "medium", uncertainClaims: ["the scenario is invented"] }), checker: pass }), "saved");
+    await clearLabs();
+    const unconfirmed = async () => ({ referenceAnswersCorrect: true, safe: true, problems: [], unsupportedClaims: ["a quota"] });
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: unconfirmed }), "saved");
+    assert.equal((await labHoldbacks()).length, before, "nothing was logged as a holdback");
+    await clearLabs();
+  });
+
+  test("a held lab is written once more, steered with the claims, and the retry is what is stored", async () => {
+    const before = (await labHoldbacks()).length;
+    const steers: (string | null)[] = [];
+    const regenerate = async (steer: string | null) => {
+      steers.push(steer);
+      return gen({ title: "Second draft of the lab" });
+    };
+    assert.equal(
+      await saveGeneratedLab({ ...base, generated: gen({ confidence: "low", uncertainClaims: ["the quota is 40"] }), checker: pass, regenerate }),
+      "saved"
+    );
+    assert.equal(steers.length, 1);
+    assert.match(steers[0]!, /the quota is 40/);
+    assert.equal((await queryOne<{ title: string }>(`select title from labs where objective_id = $1`, [OBJ_SIBLING]))!.title, "Second draft of the lab");
+    assert.deepEqual((await labHoldbacks()).slice(before), ["uncertain"]);
+    await clearLabs();
+
+    // a checker that disagrees with the first draft steers the retry too; only one retry is made
+    let checks = 0;
+    const secondOk = async () => (++checks === 1 ? wrong() : pass());
+    steers.length = 0;
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: secondOk, regenerate }), "saved");
+    assert.match(steers[0]!, /wrong/);
+    await clearLabs();
+    steers.length = 0;
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: wrong, regenerate }), "held_check");
+    assert.equal(steers.length, 1, "exactly one retry");
+    // a draft that breaks a content rule is retried the same way
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen({ steps: [] }), checker: pass, regenerate }), "saved");
+    await clearLabs();
+  });
+
+  test("a checker call that fails is retryable: nothing is logged as held back, and the next run can store the lab", async () => {
+    const before = (await labHoldbacks()).length;
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: async () => { throw new Error("network"); } }), "held_check_error");
+    assert.equal(
+      await saveGeneratedLab({ ...base, generated: gen(), checker: async () => ({ safe: true, problems: [], unsupportedClaims: [] }) as never }),
+      "held_check_error",
+      "a reply with no verdict is not a verdict"
+    );
+    assert.equal((await labHoldbacks()).length, before);
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: pass }), "saved");
+    await clearLabs();
   });
 });
 

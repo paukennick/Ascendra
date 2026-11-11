@@ -36,7 +36,7 @@ describe("reasonRows", () => {
     assert.equal(reasonRows(["a", "b"], 4, 1, 0, "incorrect"), null);
     assert.equal(reasonRows(["a", "", "c", "d"], 4, 1, 0, "incorrect"), null);
   });
-  test("options are lettered so a reason can be matched without colour", () => {
+  test("options are lettered so a reason can be matched without color", () => {
     assert.deepEqual([0, 1, 2, 3].map(optionLetter), ["A", "B", "C", "D"]);
   });
 });
@@ -139,7 +139,7 @@ describe("choiceMarks", () => {
 });
 
 describe("describeMark", () => {
-  test("every mark has visible text and a screen-reader label, not colour alone", () => {
+  test("every mark has visible text and a screen-reader label, not color alone", () => {
     // REQ-105: a missed pick is calm ("warn"), not red, and still says plainly it wasn't right.
     assert.deepEqual(describeMark("picked-incorrect"), { tag: "Your answer - not this one", a11y: "Your answer, not correct", tone: "warn" });
     assert.deepEqual(describeMark("picked-correct"), { tag: "Your answer - correct", a11y: "Your answer, correct", tone: "good" });

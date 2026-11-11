@@ -30,7 +30,7 @@ export const PCA_LABS: SeedLabSet = {
       kind: "build",
       title: "Write the RED queries for a checkout API",
       brief:
-        "The fictional furniture retailer Fenwick & Vale instruments its checkout API with http_requests_total{method, route, status} (a counter), http_request_duration_seconds (a histogram with _bucket, _sum and _count, labelled by route) and in_flight_requests (a gauge), scraped every 15 seconds by Prometheus. Product wants a dashboard showing, per route: requests per second, the error ratio (5xx over all), the 95th-percentile latency, and how fast the in-flight count is changing.",
+        "The fictional furniture retailer Fenwick & Vale instruments its checkout API with http_requests_total{method, route, status} (a counter), http_request_duration_seconds (a histogram with _bucket, _sum and _count, labeled by route) and in_flight_requests (a gauge), scraped every 15 seconds by Prometheus. Product wants a dashboard showing, per route: requests per second, the error ratio (5xx over all), the 95th-percentile latency, and how fast the in-flight count is changing.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -152,14 +152,14 @@ export const PCA_LABS: SeedLabSet = {
       slug: "scrape-config-relabel",
       objective: "Configuration and scraping: prometheus.yml global settings, scrape_configs, scrape_interval and timeout, relabel_configs and metric_relabel_configs, and target health",
       kind: "build",
-      title: "Write a scrape configuration with relabelling for a Kubernetes cluster",
+      title: "Write a scrape configuration with relabeling for a Kubernetes cluster",
       brief:
         "The fictional logistics company Brae Freight runs Prometheus inside a Kubernetes cluster. Requirements: scrape every Pod that carries the annotation prometheus.io/scrape=\"true\", on the port given in prometheus.io/port and the path in prometheus.io/path (default /metrics); keep the namespace and pod name as labels; drop any Pod in namespace kube-system; and drop the metric go_gc_duration_seconds, which nobody uses, before it is stored. Scrapes should happen every 30 seconds with a 10-second timeout.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Write the scrape_config and explain each relabelling step and how you would verify targets are healthy.",
+          ask: "Write the scrape_config and explain each relabeling step and how you would verify targets are healthy.",
           parts: [
             part(
               "Global and job settings",
@@ -169,7 +169,7 @@ export const PCA_LABS: SeedLabSet = {
             part(
               "Keep only annotated Pods, drop kube-system",
               "relabel_configs with action keep on __meta_kubernetes_pod_annotation_prometheus_io_scrape regex true, and action drop on __meta_kubernetes_namespace regex kube-system; explains keep/drop decide whether the target is scraped at all and are evaluated in order.",
-              "  relabel_configs:\n  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]\n    action: keep\n    regex: \"true\"\n  - source_labels: [__meta_kubernetes_namespace]\n    action: drop\n    regex: kube-system\nAnnotation keys are sanitised into label names (dots and slashes become underscores). keep discards targets that do not match; drop discards those that do. Rules run top to bottom on every discovered target."
+              "  relabel_configs:\n  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]\n    action: keep\n    regex: \"true\"\n  - source_labels: [__meta_kubernetes_namespace]\n    action: drop\n    regex: kube-system\nAnnotation keys are sanitized into label names (dots and slashes become underscores). keep discards targets that do not match; drop discards those that do. Rules run top to bottom on every discovered target."
             ),
             part(
               "Path and port from annotations",
@@ -179,11 +179,11 @@ export const PCA_LABS: SeedLabSet = {
             part(
               "Namespace and pod labels, metric drop",
               "labelmap or explicit replace rules copying __meta_kubernetes_namespace to namespace and __meta_kubernetes_pod_name to pod; and metric_relabel_configs with action drop on __name__ regex go_gc_duration_seconds; explains metric_relabel_configs run after the scrape on each sample and are the place to drop series before storage.",
-              "  - source_labels: [__meta_kubernetes_namespace]\n    target_label: namespace\n  - source_labels: [__meta_kubernetes_pod_name]\n    target_label: pod\n  metric_relabel_configs:\n  - source_labels: [__name__]\n    action: drop\n    regex: go_gc_duration_seconds.*\n__meta_* labels are discarded after relabelling, so anything you want to keep must be copied to a real label. relabel_configs act on targets before scraping; metric_relabel_configs act on every scraped sample before it is written, so dropping here saves storage and cardinality (the regex includes the _sum/_count companions)."
+              "  - source_labels: [__meta_kubernetes_namespace]\n    target_label: namespace\n  - source_labels: [__meta_kubernetes_pod_name]\n    target_label: pod\n  metric_relabel_configs:\n  - source_labels: [__name__]\n    action: drop\n    regex: go_gc_duration_seconds.*\n__meta_* labels are discarded after relabeling, so anything you want to keep must be copied to a real label. relabel_configs act on targets before scraping; metric_relabel_configs act on every scraped sample before it is written, so dropping here saves storage and cardinality (the regex includes the _sum/_count companions)."
             ),
             part(
               "Verifying",
-              "Check promtool check config prometheus.yml, then the Targets page or /api/v1/targets for health UP and last error, the up metric (up == 0 for failing targets) and scrape_duration_seconds against the timeout; service discovery page shows discovered vs dropped targets with their labels before and after relabelling.",
+              "Check promtool check config prometheus.yml, then the Targets page or /api/v1/targets for health UP and last error, the up metric (up == 0 for failing targets) and scrape_duration_seconds against the timeout; service discovery page shows discovered vs dropped targets with their labels before and after relabeling.",
               "promtool check config prometheus.yml before reloading (kill -HUP or POST /-/reload). Then: the Status -> Targets page (or curl /api/v1/targets) shows each target's health, last scrape and error text; up{job=\"kubernetes-pods\"} == 0 lists failing targets; scrape_duration_seconds near 10 s warns of timeouts. Status -> Service Discovery shows every discovered target with its __meta_ labels and whether it was dropped -- the fastest way to debug a relabel rule that keeps too little or too much."
             ),
           ],
@@ -217,7 +217,7 @@ export const PCA_LABS: SeedLabSet = {
             part(
               "Single node, no cross-server queries",
               "Explains that 40 clusters feeding one server concentrates all series and all query load in one process, and that Prometheus has no clustering: scaling means sharding by cluster/team with one Prometheus each, then federation (limited) or a global query layer (Thanos Query, Cortex/Mimir) to query across them.",
-              "One Prometheus for 40 clusters is a single point of scale and failure. Prometheus does not cluster or shard itself, and a server cannot query another's data. The scalable shape is one Prometheus per cluster (or per team) scraping locally -- short retention, fewer series each -- with a global view provided by Thanos Query over sidecars/store gateways or by remote write into Cortex/Mimir. Federation can pull a few aggregated series between servers but is not a way to centralise raw metrics."
+              "One Prometheus for 40 clusters is a single point of scale and failure. Prometheus does not cluster or shard itself, and a server cannot query another's data. The scalable shape is one Prometheus per cluster (or per team) scraping locally -- short retention, fewer series each -- with a global view provided by Thanos Query over sidecars/store gateways or by remote write into Cortex/Mimir. Federation can pull a few aggregated series between servers but is not a way to centralize raw metrics."
             ),
           ],
         },
@@ -246,7 +246,7 @@ export const PCA_LABS: SeedLabSet = {
       kind: "build",
       title: "Define SLIs, SLOs and an error budget for a payments API",
       brief:
-        "The fictional payment processor Caldwell Pay promises its merchants in a contract that the authorisation API will be 'available 99.9% of the time, measured monthly, with credits if not'. Internally there is no definition of 'available'. The API exposes http_requests_total{code} and a latency histogram http_request_duration_seconds; the team wants to know how to turn the contract into measurable indicators, an internal objective, and an error budget they can spend on releases.",
+        "The fictional payment processor Caldwell Pay promises its merchants in a contract that the authorization API will be 'available 99.9% of the time, measured monthly, with credits if not'. Internally there is no definition of 'available'. The API exposes http_requests_total{code} and a latency histogram http_request_duration_seconds; the team wants to know how to turn the contract into measurable indicators, an internal objective, and an error budget they can spend on releases.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -303,7 +303,7 @@ export const PCA_LABS: SeedLabSet = {
             part(
               "What the Pushgateway is for",
               "Short-lived batch jobs that exist for less time than a scrape interval and have no endpoint to scrape, which push their final result (e.g. last run time, rows processed) once; explains the metrics should be job-level, not per-instance, and that the service-level pull model is the design assumption of Prometheus.",
-              "The Pushgateway exists for service-level batch jobs -- a nightly export, a cron -- that finish before Prometheus could ever scrape them. Such a job pushes its summary (my_job_last_success_timestamp_seconds, my_job_rows_processed) once at the end, grouped by job only, and the gateway keeps that until the next run replaces it. Long-running services should be scraped: the pull model gives per-instance health, centralised control over scrape intervals and no single aggregation point. The firewall problem has pull-friendly answers (a Prometheus inside the segment with remote_write out, or an agent)."
+              "The Pushgateway exists for service-level batch jobs -- a nightly export, a cron -- that finish before Prometheus could ever scrape them. Such a job pushes its summary (my_job_last_success_timestamp_seconds, my_job_rows_processed) once at the end, grouped by job only, and the gateway keeps that until the next run replaces it. Long-running services should be scraped: the pull model gives per-instance health, centralized control over scrape intervals and no single aggregation point. The firewall problem has pull-friendly answers (a Prometheus inside the segment with remote_write out, or an agent)."
             ),
           ],
         },
@@ -352,7 +352,7 @@ export const PCA_LABS: SeedLabSet = {
             part(
               "Inhibition",
               "An inhibit_rules entry with source_matchers [alertname=\"NodeDown\"], target_matchers [severity=~\"page|ticket\"] (excluding NodeDown itself) and equal: [node] (or instance), so service alerts carrying the same node label are muted while NodeDown fires; explains inhibition needs a shared label and does not resolve the targets, only hides them.",
-              "inhibit_rules:\n- source_matchers: [alertname=\"NodeDown\"]\n  target_matchers: [alertname!=\"NodeDown\"]\n  equal: [node]\nWhile a NodeDown alert with node=worker-7 is firing, every other alert that also carries node=worker-7 is inhibited -- not resolved, just not notified -- so the on-call gets one page about the node, not twenty about the services on it. The per-service alerts must therefore carry the node label (via the alerting rule's labels or relabelling), or equal: cannot match."
+              "inhibit_rules:\n- source_matchers: [alertname=\"NodeDown\"]\n  target_matchers: [alertname!=\"NodeDown\"]\n  equal: [node]\nWhile a NodeDown alert with node=worker-7 is firing, every other alert that also carries node=worker-7 is inhibited -- not resolved, just not notified -- so the on-call gets one page about the node, not twenty about the services on it. The per-service alerts must therefore carry the node label (via the alerting rule's labels or relabeling), or equal: cannot match."
             ),
             part(
               "The planned silence",
@@ -428,17 +428,17 @@ export const PCA_LABS: SeedLabSet = {
             part(
               "Throughput and errors: counters",
               "claims_processed_total{claim_type, result} as a Counter incremented once per job with result=success|failure (and optionally a separate claims_failures_total{claim_type, reason} with a bounded reason set); explains counters only go up, names end in _total, and that result/reason labels must come from a small fixed set.",
-              "from prometheus_client import Counter\nCLAIMS = Counter('claims_processed_total', 'Claims processed by the worker', ['claim_type', 'result'])\n...\nCLAIMS.labels(claim_type=claim.type, result='success').inc()\nA counter for every completed job, labelled by claim_type (3 values) and result (success|failure). Rate and error-rate queries follow: rate(claims_processed_total[5m]) and the failure share. If reasons matter, claims_failures_total{claim_type, reason} with reason drawn from a fixed enum (timeout, validation, db_error) -- never the raw exception message, which is unbounded."
+              "from prometheus_client import Counter\nCLAIMS = Counter('claims_processed_total', 'Claims processed by the worker', ['claim_type', 'result'])\n...\nCLAIMS.labels(claim_type=claim.type, result='success').inc()\nA counter for every completed job, labeled by claim_type (3 values) and result (success|failure). Rate and error-rate queries follow: rate(claims_processed_total[5m]) and the failure share. If reasons matter, claims_failures_total{claim_type, reason} with reason drawn from a fixed enum (timeout, validation, db_error) -- never the raw exception message, which is unbounded."
             ),
             part(
               "Duration: histogram with chosen buckets",
-              "claims_processing_duration_seconds as a Histogram labelled by claim_type with buckets chosen around the expected range and the SLO (e.g. 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30), observed per job; explains why a histogram beats a summary (aggregatable across instances, quantiles computed server-side) and why bucket boundaries must include any SLO threshold.",
+              "claims_processing_duration_seconds as a Histogram labeled by claim_type with buckets chosen around the expected range and the SLO (e.g. 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30), observed per job; explains why a histogram beats a summary (aggregatable across instances, quantiles computed server-side) and why bucket boundaries must include any SLO threshold.",
               "from prometheus_client import Histogram\nDURATION = Histogram('claims_processing_duration_seconds', 'Time to process one claim', ['claim_type'],\n                     buckets=(0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30))\nwith DURATION.labels(claim_type=claim.type).time():\n    process(claim)\nA histogram's buckets are counters, so they sum across workers and histogram_quantile works on the aggregate; a client-side summary's quantiles cannot be combined. Buckets span the realistic range (most jobs 0.5-5 s) and include the SLO point (say 10 s) so 'share of jobs under 10 s' is exact. Base unit is seconds, hence the suffix."
             ),
             part(
               "Saturation: gauges for queue depth and in-flight work",
-              "claims_queue_depth as a Gauge set from the queue's reported length (or exported by the queue system itself) and claims_in_progress as a Gauge inc/dec around each job; explains USE (utilisation, saturation, errors) is the resource view that complements RED's request view.",
-              "QUEUE_DEPTH = Gauge('claims_queue_depth', 'Claims waiting in the queue')\nIN_PROGRESS = Gauge('claims_in_progress', 'Claims being processed right now')\nQUEUE_DEPTH.set(queue.length())   # on each poll\nIN_PROGRESS.inc(); ... IN_PROGRESS.dec()\nRED (rate, errors, duration) describes the work; USE (utilisation, saturation, errors) describes the resource. Queue depth is the worker pool's saturation signal: rising depth with flat throughput means the pool is undersized. Gauges go up and down and are read with plain selectors, deriv or max_over_time."
+              "claims_queue_depth as a Gauge set from the queue's reported length (or exported by the queue system itself) and claims_in_progress as a Gauge inc/dec around each job; explains USE (utilization, saturation, errors) is the resource view that complements RED's request view.",
+              "QUEUE_DEPTH = Gauge('claims_queue_depth', 'Claims waiting in the queue')\nIN_PROGRESS = Gauge('claims_in_progress', 'Claims being processed right now')\nQUEUE_DEPTH.set(queue.length())   # on each poll\nIN_PROGRESS.inc(); ... IN_PROGRESS.dec()\nRED (rate, errors, duration) describes the work; USE (utilization, saturation, errors) describes the resource. Queue depth is the worker pool's saturation signal: rising depth with flat throughput means the pool is undersized. Gauges go up and down and are read with plain selectors, deriv or max_over_time."
             ),
             part(
               "The dependency: fraud API as a client-side RED set",
@@ -448,7 +448,7 @@ export const PCA_LABS: SeedLabSet = {
             part(
               "What not to label, and exposing",
               "No customer_id, claim_id or free-text labels (unbounded cardinality); claim_type is fine (3 values); expose with start_http_server(8000) or the WSGI app on /metrics and scrape it; note the default process_* and python_* metrics come free and are useful for USE.",
-              "Labels are the cardinality budget: claim_type with three values multiplies each metric by 3; customer_id would multiply it by every customer and is forbidden -- that detail belongs in logs or trace attributes. Expose with prometheus_client.start_http_server(8000) (or mount the ASGI/WSGI app) and add the worker to the scrape config. The client library also exports process_cpu_seconds_total, process_resident_memory_bytes and Python GC metrics, which cover utilisation for free."
+              "Labels are the cardinality budget: claim_type with three values multiplies each metric by 3; customer_id would multiply it by every customer and is forbidden -- that detail belongs in logs or trace attributes. Expose with prometheus_client.start_http_server(8000) (or mount the ASGI/WSGI app) and add the worker to the scrape config. The client library also exports process_cpu_seconds_total, process_resident_memory_bytes and Python GC metrics, which cover utilization for free."
             ),
           ],
         },
@@ -470,12 +470,12 @@ export const PCA_LABS: SeedLabSet = {
             part(
               "Hosts: node_exporter",
               "Run node_exporter on each host (port 9100) and scrape it; it reads /proc and /sys and exposes node_cpu_seconds_total, node_memory_MemAvailable_bytes, node_filesystem_avail_bytes, node_network_* and more; explains an exporter translates another system's state into the exposition format at scrape time, and that there is no reason to write this yourself.",
-              "node_exporter, one per host as a systemd service (or a DaemonSet on Kubernetes), scraped on :9100. It reads the kernel's counters from /proc and /sys on every scrape and renders them as node_* metrics -- CPU per mode, memory, disk I/O, filesystem usage, network, load. USE queries fall out: 1 - avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) for utilisation, node_filesystem_avail_bytes / node_filesystem_size_bytes for disk. Writing a custom host exporter would reproduce years of edge cases for nothing."
+              "node_exporter, one per host as a systemd service (or a DaemonSet on Kubernetes), scraped on :9100. It reads the kernel's counters from /proc and /sys on every scrape and renders them as node_* metrics -- CPU per mode, memory, disk I/O, filesystem usage, network, load. USE queries fall out: 1 - avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) for utilization, node_filesystem_avail_bytes / node_filesystem_size_bytes for disk. Writing a custom host exporter would reproduce years of edge cases for nothing."
             ),
             part(
               "Portal URL: blackbox_exporter",
               "blackbox_exporter with an http_2xx module (fail_if_not_ssl, valid_status_codes, maybe fail_if_body_not_matches_regexp), scraped via a job that passes the target URL as a parameter and relabels __param_target/instance/__address__; explains probe_success, probe_http_status_code, probe_ssl_earliest_cert_expiry and probe_duration_seconds, and that the exporter probes from the outside like a user would.",
-              "blackbox.yml module:\nmodules:\n  http_2xx_tls:\n    prober: http\n    http:\n      valid_status_codes: [200]\n      fail_if_not_ssl: true\n      method: GET\nprometheus.yml:\n- job_name: blackbox-portal\n  metrics_path: /probe\n  params: {module: [http_2xx_tls]}\n  static_configs:\n  - targets: [https://portal.thurlow.example/login]\n  relabel_configs:\n  - source_labels: [__address__]\n    target_label: __param_target\n  - source_labels: [__param_target]\n    target_label: instance\n  - target_label: __address__\n    replacement: blackbox-exporter:9115\nThe relabelling turns the URL into the ?target= parameter and points the scrape at the exporter. Alert on probe_success == 0 and on probe_ssl_earliest_cert_expiry - time() < 14*24*3600 for the certificate."
+              "blackbox.yml module:\nmodules:\n  http_2xx_tls:\n    prober: http\n    http:\n      valid_status_codes: [200]\n      fail_if_not_ssl: true\n      method: GET\nprometheus.yml:\n- job_name: blackbox-portal\n  metrics_path: /probe\n  params: {module: [http_2xx_tls]}\n  static_configs:\n  - targets: [https://portal.thurlow.example/login]\n  relabel_configs:\n  - source_labels: [__address__]\n    target_label: __param_target\n  - source_labels: [__param_target]\n    target_label: instance\n  - target_label: __address__\n    replacement: blackbox-exporter:9115\nThe relabeling turns the URL into the ?target= parameter and points the scrape at the exporter. Alert on probe_success == 0 and on probe_ssl_earliest_cert_expiry - time() < 14*24*3600 for the certificate."
             ),
             part(
               "HL7 engine: a small custom exporter (or json_exporter)",
@@ -490,7 +490,7 @@ export const PCA_LABS: SeedLabSet = {
           parts: [
             part(
               "Diagnosis",
-              "The engine restarts often (uptime 312 s, 7 restarts in the hour) and its errors_total resets to 0 at each restart; Prometheus treats a counter decrease as a reset and extrapolates, which is correct, but if the decrease is not a clean reset to 0 -- or the exporter caches values -- rate shows artefacts; here the spikes come from rate() seeing the reset plus the engine re-counting quickly, and from the exporter possibly exposing the value as a gauge-like metric.",
+              "The engine restarts often (uptime 312 s, 7 restarts in the hour) and its errors_total resets to 0 at each restart; Prometheus treats a counter decrease as a reset and extrapolates, which is correct, but if the decrease is not a clean reset to 0 -- or the exporter caches values -- rate shows artifacts; here the spikes come from rate() seeing the reset plus the engine re-counting quickly, and from the exporter possibly exposing the value as a gauge-like metric.",
               "The engine restarted seven times in an hour (hl7_uptime_seconds keeps dropping); each restart zeroes errors_total. rate() handles a reset by assuming the counter went to zero and continuing, which is right when the drop is a true reset. Huge spikes appear when the value after a 'reset' is not zero but some re-accumulated number within one scrape interval, or when scrapes straddle the restart so one sample is from the old process and the next from the new one -- the increase is then over-estimated. Also check the exporter: if it was declared as a gauge (# TYPE ... gauge), rate() is still computed, but a counter should be declared as one."
             ),
             part(

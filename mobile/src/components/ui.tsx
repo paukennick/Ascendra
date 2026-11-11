@@ -21,6 +21,7 @@ import { BADGE_WASH, blend } from "@/lib/contrast";
 import { t } from "@/lib/i18n";
 import { isReducedMotion, useReducedMotion } from "@/lib/useReducedMotion";
 import { colors, fonts, radius, readableOn, shadow, spacing, verdictColor, verdictIcon } from "@/lib/theme";
+import { useKeyboardOverlap } from "@/lib/useKeyboardOverlap";
 
 // REQ-113 (Audit 3 mobile M9, H4): Android's minimum touch target. Controls
 // smaller than this to look at get hitSlop to reach it.
@@ -75,20 +76,28 @@ export function Screen({
   scrollRef?: React.Ref<ScrollView>;
   scrollFocusable?: boolean;
 }) {
+  // REQ-217 (FAIL-1062): the keyboard no longer shrinks the window on Android
+  // 15+, so the screen pads itself by the overlap (src/lib/useKeyboardOverlap.ts);
+  // iOS lifts the content with the system's own inset handling.
+  const wrapRef = React.useRef<View>(null);
+  const overlap = useKeyboardOverlap(wrapRef);
   return (
-    <ScrollView
-      ref={scrollRef}
-      style={{ flex: 1, backgroundColor: colors.bg }}
-      contentContainerStyle={styles.screenContent}
-      showsVerticalScrollIndicator={false}
-      // REQ-113 (M10): with the keyboard open, the first tap on a button
-      // (e.g. "Check my answer") used to only close the keyboard.
-      keyboardShouldPersistTaps="handled"
-      role="main"
-      {...(scrollFocusable && Platform.OS === "web" ? { tabIndex: 0 } : {})}
-    >
-      {children}
-    </ScrollView>
+    <View ref={wrapRef} style={{ flex: 1, paddingBottom: overlap }}>
+      <ScrollView
+        ref={scrollRef}
+        style={{ flex: 1, backgroundColor: colors.bg }}
+        contentContainerStyle={styles.screenContent}
+        showsVerticalScrollIndicator={false}
+        automaticallyAdjustKeyboardInsets
+        // REQ-113 (M10): with the keyboard open, the first tap on a button
+        // (e.g. "Check my answer") used to only close the keyboard.
+        keyboardShouldPersistTaps="handled"
+        role="main"
+        {...(scrollFocusable && Platform.OS === "web" ? { tabIndex: 0 } : {})}
+      >
+        {children}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -570,6 +579,7 @@ export function TextField({
           placeholderTextColor={colors.mutedDim}
           secureTextEntry={secureTextEntry}
           autoCapitalize={autoCapitalize}
+          keyboardType={keyboardType}
           onSubmitEditing={onSubmitEditing}
           enterKeyHint={returnKeyType}
           accessibilityLabel={error ? `${label}. ${error}` : label}

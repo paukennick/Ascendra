@@ -362,7 +362,7 @@ const PASSING = "Scaled score of 500; criterion-referenced standard set by ABPTS
 const DURATION = 360;
 
 const BASE_ELIGIBILITY =
-  "Current, unrestricted US physical therapist licence, plus either 2,000 hours of direct patient care in the specialty within the last 10 years (at least 500 within the last 3) or an ABPTRFE-accredited residency in the specialty completed within the last 10 years.";
+  "Current, unrestricted US physical therapist license, plus either 2,000 hours of direct patient care in the specialty within the last 10 years (at least 500 within the last 3) or an ABPTRFE-accredited residency in the specialty completed within the last 10 years.";
 
 // REQ-142: the outline's version is the edition of the Description of
 // Specialty Practice it is built from. ABPTS states the edition only on some
@@ -423,14 +423,14 @@ const COMMON = {
 export const ABPTS_OCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSOCS",
-  title: "Prep for the ABPTS Orthopaedic Clinical Specialist (OCS) Exam",
+  title: "Prep for the ABPTS Orthopedic Clinical Specialist (OCS) Exam",
   description:
-    "ABPTS board certification in orthopaedic physical therapy, on the 2026 outline: 30% specialty knowledge, 60% patient management, and a body-region table that puts the lumbar spine, shoulder and knee at the top.",
+    "ABPTS board certification in orthopedic physical therapy, on the 2026 outline: 30% specialty knowledge, 60% patient management, and a body-region table that puts the lumbar spine, shoulder and knee at the top.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics",
   credential: abptsCredential({
     slug: "orthopaedic-clinical-specialist",
-    name: "Board-Certified Clinical Specialist in Orthopaedic Physical Therapy (OCS)",
+    name: "Board-Certified Clinical Specialist in Orthopedic Physical Therapy (OCS)",
     url: "https://specialization.apta.org/become-a-specialist/orthopaedics",
     dspEdition: "2026 Description of Specialty Practice (2022-2025 revalidation)",
     outlineUrl:
@@ -442,13 +442,13 @@ export const ABPTS_OCS_TRACK: SeedTrack = {
     {
       title: "Knowledge for specialty practice",
       weight: 30,
-      gate: "Explain the tissue-level mechanism and healing timeline behind an orthopaedic presentation, and the exam, imaging and pharmacology facts that change management.",
+      gate: "Explain the tissue-level mechanism and healing timeline behind an orthopedic presentation, and the exam, imaging and pharmacology facts that change management.",
       objectives: [
         "Regional anatomy and arthrokinematics of the spine, pelvis and extremities at a specialist level",
         "Tissue healing, load tolerance and the mechanobiology behind progression decisions",
         "Pain science applied to persistent musculoskeletal pain and its influence on examination and intervention",
-        "Diagnostic imaging in orthopaedics: what each modality shows and when findings matter clinically",
-        "Pharmacology relevant to orthopaedic patients: analgesics, corticosteroids, anticoagulants and their exercise implications",
+        "Diagnostic imaging in orthopedics: what each modality shows and when findings matter clinically",
+        "Pharmacology relevant to orthopedic patients: analgesics, corticosteroids, anticoagulants and their exercise implications",
         "Medical screening and differential diagnosis for red flags masquerading as musculoskeletal pain",
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
         "Classify low back pain by duration (acute under 6 weeks, chronic beyond 12 weeks) and explain why routine imaging is held back: disc degeneration shows up in more than 80% of adults over 50, with or without symptoms", // SP-LBP
@@ -462,11 +462,11 @@ export const ABPTS_OCS_TRACK: SeedTrack = {
       weight: 10,
       gate: "Defend a management decision with the evidence, the patient's values and the system constraints -- all three, named explicitly.",
       objectives: [
-        "Clinical reasoning frameworks for orthopaedic diagnosis and treatment selection",
+        "Clinical reasoning frameworks for orthopedic diagnosis and treatment selection",
         "Professionalism and ethical practice in a specialist role",
         "Communication with patients, referrers and the care team about prognosis and expectations",
-        "Education of patients, students and colleagues in orthopaedic practice",
-        "Systems-based practice: payment, access and care pathways affecting orthopaedic management",
+        "Education of patients, students and colleagues in orthopedic practice",
+        "Systems-based practice: payment, access and care pathways affecting orthopedic management",
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
         "Plan knee arthroplasty rehab through shared decision-making, weighing patient preference against out-of-pocket cost, limits on covered visits and transport barriers when choosing setting and format", // TKA-CPG
         "Frame low back pain prognosis honestly: earlier episodes, intense symptoms, depression and fear-avoidant behavior all raise the odds of chronic disabling pain", // SP-LBP
@@ -560,9 +560,9 @@ export const ABPTS_GCS_TRACK: SeedTrack = {
     {
       title: "Knowledge areas: foundation, clinical and behavioral sciences",
       weight: 15,
-      gate: "Separate normal ageing from pathology in a presentation, and name the behavioral factor most likely to decide adherence.",
+      gate: "Separate normal aging from pathology in a presentation, and name the behavioral factor most likely to decide adherence.",
       objectives: [
-        "Physiology of ageing across systems and how it changes normal values, exercise response and healing",
+        "Physiology of aging across systems and how it changes normal values, exercise response and healing",
         "Clinical sciences of the common geriatric conditions: osteoporosis, osteoarthritis, heart failure, COPD, diabetes, dementia and Parkinson disease",
         "Behavioral sciences: cognition, depression, motivation and caregiver dynamics in older adults",
         "Pharmacology in older adults: polypharmacy, fall-risk medications and exercise interactions",
@@ -1287,7 +1287,7 @@ export const ABPTS_ECS_TRACK: SeedTrack = {
         "Critical inquiry: reference values, sensitivity and specificity of electrodiagnostic tests",
         "Professional roles and responsibilities: scope, safety, infection control and reporting standards in electrodiagnosis",
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
-        "Screen before testing: avoid studies over open skin infection, burns, recent grafts or casts, don't do needle EMG in a lymphedematous limb or with platelets below 50,000, and avoid testing with external temporary pacemakers", // SP-NCS
+        "Screen before testing: avoid studies over open skin infection, burns, recent grafts or casts; defer or limit needle EMG with platelets below 50,000; treat lymphedema as no contraindication to needle EMG, weighing the risk against what the study adds; and avoid testing with external temporary pacemakers", // SP-NCS; AANEM-EMG-2005 (REQ-173: Galloway et al., AANEM position statement, "Needle EMG in certain uncommon clinical contexts", Muscle Nerve 2005;31:398, doi 10.1002/mus.20238, read 2026-11-09 -- no contraindication in lymphedema, judge each case; AANEM 2021 bleeding-risk guidance -- caution below 50,000 platelets)
         "Lower bleeding risk in needle EMG for patients on anticoagulants or with bleeding tendencies: use the smallest-gauge needle, limit needle insertions, and skip deep muscles that can't be compressed or that lie near large vessels", // SP-NCS
       ],
     },

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "engine": {
     "major": 1,
-    "minor": 1
+    "minor": 2
   },
   "slug": "tamponade-after-cabg",
   "title": "Tamponade after CABG",
@@ -251,9 +251,9 @@
       "Post-op Hgb 9.6 g/dL. ACT back to baseline after protamine in the OR. No vasoactive drips running."
     ],
     "howItWorks": [
-      "The clock runs in real time: one minute on the monitor is one minute for you. Pause any time.",
+      "The clock runs at study pace (3x) unless you choose exam realism (1x) at the start: at 3x, three minutes on the monitor pass in one minute for you. You can change the pace or pause any time.",
       "Assessments examine the patient; orders act. Some ask for a dose or volume.",
-      "Everything takes as long as it would on a real unit: a bolus runs in over minutes, drips take minutes to work, the surgeon calls back and walks over, labs and echo take time.",
+      "In sim time, everything takes as long as it would on a real unit: a bolus runs in over minutes, drips take minutes to work, the surgeon calls back and walks over, labs and echo take time.",
       "While you wait on something, Skip jumps ahead, says how much time it skips and logs it. The patient keeps changing at the same rate.",
       "Partway through you are asked to write what you think is happening. Then a debrief scores what you did."
     ]
@@ -371,12 +371,12 @@
       }
     },
     "cvpPer500": {
-      "value": 0.6,
+      "value": 3,
       "unit": "mmHg",
       "source": {
-        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "cite": "Sagrista-Sauleda J, et al. Circulation 2008;117:1545-1549 (average RA pressure rise per 500 mL), in the Ascendra teaching model",
         "checkedAt": "2026-11-09",
-        "note": "Simplified teaching model written for exam practice; not a validated physiological model. FLAG: a 500 mL bolus raises the CVP by 0.6 mmHg here, against an average of about 3 mmHg in Sagrista-Sauleda 2008 (medical tamponade, not post-surgical bleeding). The direction matches the teaching prompt cvpAfterBolus; the size was left at the prototype's value because changing it would change every run's state, and is listed for clinical review."
+        "note": "REQ-220: 3 mmHg per 500 mL, the average right atrial pressure rise (9.8 to 12.8 mmHg) after a 500 mL bolus in Sagrista-Sauleda 2008 (Circulation 2008;117:1545-1549; medical tamponade, not post-surgical bleeding), so the model shows what the teaching prompt cvpAfterBolus teaches. Was 0.6 (the prototype's value) in version 1. Simplified teaching model written for exam practice; not a validated physiological model."
       }
     },
     "gushMl": {
@@ -3435,6 +3435,13 @@
       "narrative": "The run reached its four-hour limit."
     }
   },
+  "endingOrder": [
+    "early",
+    "earlyUntreated",
+    "bridge",
+    "late",
+    "arrestRosc"
+  ],
   "scoring": {
     "criteria": [
       {
@@ -3863,12 +3870,12 @@
   },
   "focusedStart": {
     "label": "Start near the deterioration",
-    "summary": "Join the case at 14:13, 11 minutes after the drainage stopped. The first written question comes about a minute later.",
-    "at": "13min",
+    "summary": "Join the case at 14:12 instead of at handover, with the same patient. Look around before the first written question, which comes about two sim minutes later.",
+    "at": "12min",
     "source": {
       "cite": "Scenario timing (authored)",
       "checkedAt": "2026-11-09",
-      "note": "Tick 780 is 11 min after onset (the drainage stops at 120 s), inside the brief's 10 to 12 min. With no learner action the first reasoning moment opens at tick 840 and no alarm has fired by 780, so the start is reached by evolving the normal start with no actions and leaves the first clear deterioration to the learner."
+      "note": "REQ-220: tick 720 is 10 min after onset (the drainage stops at 120 s), inside the brief's 10 to 12 min, and after recognizeExpertAt (540). With no learner action the first reasoning moment opens at tick 840, so the learner has at least 120 sim seconds at the bedside before it (lib/sim/pacing.test.ts holds the floor); no alarm has fired by 720. The summary no longer names the drainage stop, the cue the learner is meant to find. The start is reached by evolving the normal start with no actions."
     }
   },
   "chapters": [

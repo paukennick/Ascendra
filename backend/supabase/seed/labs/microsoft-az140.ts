@@ -54,7 +54,7 @@ export const AZ140_LABS: SeedLabSet = {
       kind: "build",
       title: "Plan host pools for three groups of users",
       brief:
-        "Caldera Insurance is moving 900 users to Azure Virtual Desktop. (1) 700 claims and call-centre staff use the same browser-based apps and Microsoft 365; the finance director wants the lowest running cost and is willing to accept slightly more contention at peak. (2) 150 underwriters run a memory-hungry pricing tool and complain whenever a desktop is slow; cost matters less for them. (3) 50 developers need local administrator rights and install their own tools, and each must keep the same machine from day to day. All session hosts will run a Windows 11 Enterprise multi-session image where it applies.",
+        "Caldera Insurance is moving 900 users to Azure Virtual Desktop. (1) 700 claims and call-center staff use the same browser-based apps and Microsoft 365; the finance director wants the lowest running cost and is willing to accept slightly more contention at peak. (2) 150 underwriters run a memory-hungry pricing tool and complain whenever a desktop is slow; cost matters less for them. (3) 50 developers need local administrator rights and install their own tools, and each must keep the same machine from day to day. All session hosts will run a Windows 11 Enterprise multi-session image where it applies.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -62,14 +62,14 @@ export const AZ140_LABS: SeedLabSet = {
           ask: "Design the host pools: type, load balancing, session limits and assignment for each group.",
           parts: [
             part(
-              "Claims and call-centre staff",
+              "Claims and call-center staff",
               "Pooled host pool with depth-first load balancing and an explicit maximum session limit (the default 999999 must be changed), because depth-first fills hosts before starting new ones and lets more hosts be powered off; sizes the limit from monitoring.",
               "A pooled host pool, depth-first load balancing, and a maximum session limit set to a real number (depth-first requires one; the default of 999999 is only the breadth-first placeholder). Depth-first keeps new sessions on the fullest host that still has room, so fewer hosts need to run off-peak. Pick the limit from Azure Virtual Desktop Insights session and performance data, then tune it."
             ),
             part(
               "Underwriters",
-              "Pooled host pool with breadth-first load balancing (even distribution, less CPU/memory contention), on larger memory-optimised session hosts, kept separate from the call-centre pool.",
-              "A separate pooled host pool on memory-optimised session hosts with breadth-first load balancing, which spreads new sessions across the hosts with the fewest sessions so CPU, memory and disk are less contended. No session limit is needed for breadth-first, but a sensible ceiling still protects the pricing tool."
+              "Pooled host pool with breadth-first load balancing (even distribution, less CPU/memory contention), on larger memory-optimized session hosts, kept separate from the call-center pool.",
+              "A separate pooled host pool on memory-optimized session hosts with breadth-first load balancing, which spreads new sessions across the hosts with the fewest sessions so CPU, memory and disk are less contended. No session limit is needed for breadth-first, but a sensible ceiling still protects the pricing tool."
             ),
             part(
               "Developers",
@@ -77,7 +77,7 @@ export const AZ140_LABS: SeedLabSet = {
               "A personal host pool: each developer is mapped 1:1 to a session host, so there is no load balancing, and they keep the same machine. Assign directly (or automatically on first sign-in) and grant local administrator rights on that VM only."
             ),
             part(
-              "Shared behaviours to plan for",
+              "Shared behaviors to plan for",
               "Notes that a returning user is sent back to the host holding their existing (active or disconnected) session even in drain mode, that drain mode keeps new users off a host, and that lowering a session limit does not disconnect existing sessions.",
               "Reconnects always go to the host that already holds the user's active or disconnected session, even if that host is in drain mode; drain mode only stops new sessions landing there, which is how hosts are emptied for maintenance. Lowering the maximum session limit later does not affect sessions already running."
             ),
@@ -89,9 +89,9 @@ export const AZ140_LABS: SeedLabSet = {
       slug: "avd-profile-storage-plan",
       objective: "Planning storage for Azure Virtual Desktop user data",
       kind: "build",
-      title: "Plan FSLogix profile storage for a hybrid organisation",
+      title: "Plan FSLogix profile storage for a hybrid organization",
       brief:
-        "Marlow & Finch Solicitors has 1,200 Azure Virtual Desktop users with hybrid identities (synchronised from on-premises Active Directory Domain Services to Microsoft Entra ID). The fee-earners are 'medium' knowledge workers in Microsoft 365; a 60-person litigation-support team works with very large document sets and is classed as a heavy workload. The firm wants a managed Azure service, no file servers to patch, zone resilience in its primary region, and user profiles that only the owning user can open. Session hosts are domain-joined to the on-premises AD DS over ExpressRoute.",
+        "Marlow & Finch Solicitors has 1,200 Azure Virtual Desktop users with hybrid identities (synchronized from on-premises Active Directory Domain Services to Microsoft Entra ID). The fee-earners are 'medium' knowledge workers in Microsoft 365; a 60-person litigation-support team works with very large document sets and is classed as a heavy workload. The firm wants a managed Azure service, no file servers to patch, zone resilience in its primary region, and user profiles that only the owning user can open. Session hosts are domain-joined to the on-premises AD DS over ExpressRoute.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -133,7 +133,7 @@ export const AZ140_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Write the plan to enable UDP transports for both groups and prioritise RDP traffic.",
+          ask: "Write the plan to enable UDP transports for both groups and prioritize RDP traffic.",
           parts: [
             part(
               "Office users (managed network)",
@@ -152,8 +152,8 @@ export const AZ140_LABS: SeedLabSet = {
             ),
             part(
               "QoS",
-              "Applies DSCP marking to RDP traffic through a QoS policy (Group Policy or Intune) on the session hosts for the managed-network path, honoured end to end on the council's network, noting DSCP-based QoS applies to the managed network route, not the public internet.",
-              "Use a QoS policy on the session hosts to mark RDP Shortpath traffic with a DSCP value and configure the council's switches, routers and ExpressRoute path to honour it. DSCP marking only helps on the managed network: the public internet ignores it, so home users rely on Shortpath and Multipath alone."
+              "Applies DSCP marking to RDP traffic through a QoS policy (Group Policy or Intune) on the session hosts for the managed-network path, honored end to end on the council's network, noting DSCP-based QoS applies to the managed network route, not the public internet.",
+              "Use a QoS policy on the session hosts to mark RDP Shortpath traffic with a DSCP value and configure the council's switches, routers and ExpressRoute path to honor it. DSCP marking only helps on the managed network: the public internet ignores it, so home users rely on Shortpath and Multipath alone."
             ),
           ],
         },
@@ -168,7 +168,7 @@ export const AZ140_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose the identity model for two Azure Virtual Desktop deployments",
       brief:
-        "Pelican Media has two projects. (A) A new, cloud-only subsidiary with 300 staff whose accounts exist only in Microsoft Entra ID; it has no Active Directory, uses Intune for devices, needs FSLogix profiles on Azure Files, and some staff connect from personal macOS laptops and the web client. (B) The parent company's 2,500 hybrid users (synchronised from on-premises AD DS) who must print to on-premises print servers and open file shares that use Windows authentication from inside their desktops; the company wants to stop depending on domain controllers reachable from Azure if it can.",
+        "Pelican Media has two projects. (A) A new, cloud-only subsidiary with 300 staff whose accounts exist only in Microsoft Entra ID; it has no Active Directory, uses Intune for devices, needs FSLogix profiles on Azure Files, and some staff connect from personal macOS laptops and the web client. (B) The parent company's 2,500 hybrid users (synchronized from on-premises AD DS) who must print to on-premises print servers and open file shares that use Windows authentication from inside their desktops; the company wants to stop depending on domain controllers reachable from Azure if it can.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -178,7 +178,7 @@ export const AZ140_LABS: SeedLabSet = {
             part(
               "Project A: scenario",
               "Microsoft Entra joined session hosts (cloud-only identities, no domain controllers or Entra Domain Services needed), enrolled in Intune automatically at creation; the host pool contains only Entra-joined VMs.",
-              "Join the session hosts to Microsoft Entra ID directly. Entra-joined VMs remove the need for line of sight to a domain controller or for Entra Domain Services, and choosing Microsoft Entra ID at host-pool creation offers automatic Intune enrolment. Keep the host pool homogeneous: only Entra-joined hosts in it."
+              "Join the session hosts to Microsoft Entra ID directly. Entra-joined VMs remove the need for line of sight to a domain controller or for Entra Domain Services, and choosing Microsoft Entra ID at host-pool creation offers automatic Intune enrollment. Keep the host pool homogeneous: only Entra-joined hosts in it."
             ),
             part(
               "Project A: access and profiles",
@@ -205,7 +205,7 @@ export const AZ140_LABS: SeedLabSet = {
       kind: "case",
       title: "Roll out multifactor authentication for Azure Virtual Desktop",
       brief:
-        "Orwell Analytics has Microsoft Entra ID P1 licences and a security group, AVD-Users, containing everyone who uses Azure Virtual Desktop. Session hosts are Microsoft Entra joined with single sign-on enabled on the host pool. The security team wants every AVD connection protected by multifactor authentication (MFA), re-authentication at least once an hour, and no impact on the Azure portal sign-ins of the same people. Security Defaults are currently off and some users still have legacy per-user MFA enabled.",
+        "Orwell Analytics has Microsoft Entra ID P1 licenses and a security group, AVD-Users, containing everyone who uses Azure Virtual Desktop. Session hosts are Microsoft Entra joined with single sign-on enabled on the host pool. The security team wants every AVD connection protected by multifactor authentication (MFA), re-authentication at least once an hour, and no impact on the Azure portal sign-ins of the same people. Security Defaults are currently off and some users still have legacy per-user MFA enabled.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {

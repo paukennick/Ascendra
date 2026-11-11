@@ -12,6 +12,7 @@ import { capsHeaders } from "./runtime/caps.ts";
 import { planFrame, type Anchor } from "./runtime/clock.ts";
 import { CALM_IDLE_MS, calmOffer, chapterCommand, chapterOffer, launchCommands, tickMsFor, trackIdle, type IdleState, type LaunchChoice } from "./runtime/pacing.ts";
 import type { Pace } from "./engine/v1/types.ts";
+import { alreadyGradedResult } from "./runtime/reasoningReplay.ts";
 import { accepted, applyServerCommand, clockRuns, issue, localHash, openSession, step, type CommandInput, type RunPayload, type Session } from "./runtime/session.ts";
 
 // REQ-190 (docs/sims.md 5.4, 5.7, 5.9, 7, 10): one run on this device.
@@ -440,12 +441,21 @@ export function useSimRun(simId: string) {
         id = Crypto.randomUUID();
         attemptIds.current.set(o.moment, id);
       }
-      const res = await api.post<ReasoningResult>(
-        `/api/sims/runs/${s.runId}/reasoning`,
-        { momentId: o.moment, openedSeq: o.openedSeq, openedTick: o.openedTick, answer, clientAttemptId: id },
-        { headers: capsHeaders() }
-      );
-      s.graded.push(o.moment);
+      let res: ReasoningResult;
+      try {
+        res = await api.post<ReasoningResult>(
+          `/api/sims/runs/${s.runId}/reasoning`,
+          { momentId: o.moment, openedSeq: o.openedSeq, openedTick: o.openedTick, answer, clientAttemptId: id },
+          { headers: capsHeaders() }
+        );
+      } catch (err) {
+        // Already graded (the first answer's reply was lost, or another device
+        // answered it): show that result rather than an error (FAIL-1050).
+        const earlier = alreadyGradedResult(err);
+        if (!earlier) throw err;
+        res = earlier;
+      }
+      if (!s.graded.includes(o.moment)) s.graded.push(o.moment);
       return res;
     },
     [flush]

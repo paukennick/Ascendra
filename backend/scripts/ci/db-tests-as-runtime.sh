@@ -30,6 +30,6 @@ OWNER_ONLY="lib/backup-housekeeping.dbtest.ts lib/mastery-model.dbtest.ts lib/ma
 RUNTIME_FILES="$(ls lib/*.dbtest.ts | grep -vxF -f <(printf '%s\n' $OWNER_ONLY) | tr '\n' ' ')"
 echo "== as app_runtime: $(echo $RUNTIME_FILES | wc -w) files"
 # shellcheck disable=SC2086
-npx tsx --test --test-concurrency=1 $RUNTIME_FILES
+npx tsx --test --test-concurrency=1 --import ./lib/test-setup.ts $RUNTIME_FILES
 echo "== as the owner (DDL and migration replay): $OWNER_ONLY"
-DATABASE_URL="$OWNER_DATABASE_URL" npx tsx --test --test-concurrency=1 $OWNER_ONLY
+DATABASE_URL="$OWNER_DATABASE_URL" npx tsx --test --test-concurrency=1 --import ./lib/test-setup.ts $OWNER_ONLY

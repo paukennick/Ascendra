@@ -8,6 +8,9 @@ this file and those pages together**.
 
 Rebuilt 2026-11-09 (REQ-205) from the table list of a database with every
 migration applied (migrations 001-070) and the foreign keys into `app_users`,
+and brought up to migration 077 on 2026-11-11 (REQ-228: 071-077 add
+`mature_content_confirmations`, `mastery_backup_074`,
+`inbound_email_events` and `app_users.totp_last_step`),
 not from memory: every table with a `user_id` column or a foreign key into
 `app_users` is below, and `lib/legal-privacy-f4.dbtest.ts` fails when a new one
 is missing from this file. Regenerate the list with:
@@ -35,7 +38,7 @@ row stays with its user link removed (and is listed under Kept after deletion).
 
 | Table | What it holds | Why | Kept while open | Kept after deletion | In export |
 |---|---|---|---|---|---|
-| `app_users` | email, display name, password hash, profile photo (small JPEG), MFA settings and encrypted TOTP secret, the newest "What's new" note dismissed, the age confirmation (`age_confirmed_at`, `age_confirmed_min`; no date of birth) | account and sign-in | while account open | nothing (row deleted) | yes (profile incl. photo and age confirmation; no secrets) |
+| `app_users` | email, display name, password hash, profile photo (small JPEG), MFA settings and encrypted TOTP secret, the last authenticator time step used (`totp_last_step`, migration 075, so a code works once), the newest "What's new" note dismissed, the age confirmation (`age_confirmed_at`, `age_confirmed_min`; no date of birth) | account and sign-in | while account open | nothing (row deleted) | yes (profile incl. photo and age confirmation; no secrets) |
 | `oauth_accounts` | Google account ID and email | Google sign-in | while linked | nothing (cascade) | yes (provider, email) |
 | `refresh_tokens` | session token hash, device label, user agent, IP address | keeping you signed in; session list | 30 days after the session ends (cron) | nothing (cascade) | yes (no hashes) |
 | `auth_events` | event type, email or user ID as identifier, IP address | rate limits, security history | 90 days (cron) | nothing: **deleted explicitly** by `DELETE /api/account` (the FK only nulls `user_id`, and the identifier is the email) | yes (type, IP, time; rows by address only since the account was created) |
@@ -43,6 +46,7 @@ row stays with its user link removed (and is listed under Kept after deletion).
 | `email_change_tokens` | token and cancel-link hashes, the requested new address, expiry, cancelled/used time | email change, and the "this wasn't me" cancel link to the old address | 30 days after expiry (cron; REQ-139) | nothing (cascade) | no (secrets, short-lived) |
 | `mfa_backup_codes` | hashed backup codes | two-factor recovery | while MFA on | nothing (cascade) | no (secrets) |
 | `legal_acceptances` | which Terms, Privacy and study-notice versions were accepted, how and when | record of consent | while account open | nothing (cascade) | yes |
+| `mature_content_confirmations` | that the account confirmed it is 18 or older to see a mature-content category (mental health), which notice version, where it was asked (intake, catalog, course) and when; no date of birth | the 18+ gate on mental health courses (REQ-224) | while account open | nothing (cascade) | yes |
 | `track_acknowledgements`, `lab_disclaimer_acknowledgements` | which course / lab disclaimer version was accepted, when | history only since REQ-165 (the study notice is the gate) | while account open | nothing (cascade) | yes |
 | `account_access`, `account_access_events` | an email address given unrestricted access (even before an account uses it), who gave it, dates, a note; the audit trail of grants and changes | owner-granted access | while account open | nothing for a claimed grant (cascade on `user_id`); `granted_by` / `revoked_by` / `actor_id` of other accounts are set null | yes (giver named, not their address) |
 | `email_preferences`, `service_email_log` | on/off for exam change notices, exam countdown, weekly digest; which service email kind was sent for which period (no address, subject or body) | the learner's email choices; sending each at most once | while account open | nothing (cascade) | yes |
@@ -65,7 +69,7 @@ row stays with its user link removed (and is listed under Kept after deletion).
 | `chat_messages` | AI coach messages and replies | coach history | while account open | nothing (cascade) | yes |
 | `support_requests` | tickets, course requests, lesson reports (may name an objective and step), coach-reply reports (quote the reply) | support and content fixes | while account open | nothing (cascade) | yes |
 | `lesson_content_overrides`, `grading_claims`, `pbq_generation_claims` | a learner's generated lesson variant; seconds- to minutes-long leases | generation and grading | lease: minutes; override: while account open | nothing (cascade) | no (generated text, not learner input; no content) |
-| `mastery_backup_029`, `mastery_backup_031`, `mastery_backup_041`, `mastery_backup_045`, `error_log_backup_029` | rollback copies of mastery and error-log rows taken by older migrations | undoing those migrations | dropped after 30 days where they were kept | nothing (cascade) | no (rollback backups) |
+| `mastery_backup_029`, `mastery_backup_031`, `mastery_backup_041`, `mastery_backup_045`, `mastery_backup_074`, `error_log_backup_029` | rollback copies of mastery and error-log rows taken by older migrations | undoing those migrations | dropped after 30 days where they were kept | nothing (cascade) | no (rollback backups) |
 
 ### Plans, payments, discounts
 
@@ -98,6 +102,12 @@ row stays with its user link removed (and is listed under Kept after deletion).
 hold catalog, generated and reviewer text (for example `labs.review_note`,
 `item_status.resolved_note`), none of it from a learner.
 
+`inbound_email_events` (migration 075, REQ-219) holds only the delivery id
+(`svix-id`) of each message Resend passed to `/api/inbound/email`, and when it
+was claimed and forwarded, so a replayed delivery is forwarded once. No
+address, subject or body. Purged 7 days after it was claimed (retention job
+below).
+
 ## On the device
 
 | Where | Key | What |
@@ -105,9 +115,10 @@ hold catalog, generated and reviewer text (for example `labs.review_note`,
 | iOS Keychain / Android Keystore (Expo SecureStore) | `ascendra_refresh_token` | sign-in token |
 | same, biometric-protected | `ascendra_refresh_token_secure` | copy released only after a biometric or passcode check |
 | same | `ascendra_biometric_enabled` | the biometric-unlock setting |
-| Web: `sessionStorage` | same keys | cleared when the browser closes |
+| Web: httpOnly cookie `ascendra_rt` set by the server (REQ-192, `lib/auth/refreshCookie.ts`) | sign-in token, unreadable by page scripts | a browser-session cookie with no Max-Age: cleared when the browser closes. The web app keeps no token in `sessionStorage` or `localStorage` (an older one found there is moved into the cookie once) |
+| Web: `localStorage` | lock markers (`autoLock.ts`) | when the page locks after time away |
 
-No cookies, analytics, in-app crash reporting or advertising identifiers (server-side error reports: see Sentry below).
+No analytics, advertising or tracking cookies, in-app crash reporting or advertising identifiers; the one cookie is the sign-in cookie above (server-side error reports: see Sentry below). The Cookies page (`mobile/src/content/legal.ts`) still says the web token is in session storage: that text is waiting for Nick (REQ-228).
 
 ## Outside services (processors)
 
@@ -131,7 +142,8 @@ without it the route refuses every call, so nothing is purged.
 `lib/retention.test.ts` fails if the periods drift from the Privacy Policy.
 It purges: `auth_events` 90 days, ended `refresh_tokens` 30 days, one-time
 tokens and challenges 7 days after expiry, `email_change_tokens` 30 days after
-expiry, and (REQ-205) `ai_calls` 12 months after the request.
+expiry, `inbound_email_events` 7 days after the delivery was claimed
+(REQ-219), and (REQ-205) `ai_calls` 12 months after the request.
 
 Release backups (REQ-168): a pre-release copy of production data taken
 inside the database -- a table `public.backup_release_YYYYMMDD` or a schema

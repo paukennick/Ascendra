@@ -134,14 +134,14 @@ describe("M2 + L2: content validator (FAIL-297, FAIL-306)", () => {
     assert.equal(languageProblem(["Use AES-256-GCM with a 96-bit IV; TLS 1.3 and SHA-256 are the defaults."]), null);
     assert.equal(languageProblem(["Ceci est une leçon"], "fr"), null, "only English is checked today");
   });
-  test("generateValid regenerates once, then fails cleanly with a 503", async () => {
+  test("generateValid regenerates once, then fails cleanly with a 4xx", async () => {
     let calls = 0;
     const out = await generateValid("lesson", async () => ++calls, (n) => (n < 2 ? ["bad"] : []), () => {});
     assert.equal(out, 2);
     calls = 0;
     await assert.rejects(
       generateValid("lesson", async () => ++calls, () => ["bad"], () => {}),
-      (e: unknown) => e instanceof InvalidContentError && e.status === 503 && calls === 2
+      (e: unknown) => e instanceof InvalidContentError && e.status === 409 && calls === 2
     );
   });
 });

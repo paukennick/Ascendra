@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { BrandMark, Screen, Card, H1, Muted, TextField, Button, ErrorBanner, EmptyState } from "@/components/ui";
-import { api, ApiError } from "@/api/client";
+import { api } from "@/api/client";
+import { messageOr } from "@/lib/errorMessage";
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function ForgotPassword() {
       await api.post("/api/auth/forgot-password", { email: email.trim() });
       setStatus("sent");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+      setError(messageOr(err, "Something went wrong."));
       setStatus("idle");
     }
   };

@@ -148,7 +148,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose a deployment strategy and success metrics for three services",
       brief:
-        "Verdant Energy (fictional) is about to ship changes to three systems. (1) The customer billing API on GKE: a performance-sensitive refactor with no behaviour change; the team wants real-traffic evidence before full exposure. (2) The meter-reading batch processor on Compute Engine: it runs nightly against a database, cannot run two versions concurrently against the same data, and must be switchable back within minutes. (3) The web portal on Cloud Run: a redesigned sign-up page that product wants to show to 10% of visitors for two weeks to measure completion rate, and be able to turn off instantly without a deploy. Choose a strategy and define the success and abort metrics for each.",
+        "Verdant Energy (fictional) is about to ship changes to three systems. (1) The customer billing API on GKE: a performance-sensitive refactor with no behavior change; the team wants real-traffic evidence before full exposure. (2) The meter-reading batch processor on Compute Engine: it runs nightly against a database, cannot run two versions concurrently against the same data, and must be switchable back within minutes. (3) The web portal on Cloud Run: a redesigned sign-up page that product wants to show to 10% of visitors for two weeks to measure completion rate, and be able to turn off instantly without a deploy. Choose a strategy and define the success and abort metrics for each.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -172,7 +172,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
             ),
             part(
               "Where the metrics come from",
-              "Names the telemetry sources: Cloud Monitoring metrics per revision/pod version (labelled by version), log-based or custom metrics for business events (sign-up completed, job record count), traces for latency breakdown, and SLO burn rate as the universal abort signal; metrics must be labelled by version to compare.",
+              "Names the telemetry sources: Cloud Monitoring metrics per revision/pod version (labeled by version), log-based or custom metrics for business events (sign-up completed, job record count), traces for latency breakdown, and SLO burn rate as the universal abort signal; metrics must be labeled by version to compare.",
               "Every metric must be split by version: Cloud Run and GKE metrics by revision or pod label, custom or log-based metrics for business events (sign-up completed, records processed) tagged with the version, and the SLO's burn rate as the common abort trigger. Without a version label there is no baseline to compare the canary against."
             ),
           ],
@@ -460,7 +460,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
       kind: "build",
       title: "Plan commitments, discounts and network tier for a steady platform",
       brief:
-        "Verdant Energy (fictional) has twelve months of billing data. Compute Engine: a steady floor of 120 vCPUs and 480 GB of memory on E2 machines in europe-west4 that has never dipped in a year; a nightly batch peak of another 200 vCPUs for 4 hours; and a GKE cluster whose node machine types the team expects to change next year. Network: the customer portal serves users in Europe only, through a global external Application Load Balancer, and a bulk data-export job pushes 20 TB a month from one region to a partner's data centre and is not latency-sensitive. Google's current figures: resource-based committed use discounts give up to 55% (up to 70% for memory-optimised machines); compute flexible commitments on E2 give 28% for one year and 46% for three; Spot VMs are up to 91% off with no SLA.",
+        "Verdant Energy (fictional) has twelve months of billing data. Compute Engine: a steady floor of 120 vCPUs and 480 GB of memory on E2 machines in europe-west4 that has never dipped in a year; a nightly batch peak of another 200 vCPUs for 4 hours; and a GKE cluster whose node machine types the team expects to change next year. Network: the customer portal serves users in Europe only, through a global external Application Load Balancer, and a bulk data-export job pushes 20 TB a month from one region to a partner's data center and is not latency-sensitive. Google's current figures: resource-based committed use discounts give up to 55% (up to 70% for memory-optimized machines); compute flexible commitments on E2 give 28% for one year and 46% for three; Spot VMs are up to 91% off with no SLA.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -470,7 +470,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
             part(
               "The steady floor",
               "Covers the 120 vCPU / 480 GB floor with a committed use discount: resource-based (specific family and region) for the deepest discount if the E2 footprint will stay, or compute flexible if the machine types may change; chooses a term (3-year for the deepest discount on a floor that never dipped) and names the trade-off (paid whether used or not, no cancellation).",
-              "Commit the floor. If Verdant is confident it stays on E2 in europe-west4, a resource-based commitment for 120 vCPUs and 480 GB gives the largest discount (Google quotes up to 55% for most series). A 3-year term makes sense for a floor that has not dipped in a year; the trade-off is that the commitment is billed whether or not the capacity is used and cannot be cancelled."
+              "Commit the floor. If Verdant is confident it stays on E2 in europe-west4, a resource-based commitment for 120 vCPUs and 480 GB gives the largest discount (Google quotes up to 55% for most series). A 3-year term makes sense for a floor that has not dipped in a year; the trade-off is that the commitment is billed whether or not the capacity is used and cannot be canceled."
             ),
             part(
               "The GKE cluster with changing machine types",
@@ -497,12 +497,12 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
       kind: "build",
       title: "Cut the cost of three workloads without hurting their SLOs",
       brief:
-        "Verdant Energy (fictional) has three cost findings. (1) A GKE Standard cluster: nodes average 22% CPU utilisation; most Deployments request 2 vCPU and 4 GiB but use 200 millicores and 500 MiB; the cluster has no autoscaling and a nightly report job runs on the same nodes. (2) A Cloud Run service with concurrency 1, CPU always allocated, and 5 minimum instances for an internal tool that gets 200 requests an hour, almost all in office hours. (3) A fleet of 40 n2-standard-8 Compute Engine VMs for a dev environment, running 24/7, with the rightsizing recommender showing most would fit n2-standard-2. Recommend specific changes for each.",
+        "Verdant Energy (fictional) has three cost findings. (1) A GKE Standard cluster: nodes average 22% CPU utilization; most Deployments request 2 vCPU and 4 GiB but use 200 millicores and 500 MiB; the cluster has no autoscaling and a nightly report job runs on the same nodes. (2) A Cloud Run service with concurrency 1, CPU always allocated, and 5 minimum instances for an internal tool that gets 200 requests an hour, almost all in office hours. (3) A fleet of 40 n2-standard-8 Compute Engine VMs for a dev environment, running 24/7, with the rightsizing recommender showing most would fit n2-standard-2. Recommend specific changes for each.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Give the concrete optimisation for each workload and the check that it did not harm reliability.",
+          ask: "Give the concrete optimization for each workload and the check that it did not harm reliability.",
           parts: [
             part(
               "GKE cluster",
@@ -516,8 +516,8 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
             ),
             part(
               "Compute Engine dev fleet",
-              "Applies the rightsizing recommendations (n2-standard-8 to n2-standard-2 where indicated, a quarter of the vCPUs and memory), schedules the dev VMs to stop outside working hours (about 50 of 168 hours a week), and considers Spot for throwaway dev instances; verifies with developer feedback and CPU/memory utilisation after the change.",
-              "Resize the recommended VMs from n2-standard-8 to n2-standard-2, cutting their compute to a quarter, and put the fleet on a schedule that stops them nights and weekends, so they run roughly 50 of 168 hours. Where a dev box can be recreated from a template, run it as a Spot VM. Check: utilisation after resizing stays below saturation and developers report no slowdowns; keep the recommender on to catch drift."
+              "Applies the rightsizing recommendations (n2-standard-8 to n2-standard-2 where indicated, a quarter of the vCPUs and memory), schedules the dev VMs to stop outside working hours (about 50 of 168 hours a week), and considers Spot for throwaway dev instances; verifies with developer feedback and CPU/memory utilization after the change.",
+              "Resize the recommended VMs from n2-standard-8 to n2-standard-2, cutting their compute to a quarter, and put the fleet on a schedule that stops them nights and weekends, so they run roughly 50 of 168 hours. Where a dev box can be recreated from a template, run it as a Spot VM. Check: utilization after resizing stays below saturation and developers report no slowdowns; keep the recommender on to catch drift."
             ),
             part(
               "The common method",

@@ -386,14 +386,14 @@ export const SOURCES: LegalDoc = {
     {
       title: "Trademarks",
       body: [
-        "Exam, credential and organisation names used to describe courses are trademarks of their owners. Ascendra is not affiliated with, sponsored by or endorsed by any of them, including:",
+        "Exam, credential and organization names used to describe courses are trademarks of their owners. Ascendra is not affiliated with, sponsored by or endorsed by any of them, including:",
         ...TRADEMARK_OWNERS.map((o) => `• ${o}`),
       ],
     },
     {
       title: "Open textbooks",
       body: [
-        "Course depth draws on openly licensed material, used under its licence for facts and topic structure only:",
+        "Course depth draws on openly licensed material, used under its license for facts and topic structure only:",
         "• OpenStax (Rice University) nursing, anatomy and physiology texts — CC BY or CC BY-NC-SA 4.0.",
         "• Open RN (Chippewa Valley Technical College) nursing texts — CC BY 4.0.",
         "• StatPearls (NCBI Bookshelf) — CC BY-NC-ND 4.0.",
@@ -405,13 +405,13 @@ export const SOURCES: LegalDoc = {
 
 export const ABOUT: LegalDoc = {
   title: "About Ascendra",
-  version: "2026-11-07",
-  updated: "November 7, 2026",
+  version: "2026-11-11",
+  updated: "November 11, 2026",
   sections: [
     {
       title: "What it's for",
       body: [
-        "Ascendra helps people prepare for certification and licensing exams and work through degree-level coursework — nursing, critical care, physical therapy, health informatics, cloud, cybersecurity and project management — on the web and on their phone.",
+        "Ascendra helps people prepare for certification and licensing exams and work through degree-level coursework — nursing, critical care, emergency medical services, physical therapy, mental health, fitness, health informatics, cloud, cybersecurity, programming and project management — on the web and on their phone.",
       ],
     },
     {
@@ -423,7 +423,7 @@ export const ABOUT: LegalDoc = {
     {
       title: "Where the content comes from",
       body: [
-        "Course outlines follow official exam blueprints and accreditation standards, deepened from reviewed open textbooks and official guidelines (see Sources & Trademarks). Lessons themselves are written by AI from those outlines, so they can be wrong — report anything that looks off and it will be fixed.",
+        "Course outlines follow official exam blueprints and accreditation standards, deepened from reviewed open textbooks and official guidelines (see Sources & Trademarks). Lessons themselves are written by AI from those outlines and checked by a separate AI fact-check before you see them, so they can still be wrong — report anything that looks off and it will be fixed.",
       ],
     },
     {
@@ -435,13 +435,13 @@ export const ABOUT: LegalDoc = {
 
 export const FAQ: LegalDoc = {
   title: "FAQ",
-  version: "2026-11-07",
-  updated: "November 7, 2026",
+  version: "2026-11-11",
+  updated: "November 11, 2026",
   sections: [
     {
       title: "What is Ascendra?",
       body: [
-        "A self-study companion for exam prep and coursework. Each objective runs a guess → teach → guided practice → solo loop, mastery is tracked per objective, missed questions come back for spaced review, and some courses include a performance-based question simulator.",
+        "A self-study companion for exam prep and coursework. Each objective runs a guess → teach → guided practice → solo loop, mastery is tracked per objective, what you've learned comes back for spaced review, and many courses add practice exams, scenario questions and hands-on labs.",
       ],
     },
     {
@@ -453,13 +453,13 @@ export const FAQ: LegalDoc = {
     {
       title: "Who writes the lessons?",
       body: [
-        "An AI model writes each lesson from the course objective, and the objectives come from official exam outlines and reviewed open textbooks. Lessons are not checked by a person before you see them, so they can be wrong — use “Report a problem” on any lesson that looks off.",
+        "An AI model writes each lesson from the course objective, and the objectives come from official exam outlines and reviewed open textbooks. A separate AI fact-check reviews each lesson and question first; one that fails is held back and written again, and if it still can't be shown you're told why. They are not checked by a person before you see them, so they can be wrong — use “Report a problem” on any lesson that looks off.",
       ],
     },
     {
       title: "Can I use the clinical courses at work?",
       body: [
-        "No. Nursing, critical-care and physical therapy courses are exam preparation only. Follow your licence, your employer's policies and current references at the bedside.",
+        "No. Nursing, critical care, emergency medical services, physical therapy and mental health courses are exam preparation only. Follow your license, your employer's policies and current references at work.",
       ],
     },
     {
@@ -469,7 +469,7 @@ export const FAQ: LegalDoc = {
     {
       title: "How does mastery work?",
       body: [
-        "Each answer is evidence for that objective's mastery level, weighted by the kind of question and by whether you had help (choices on screen, or a question you've seen before, count for less). Independent needs about 70% weighted accuracy; Transfer-ready needs 80% and a second kind of answer on a later day. Objectives you've reached come back in Today's review after 1, 3, 7, 21 and 60 days, and a miss brings a question back sooner.",
+        "Each answer is evidence for that objective's mastery level, weighted by the kind of question and by whether you had help (choices on screen, or a question you've seen before, count for less). Independent needs about 70% weighted accuracy and a second correct answer on your own at least a day after the first. Transfer-ready needs 80%, correct answers on your own in two different kinds of question, and at least three days between the first and the last. Objectives you've reached come back in Today's review after 1, 3, 7, 21 and 60 days, never sooner than a full 24 hours after your last review, and a miss brings a question back sooner.",
       ],
     },
     {
@@ -485,7 +485,7 @@ export const FAQ: LegalDoc = {
     {
       title: "Why did I get signed out?",
       body: [
-        "On the web, closing the browser signs you out, and an idle tab signs out after 30 minutes. In the app, closing it signs you out unless biometric unlock is on, in which case it locks instead.",
+        "In the app you stay signed in: after time away it locks instead, and you unlock with your fingerprint, face or password. On the web, closing the browser signs you out, the page locks after time away, and 30 minutes without activity signs you out. You choose when it locks in Settings > Security > Lock Ascendra. Changing your password or choosing “Sign out of all devices” signs you out everywhere else.",
       ],
     },
     {

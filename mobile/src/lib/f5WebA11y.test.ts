@@ -219,7 +219,7 @@ describe("FAIL-922..925: wiring that the keyboard and screen readers depend on (
 
 describe("FAIL-928..933, 938: roles, labels, wording and structure (static)", () => {
   const read = (p: string) => readFileSync(new URL(`../../${p}`, import.meta.url), "utf8");
-  test("FAIL-928: the current choice in the lock sheet is marked by a check and 'selected', not colour alone", () => {
+  test("FAIL-928: the current choice in the lock sheet is marked by a check and 'selected', not color alone", () => {
     assert.match(read("app/(app)/settings.tsx"), /selected: o === lockAfter/);
     const ui = read("src/components/ui.tsx");
     assert.match(ui, /selected\?: boolean/);

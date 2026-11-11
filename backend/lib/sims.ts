@@ -1,4 +1,4 @@
-import { consumeGradedAnswer } from "@/lib/ai-access";
+import { consumeGradedAnswer, releaseOnce } from "@/lib/ai-access";
 import { randomInt } from "node:crypto";
 import { NextResponse } from "next/server";
 import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
@@ -74,7 +74,7 @@ export class SimError extends Error {
 
 export function simRouteError(err: unknown) {
   if (err instanceof AuthError) return unauthorized(err.message);
-  if (err instanceof AcknowledgementError) return forbidden(err.message);
+  if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
   if (err instanceof SimError) return NextResponse.json({ ...(err.extra ?? {}), error: err.message, code: err.code }, { status: err.status });
   if (err instanceof ReplayBudgetError) return NextResponse.json({ error: err.message, code: "replay_budget" }, { status: 413 });
   if (err instanceof GradingInProgressError) return NextResponse.json({ error: err.message, code: "grading_in_progress" }, { status: 409 });
@@ -838,8 +838,11 @@ export async function gradeReasoning(
       if (err instanceof RateLimitError) throw new SimError(429, "rate_limited", err.message);
       throw err;
     }
-    const use = await consumeGradedAnswer(userId, () => consumeAllowance(userId, "graded_answer")); // REQ-201
+    const use = releaseOnce(await consumeGradedAnswer(userId, () => consumeAllowance(userId, "graded_answer"))); // REQ-201
     const ctx = (await coachContextForObjective(sim.objective_id)) ?? undefined;
+    // REQ-216 (low): the counted use is given back when the grader throws (it
+    // used to be given back only when the grader reported `failed`), when the
+    // write fails, and when another copy of this answer was stored first.
     const out = await gradeSimReasoning(
       {
         simTitle: sim.title,
@@ -853,41 +856,59 @@ export async function gradeReasoning(
         userId,
       },
       model
-    );
+    ).catch(async (err) => {
+      await use.release();
+      throw err;
+    });
     if (out.failed) await use.release();
     const g = out.graded;
     try {
-      const row = await queryOne<ReasoningRow>(
-        `insert into sim_run_reasoning
-           (run_id, moment_id, user_id, opened_tick, opened_seq, client_attempt_id, answer, status, verdict, feedback,
-            part_scores, missed_parts, classification, fix_next)
-         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-         on conflict (run_id, moment_id) do nothing
-         returning *`,
-        [
-          run.id,
-          momentId,
-          userId,
-          openedTick,
-          openedSeq,
-          clientAttemptId,
-          answer,
-          g ? "graded" : "grader_failed",
-          g?.verdict ?? null,
-          g ? cleanText(g.feedback, 4000) : "The grader could not be reached. This moment is left out of your score.",
-          g ? JSON.stringify(g.partScores.map((p) => ({ part: cleanText(p.part, 300), score: p.score, comment: cleanText(p.comment ?? "", 600) }))) : null,
-          g ? JSON.stringify(g.missedParts.map((m) => cleanText(m, 300))) : null,
-          g ? cleanText(g.classification ?? "", 200) : null,
-          g ? cleanText(g.fixNext ?? "", 600) : null,
-        ]
-      );
+      // REQ-218 (M3): the run is locked FOR SHARE for the insert and must still
+      // be open. finishRun holds the row FOR UPDATE while it scores, so an
+      // answer either lands before the finish (and is scored) or is refused;
+      // before, one graded while the finish ran was stored against an ended
+      // run and the debrief and score disagreed. A refused answer stores
+      // nothing, so the graded-answer use is given back.
+      const row = await withTransaction(async (tx) => {
+        const live = await tx.queryOne<{ status: string }>(`select status from sim_runs where id = $1 for share`, [run.id]);
+        if (!live || live.status !== "open") {
+          if (!out.failed) await use.release();
+          throw new SimError(409, "run_ended", "This run has ended.");
+        }
+        return tx.queryOne<ReasoningRow>(
+          `insert into sim_run_reasoning
+             (run_id, moment_id, user_id, opened_tick, opened_seq, client_attempt_id, answer, status, verdict, feedback,
+              part_scores, missed_parts, classification, fix_next)
+           values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+           on conflict (run_id, moment_id) do nothing
+           returning *`,
+          [
+            run.id,
+            momentId,
+            userId,
+            openedTick,
+            openedSeq,
+            clientAttemptId,
+            answer,
+            g ? "graded" : "grader_failed",
+            g?.verdict ?? null,
+            g ? cleanText(g.feedback, 4000) : "The grader could not be reached. This moment is left out of your score.",
+            g ? JSON.stringify(g.partScores.map((p) => ({ part: cleanText(p.part, 300), score: p.score, comment: cleanText(p.comment ?? "", 600) }))) : null,
+            g ? JSON.stringify(g.missedParts.map((m) => cleanText(m, 300))) : null,
+            g ? cleanText(g.classification ?? "", 200) : null,
+            g ? cleanText(g.fixNext ?? "", 600) : null,
+          ]
+          );
+      });
       if (!row) {
+        await use.release();
         const again = await replay();
         if (again) return again;
         throw new SimError(409, "already_graded", "This reasoning moment was already answered.");
       }
       return reasoningShape(row, doc, false);
     } catch (err) {
+      await use.release();
       const e = err as { code?: string; constraint?: string };
       if (clientAttemptId && e?.code === "23505") {
         const again = await replay();

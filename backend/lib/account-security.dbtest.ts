@@ -595,7 +595,12 @@ describe("FAIL-869: multi-statement writes are all-or-nothing", () => {
     const setup = await call(mfaSetup, { body: { reauth: PW }, headers: s.auth });
     const code = await totpGenerate({ secret: setup.body.secret });
     const rs = await Promise.all([call(mfaEnable, { body: { code }, headers: s.auth }), call(mfaEnable, { body: { code }, headers: s.auth })]);
-    assert.deepEqual(rs.map((r) => r.status).sort(), [200, 400]);
+    // Exactly one enables. The other is told there is no pending setup (400), or,
+    // when it reaches requireUser after the winner has ended other sessions, that
+    // its session was signed out (401): which one depends on timing under load.
+    const statuses = rs.map((r) => r.status).sort();
+    assert.equal(statuses[0], 200);
+    assert.ok([400, 401].includes(statuses[1]), `the loser answers 400 or 401, got ${statuses[1]}`);
     const n = await queryOne<{ n: string }>(`select count(*) n from mfa_backup_codes where user_id=$1 and method='totp'`, [u.id]);
     assert.equal(Number(n!.n), 10);
   });

@@ -41,12 +41,12 @@ export const PMIPMOCP_LABS: SeedLabSet = {
           parts: [
             part(
               "Priorities",
-              "Prioritises the weakest areas with the most business impact (risk and benefits at level 1, then planning and resources) rather than spreading effort evenly, and sequences so each step builds on the previous.",
+              "Prioritizes the weakest areas with the most business impact (risk and benefits at level 1, then planning and resources) rather than spreading effort evenly, and sequences so each step builds on the previous.",
               "Year 1: risk management 1 -> 2 (register, scales, monthly reviews) and benefits tracking 1 -> 2 (benefit owner and measures in every business case); planning 2 -> 3 (standard schedule templates). Year 2: risk and benefits to 3, resource management 2 -> 3."
             ),
             part(
               "Realism",
-              "Checks the plan against PMO capacity (four staff) and change capacity of the organisation, and says what's needed if the CEO's target isn't achievable without more resource.",
+              "Checks the plan against PMO capacity (four staff) and change capacity of the organization, and says what's needed if the CEO's target isn't achievable without more resource.",
               "With four staff, two areas at a time is realistic. Level 3 in every area in two years needs either an extra coach or accepting that resource management reaches 3 in year 3; put that choice to the CEO."
             ),
             part(
@@ -90,7 +90,7 @@ export const PMIPMOCP_LABS: SeedLabSet = {
           parts: [
             part(
               "Mentoring and performance integration",
-              "Pairs engineers with experienced mentors on live projects and integrates PM competencies and objectives into performance reviews so they are recognised and expected.",
+              "Pairs engineers with experienced mentors on live projects and integrates PM competencies and objectives into performance reviews so they are recognized and expected.",
               "Assign each engineer a mentor from the Lead group for monthly reviews of a live project, and add PM objectives and competency level to annual performance reviews and promotion criteria."
             ),
           ],
@@ -119,7 +119,7 @@ export const PMIPMOCP_LABS: SeedLabSet = {
             ),
             part(
               "Authority and sponsor",
-              "Defines the PMO's authority (e.g. set reporting standards, escalate to the sponsor, advise on prioritisation) and the executive sponsor's role.",
+              "Defines the PMO's authority (e.g. set reporting standards, escalate to the sponsor, advise on prioritization) and the executive sponsor's role.",
               "Authority: set minimum reporting standards, request information, escalate concerns to the finance director, advise the investment committee. Sponsor: finance director, who champions the PMO and resolves escalations."
             ),
             part(
@@ -177,7 +177,7 @@ export const PMIPMOCP_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Categorise the customers and write a short persona for three of them.",
+          ask: "Categorize the customers and write a short persona for three of them.",
           parts: [
             part(
               "Categories",
@@ -238,7 +238,7 @@ export const PMIPMOCP_LABS: SeedLabSet = {
       kind: "case",
       title: "Onboarding a business unit that never used the PMO",
       brief:
-        "Granite Insurance's (fictional) claims division, with 8 active projects, has just been brought under the PMO's scope. Its director is sceptical.",
+        "Granite Insurance's (fictional) claims division, with 8 active projects, has just been brought under the PMO's scope. Its director is skeptical.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -427,12 +427,12 @@ export const PMIPMOCP_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Analyse the data and recommend an initiative.",
+          ask: "Analyze the data and recommend an initiative.",
           parts: [
             part(
               "Analysis",
               "Calculates 18/22 = 82% vs 7/18 = 39% within budget, and notes the difference may partly reflect which projects chose a workshop (selection bias), so it's suggestive, not proof.",
-              "With workshop: 18/22 = 82% within budget; without: 7/18 = 39%. A big difference, but teams that asked for workshops may already have been better organised, so it suggests rather than proves the effect."
+              "With workshop: 18/22 = 82% within budget; without: 7/18 = 39%. A big difference, but teams that asked for workshops may already have been better organized, so it suggests rather than proves the effect."
             ),
             part(
               "Recommendation",

@@ -24,7 +24,7 @@ test("build tags are short and header-safe", () => {
   });
 });
 
-test("readUpdateRequired recognises only the server's 426 and keeps only store links", () => {
+test("readUpdateRequired recognizes only the server's 426 and keeps only store links", () => {
   assert.equal(readUpdateRequired(400, { code: "update_required" }), null);
   assert.equal(readUpdateRequired(426, { error: "x" }), null);
   assert.deepEqual(

@@ -35,7 +35,7 @@
 //
 // Inline tag key: CAPTE-PT 7xn = PT required element; CMS-BPM15 n =
 // Medicare Benefit Policy Manual ch. 15 section; CFR 410.60 = 42 CFR
-// 410.60; APTA-COE = APTA Code of Ethics for the Physical Therapist;
+// 410.60; APTA-COE = APTA Code of Ethics for the Physical Therapy Profession (2026); MM12071 = CMS MLN Matters MM12071;
 // FSBPT-PT pN = page of the 2024 NPTE-PT content outline; CPG-xxx =
 // guideline below; SP-xxx = StatPearls chapter below; AP n.n = OpenStax
 // Anatomy and Physiology 2e section.
@@ -49,9 +49,19 @@
 // - FSBPT, "NPTE-PT Test Content Outline, effective January 2024" (bullets
 //   edition), page 10, for the system-interactions scope.
 //   https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PT-Test-Content-Outline-Bullets.pdf
-// - APTA, "Code of Ethics for the Physical Therapist", HOD S06-20-28-25.
-//   Copyright 2020 APTA; scope only.
-//   https://www.apta.org/siteassets/pdfs/policies/codeofethicshods06-20-28-25.pdf
+// - APTA, "Code of Ethics for the Physical Therapy Profession", adopted by
+//   the House of Delegates 2025-07-14, effective 2026-01-01; one code for
+//   PTs and PTAs, replacing the Code of Ethics for the Physical Therapist
+//   (HOD S06-20-28-25) and the Standards of Ethical Conduct for the PTA.
+//   Read 2026-11-10 (REQ-220): six ethical principles, nine Ethical
+//   Commitments with Standards of Conduct; pro bono is aspirational
+//   example 9.E. Scope only.
+//   https://www.apta.org/siteassets/pdfs/policies/apta-code-ethics-physical-therapy-profession.pdf
+//   https://www.apta.org/article/2026/01/02/new-code-of-ethics-for-the-physical-therapy-profession
+// - CMS, MLN Matters MM12071 (effective 2021-01-01): a PT may delegate
+//   furnishing maintenance therapy to a PTA, as clinically appropriate.
+//   Read 2026-11-10 (REQ-220).
+//   https://www.hhs.gov/guidance/sites/default/files/hhs-guidance-documents/MM12071.pdf
 // - CMS, Medicare Benefit Policy Manual, ch. 15, Rev. 13889 (issued
 //   2026-07-30), sec. 220.1.2, 220.1.3, 220.2, 220.3, 230.1. Public domain.
 //   https://www.cms.gov/Regulations-and-Guidance/Guidance/Manuals/downloads/bp102c15.pdf
@@ -116,6 +126,10 @@ const CAPTE_PROVIDER = {
 const VERIFIED_AT = "2026-10-08T00:00:00Z";
 const PT_DISCLAIMER_KEY = "pt-clinical-content";
 
+// REQ-220: superseded or wrong lines retired in place (ids and history kept);
+// their replacements are appended to the same unit.
+const PT_REQ220_RETIRED_AT = "2026-11-10T00:00:00Z";
+
 export const DPT_TRACK: SeedTrack = {
   code: "DPT",
   title: "Doctor of Physical Therapy (DPT) Coach",
@@ -162,41 +176,47 @@ export const DPT_TRACK: SeedTrack = {
         "Exercise science: energy systems, training principles and physiological responses to exercise",
         "Biomechanics and kinesiology: forces, levers, joint mechanics and normal movement analysis",
         "Neuroscience, motor control and motor learning as the basis for movement retraining",
-        "Diagnostic imaging: reading the report and recognising what a PT should and should not infer from it",
+        "Diagnostic imaging: reading the report and recognizing what a PT should and should not infer from it",
         "Pharmacology: drug classes that alter exercise response, balance, cognition and healing",
         "Nutrition and its influence on recovery, tissue healing and performance",
-        "Pain science and the lived pain experience, including central sensitisation and persistent pain",
-        "Psychosocial aspects of health and disability, including behaviour change and adherence",
+        "Pain science and the lived pain experience, including central sensitization and persistent pain",
+        "Psychosocial aspects of health and disability, including behavior change and adherence",
         // Added 2026-11-04: depth from open textbooks and Tier 1 sources (see source header at top of file).
-        "Haematologic, hepatic and biliary, and immune system anatomy, physiology and pathology, which CAPTE's 2024 standard also names alongside the cardiopulmonary, musculoskeletal and other core systems", // CAPTE-PT 7A
+        "Hematologic, hepatic and biliary, and immune system anatomy, physiology and pathology, which CAPTE's 2024 standard also names alongside the cardiopulmonary, musculoskeletal and other core systems", // CAPTE-PT 7A
         "The four cardinal signs of inflammation -- heat, redness, pain and swelling -- and loss of function as a possible fifth, when tissue is injured", // AP 4.6
-        "Fracture healing in sequence: fracture haematoma, internal and external callus, cartilage replaced by trabecular bone, then remodelling; and mechanical stress as the stimulus for bone deposition", // AP 6.5; AP 6.6
-        "Skeletal muscle fibre types -- slow oxidative, fast oxidative and fast glycolytic -- and how each produces ATP and how quickly it fatigues", // AP 10.5
+        "Fracture healing in sequence: fracture hematoma, internal and external callus, cartilage replaced by trabecular bone, then remodeling; and mechanical stress as the stimulus for bone deposition", // AP 6.5; AP 6.6
+        "Skeletal muscle fiber types -- slow oxidative, fast oxidative and fast glycolytic -- and how each produces ATP and how quickly it fatigues", // AP 10.5
         "The length-tension relationship: peak sarcomere tension develops between about 80 and 120 percent of resting length", // AP 10.4
-        "Hypertrophy, atrophy and age-related sarcopenia as changes in the structural protein of existing muscle fibres rather than the number of cells", // AP 10.6
+        "Hypertrophy, atrophy and age-related sarcopenia as changes in the structural protein of existing muscle fibers rather than the number of cells", // AP 10.6
         "Muscle roles in a movement -- prime mover (agonist), antagonist, synergist and fixator -- and the body as a lever system with bones as levers, joints as fulcrums and muscle as the effort", // AP 11.1
         "Planes of motion (flexion and extension in the sagittal plane) and the six synovial joint types: ball-and-socket, hinge, pivot, saddle, condyloid and plane", // AP 9.5; AP 9.4
         "Cardiac output as stroke volume times heart rate, and the heart rate rise that drives most of the increase in cardiac output during acute aerobic exercise", // AP 19.4; SP-AEROBIC
         "Breathing mechanics: the diaphragm and intercostal muscles create the pressure changes that move air, while the lungs themselves stay passive", // AP 22.3
         "The lymphatic system's role in returning excess interstitial fluid to the bloodstream and the lymph nodes' role in filtering and immune staging, as the basis for lymphedema care", // AP 21.1
         "The four hypersensitivity types and how autoimmune disease breaks immune self-tolerance, as background for autoimmune conditions seen in rehabilitation", // AP 21.6; FSBPT-PT p10
+        // REQ-220 (FAIL-1137): replaces the sarcopenia line, which said ageing changes only the protein of existing fibres; OpenStax A&P 2e 10.6 says ageing fibres die. // AP 10.6
+        "Hypertrophy and atrophy as structural protein added to or lost from existing muscle fibers (no new cells form), and age-related sarcopenia, in which muscle fibers also die and are replaced by connective and adipose tissue",
       ],
+      objectiveRetiredAt: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, PT_REQ220_RETIRED_AT, null, null, null, null, null, null, null],
     },
     {
       title: "Ethics, values, service and leadership (7B)",
-      gate: "Given a practice dilemma, name the principle of the APTA Code of Ethics or Core Value at stake and the action it requires.",
+      gate: "Given a practice dilemma, name the ethical principle or Ethical Commitment of APTA's Code of Ethics for the Physical Therapy Profession at stake and the Standard of Conduct or action it requires.",
       objectives: [
         "The APTA Code of Ethics and Core Values for the physical therapist and physical therapist assistant, applied to real practice decisions",
         "Service and leadership: advocacy, community collaboration and responding to health care disparity",
-        "Practising within the legal framework of the jurisdiction, including the state practice act and relevant federal requirements",
+        "Practicing within the legal framework of the jurisdiction, including the state practice act and relevant federal requirements",
         "Professional responsibility: integrity, accountability and the duty to report",
         // Added 2026-11-04: depth from open textbooks and Tier 1 sources (see source header at top of file).
         "The eight principles of the APTA Code of Ethics and the core values they draw on: integrity, compassion and caring, accountability, duty, altruism, excellence, collaboration and social responsibility", // APTA-COE
-        "The ethical duty to give pro bono physical therapy, or back organisations meeting the health needs of uninsured, underinsured or economically disadvantaged people", // APTA-COE
+        "The ethical duty to give pro bono physical therapy, or back organizations meeting the health needs of uninsured, underinsured or economically disadvantaged people", // APTA-COE
         "Informed consent as an ongoing conversation about the nature, risks, benefits and alternatives of an intervention, which the patient may refuse or withdraw at any time", // SP-CONSENT
         "HIPAA obligations for protected health information, including the Privacy Rule, Security Rule and breach notification requirements", // SP-HIPAA
-        "The clinician's duty as a mandated reporter of suspected child abuse, and recognising physical, psychological, financial and neglect forms of elder abuse", // SP-CHILDABUSE; SP-ELDERABUSE
+        "The clinician's duty as a mandated reporter of suspected child abuse, and recognizing physical, psychological, financial and neglect forms of elder abuse", // SP-CHILDABUSE; SP-ELDERABUSE
+        // REQ-220 (FAIL-1133): the 2020 Code's eight principles were superseded on 2026-01-01. // APTA-COE
+        "APTA's Code of Ethics for the Physical Therapy Profession (effective 2026-01-01, one code for PTs and PTAs): the ethical principles of autonomy, beneficence, nonmaleficence, justice, veracity and fidelity, and the nine Ethical Commitments -- respect, integrity, accountability, maintaining professional relationships, compassion and trust, responsible business and organizational practices, direction and supervision, professional expertise, and societal responsibility -- with their enforceable Standards of Conduct",
       ],
+      objectiveRetiredAt: [null, null, null, null, PT_REQ220_RETIRED_AT, null, null, null, null, null],
     },
     {
       title: "Lifelong learning, education and health care disparities (7C)",
@@ -212,8 +232,8 @@ export const DPT_TRACK: SeedTrack = {
         "Evidence-based practice as three elements together -- the best research evidence, the clinician's expertise, and what the patient values and prefers -- plus judging whether a study's population matches the patient", // SP-EBM; CAPTE-PT 7C1
         "Diagnostic accuracy statistics: sensitivity, specificity, positive and negative predictive values and likelihood ratios, and why sensitivity and specificity tend to move in opposite directions", // SP-DTA
         "Hypothesis testing: what a p value and a confidence interval do and do not tell you, Type I and Type II errors, and the gap between statistical and clinical significance", // SP-HYPTEST; SP-STATSIG
-        "Study designs and what each can show: case-control, cohort and cross-sectional studies, randomised trials, and systematic reviews and meta-analyses at the top of the evidence hierarchy", // SP-EPIDESIGN; SP-EBM
-        "Motivational interviewing for behaviour change: open-ended questions, empathy, and working through the patient's ambivalence instead of directing them", // SP-MI; CAPTE-PT 7C2
+        "Study designs and what each can show: case-control, cohort and cross-sectional studies, randomized trials, and systematic reviews and meta-analyses at the top of the evidence hierarchy", // SP-EPIDESIGN; SP-EBM
+        "Motivational interviewing for behavior change: open-ended questions, empathy, and working through the patient's ambivalence instead of directing them", // SP-MI; CAPTE-PT 7C2
         "Culturally competent care that meets patients' cultural, social and religious needs, supported by training and by policies that lower barriers to care", // SP-CULTURE; CAPTE-PT 7C3
       ],
     },
@@ -235,7 +255,7 @@ export const DPT_TRACK: SeedTrack = {
         "Select from the neurologic core outcome set -- Berg Balance Scale, ABC Scale, Functional Gait Assessment, 10 Meter Walk Test, 6-Minute Walk Test and 5 Times Sit-to-Stand -- for adults in neurologic rehabilitation", // CPG-COM
         "Grade deep tendon reflexes on the NINDS scale from 0 (absent) upward, giving more weight to a side-to-side difference than to symmetric findings in an otherwise well patient", // SP-DTR
         "Coordination and gait examination: the Romberg test with eyes closed for proprioception versus station with eyes open, and cerebellar ataxia as a cause of abnormal findings", // AP 16.5
-        "Measure orthostatic vital signs, recognising orthostatic hypotension as a fall of at least 20 mm Hg systolic or 10 mm Hg diastolic within 3 minutes of standing", // SP-OH
+        "Measure orthostatic vital signs, recognizing orthostatic hypotension as a fall of at least 20 mm Hg systolic or 10 mm Hg diastolic within 3 minutes of standing", // SP-OH
         "Screen the abdomen for signs that need medical referral, such as McBurney point tenderness, Rovsing sign or psoas sign in appendicitis and Murphy sign in cholecystitis", // SP-APPY; SP-CHOLE; FSBPT-PT p7
       ],
     },
@@ -250,7 +270,7 @@ export const DPT_TRACK: SeedTrack = {
         "Establishing a safe and effective plan of care in collaboration with the patient, caregivers, payers and other professionals",
         "Determining and supervising the components of care that may be directed to a physical therapist assistant: team-based care, patient needs, the PTA's competence, jurisdictional law, payer and facility policy",
         "Determining and supervising activities that may be directed to unlicensed support personnel",
-        "Creating a discontinuation-of-care plan that optimises success after the episode ends",
+        "Creating a discontinuation-of-care plan that optimizes success after the episode ends",
         // Added 2026-11-04: depth from open textbooks and Tier 1 sources (see source header at top of file).
         "Write a plan of care that meets Medicare's minimum contents -- diagnoses, long-term goals, and what services, how much, how often and for how long -- signed and dated by the clinician who set it", // CMS-BPM15 220.1.2
         "Set measurable long-term goals for the episode and short-term goals to track progress, knowing they may be the same when the episode is expected to last only 4 to 6 treatment days", // CMS-BPM15 220.1.2
@@ -259,7 +279,10 @@ export const DPT_TRACK: SeedTrack = {
         "PTA supervision rules: since 2025 Medicare allows general supervision of a PTA by a PT in private practice, but state law, other payers or facility policy may require closer supervision, and the PT stays responsible for the care", // CFR 410.60(c)(2); CAPTE-PT 7D7
         "Design a maintenance program when a patient's skilled need is to maintain function or slow decline rather than to improve, which Medicare covers when it needs a therapist's skill", // CMS-BPM15 220.2
         "Write a discharge note covering care since the last progress report, as the final record that the whole episode was medically necessary", // CMS-BPM15 220.3; CAPTE-PT 7D9
+        // REQ-220 (FAIL-1134): replaces the pre-2021 rule that a PTA could not deliver skilled maintenance programs (CMS MLN Matters MM12071, effective 2021-01-01). // MM12071; CMS-BPM15 230.1; CAPTE-PT 7D7
+        "What a PTA may not do under Medicare -- evaluate or assess, make clinical judgments, or establish the maintenance program -- and that since 2021 the PT may delegate furnishing a maintenance program the PT established to a PTA when clinically appropriate, as for rehabilitative care",
       ],
+      objectiveRetiredAt: [null, null, null, null, null, null, null, null, null, null, null, PT_REQ220_RETIRED_AT, null, null, null, null],
     },
     {
       title: "Interventions and management of the delivery of care (7D10-7D16)",
@@ -269,19 +292,19 @@ export const DPT_TRACK: SeedTrack = {
         "Selecting and performing interventions for neurological and musculoskeletal conditions",
         "Selecting and performing interventions for integumentary, lymphatic and metabolic conditions",
         "Interventions across human development and for pain and the pain experience",
-        "Monitoring and adjusting the plan of care to optimise health outcomes",
-        "Assessing outcomes with appropriate standardised tests and measures at the impairment, activity and participation levels",
+        "Monitoring and adjusting the plan of care to optimize health outcomes",
+        "Assessing outcomes with appropriate standardized tests and measures at the impairment, activity and participation levels",
         "Educating others with teaching methods matched to the learner, including clinical education of students, with cultural humility and attention to social determinants of health",
         "Managing the delivery of care consistent with the practice environment's policies, including environmental emergencies",
         "Documentation that follows the practice act, the setting and regulatory requirements",
         "Participating in the case management process",
         // Added 2026-11-04: depth from open textbooks and Tier 1 sources (see source header at top of file).
         "Total knee arthroplasty rehabilitation per the 2026 APTA guideline: range-of-motion work instead of continuous passive motion, progressive strengthening, motor function training, and early daily quadriceps NMES", // CPG-TKA
-        "Vestibular rehabilitation: supervised therapy for unilateral and bilateral hypofunction, gaze-stabilisation doses from the guideline, and stopping when goals are met, symptoms resolve or progress plateaus", // CPG-VEST
-        "Parkinson disease management: aerobic exercise at moderate to high intensity, balance and gait training, external cueing for freezing, and behaviour-change approaches to raise physical activity", // CPG-PD
+        "Vestibular rehabilitation: supervised therapy for unilateral and bilateral hypofunction, gaze-stabilization doses from the guideline, and stopping when goals are met, symptoms resolve or progress plateaus", // CPG-VEST
+        "Parkinson disease management: aerobic exercise at moderate to high intensity, balance and gait training, external cueing for freezing, and behavior-change approaches to raise physical activity", // CPG-PD
         "Breast cancer-related lymphedema care by ISL stage: compression garment, exercise and education for early stage I, complete decongestive therapy when that fails and for stages II and III", // CPG-BCRL
         "After diabetic foot ulcer closure, prescribe a gradual return to loading with moderate to maximal offloading for about 3 months and a footwear wear schedule, alongside aerobic and resistance training", // CPG-DFU
-        "Exercise to slow bone loss in osteoporosis: long-duration weight-bearing and progressive resistance programmes for postmenopausal women, per the APTA geriatric osteoporosis guideline", // CPG-OSTEO
+        "Exercise to slow bone loss in osteoporosis: long-duration weight-bearing and progressive resistance programs for postmenopausal women, per the APTA geriatric osteoporosis guideline", // CPG-OSTEO
         "Fall-prevention exercise for older adults: a minimum weekly dose of 150 minutes to 3 hours over 6 to 12 months with progressive, challenging balance training, inside a multifactorial program", // CPG-FALL
         "Document progress reports at least every 10 treatment days for Medicare, with objective measures compared over time to show the need for continued skilled care", // CMS-BPM15 220.3
       ],
@@ -291,7 +314,7 @@ export const DPT_TRACK: SeedTrack = {
       gate: "Describe how a physical therapist contributes to quality improvement, interprofessional care and population health -- with a concrete example, not a slogan.",
       objectives: [
         "Participating in ongoing assessment and improvement of the quality of services",
-        "Patient-centred interprofessional collaborative practice",
+        "Patient-centered interprofessional collaborative practice",
         "Using health informatics in the health care environment",
         "Assessing care delivery with the principles of Health Systems Science, including the impact of policy and payment",
         "Physical therapy services informed by cultural humility across primary, secondary and tertiary prevention, health promotion and wellness",
@@ -299,14 +322,14 @@ export const DPT_TRACK: SeedTrack = {
         // Added 2026-11-04: depth from open textbooks and Tier 1 sources (see source header at top of file).
         "Quality improvement foundations: Donabedian's work on evaluating quality of care and the plan-do-study-act cycle for testing changes", // SP-QI
         "The three types of telehealth -- synchronous, asynchronous and remote monitoring -- and when telerehabilitation or hybrid care is a reasonable alternative to in-person sessions", // SP-TELEHEALTH; CPG-TELE
-        "Identifying and reducing patient, clinician and organisational barriers to telerehabilitation, and discussing with the patient whether it is cost-effective for them", // CPG-TELE
+        "Identifying and reducing patient, clinician and organizational barriers to telerehabilitation, and discussing with the patient whether it is cost-effective for them", // CPG-TELE
       ],
     },
     {
       title: "Practice management (7D23-7D25)",
       gate: "Identify a safety, billing or regulatory risk in a practice scenario and the specific action that addresses it.",
       objectives: [
-        "Assessing, documenting and minimising safety risks for patients and providers, including facility safety policies",
+        "Assessing, documenting and minimizing safety risks for patients and providers, including facility safety policies",
         "Participating in the financial management of the practice, including accurate billing and payment for services",
         "Practice management activities: marketing, public relations, regulatory and legal requirements, risk management, staffing and continuous quality improvement",
         // Added 2026-11-04: depth from open textbooks and Tier 1 sources (see source header at top of file).

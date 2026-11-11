@@ -7,6 +7,50 @@ and regular upkeep. Deploy order stays in
 [deploy-runbook-integration.md](deploy-runbook-integration.md); restoring
 from a backup is in [restore-drill.md](restore-drill.md).
 
+## Production status
+
+As of 2026-11-11. "Observed" means checked from this repo or a public
+endpoint; "reported" means Nick said so and it was not checked here.
+
+- **Running:** `master` d7304d3, releases 2026-11-10 and 2026-11-11.
+  Observed: `/api/health` answered `"status":"ok","schema":"current"` with
+  that commit.
+- **Deploying:** per batch, release branch -> `ops/migrate-production` ->
+  PR merge -> `ops/post-deploy-production`. Steps and the no-`--force` rule
+  for the ops branches:
+  [deploy-runbook-integration.md](deploy-runbook-integration.md#per-batch-as-run-for-releases-2026-11-10-and-2026-11-11).
+- **Settings (reported):** `APP_BASE_URL` is `https://www.ascendra-learn.com`,
+  `SIMS_ENABLED=true`, `AI_ACCESS_MODE=granted`,
+  `AI_GLOBAL_DAILY_CEILING_USD=5`, `BILLING_ENABLED` off.
+  `ERROR_TRACKER_DSN` is supported but **not set** (see "Error tracker").
+
+### Lockdown and password rotation (REQ-207)
+
+Guide: [ops/2026-11-10-lockdown-and-db-rotation.md](ops/2026-11-10-lockdown-and-db-rotation.md).
+
+| Step | What | State |
+|---|---|---|
+| 0 | New database password and the two pooler strings | **Done 2026-11-10** (reported) |
+| 1.1 | `production-backup` environment with `PROD_DATABASE_URL` | **Done 2026-11-10** (reported) |
+| 1.2 | `PROD_DATABASE_URL` in `production-database` | **Done 2026-11-10** (reported) |
+| 1.3 | Branch rule on `production-database` (`ops/*`, `master`) | **Done 2026-11-10** (reported) |
+| 1.4 | Rulesets `protect-master` and `protect-ops` | **To do.** Observed 2026-11-11: the repository's rulesets API returned an empty list |
+| 1.5 | Prove the rulesets | To do |
+| 2 | Fix branch released (migration 071, backup workflows on `production-backup`) | **Done 2026-11-10** (reported; 071 is in the deployed commit) |
+| 3 | Reset the password; Vercel `DATABASE_URL` on the transaction pooler, port 6543; redeploy | **Done 2026-11-10** (reported) |
+| 4 | Required reviewer on `production-database`, prove it, delete the repository-level `PROD_DATABASE_URL` | **To do** |
+| 5 | Optional: run the app as `app_runtime` | Not started |
+
+Until step 4 is done, anyone who can push an `ops/*` branch can start a
+production migration without approval, and the repository-level secret is
+still readable by any workflow. Until `protect-ops` exists, ops branches can
+still be force-pushed.
+
+One check worth doing: lockdown step 3.4 item 5 runs the nightly backup by
+hand. The Actions API listed no runs of "Nightly database backup" on
+2026-11-11 at about 03:00 UTC, so confirm the first scheduled run (11:23
+UTC) is green.
+
 ## Postgres settings
 
 ### JIT off for the app role (Audit 3 HIGH-1)
@@ -193,7 +237,7 @@ next deployment only.
 - `MIGRATION_LOCK_TIMEOUT` (default `5s`; `0` = off). The lock wait
   `npm run migrate` allows before a migration fails and rolls back.
 - `SIMS_ENABLED` (off unless set), `SIMS_RENDERERS` (default
-  `bedside,board`), `SIMS_SERVE_UNREVIEWED` (on unless `off`): simulations.
+  `bedside,board,session`), `SIMS_SERVE_UNREVIEWED` (on unless `off`): simulations.
   `LABS_SERVE_UNREVIEWED` (on unless `off`): labs waiting for expert review.
 - `ITEM_FACT_CHECK` (on unless `off`): the second-model check before generated
   items publish. Off lets them publish unchecked.

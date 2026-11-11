@@ -94,12 +94,12 @@ export const ABPTSONC_LABS: SeedLabSet = {
             part(
               "Patient B",
               "Allows progressive aerobic and resistive exercise from the platelet count (above 50,000) but protects the left femur: no manual muscle testing or progressive resistance through that limb, offload with an assistive device, treat new functional pain as a fracture warning and report it for imaging/orthopaedic review (Mirels or Harrington assessment) before weight-bearing progression.",
-              "Blood counts allow progressive aerobic and resistance work (platelets 62,000, ANC normal), but the femoral lesion sets the limits: no manual muscle testing or resistive exercise through the left leg, protected weight bearing with a walker or crutches, and the new pain on loading is functional pain -- the best single predictor of pathological fracture -- so I hold lower-limb loading and ask the team for imaging and an orthopaedic fracture-risk assessment (Mirels score) today."
+              "Blood counts allow progressive aerobic and resistance work (platelets 62,000, ANC normal), but the femoral lesion sets the limits: no manual muscle testing or resistive exercise through the left leg, protected weight bearing with a walker or crutches, and the new pain on loading is functional pain -- the best single predictor of pathological fracture -- so I hold lower-limb loading and ask the team for imaging and an orthopedic fracture-risk assessment (Mirels score) today."
             ),
             part(
               "Patient C",
-              "Proceeds with the planned individualized aerobic and resistance programme with symptom-based monitoring, noting mild thrombocytopenia (below 150,000) and mild neutropenia (ANC below 1.5) warrant symptom monitoring and infection precautions per facility rather than restriction.",
-              "Proceed with the planned programme: moderate aerobic work and resistance training as tolerated. Platelets 135,000 are only mildly low (monitor for bleeding symptoms), ANC 1.2 is mild neutropenia (hand hygiene and facility precautions, screen for fever), hemoglobin 11.6 is near the anemia line, so use perceived exertion and watch symptoms."
+              "Proceeds with the planned individualized aerobic and resistance program with symptom-based monitoring, noting mild thrombocytopenia (below 150,000) and mild neutropenia (ANC below 1.5) warrant symptom monitoring and infection precautions per facility rather than restriction.",
+              "Proceed with the planned program: moderate aerobic work and resistance training as tolerated. Platelets 135,000 are only mildly low (monitor for bleeding symptoms), ANC 1.2 is mild neutropenia (hand hygiene and facility precautions, screen for fever), hemoglobin 11.6 is near the anemia line, so use perceived exertion and watch symptoms."
             ),
           ],
         },
@@ -110,9 +110,9 @@ export const ABPTSONC_LABS: SeedLabSet = {
       slug: "onc-prospective-surveillance-plan",
       objective: "Support prospective surveillance for breast cancer lymphedema: a preoperative baseline, then bioimpedance or volume checks every 3 months in year one and twice a year for up to 5 years",
       kind: "build",
-      title: "Design a prospective surveillance pathway for a breast programme",
+      title: "Design a prospective surveillance pathway for a breast program",
       brief:
-        "A fictional regional cancer centre, Larkspur Breast Health, asks its oncologic physical therapist to write the lymphedema surveillance pathway for patients having axillary surgery. About 180 patients a year have sentinel node biopsy and 40 have axillary lymph node dissection; roughly half of each group also have regional radiation. The centre owns one bioimpedance spectroscopy device and tape measures; staff time is limited. The surgeons want to know when a patient should be referred for treatment and what that treatment would be, so that the pathway is not just a measurement schedule.",
+        "A fictional regional cancer center, Larkspur Breast Health, asks its oncologic physical therapist to write the lymphedema surveillance pathway for patients having axillary surgery. About 180 patients a year have sentinel node biopsy and 40 have axillary lymph node dissection; roughly half of each group also have regional radiation. The center owns one bioimpedance spectroscopy device and tape measures; staff time is limited. The surgeons want to know when a patient should be referred for treatment and what that treatment would be, so that the pathway is not just a measurement schedule.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -121,7 +121,7 @@ export const ABPTSONC_LABS: SeedLabSet = {
           parts: [
             part(
               "Schedule",
-              "Starts with a preoperative baseline, then measures every 3 months through the first postoperative year, then twice a year for up to 5 years, prioritising the higher-risk group (axillary dissection, especially with radiation) where capacity is limited.",
+              "Starts with a preoperative baseline, then measures every 3 months through the first postoperative year, then twice a year for up to 5 years, prioritizing the higher-risk group (axillary dissection, especially with radiation) where capacity is limited.",
               "Baseline before surgery for everyone having axillary surgery. Then every 3 months for the first year and every 6 months to year 5 (the guideline's surveillance schedule). If staffing forces a choice, the dissection-plus-radiation group gets the full schedule first."
             ),
             part(
@@ -137,7 +137,7 @@ export const ABPTSONC_LABS: SeedLabSet = {
             part(
               "First-line response",
               "Describes stage 0 / subclinical care per the CPG: education, self-massage and a fitted compression garment, with escalation to complete decongestive therapy if it persists or progresses, and that this is the referral to the physical therapist.",
-              "Subclinical findings trigger a referral to physical therapy for education, self-massage, a fitted compression garment and a review of the exercise programme; if swelling persists or progresses on re-measurement, step up to complete decongestive therapy. Document and report back to the surgeon."
+              "Subclinical findings trigger a referral to physical therapy for education, self-massage, a fitted compression garment and a review of the exercise program; if swelling persists or progresses on re-measurement, step up to complete decongestive therapy. Document and report back to the surgeon."
             ),
           ],
         },
@@ -164,7 +164,7 @@ export const ABPTSONC_LABS: SeedLabSet = {
             part(
               "Assessment",
               "Picks one A-rated assessment -- FACIT-Fatigue, Piper Fatigue Scale-Revised or PROMIS Fatigue short form -- for patients who screen positive, with a reason tied to the population or burden (brevity for patients mid-chemotherapy, multidimensional detail where the cause is being worked up).",
-              "Those who screen positive complete the FACIT-Fatigue (13 items, quick for patients mid-chemotherapy); where we need a multidimensional picture (behavioural, affective, sensory, cognitive) the Piper Fatigue Scale-Revised is the alternative, and PROMIS Fatigue-SF where the electronic record already uses PROMIS. All three are A-rated."
+              "Those who screen positive complete the FACIT-Fatigue (13 items, quick for patients mid-chemotherapy); where we need a multidimensional picture (behavioral, affective, sensory, cognitive) the Piper Fatigue Scale-Revised is the alternative, and PROMIS Fatigue-SF where the electronic record already uses PROMIS. All three are A-rated."
             ),
             part(
               "Tracking rule",
@@ -197,7 +197,7 @@ export const ABPTSONC_LABS: SeedLabSet = {
             part(
               "Action today",
               "Does not start loading-based treatment; contacts the oncology or referring physician the same day for urgent evaluation and imaging (spinal metastases suspected without cord compression signs), documents the neurological baseline, and teaches him the warning signs that require emergency care.",
-              "No manipulation or loading programme today. I call the oncologist/referrer the same day to report suspected spinal metastases and request urgent imaging; record today's normal neurological baseline so change is measurable; and tell him exactly which symptoms mean go to the emergency department (leg weakness or numbness, unsteady walking, bladder or bowel change)."
+              "No manipulation or loading program today. I call the oncologist/referrer the same day to report suspected spinal metastases and request urgent imaging; record today's normal neurological baseline so change is measurable; and tell him exactly which symptoms mean go to the emergency department (leg weakness or numbness, unsteady walking, bladder or bowel change)."
             ),
           ],
         },
@@ -258,7 +258,7 @@ export const ABPTSONC_LABS: SeedLabSet = {
       kind: "case",
       title: "A femoral lesion and a goal of walking the dog",
       brief:
-        "A fictional 63-year-old woman with metastatic breast cancer is referred to outpatient physical therapy for deconditioning. Imaging two weeks ago showed a lytic lesion in the right proximal femur (peritrochanteric region) measuring about half the bone's diameter; she has not seen orthopaedics. Her goal is to walk her dog 20 minutes a day. Her blood counts are acceptable for exercise.",
+        "A fictional 63-year-old woman with metastatic breast cancer is referred to outpatient physical therapy for deconditioning. Imaging two weeks ago showed a lytic lesion in the right proximal femur (peritrochanteric region) measuring about half the bone's diameter; she has not seen orthopedics. Her goal is to walk her dog 20 minutes a day. Her blood counts are acceptable for exercise.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -268,12 +268,12 @@ export const ABPTSONC_LABS: SeedLabSet = {
             part(
               "Risk estimate",
               "Scores or reasons through Mirels: peritrochanteric site (3), functional pain (3), lytic lesion (3), size about half the diameter (2) = about 11, well above the 9 that indicates prophylactic fixation; identifies functional pain as the strongest single predictor.",
-              "Mirels: site peritrochanteric = 3, pain functional (mechanical, with weight bearing) = 3, lesion lytic = 3, size one-third to two-thirds of the diameter = 2. Total about 11 -- a score of 9 or more indicates prophylactic fixation. Functional pain alone is the best single predictor of pathological fracture, so this is an impending fracture until orthopaedics says otherwise."
+              "Mirels: site peritrochanteric = 3, pain functional (mechanical, with weight bearing) = 3, lesion lytic = 3, size one-third to two-thirds of the diameter = 2. Total about 11 -- a score of 9 or more indicates prophylactic fixation. Functional pain alone is the best single predictor of pathological fracture, so this is an impending fracture until orthopedics says otherwise."
             ),
             part(
               "Today's plan",
-              "Does not progress gait or lower-limb loading; fits a walker or crutches to offload the right leg, no manual muscle testing or resistive exercise through the right hip, avoids twisting on the leg, and contacts the oncology team / orthopaedic oncology the same day for review of prophylactic fixation (and radiation as the team decides).",
-              "No walking programme today. Fit a walker (or crutches) for protected weight bearing on the right, teach safe transfers that avoid pivoting on the leg, no manual muscle testing or resistive work through the right hip, and call the oncologist today to request urgent orthopaedic oncology review for prophylactic fixation. Upper-body and seated conditioning can continue. Tell her that increasing pain, a snap or inability to bear weight means emergency care."
+              "Does not progress gait or lower-limb loading; fits a walker or crutches to offload the right leg, no manual muscle testing or resistive exercise through the right hip, avoids twisting on the leg, and contacts the oncology team / orthopedic oncology the same day for review of prophylactic fixation (and radiation as the team decides).",
+              "No walking program today. Fit a walker (or crutches) for protected weight bearing on the right, teach safe transfers that avoid pivoting on the leg, no manual muscle testing or resistive work through the right hip, and call the oncologist today to request urgent orthopedic oncology review for prophylactic fixation. Upper-body and seated conditioning can continue. Tell her that increasing pain, a snap or inability to bear weight means emergency care."
             ),
           ],
         },
@@ -284,7 +284,7 @@ export const ABPTSONC_LABS: SeedLabSet = {
             part(
               "Progression",
               "Progresses from the current device toward unaided walking using pain and gait quality as the criteria, builds walking duration gradually toward 20 minutes (for example in bouts), adds hip and knee strengthening within the surgeon's limits, and monitors for post-radiation skin and fatigue effects.",
-              "Start with the walker over the first sessions, step down to a cane and then unaided as gait normalises without pain. Build walking in bouts (for example 3 x 7 minutes) toward one continuous 20-minute dog walk, adding closed-chain hip and knee strengthening within the surgeon's limits, and checking the irradiated skin and her fatigue each visit."
+              "Start with the walker over the first sessions, step down to a cane and then unaided as gait normalizes without pain. Build walking in bouts (for example 3 x 7 minutes) toward one continuous 20-minute dog walk, adding closed-chain hip and knee strengthening within the surgeon's limits, and checking the irradiated skin and her fatigue each visit."
             ),
             part(
               "Precautions that remain",
@@ -302,7 +302,7 @@ export const ABPTSONC_LABS: SeedLabSet = {
       kind: "build",
       title: "Write a FITT prescription for a patient mid-chemotherapy",
       brief:
-        "A fictional 49-year-old woman is in cycle 3 of 6 of anthracycline-containing chemotherapy for stage II breast cancer after lumpectomy and sentinel node biopsy (surgery was 10 weeks ago). Her main complaint is fatigue that keeps her off work. Today's labs: platelets 148,000/uL, hemoglobin 10.9 g/dL, ANC 1.6 x 10^9/L. Resting heart rate 92, blood pressure 118/74. The oncologist asks for a supervised exercise programme and wants to know what you will monitor given the cardiotoxic regimen.",
+        "A fictional 49-year-old woman is in cycle 3 of 6 of anthracycline-containing chemotherapy for stage II breast cancer after lumpectomy and sentinel node biopsy (surgery was 10 weeks ago). Her main complaint is fatigue that keeps her off work. Today's labs: platelets 148,000/uL, hemoglobin 10.9 g/dL, ANC 1.6 x 10^9/L. Resting heart rate 92, blood pressure 118/74. The oncologist asks for a supervised exercise program and wants to know what you will monitor given the cardiotoxic regimen.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -321,7 +321,7 @@ export const ABPTSONC_LABS: SeedLabSet = {
             ),
             part(
               "Monitoring",
-              "Monitors at least weekly at first: fatigue, perceived exertion, blood pressure and heart rate response, symptoms of cardiotoxicity (new dyspnea, orthopnea, oedema, palpitations, reduced tolerance) to report to oncology, blood counts before cycles (with the platelet/ANC/hemoglobin tiers), and arm swelling or heaviness; adjusts dose around infusion days.",
+              "Monitors at least weekly at first: fatigue, perceived exertion, blood pressure and heart rate response, symptoms of cardiotoxicity (new dyspnea, orthopnea, edema, palpitations, reduced tolerance) to report to oncology, blood counts before cycles (with the platelet/ANC/hemoglobin tiers), and arm swelling or heaviness; adjusts dose around infusion days.",
               "Weekly check-ins at first: fatigue score, exertion ratings, resting and exercise blood pressure and heart rate, and cardiotoxicity warning signs -- new breathlessness, orthopnea, ankle swelling, palpitations or a drop in tolerance -- which go straight to the oncologist. Review each cycle's labs: platelets stay above 50,000 for resistance work, symptom-based pacing if hemoglobin falls, neutropenic precautions if ANC drops below 0.5. Ask about arm heaviness or swelling. Lighter sessions in the days after infusion."
             ),
           ],
@@ -332,7 +332,7 @@ export const ABPTSONC_LABS: SeedLabSet = {
       slug: "onc-cdt-phase-one-to-home",
       objective: "Complete decongestive therapy and long-term management of lymphedema",
       kind: "case",
-      title: "From intensive decongestion to a home programme",
+      title: "From intensive decongestion to a home program",
       brief:
         "A fictional 60-year-old woman has stage II left arm lymphedema three years after breast cancer treatment with axillary dissection and radiation. Her left arm is about 28% larger than the right, pits on pressure, and does not reduce overnight; the skin is intact. She lives alone, works as a cashier, and has good hand function. There is no sign of infection and no recurrence on recent oncology review.",
       safetyNote: CLINICAL_SAFETY,
@@ -355,12 +355,12 @@ export const ABPTSONC_LABS: SeedLabSet = {
         },
         {
           text: "After three weeks the excess volume has fallen from about 28% to about 12% and has been stable for the last four days. Her visits end on Friday.",
-          ask: "Write the home programme and the follow-up.",
+          ask: "Write the home program and the follow-up.",
           parts: [
             part(
-              "Home programme",
+              "Home program",
               "Transitions to phase II per the CPG: an individually fitted daytime compression garment, self-MLD, nightly compression if indicated (bandaging or a night garment), continued exercise, skin care and infection awareness, with instruction tailored to her living alone and standing at a till.",
-              "Fit a daytime garment now that volume is stable; teach self-MLD; night compression (self-bandaging or a night garment) because she is alone and the arm rebounds overnight; keep the exercise programme including during her shifts; skin care and a plan for any redness, heat or fever (possible cellulitis -- seek care same day)."
+              "Fit a daytime garment now that volume is stable; teach self-MLD; night compression (self-bandaging or a night garment) because she is alone and the arm rebounds overnight; keep the exercise program including during her shifts; skin care and a plan for any redness, heat or fever (possible cellulitis -- seek care same day)."
             ),
             part(
               "Follow-up",
@@ -386,7 +386,7 @@ export const ABPTSONC_LABS: SeedLabSet = {
           parts: [
             part(
               "Diagnosis and measures",
-              "Identifies a length-dependent sensory peripheral neuropathy consistent with chemotherapy-induced peripheral neuropathy (oxaliplatin), confirms it is symmetrical and sensory with no cord-compression features, and quantifies with a standardised neuropathy scale plus balance and gait measures (for example a clinician-graded neuropathy score, Romberg/modified CTSIB, timed tandem or gait speed, a validated balance test) and a patient-reported neuropathy or function measure.",
+              "Identifies a length-dependent sensory peripheral neuropathy consistent with chemotherapy-induced peripheral neuropathy (oxaliplatin), confirms it is symmetrical and sensory with no cord-compression features, and quantifies with a standardized neuropathy scale plus balance and gait measures (for example a clinician-graded neuropathy score, Romberg/modified CTSIB, timed tandem or gait speed, a validated balance test) and a patient-reported neuropathy or function measure.",
               "A symmetric, length-dependent sensory neuropathy -- chemotherapy-induced from oxaliplatin -- with absent ankle reflexes and reduced vibration and protective sensation, no cord signs. Quantify with a graded neuropathy score (sensory symptoms and signs), the modified CTSIB and a timed balance measure, gait speed and tandem gait, and a patient-reported neuropathy/function questionnaire, so change can be shown."
             ),
             part(
@@ -397,7 +397,7 @@ export const ABPTSONC_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "The oncologist reduces the oxaliplatin dose and asks you to \"keep him on his feet\" through the remaining cycles. He is motivated and lives with his wife in a two-storey house.",
+          text: "The oncologist reduces the oxaliplatin dose and asks you to \"keep him on his feet\" through the remaining cycles. He is motivated and lives with his wife in a two-story house.",
           ask: "Design the intervention and the safety plan.",
           parts: [
             part(

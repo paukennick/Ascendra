@@ -54,7 +54,8 @@ export type LabSafetyFamily = "clinical" | "fitness" | "general";
 
 export function labSafetyFamily(ctx?: Pick<CoachContext, "categorySlug"> | null): LabSafetyFamily {
   const slug = ctx?.categorySlug ?? "";
-  if (slug.startsWith("healthcare")) return "clinical";
+  // REQ-224: mental health licensure courses are clinical too (labs.ts labFamilySql).
+  if (slug.startsWith("healthcare") || slug === "mental-health") return "clinical";
   if (slug === "health-fitness") return "fitness";
   return "general";
 }

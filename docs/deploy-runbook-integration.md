@@ -193,6 +193,7 @@ so leaving it in place is always safe for the old code):
 | 062 | sim tables (sims, sim_versions, sim_reviews, sim_runs, sim_run_commands, sim_run_reasoning), attempts.sim_id and attempts_simtask_shape, the sim_run assessment type (enum value `simtask` stays). Normal rollback is SIMS_ENABLED off and the schema left in place (docs/sims.md 6.1) | sim runs, their commands, reasoning grades and sim attempts |
 | 065 | `subject_tracks.hidden_at` (`alter table subject_tracks drop column if exists hidden_at;`) | which courses are hidden: EX188, EX280 and DCA show in the catalog again for everyone until the column is back and `npm run seed` runs. The courses' content is untouched either way |
 | 067 | the `sim` item kind on item_flags / item_status / item_holdbacks (050's checks come back as `*_item_kind_050`) and item_flags.context; 'sim' rows must be deleted first. Normal rollback is SIMS_ENABLED off and the schema left in place | learner reports on sims, sim versions pulled from rotation and the reports' context |
+| 077 | mature_content_confirmations (`drop table if exists mature_content_confirmations;`), then the mental-health education_categories row and its three subcategories (delete the EPPP track first: its subject_tracks row points at psychology-licensure). The code before 077 never reads either | who confirmed they are 18+ for mental health courses (they confirm again after rolling forward); EPPP course progress if the track is deleted |
 
 Every command runs from `backend/` with `DATABASE_URL` pointing at the
 production database over the Session pooler (port 5432), not the
@@ -293,6 +294,7 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 063 | REQ-197: `email_preferences` (one row per learner once they change a switch: `exam_changes` default true, `exam_countdown` default true, `weekly_digest` default false, `updated_at`; `user_id` PK, on delete cascade) and `service_email_log` (learner, `kind` in exam_change/exam_countdown/weekly_digest, `period_key`, `status` sending/sent/failed, `attempts`, `created_at`, `sent_at`; unique (`user_id`, `kind`, `period_key`) is the once-per-period guard; on delete cascade). RLS on, anon/authenticated revoked. Additive, safe to run twice. Apply BEFORE the backend deploy: Settings > Email, the unsubscribe links, the account export and `/api/health` read them. 060-062 are taken by other branches; 063 applies cleanly before or after them. The daily `/api/cron/service-emails` (16:10 UTC, `CRON_SECRET`) does nothing until `SERVICE_EMAILS_ENABLED=true`, which ships with the Privacy Policy update; the digest also needs `MAIL_POSTAL_ADDRESS` and `DIGEST_EMAIL_FROM`. Rollback: Vercel Instant Rollback; the tables can stay (older code ignores them). To remove them, `drop table if exists service_email_log, email_preferences;` in the same change that removes the 063 probe from `lib/schema-status.ts` (also listed in `scripts/rollback-release-2026-11-07.sql` step 4) | instant (empty tables) | no | none |
 | 065 | REQ-194: `subject_tracks.hidden_at` (nullable timestamptz, no default, no rewrite, column comment gives the reason). A course whose `hidden_at` has passed is not listed by `GET /api/courses` and can't be newly started (free-course pick, new study session, first-run pick, setting a plan); learners with activity on it keep it. Apply BEFORE the backend deploy: the course list and start routes read it and `/api/health` probes it; the seed refuses to run without it. Nothing is backfilled: `npm run seed` sets it on EX188, EX280 and DCA. Safe to run twice (`add column if not exists`). The number 065 was assigned for this branch; 060-064 are not in this tree | instant | no | instant ACCESS EXCLUSIVE on subject_tracks (5 s lock_timeout) |
 | 067 | REQ-199: "Report a problem" on a sim -- adds `sim` to the item_kind checks on `item_flags`, `item_status` and `item_holdbacks` (replaced by `*_item_kind_067`, added NOT VALID then validated) and the nullable `item_flags.context` jsonb (at most 2000 bytes, check `item_flags_context_067`) for the report's machine data. A sim report's item id is the `sim_versions.id`, so a pulled report takes that version out of rotation. Number 067 because 066 is held for the PT study-path work. Apply BEFORE a backend that serves sims with reporting; `/api/health` probes it. Idempotent; rollback notes in its header | instant (small tables) | no | ACCESS EXCLUSIVE on item_flags, item_status and item_holdbacks for the check swap and validation (5 s lock_timeout) |
+| 077 | REQ-224: the `mental-health` category with `psychology-licensure`, `counseling-licensure` and `social-work-licensure` subcategories (upserts, same shape as 057), and `mature_content_confirmations` (per account, category and notice version: confirmed_at, min_age 18, source; PK led by user_id, cascade on account delete, RLS on, ends with `select app_runtime_sync();`). Apply BEFORE the backend deploy and BEFORE `npm run seed`: the EPPP track needs the subcategory, the mental-health course routes read the table, and `/api/health` probes both. Safe to run twice | instant | no | none beyond a new table (5 s lock_timeout) |
 
 All of 029 through 041b on the fixture: about 8.5 minutes, nearly all of it
 029b, 031b and 041b; 042 to 045b add about 6.3 minutes.
@@ -466,16 +468,56 @@ new. Three steps, all from GitHub, no laptop and no database password:
    recompute_mastery_batched()` and `--status`. The seed takes 15+
    minutes from GitHub (network round trips); it is safe to re-run.
 
-Both branches only trigger the workflow; nothing merges them. The workflow
-reads the repository secret **`PROD_DATABASE_URL`** (Settings -> Secrets and
-variables -> Actions -> Secrets tab -> Repository secrets): the Session
-pooler URI from Supabase -> Connect -> Direct -> Session pooler, with the
-database password in place of `[YOUR-PASSWORD]` (no brackets). Vercel's
-`DATABASE_URL` holds the same string. When the password changes, update
-both, then redeploy the current production deployment in Vercel so it picks
-the new value up -- the live app is down from the reset until that redeploy
-is Ready. Vercel's Sensitive variables cannot be read back, so Supabase is
-the only place to get the string again.
+Both branches only trigger the workflow; nothing merges them.
+
+### Per batch, as run for releases 2026-11-10 and 2026-11-11
+
+A release is cut into batches, one pull request each, shipped in order.
+For every batch:
+
+1. **Release branch.** The batch's work is merged into the release branch
+   (for example `release/2026-11-11`); CI must be green on its head.
+2. **`ops/migrate-production`** (only if the batch adds a migration): push
+   the release branch head, approve the run once the reviewer gate exists,
+   and wait for "Schema is current".
+3. **Merge the PR** into `master` with a merge commit (not squash), so the
+   release head stays an ancestor of `master`. Vercel deploys; check
+   `/api/health` answers `"status":"ok","schema":"current"` and the new
+   `commit`.
+4. **`ops/post-deploy-production`** (only if the seed or the mastery rule
+   changed): push the merge commit on `master`. It re-runs migrate (a
+   no-op), then the seed and the mastery recompute.
+
+The release notes list which batches needed steps 2 and 4
+([release-2026-11-10.md](release-2026-11-10.md),
+[release-2026-11-11.md](release-2026-11-11.md)).
+
+**Pushing the ops branches.** Until the `protect-ops` ruleset exists the
+`--force` form above works. Once it exists (lockdown guide step 1.4), force
+pushes are blocked: push without `--force`,
+`git push origin <commit>:refs/heads/ops/migrate-production`. That is a
+fast-forward whenever `<commit>` descends from the branch's last commit,
+which holds when you deploy forward from `master` with merge commits (on
+2026-11-11 both ops branches pointed at ancestors of `master`). If a push is
+refused as non-fast-forward, push a newer commit that contains the old one;
+don't disable the ruleset.
+
+### Where the database secret lives
+
+The workflows read **`PROD_DATABASE_URL`** from the GitHub environment
+`production-database` (migrate, seed, lesson fixes, pre-generation) or
+`production-backup` (nightly backup, weekly clean-up), since the
+2026-11-10 lockdown ([ops/2026-11-10-lockdown-and-db-rotation.md](ops/2026-11-10-lockdown-and-db-rotation.md)).
+Both hold the Session pooler URI (port 5432). Vercel's `DATABASE_URL` holds
+the Transaction pooler URI (port 6543) with the same password. The old
+repository-level `PROD_DATABASE_URL` still exists until lockdown step 4
+deletes it.
+
+When the password changes, update all three, then redeploy the current
+production deployment in Vercel so it picks the new value up -- the live
+app is down from the reset until that redeploy is Ready. Vercel's Sensitive
+variables cannot be read back, so Supabase and the password manager are the
+only places to get the string again.
 
 Rollback stays as in step 7 above: Vercel Instant Rollback for code,
 migrations are additive so the database can stay.
