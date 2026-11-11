@@ -12430,6 +12430,888 @@
       ],
       "prevention_notes": "A write that follows a slow external call re-checks the state it depends on under a lock",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1040",
+      "date": "2026-11-10",
+      "title": "Every silent token refresh asked for a fingerprint, and a cancelled prompt signed the learner out",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "With biometric unlock on, each silent refresh wrote the sealed key, which prompts on Android; cancelling it signed out after the server had already rotated the token",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "AuthContext.refresh re-sealed the rotated token with requireAuthentication on every refresh and called clearAuth on any failure in that block",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib/sessionStore.ts"
+      ],
+      "fix_summary": "Silent refresh keeps the token in memory and marks the sealed copy stale; it is sealed at sign-in, unlock and when the app goes to the background; a failed seal falls back to the plain key and never signs out",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1041",
+      "date": "2026-11-10",
+      "title": "Any failed refresh (offline, timeout, 5xx) wiped the session",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A train tunnel or a server hiccup signed the learner out and cost them their session",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "refresh() and the cold-start path called clearAuth on every failure, not only on the server's 401",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/components/SessionRetry.tsx"
+      ],
+      "fix_summary": "Only a 401 from refresh signs out; otherwise the token is kept, the failure is thrown to the screen, and a cold start shows Try again / Sign out",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1042",
+      "date": "2026-11-10",
+      "title": "Every /api/auth/ route skipped refresh-and-retry",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "An expired access token made unlock, sessions, change-password and the two-factor routes fail with a 401 instead of refreshing",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "client.ts exempted the whole /api/auth/ prefix to protect login and refresh from recursion",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/api/client.ts",
+        "mobile/src/lib/sessionStore.ts"
+      ],
+      "fix_summary": "Only the signed-out routes are exempt (isSignedOutAuthRoute); the rest refresh once and retry",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1043",
+      "date": "2026-11-10",
+      "title": "Sign out of all devices said it worked when the server call failed",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A 401 from logout-all was swallowed; this phone was cleared and other devices stayed signed in",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "logoutAll caught every error, then cleared local state unconditionally",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/app/(app)/account.tsx"
+      ],
+      "fix_summary": "logoutAll returns {ok,error}; local state is cleared only after a 200; the account screen shows the failure",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1044",
+      "date": "2026-11-10",
+      "title": "TextField dropped keyboardType",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Number and email fields opened the full text keyboard",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "keyboardType was destructured out of the props and never passed to TextInput",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/components/ui.tsx"
+      ],
+      "fix_summary": "Pass it through",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1045",
+      "date": "2026-11-10",
+      "title": "Offline on a sign-in screen read 'Something went wrong'",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Login, register, forgot password, two-factor and resend showed a generic message when offline",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The screens only used the message of an ApiError; a NetworkError is not one",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(auth)",
+        "mobile/src/lib/errorMessage.ts"
+      ],
+      "fix_summary": "messageOr shows the offline, timeout and server messages and falls back only for an error with no message of its own",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1046",
+      "date": "2026-11-10",
+      "title": "An unguarded storage read at launch could leave the app on the splash screen",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A throwing keystore read of the biometric preference stopped the launch effect",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The read had no catch",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx"
+      ],
+      "fix_summary": "Read as 'no preference' on error",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1047",
+      "date": "2026-11-10",
+      "title": "A failed profile reload after turning on two-factor hid the backup codes",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Codes are shown once; if the reload after enabling failed, the screen said the code was wrong and the codes were lost",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "refreshUser() ran before the codes were put on screen, inside the same try",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/settings/mfa.tsx"
+      ],
+      "fix_summary": "Show the codes first; the reload is best effort",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1048",
+      "date": "2026-11-10",
+      "title": "The exam start id changed on every press",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A retry after a lost answer started a second exam session",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "clientSessionId: Crypto.randomUUID() inside the press handler",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/exam.tsx",
+        "mobile/src/lib/pendingId.ts"
+      ],
+      "fix_summary": "Kept in a ref per course, mode and timing until a start succeeds",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1049",
+      "date": "2026-11-10",
+      "title": "The back gesture left a running exam without saving or warning",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Header back, the system gesture and Android back skipped the flush and the unsaved-answers warning",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Only the Leave and finish later button flushed",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/exam.tsx",
+        "mobile/src/lib/examPractice.ts"
+      ],
+      "fix_summary": "A beforeRemove guard runs the same flush and warning, then completes the back action",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1050",
+      "date": "2026-11-10",
+      "title": "A sim reasoning answer already graded showed an error and a box that could not be submitted",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After a lost reply the 409 already_graded left the learner stuck; the typed answer lived only in memory",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The app ignored the result the 409 carries and kept the draft only in React state",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/sim/useSimRun.ts",
+        "mobile/src/sim/SimPanels.tsx",
+        "mobile/src/sim/runtime/reasoningReplay.ts"
+      ],
+      "fix_summary": "Show the 409's result; keep the draft on the device under a key the logout sweep removes",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1051",
+      "date": "2026-11-10",
+      "title": "Lab Start over discarded the run on one tap and a failed restart said nothing",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "No confirmation; the startError was never shown there",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Button called start(true) directly",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lab/[labId].tsx"
+      ],
+      "fix_summary": "Confirm first; show startError with a retry",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1052",
+      "date": "2026-11-10",
+      "title": "Sim End the run and Start over discarded work on one tap",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "No confirmation",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Buttons called quit() and start(true) directly",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/sim/[simId].tsx"
+      ],
+      "fix_summary": "Both confirm first",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1053",
+      "date": "2026-11-10",
+      "title": "A sim run frozen after a failed reload",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The run view stayed on screen with every control disabled and no message",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The error was shown only on the start view",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/sim/[simId].tsx"
+      ],
+      "fix_summary": "Show the error with Reload the run in the run view",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1054",
+      "date": "2026-11-10",
+      "title": "A stale lab step kept showing after a 409",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Answering a step already answered elsewhere gave an error on a step that could never be sent",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The 409 did not reload the lab",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lab/[labId].tsx"
+      ],
+      "fix_summary": "A 409 on submit reloads the lab",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1055",
+      "date": "2026-11-10",
+      "title": "A big data export through the phone's share sheet failed or closed the app",
+      "status": "mitigated",
+      "severity": "medium",
+      "symptom": "Share.share carried the whole export as text through Binder",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "No size check",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/account.tsx",
+        "mobile/src/lib/accountExport.ts"
+      ],
+      "fix_summary": "Over 200,000 characters the phone points to the web download; a real file share needs expo-file-system and expo-sharing, which is a build, not an update (deferred)",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A size check stops the crash; a real file share needs expo-file-system and expo-sharing (a build, not an update) and is deferred. The listed test pins the check.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1056",
+      "date": "2026-11-10",
+      "title": "Google re-auth on account and two-factor screens could lock the app on return",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The Google tab reports background on Android and the lock fired on return",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "signInAsync was called without withBackgroundHold",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/account.tsx",
+        "mobile/app/(app)/settings/mfa.tsx"
+      ],
+      "fix_summary": "Wrapped",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneSessions.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1057",
+      "date": "2026-11-10",
+      "title": "Signing out wiped the study reminder setting",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The next sign-in found reminders off",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The logout sweep removed ascendra.reminders.<user>",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/lib/localData.ts"
+      ],
+      "fix_summary": "The setting stays; notifications are cancelled at sign-out and return with it at sign-in; the plan (topic names) is still swept",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts",
+        "mobile/src/lib/productBasics.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1058",
+      "date": "2026-11-10",
+      "title": "Overlapping reminder applies interleaved",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Two quick changes could leave reminders doubled or missing",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "applyReminders was cancel-then-schedule with no ordering",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/lib/reminderScheduler.ts",
+        "mobile/src/lib/serialQueue.ts"
+      ],
+      "fix_summary": "Every schedule change runs through one serial queue",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1059",
+      "date": "2026-11-10",
+      "title": "Tapping a reminder did not open Review",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "It opened wherever the app was last left",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "No notification response handler",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/lib/useReminderTap.ts",
+        "mobile/app/_layout.tsx"
+      ],
+      "fix_summary": "useReminderTap routes a study reminder to /review once signed in",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1060",
+      "date": "2026-11-10",
+      "title": "A PBQ unit list that failed to load said 'No units yet'",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A network failure read as an empty course",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "catch set units to []",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/pbq.tsx"
+      ],
+      "fix_summary": "Show the error with a retry",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1061",
+      "date": "2026-11-10",
+      "title": "study_notice_required left the learner at an error with no way to the notice",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The server refused a request until the notice was accepted; the app's copy of the state said otherwise",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Nothing reloaded the onboarding state on that code",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/api/client.ts",
+        "mobile/src/auth/OnboardingContext.tsx",
+        "mobile/src/lib/studyNotice.ts"
+      ],
+      "fix_summary": "The client reports it and the onboarding provider reloads, which opens the notice screen",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1062",
+      "date": "2026-11-10",
+      "title": "The keyboard covered inputs on Android 15+",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Edge-to-edge Android no longer resizes for the keyboard; KeyboardAvoidingView was iOS only",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Reliance on adjustResize",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/components/ui.tsx",
+        "mobile/src/lib/useKeyboardOverlap.ts",
+        "mobile/app/(app)/course/[trackId]/chat.tsx"
+      ],
+      "fix_summary": "Screen and the coach chat pad themselves by the measured keyboard overlap on Android 35+; iOS uses automaticallyAdjustKeyboardInsets (needs a phone check)",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1063",
+      "date": "2026-11-10",
+      "title": "The biometric switch failed silently and was offered on weak-biometric phones",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Sealing needs a strong biometric; a failed write threw out of the switch",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "No catch; availability checked hardware and enrolment only",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/settings.tsx",
+        "mobile/src/lib/biometric.ts",
+        "mobile/src/auth/AuthContext.tsx"
+      ],
+      "fix_summary": "Offered only when SecureStore says sealing can work; failures are caught and explained; enabling writes the preference last and restores the plain token on failure",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1064",
+      "date": "2026-11-10",
+      "title": "Plan-locked unit check and comparisons rendered blank or misleading",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The server answers 200 with locked; the screens showed a title only or 'No look-alike concepts were found'",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "The screens ignored the locked field",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/app/(app)/unit-check.tsx",
+        "mobile/app/(app)/course/[trackId]/compare.tsx",
+        "mobile/src/lib/featureLock.ts"
+      ],
+      "fix_summary": "Show the server's message",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1065",
+      "date": "2026-11-10",
+      "title": "Use password instead leaves the old sealed session live on the server",
+      "status": "mitigated",
+      "severity": "low",
+      "symptom": "The deleted sealed token's session stays until it expires and shows in Active sessions",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Revoking needs the sealed token, which needs the prompt the learner is declining",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx"
+      ],
+      "fix_summary": "Accepted and documented in code; needs a backend route to end a named session from the new one",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Documented in AuthContext.tsx; needs a backend route that ends a named session.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1066",
+      "date": "2026-11-10",
+      "title": "The web lock markers are in localStorage",
+      "status": "mitigated",
+      "severity": "low",
+      "symptom": "Someone at an unlocked browser can edit them",
+      "how_detected": "Audit 2026-11-11 (mobile reviewer), code read",
+      "root_cause": "Browser storage is editable",
+      "requirement": "REQ-217",
+      "affected": [
+        "mobile/src/lib/autoLock.ts"
+      ],
+      "fix_summary": "Accepted and documented: clearing the marker alone still locks (last-seen is not advanced while locked, and a missing one locks); a test pins it",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/g2PhoneScreens.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The listed regression test pins the rule; the mobile gate (npx tsc --noEmit and npm test) runs it on every change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1160",
+      "date": "2026-11-10",
+      "title": "A restore into a cluster without app_runtime and content_recheck failed, and the CI drill could not see it",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "pg_restore --schema=public into a fresh cluster ends with about 120 'role \"app_runtime\" does not exist' / 'role \"content_recheck\" does not exist' errors on every CREATE POLICY; a real restore would not complete",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Roles belong to the cluster and a dump holds none, but the dump's RLS policies are TO app_runtime / TO content_recheck (migrations 064, 071). The drill and runbook created neither role before pg_restore; the CI drill restored into the same cluster the source was migrated on, where both roles already existed. content_recheck's grants were also never re-applied (--no-privileges)",
+      "requirement": "REQ-221",
+      "affected": [
+        "backend/scripts/restore-drill.sh",
+        "backend/scripts/ci/backup-drill-test.sh",
+        "docs/operations-runbook.md",
+        ".github/workflows/ci.yml"
+      ],
+      "fix_summary": "scripts/restore/01 creates both roles NOLOGIN before pg_restore; after 071 the drill applies 02 (064's grant block); runbook and drill docs give the same order; CI restores on a second postgres service and refuses a restore cluster that is the same server or already has the roles",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/scripts/ci/backup-drill-test.sh",
+        "backend/lib/operations-g6.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The CI test shows a plain restore failing on the fresh cluster (canary), then the drill passing, and compares the restored roles' privileges with the source's (1625 facts)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1161",
+      "date": "2026-11-10",
+      "title": "CRON_SECRET unset was silent: every cron route answered 503 while /api/health stayed green",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Without CRON_SECRET the purge, content-signals and service-email crons 503 (lib/cron-auth.ts) and nothing turns red",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "lib/required-env.ts did not list CRON_SECRET, so the health check had no opinion",
+      "requirement": "REQ-221",
+      "affected": [
+        "backend/lib/required-env.ts"
+      ],
+      "fix_summary": "CRON_SECRET is required in production; /api/health answers misconfigured naming it",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "requiredEnvProblems lists it; fixtures for a complete production env updated, not deleted",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1162",
+      "date": "2026-11-10",
+      "title": "apply-migration.ts said hand re-runs are safe; hand-applied SQL skips app_runtime_sync()",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Header claimed every migration is re-runnable and the ledger is only a convenience; a hand-applied new object or CREATE OR REPLACE FUNCTION leaves app_runtime without grants or search_path",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Comment written before migration 071 introduced the least-privilege role; never revisited",
+      "requirement": "REQ-221",
+      "affected": [
+        "backend/supabase/apply-migration.ts",
+        "docs/operations-runbook.md"
+      ],
+      "fix_summary": "Header corrected; runbook section 'After SQL applied by hand': select app_runtime_sync(); then npm run migrate -- --status",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/operations-g6.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Text test fails if the claim returns or the runbook line goes",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1163",
+      "date": "2026-11-10",
+      "title": ".env.example and the runbook missed 17 settings the code reads",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "AI_ACCESS_MODE, AI_GLOBAL_DAILY_CEILING_USD, ERROR_TRACKER_DSN, MIN_APP_VERSION, IOS_APP_STORE_URL, DATABASE_CA_CERT, PGSSLROOTCERT, DB_STATEMENT_TIMEOUT_MS, MIGRATION_LOCK_TIMEOUT, PGSSLMODE, SIMS_*, LABS_SERVE_UNREVIEWED, ITEM_FACT_CHECK, CSP_REPORT_ONLY, APP_URL were undocumented in the example file",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Each feature branch added its setting in code and its own doc; nothing checked the example file",
+      "requirement": "REQ-221",
+      "affected": [
+        "backend/.env.example",
+        "docs/operations-runbook.md"
+      ],
+      "fix_summary": "Commented entries with defaults and one-line purposes; runbook 'Optional settings' section",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/operations-g6.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Test checks each name is in the example (commented, with a comment above), read by code, and in the runbook; pre-completion checklist item added",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1164",
+      "date": "2026-11-10",
+      "title": "Data inventory named /api/cron/retention at 08:15 UTC; vercel.json schedules purge-auth-data at 09:30",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A privacy-facing document named an unscheduled route and the wrong time",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Two branches built the purge under two paths (REQ-093, REQ-116); the merge kept one handler and the doc was not updated",
+      "requirement": "REQ-221",
+      "affected": [
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "Doc names the scheduled route and time and says retention is an unscheduled alias",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/operations-g6.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Test reads the cron path and time from vercel.json and checks the inventory",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1165",
+      "date": "2026-11-10",
+      "title": "db-backup.yml comment named the production-database environment; the job uses production-backup",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Header comment misdescribed which environment the backup job runs in (backup-housekeeping.yml the same)",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Comment copied from migrate-production.yml; the job was later moved to the reviewer-free environment",
+      "requirement": "REQ-221",
+      "affected": [
+        ".github/workflows/db-backup.yml",
+        ".github/workflows/backup-housekeeping.yml"
+      ],
+      "fix_summary": "Both comments name production-backup and why",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/operations-g6.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Test fails if a backup workflow comment names production-database",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1166",
+      "date": "2026-11-10",
+      "title": "Android preview build workflow existed only on a branch, unpinned, and crashed after a successful build",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "build-android-preview.yml (branch only) used tag-pinned actions, Node 22, no permissions, interpolated the secret into a script, and its last step threw reading b.project.ownerAccount.name after the build finished",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Summary code assumed one shape of eas build --json and ran as an inline node -e with no tests; the workflow was never merged so the repo's hardening test never saw it",
+      "requirement": "REQ-221",
+      "affected": [
+        ".github/workflows/build-android-preview.yml",
+        ".github/scripts/eas-build-summary.mjs"
+      ],
+      "fix_summary": "Workflow on master: SHA-pinned actions, Node 24, contents: read, token only on steps that need it, push to ops/build-android-preview only; summary in a tested script that never throws and falls back to the build id",
+      "fix_commits": [],
+      "regression_tests": [
+        ".github/scripts/eas-build-summary.test.mjs",
+        "backend/lib/operations-g6.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "ci.yml runs the summary tests; workflow-hardening and operations-g6 tests cover pins, Node and token placement",
+      "recurrence_of": ""
     }
   ]
 }

@@ -22,7 +22,15 @@ import { Alert } from "@/lib/alert";
 import { withBackgroundHold } from "@/lib/backgroundHold";
 import { isShareDismissal } from "@/lib/mfaLeaveGuard";
 import { colors } from "@/lib/theme";
-import { browserDownloadEnv, downloadJson, exportFileName, fetchFullExport } from "@/lib/accountExport";
+import {
+  browserDownloadEnv,
+  downloadJson,
+  exportFileName,
+  exportFitsShareSheet,
+  fetchFullExport,
+  LARGE_EXPORT_MESSAGE,
+} from "@/lib/accountExport";
+import { friendlyError } from "@/lib/errorMessage";
 import { deleteAccountBody, linkGoogleBody, reauthPromptFor } from "@/lib/reauth";
 
 import { useAuth } from "@/auth/AuthContext";
@@ -168,7 +176,9 @@ export default function Account() {
     setGoogleBusy(true);
     setLinkError(null);
     try {
-      const idToken = await signInAsync();
+      // REQ-217 (FAIL-1056): the Google tab reports "background" on Android; the
+      // hold keeps it from locking the app on return (FAIL-062).
+      const idToken = await withBackgroundHold(() => signInAsync());
       if (!idToken) return;
       await api.post("/api/auth/oauth/google/link", linkGoogleBody(idToken, prompt, linkSecret));
       setLinking(false);
@@ -218,9 +228,15 @@ export default function Account() {
         downloadJson(data, exportFileName(), browserDownloadEnv());
         return;
       }
-      await withBackgroundHold(() =>
-        Share.share({ message: JSON.stringify(data, null, 2), title: "Ascendra data export" })
-      );
+      // REQ-217 (FAIL-1055): the share sheet carries the text through the
+      // system's Binder, which refuses a large one (the app closed or nothing
+      // opened). A big export is pointed at the web download instead.
+      const text = JSON.stringify(data, null, 2);
+      if (!exportFitsShareSheet(text)) {
+        Alert.alert("Export is too large to share from the phone", LARGE_EXPORT_MESSAGE);
+        return;
+      }
+      await withBackgroundHold(() => Share.share({ message: text, title: "Ascendra data export" }));
     } catch (err) {
       if (isShareDismissal(err)) return;
       Alert.alert("Couldn't export data", (err as Error).message);
@@ -233,7 +249,16 @@ export default function Account() {
   function confirmLogoutAll() {
     Alert.alert("Sign out of all devices?", "This ends every session, including this one. You'll need to sign in again everywhere.", [
       { text: "Cancel", style: "cancel" },
-      { text: "Sign out everywhere", style: "destructive", onPress: () => void logoutAll() },
+      {
+        text: "Sign out everywhere",
+        style: "destructive",
+        // REQ-217 (FAIL-1043): this device is signed out only once the server
+        // has ended every session; otherwise it says so and stays signed in.
+        onPress: async () => {
+          const res = await logoutAll();
+          if (!res.ok) Alert.alert("Couldn't sign out everywhere", `${res.error ?? friendlyError(null)} Other devices are still signed in. Try again.`);
+        },
+      },
     ]);
   }
 
@@ -246,7 +271,7 @@ export default function Account() {
       setDeleteError(null);
       let idToken: string | null = null;
       try {
-        idToken = await signInAsync();
+        idToken = await withBackgroundHold(() => signInAsync());
       } catch {
         idToken = null;
       }

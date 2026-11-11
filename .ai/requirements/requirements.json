@@ -7667,6 +7667,105 @@
       "risk_notes": [
         "Independent is harder to reach (needs a second sitting): levels drop on recompute until learners return; reviews appear up to 18 h later than the date alone; the exam submit now runs in one transaction"
       ]
+    },
+    {
+      "id": "REQ-217",
+      "category": "mobile",
+      "title": "G2: phone sessions and app screens (audit 2026-11-11)",
+      "description": "Fixes from the 2026-11-11 audit for the mobile app's session handling and screens: biometric re-seal on every silent refresh (H4), any refresh failure signing out (H5), all /api/auth routes skipping refresh-and-retry and sign-out-everywhere reporting success on failure (H6), plus M9, M11-M14 and the lower-priority list. JavaScript only: ships as an over-the-air update. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/",
+        "CHANGELOG.md",
+        ".ai/"
+      ],
+      "acceptance_criteria": [
+        "Silent refresh never prompts for or writes the sealed key",
+        "Only a 401 from refresh signs the device out",
+        "Only signed-out /api/auth routes skip refresh-and-retry",
+        "Sign out of all devices reports success only on 200",
+        "Each listed screen finding fixed or documented as accepted"
+      ],
+      "validation_required": [
+        "cd mobile && npx tsc --noEmit",
+        "cd mobile && npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Two items accepted and documented (FAIL-1065, FAIL-1066); export file share deferred (FAIL-1055). Several fixes need a phone check."
+      ]
+    },
+    {
+      "id": "REQ-221",
+      "category": "operations",
+      "title": "Operations and docs audit fixes (G6): restore into a fresh cluster, CRON_SECRET health check, env docs, Android preview workflow",
+      "description": "Audit of 2026-11-11, batch G6 (Nick approved 2026-11-10). H9: a restore into a cluster without the app_runtime and content_recheck roles fails (about 120 pg_restore errors); the drill and runbook now create both roles first and re-apply 071 then 064's grants, and CI restores on a second Postgres server that never saw them. CRON_SECRET is required in production (/api/health reports misconfigured). apply-migration header corrected; runbook: after hand-applied SQL run app_runtime_sync() then migrate --status. .env.example and the runbook list 17 missing settings. Data inventory names the scheduled purge-auth-data cron (09:30 UTC). Backup workflow comments name production-backup. build-android-preview.yml added to master (pinned, Node 24, tolerant summary). No migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/scripts/restore-drill.sh",
+        "backend/scripts/restore/",
+        "backend/scripts/ci/backup-drill-test.sh",
+        "backend/lib/required-env.ts",
+        "backend/.env.example",
+        "backend/supabase/apply-migration.ts",
+        "docs/operations-runbook.md",
+        "docs/restore-drill.md",
+        "docs/legal/data-inventory.md",
+        ".github/workflows/",
+        ".github/scripts/eas-build-summary.mjs",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a plain restore into a fresh cluster fails and the drill passes there",
+        "restored roles have the source's privileges",
+        "CRON_SECRET missing in production is misconfigured",
+        "every listed env name is in .env.example and the runbook",
+        "the Android preview workflow is pinned and its summary never throws"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backup-drill-test.sh on two clusters",
+        "node --test .github/scripts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/operations-runbook.md",
+        "docs/restore-drill.md"
+      ],
+      "risk_notes": [
+        "production Vercel must have CRON_SECRET or /api/health turns 503 after the next deploy",
+        "the Android preview workflow's EAS JSON shape is untested against live EAS"
+      ]
+    },
+    {
+      "id": "REQ-215",
+      "category": "chore",
+      "title": "Raise the repo's agent turn limits (60/80 to 150/200)",
+      "description": "Nick, 2026-11-10: fix what makes agents stop at their limit. Every reviewer and builder in .claude/agents/ was capped at 60 turns (coordinator and release-validator at 80); on this codebase four of six audit reviewers and several fix-batch builders stopped before reporting and had to be resumed. Reviewers and builders now allow 150 turns, coordinator and release-validator 200.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".claude/agents/*.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every .claude/agents file sets maxTurns 150 or 200"
+      ],
+      "validation_required": [
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "a runaway agent can now use more turns before it stops; the lead still caps work by instruction"
+      ]
     }
   ]
 }

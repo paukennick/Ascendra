@@ -3,7 +3,8 @@ import { View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { Stack, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
-import { api } from "@/api/client";
+import { api, ApiError } from "@/api/client";
+import { Alert } from "@/lib/alert";
 import { Badge, Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, Screen, TextField, VerdictBadge } from "@/components/ui";
 import { ReportProblem } from "@/components/ReportProblem";
 import { DictationHint } from "@/components/DictationHint";
@@ -182,6 +183,7 @@ export default function LabScreen() {
               stepCount={lab.stepCount}
               kind={lab.kind}
               onGraded={onGraded}
+              onStale={load}
             />
           ) : null}
 
@@ -212,7 +214,23 @@ export default function LabScreen() {
           {/* The study notice points to the report links, so this is on the screen from the start. */}
           <ReportProblem target={{ kind: "lab", labId: lab.id }} />
           {open && run && run.results.length > 0 ? (
-            <Button label="Start over" variant="link" size="sm" fullWidth={false} onPress={() => start(true)} />
+            <>
+              {/* REQ-217 (FAIL-1051): a failed restart said nothing. */}
+              {startError ? <ErrorBanner message={startError} onRetry={() => start(true)} /> : null}
+              <Button
+                label="Start over"
+                variant="link"
+                size="sm"
+                fullWidth={false}
+                onPress={() =>
+                  // REQ-217 (FAIL-1051): it throws away the answers already graded in this run.
+                  Alert.alert("Start over?", "This discards your answers so far and begins the lab again from the first step.", [
+                    { text: "Keep my answers", style: "cancel" },
+                    { text: "Start over", style: "destructive", onPress: () => void start(true) },
+                  ])
+                }
+              />
+            </>
           ) : null}
         </>
       ) : null}
@@ -237,6 +255,7 @@ function StepForm({
   stepCount,
   kind,
   onGraded,
+  onStale,
 }: {
   labId: string;
   runId: string;
@@ -244,6 +263,10 @@ function StepForm({
   stepCount: number;
   kind: "build" | "case";
   onGraded: (res: LabSubmitResult) => void;
+  // REQ-217 (FAIL-1054): the server says this step or run is no longer open
+  // (answered on another device, or the run ended): reload the lab so the
+  // screen shows where the run really is, not a step that can never be sent.
+  onStale: () => void;
 }) {
   const draft = useLabDraft(labId, runId, step.index, step.parts.length);
   const [busy, setBusy] = useState(false);
@@ -269,6 +292,7 @@ function StepForm({
       onGraded(res);
     } catch (err) {
       setError(friendlyError(err, { kept: true }));
+      if (err instanceof ApiError && err.status === 409) onStale();
     } finally {
       setBusy(false);
     }

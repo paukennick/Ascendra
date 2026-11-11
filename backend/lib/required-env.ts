@@ -30,6 +30,10 @@ export function requiredEnvProblems(env: Env = process.env): EnvProblem[] {
   }
   // lib/choice-order.ts refuses to run without it in production only.
   if (env.NODE_ENV === "production") need("CHOICE_ORDER_SECRET");
+  // FAIL-1161: every /api/cron/* route answers 503 without it (lib/cron-auth.ts),
+  // and Vercel Cron only logs that, so the daily purge, retention, service
+  // emails and content signals could stop for weeks with a green /api/health.
+  if (env.NODE_ENV === "production") need("CRON_SECRET");
   // lib/anthropic.ts: a static key, or workload identity federation.
   if (env.AI_PROVIDER !== "local" && !set(env, "ANTHROPIC_API_KEY")) {
     if (!set(env, "ANTHROPIC_FEDERATION_RULE_ID")) out.push({ name: "ANTHROPIC_FEDERATION_RULE_ID", problem: "missing" });

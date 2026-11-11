@@ -124,8 +124,9 @@ No cookies, analytics, in-app crash reporting or advertising identifiers (server
 
 ## Retention jobs
 
-`/api/cron/retention` (Vercel Cron, daily 08:15 UTC) runs
-`lib/retention.ts`. It needs `CRON_SECRET` set on the Vercel project;
+`/api/cron/purge-auth-data` (Vercel Cron, daily 09:30 UTC, as scheduled in
+`backend/vercel.json`; `/api/cron/retention` answers identically but is not
+scheduled) runs `lib/retention.ts` through `lib/auth/retention.ts`. It needs `CRON_SECRET` set on the Vercel project;
 without it the route refuses every call, so nothing is purged.
 `lib/retention.test.ts` fails if the periods drift from the Privacy Policy.
 It purges: `auth_events` 90 days, ended `refresh_tokens` 30 days, one-time
