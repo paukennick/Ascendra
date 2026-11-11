@@ -590,6 +590,7 @@ interface ScenarioDoc {
   reasoning: Record<Id, ReasoningMoment>; // at least one per scenario
   outcome: OutcomeSpec;                 // class thresholds, section 9.2
   endings: Record<Id, Ending>;          // must include "time_up" (engine-defined, see Ending)
+  endingOrder?: Id[];                   // REQ-227, engine minor 2: the order endings are checked in (5.3); see Ending
   scoring: Scoring;                     // server-only, section 9
 }
 ```
@@ -792,6 +793,15 @@ interface Ending {
                                         // to; required when terminal is false (5.3 says a branch
                                         // point "applies its phase change" but gave it no field)
 }
+// `endingOrder` (REQ-227, engine minor 2) lists every ending that has a
+// `when` exactly once, never `time_up`, in the order they are checked: the
+// first true one wins. It is required from minor 2 whenever two or more
+// endings have a `when`, and refused below minor 2. It exists because a
+// scenario is stored in a jsonb column, which does not keep the order of an
+// object's keys (it returns shorter keys first, then bytewise): with no
+// list the engine checks endings in the key order of `endings`, so the
+// server and the app could end the same run differently. A module lists
+// its own endings in its fragment's `endingOrder`; they go after the host's.
 // `time_up` is the one engine-defined ending: it is terminal, carries an
 // authored class and narrative, has no `when`, is never named by an
 // `{ end }` effect, and is reached only by tick count (5.3, Advance step
@@ -1076,6 +1086,14 @@ they do for labs (`lib/lab-content.ts`).
   The engine refuses a document for another major or a higher minor than
   its own (5.8); the seed refuses a document whose minor is above the
   server's engine for that major. Apps are filtered by both (5.10).
+- **Engine minor 2 (REQ-227, FAIL-1222): `endingOrder`.** A minor adds only
+  what an existing document cannot use, so a document without `endingOrder`
+  is stepped exactly as under minor 0 and 1 (endings in key order); its
+  content hash, golden hashes, checkpoints and stored runs are unchanged,
+  and a run keeps replaying on the version it pinned. A document that
+  declares `endingOrder` declares minor 2 and is served only to an app
+  whose engine is 1.2 or later (5.10). Neither the content hash (keys
+  sorted) nor the state hash (keys sorted) depends on key order.
 - **Content versions**: each change to a scenario's content creates a new
   **version row** with an incrementing `version`. Runs pin the version they
   started on, so a learner mid-run is never moved onto changed rules, and
@@ -1389,7 +1407,8 @@ is never ambiguous.
    their writes; a trigger's own previous value is updated after its
    effects run.
 2. Evaluate `endings` that have a `when` (every ending except `time_up`),
-   in document order. The first
+   in `endingOrder` (engine minor 2, REQ-227) or, in a document without
+   one (minor 0 and 1), in the key order of `endings`. The first
    true one is reached: a terminal ending ends the run; a non-terminal
    ending fires once per run and applies its phase change.
 3. If an effect opened a prompt or reasoning moment, the clock is blocked
@@ -3859,19 +3878,15 @@ each document with `checkedAt` 2026-11-10.
    REQ-190. Display and lint only: stepping, the corpus and every existing
    hash are unchanged, and no engine minor was added (an older app is held
    back by the renderer level instead).
-2. **Endings run in jsonb key order on the server (FAIL-1221, FAIL-1222).**
-   The engine evaluates endings in `Object.keys` order (5.3, "document
-   order"), but `sim_versions.document` and `client_document` are jsonb,
-   which returns keys shortest first, then bytewise. A document whose endings
-   rely on first-match precedence ends differently in production than in
-   its goldens. The EPPP cases now use mutually exclusive conditions, and
+2. **Endings ran in jsonb key order on the server (FAIL-1221, FAIL-1222;
+   fixed in REQ-227, 22.6).** The engine evaluated endings in `Object.keys`
+   order, but `sim_versions.document` and `client_document` are jsonb, which
+   returns keys shortest first, then bytewise. A document whose endings rely
+   on first-match precedence ended differently in production than in its
+   goldens. The EPPP cases use mutually exclusive conditions;
    `lib/sim/storage-order.test.ts` replays every golden path in jsonb order.
-   The tamponade case fails it: `code_rosc` runs before `code_epiHarm`, so
-   on the server full-dose epinephrine reaches ROSC instead of the harm
-   ending (FAIL-1222, open). The engine-level fix (an explicit ending order,
-   or storing the document as `json`) is a decision for Nick; it can change
-   stepping output for existing documents, so it is a new engine major or a
-   content change in each affected document.
+   The tamponade case failed it (`code_rosc` ran before `code_epiHarm`);
+   22.6 gives endings an explicit order.
 3. **Teaching prompts (5.4d) exist only for running phases.** A turn-based
    session cannot declare them, so each EPPP case carries its one
    prediction as a decision card (`prompts`) opened once by a trigger,
@@ -3886,3 +3901,43 @@ each document with `checkedAt` 2026-11-10.
 5. **The "a wait is pending at every boundary" warning** fired for every
    path that never entered a running phase (FAIL-1220); it now needs one.
 
+### 22.6 Explicit ending order, engine 1.2 (REQ-227, FAIL-1222)
+
+Nick approved the engine approach on 2026-11-10. What changed:
+
+- **`endingOrder`** (4.1, 4.5, 5.3): a list of the endings that have a `when`,
+  checked in that order, first true wins. The engine reads it, so no key
+  order can change a result. Engine minor 2 (`ENGINE_VERSION` 1.2). A
+  document without it is stepped as before, so every older version row,
+  golden hash, checkpoint and stored run replays unchanged; the v1 corpus
+  gained one case (`endings-explicit-order`) and no existing hash moved.
+- **Validator** (`validate.ts`, `endingOrderRules`): from minor 2 a document
+  with two or more endings that have a `when` must list every one exactly
+  once; `time_up`, unknown ids, duplicates and a list below minor 2 are errors.
+- **Lint rule** (`lib/sim/lint.ts`, `endingOrderProblems`): a document with no
+  `endingOrder` is replayed with its keys as written, reversed and in jsonb
+  order; a golden path that ends differently in any of the three is an error
+  ("an ending set whose result depends on key order"). It found a real case
+  in the code/ACLS module's fixture host. Only golden paths are searched, so
+  a new document declares `endingOrder` instead of relying on the rule.
+- **Modules**: `code-acls@1` lists `code_noRosc`, `code_epiHarm`, `code_rosc`
+  in its fragment; they are appended after the host's list, minus an ending
+  `$onlyIf` dropped, and only when the host declares an order.
+- **Migrated**: every seeded document (12, including the SAP band, which
+  inherits the base list) and the module fixture host declare minor 2 and the
+  order their author wrote the endings in, which is what the golden paths
+  were written against. Behavior changes: tamponade's full-dose epinephrine
+  path reaches `code_epiHarm` (harm) on the server and in the app. Nothing
+  else was observed to change (every golden path is unchanged, in the file,
+  jsonb and reversed key order).
+- **Compatibility.** A new document hash means a new version row, seeded as
+  `needs_expert_review`; the sims re-enter review. An app whose engine is
+  still 1.1 cannot run a minor-2 version and falls back only to an approved
+  version it can run (5.10); with none it is told "Update the app". A run
+  already open stays on the version it pinned, so an in-progress tamponade
+  run keeps its old (jsonb) order until it ends; new runs get the new version.
+- **Not fixed (FAIL-1250).** The same flaw exists in the `teaching` map
+  (`teachingDue` offers the first due prompt in key order). It is harmless
+  while the app and server read the same jsonb order, and the storage-order
+  test leaves that one map out of its reversal. A `teachingOrder` list would
+  be the same kind of minor.
