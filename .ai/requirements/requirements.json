@@ -7972,6 +7972,39 @@
       ]
     },
     {
+      "id": "REQ-228",
+      "category": "docs/process",
+      "title": "Ship notes: What's new, in-app text and docs updated with every shipment, with a CI guard",
+      "description": "Nick, 2026-11-10: update What's new and the associated docs whenever a shipment goes out, update the in-app documents; identify and fix other items like this. (1) What's new entries for everything learners got since 2026-11-07, gated by feature flags. (2) In-app explanatory text (FAQ, About, lesson and course copy, notices, emails, coach prompt) checked against master and fixed; Terms/Privacy left for the next legal version and listed. (3) Repo docs describing shipped behavior fixed (except files PR #117 rewrites). (4) Release playbook Ship notes step, pre-completion line, and a CI test that fails when a learner-facing CHANGELOG entry is newer than the newest release note. (5) Other per-shipment drift found, fixed or guarded.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/release-notes.ts",
+        "backend/lib/release-notes.test.ts",
+        "backend/lib/ship-notes.test.ts",
+        "mobile/src/content/legal.ts",
+        "CHANGELOG.md",
+        ".ai/playbooks/release.md",
+        ".ai/checklists/pre-completion.md",
+        "docs/"
+      ],
+      "acceptance_criteria": [
+        "What's new covers 2026-11-07 to master",
+        "Stale in-app text fixed or listed",
+        "Ship-notes CI guard fails on a forgotten note",
+        "Release playbook and checklist have the step"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
       "id": "REQ-222",
       "category": "content",
       "title": "Sim library batch S2a: CCRN Adult sepsis, DKA and acute ischemic stroke scenarios",

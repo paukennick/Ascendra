@@ -25,7 +25,7 @@ export default function DeleteAccountPage() {
       <ol>
         <li>Sign in to Ascendra on your phone or at this website.</li>
         <li>Open <strong>Account</strong>.</li>
-        <li>Under <strong>Danger zone</strong>, choose <strong>Delete account</strong> and confirm with your password.</li>
+        <li>Under <strong>Danger zone</strong>, choose <strong>Delete account</strong> and confirm it&apos;s you: your password, or, for an account without one, Google or a code.</li>
       </ol>
       <p>Your account is deleted immediately. If you want a copy of your data first, use <strong>Export my data</strong> on the same screen.</p>
 
@@ -39,10 +39,10 @@ export default function DeleteAccountPage() {
       <ul>
         <li>Your profile: email address, display name, photo and password.</li>
         <li>Sign-in data: sessions, two-factor settings and backup codes, linked Google sign-in, and the sign-in log.</li>
-        <li>Study data: courses you added, favorites, answers, mastery scores, review schedule and study sessions.</li>
+        <li>Study data: courses you added, favorites, your study profile, answers (lessons, reviews, practice exams, labs and sims), mastery scores, review schedule, study sessions and any exam results you reported.</li>
         <li>AI coach conversations, support requests and lesson reports.</li>
         <li>The note you wrote on any question you reported.</li>
-        <li>Records of which terms, policies and course disclaimers you accepted, and that you confirmed your age.</li>
+        <li>Records of which terms, policies and study notice you accepted (and any older course disclaimers), that you confirmed your age, and any 18+ confirmation for mental health courses.</li>
       </ul>
 
       <h2>What is kept, and for how long</h2>

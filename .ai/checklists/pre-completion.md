@@ -278,6 +278,14 @@
 - Any rule, playbook or checklist that should have prevented a failure was
   changed in this task.
 - Docs updated when behavior or workflow changed.
+- Ship notes (REQ-228): a change learners can see or feel updates "What's
+  new" (backend/lib/release-notes.ts) in the same PR, or its CHANGELOG entry
+  says why not ("No What's new: ..."); and every in-app text that describes
+  the changed behavior (FAQ and About in mobile/src/content/legal.ts, lesson
+  and course copy, notices, emails, the coach's prompt) and every doc that
+  describes it is updated too. Mark the CHANGELOG entry `(learner-facing)`;
+  lib/ship-notes.test.ts fails CI when a marked entry has no note. See
+  .ai/playbooks/release.md "Ship notes".
 - Changelog updated when public release notes are desired.
 - Local-only notes remain ignored.
 - Risks and follow-ups are stated.

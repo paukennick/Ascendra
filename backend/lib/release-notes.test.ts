@@ -65,6 +65,19 @@ describe("release notes are well formed", () => {
   });
 });
 
+describe("gated items (FAIL-1271)", () => {
+  test("with every gate closed, a note that still shows keeps at least the minimum number of items", () => {
+    // A note whose items are mostly gated would show one or two items when a
+    // flag is off (the first sims-wave note did, and whats-new.dbtest caught it):
+    // gate such a note whole instead.
+    for (const n of RELEASE_NOTES) {
+      if (n.requires) continue;
+      const open = n.items.filter((i) => !i.requires).length;
+      assert.ok(open >= L.itemsMin, `${n.id}: only ${open} items show with every gate closed; gate the note whole`);
+    }
+  });
+});
+
 describe("gates", () => {
   const notes: ReleaseNote[] = [
     {
@@ -97,6 +110,9 @@ describe("gates", () => {
     const v = visibleReleaseNotes(notes, open);
     assert.equal(v.length, 3);
     assert.ok(v.every((n) => !("requires" in n) && n.items.every((i) => !("requires" in i))));
+    // REQ-228: covers is bookkeeping for the ship-notes guard, never sent.
+    const covered = visibleReleaseNotes([{ ...notes[1], covers: ["REQ-1"] }], open);
+    assert.ok(!("covers" in covered[0]));
   });
   test("the billing gate follows BILLING_ENABLED", () => {
     const before = process.env.BILLING_ENABLED;
@@ -108,6 +124,36 @@ describe("gates", () => {
     } finally {
       if (before === undefined) delete process.env.BILLING_ENABLED;
       else process.env.BILLING_ENABLED = before;
+    }
+  });
+});
+
+describe("REQ-228 gates", () => {
+  function withEnv(name: string, value: string | undefined, fn: () => void) {
+    const before = process.env[name];
+    try {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+      fn();
+    } finally {
+      if (before === undefined) delete process.env[name];
+      else process.env[name] = before;
+    }
+  }
+  test("the sims gate follows SIMS_ENABLED", () => {
+    withEnv("SIMS_ENABLED", undefined, () => assert.equal(RELEASE_NOTE_GATES.sims(), false));
+    withEnv("SIMS_ENABLED", "true", () => assert.equal(RELEASE_NOTE_GATES.sims(), true));
+  });
+  test("the aiCeiling gate is open only when a ceiling is set", () => {
+    withEnv("AI_GLOBAL_DAILY_CEILING_USD", undefined, () => assert.equal(RELEASE_NOTE_GATES.aiCeiling(), false));
+    withEnv("AI_GLOBAL_DAILY_CEILING_USD", "5", () => assert.equal(RELEASE_NOTE_GATES.aiCeiling(), true));
+  });
+  test("every note about sims is gated on sims", () => {
+    for (const n of RELEASE_NOTES) {
+      if (n.requires === "sims") continue;
+      for (const i of n.items) {
+        if (/\bsims?\b/i.test(`${i.headline} ${i.body}`)) assert.equal(i.requires, "sims", i.headline);
+      }
     }
   });
 });
