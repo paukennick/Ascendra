@@ -72,7 +72,7 @@ describe("placing a course on its paths (REQ-198)", () => {
     for (const code of ["NPTEPTA", "ABPTSOCS", "SECPLUS", "NO-SUCH"]) assert.deepEqual(buildCoursePaths(code, ALL), [], code);
   });
 
-  test("a step missing from the database is skipped and the neighbours close up", () => {
+  test("a step missing from the database is skipped and the neighbors close up", () => {
     const [v] = buildCoursePaths("PTPREREQ", catalogOf(["PTPREREQ", "NPTEPT"]));
     assert.equal(v.after!.code, "NPTEPT");
     assert.deepEqual(v.steps.map((s) => s.position), [1, 2]);
@@ -83,7 +83,7 @@ describe("placing a course on its paths (REQ-198)", () => {
     assert.deepEqual(buildCoursePaths("DPT", catalogOf(["PTPREREQ", "NPTEPT"])), []);
   });
 
-  test("a course on two paths gets both, each with its own neighbours", () => {
+  test("a course on two paths gets both, each with its own neighbors", () => {
     const paths: SeedStudyPath[] = [
       { slug: "a", title: "Path A", audience: "A", steps: [{ trackCode: "X", when: "first", why: "w" }, { trackCode: "Y", when: "second", why: "w" }] },
       { slug: "b", title: "Path B", audience: "B", steps: [{ trackCode: "Y", when: "first", why: "w" }, { trackCode: "Z", when: "second", why: "w" }] },

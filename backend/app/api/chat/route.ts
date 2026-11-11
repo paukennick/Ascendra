@@ -22,6 +22,7 @@ import { learnerProfileBlock, learnerProfileFor } from "@/lib/learner-profile";
 import { consumeAllowance, requireAiAllowance, requireFeature } from "@/lib/entitlements";
 import { flagChatDisputes } from "@/lib/chat-dispute";
 import { inBackground } from "@/lib/understanding-ai";
+import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 
 // REQ-202: seconds this route may run (Haiku reply plus the guards; one retry still fits). Never above 300, the Hobby
 // plan ceiling with Fluid compute (docs/billing.md, "Function duration").
@@ -125,85 +126,101 @@ export async function POST(req: Request) {
     const tier = await requireFeature(userId, "coach", trackId); // REQ-170: the tier on this course
     await requireAiAllowance(userId, tier);
 
-    try {
-      await consumeRateLimit("chat_message", userId, { max: 30, windowMinutes: 10 });
-    } catch (err) {
-      if (err instanceof RateLimitError) return tooManyRequests(err.message);
-      throw err;
-    }
-    // Counted now, given back below if no reply is saved.
-    const use = await consumeAllowance(userId, "coach_message", tier);
-    try {
-
-      let unitTitle: string | undefined;
-      if (unitId) {
-        const rows = await query<{ title: string }>(`select title from course_units where id = $1`, [unitId]);
-        unitTitle = rows[0]?.title;
+    // REQ-216 (low, FAIL-1023): one message id, one model call. The stored-reply
+    // check above runs before the model call, so two copies of one message sent
+    // at once (a double tap, a flaky network resending) both passed it and each
+    // paid for a reply; the second insert was then thrown away. The first copy
+    // now takes a claim on (learner, message id) (lib/grading-claims.ts) and the
+    // others wait for its stored reply and replay it, billing nothing.
+    const respond = async (): Promise<Response> => {
+      try {
+        await consumeRateLimit("chat_message", userId, { max: 30, windowMinutes: 10 });
+      } catch (err) {
+        if (err instanceof RateLimitError) return tooManyRequests(err.message);
+        throw err;
       }
+      // Counted now, given back below if no reply is saved.
+      const use = await consumeAllowance(userId, "coach_message", tier);
+      try {
 
-      // REQ-077 kept the newest turns rather than the oldest. Audit 3 H4/M4:
-      // the window is now also capped by estimated tokens (~8K) and moves in
-      // fixed chunks, so it stays under Haiku's 100K price tier and its cached
-      // prefix survives from one call to the next (lib/chat-history.ts).
-      const history = await loadChatHistory(userId, trackId);
+        let unitTitle: string | undefined;
+        if (unitId) {
+          const rows = await query<{ title: string }>(`select title from course_units where id = $1`, [unitId]);
+          unitTitle = rows[0]?.title;
+        }
 
-      // REQ-100: items this learner has not answered yet are named to the model
-      // (questions only, never the key), and the reply is checked before it is
-      // saved or sent (lib/coach-guard.ts). REQ-112 (f): every open item kind
-      // comes from that one function. Audit 3 H2: an item stays in play for the
-      // learner's next few messages, not only the one that matched it.
-      const openItems = await openItemsFor(userId, trackId, unitId ?? null);
-      const ctx = await coachContextForTrack(trackId);
-      // The request itself (cache order, fencing, the per-request server_note
-      // after the cached history) is built in lib/chat-request.ts, shared with
-      // the live eval. REQ-110: the learner profile is per call, fenced as data.
-      const request = buildChatRequest({
-        trackTitle: track.title,
-        unitTitle,
-        ctx: ctx ?? undefined,
-        history,
-        message,
-        openItems,
-        learnerProfile: learnerProfileBlock(await learnerProfileFor(userId, trackId)),
-      });
-      const { reply } = await guardedReply(
-        (extraNote) =>
-          callClaude({
-            system: request.system,
-            messages: request.messages(extraNote),
-            maxTokens: 1200,
-            model: getFastModel(),
-            effort: "low",
-            thinking: "off",
-            purpose: "chat",
-            userId,
-          }),
-        openItems,
-        request.inPlay,
-        { judge: haikuLeakJudge(userId) }
-      );
+        // REQ-077 kept the newest turns rather than the oldest. Audit 3 H4/M4:
+        // the window is now also capped by estimated tokens (~8K) and moves in
+        // fixed chunks, so it stays under Haiku's 100K price tier and its cached
+        // prefix survives from one call to the next (lib/chat-history.ts).
+        const history = await loadChatHistory(userId, trackId);
 
-      // If a request with the same id finished while this one waited on
-      // Anthropic, the unique index rejects this insert and the stored reply wins.
-      const saved = await saveChatTurn({ userId, trackId, unitId, message, reply, clientMessageId });
-      if (saved.replayed) await use.release(); // the first copy was counted
-      // REQ-187 (R12): a coach reply agreeing that a graded answer was marked
-      // wrongly flags that item as a suspect key (lib/chat-dispute.ts). After
-      // the response; only on a dispute message.
-      if (!saved.replayed) {
-        inBackground(async () => {
-          const d = await flagChatDisputes({ userId, trackId, message, reply });
-          await Promise.all(d.rechecks);
+        // REQ-100: items this learner has not answered yet are named to the model
+        // (questions only, never the key), and the reply is checked before it is
+        // saved or sent (lib/coach-guard.ts). REQ-112 (f): every open item kind
+        // comes from that one function. Audit 3 H2: an item stays in play for the
+        // learner's next few messages, not only the one that matched it.
+        const openItems = await openItemsFor(userId, trackId, unitId ?? null);
+        const ctx = await coachContextForTrack(trackId);
+        // The request itself (cache order, fencing, the per-request server_note
+        // after the cached history) is built in lib/chat-request.ts, shared with
+        // the live eval. REQ-110: the learner profile is per call, fenced as data.
+        const request = buildChatRequest({
+          trackTitle: track.title,
+          unitTitle,
+          ctx: ctx ?? undefined,
+          history,
+          message,
+          openItems,
+          learnerProfile: learnerProfileBlock(await learnerProfileFor(userId, trackId)),
         });
+        const { reply } = await guardedReply(
+          (extraNote) =>
+            callClaude({
+              system: request.system,
+              messages: request.messages(extraNote),
+              maxTokens: 1200,
+              model: getFastModel(),
+              effort: "low",
+              thinking: "off",
+              purpose: "chat",
+              userId,
+            }),
+          openItems,
+          request.inPlay,
+          { judge: haikuLeakJudge(userId) }
+        );
+
+        // If a request with the same id finished while this one waited on
+        // Anthropic, the unique index rejects this insert and the stored reply wins.
+        const saved = await saveChatTurn({ userId, trackId, unitId, message, reply, clientMessageId });
+        if (saved.replayed) await use.release(); // the first copy was counted
+        // REQ-187 (R12): a coach reply agreeing that a graded answer was marked
+        // wrongly flags that item as a suspect key (lib/chat-dispute.ts). After
+        // the response; only on a dispute message.
+        if (!saved.replayed) {
+          inBackground(async () => {
+            const d = await flagChatDisputes({ userId, trackId, message, reply });
+            await Promise.all(d.rechecks);
+          });
+        }
+        return ok(saved.replayed ? { reply: saved.reply, replayed: true } : { reply });
+      } catch (err) {
+        await use.release();
+        throw err;
       }
-      return ok(saved.replayed ? { reply: saved.reply, replayed: true } : { reply });
-    } catch (err) {
-      await use.release();
-      throw err;
-    }
+    };
+    if (!clientMessageId) return await respond();
+    return await withGradingClaim<Response>(userId, `chat:${clientMessageId}`, respond, async () => {
+      const stored = await findChatTurn(userId, clientMessageId);
+      if (stored === null) return null;
+      if (!sameChatTurn(stored, trackId, message)) throw new ChatIdConflictError();
+      return ok({ reply: stored.reply, replayed: true });
+    });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof ChatIdConflictError) return conflict(err.message);
+    if (err instanceof GradingInProgressError) return conflict("Your message is still being answered. Try again in a moment.");
     if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }

@@ -51,7 +51,7 @@ export const KCA_LABS: SeedLabSet = {
             part(
               "Evaluation and surprises",
               "Rules in a policy are evaluated independently per matching resource; mutate rules run before validate across the admission chain (Kyverno's mutating webhook fires first); surprises: the Pod rule also hits kube-system and operator-managed Pods, and because Kyverno autogenerates Pod rules for controllers by default, the mutate will also be applied at the Deployment template level -- and Deployments whose team label is missing cannot be updated through the Deployment object once Enforce is on (apply, edit, set image), while kubectl scale still works because it writes the scale subresource, which a rule matching Deployment does not cover unless it lists Deployment/scale.",
-              "Each rule is matched and evaluated on its own. Kubernetes calls Kyverno's mutating webhook before its validating webhook, so defaults are added before validations run (useful when a validate rule depends on a mutated field). Two surprises: (1) the Pod mutation has no namespace exclusion, so system Pods and operator-created Pods get requests added too -- usually unwanted in kube-system; (2) autogen means Kyverno also generates the mutate for Deployment/StatefulSet/Job templates, so controllers' templates are patched, not just Pods. And with Enforce, any update to a Deployment lacking team through the Deployment object itself (kubectl apply, edit, set image) is refused until the label is added, so teams with unlabelled workloads cannot ship changes the moment this is applied. kubectl scale is not blocked: it writes the Deployment/scale subresource, and a rule that matches kind Deployment only covers scale requests if its kinds list Deployment/scale too."
+              "Each rule is matched and evaluated on its own. Kubernetes calls Kyverno's mutating webhook before its validating webhook, so defaults are added before validations run (useful when a validate rule depends on a mutated field). Two surprises: (1) the Pod mutation has no namespace exclusion, so system Pods and operator-created Pods get requests added too -- usually unwanted in kube-system; (2) autogen means Kyverno also generates the mutate for Deployment/StatefulSet/Job templates, so controllers' templates are patched, not just Pods. And with Enforce, any update to a Deployment lacking team through the Deployment object itself (kubectl apply, edit, set image) is refused until the label is added, so teams with unlabeled workloads cannot ship changes the moment this is applied. kubectl scale is not blocked: it writes the Deployment/scale subresource, and a rule that matches kind Deployment only covers scale requests if its kinds list Deployment/scale too."
             ),
           ],
         },
@@ -67,7 +67,7 @@ export const KCA_LABS: SeedLabSet = {
             part(
               "Exclusion for the mutate rule",
               "Add an exclude block to default-resources: namespaces [kube-system] and a selector or namespace for platform-owned workloads (e.g. namespaces [platform] or a namespaceSelector matching team=platform), so system and platform Pods are untouched.",
-              "  - name: default-resources\n    match:\n      any:\n      - resources:\n          kinds: [Pod]\n    exclude:\n      any:\n      - resources:\n          namespaces: [kube-system, platform]\n      - resources:\n          namespaceSelector:\n            matchLabels: {team: platform}\n    mutate: ...\nexclude.any means a Pod is skipped if it is in kube-system or platform, or in any namespace labelled team=platform. Each rule carries its own match/exclude; nothing is inherited between rules."
+              "  - name: default-resources\n    match:\n      any:\n      - resources:\n          kinds: [Pod]\n    exclude:\n      any:\n      - resources:\n          namespaces: [kube-system, platform]\n      - resources:\n          namespaceSelector:\n            matchLabels: {team: platform}\n    mutate: ...\nexclude.any means a Pod is skipped if it is in kube-system or platform, or in any namespace labeled team=platform. Each rule carries its own match/exclude; nothing is inherited between rules."
             ),
           ],
         },
@@ -75,7 +75,7 @@ export const KCA_LABS: SeedLabSet = {
     },
     {
       slug: "admission-flow-and-failure-policy",
-      objective: "Recognise how admission controllers work: validating and mutating admission webhooks, how Kyverno registers them, failure policies and the admission request lifecycle",
+      objective: "Recognize how admission controllers work: validating and mutating admission webhooks, how Kyverno registers them, failure policies and the admission request lifecycle",
       kind: "build",
       title: "Trace a kubectl apply through Kyverno's webhooks and set the failure policy",
       brief:
@@ -255,7 +255,7 @@ export const KCA_LABS: SeedLabSet = {
             part(
               "Layout",
               "A directory with the policy file, a resources file (or several) containing the test Deployments and the Job, and kyverno-test.yaml listing policies, resources and expected results; run with kyverno test ./tests/disallow-latest (or the repo root, which discovers every kyverno-test.yaml).",
-              "tests/disallow-latest/\n  policy.yaml            # the ClusterPolicy\n  resources.yaml         # good-deploy, latest-deploy, untagged-deploy, ci-job\n  kyverno-test.yaml\nkyverno test ./tests   # recurses and runs every kyverno-test.yaml it finds\nKeep tests next to the policy in the policy repo; CI runs kyverno test . on every pull request so a policy change that alters behaviour fails loudly."
+              "tests/disallow-latest/\n  policy.yaml            # the ClusterPolicy\n  resources.yaml         # good-deploy, latest-deploy, untagged-deploy, ci-job\n  kyverno-test.yaml\nkyverno test ./tests   # recurses and runs every kyverno-test.yaml it finds\nKeep tests next to the policy in the policy repo; CI runs kyverno test . on every pull request so a policy change that alters behavior fails loudly."
             ),
             part(
               "kyverno-test.yaml",
@@ -314,7 +314,7 @@ export const KCA_LABS: SeedLabSet = {
             part(
               "What to do",
               "Short term: either fix the Deployment's securityContext (the right fix, a one-line change and rollout) or create a time-boxed PolicyException for that Deployment so operations continue; long term: block Enforce until reports hit zero for every namespace and alert on new fail results so a regression is seen before it matters.",
-              "Right now, pick one: patch the Deployment -- kubectl -n batch patch deploy legacy-batch -p '{\"spec\":{\"template\":{\"spec\":{\"securityContext\":{\"runAsNonRoot\":true,\"runAsUser\":10001}}}}}' -- if the image can run as non-root (test first), or create a PolicyException scoped to that Deployment and rule with an expiry note so the scale can proceed. Then institutionalise the lesson: Enforce only when the PolicyReport fail count is zero for the namespace, and alert on kyverno_policy_results_total{policy=\"require-run-as-nonroot\",rule_result=\"fail\"} rising so a new offender is caught while it is still only a report."
+              "Right now, pick one: patch the Deployment -- kubectl -n batch patch deploy legacy-batch -p '{\"spec\":{\"template\":{\"spec\":{\"securityContext\":{\"runAsNonRoot\":true,\"runAsUser\":10001}}}}}' -- if the image can run as non-root (test first), or create a PolicyException scoped to that Deployment and rule with an expiry note so the scale can proceed. Then institutionalize the lesson: Enforce only when the PolicyReport fail count is zero for the namespace, and alert on kyverno_policy_results_total{policy=\"require-run-as-nonroot\",rule_result=\"fail\"} rising so a new offender is caught while it is still only a report."
             ),
           ],
         },
@@ -326,7 +326,7 @@ export const KCA_LABS: SeedLabSet = {
       kind: "build",
       title: "Scope a policy to exactly the right resources",
       brief:
-        "The fictional e-commerce company Fenwick Online wants a validate rule that requires an owner annotation on Deployments and StatefulSets, but only in namespaces labelled tier=app, only on CREATE and UPDATE, never for resources created by the GitOps controller's ServiceAccount (argocd:argocd-application-controller) because those are checked in Git, and never for a legacy namespace legacy-erp. A separate rule must apply only to Pods whose labels include critical=true.",
+        "The fictional e-commerce company Fenwick Online wants a validate rule that requires an owner annotation on Deployments and StatefulSets, but only in namespaces labeled tier=app, only on CREATE and UPDATE, never for resources created by the GitOps controller's ServiceAccount (argocd:argocd-application-controller) because those are checked in Git, and never for a legacy namespace legacy-erp. A separate rule must apply only to Pods whose labels include critical=true.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -416,7 +416,7 @@ export const KCA_LABS: SeedLabSet = {
             part(
               "Generate by clone: the pull Secret",
               "A second generate rule cloning the Secret regcred from namespace kyverno into the new namespace with clone.namespace/name and synchronize true, so rotation of the source propagates; notes the background controller needs RBAC for secrets and that cloneList can copy several matching resources.",
-              "  - name: clone-pull-secret\n    match:\n      any:\n      - resources:\n          kinds: [Namespace]\n    exclude:\n      any:\n      - resources:\n          names: [kube-system, kube-public, kube-node-lease, kyverno]\n    generate:\n      apiVersion: v1\n      kind: Secret\n      name: regcred\n      namespace: \"{{request.object.metadata.name}}\"\n      synchronize: true\n      clone:\n        namespace: kyverno\n        name: regcred\nclone copies an existing resource instead of inlining data; with synchronize: true, when the source Secret in kyverno is rotated, every generated copy is updated. cloneList with a selector copies several resources (e.g. all Secrets labelled share=true). The background controller must be allowed to create/update secrets -- add an aggregated ClusterRole."
+              "  - name: clone-pull-secret\n    match:\n      any:\n      - resources:\n          kinds: [Namespace]\n    exclude:\n      any:\n      - resources:\n          names: [kube-system, kube-public, kube-node-lease, kyverno]\n    generate:\n      apiVersion: v1\n      kind: Secret\n      name: regcred\n      namespace: \"{{request.object.metadata.name}}\"\n      synchronize: true\n      clone:\n        namespace: kyverno\n        name: regcred\nclone copies an existing resource instead of inlining data; with synchronize: true, when the source Secret in kyverno is rotated, every generated copy is updated. cloneList with a selector copies several resources (e.g. all Secrets labeled share=true). The background controller must be allowed to create/update secrets -- add an aggregated ClusterRole."
             ),
             part(
               "Mutate with foreach: rewrite docker.io images",

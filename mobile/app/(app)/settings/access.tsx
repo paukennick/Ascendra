@@ -203,7 +203,7 @@ export default function AccessSettings() {
 
       <SectionHeader label="Error tracking" />
       <Card style={{ gap: spacing.xs }}>
-        <Muted>Sends one labelled test error to Sentry, to check that server errors reach you. Five a day.</Muted>
+        <Muted>Sends one labeled test error to Sentry, to check that server errors reach you. Five a day.</Muted>
         {trackerLine ? <Body>{trackerLine}</Body> : null}
         <Button label="Send a test error" variant="ghost" icon="send" loading={busy === "tracker"} onPress={testTracker} />
       </Card>

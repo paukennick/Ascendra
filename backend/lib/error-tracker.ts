@@ -33,6 +33,14 @@ export interface ParsedDsn {
   publicKey: string;
 }
 
+// REQ-219 (FAIL-1106): a request path as Next hands it to onRequestError
+// includes the query string, and one-time tokens (email verification, password
+// reset, email change links) travel in it. Only the path is ever reported.
+export function routeOnly(path: string | undefined | null): string | undefined {
+  if (typeof path !== "string") return undefined;
+  return path.split(/[?#]/, 1)[0].slice(0, 200);
+}
+
 export function parseDsn(dsn: string | undefined): ParsedDsn | null {
   if (!dsn) return null;
   try {
@@ -52,7 +60,7 @@ export function errorEvent(err: unknown, ctx: ErrorContext = {}) {
     platform: "node",
     level: "error",
     environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development",
-    tags: { requestId: ctx.requestId ?? null, route: ctx.route ?? null },
+    tags: { requestId: ctx.requestId ?? null, route: routeOnly(ctx.route) ?? null },
     exception: {
       values: [{ type: e.name, value: maskEmails(e.message).slice(0, 500), stacktrace: { raw: maskEmails(e.stack ?? "").slice(0, 4000) } }],
     },

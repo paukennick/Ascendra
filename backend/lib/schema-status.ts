@@ -347,7 +347,7 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     // REQ-125: starting or grading a clinical or fitness lab, the lab view
     // and the export read it.
     migration: "051_lab_disclaimer_ack.sql",
-    what: "lab_disclaimer_acknowledgements (the one-time clinical / fitness lab disclaimer acknowledgement)",
+    what: "lab_disclaimer_acknowledgments (the one-time clinical / fitness lab disclaimer acknowledgment)",
     sql: `select to_regclass('public.lab_disclaimer_acknowledgements') is not null
              and exists(select 1 from pg_constraint where conname = 'lab_disclaimer_ack_family_051') as ok`,
   },
@@ -426,6 +426,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     migration: "073_sim_pacing_commands.sql",
     what: "the pace, begin, teach and chapter command types on sim_run_commands (pacing, focused start, teaching answers, chapter breaks)",
     sql: `select exists(select 1 from pg_constraint where conrelid = 'sim_run_commands'::regclass and conname = 'sim_run_commands_type_073') as ok`,
+  },
+  {
+    // REQ-219: the last authenticator step used (no replay of a code inside its
+    // window) and the inbound-email webhook's delivery ids (no replayed forward).
+    migration: "075_accounts_security_g4.sql",
+    what: "app_users.totp_last_step and the inbound_email_events table (authenticator codes used once, webhook replays dropped)",
+    sql: `select exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'app_users' and column_name = 'totp_last_step')
+             and to_regclass('public.inbound_email_events') is not null as ok`,
   },
   {
     // REQ-224: every mental health course route reads the 18+ confirmation

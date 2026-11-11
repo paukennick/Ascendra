@@ -150,7 +150,7 @@ describe("FAIL-1071: a review needs 24 hours since the last one", () => {
     await enrol(u, o, 0.2);
     const now = new Date();
     const today = now.toISOString().slice(0, 10);
-    assert.deepEqual((await dueObjectives(u, today, null)).map((d) => d.objectiveId).filter((x) => x === o), [], "10 minutes after enrolment");
+    assert.deepEqual((await dueObjectives(u, today, null)).map((d) => d.objectiveId).filter((x) => x === o), [], "10 minutes after enrollment");
     const later = new Date(now.getTime() + (MIN_REVIEW_GAP_HOURS + 1) * 3_600_000);
     assert.deepEqual(
       (await dueObjectives(u, later.toISOString().slice(0, 10), null, query, later)).map((d) => d.objectiveId).filter((x) => x === o),

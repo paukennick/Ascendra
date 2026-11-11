@@ -82,13 +82,14 @@ export function purposesOf(pool: AiPool): string[] {
 
 // The database is unreachable or refused the spend check. The spend-heavy
 // paths fail CLOSED on this: not knowing what a learner has spent is not a
-// licence to spend (audit finding 6). A 503 the app already retries.
+// licence to spend (audit finding 6). REQ-216 (FAIL-1010): a 429, not a 503:
+// the app hides a 5xx's words, and this is the "AI paused" message.
 export const SPEND_UNAVAILABLE_MESSAGE =
   "The AI coach is paused for a moment while we check on things. Nothing was lost -- please try again shortly.";
 
 export class AiSpendUnavailableError extends UserFacingError {
   constructor(message = SPEND_UNAVAILABLE_MESSAGE) {
-    super(message, 503);
+    super(message, 429);
     this.name = "AiSpendUnavailableError";
   }
 }

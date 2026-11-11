@@ -168,7 +168,7 @@ describe("PBQ selection per learner (REQ-107)", () => {
     assert.equal(stored!.n, 2);
   });
 
-  test("two learners on one catalog unit are not serialised against each other", async () => {
+  test("two learners on one catalog unit are not serialized against each other", async () => {
     const unit = await newUnit(catalogTrack);
     const g = fakeGenerator({ delayMs: 200 });
     const [a, b] = await Promise.all([

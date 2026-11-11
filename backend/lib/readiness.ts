@@ -110,10 +110,30 @@ export interface CourseReadiness {
 
 const pct = (x: number) => Math.round(x * 100);
 
+// REQ-220 (FAIL-1136): catalog courses whose unit weights are only our
+// study emphasis, not a vendor blueprint (their credential says
+// domainWeights: "study_emphasis"; lib/content-fixes-req220.test.ts keeps
+// this list equal to the seed's). Read from subject_tracks only, so every
+// database role that reads a course (the app, the re-check job) can use it.
+export const STUDY_EMPHASIS_TRACK_CODES = ["CNA", "LPNVN", "ADNRN", "BSNRN"] as const;
+// `st` is subject_tracks.
+export const STUDY_EMPHASIS_WEIGHTS_SQL = `(st.user_id is null and st.code in (${STUDY_EMPHASIS_TRACK_CODES.map((c) => `'${c}'`).join(", ")}))`;
+
+export async function weightsAreExamBlueprint(trackId: string): Promise<boolean> {
+  const rows = await query<{ emphasis: boolean }>(
+    `select ${STUDY_EMPHASIS_WEIGHTS_SQL} as emphasis from subject_tracks st where st.id = $1`,
+    [trackId]
+  );
+  return !rows[0]?.emphasis;
+}
+
 export function rollupReadiness(
   units: ReadinessUnitInput[],
   objectives: ReadinessObjectiveInput[],
-  params: ReadinessParams = DEFAULT_READINESS_PARAMS
+  params: ReadinessParams = DEFAULT_READINESS_PARAMS,
+  // REQ-220: false when the weights are not a real exam blueprint; the
+  // course is then rolled up per objective and never shown as "% of exam".
+  examBlueprint = true
 ): CourseReadiness {
   const byUnit = new Map<string, ReadinessObjectiveInput[]>();
   for (const o of objectives) {
@@ -124,7 +144,7 @@ export function rollupReadiness(
   const populated = units.filter((u) => (byUnit.get(u.id)?.length ?? 0) > 0);
   // Fewer than two weighted domains (an MSCS week plan, a user track) means
   // there is no blueprint: every objective counts the same instead.
-  const blueprintWeighted = populated.filter((u) => u.weight != null && Number(u.weight) > 0).length >= 2;
+  const blueprintWeighted = examBlueprint && populated.filter((u) => u.weight != null && Number(u.weight) > 0).length >= 2;
 
   const domains: DomainReadiness[] = [];
   let wSum = 0;
@@ -256,6 +276,7 @@ export async function courseReadiness(trackId: string, userId: string): Promise<
       recheckDue: o.recheck_due,
       retention: o.retention,
     })),
-    await readinessParams()
+    await readinessParams(),
+    await weightsAreExamBlueprint(trackId)
   );
 }

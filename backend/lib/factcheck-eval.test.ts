@@ -70,7 +70,7 @@ const fakeRunner: CodeRunner = async (s) => {
 
 const variants: ModelVariant[] = modelVariants();
 
-describe("REQ-196: the labelled set", () => {
+describe("REQ-196: the labeled set", () => {
   test("balanced: as many known-good as known-bad, every family on both sides except where noted, unique ids", () => {
     const bad = SET.filter((i) => i.label === "bad");
     const good = SET.filter((i) => i.label === "good");

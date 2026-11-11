@@ -108,7 +108,7 @@ export const TECHPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Make a shared browser safe and working again",
       brief:
-        "At Elmstead Community Centre (fictional), one computer is shared by everyone. Problems: users log in to webmail and the next person finds them still logged in; the browser has three toolbars nobody remembers installing and pop-ups appear; and the centre's own booking website shows last month's timetable even though the site was updated.",
+        "At Elmstead Community Center (fictional), one computer is shared by everyone. Problems: users log in to webmail and the next person finds them still logged in; the browser has three toolbars nobody remembers installing and pop-ups appear; and the center's own booking website shows last month's timetable even though the site was updated.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -240,7 +240,7 @@ export const TECHPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "CIA mapping",
-              "1 confidentiality (data seen by someone not allowed), 2 integrity (data changed without authorisation), 3 availability (system not usable when needed).",
+              "1 confidentiality (data seen by someone not allowed), 2 integrity (data changed without authorization), 3 availability (system not usable when needed).",
               "1 -- confidentiality. 2 -- integrity. 3 -- availability."
             ),
           ],
@@ -278,7 +278,7 @@ export const TECHPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Length and complexity",
-              "Recommends long passwords or passphrases (length matters most) that avoid names, dates and words linked to the organisation, with complexity where systems require it.",
+              "Recommends long passwords or passphrases (length matters most) that avoid names, dates and words linked to the organization, with complexity where systems require it.",
               "Use a passphrase of at least 15 characters, such as four random unrelated words; avoid the charity's name, pet names, years or 'Password1'-style patterns."
             ),
             part(

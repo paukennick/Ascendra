@@ -82,7 +82,7 @@ export const KCNA_LABS: SeedLabSet = {
             part(
               "Decoding the message",
               "Explains that the scheduler filtered all four nodes: the control plane node is excluded by its taint (the Pod has no toleration), two workers lack 24Gi of allocatable memory for the request, and one worker lacks the label disktype=nvme required by the nodeSelector; the preemption note means evicting lower-priority Pods would not free a fitting node.",
-              "0/4 available because every node failed a filter: the control plane carries the taint node-role.kubernetes.io/control-plane and the Pod tolerates nothing, so it is out; two workers have less than 24Gi free of allocatable memory against the Pod's request; the remaining worker is not labelled disktype=nvme, so the nodeSelector rules it out. 'Preemption is not helpful' means even evicting other Pods would not make a node fit (the label and taint cannot be fixed by eviction)."
+              "0/4 available because every node failed a filter: the control plane carries the taint node-role.kubernetes.io/control-plane and the Pod tolerates nothing, so it is out; two workers have less than 24Gi free of allocatable memory against the Pod's request; the remaining worker is not labeled disktype=nvme, so the nodeSelector rules it out. 'Preemption is not helpful' means even evicting other Pods would not make a node fit (the label and taint cannot be fixed by eviction)."
             ),
             part(
               "Requests, not usage",
@@ -242,7 +242,7 @@ export const KCNA_LABS: SeedLabSet = {
     {
       slug: "triage-pod-status",
       objective:
-        "Troubleshooting: Pod phases and container states, reading kubectl get, describe, logs, events and exec, and recognising CrashLoopBackOff, ImagePullBackOff, Pending and OOMKilled",
+        "Troubleshooting: Pod phases and container states, reading kubectl get, describe, logs, events and exec, and recognizing CrashLoopBackOff, ImagePullBackOff, Pending and OOMKilled",
       kind: "case",
       title: "Triage four unhealthy Pods from one kubectl listing",
       brief:
@@ -413,7 +413,7 @@ export const KCNA_LABS: SeedLabSet = {
             part(
               "Signals and tools",
               "Metrics (Prometheus, shown in Grafana) answer 'is something wrong and how much'; logs (Fluent Bit shipping container stdout to a store) answer 'what exactly happened'; traces (OpenTelemetry SDK/Collector to Jaeger) answer 'where in the request path time or errors come from'; explains observability as being able to ask new questions of this data, versus monitoring's fixed checks.",
-              "Metrics -- Prometheus scrapes the checkout Pods' /metrics (request counts and latency histograms) and Grafana shows the SLOs and burn rate: detect and size the problem. Logs -- Fluent Bit as a DaemonSet ships each container's stdout with Pod labels to the log store: see the exact error. Traces -- the service instruments requests with OpenTelemetry, the Collector exports to Jaeger: see which downstream call (payment, inventory) is slow or failing. Monitoring is the fixed alerts; observability is being able to ask a question you did not predict, which needs labelled, correlated signals."
+              "Metrics -- Prometheus scrapes the checkout Pods' /metrics (request counts and latency histograms) and Grafana shows the SLOs and burn rate: detect and size the problem. Logs -- Fluent Bit as a DaemonSet ships each container's stdout with Pod labels to the log store: see the exact error. Traces -- the service instruments requests with OpenTelemetry, the Collector exports to Jaeger: see which downstream call (payment, inventory) is slow or failing. Monitoring is the fixed alerts; observability is being able to ask a question you did not predict, which needs labeled, correlated signals."
             ),
             part(
               "Cost and volume",
@@ -440,7 +440,7 @@ export const KCNA_LABS: SeedLabSet = {
           parts: [
             part(
               "Resilience and scalability",
-              "A single replica with in-memory sessions and hostPath storage cannot be rescheduled or scaled: a node failure loses sessions and files, and replicas: 2 would break pinned users; recommends externalising sessions (a cache or signed cookies) and state (PVC or an external database/object store) before anything else so the Pod becomes replaceable and the Deployment can run several replicas behind a Service.",
+              "A single replica with in-memory sessions and hostPath storage cannot be rescheduled or scaled: a node failure loses sessions and files, and replicas: 2 would break pinned users; recommends externalizing sessions (a cache or signed cookies) and state (PVC or an external database/object store) before anything else so the Pod becomes replaceable and the Deployment can run several replicas behind a Service.",
               "replicas: 1 plus hostPath ties the application to one node -- if it dies the Pod cannot move and its files are gone; in-memory sessions mean any restart logs everyone out and a second replica would corrupt the experience. Phase 1 should make the monolith stateless at the Pod level: sessions in Redis or a signed cookie, files on a PersistentVolumeClaim or object storage, and then replicas: 3 behind a Service with readiness probes. That is what buys self-healing and scaling, with or without microservices."
             ),
             part(
@@ -462,12 +462,12 @@ export const KCNA_LABS: SeedLabSet = {
         },
         {
           text: "The CTO accepts the phase-1 changes and asks a final question: 'How do we choose tools without betting on the wrong horse? The landscape has hundreds of projects.'",
-          ask: "Explain how you would use the CNCF's structure to make tool choices for this programme.",
+          ask: "Explain how you would use the CNCF's structure to make tool choices for this program.",
           parts: [
             part(
               "Maturity levels as a risk signal",
               "Explains the CNCF maturity levels -- sandbox, incubating, graduated -- with graduated projects (e.g. Kubernetes, Prometheus, Helm, Argo, Flux, containerd) having demonstrated adoption, governance and security practices; recommends graduated or incubating projects for foundational choices and sandbox only for experiments.",
-              "CNCF projects move through sandbox (early, experimental), incubating (used in production by several adopters, growing governance) and graduated (broad adoption, neutral governance, security audits, the TOC's due diligence). For this programme's foundations -- orchestration, metrics, delivery, runtime -- choose graduated projects: Kubernetes, Prometheus, Helm, Argo or Flux, containerd. Incubating projects are reasonable where the need is clear; sandbox projects are for trials, not the policy-admin system."
+              "CNCF projects move through sandbox (early, experimental), incubating (used in production by several adopters, growing governance) and graduated (broad adoption, neutral governance, security audits, the TOC's due diligence). For this program's foundations -- orchestration, metrics, delivery, runtime -- choose graduated projects: Kubernetes, Prometheus, Helm, Argo or Flux, containerd. Incubating projects are reasonable where the need is clear; sandbox projects are for trials, not the policy-admin system."
             ),
             part(
               "Landscape, conformance and community",

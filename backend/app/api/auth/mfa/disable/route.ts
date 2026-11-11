@@ -1,8 +1,9 @@
-import { query, queryOne } from "@/lib/db";
-import { ok, unauthorized, tooManyRequests, serverError, readJson } from "@/lib/http";
+import { queryOne } from "@/lib/db";
+import { ok, unauthorized, tooManyRequests, conflict, serverError, readJson } from "@/lib/http";
 import { consumeRateLimit, RateLimitError, MFA_DISABLE_EVENT, MFA_DISABLE_LIMIT } from "@/lib/auth/rateLimit";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { mfaDisableGate } from "@/lib/auth/mfaDisableGate";
+import { turnOffMfaMethod, MFA_CHANGED_MESSAGE } from "@/lib/auth/mfaMethodOff";
 import { sendSecurityAlertEmail } from "@/lib/email";
 import { emailFailureHandler } from "@/lib/email-errors";
 
@@ -37,16 +38,10 @@ export async function POST(req: Request) {
     const gate = await mfaDisableGate(user, body, "totp", "authenticator app codes", !emailStillEnabled);
     if (gate !== "proceed") return gate;
 
-    await query(
-      `update app_users set mfa_enabled = $1, totp_secret_enc = null,
-         totp_pending_secret_enc = null, totp_pending_expires_at = null
-       where id = $2`,
-      [emailStillEnabled, user.id]
-    );
-    // TOTP's own backup codes are always cleared on disable -- they're
-    // scoped to this method now, independent of whatever email MFA's codes
-    // are doing.
-    await query(`delete from mfa_backup_codes where user_id = $1 and method = 'totp'`, [user.id]);
+    // REQ-219 (FAIL-1100): decided and written under a row lock, so two
+    // requests turning off the two methods at once can't both skip the
+    // last-method confirmation (lib/auth/mfaMethodOff.ts).
+    if ((await turnOffMfaMethod(user.id, "totp", !emailStillEnabled)) === "changed") return conflict(MFA_CHANGED_MESSAGE);
 
     await sendSecurityAlertEmail(
       user.email,

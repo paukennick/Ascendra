@@ -7,14 +7,17 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { ALL_DOCUMENTS, loadDocument } from "./documents.ts";
 import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
+import { toUsSpelling } from "../us-spelling";
 
 for (const e of ALL_DOCUMENTS) {
   test(`${e.course}/${e.slug}: objective titles exist in the course catalog`, () => {
     const track = CATALOG_TRACKS.find((t) => t.code === e.course);
     assert.ok(track, `course ${e.course} is in the catalog`);
-    const titles = activeUnits(track).flatMap((u) => u.objectives);
+    // REQ-220: a published sim keeps its text; a title differing only by
+    // British vs US spelling names the same objective (sims-seed.ts).
+    const titles = activeUnits(track).flatMap((u) => u.objectives).map(toUsSpelling);
     const doc = loadDocument(e);
-    assert.equal(titles.filter((t) => t === doc.objective).length, 1, `exactly one active objective titled "${doc.objective}"`);
-    for (const s of doc.secondaryObjectives ?? []) assert.ok(titles.includes(s), `secondary objective "${s}"`);
+    assert.equal(titles.filter((t) => t === toUsSpelling(doc.objective)).length, 1, `exactly one active objective titled "${doc.objective}"`);
+    for (const s of doc.secondaryObjectives ?? []) assert.ok(titles.includes(toUsSpelling(s)), `secondary objective "${s}"`);
   });
 }

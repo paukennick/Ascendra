@@ -61,7 +61,7 @@ export const CKS_LABS: SeedLabSet = {
             part(
               "Cloud-side hardening",
               "Names the complementary cloud control: require the metadata service's session-oriented mode or hop limit 1 (so a hop from a Pod's network namespace is refused) and give the node instance role the minimum permissions, since NetworkPolicy depends on the CNI and does not protect hostNetwork Pods.",
-              "NetworkPolicy only applies to Pods on the Pod network -- a hostNetwork Pod bypasses it -- and only if the CNI enforces policy. So also set the cloud instance metadata service to its hardened mode (token-required requests with a hop limit of 1, which drops requests coming through the Pod network) and scope the node's instance role to what the kubelet and cloud controller need. Defence in depth: the Pod-side policy and the node-side control each cover the other's gap."
+              "NetworkPolicy only applies to Pods on the Pod network -- a hostNetwork Pod bypasses it -- and only if the CNI enforces policy. So also set the cloud instance metadata service to its hardened mode (token-required requests with a hop limit of 1, which drops requests coming through the Pod network) and scope the node's instance role to what the kubelet and cloud controller need. Defense in depth: the Pod-side policy and the node-side control each cover the other's gap."
             ),
           ],
         },
@@ -231,7 +231,7 @@ export const CKS_LABS: SeedLabSet = {
             ),
             part(
               "Applying AppArmor to the container",
-              "securityContext.appArmorProfile with type Localhost and localhostProfile k8s-bidder-deny-writes on the bidder container (or at Pod level for all containers); knows the older annotation form is deprecated in favour of this field.",
+              "securityContext.appArmorProfile with type Localhost and localhostProfile k8s-bidder-deny-writes on the bidder container (or at Pod level for all containers); knows the older annotation form is deprecated in favor of this field.",
               "containers:\n- name: bidder\n  securityContext:\n    appArmorProfile:\n      type: Localhost\n      localhostProfile: k8s-bidder-deny-writes\nThe appArmorProfile field (Pod or container securityContext) replaced the container.apparmor.security.beta.kubernetes.io/<name> annotation. type RuntimeDefault would use the runtime's default profile; Localhost names one loaded on the node."
             ),
             part(
@@ -263,7 +263,7 @@ export const CKS_LABS: SeedLabSet = {
           parts: [
             part(
               "What a worker needs",
-              "Keeps kubelet (10250, 10248 on localhost), kube-proxy (10256 health) and the container runtime, plus sshd only if the organisation administers nodes over SSH (ideally restricted); everything else is not part of a worker's job.",
+              "Keeps kubelet (10250, 10248 on localhost), kube-proxy (10256 health) and the container runtime, plus sshd only if the organization administers nodes over SSH (ideally restricted); everything else is not part of a worker's job.",
               "Required: kubelet (10250 API, 10248 healthz on loopback), kube-proxy's health port 10256, containerd (a Unix socket, not a TCP port), and the CNI. sshd stays only if nodes are managed over SSH -- restricted by firewall to the admin network and key-only. Apache, MySQL, rpcbind, snmpd and CUPS have no role on a node; workloads belong in Pods, not on the host."
             ),
             part(
@@ -294,8 +294,8 @@ export const CKS_LABS: SeedLabSet = {
             ),
             part(
               "Preventing recurrence",
-              "Builds nodes from a minimal, purpose-built image (a container-optimised OS or a hardened minimal image baked with the kubelet and runtime), applies CIS node hardening in the image pipeline, and runs kube-bench and a port/service check in CI for the image and periodically on nodes; replaces nodes instead of patching them in place.",
-              "Stop hand-fixing nodes. Build a minimal node image (a container-optimised distribution, or a base image with only kubelet, containerd, CNI and the SSH policy above), apply the CIS node profile in the image build, and gate the image on kube-bench --targets node plus an ss/systemctl listing check. Roll nodes by replacement (new image, drain old) so every node is identical and the next 'standard server image' never reaches the cluster."
+              "Builds nodes from a minimal, purpose-built image (a container-optimized OS or a hardened minimal image baked with the kubelet and runtime), applies CIS node hardening in the image pipeline, and runs kube-bench and a port/service check in CI for the image and periodically on nodes; replaces nodes instead of patching them in place.",
+              "Stop hand-fixing nodes. Build a minimal node image (a container-optimized distribution, or a base image with only kubelet, containerd, CNI and the SSH policy above), apply the CIS node profile in the image build, and gate the image on kube-bench --targets node plus an ss/systemctl listing check. Roll nodes by replacement (new image, drain old) so every node is identical and the next 'standard server image' never reaches the cluster."
             ),
           ],
         },
@@ -371,7 +371,7 @@ export const CKS_LABS: SeedLabSet = {
             ),
             part(
               "Network isolation",
-              "Default-deny ingress and egress in partner-quill, plus an egress allow to DNS and to Pods in namespace platform labelled for the ingest Service on 8443; optionally an ingress policy on the ingest Pods accepting only partner-quill.",
+              "Default-deny ingress and egress in partner-quill, plus an egress allow to DNS and to Pods in namespace platform labeled for the ingest Service on 8443; optionally an ingress policy on the ingest Pods accepting only partner-quill.",
               "NetworkPolicy default-deny: podSelector {}, policyTypes [Ingress, Egress]. NetworkPolicy allow-egress: egress to namespaceSelector kubernetes.io/metadata.name=platform + podSelector app=ingest on TCP 8443, and to kube-dns in kube-system on 53 UDP/TCP. The tenant can now reach exactly one Service. On the platform side, an ingress policy on app=ingest allowing from namespaceSelector kubernetes.io/metadata.name=partner-quill closes the other direction's gaps."
             ),
           ],
@@ -397,7 +397,7 @@ export const CKS_LABS: SeedLabSet = {
             ),
             part(
               "Trade-offs",
-              "Explains gVisor intercepts syscalls in a user-space kernel, so the container never talks to the host kernel directly (a kernel CVE in the host is not reachable), at the cost of syscall-heavy performance, some unsupported syscalls/features (certain network and filesystem behaviours, no privileged devices) and a per-node dependency; Kata Containers (lightweight VMs) is the alternative with stronger isolation and higher overhead.",
+              "Explains gVisor intercepts syscalls in a user-space kernel, so the container never talks to the host kernel directly (a kernel CVE in the host is not reachable), at the cost of syscall-heavy performance, some unsupported syscalls/features (certain network and filesystem behaviors, no privileged devices) and a per-node dependency; Kata Containers (lightweight VMs) is the alternative with stronger isolation and higher overhead.",
               "gVisor runs the container's syscalls against its own user-space kernel (the Sentry) and lets only a small, hardened set reach the host, so a Linux kernel bug the tenant's code triggers does not escape. Costs: I/O and syscall-heavy workloads run slower, a few syscalls and kernel features are unimplemented (check the app in staging), and every node needs runsc and the shim. Kata Containers wraps each Pod in a lightweight VM for a hardware boundary at more memory and start-up cost. Either way the tenant stays under restricted PSS, quotas and NetworkPolicy -- the sandbox adds a layer, it does not replace them."
             ),
           ],
@@ -460,7 +460,7 @@ export const CKS_LABS: SeedLabSet = {
       steps: [
         {
           text: "$ kubectl -n dispatch get deploy routing -o jsonpath='{.spec.template.spec.containers[*].image}'\ndocker.io/library/nginx:latest registry.garrison.example/routing:4.1\n\n$ kubectl get validatingadmissionpolicies\nNo resources found",
-          ask: "Write a ValidatingAdmissionPolicy and binding that rejects Pods in namespaces labelled env=production whose containers (init containers included) come from anywhere but registry.garrison.example, explain why this is better than an ImagePolicyWebhook for this need, and say what happens to the already-running Pods.",
+          ask: "Write a ValidatingAdmissionPolicy and binding that rejects Pods in namespaces labeled env=production whose containers (init containers included) come from anywhere but registry.garrison.example, explain why this is better than an ImagePolicyWebhook for this need, and say what happens to the already-running Pods.",
           parts: [
             part(
               "ValidatingAdmissionPolicy",
@@ -486,7 +486,7 @@ export const CKS_LABS: SeedLabSet = {
             part(
               "Security fixes",
               "Removes privileged: true, sets runAsNonRoot: true (with a runAsUser if the image needs it), readOnlyRootFilesystem: true with emptyDir mounts for writable paths, allowPrivilegeEscalation: false and capabilities.drop [ALL], plus seccompProfile RuntimeDefault.",
-              "containers:\n- name: routing\n  image: registry.garrison.example/routing:4.1\n  securityContext:\n    privileged: false\n    runAsNonRoot: true\n    runAsUser: 10001\n    allowPrivilegeEscalation: false\n    readOnlyRootFilesystem: true\n    capabilities:\n      drop: [\"ALL\"]\n    seccompProfile:\n      type: RuntimeDefault\n  volumeMounts:\n  - {name: tmp, mountPath: /tmp}\nvolumes:\n- name: tmp\n  emptyDir: {}\nprivileged is the one finding that is never acceptable in a web service: it is root on the node. The rest together satisfy the restricted Pod Security Standard, so the same manifest passes PSA if the namespace is labelled."
+              "containers:\n- name: routing\n  image: registry.garrison.example/routing:4.1\n  securityContext:\n    privileged: false\n    runAsNonRoot: true\n    runAsUser: 10001\n    allowPrivilegeEscalation: false\n    readOnlyRootFilesystem: true\n    capabilities:\n      drop: [\"ALL\"]\n    seccompProfile:\n      type: RuntimeDefault\n  volumeMounts:\n  - {name: tmp, mountPath: /tmp}\nvolumes:\n- name: tmp\n  emptyDir: {}\nprivileged is the one finding that is never acceptable in a web service: it is root on the node. The rest together satisfy the restricted Pod Security Standard, so the same manifest passes PSA if the namespace is labeled."
             ),
             part(
               "Resources and replicas",

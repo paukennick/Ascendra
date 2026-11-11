@@ -35,7 +35,7 @@ const item = (over: Partial<LabListItem> = {}): LabListItem => ({
   kind: "case",
   title: "Who do you see first?",
   objectiveId: "o1",
-  objectiveTitle: "Prioritising by acuity",
+  objectiveTitle: "Prioritizing by acuity",
   unitId: "u1",
   unitTitle: "Management of Care",
   stepCount: 3,
@@ -67,7 +67,7 @@ describe("lab lists", () => {
   // awaits expert review (the study notice covers all content).
   test("the screen-reader label names kind, objective and state, never review status", () => {
     const l = labA11yLabel(item());
-    assert.match(l, /^Case lab: Who do you see first\?\. Objective: Prioritising by acuity\. Not started: 3 steps\.$/);
+    assert.match(l, /^Case lab: Who do you see first\?\. Objective: Prioritizing by acuity\. Not started: 3 steps\.$/);
     assert.doesNotMatch(labA11yLabel(item({ reviewStatus: "needs_expert_review" })), /expert|review/i);
   });
 });
@@ -134,7 +134,7 @@ describe("lab drafts", () => {
 });
 
 describe("REQ-124: lab access on Free and Plus", () => {
-  test("the sample is labelled as a sample, other labs say which plan has them, nothing when all are open", () => {
+  test("the sample is labeled as a sample, other labs say which plan has them, nothing when all are open", () => {
     assert.equal(labAccessBadge("sample"), "Sample lab");
     assert.equal(labAccessBadge("locked"), "Part of Pro");
     assert.equal(labAccessBadge("full"), null);

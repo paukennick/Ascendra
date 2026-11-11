@@ -140,6 +140,21 @@ export function nextUtcDayStart(now = new Date()): Date {
 // How long the summed spend is reused before it is read again.
 export const CEILING_CACHE_MS = 60_000;
 
+// REQ-216 (low, FAIL-1024): the ceiling is SOFT, by design, with headroom. The
+// check reads the day's summed spend (which counts reservations not yet
+// settled, so another instance's in-flight call is seen once it has reserved)
+// and refuses once it is at the ceiling; it does not take a lock across
+// "read, then reserve", because one global lock on every model call would
+// serialize the whole app's AI use for a limit that only has to hold to within
+// a few calls. The two ways it can be passed: (1) the sum is cached for
+// CEILING_CACHE_MS per server instance, and (2) calls that read before any of
+// them has reserved all pass. (1) is closed by reading fresh every time once
+// spend is within CEILING_FRESH_FRACTION of the ceiling; (2) leaves an
+// overshoot of at most the calls in flight at that moment times their
+// reserved estimates (docs/billing.md, "The global daily ceiling is soft").
+// Set AI_GLOBAL_DAILY_CEILING_USD with that headroom in mind.
+export const CEILING_FRESH_FRACTION = 0.8;
+
 // ---------------------------------------------------------------------------
 // Words (no upsell or pricing: billing is off while these show)
 // ---------------------------------------------------------------------------

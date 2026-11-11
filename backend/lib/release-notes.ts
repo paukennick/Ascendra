@@ -97,7 +97,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         icon: "eye",
         headline: "Easier to see, hear and use",
         body:
-          "Stronger colour contrast, bigger tap targets, clearer screen-reader labels, and less motion if your phone asks for it. " +
+          "Stronger color contrast, bigger tap targets, clearer screen-reader labels, and less motion if your phone asks for it. " +
           "The Android app is also about 11 MB smaller.",
       },
       {

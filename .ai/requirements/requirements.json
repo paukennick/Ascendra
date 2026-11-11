@@ -7826,6 +7826,150 @@
         "ASPPB's October 2026 integrated handbook was not readable here",
         "Washington Part 2 not required is inferred"
       ]
+    },
+    {
+      "id": "REQ-220",
+      "category": "content",
+      "title": "Course content fixes from the 2026-11-11 audit (batch G5) and a US English spelling sweep",
+      "description": "Nick approved batch G5 on 2026-11-10 (audit https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh, H7, M18, M19 and the content lows), plus the US spelling sweep (Nick, 2026-11-10, via the lead session). Security+ V7 covers every SY0-701 sub-objective; its practice exams offer multi-select and drag-and-drop; its incident-response lab leads with the exam's seven steps. PT: the 2026 APTA Code of Ethics, the 2021 Medicare maintenance-therapy rule, 1.8 kg = 4 lb, sarcopenia wording. Study-emphasis weights (CNA, LPN/VN, ADN, BSN) are never shown as an exam blueprint. The lesson writer and fact-checker get each unit's dated key values. CCRN: HAP/VAP instead of the retired HCAP category. Clinical framing follows the profession. Tamponade sim version 2 (focused start, brief pace, CVP per bolus). Learner-facing text is US English, except the Terms/Privacy text (Nick, 2026-11-10: converted with the next legal version, see backend/lib/legal.ts) and published sim text. AWS MLA-C02 question format verified against AWS's exam guide and certification page on 2026-11-10: unchanged. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/",
+        "backend/lib/",
+        "backend/app/",
+        "mobile/app/",
+        "mobile/src/",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "lib/secplus-v7-coverage.test.ts: every SY0-701 sub-objective's topics are in its domain's unit",
+        "existing objectives are only retired in place and appended to, never reworded under the same id (spelling-only retitles excepted and kept as the same objective)",
+        "a study-emphasis course shows no exam weights on any app build (server-side)",
+        "lib/us-spelling.test.ts passes; legal text and published sims excluded with reasons",
+        "sims:lint 0 errors; goldens keep every outcome, rating and score",
+        "seed twice, test:db, npm test and mobile tests pass"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db",
+        "npm run sims:lint",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "backend/lib/legal.ts (legal spelling note)"
+      ],
+      "risk_notes": [
+        "Clinical values were taken from official or cited sources where reachable; the heart-failure table's own pound figure (PMC10847087) and the full APTA policy page could not be opened; see the commit messages.",
+        "Tamponade version 2 is needs_expert_review: if version 1 is approved in production, version 1 keeps being served until version 2 is approved.",
+        "The spelling sweep retitles many objectives; the seed keeps their lessons because the change is spelling-only."
+      ]
+    },
+    {
+      "id": "REQ-219",
+      "category": "security",
+      "title": "Fix batch G4: accounts and security (audit 2026-11)",
+      "description": "Nick approved fix batch G4 on 2026-11-10 after the audit (FAIL-1100..1129). (1) Turning off the last two-factor method is decided and written under a row lock; sign-in treats 'on with no method' as off. (2) Backup-code regeneration takes the shared proofs (Google re-auth or a code). (3) A rejected Google token is a 401 not reported to the error tracker, with a per-IP limit; the Google link route answers the same. (4) Google sign-in that attaches to an existing account mails its address (Nick's decision). (5) Per-IP ceiling on login. (6) Error reports drop the query string; the reset token is handed to the verify-email page in a cookie, not the redirect URL. (7) Terms and Privacy agreement is enforced on the server: requireUser answers 403 terms_required for an account that has not accepted what its client must accept (X-Ascendra-App / X-Ascendra-Legal rules of lib/legal.ts), except accept, onboarding, auth/me (read), account export and delete, logout-all and support (Nick's decision; onboarding and support added so the app can read the gate state and a person can ask for help). (8) Lows: sessions listed and ended by family; max password length on change and reset; a password change spends reset links and sign-in challenges; sign-in codes count against the per-address mail limit; authenticator codes work once (totp_last_step); previous Terms versions are a list; support content reports need a visible objective; inbound email deliveries are deduplicated by svix-id; catalog review findings are validated and stored in one transaction; the paid-access rule is shared with lib/entitlements.ts. Migration 075.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/app/api/auth",
+        "backend/lib/auth",
+        "backend/lib/legal.ts",
+        "backend/lib/error-tracker.ts",
+        "backend/instrumentation.ts",
+        "backend/app/verify-email",
+        "backend/app/api/support/route.ts",
+        "backend/app/api/inbound/email/route.ts",
+        "backend/app/api/catalog/review-findings/route.ts",
+        "backend/lib/ai-access.ts",
+        "backend/lib/entitlements.ts",
+        "backend/supabase/migrations/075_accounts_security_g4.sql",
+        "backend/lib/schema-status.ts",
+        "mobile/app/(app)/settings/mfa.tsx",
+        "mobile/app/(app)/account/sessions.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Two simultaneous MFA turn-offs never leave the flag on with no method or skip the last-method code",
+        "A Google-only account regenerates backup codes with Google or a code",
+        "A rejected Google token is a 401 and not reported",
+        "An account that has not agreed is refused 403 terms_required on every signed-in route except the open list and a build that accepted its own older text is not refused",
+        "An authenticator code works once",
+        "A replayed inbound delivery forwards once"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend npm run test:db seeded twice and as app_runtime",
+        "mobile typecheck and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        ".ai/checklists/pre-completion.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-216",
+      "category": "bugfix",
+      "title": "Generation gate: block only on low confidence or a disagreeing check; learner errors are 4xx; plain reasons",
+      "description": "Audit of 2026-11-11, batch G1 (Nick approved 2026-11-10). Generated lessons, quiz questions, review questions, unit checks, comparison cards, exam items and PBQs are held back only on the writer's low confidence or a fact-check that disagrees with the key; listed disclaimers are logged. One retry steered with the first attempt's claims. When held, the learner is told the reason in plain words with a 409; a failed fact-check call is retryable, not a holdback. Review says 'couldn't be prepared' instead of 'nothing due'. Every UserFacingError is a 4xx and the app keeps the server's words for 502/503. The lesson intro handed out is kept when the practice half fails. Distractor lint narrowed. Labs (REQ-123 generation, scripts/generate-labs.ts) are on the same rule: held only on the writer's low confidence, a broken content rule or a checker that finds a wrong reference answer, something unsafe or a step that depends on an earlier answer; one steered retry; the operator is told why in plain words; a failed checker call is retryable with no holdback. Lows: PBQ and unit-check waiters, unit-check single flight, rate-limit message, bad course date, counted-use give-backs on labs and sims, grading-claim expiry, chat single flight, soft global ceiling documented.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/generation-gate.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/fact-check.ts",
+        "backend/lib/http.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/coach-quiz.ts",
+        "backend/lib/review-service.ts",
+        "backend/lib/unit-check.ts",
+        "backend/lib/understanding-ai.ts",
+        "backend/lib/exam-items.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/content-validator.ts",
+        "backend/lib/pbq-scenarios.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/app/api/courses/route.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/lab-generation.ts",
+        "backend/scripts/generate-labs.ts",
+        "mobile/src/lib/errorMessage.ts",
+        "mobile/src/lib/regenerateError.ts",
+        "CHANGELOG.md",
+        "docs/billing.md"
+      ],
+      "acceptance_criteria": [
+        "a listed disclaimer at medium or high confidence never holds an item back",
+        "low confidence or a disagreeing check holds it and the retry is steered with the claims",
+        "a held item answers 409 with the reason",
+        "a failed fact-check call is a retryable 409 with no holdback",
+        "review with due items but nothing prepared returns unavailable and no empty session",
+        "no UserFacingError is a 5xx",
+        "the app shows the server's words for 502/503",
+        "the accepted lesson intro is reused when practice fails",
+        "read-only/two-factor/three-way handshake are not rejected by the lint",
+        "a lab is held only on low confidence, a content rule, or a checker disagreement; a listed or unconfirmed claim stores it; the retry is steered; a failed checker call is retryable with no holdback row"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db (owner and app_runtime)",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/billing.md"
+      ],
+      "risk_notes": [
+        "a held item can now cost up to two writer calls; the kept lesson intro is per server process; labs have no learner request path (written offline by scripts/generate-labs.ts), so the reason is the operator outcome line, not an HTTP 409; a lab held for something the checker called unsafe stays held (stricter than disagreeing with the key, deliberate for clinical and fitness labs)"
+      ]
     }
   ]
 }

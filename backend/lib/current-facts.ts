@@ -42,14 +42,25 @@ export function currentFactsBlock(track: SeedTrack, unitTitle?: string | null): 
     lines.push(`- ${kind}: ${k.name}, version ${k.version}.`);
     checked = checked ?? dayOf(k.checkedAt);
   }
-  const unit = unitTitle ? track.units.find((u) => u.title === unitTitle && !u.retiredAt) : undefined;
-  for (const r of unit?.sources ?? []) lines.push(`- Reference for this unit: ${r.title} (${r.url}), checked ${r.checkedAt}.`);
+  lines.push(...unitReferenceLines(track, unitTitle));
   if (!lines.length) return null;
   return [
     `Current facts for this course (from its recorded outline${checked ? `, last checked ${checked}` : ""}):`,
     ...lines,
     "- Teach and test this version. Prefer these facts over anything you remember about other versions, editions or years; if a detail may have changed since that date and is not stated here, leave it out or say it may differ.",
   ].join("\n");
+}
+
+// REQ-195 / REQ-220 (FAIL-1141): the unit's dated references, each with the
+// key values read at it. Shared by the current-facts block (every prompt
+// with a unit in context) and the fact-checker's per-item references (a
+// batch that spans units).
+export function unitReferenceLines(track: SeedTrack, unitTitle?: string | null): string[] {
+  const unit = unitTitle ? track.units.find((u) => u.title === unitTitle && !u.retiredAt) : undefined;
+  return (unit?.sources ?? []).map((r) => {
+    const values = r.keyValues?.length ? ` Key values (use these over any older value you remember): ${r.keyValues.join("; ")}.` : "";
+    return `- Reference for this unit: ${r.title} (${r.url}), checked ${r.checkedAt}.${values}`;
+  });
 }
 
 let byCode: Promise<Map<string, SeedTrack>> | null = null;
@@ -70,5 +81,20 @@ export async function currentFactsFor(trackCode: string | null | undefined, unit
   } catch {
     byCode = null;
     return null;
+  }
+}
+
+// REQ-220 (FAIL-1141): a unit's reference lines by course code and unit
+// title, for prompts that cover several units in one call. [] for a
+// learner's own track or an unknown code. Never throws.
+export async function unitReferencesFor(trackCode: string | null | undefined, unitTitle: string | null | undefined): Promise<string[]> {
+  if (!trackCode || !unitTitle) return [];
+  try {
+    byCode ??= load();
+    const t = (await byCode).get(trackCode.toUpperCase());
+    return t ? unitReferenceLines(t, unitTitle) : [];
+  } catch {
+    byCode = null;
+    return [];
   }
 }

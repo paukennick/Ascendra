@@ -209,7 +209,7 @@ describe("REQ-196: model-written code never runs in the request path", () => {
 });
 
 describe("REQ-196: staging is never served", () => {
-  test("no route reads the staging tables; in lib/ only the jobs, the review CLI helpers and the cooldown do", () => {
+  test("no route reads the staging tables; in lib/ only the jobs, the review CLI helpers, the cooldown and the waiter check do", () => {
     for (const f of walk(join(ROOT, "app"))) {
       assert.ok(!/item_holdbacks|exec_check/.test(readFileSync(f, "utf8")), `${f} reads staging`);
     }
@@ -217,7 +217,9 @@ describe("REQ-196: staging is never served", () => {
       .filter((f) => /(from|join)\s+(item_holdbacks|exec_checks|exec_check_runs)\b/.test(readFileSync(f, "utf8")))
       .map((f) => f.slice(ROOT.length + 1))
       .sort();
-    assert.deepEqual(readers, ["lib/exec-checks.ts", "lib/lesson-generation.ts", "lib/recheck-stored.ts", "lib/staging.ts"]);
+    // REQ-216: lib/item-quality.ts heldBackSince reads only reason 'uncertain' rows (never a staged finding).
+    assert.deepEqual(readers, ["lib/exec-checks.ts", "lib/item-quality.ts", "lib/lesson-generation.ts", "lib/recheck-stored.ts", "lib/staging.ts"]);
+    assert.match(readFileSync(join(ROOT, "lib/item-quality.ts"), "utf8"), /created_at >= \$2 and reason = 'uncertain'/);
   });
 
   test("the one serving-side reader (the held-back cooldown) only counts rows marked not served, which staging never writes", () => {

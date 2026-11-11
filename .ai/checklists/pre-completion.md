@@ -123,9 +123,18 @@
   generation still installed can accept its own version, recorded as sent, and
   its launch gate is satisfied by it; a build declaring the current version
   must accept the current one (that is how an updated app is asked once).
-  At the next bump move the old `LEGAL_VERSIONS` into
-  `PREVIOUS_LEGAL_VERSIONS` and leave `UNDECLARED_LEGAL_VERSIONS` and
+  At the next bump push the old `PREVIOUS_LEGAL_VERSIONS` onto the front of
+  `EARLIER_LEGAL_VERSIONS`, then move the old `LEGAL_VERSIONS` into
+  `PREVIOUS_LEGAL_VERSIONS` (REQ-219, FAIL-1108: builds that declared the
+  older one must not be stranded), and leave `UNDECLARED_LEGAL_VERSIONS` and
   `LEGACY_LEGAL_VERSIONS` frozen; a mobile test checks `TERMS_VERSION`.
+  REQ-219 (FAIL-1109): the server enforces agreement in `requireUser` (403
+  `terms_required`, per the same header rules). A new signed-in route is
+  enforced by default; one a person needs in order to agree, leave or ask for
+  help passes `{ termsOptional: true }` and is added to the list in
+  lib/terms-enforcement.dbtest.ts. Integration suites run with enforcement off
+  (`--import ./lib/test-setup.ts` in `test:db` and
+  scripts/ci/db-tests-as-runtime.sh); a test of enforcement turns it on.
 - Legal and privacy text (REQ-205, FAIL-900..912): a sentence about what is
   kept, deleted or sent matches the code, the inventory
   (docs/legal/data-inventory.md, which a DB test checks names every table with
@@ -157,6 +166,15 @@
   whenever the account has one (`hasReauthProof`, then `checkReauth`), not
   only when MFA is on, mails the account address when a method is added, and ends other sessions
   (`endOtherSessions`) in the same transaction (the Google link, FAIL-871).
+  REQ-219 (FAIL-1100..1118): a decision about one method needing another
+  (the last two-factor method) is made and written in one transaction with the
+  row locked (`turnOffMfaMethod`); a code accepted once is spent atomically
+  (`spendTotpCode`); a per-IP limit stores a hash of the address
+  (`ipCounterKey`), since account deletion removes every row holding an IP;
+  a rejected third-party token is a 4xx and not reported; nothing from a
+  URL beyond its path goes to the error tracker (`routeOnly`); a replayed
+  webhook delivery is recorded by id; a credential change spends reset links
+  and sign-in challenges in the same transaction.
   A guess limit counts wrong answers: spend the budget while checking
   (`consumeRateLimit`), give a correct one back (`refundRateLimit`). A
   single-use code gets a try limit and is dropped after the last miss. Writes
@@ -209,6 +227,21 @@
   SET, `pg_advisory_lock`, named prepared statements, temp tables, LISTEN):
   production connects through a transaction pooler
   (docs/ops/2026-11-10-transaction-pooler-session-state.md).
+<<<<<<< HEAD
+- Generated learner-facing content (REQ-216, FAIL-1010..1026): a new kind of
+  generated item goes through `lib/generation-gate.ts` (`generateGated`) or, in
+  a batch, the same helpers (`lowConfidenceOf`, `verdictHolds`,
+  `verdictUnchecked`, `steerText`): it is held back ONLY on the writer's low
+  confidence or a fact-check that disagrees with the key; claims it lists are
+  logged (`noteListedClaims`), never blocking; it is written once more steered
+  with the claims; held twice, the learner gets a 409 whose words name the
+  reason. A failed fact-check CALL is retryable and is never a holdback or a
+  cooldown. A `UserFacingError` is always a 4xx (lib/generation-gate.test.ts
+  scans every throw site), and the app keeps the server's words for 502/503.
+  A counted use is released with `releaseOnce` on every path that stores
+  nothing. A route that calls the model for a replayable id takes a
+  `withGradingClaim` first.
+=======
 - Phone sessions and screens (REQ-217, FAIL-1040..1066): a silent refresh never
   writes the biometric-sealed key (Android prompts for every write); it is
   written at sign-in, unlock and when the app goes to the background, and a
@@ -221,6 +254,7 @@
   request succeeds (`pendingIdFor`). A screen a learner can leave with the back
   gesture flushes its work through a `beforeRemove` guard. A button that throws
   work away asks first. A catch on a load shows the error, never an empty state.
+>>>>>>> origin/master
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

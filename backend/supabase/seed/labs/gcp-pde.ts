@@ -62,7 +62,7 @@ export const GCPPDE_LABS: SeedLabSet = {
       kind: "build",
       title: "Lay out projects, datasets and tables for governance",
       brief:
-        "Corvid Retail is building its first BigQuery platform. Three teams load data: Sales, Supply Chain and People (HR). Analysts across the company should query curated sales and supply-chain data freely, but HR data contains salaries and must be visible only to the People team and two finance directors. Each team has a development and a production environment, and the CFO wants each team's BigQuery spend billed to that team's cost centre. Today the proposal is a single project called 'data' with one dataset called 'tables'. Redesign the layout.",
+        "Corvid Retail is building its first BigQuery platform. Three teams load data: Sales, Supply Chain and People (HR). Analysts across the company should query curated sales and supply-chain data freely, but HR data contains salaries and must be visible only to the People team and two finance directors. Each team has a development and a production environment, and the CFO wants each team's BigQuery spend billed to that team's cost center. Today the proposal is a single project called 'data' with one dataset called 'tables'. Redesign the layout.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -72,11 +72,11 @@ export const GCPPDE_LABS: SeedLabSet = {
             part(
               "Projects",
               "Separates production from development and gives each team (or data domain) its own project(s) under folders, so IAM, quotas and billing attribute naturally; attaches projects to the team's billing account or uses labels for cost allocation.",
-              "A folder per team (sales, supply-chain, people) with a -dev and a -prod project in each, plus a shared analytics project for cross-team curated data. Projects are the IAM and billing boundary: each team's projects carry a cost-centre label (or billing account), so Cloud Billing export shows spend per team without any tagging of individual queries."
+              "A folder per team (sales, supply-chain, people) with a -dev and a -prod project in each, plus a shared analytics project for cross-team curated data. Projects are the IAM and billing boundary: each team's projects carry a cost-center label (or billing account), so Cloud Billing export shows spend per team without any tagging of individual queries."
             ),
             part(
               "Datasets",
-              "Organises datasets by domain and by layer (raw/landing, curated/published) rather than one dataset for everything, with the dataset as the main IAM grant point (groups, not individuals) and the HR datasets in their own project with restricted groups.",
+              "Organizes datasets by domain and by layer (raw/landing, curated/published) rather than one dataset for everything, with the dataset as the main IAM grant point (groups, not individuals) and the HR datasets in their own project with restricted groups.",
               "Within each prod project: a raw dataset (loaders write, nobody else reads) and a curated dataset (published, read by analysts). Grant at the dataset level to Google Groups: analysts@ gets BigQuery Data Viewer on sales and supply-chain curated datasets; the people-prod project's datasets are readable only by people-team@ and finance-directors@. No individual user grants."
             ),
             part(
@@ -87,7 +87,7 @@ export const GCPPDE_LABS: SeedLabSet = {
             part(
               "Why not one project and one dataset",
               "Explains that a single project/dataset makes least-privilege impossible (dataset-level grants expose HR to everyone), mixes dev and prod risk, and gives the CFO no cost attribution.",
-              "One dataset means one access list: anyone who can read sales can read salaries. One project means dev experiments share quotas, reservations and audit logs with production, and there is no boundary to bill to a cost centre. The layout above gives a grant point, a blast-radius limit and a billing line per team."
+              "One dataset means one access list: anyone who can read sales can read salaries. One project means dev experiments share quotas, reservations and audit logs with production, and there is no boundary to bill to a cost center. The layout above gives a grant point, a blast-radius limit and a billing line per team."
             ),
           ],
         },
@@ -108,13 +108,13 @@ export const GCPPDE_LABS: SeedLabSet = {
           parts: [
             part(
               "Direct identifiers",
-              "Pseudonymises email and name with a deterministic, keyed transformation (Sensitive Data Protection deterministic encryption or crypto-hash with a KMS-wrapped key) so the same customer maps to the same token, which keeps repeat-customer counts possible without revealing identity.",
+              "Pseudonymizes email and name with a deterministic, keyed transformation (Sensitive Data Protection deterministic encryption or crypto-hash with a KMS-wrapped key) so the same customer maps to the same token, which keeps repeat-customer counts possible without revealing identity.",
               "Run events through a Sensitive Data Protection de-identification template in the pipeline: replace email and full name with deterministic encryption tokens keyed by a Cloud KMS-wrapped key, so a customer always gets the same token and analysts can count repeat customers and joins still work, but nobody can read the identity back without the key."
             ),
             part(
               "Quasi-identifiers",
-              "Generalises date of birth to an age band (bucketing) and address to a region/postcode district, since exact values re-identify people when combined, and keeps the card digits out of the analysts' table entirely or masked.",
-              "Bucket date of birth into age bands (for example 25-34) and reduce the delivery address to a region or outward postcode with Sensitive Data Protection generalisation, because exact birth date plus address re-identifies someone. Drop the card digits from the analytics copy; if a column must stay, apply format-preserving encryption so it keeps the shape but not the value."
+              "Generalizes date of birth to an age band (bucketing) and address to a region/postcode district, since exact values re-identify people when combined, and keeps the card digits out of the analysts' table entirely or masked.",
+              "Bucket date of birth into age bands (for example 25-34) and reduce the delivery address to a region or outward postcode with Sensitive Data Protection generalization, because exact birth date plus address re-identifies someone. Drop the card digits from the analytics copy; if a column must stay, apply format-preserving encryption so it keeps the shape but not the value."
             ),
             part(
               "Two audiences, two paths",
@@ -175,7 +175,7 @@ export const GCPPDE_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose the processing service for four pipelines",
       brief:
-        "Oakhurst Bank's data platform team has four new pipelines. (1) A stream of card authorisations needing per-merchant fraud features computed within seconds, with exactly-once results and autoscaling. (2) A 60-node on-premises Hadoop estate running 300 Spark and Hive jobs nightly that must move to Google Cloud this quarter with minimal code change. (3) A daily transformation of data already in BigQuery: joining the loan book to rates and writing a reporting table, maintained by analysts who know SQL but not Java or Python. (4) Integration of 40 SaaS and on-premises sources into the warehouse by a team of ETL developers who want a visual, code-free tool with prebuilt connectors. Name the service for each and the reason.",
+        "Oakhurst Bank's data platform team has four new pipelines. (1) A stream of card authorizations needing per-merchant fraud features computed within seconds, with exactly-once results and autoscaling. (2) A 60-node on-premises Hadoop estate running 300 Spark and Hive jobs nightly that must move to Google Cloud this quarter with minimal code change. (3) A daily transformation of data already in BigQuery: joining the loan book to rates and writing a reporting table, maintained by analysts who know SQL but not Java or Python. (4) Integration of 40 SaaS and on-premises sources into the warehouse by a team of ETL developers who want a visual, code-free tool with prebuilt connectors. Name the service for each and the reason.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -189,7 +189,7 @@ export const GCPPDE_LABS: SeedLabSet = {
             ),
             part(
               "Hadoop estate",
-              "Chooses Dataproc (Managed Service for Apache Spark) as a lift-and-shift target for Spark and Hive with minimal code change, with data moved from HDFS to Cloud Storage and the Hive metastore externalised; rejects rewriting everything in Beam this quarter.",
+              "Chooses Dataproc (Managed Service for Apache Spark) as a lift-and-shift target for Spark and Hive with minimal code change, with data moved from HDFS to Cloud Storage and the Hive metastore externalized; rejects rewriting everything in Beam this quarter.",
               "Dataproc, now called Managed Service for Apache Spark: it runs the existing Spark and Hive jobs largely as-is, so the quarter's deadline is realistic. Move the data from HDFS to Cloud Storage (the connector makes gs:// a drop-in) and use a managed metastore, so clusters become ephemeral. Rewriting 300 jobs as Beam pipelines would not fit the timeline."
             ),
             part(
@@ -278,7 +278,7 @@ export const GCPPDE_LABS: SeedLabSet = {
             part("Ride history analytics", "Chooses BigQuery for large-scale ad-hoc SQL analytics on append-only data.", "BigQuery: a serverless warehouse for ad-hoc SQL over 30 TB, partition by ride date and cluster by city; data is appended, not updated, which suits it."),
             part("GPS traces in place", "Chooses Cloud Storage (Archive or Coldline class for rarely read compliance data) with BigLake external tables so SQL runs on the Parquet in place.", "Cloud Storage in Coldline or Archive class (read a few times a year; 90- and 365-day minimum storage durations are fine for retention data), with a BigLake table over the Parquet so analysts query it from BigQuery without loading 2 PB."),
             part("Scooter telemetry", "Chooses Bigtable for very high write throughput with key and time-range reads, with a row key of scooter_id plus timestamp.", "Bigtable: built for 50,000+ writes a second and low-latency reads by key; row key scooter_id#timestamp gives the latest position and recent history as a short range scan."),
-            part("Rider app documents", "Chooses Firestore for a document model with mobile SDKs and offline synchronisation.", "Firestore: flexible JSON-like documents, mobile client SDKs with offline persistence and sync, and per-document security rules for the rider app."),
+            part("Rider app documents", "Chooses Firestore for a document model with mobile SDKs and offline synchronization.", "Firestore: flexible JSON-like documents, mobile client SDKs with offline persistence and sync, and per-document security rules for the rider app."),
             part("Payments ledger", "Chooses Spanner in a multi-region configuration for strongly consistent, globally available transactions with the 99.999% SLA.", "Spanner, multi-region configuration spanning Europe and Asia: relational schema, strongly consistent transactions everywhere and a 99.999% availability SLA for multi-region instances."),
           ],
         },
@@ -353,7 +353,7 @@ export const GCPPDE_LABS: SeedLabSet = {
             ),
             part(
               "Card numbers in free text",
-              "Uses Sensitive Data Protection (Cloud DLP) to inspect and redact or tokenise card numbers in support_notes, either at load time in the pipeline or as a stored de-identified column, and profiles the table to find other sensitive text.",
+              "Uses Sensitive Data Protection (Cloud DLP) to inspect and redact or tokenize card numbers in support_notes, either at load time in the pipeline or as a stored de-identified column, and profiles the table to find other sensitive text.",
               "Run support_notes through Sensitive Data Protection with the CREDIT_CARD_NUMBER infoType in the load pipeline, redacting matches (or replacing them with a surrogate) before the row lands, and store only the cleaned text. Turn on sensitive data discovery profiles for the dataset to catch other columns that collect PII over time."
             ),
           ],
@@ -395,7 +395,7 @@ export const GCPPDE_LABS: SeedLabSet = {
               "Create a materialized view that aggregates the current month's transactions by branch; BigQuery maintains it incrementally as the hourly load appends, and the dashboard query is rewritten to use it automatically, reading megabytes instead of 400 GB. Add a BI Engine reservation for the dashboard project so repeated reads are served from memory in well under a second."
             ),
             part(
-              "Caching behaviour",
+              "Caching behavior",
               "Notes BigQuery's query result cache serves identical queries for free until the underlying table changes, so removing non-deterministic parts (or keeping the query text identical) lets most of the 2,000 opens hit cache between hourly loads.",
               "Between hourly loads the result cache returns identical queries at no charge, as long as the query text is the same and the tables have not changed. Keep CURRENT_DATE() out of the dashboard query (pass the month as a fixed parameter the dashboard computes) so the text stays identical and most opens are cache hits."
             ),
@@ -407,7 +407,7 @@ export const GCPPDE_LABS: SeedLabSet = {
           parts: [
             part(
               "Skew",
-              "Recognises data skew from a hot key (NULL account_id) in the join, and fixes it by filtering or separating the NULL/hot keys (COALESCE to a spread value, handle NULLs in a separate branch) or pre-aggregating before the join.",
+              "Recognizes data skew from a hot key (NULL account_id) in the join, and fixes it by filtering or separating the NULL/hot keys (COALESCE to a spread value, handle NULLs in a separate branch) or pre-aggregating before the join.",
               "A hot join key: thousands of rows with account_id NULL all land on one worker, so that stage waits for it. Filter the NULLs out before the join (they match nothing anyway) or handle them in a separate UNION branch, and pre-aggregate transactions by account_id before joining so each key carries one row."
             ),
           ],

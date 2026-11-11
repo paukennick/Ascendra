@@ -24,11 +24,11 @@ describe("REQ-160 CompTIA infrastructure and data labs", () => {
       assert.deepEqual(got, want, code);
     }
   });
-  test("every lab is a general-family lab with a fictional organisation and cites the official CompTIA page", () => {
+  test("every lab is a general-family lab with a fictional organization and cites the official CompTIA page", () => {
     for (const set of LAB_SETS.filter((s) => (REQ160_COURSES as readonly string[]).includes(s.trackCode))) {
       assert.ok(set.sources.every((s) => s.url.startsWith("https://www.comptia.org/")), set.trackCode);
       for (const lab of set.labs) {
-        assert.match(lab.safetyNote ?? "", /Fictional organisation/, `${set.trackCode}/${lab.slug}`);
+        assert.match(lab.safetyNote ?? "", /Fictional organization/, `${set.trackCode}/${lab.slug}`);
         assert.ok(lab.kind === "build" ? lab.steps.length === 1 : lab.steps.length >= 2, `${set.trackCode}/${lab.slug} shape`);
       }
     }

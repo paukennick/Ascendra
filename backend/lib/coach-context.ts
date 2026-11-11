@@ -1,3 +1,4 @@
+import { STUDY_EMPHASIS_WEIGHTS_SQL } from "@/lib/readiness";
 import { queryOne } from "@/lib/db";
 import { currentFactsFor } from "@/lib/current-facts";
 
@@ -18,6 +19,9 @@ export interface CoachContext {
   categorySlug?: string | null;
   categoryName?: string | null;
   subcategoryName?: string | null;
+  // REQ-220: the subcategory's slug, so clinical framing can follow the
+  // profession (nursing, physical therapy, EMS) rather than the category.
+  subcategorySlug?: string | null;
   credentialName?: string | null;
   providerName?: string | null;
   examCode?: string | null;
@@ -35,6 +39,7 @@ interface ContextRow {
   category_slug: string | null;
   category_name: string | null;
   subcategory_name: string | null;
+  subcategory_slug: string | null;
   credential_name: string | null;
   provider_name: string | null;
   exam_code: string | null;
@@ -50,6 +55,7 @@ function rowToContext(row: ContextRow): CoachContext {
     categorySlug: row.category_slug,
     categoryName: row.category_name,
     subcategoryName: row.subcategory_name,
+    subcategorySlug: row.subcategory_slug,
     credentialName: row.credential_name,
     providerName: row.provider_name,
     examCode: row.exam_code,
@@ -76,7 +82,7 @@ const TRACK_JOINS = `
 const TRACK_FIELDS = `
   st.title as track_title, st.track_type::text as track_type,
   case when st.user_id is null then st.code end as track_code,
-  ec.slug as category_slug, ec.name as category_name, esc.name as subcategory_name,
+  ec.slug as category_slug, ec.name as category_name, esc.name as subcategory_name, esc.slug as subcategory_slug,
   c.name as credential_name, cp.name as provider_name, ce.exam_code`;
 
 export async function coachContextForTrack(trackId: string): Promise<CoachContext | null> {
@@ -91,7 +97,7 @@ export async function coachContextForTrack(trackId: string): Promise<CoachContex
 
 export async function coachContextForUnit(unitId: string): Promise<CoachContext | null> {
   const row = await queryOne<ContextRow>(
-    `select ${TRACK_FIELDS}, cu.title as unit_title, cu.weight as unit_weight
+    `select ${TRACK_FIELDS}, cu.title as unit_title, case when ${STUDY_EMPHASIS_WEIGHTS_SQL} then null else cu.weight end as unit_weight
      from course_units cu
      join subject_tracks st on st.id = cu.track_id ${TRACK_JOINS}
      where cu.id = $1`,
@@ -102,7 +108,7 @@ export async function coachContextForUnit(unitId: string): Promise<CoachContext 
 
 export async function coachContextForObjective(objectiveId: string): Promise<CoachContext | null> {
   const row = await queryOne<ContextRow>(
-    `select ${TRACK_FIELDS}, cu.title as unit_title, cu.weight as unit_weight
+    `select ${TRACK_FIELDS}, cu.title as unit_title, case when ${STUDY_EMPHASIS_WEIGHTS_SQL} then null else cu.weight end as unit_weight
      from objectives o
      join course_units cu on cu.id = o.unit_id
      join subject_tracks st on st.id = cu.track_id ${TRACK_JOINS}

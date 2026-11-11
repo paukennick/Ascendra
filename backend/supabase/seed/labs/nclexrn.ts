@@ -29,7 +29,7 @@ export const NCLEXRN_LABS: SeedLabSet = {
   labs: [
     {
       slug: "who-first-post-op-bleeding",
-      objective: "Unstable versus stable: recognising which client is actually deteriorating",
+      objective: "Unstable versus stable: recognizing which client is actually deteriorating",
       kind: "case",
       title: "Start of shift: who do you see first?",
       brief:
@@ -63,7 +63,7 @@ export const NCLEXRN_LABS: SeedLabSet = {
             ),
             part(
               "Communication",
-              "Reports to the surgeon in an organised format (for example SBAR) with the trend in vital signs and the dressing finding.",
+              "Reports to the surgeon in an organized format (for example SBAR) with the trend in vital signs and the dressing finding.",
               "SBAR to the surgeon: S -- post-op client bleeding, hypotensive; B -- abdominal surgery 2 hours ago; A -- HR 118 and rising, BP 88/54, dressing saturated, cool and clammy, likely hemorrhage; R -- come now, orders for fluids/blood and labs."
             ),
           ],
@@ -192,7 +192,7 @@ export const NCLEXRN_LABS: SeedLabSet = {
     },
     {
       slug: "teach-back-glucose-monitoring",
-      objective: "Evaluating whether the client understood the health promotion behaviour taught",
+      objective: "Evaluating whether the client understood the health promotion behavior taught",
       kind: "build",
       title: "Teach and check understanding of glucose self-monitoring",
       brief:
@@ -331,7 +331,7 @@ export const NCLEXRN_LABS: SeedLabSet = {
             ),
             part(
               "Notify and report",
-              "Notifies the provider and the blood bank, recognising a possible acute hemolytic reaction.",
+              "Notifies the provider and the blood bank, recognizing a possible acute hemolytic reaction.",
               "These signs fit a possible acute hemolytic reaction: notify the provider and the blood bank immediately and follow the transfusion-reaction protocol."
             ),
           ],
@@ -375,7 +375,7 @@ export const NCLEXRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Interpretation",
-              "Recognises reduced arterial perfusion to the right leg (for example thrombus or compression) as a possible emergency, comparing with the other leg and baseline.",
+              "Recognizes reduced arterial perfusion to the right leg (for example thrombus or compression) as a possible emergency, comparing with the other leg and baseline.",
               "A cooler, paler foot with a weaker pulse than before and than the other side means arterial blood flow is reduced -- a possible clot or occlusion."
             ),
             part(
@@ -444,7 +444,7 @@ export const NCLEXRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Hypothesis",
-              "Recognises worsening hypercapnia (CO2 narcosis/respiratory failure) as the likely cause of the decreased level of consciousness.",
+              "Recognizes worsening hypercapnia (CO2 narcosis/respiratory failure) as the likely cause of the decreased level of consciousness.",
               "Rising CO2 (worsening hypercapnic respiratory failure) is the likely cause of the drowsiness and slow breathing."
             ),
             part(
@@ -487,7 +487,7 @@ export const NCLEXRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Action",
-              "Recognises the decline as a possible rise in ICP and notifies the provider immediately, increasing the frequency of neuro checks.",
+              "Recognizes the decline as a possible rise in ICP and notifies the provider immediately, increasing the frequency of neuro checks.",
               "This decline may mean rising ICP: notify the provider immediately and increase neuro checks while staying close."
             ),
           ],

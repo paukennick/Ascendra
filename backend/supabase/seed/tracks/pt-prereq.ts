@@ -117,8 +117,8 @@ export const PT_PREREQ_TRACK: SeedTrack = {
         "Apply tonicity to predict which way water moves when a cell sits in a hypertonic, isotonic or hypotonic solution, and what happens to the cell's volume", // BIO 5.2; AP 3.1
         "Explain how the sodium-potassium pump moves three Na+ out and two K+ in for each ATP, and how that keeps the inside of the cell negative", // BIO 5.3; AP 3.1, 12.4
         "Classify the four primary tissue types (epithelial, connective, muscle, nervous) and name a musculoskeletal structure built mainly from each", // AP 4.1
-        "Identify which connective tissue (dense regular, dense irregular, elastic) forms tendons and ligaments, the dermis and the walls of large arteries, and relate each to the direction of its fibres", // AP 4.3
-        "Compare hyaline cartilage, fibrocartilage and elastic cartilage by location and the load each bears, and explain why avascular cartilage and poorly vascularised tendon heal slowly", // AP 4.3, 9.4
+        "Identify which connective tissue (dense regular, dense irregular, elastic) forms tendons and ligaments, the dermis and the walls of large arteries, and relate each to the direction of its fibers", // AP 4.3
+        "Compare hyaline cartilage, fibrocartilage and elastic cartilage by location and the load each bears, and explain why avascular cartilage and poorly vascularized tendon heal slowly", // AP 4.3, 9.4
         "Apply the tissue repair sequence (inflammation with its four cardinal signs, then granulation tissue as new vessels grow, then scar or regenerated tissue) to a described wound or sprain", // AP 4.6
       ],
     },
@@ -135,23 +135,23 @@ export const PT_PREREQ_TRACK: SeedTrack = {
         "Classify joints by structure (fibrous, cartilaginous, synovial) and by function (synarthrosis, amphiarthrosis, diarthrosis), with an example of each", // AP 9.1-9.3
         "Identify the six synovial joint types (plane, hinge, pivot, condyloid, saddle, ball-and-socket) with an example of each and the motions each allows", // AP 9.4
         "Name the movement at each joint for a described task using flexion, extension, abduction, adduction, rotation, circumduction, pronation, supination, dorsiflexion, plantar flexion, inversion and eversion", // AP 9.5
-        "Identify the knee's stabilising structures (anterior and posterior cruciate ligaments, medial and lateral collateral ligaments, medial and lateral menisci) and the motion each resists", // AP 9.6
+        "Identify the knee's stabilizing structures (anterior and posterior cruciate ligaments, medial and lateral collateral ligaments, medial and lateral menisci) and the motion each resists", // AP 9.6
         "Identify the four rotator cuff muscles (supraspinatus, infraspinatus, teres minor, subscapularis) and each one's main action at the glenohumeral joint", // AP 11.5
         "Identify the main hip and knee movers (gluteus maximus and medius, iliopsoas, quadriceps femoris, hamstrings, adductors) and each group's main action", // AP 11.6
-        "Analyse a movement to name the agonist (prime mover), antagonist and synergist, and whether each working muscle contracts concentrically, eccentrically or isometrically", // AP 11.1, 10.4
+        "Analyze a movement to name the agonist (prime mover), antagonist and synergist, and whether each working muscle contracts concentrically, eccentrically or isometrically", // AP 11.1, 10.4
         "Apply a muscle's attachments and line of pull to work out its action at every joint it crosses, including two-joint muscles such as the hamstrings and rectus femoris", // AP 11.1, 11.6
       ],
     },
     {
       title: "Muscle physiology",
-      gate: "Explain why a muscle is weak, fatigues or adapts, in terms of sarcomeres, motor units, fibre types or ATP supply.",
+      gate: "Explain why a muscle is weak, fatigues or adapts, in terms of sarcomeres, motor units, fiber types or ATP supply.",
       objectives: [
         "Sequence excitation-contraction coupling: the motor neuron action potential, acetylcholine release at the neuromuscular junction, spread along the sarcolemma and T-tubules, and calcium release from the sarcoplasmic reticulum", // AP 10.2-10.3
         "Explain the sliding filament model and the cross-bridge cycle, and the parts actin, myosin, troponin, tropomyosin, calcium and ATP play in contraction and relaxation", // AP 10.3
         "Apply the length-tension relationship (peak tension at about 80 to 120 percent of a sarcomere's resting length) to explain why a muscle is weaker when much shorter or much longer than that", // AP 10.4
         "Explain how the nervous system grades force by recruiting more motor units and by raising stimulation frequency from a twitch through summation to tetanus", // AP 10.4
-        "Interpret a description of motor unit size (a few fibres per neuron in the eye muscles, many in a large postural muscle) and decide which arrangement allows finer control of force", // AP 10.4
-        "Compare slow oxidative, fast oxidative and fast glycolytic fibres by contraction speed, main ATP source and resistance to fatigue", // AP 10.5
+        "Interpret a description of motor unit size (a few fibers per neuron in the eye muscles, many in a large postural muscle) and decide which arrangement allows finer control of force", // AP 10.4
+        "Compare slow oxidative, fast oxidative and fast glycolytic fibers by contraction speed, main ATP source and resistance to fatigue", // AP 10.5
         "Compare the three ways muscle regenerates ATP (creatine phosphate, anaerobic glycolysis, aerobic respiration) by speed and by how long each can sustain work", // AP 10.3; BIO 7.2, 7.5
         "Explain how endurance training, resistance training and disuse change muscle: mitochondria and capillaries, hypertrophy and atrophy", // AP 10.6
         "Compare skeletal, cardiac and smooth muscle by striation, voluntary or involuntary control, cell junctions (intercalated discs) and where the calcium for contraction comes from", // AP 10.7-10.8
@@ -163,7 +163,7 @@ export const PT_PREREQ_TRACK: SeedTrack = {
       objectives: [
         "Apply Newton's three laws to a body segment or a person pushing on a surface, naming each force and its reaction force", // PHYS 4.2-4.4
         "Resolve a force into perpendicular components with sine and cosine, and separate the part of a muscle's pull that rotates a joint from the part that compresses it", // PHYS 3.3, 9.6
-        "Calculate torque as force times perpendicular lever arm (moment arm) about a pivot, in newton-metres, with its direction", // PHYS 9.2
+        "Calculate torque as force times perpendicular lever arm (moment arm) about a pivot, in newton-meters, with its direction", // PHYS 9.2
         // The three arrangements are drawn in PHYS 9.5. "First", "second" and
         // "third class" are the usual labels for them; OpenStax does not print
         // the labels.
@@ -171,7 +171,7 @@ export const PT_PREREQ_TRACK: SeedTrack = {
         "Calculate a lever's mechanical advantage from its lever arms, and explain why muscles attached close to a joint have a mechanical advantage below one and trade force for speed and range of motion", // PHYS 9.5-9.6; AP 11.1
         "Apply both conditions of equilibrium (net force zero, net torque zero) to calculate the biceps force and the elbow joint force needed to hold a load in the hand with the forearm horizontal", // PHYS 9.1-9.2, 9.6
         "Modify an exercise's difficulty by changing the load's lever arm (limb position, where a weight or band sits), and justify the change with torque", // PHYS 9.2, 9.6
-        "Explain stability using the centre of gravity, the base of support and whether the line of gravity falls within it", // PHYS 9.3
+        "Explain stability using the center of gravity, the base of support and whether the line of gravity falls within it", // PHYS 9.3
         "Calculate the force needed to overcome static and kinetic friction from the coefficient and the normal force, and why surface and footwear matter for transfers and walking", // PHYS 5.1
         "Explain stress, strain and Young's modulus, and use them to compare how much tendon and bone stretch or compress under the same load", // PHYS 5.3
       ],
@@ -182,13 +182,13 @@ export const PT_PREREQ_TRACK: SeedTrack = {
       objectives: [
         "Distinguish the central and peripheral nervous systems, the somatic and autonomic divisions, and afferent (sensory) from efferent (motor) pathways", // AP 12.1
         "Identify the parts of a neuron (dendrites, cell body, axon hillock, axon, myelin sheath, nodes of Ranvier, axon terminals) and the cells that make myelin in the CNS (oligodendrocytes) and in the PNS (Schwann cells)", // AP 12.2
-        "Explain the resting membrane potential of about -70 mV and the action potential in order: threshold, depolarisation through voltage-gated Na+ channels, repolarisation through K+ channels, and the refractory period", // AP 12.4
+        "Explain the resting membrane potential of about -70 mV and the action potential in order: threshold, depolarization through voltage-gated Na+ channels, repolarization through K+ channels, and the refractory period", // AP 12.4
         "Explain why myelinated axons conduct faster by saltatory conduction, and what loss of myelin does to conduction", // AP 12.4
         "Explain how a chemical synapse passes a signal, and distinguish excitatory from inhibitory postsynaptic potentials and spatial from temporal summation", // AP 12.5
         "Identify the brain regions involved in movement (primary motor and somatosensory cortex, basal nuclei, cerebellum, brainstem) and what each contributes", // AP 13.2, 14.3
         "Trace the corticospinal tract and the dorsal column and spinothalamic pathways, including where each crosses the midline", // AP 14.2-14.3
         "Apply where each pathway crosses the midline to predict which side of the body loses strength or sensation after damage to one cerebral hemisphere or to one side of the spinal cord", // AP 14.2-14.3, 16.4
-        "Recognise upper motor neuron signs (spasticity, increased reflexes) and lower motor neuron signs (weakness with atrophy, fasciculations, reduced reflexes) in a described finding", // AP 16.4
+        "Recognize upper motor neuron signs (spasticity, increased reflexes) and lower motor neuron signs (weakness with atrophy, fasciculations, reduced reflexes) in a described finding", // AP 16.4
         "Identify the parts of a reflex arc and explain the stretch reflex a patellar tendon tap tests", // AP 14.3, 16.4
         "Identify the brachial and lumbosacral plexuses and major limb nerves: musculocutaneous, radial, median and ulnar; femoral, obturator, sciatic, tibial and common fibular", // AP 13.4
         "Explain dermatomes, and how damage to one spinal nerve root produces sensory loss over that root's dermatome", // AP 13.4, 16.4
@@ -200,13 +200,13 @@ export const PT_PREREQ_TRACK: SeedTrack = {
       gate: "Calculate cardiac output and mean arterial pressure from given values, and explain how each changes when a person stands up or starts to exercise.",
       objectives: [
         "Trace blood through the heart's chambers and valves and around the pulmonary and systemic circuits", // AP 19.1
-        "Sequence the conduction system (SA node, AV node, AV bundle, bundle branches, Purkinje fibres) and match the P wave, QRS complex and T wave to the events they record", // AP 19.2
+        "Sequence the conduction system (SA node, AV node, AV bundle, bundle branches, Purkinje fibers) and match the P wave, QRS complex and T wave to the events they record", // AP 19.2
         "Calculate cardiac output from heart rate and stroke volume, and explain how preload, contractility and afterload change stroke volume", // AP 19.4
         "Calculate pulse pressure and mean arterial pressure from a blood pressure reading, and interpret a narrow pulse pressure as a sign of low stroke volume", // AP 20.2
         "Explain how vessel radius, vessel length and blood viscosity set resistance to flow, and why a small change in radius changes flow so much", // AP 20.2; PHYS 12.4
         "Explain how the baroreceptor reflex keeps blood pressure up on standing, and how the skeletal muscle pump and venous valves return blood to the heart", // AP 20.2, 20.4
         "Explain the cardiovascular response to exercise: higher heart rate and stroke volume, and blood redirected to working muscle", // AP 19.4, 20.4
-        "Identify the parts of blood (erythrocytes, leukocytes, platelets, plasma) and how haemoglobin carries oxygen", // AP 18.1, 18.3
+        "Identify the parts of blood (erythrocytes, leukocytes, platelets, plasma) and how hemoglobin carries oxygen", // AP 18.1, 18.3
       ],
     },
     {
@@ -217,8 +217,8 @@ export const PT_PREREQ_TRACK: SeedTrack = {
         "Explain how the diaphragm and intercostal muscles change thoracic volume and pressure in quiet and forced breathing, using Boyle's law", // AP 22.3
         "Calculate vital capacity and total lung capacity from tidal volume, the inspiratory and expiratory reserve volumes and residual volume", // AP 22.3
         "Explain how partial-pressure gradients move oxygen and carbon dioxide across the respiratory membrane", // AP 22.4
-        "Interpret the oxygen-haemoglobin dissociation curve, including its shift to the right as temperature, carbon dioxide and acidity rise in working muscle", // AP 22.5
-        "Explain how the bicarbonate buffer and breathing together regulate blood pH, and recognise respiratory acidosis or alkalosis from a described change in breathing", // AP 26.4-26.5; CHEM 14.6
+        "Interpret the oxygen-hemoglobin dissociation curve, including its shift to the right as temperature, carbon dioxide and acidity rise in working muscle", // AP 22.5
+        "Explain how the bicarbonate buffer and breathing together regulate blood pH, and recognize respiratory acidosis or alkalosis from a described change in breathing", // AP 26.4-26.5; CHEM 14.6
         "Explain how ventilation rises with exercise and how chemoreceptors respond to carbon dioxide and pH", // AP 22.3, 22.6
       ],
     },
@@ -254,7 +254,7 @@ export const PT_PREREQ_TRACK: SeedTrack = {
         "Distinguish classical conditioning, operant conditioning (reinforcement and punishment) and observational learning, and apply each to building an exercise habit", // PSY 6.2-6.4
         "Explain the stress response (the general adaptation syndrome and the hypothalamic-pituitary-adrenal axis) and how long-term stress affects health", // PSY 14.1, 14.3
         "Identify Erikson's psychosocial stages and Piaget's cognitive stages, and use them to adapt how you explain an exercise to a child, an adult or an older adult", // PSY 9.2-9.3
-        "Recognise the core features of major depressive disorder and generalised anxiety disorder as the textbook describes them, and why either can lower participation in rehabilitation", // PSY 15.4, 15.7
+        "Recognize the core features of major depressive disorder and generalized anxiety disorder as the textbook describes them, and why either can lower participation in rehabilitation", // PSY 15.4, 15.7
         "Explain attitudes and persuasion, including the foot-in-the-door technique, and how they shape whether a person follows advice", // PSY 12.3
         "Evaluate a plainly described study as correlational or experimental, and say whether it can support a cause-and-effect claim", // PSY 2.2-2.3
       ],
@@ -264,7 +264,7 @@ export const PT_PREREQ_TRACK: SeedTrack = {
       gate: "Read a results paragraph from a study and say in plain words what the numbers do and do not show.",
       objectives: [
         "Classify data as nominal, ordinal, interval or ratio, and choose a suitable summary for each", // STAT 1.3
-        "Calculate the mean, median, range and sample standard deviation of a small data set, and decide which centre to report when the data are skewed", // STAT 2.5-2.7
+        "Calculate the mean, median, range and sample standard deviation of a small data set, and decide which center to report when the data are skewed", // STAT 2.5-2.7
         "Calculate a z-score and use the standard normal distribution to find the share of values above or below a cut-off", // STAT 6.1-6.2
         "Interpret a 95 percent confidence interval for a mean in plain words", // STAT 8.1-8.2
         "Set up null and alternative hypotheses, interpret a p-value against a significance level, and distinguish Type I from Type II errors", // STAT 9.1-9.2

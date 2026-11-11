@@ -63,6 +63,11 @@ export async function purgeExpired(): Promise<PurgeResult> {
   await run("email_change_tokens", `delete from email_change_tokens where expires_at < now() - ($1 || ' days')::interval`, [
     String(RETENTION.emailChangeDays),
   ]);
+  // REQ-219: webhook delivery ids (migration 075), only needed while a replay
+  // of the delivery could still carry a valid signature or be retried.
+  await run("inbound_email_events", `delete from inbound_email_events where claimed_at < now() - ($1 || ' days')::interval`, [
+    String(RETENTION.expiredTokensDays),
+  ]);
   // ai_calls has an index on created_at (migration 028), so this is a range
   // delete; each day it removes about one day of rows.
   await run("ai_calls", `delete from ai_calls where created_at < now() - ($1 || ' months')::interval`, [

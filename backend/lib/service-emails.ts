@@ -4,7 +4,7 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { sendServiceEmail } from "@/lib/email";
 import { logEmailFailure } from "@/lib/email-errors";
 import { hasFeature } from "@/lib/entitlements";
-import { objectiveReadiness, readinessParams, rollupReadiness } from "@/lib/readiness";
+import { objectiveReadiness, readinessParams, rollupReadiness, weightsAreExamBlueprint } from "@/lib/readiness";
 import { utcDay } from "@/lib/review-scheduler";
 import { daysBetween, shortCourseName, shortTopic } from "@/lib/reminder-plan";
 import { changesInWindow, examChangePeriodKey, type ExamChange } from "@/lib/exam-changes";
@@ -203,7 +203,7 @@ export async function courseStanding(userId: string, trackId: string): Promise<C
     recheckDue: o.recheck_due,
     retention: o.retention,
   }));
-  const roll = rollupReadiness(units, inputs, params);
+  const roll = rollupReadiness(units, inputs, params, await weightsAreExamBlueprint(trackId));
   const scored = roll.status === "building" || roll.status === "ready";
   const allowed = await hasFeature(userId, "readiness");
   const weakest = inputs

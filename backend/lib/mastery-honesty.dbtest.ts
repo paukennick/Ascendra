@@ -177,7 +177,7 @@ describe("REQ-117 mastery rule (045)", () => {
     assert.equal(d.status, "Independent");
   });
 
-  test("FAIL-354: one rough first lesson is not labelled Needs review; a placement guess is not Guided", async () => {
+  test("FAIL-354: one rough first lesson is not labeled Needs review; a placement guess is not Guided", async () => {
     const u = await newUser();
     await lesson(u, objs[2], "incorrect", "fade");
     await lesson(u, objs[2], "incorrect", "solo");
@@ -340,6 +340,23 @@ describe("REQ-117 readiness, plan and review tell one story", () => {
     assert.equal(due.length, 2, "two scheduled objectives are due; four error_log rows on one of them add nothing");
   });
 
+  test("FAIL-1016: items due but none could be prepared is 'couldn't be prepared', not 'nothing due', and no empty session is left", async () => {
+    const u = await newUser();
+    await lesson(u, objs[1], "correct", "fade");
+    await shift(u, 2);
+    // The fake model answers every call with a grading shape, so no review
+    // question can be written for the objective: it is due, and unpreparable.
+    const s = await startSession(u, track);
+    assert.ok(s, "a result, not null (null means nothing is due)");
+    assert.equal(s!.session, null);
+    assert.equal(s!.unavailable, 1);
+    assert.match(s!.message ?? "", /couldn't prepare any just now/);
+    const left = await queryOne<{ n: number }>(`select count(*)::int as n from review_sessions where user_id = $1`, [u]);
+    assert.equal(left!.n, 0, "the empty session row is removed");
+    const due = await dueObjectives(u, new Date().toISOString().slice(0, 10), track);
+    assert.equal(due.length, 1, "the objective is still due");
+  });
+
   test("FAIL-349: after two misses in a row, the review opens with a re-teach and the choices", async () => {
     const u = await newUser();
     await lesson(u, objs[2], "correct", "fade");
@@ -355,7 +372,7 @@ describe("REQ-117 readiness, plan and review tell one story", () => {
       );
     }
     const s = await startSession(u, track);
-    const items = s!.session.items;
+    const items = s!.session!.items;
     const hard = items.find((i) => i.objectiveId === objs[2])!;
     const easy = items.find((i) => i.objectiveId === objs[3])!;
     assert.equal(hard.easierEntry, true);

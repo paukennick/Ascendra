@@ -60,7 +60,7 @@ describe("R5/P6: distractor lint", () => {
     assert.deepEqual(distractorProblems("Q", "Which?", ["TCP 8443", "UDP 53", "TCP 22", "UDP 69"], 0), []);
   });
 
-  test("absolute cue words, all/none of the above, self-labelled options", () => {
+  test("absolute cue words, all/none of the above, self-labeled options", () => {
     assert.ok(distractorProblems("Q", "What happens?", ["It always fails", "It retries", "It queues", "It logs"], 1).some((p) => /absolute word "always"/.test(p)));
     // A word the stem itself uses is not a cue.
     assert.deepEqual(distractorProblems("Q", "Which control applies to all users?", ["All users get MFA", "Admins get MFA", "Guests get MFA", "Staff get MFA"], 1), []);
@@ -218,7 +218,7 @@ describe("R10: a dated current-facts block per course, from the seed", () => {
 });
 
 describe("R12/P9: chat dispute detection", () => {
-  test("dispute messages are recognised; ordinary questions are not", () => {
+  test("dispute messages are recognized; ordinary questions are not", () => {
     for (const m of [
       "I was marked wrong but I think B is right",
       "I think the answer key is wrong on the DNS question",

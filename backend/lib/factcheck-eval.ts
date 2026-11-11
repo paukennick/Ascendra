@@ -466,7 +466,7 @@ export function summaryMarkdown(r: EvalReport): string {
   L.push("", "## How to read this", "");
   L.push("- Catch rate (recall) is the share of known-bad items the production gate would hold back with that checker. A miss is a wrong key a learner would have been served.");
   L.push("- False-hold rate is the share of known-good items it would hold back: lost content and extra regeneration cost, not a safety problem.");
-  L.push("- The 95% intervals are wide at these sample sizes (one item moves a family's rate by 10-50 points). A family flagged 'small sample' needs more labelled items before its choice is final.");
+  L.push("- The 95% intervals are wide at these sample sizes (one item moves a family's rate by 10-50 points). A family flagged 'small sample' needs more labeled items before its choice is final.");
   L.push("- Cost per check is from the API's own token counts at lib/ai-pricing.ts prices; per 1,000 is that times 1,000. Production batches several items per call, so its per-item cost is lower.");
   L.push("- +exec rows add the sandboxed program run; they differ from the plain row only on items that carry a program.");
   return L.join("\n") + "\n";

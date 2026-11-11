@@ -55,7 +55,7 @@ export const DP300_LABS: SeedLabSet = {
       kind: "build",
       title: "Recommend an Azure SQL offering for four workloads",
       brief:
-        "Ashgrove Financial, a fictional lender, is leaving its data centre. (1) The loan ledger: a 12 TB OLTP database growing 2 TB a year that must stay fully managed and restore quickly. (2) A reporting application that relies on SQL Server Agent jobs, cross-database queries with three-part names and a linked server to another SQL Server. (3) A vendor risk engine whose support contract requires a specific SQL Server build, trace flags set at startup and a monitoring agent installed on the operating system. (4) A developer sandbox database used a few hours a day on weekdays; the team wants to pay nothing while it is idle.",
+        "Ashgrove Financial, a fictional lender, is leaving its data center. (1) The loan ledger: a 12 TB OLTP database growing 2 TB a year that must stay fully managed and restore quickly. (2) A reporting application that relies on SQL Server Agent jobs, cross-database queries with three-part names and a linked server to another SQL Server. (3) A vendor risk engine whose support contract requires a specific SQL Server build, trace flags set at startup and a monitoring agent installed on the operating system. (4) A developer sandbox database used a few hours a day on weekdays; the team wants to pay nothing while it is idle.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -437,7 +437,7 @@ export const DP300_LABS: SeedLabSet = {
             part(
               "Regional outage",
               "Uses a failover group to a server in a different (ideally paired) region with the customer-managed failover policy, so applications use the group's read-write listener (<group>.database.windows.net) and need no connection-string change; cites RTO typically under 60 seconds and an RPO at or above 0 because geo-replication is asynchronous.",
-              "Create a failover group between the primary server and a secondary logical server in the paired region (the secondary cannot be in the same region). Applications connect to the read-write listener <group-name>.database.windows.net, which follows the primary after a failover (DNS TTL 30 seconds), so no connection-string change. Microsoft gives RTO typically under 60 seconds and RPO equal to or greater than 0, since replication is asynchronous; a planned failover synchronises first and loses nothing, a forced failover can lose the last seconds. Keep the policy customer managed: the Microsoft-managed policy has a grace period of at least an hour, which would miss the five-minute target."
+              "Create a failover group between the primary server and a secondary logical server in the paired region (the secondary cannot be in the same region). Applications connect to the read-write listener <group-name>.database.windows.net, which follows the primary after a failover (DNS TTL 30 seconds), so no connection-string change. Microsoft gives RTO typically under 60 seconds and RPO equal to or greater than 0, since replication is asynchronous; a planned failover synchronizes first and loses nothing, a forced failover can lose the last seconds. Keep the policy customer managed: the Microsoft-managed policy has a grace period of at least an hour, which would miss the five-minute target."
             ),
             part(
               "Accidental deletion",

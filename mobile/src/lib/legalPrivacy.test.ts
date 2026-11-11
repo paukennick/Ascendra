@@ -32,7 +32,7 @@ describe("I am 16 or older (FAIL-906)", () => {
     assert.deepEqual(ageField(false), {});
     assert.deepEqual(ageField(true), { ageConfirmed: true });
   });
-  test("the Google flow recognises only the server's age answer", () => {
+  test("the Google flow recognizes only the server's age answer", () => {
     assert.equal(AGE_CONFIRMATION_CODE, "age_confirmation_required");
     assert.equal(isAgeConfirmationRequired({ status: 400, data: { code: "age_confirmation_required" } }), true);
     assert.equal(isAgeConfirmationRequired({ status: 400, data: { code: "other" } }), false);

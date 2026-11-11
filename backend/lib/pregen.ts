@@ -43,7 +43,8 @@ import {
 import { checkedIntro, checkedPractice, loadObjective, ContentHeldBackError, type LessonGenerator, type ObjectiveRow } from "@/lib/lesson-generation";
 import { saveLesson } from "@/lib/lesson-store";
 import { makeModelFactChecker, type FactChecker } from "@/lib/fact-check";
-import { uncertaintyOf } from "@/lib/item-quality";
+import { lowConfidenceOf } from "@/lib/item-quality";
+import { FactCheckUnavailableError } from "@/lib/generation-gate";
 import { CONTENT_LIMITS, lessonIntroProblems, lessonPracticeProblems, shufflePractice } from "@/lib/content-validator";
 import { hasAuthoredLesson } from "@/lib/authored-lessons";
 import { wantsVerification } from "@/lib/verify-execution";
@@ -523,7 +524,7 @@ async function collectIntro(
         continue;
       }
       if (opts.dryRun) {
-        if (uncertaintyOf(intro)) held++;
+        if (lowConfidenceOf(intro)) held++;
         else intros.set(id, intro);
         continue;
       }
@@ -668,6 +669,9 @@ async function collectPractice(
           saved++;
         } catch (err) {
           if (err instanceof NoRetryInBatch || err instanceof ContentHeldBackError) held++;
+          // REQ-216: a fact-check that did not run is not a verdict on the lesson: it is
+          // neither held nor saved, and the next run (or a first visit) tries again.
+          else if (err instanceof FactCheckUnavailableError) liveFailed.push({ objectiveId: l.objectiveId, reason: "fact-check did not run" });
           else liveFailed.push({ objectiveId: l.objectiveId, reason: "save error" });
         }
       }

@@ -33,7 +33,7 @@ export const PMISP_LABS: SeedLabSet = {
       objective:
         "Setting scheduling policies and procedures: tool selection, activity granularity, EVM implementation, and approval requirements",
       kind: "build",
-      title: "Write the scheduling policies for a new programme of work",
+      title: "Write the scheduling policies for a new program of work",
       brief:
         "Grayson Medical Devices is starting a 20-month project to build a new sterilisation-unit production line, with a $14 million budget, three subcontractors who each run their own scheduling tools, and monthly reporting to the board. Earned value management is required by the main customer's contract. The last project's schedule had activities ranging from 2 hours to 9 months long and was changed by anyone with access.",
       safetyNote: GENERAL_SAFETY,
@@ -81,7 +81,7 @@ export const PMISP_LABS: SeedLabSet = {
           parts: [
             part(
               "Problem",
-              "Explains that the baseline was changed without authorisation, destroying the ability to measure variance, and that baseline changes require formal change control.",
+              "Explains that the baseline was changed without authorization, destroying the ability to measure variance, and that baseline changes require formal change control.",
               "The baseline is the approved reference for measuring performance. Resetting it to hide a delay erases the two-week variance and breaks change control -- only an approved change request can alter it."
             ),
             part(
@@ -149,7 +149,7 @@ export const PMISP_LABS: SeedLabSet = {
       kind: "build",
       title: "Level a schedule around one specialist",
       brief:
-        "Oakhurst Bank is upgrading a data centre. Activities (duration in working days, predecessors, resource): A Survey 2 (none, Ann); B Install racks 4 (A, Ben); C Install cabling 3 (A, Ben); D Commission 2 (B and C, Ann). Finish-to-start links, start on day 0. Ben is the only certified installer and can work on one activity at a time. Ann and Ben are internal staff; a contractor could do cabling but needs 5 days' notice.",
+        "Oakhurst Bank is upgrading a data center. Activities (duration in working days, predecessors, resource): A Survey 2 (none, Ann); B Install racks 4 (A, Ben); C Install cabling 3 (A, Ben); D Commission 2 (B and C, Ann). Finish-to-start links, start on day 0. Ben is the only certified installer and can work on one activity at a time. Ann and Ben are internal staff; a contractor could do cabling but needs 5 days' notice.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -164,16 +164,16 @@ export const PMISP_LABS: SeedLabSet = {
             part(
               "Over-allocation",
               "Identifies that Ben is assigned to B and C at the same time (days 2-5), which cannot be resolved by smoothing within C's 1 day of float.",
-              "Ben is on B (days 2-6) and C (days 2-5) at once -- three days of overlap. C has only 1 day of float, so resource smoothing (moving work only within float) can't fix it; levelling is needed."
+              "Ben is on B (days 2-6) and C (days 2-5) at once -- three days of overlap. C has only 1 day of float, so resource smoothing (moving work only within float) can't fix it; leveling is needed."
             ),
             part(
-              "Levelled schedule",
+              "Leveled schedule",
               "Levels by sequencing B and C for Ben (for example B 2-6, C 6-9, D 9-11 or C 2-5, B 5-9, D 9-11), giving 11 days, a 3-day extension, with the critical path now running through both of Ben's activities (a resource-driven path).",
               "Sequence Ben's work: B 2-6, then C 6-9, then D 9-11. Duration 11 days, 3 days longer than the unconstrained 8. Doing C first (C 2-5, B 5-9, D 9-11) also gives 11. The longest path is now A-B-C-D, driven by Ben, not by logic alone."
             ),
             part(
               "Option to recover",
-              "Proposes giving cabling (C) to the contractor so B and C run in parallel, and works through the 5-day notice: booked at least 5 days before day 2, C runs 2-5 and the finish returns to day 8; booked on day 0, C can start only on day 5 (5-8), D runs 8-10 and the finish is day 10 -- still 1 day better than levelling. Notes the contractor's cost needs approval.",
+              "Proposes giving cabling (C) to the contractor so B and C run in parallel, and works through the 5-day notice: booked at least 5 days before day 2, C runs 2-5 and the finish returns to day 8; booked on day 0, C can start only on day 5 (5-8), D runs 8-10 and the finish is day 10 -- still 1 day better than leveling. Notes the contractor's cost needs approval.",
               "Give cabling to the contractor so Ben only does B. If they are booked at least 5 days before day 2, C runs 2-5 in parallel with B and the schedule returns to 8 days. If we only book on day 0, C runs 5-8, D runs 8-10 and we finish on day 10 -- better than 11. Either way the contractor's cost needs the sponsor's approval, so ask now."
             ),
           ],
@@ -228,14 +228,14 @@ export const PMISP_LABS: SeedLabSet = {
       slug: "sp-earned-schedule-status",
       objective: "Performing schedule analyses to identify and report status, changes, impacts, and issues",
       kind: "build",
-      title: "Analyse status with earned value and earned schedule",
+      title: "Analyze status with earned value and earned schedule",
       brief:
         "Brackenridge Utilities' six-month metering project has a cumulative planned value of: month 1 $50k; month 2 $120k; month 3 $200k; month 4 $280k; month 5 $340k; month 6 $400k. At the end of month 4 the earned value is $230k and the actual cost is $250k.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Analyse the schedule status.",
+          ask: "Analyze the schedule status.",
           parts: [
             part(
               "Cost-based schedule metrics",
@@ -355,7 +355,7 @@ export const PMISP_LABS: SeedLabSet = {
             part(
               "Headline status",
               "Leads with the milestone status in plain terms (forecast 26 March, 11 days late against 15 March), the cause, and the effect on the 1 April launch.",
-              "Line validation is forecast for 26 March, 11 days behind baseline, because the labelling machine arrived late. The 1 April launch is still possible but has little margin."
+              "Line validation is forecast for 26 March, 11 days behind baseline, because the labeling machine arrived late. The 1 April launch is still possible but has little margin."
             ),
             part(
               "Corrective options and impact",
@@ -403,8 +403,8 @@ export const PMISP_LABS: SeedLabSet = {
           parts: [
             part(
               "Scope option",
-              "Proposes a reduced-scope go-live on 1 September (for example course content and enrolment without the records integration, using a manual or file-based interim upload) with the rest in a later release.",
-              "Go live on 1 September with courses, content and logins, loading enrolments from a nightly file export instead of the live integration; switch to the full integration in October after testing."
+              "Proposes a reduced-scope go-live on 1 September (for example course content and enrollment without the records integration, using a manual or file-based interim upload) with the rest in a later release.",
+              "Go live on 1 September with courses, content and logins, loading enrollments from a nightly file export instead of the live integration; switch to the full integration in October after testing."
             ),
             part(
               "Formal update",

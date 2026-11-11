@@ -36,7 +36,7 @@ function to(run: Run, tick: number): void {
 describe("pace toggle", async () => {
   const doc = await compile("CCRNADULT", "tamponade-after-cabg");
 
-  test("study pace (3x) is the default and exam realism (1x) is opt-in, both labelled for a screen reader", () => {
+  test("study pace (3x) is the default and exam realism (1x) is opt-in, both labeled for a screen reader", () => {
     const o = paceOptions(3);
     assert.deepEqual(o.map((x) => [x.pace, x.selected]), [[3, true], [1, false]]);
     assert.match(o[0].label, /Study pace/);
@@ -121,11 +121,11 @@ describe("launch: pace and start point", async () => {
     assert.deepEqual(launchCommands(doc, NO_PACING, { pace: 3, start: "focused" }), [], "nothing is logged where pacing is not offered");
     const s = openSession(payload([], PACING), doc);
     for (const c of launchCommands(doc, PACING, { pace: 3, start: "focused" })) assert.ok(issue(s, c).ok);
-    assert.equal(s.run.state.tick, 780);
+    assert.equal(s.run.state.tick, 720);
     const plain = createRun(doc, 1);
-    to(plain, 780);
+    to(plain, 720);
     assert.equal(stateHash(s.run.state), stateHash(plain.state), "the state is the engine's, not hand-written");
-    assert.deepEqual(s.pending.map((c) => [c.seq, c.tick, c.type]), [[1, 0, "begin"], [2, 780, "pace"]]);
+    assert.deepEqual(s.pending.map((c) => [c.seq, c.tick, c.type]), [[1, 0, "begin"], [2, 720, "pace"]]);
   });
 });
 

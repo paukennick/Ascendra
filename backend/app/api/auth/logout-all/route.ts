@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // POST /api/auth/logout-all — revokes every session for the authenticated user.
 export async function POST(req: Request) {
   try {
-    const user = await requireUser(req);
+    const user = await requireUser(req, { termsOptional: true });
     await revokeAllRefreshTokens(user.id);
     // REQ-116: access tokens already issued stop too, not 15 minutes later.
     await bumpTokenVersion(user.id);

@@ -70,7 +70,7 @@ describe("PT School Prerequisites Refresher: seed shape (REQ-198)", () => {
   test("objectives are specific and testable: unique, an action verb first, no vague verbs", () => {
     assert.equal(new Set(objectives).size, objectives.length);
     for (const o of objectives) {
-      assert.match(o, /^(Match|Compare|Apply|Explain|Classify|Identify|Use|Name|Analyse|Sequence|Interpret|Calculate|Resolve|Modify|Distinguish|Trace|Recognise|Evaluate|Set up|Choose)\b/, o);
+      assert.match(o, /^(Match|Compare|Apply|Explain|Classify|Identify|Use|Name|Analyze|Sequence|Interpret|Calculate|Resolve|Modify|Distinguish|Trace|Recognize|Evaluate|Set up|Choose)\b/, o);
       assert.doesNotMatch(o, /^(Understand|Know|Learn|Be familiar|Appreciate|Describe)\b/i, o);
       assert.ok(o.length >= 60 && o.length <= 260, `length ${o.length}: ${o}`);
     }

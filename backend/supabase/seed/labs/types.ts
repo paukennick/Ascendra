@@ -93,4 +93,4 @@ export const CLINICAL_SAFETY =
   "Fictional practice case for the exam, not clinical guidance. In real care follow your facility's protocols and your licensed scope, and never enter real patient details here.";
 export const FITNESS_SAFETY =
   "Fictional client for exam practice, not exercise, nutrition or medical advice. Don't use it to program for a real person; screen and refer as your certification requires.";
-export const GENERAL_SAFETY = "Fictional organisation for exam practice. Never paste real credentials, keys or company data.";
+export const GENERAL_SAFETY = "Fictional organization for exam practice. Never paste real credentials, keys or company data.";

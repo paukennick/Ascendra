@@ -59,7 +59,7 @@ describe("the switch, from the app's side", () => {
 });
 
 describe("refusals", () => {
-  test("402 upgrade, 429 allowance and AI pause are recognised; other errors are not", () => {
+  test("402 upgrade, 429 allowance and AI pause are recognized; other errors are not", () => {
     const up = billingSignal(402, { error: "Explain-it-back comes with Plus.", upgrade: { feature: "explain_back", requiredTier: "plus" } });
     assert.equal(up?.kind, "upgrade");
     const al = billingSignal(429, { error: "used", allowance: { kind: "coach_message", window: "day", limit: 20, used: 20, remaining: 0, resetsAt: "2026-11-08T10:00:00Z" } });

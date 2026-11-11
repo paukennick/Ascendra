@@ -310,6 +310,16 @@ export async function dropUnpreparedItems(sessionId: string): Promise<number> {
   return rows.length;
 }
 
+// REQ-216: a session whose every item was dropped (nothing could be prepared)
+// is deleted, so it does not sit as an empty row for the day. Only when it has
+// no items at all; a session with any item, answered or not, is never touched.
+export async function discardEmptySession(sessionId: string): Promise<void> {
+  await query(
+    `delete from review_sessions s where s.id = $1 and not exists (select 1 from review_session_items si where si.session_id = s.id)`,
+    [sessionId]
+  );
+}
+
 export async function assignItem(sessionId: string, position: number, reviewItemId: string): Promise<void> {
   await query(
     `update review_session_items set review_item_id = $3

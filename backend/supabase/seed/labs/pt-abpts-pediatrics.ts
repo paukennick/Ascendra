@@ -122,7 +122,7 @@ export const ABPTSPCS_LABS: SeedLabSet = {
       steps: [
         {
           text: "Examination: he rises from the floor by turning prone and walking his hands up his thighs (Gowers sign), his calves look large and feel firm, he walks on his toes with a lumbar lordosis and a waddling pattern, and he cannot hop or climb stairs without a rail. Reflexes are reduced at the ankles.",
-          ask: "What do you suspect, and what happens before any exercise programme?",
+          ask: "What do you suspect, and what happens before any exercise program?",
           parts: [
             part(
               "Suspicion and reasoning",
@@ -131,8 +131,8 @@ export const ABPTSPCS_LABS: SeedLabSet = {
             ),
             part(
               "Referral",
-              "Contacts the referring physician/pediatrician promptly to request diagnostic work-up (serum creatine kinase, then genetic testing / neuromuscular referral) before starting an exercise programme; does not disclose a diagnosis to the family but explains the findings and the need for tests.",
-              "Call the pediatrician the same week with the findings and ask for a creatine kinase test and neuromuscular referral; genetic testing confirms the diagnosis. I tell the parents what I observed and that the doctor needs to run tests, not that he has Duchenne. No strengthening programme starts until the diagnosis is clarified."
+              "Contacts the referring physician/pediatrician promptly to request diagnostic work-up (serum creatine kinase, then genetic testing / neuromuscular referral) before starting an exercise program; does not disclose a diagnosis to the family but explains the findings and the need for tests.",
+              "Call the pediatrician the same week with the findings and ask for a creatine kinase test and neuromuscular referral; genetic testing confirms the diagnosis. I tell the parents what I observed and that the doctor needs to run tests, not that he has Duchenne. No strengthening program starts until the diagnosis is clarified."
             ),
           ],
         },
@@ -141,14 +141,14 @@ export const ABPTSPCS_LABS: SeedLabSet = {
           ask: "Design the physical therapy plan and the family's home routine.",
           parts: [
             part(
-              "Programme and dose",
-              "Centres the plan on contracture prevention and function: stretching of the ankle plantarflexors, hip flexors and iliotibial bands 4-6 times a week (daily is best), night ankle-foot orthoses from a young age, submaximal low-impact activity such as swimming or cycling, and avoiding high-resistance, eccentric or exhausting exercise because dystrophic muscle is damaged by overload.",
+              "Program and dose",
+              "Centers the plan on contracture prevention and function: stretching of the ankle plantarflexors, hip flexors and iliotibial bands 4-6 times a week (daily is best), night ankle-foot orthoses from a young age, submaximal low-impact activity such as swimming or cycling, and avoiding high-resistance, eccentric or exhausting exercise because dystrophic muscle is damaged by overload.",
               "Daily (at least 4-6 times a week) stretching of the ankles, hip flexors and iliotibial bands taught to the parents; night-time ankle-foot orthoses to hold ankle range; keep him active with swimming, cycling and play at a pace he can recover from; no heavy resistance, eccentric loading (downhill, repeated stairs for training) or exercise to exhaustion, which damages dystrophic muscle. Serial casting is an option if an ankle contracture develops despite this."
             ),
             part(
-              "Monitoring and family-centred supports",
-              "Schedules regular reassessment of range, strength and timed function in step with the neuromuscular team's roughly 6-monthly reviews, coordinates with school for participation and fatigue management, plans ahead for mobility equipment, and supports the family emotionally and practically (early intervention/school services, family organisations).",
-              "Measure ankle and hip range and timed functions (rise from floor, 10 m walk, stairs) every few months to match the team's roughly 6-monthly reviews, so we catch change early. Work with his preschool on rest breaks and inclusion. Talk ahead -- without alarm -- about standers, a lightweight wheelchair for distances, and home access, so equipment arrives before it is urgent. Connect the family to the neuromuscular team's social worker and a Duchenne family organisation."
+              "Monitoring and family-centered supports",
+              "Schedules regular reassessment of range, strength and timed function in step with the neuromuscular team's roughly 6-monthly reviews, coordinates with school for participation and fatigue management, plans ahead for mobility equipment, and supports the family emotionally and practically (early intervention/school services, family organizations).",
+              "Measure ankle and hip range and timed functions (rise from floor, 10 m walk, stairs) every few months to match the team's roughly 6-monthly reviews, so we catch change early. Work with his preschool on rest breaks and inclusion. Talk ahead -- without alarm -- about standers, a lightweight wheelchair for distances, and home access, so equipment arrives before it is urgent. Connect the family to the neuromuscular team's social worker and a Duchenne family organization."
             ),
           ],
         },
@@ -180,8 +180,8 @@ export const ABPTSPCS_LABS: SeedLabSet = {
             ),
             part(
               "How services change",
-              "Explains the shift from family-centred, natural-environment services under an IFSP to educationally relevant services under an IEP (supporting access to and participation in the preschool programme), the possible change in frequency and setting, and what the family can do if medically oriented therapy is also wanted (outpatient referral).",
-              "Early intervention is family-centred and happens where she lives and plays; school-based therapy under an IEP is educationally relevant -- it supports her getting around the classroom, the playground and the bus, and taking part in the curriculum. Frequency and setting may change, and it is decided by the IEP team, not carried over. If the family also wants therapy aimed at impairments outside school, that comes through an outpatient referral alongside."
+              "Explains the shift from family-centered, natural-environment services under an IFSP to educationally relevant services under an IEP (supporting access to and participation in the preschool program), the possible change in frequency and setting, and what the family can do if medically oriented therapy is also wanted (outpatient referral).",
+              "Early intervention is family-centered and happens where she lives and plays; school-based therapy under an IEP is educationally relevant -- it supports her getting around the classroom, the playground and the bus, and taking part in the curriculum. Frequency and setting may change, and it is decided by the IEP team, not carried over. If the family also wants therapy aimed at impairments outside school, that comes through an outpatient referral alongside."
             ),
           ],
         },
@@ -193,7 +193,7 @@ export const ABPTSPCS_LABS: SeedLabSet = {
       kind: "build",
       title: "Write a classroom plan for a teacher and aide",
       brief:
-        "A fictional 7-year-old boy, Jonah, has spastic diplegic cerebral palsy, GMFCS level III: he walks indoors with posterior walker, needs help with sit-to-stand from low seats, and uses a manual wheelchair for distances. He is starting second grade in a general education classroom with a part-time aide. His IEP goals include moving between classroom centres with his walker, standing at the sink for hand washing, and taking part in physical education. The teacher has never had a student who uses a walker and is anxious about safety and about what to let him do himself.",
+        "A fictional 7-year-old boy, Jonah, has spastic diplegic cerebral palsy, GMFCS level III: he walks indoors with posterior walker, needs help with sit-to-stand from low seats, and uses a manual wheelchair for distances. He is starting second grade in a general education classroom with a part-time aide. His IEP goals include moving between classroom centers with his walker, standing at the sink for hand washing, and taking part in physical education. The teacher has never had a student who uses a walker and is anxious about safety and about what to let him do himself.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -202,18 +202,18 @@ export const ABPTSPCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Participation and independence",
-              "Sets expectations that favour doing over being done for: Jonah uses the walker for centre-to-centre moves with the aide nearby rather than holding him, gets time rather than help to stand up, uses the wheelchair only for long distances or when fatigued, and takes part in PE with specific adaptations rather than sitting out.",
-              "Let Jonah move himself. He walks between centres with his walker; the aide stays within arm's reach but does not hold him. Give him extra time to stand from his chair instead of lifting him; from low seats he needs a hand under the elbow, not a pull. The wheelchair is for the bus line, assemblies and field trips, or when he says he is tired. In PE he does every activity with the adaptation on the back page (for example standing at a rail for throwing, walker for relays)."
+              "Sets expectations that favor doing over being done for: Jonah uses the walker for center-to-center moves with the aide nearby rather than holding him, gets time rather than help to stand up, uses the wheelchair only for long distances or when fatigued, and takes part in PE with specific adaptations rather than sitting out.",
+              "Let Jonah move himself. He walks between centers with his walker; the aide stays within arm's reach but does not hold him. Give him extra time to stand from his chair instead of lifting him; from low seats he needs a hand under the elbow, not a pull. The wheelchair is for the bus line, assemblies and field trips, or when he says he is tired. In PE he does every activity with the adaptation on the back page (for example standing at a rail for throwing, walker for relays)."
             ),
             part(
               "Set-up and safety",
               "Gives concrete environmental and handling instructions: clear 36-inch paths, a chair at a height he can stand from, a stable sink station, how to guard without grabbing, how to help after a fall (let him try his own routine first), when to call the nurse, and that equipment is adjusted only by the therapist.",
-              "Keep paths between centres at least a metre wide and free of bags. His chair is set so his feet are flat and his knees are at hip height -- do not swap it. Hand washing at the sink with the step and rail. If he falls: give him a moment, ask if he is hurt, let him use his own get-up routine, then check with him. Call the nurse for a head knock or if he cannot bear weight. Do not adjust the walker or orthoses; message me and I will come in."
+              "Keep paths between centers at least a meter wide and free of bags. His chair is set so his feet are flat and his knees are at hip height -- do not swap it. Hand washing at the sink with the step and rail. If he falls: give him a moment, ask if he is hurt, let him use his own get-up routine, then check with him. Call the nurse for a head knock or if he cannot bear weight. Do not adjust the walker or orthoses; message me and I will come in."
             ),
             part(
               "Communication and teaching method",
-              "Plans how the teaching happens and how progress and concerns flow: a short in-class demonstration with the aide practising guarding, a data sheet tied to the IEP goals, a way to reach the therapist, and a check-in date; includes family and Jonah's own voice in the plan.",
-              "I will spend the first morning in class demonstrating each transfer and the guarding position while the aide practises. The aide keeps a one-line daily tally against the three IEP goals (centres walked, sink standing, PE minutes). The teacher reaches me through the school messaging system; I will check in at two weeks and again before the progress report. Jonah's parents reviewed this plan, and Jonah picked the PE adaptations himself."
+              "Plans how the teaching happens and how progress and concerns flow: a short in-class demonstration with the aide practicing guarding, a data sheet tied to the IEP goals, a way to reach the therapist, and a check-in date; includes family and Jonah's own voice in the plan.",
+              "I will spend the first morning in class demonstrating each transfer and the guarding position while the aide practices. The aide keeps a one-line daily tally against the three IEP goals (centers walked, sink standing, PE minutes). The teacher reaches me through the school messaging system; I will check in at two weeks and again before the progress report. Jonah's parents reviewed this plan, and Jonah picked the PE adaptations himself."
             ),
           ],
         },
@@ -267,8 +267,8 @@ export const ABPTSPCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Assessments and timing",
-              "Uses the General Movements Assessment in the fidgety period (she is 12 weeks corrected, inside the window from about 7-9 weeks to 20 weeks post-term) from a standardised video, plus the HINE (valid from 2 to 24 months), and coordinates neuroimaging (MRI) with the medical team; explains that the combination gives the most accurate early prediction and that two tests are better than one if all three are not available.",
-              "Now is the fidgety window (fidgety movements appear at about 7-9 weeks and last to about 20 weeks post-term), so I score a general movements assessment from a standardised video -- the parents' clip, if it meets the recording standards, otherwise one taken here -- and perform the HINE, which is valid from 2 to 24 months. MRI is arranged with the neonatology team. The international guideline recommends the three together; if only two are feasible, two still beat one."
+              "Uses the General Movements Assessment in the fidgety period (she is 12 weeks corrected, inside the window from about 7-9 weeks to 20 weeks post-term) from a standardized video, plus the HINE (valid from 2 to 24 months), and coordinates neuroimaging (MRI) with the medical team; explains that the combination gives the most accurate early prediction and that two tests are better than one if all three are not available.",
+              "Now is the fidgety window (fidgety movements appear at about 7-9 weeks and last to about 20 weeks post-term), so I score a general movements assessment from a standardized video -- the parents' clip, if it meets the recording standards, otherwise one taken here -- and perform the HINE, which is valid from 2 to 24 months. MRI is arranged with the neonatology team. The international guideline recommends the three together; if only two are feasible, two still beat one."
             ),
             part(
               "What the results would mean",
@@ -334,7 +334,7 @@ export const ABPTSPCS_LABS: SeedLabSet = {
       kind: "case",
       title: "Two things that need a doctor before they need a therapist",
       brief:
-        "A fictional 5-year-old boy, Kai, has spastic quadriplegic cerebral palsy, GMFCS level IV, with a ventriculoperitoneal shunt placed in infancy for hydrocephalus. He is seen weekly in a school-based programme. His last hip radiograph was 14 months ago (migration percentage 22% on the left, 18% on the right). The therapist notices this week that his left hip abducts to about 25 degrees with the hip and knee flexed, down from about 40 degrees at the last measurement, and he grimaces when the hip is moved.",
+        "A fictional 5-year-old boy, Kai, has spastic quadriplegic cerebral palsy, GMFCS level IV, with a ventriculoperitoneal shunt placed in infancy for hydrocephalus. He is seen weekly in a school-based program. His last hip radiograph was 14 months ago (migration percentage 22% on the left, 18% on the right). The therapist notices this week that his left hip abducts to about 25 degrees with the hip and knee flexed, down from about 40 degrees at the last measurement, and he grimaces when the hip is moved.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -343,28 +343,28 @@ export const ABPTSPCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition and referral",
-              "Recognises hip displacement risk at GMFCS IV, triggers referral to pediatric orthopaedics now because hip abduction is below 30 degrees and he has hip pain, and requests an updated supine AP pelvis radiograph for migration percentage (the AACPDM pathway refers for MP above 30% and/or abduction under 30 degrees); notes surveillance is overdue for his level.",
-              "At GMFCS IV hip displacement is common, and the pathway says refer to pediatric orthopaedics when abduction is under 30 degrees and/or migration percentage is over 30%, and for hip pain. He now has abduction of about 25 degrees and pain, and his radiograph is 14 months old -- overdue at his level, where surveillance is at least yearly and often 6-monthly. I ask the physician for an urgent standardized supine AP pelvis film and an orthopaedic referral this week."
+              "Recognizes hip displacement risk at GMFCS IV, triggers referral to pediatric orthopedics now because hip abduction is below 30 degrees and he has hip pain, and requests an updated supine AP pelvis radiograph for migration percentage (the AACPDM pathway refers for MP above 30% and/or abduction under 30 degrees); notes surveillance is overdue for his level.",
+              "At GMFCS IV hip displacement is common, and the pathway says refer to pediatric orthopedics when abduction is under 30 degrees and/or migration percentage is over 30%, and for hip pain. He now has abduction of about 25 degrees and pain, and his radiograph is 14 months old -- overdue at his level, where surveillance is at least yearly and often 6-monthly. I ask the physician for an urgent standardized supine AP pelvis film and an orthopedic referral this week."
             ),
             part(
               "Therapy while waiting",
               "Adjusts therapy to protect the hip: no forced abduction stretching into pain, reviews positioning and seating for symmetrical hips and adequate abduction (sleep and wheelchair), monitors pain and documents range, and informs the family and school team.",
-              "Until orthopaedics has seen him: no end-range abduction stretching into pain, check his wheelchair pelvic positioning and night positioning for symmetry and gentle abduction, document the abduction and pain each visit, and explain to the parents and school nurse what we are watching for."
+              "Until orthopedics has seen him: no end-range abduction stretching into pain, check his wheelchair pelvic positioning and night positioning for symmetry and gentle abduction, document the abduction and pain each visit, and explain to the parents and school nurse what we are watching for."
             ),
           ],
         },
         {
-          text: "Two weeks later, before the orthopaedic appointment, his teacher reports he has vomited twice at school this morning without fever, is unusually sleepy and hard to rouse after lunch, and his mother mentions he has been irritable with headaches for three days.",
+          text: "Two weeks later, before the orthopedic appointment, his teacher reports he has vomited twice at school this morning without fever, is unusually sleepy and hard to rouse after lunch, and his mother mentions he has been irritable with headaches for three days.",
           ask: "What is the priority now?",
           parts: [
             part(
               "Recognition",
-              "Recognises possible shunt malfunction (vomiting without fever, unusual drowsiness and difficulty waking, irritability, headaches in a child with a VP shunt) and treats it as urgent, not as a routine illness.",
+              "Recognizes possible shunt malfunction (vomiting without fever, unusual drowsiness and difficulty waking, irritability, headaches in a child with a VP shunt) and treats it as urgent, not as a routine illness.",
               "A shunted child with headaches, vomiting without fever, irritability and now drowsiness he is hard to rouse from has a possible shunt malfunction. Trouble staying awake is the sign that needs urgent attention."
             ),
             part(
               "Action",
-              "Stops therapy, has the school nurse and parents contacted immediately, directs same-day emergency evaluation (emergency department / neurosurgery), documents observations and times, and does not wait for the orthopaedic visit or treat symptoms as behavioural.",
+              "Stops therapy, has the school nurse and parents contacted immediately, directs same-day emergency evaluation (emergency department / neurosurgery), documents observations and times, and does not wait for the orthopedic visit or treat symptoms as behavioral.",
               "Stop the session. Get the school nurse now, call his mother, and send him for immediate emergency evaluation with his neurosurgery team informed -- not a wait-and-see or a GP appointment. I document what I saw and when, so the emergency team has the timeline. The hip appointment is separate and can follow."
             ),
           ],
@@ -383,7 +383,7 @@ export const ABPTSPCS_LABS: SeedLabSet = {
       steps: [
         {
           text: "The parents ask how serious it is and what they should do at home.",
-          ask: "Classify the severity, set the plan, and give the home programme.",
+          ask: "Classify the severity, set the plan, and give the home program.",
           parts: [
             part(
               "Classification and screening",
@@ -392,19 +392,19 @@ export const ABPTSPCS_LABS: SeedLabSet = {
             ),
             part(
               "First-choice interventions",
-              "Prescribes the CPG's five first-choice interventions: neck passive range of motion, neck and trunk active range of motion, development of symmetrical movement, environmental adaptations, and parent/caregiver education, with a home programme for daily use.",
-              "Gentle passive stretching of right rotation and left lateral flexion several times a day; active rotation to the right through visual and play positioning; symmetry work in prone and supported sitting; environmental changes (crib and changing-table orientation, carry positions, side-lying play, limiting time in containers); and teaching the parents why and how, with a written programme and tummy time off the flat spot."
+              "Prescribes the CPG's five first-choice interventions: neck passive range of motion, neck and trunk active range of motion, development of symmetrical movement, environmental adaptations, and parent/caregiver education, with a home program for daily use.",
+              "Gentle passive stretching of right rotation and left lateral flexion several times a day; active rotation to the right through visual and play positioning; symmetry work in prone and supported sitting; environmental changes (crib and changing-table orientation, carry positions, side-lying play, limiting time in containers); and teaching the parents why and how, with a written program and tummy time off the flat spot."
             ),
           ],
         },
         {
-          text: "At 16 weeks of age, after six weeks of twice-weekly therapy and a daily home programme, rotation difference is 20 degrees, the mass is unchanged in size, and the head tilt is still visible at rest. The parents are tired and ask whether this is working.",
+          text: "At 16 weeks of age, after six weeks of twice-weekly therapy and a daily home program, rotation difference is 20 degrees, the mass is unchanged in size, and the head tilt is still visible at rest. The parents are tired and ask whether this is working.",
           ask: "What does the guideline say to do now, and what do you tell the family?",
           parts: [
             part(
               "Decision",
               "Applies the CPG's lack-of-progress rule: asymmetries not beginning to resolve after 4-6 weeks of comprehensive intervention mean consulting the physician about other interventions, while checking adherence and technique and continuing therapy; keeps referral criteria in view (mass still present at 7 months or older, 10-15 degree deficits at 12 months).",
-              "Six weeks in with only a 5-degree gain and a persistent tilt meets the guideline's trigger to consult the referring physician about additional options, so I write to the pediatrician now while we continue. I also review the home programme with the parents and watch the technique, since dose and quality are the usual reasons for slow change. If the mass persists at 7 months or deficits remain near 12 months, the referral criteria apply."
+              "Six weeks in with only a 5-degree gain and a persistent tilt meets the guideline's trigger to consult the referring physician about additional options, so I write to the pediatrician now while we continue. I also review the home program with the parents and watch the technique, since dose and quality are the usual reasons for slow change. If the mass persists at 7 months or deficits remain near 12 months, the referral criteria apply."
             ),
             part(
               "Family message and discharge criteria",
@@ -440,8 +440,8 @@ export const ABPTSPCS_LABS: SeedLabSet = {
             ),
             part(
               "Orthoses and the crouch",
-              "Reviews the ankle-foot orthoses in light of growth and increased crouch -- re-cast or adjust for fit, consider a ground-reaction design to control knee flexion in stance if ankle and knee range allow -- and links the knee pain and crouch to a gait and orthopaedic review rather than treating them with more walking distance.",
-              "His AFOs are a year old and he has grown: re-measure and re-cast. With increasing crouch and afternoon knee pain, discuss a ground-reaction AFO design to help knee extension in stance, provided hamstring and plantarflexor range allow it, and ask for a gait and orthopaedic review of the crouch. Reducing the distance he walks is part of protecting his knees, not a loss."
+              "Reviews the ankle-foot orthoses in light of growth and increased crouch -- re-cast or adjust for fit, consider a ground-reaction design to control knee flexion in stance if ankle and knee range allow -- and links the knee pain and crouch to a gait and orthopedic review rather than treating them with more walking distance.",
+              "His AFOs are a year old and he has grown: re-measure and re-cast. With increasing crouch and afternoon knee pain, discuss a ground-reaction AFO design to help knee extension in stance, provided hamstring and plantarflexor range allow it, and ask for a gait and orthopedic review of the crouch. Reducing the distance he walks is part of protecting his knees, not a loss."
             ),
           ],
         },
@@ -473,7 +473,7 @@ export const ABPTSPCS_LABS: SeedLabSet = {
             ),
             part(
               "Participation",
-              "Chooses a family-centred participation or goal measure (for example the COPM scored by the parents for the two goals, or a participation questionnaire such as the CAPE/PAC) and names the COPM change of 2 or more points on performance or satisfaction as clinically meaningful; involves Sofia in rating where feasible.",
+              "Chooses a family-centered participation or goal measure (for example the COPM scored by the parents for the two goals, or a participation questionnaire such as the CAPE/PAC) and names the COPM change of 2 or more points on performance or satisfaction as clinically meaningful; involves Sofia in rating where feasible.",
               "The COPM with her parents, rating performance and satisfaction from 1 to 10 for 'keeping up on the playground' and 'climbing the home stairs unaided'; a change of 2 or more points is the clinically meaningful threshold. Sofia rates the playground goal in her own words too, and we repeat both at 12 weeks."
             ),
           ],

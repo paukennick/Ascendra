@@ -13,6 +13,10 @@ import { source } from "../sources";
 //
 // Standards cited in the rubrics, each checked against the publisher's page
 // on 2026-11-07:
+//   - REQ-220 (FAIL-1132): the incident-response lab leads with the seven
+//     step names SY0-701 objective 4.8 tests (preparation, detection,
+//     analysis, containment, eradication, recovery, lessons learned; SY0-701
+//     Exam Objectives v5.0); the NIST IDs below are kept only as a mapping.
 //   - NIST SP 800-61r3 (April 2025) incident response as a CSF 2.0 Community
 //     Profile: preparation is Govern/Identify/Protect, the response is
 //     Detect/Respond/Recover, lessons feed Identify-Improvement (ID.IM);
@@ -222,7 +226,7 @@ export const SECPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Design resilience to meet an RTO and RPO",
       brief:
-        "Northwind Billing (fictional) runs a customer portal and its billing database in one data-centre rack: one web server, one database server, one internet circuit, one power feed. The business sets a recovery time objective (RTO) of 2 hours and a recovery point objective (RPO) of 15 minutes for the billing service, and asks for the least-cost design that meets both. Nightly backups to tape currently take about 10 hours to restore and lose up to a day of data.",
+        "Northwind Billing (fictional) runs a customer portal and its billing database in one data-center rack: one web server, one database server, one internet circuit, one power feed. The business sets a recovery time objective (RTO) of 2 hours and a recovery point objective (RPO) of 15 minutes for the billing service, and asks for the least-cost design that meets both. Nightly backups to tape currently take about 10 hours to restore and lose up to a day of data.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -258,56 +262,56 @@ export const SECPLUS_LABS: SeedLabSet = {
       slug: "ir-lifecycle-ransomware",
       objective: "Incident response process and the NIST incident response lifecycle",
       kind: "case",
-      title: "Run a ransomware incident by the NIST lifecycle",
+      title: "Run a ransomware incident through the response process",
       brief:
-        "You coordinate incident response at Granite Peak Outfitters (fictional), a retailer. At 07:50 an EDR alert fires: a file server is encrypting files rapidly and dropping a ransom note in each folder. Staff report shared drives are inaccessible. You will work the incident using NIST SP 800-61r3 (the CSF 2.0 Community Profile). Point-of-sale and the e-commerce site are on a separate network and so far unaffected.",
+        "You coordinate incident response at Granite Peak Outfitters (fictional), a retailer. At 07:50 an EDR alert fires: a file server is encrypting files rapidly and dropping a ransom note in each folder. Staff report shared drives are inaccessible. Work it through the incident response process as Security+ SY0-701 names it -- preparation, detection, analysis, containment, eradication, recovery, lessons learned. (Real teams may map these to NIST SP 800-61r3, which files them under CSF 2.0 functions; the IDs in brackets are that mapping, for reference only.) Point-of-sale and the e-commerce site are on a separate network and so far unaffected.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "The EDR console shows the encryption process is running on one file server (FS-03) and that the same account logged into two other servers overnight.",
-          ask: "What do you do in the first 30 minutes, and under which part of the lifecycle?",
+          ask: "What do you do in the first 30 minutes, and which steps of the process are you in?",
           parts: [
             part(
               "Containment",
-              "Contains first (RS.MI-01): isolate FS-03 from the network, disable or reset the implicated account, and move to check the two other servers -- before eradication or restore.",
-              "Contain (Respond, RS.MI-01): isolate FS-03 from the network immediately (EDR network-contain or pull its link) to stop the spread, disable the account used on the other servers and reset its credentials, and flag FS-01/FS-02 for inspection. Containment comes before cleanup."
+              "Names the step as containment and contains first: isolate FS-03 from the network, disable or reset the implicated account, and move to check the two other servers -- before eradication or recovery.",
+              "Containment (NIST RS.MI-01): isolate FS-03 from the network immediately (EDR network-contain or pull its link) to stop the spread, disable the account used on the other servers and reset its credentials, and flag FS-01/FS-02 for inspection. Containment comes before cleanup."
             ),
             part(
               "Detection and analysis, not a reflex wipe",
               "Preserves evidence and scopes the incident (which hosts, the entry point, the account) rather than reimaging at once; records a timeline.",
-              "In parallel, analyse (Detect/Respond): capture volatile data and the EDR timeline before wiping, identify how the account was obtained and which hosts it touched, and start an incident timeline. Reimaging FS-03 now would destroy the evidence needed to find the entry point."
+              "Detection came from the EDR alert; analysis runs in parallel: capture volatile data and the EDR timeline before wiping, identify how the account was obtained and which hosts it touched, and start an incident timeline. Reimaging FS-03 now would destroy the evidence needed to find the entry point."
             ),
           ],
         },
         {
           text: "Analysis shows the account was a service account with a weak password, used from a workstation that opened a malicious attachment two days earlier. FS-03, FS-01 and that workstation are affected; backups are intact and offline.",
-          ask: "Describe eradication and recovery.",
+          ask: "Describe the eradication and recovery steps.",
           parts: [
             part(
               "Eradication",
-              "Eradicates (RS.MI-02): remove the malware/persistence from all three affected hosts (reimage rather than clean), reset the service account and any credentials it could have exposed, and remediate the entry point.",
-              "Eradicate (RS.MI-02): reimage FS-03, FS-01 and the workstation rather than trusting a clean-up, rotate the service-account password and any credentials exposed on those hosts, and close the entry point (block the sender/attachment type, patch what was exploited)."
+              "Eradication: remove the malware/persistence from all three affected hosts (reimage rather than clean), reset the service account and any credentials it could have exposed, and remediate the entry point.",
+              "Eradication (NIST RS.MI-02): reimage FS-03, FS-01 and the workstation rather than trusting a clean-up, rotate the service-account password and any credentials exposed on those hosts, and close the entry point (block the sender/attachment type, patch what was exploited)."
             ),
             part(
               "Recovery with integrity checks",
-              "Recovers from the offline backups, verifying the restoration assets and the restored systems for integrity before and after (RC.RP-03, RC.RP-05), and restores in priority order.",
-              "Recover (RC.RP): restore from the offline backups, checking the backups for indicators of compromise before use (RC.RP-03) and verifying restored systems are clean before returning them to production (RC.RP-05). Bring the most-needed shares back first and confirm normal operation."
+              "Recovery: restores from the offline backups, verifying the backups and the restored systems for integrity before and after, and restores in priority order.",
+              "Recovery (NIST RC.RP-03, RC.RP-05): restore from the offline backups, checking the backups for indicators of compromise before use (RC.RP-03) and verifying restored systems are clean before returning them to production (RC.RP-05). Bring the most-needed shares back first and confirm normal operation."
             ),
           ],
         },
         {
           text: "Services are restored. Leadership wants the close-out.",
-          ask: "What closes the incident, and what feeds back into preparation?",
+          ask: "What does the lessons-learned step produce, and how does it feed back into preparation?",
           parts: [
             part(
               "After-action report",
-              "Declares recovery complete against criteria and writes an after-action report documenting the incident, the actions taken and lessons learned (RC.RP-06).",
-              "Declare the end of recovery against defined criteria and write an after-action report (RC.RP-06): what happened, the timeline, the response and recovery actions, and the lessons learned."
+              "Declares recovery complete against criteria and, as the lessons-learned step, writes an after-action report documenting the incident, the actions taken and what to change.",
+              "Declare the end of recovery against defined criteria, then hold the lessons-learned review and write an after-action report (NIST RC.RP-06): what happened, the timeline, the response and recovery actions, and the lessons learned."
             ),
             part(
               "Lessons into improvement",
-              "Feeds lessons into continuous improvement (Identify-Improvement, ID.IM): fixes that prevent a repeat -- MFA/strong passwords on service accounts, attachment filtering, faster isolation -- rather than treating the case as closed and forgotten.",
-              "Per SP 800-61r3 the lessons feed the Identify-Improvement category (ID.IM): give service accounts strong credentials and least privilege, tighten attachment filtering and user training, and shorten time-to-isolate. These update the preparation controls so the next similar attempt is contained faster or prevented."
+              "Feeds lessons learned back into preparation: fixes that prevent a repeat -- MFA/strong passwords on service accounts, attachment filtering, faster isolation -- rather than treating the case as closed and forgotten.",
+              "Lessons learned update preparation (in NIST SP 800-61r3 terms, the Identify-Improvement category, ID.IM): give service accounts strong credentials and least privilege, tighten attachment filtering and user training, and shorten time-to-isolate. These update the preparation controls so the next similar attempt is contained faster or prevented."
             ),
           ],
         },
@@ -317,7 +321,7 @@ export const SECPLUS_LABS: SeedLabSet = {
       slug: "vuln-prioritization-cvss-epss-kev",
       objective: "Vulnerability management: scanning, CVSS scoring, and remediation prioritization",
       kind: "build",
-      title: "Prioritise four scan findings with CVSS, EPSS and KEV",
+      title: "Prioritize four scan findings with CVSS, EPSS and KEV",
       brief:
         "You run vulnerability management at Fairwind Insurance (fictional). This week's authenticated scan returns four findings. The maintenance window is small, so you must rank them and justify the order using severity, real-world exploitation and asset context -- not CVSS alone.\n\n(1) Internet-facing VPN gateway: unauthenticated remote code execution. CVSS v4.0 9.3 Critical. EPSS 0.93 (99.8th percentile). Listed in CISA KEV.\n(2) Internal HR database server: SQL injection reachable only by an authenticated internal user. CVSS v4.0 8.6 High. EPSS 0.04. Not in KEV.\n(3) Office printers: an information-disclosure flaw leaking device config. CVSS v4.0 6.9 Medium. EPSS 0.01. Not in KEV.\n(4) Public marketing website (static, no customer data): reflected cross-site scripting. CVSS v4.0 6.9 Medium. EPSS 0.6 (99.1st percentile). Not in KEV.",
       safetyNote: GENERAL_SAFETY,
@@ -380,7 +384,7 @@ export const SECPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Legal hold",
-              "Honours the litigation hold: preserve relevant data and suspend any routine deletion/retention that would destroy it; collect without tipping off or altering scope beyond the hold.",
+              "Honors the litigation hold: preserve relevant data and suspend any routine deletion/retention that would destroy it; collect without tipping off or altering scope beyond the hold.",
               "The litigation hold means normal deletion and retention policies are suspended for anything potentially relevant -- the laptop image, the USB, the employee's mailbox and file-share activity -- and must be preserved until legal releases the hold. Document that the hold was applied."
             ),
           ],
@@ -399,7 +403,7 @@ export const SECPLUS_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Compute the single loss expectancy, annualised rate of occurrence and annualised loss expectancy for the data-breach risk, then decide whether the control is worth it.",
+          ask: "Compute the single loss expectancy, annualized rate of occurrence and annualized loss expectancy for the data-breach risk, then decide whether the control is worth it.",
           parts: [
             part(
               "SLE",
@@ -408,7 +412,7 @@ export const SECPLUS_LABS: SeedLabSet = {
             ),
             part(
               "ARO",
-              "Derives the annualised rate of occurrence of a data-exposing loss: 20 losses a year times the 1-in-4 chance the device held regulated data = 5 data-breach events per year.",
+              "Derives the annualized rate of occurrence of a data-exposing loss: 20 losses a year times the 1-in-4 chance the device held regulated data = 5 data-breach events per year.",
               "ARO = 20 lost laptops per year x 1/4 that held regulated data = 5 data-breach events per year."
             ),
             part(
@@ -445,7 +449,7 @@ export const SECPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Evidence to request",
-              "Lists concrete due-diligence evidence: a recognised audit/attestation (SOC 2 Type II or ISO/IEC 27001), a penetration-test summary, data-handling and subprocessor details, breach-notification commitments, and encryption of data in transit and at rest.",
+              "Lists concrete due-diligence evidence: a recognized audit/attestation (SOC 2 Type II or ISO/IEC 27001), a penetration-test summary, data-handling and subprocessor details, breach-notification commitments, and encryption of data in transit and at rest.",
               "Request a SOC 2 Type II report or ISO/IEC 27001 certificate, a recent penetration-test summary, a list of subprocessors and data locations, their breach-notification timeline, and confirmation that customer data is encrypted in transit and at rest. A 'trust page' with no evidence is not an attestation."
             ),
             part(

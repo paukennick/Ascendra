@@ -122,7 +122,7 @@ export const CCA_LABS: SeedLabSet = {
       kind: "build",
       title: "Write identity-based L3-L7 policies for an orders service",
       brief:
-        "The fictional marketplace Larkhill runs namespace shop with Pods labelled app=frontend, app=orders (port 8080) and app=payments (port 9443). Requirements: only frontend may call orders, and only GET /api/orders/* and POST /api/orders; orders may call payments on 9443 and may resolve and call api.stripe-sandbox.example on 443; orders may reach kube-dns for DNS; nothing else in or out of orders. The cluster runs Cilium with policy enforcement in default mode.",
+        "The fictional marketplace Larkhill runs namespace shop with Pods labeled app=frontend, app=orders (port 8080) and app=payments (port 9443). Requirements: only frontend may call orders, and only GET /api/orders/* and POST /api/orders; orders may call payments on 9443 and may resolve and call api.stripe-sandbox.example on 443; orders may reach kube-dns for DNS; nothing else in or out of orders. The cluster runs Cilium with policy enforcement in default mode.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -173,7 +173,7 @@ export const CCA_LABS: SeedLabSet = {
             ),
             part(
               "Line 3: L4 deny",
-              "Port 9090 on api is covered only by the clusterwide metrics-scrape policy, which allows ingress on 9090 solely from Pods labelled app=prometheus in namespace monitoring; batch-1 has neither label, so the SYN is dropped at the policy layer before any connection -- 'cannot reach at all'.",
+              "Port 9090 on api is covered only by the clusterwide metrics-scrape policy, which allows ingress on 9090 solely from Pods labeled app=prometheus in namespace monitoring; batch-1 has neither label, so the SYN is dropped at the policy layer before any connection -- 'cannot reach at all'.",
               "Line 3: batch-1 -> api:9090, SYN dropped with Policy denied. The only rule for 9090 is the CiliumClusterwideNetworkPolicy metrics-scrape, whose fromEndpoints requires identity labels app=prometheus and namespace monitoring. batch-1 is in namespace data with app=batch, so no rule allows 9090 from it and the packet is dropped at L3/L4 -- no connection, a timeout for curl."
             ),
             part(
@@ -213,7 +213,7 @@ export const CCA_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Write the Gateway and HTTPRoutes, show the ownership split, and explain how Cilium realises them compared with an Ingress.",
+          ask: "Write the Gateway and HTTPRoutes, show the ownership split, and explain how Cilium realizes them compared with an Ingress.",
           parts: [
             part(
               "Gateway (platform-owned)",
@@ -228,7 +228,7 @@ export const CCA_LABS: SeedLabSet = {
             part(
               "HTTP to HTTPS redirect",
               "A second HTTPRoute attached to the http listener whose rule uses a RequestRedirect filter with scheme https and statusCode 301; explains filters are first-class in Gateway API where Ingress needed controller-specific annotations.",
-              "apiVersion: gateway.networking.k8s.io/v1\nkind: HTTPRoute\nmetadata: {name: learn-redirect, namespace: learn}\nspec:\n  parentRefs:\n  - {name: public, namespace: platform, sectionName: http}\n  hostnames: [learn.ashby.example]\n  rules:\n  - filters:\n    - type: RequestRedirect\n      requestRedirect: {scheme: https, statusCode: 301}\nWith Ingress this behaviour depended on a controller annotation; in Gateway API the redirect is a portable, typed filter on the route."
+              "apiVersion: gateway.networking.k8s.io/v1\nkind: HTTPRoute\nmetadata: {name: learn-redirect, namespace: learn}\nspec:\n  parentRefs:\n  - {name: public, namespace: platform, sectionName: http}\n  hostnames: [learn.ashby.example]\n  rules:\n  - filters:\n    - type: RequestRedirect\n      requestRedirect: {scheme: https, statusCode: 301}\nWith Ingress this behavior depended on a controller annotation; in Gateway API the redirect is a portable, typed filter on the route."
             ),
             part(
               "How it compares with Ingress and how to verify",
@@ -245,7 +245,7 @@ export const CCA_LABS: SeedLabSet = {
       kind: "case",
       title: "Encrypt Pod traffic after an audit finding without adding sidecars",
       brief:
-        "An audit at the fictional insurer Brampton Life found that Pod-to-Pod traffic between nodes crosses a shared data-centre network in clear text. The security team wants all inter-node Pod traffic encrypted within a month. The application teams refuse sidecars ('we tried a mesh, it doubled our memory').",
+        "An audit at the fictional insurer Brampton Life found that Pod-to-Pod traffic between nodes crosses a shared data-center network in clear text. The security team wants all inter-node Pod traffic encrypted within a month. The application teams refuse sidecars ('we tried a mesh, it doubled our memory').",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -304,7 +304,7 @@ export const CCA_LABS: SeedLabSet = {
             part(
               "Reading the flows",
               "Drops are frontend -> checkout on 8443 with verdict Policy denied at SYN (an L3/L4 policy drop, no connection); the same frontend identity to checkout on 8080 is FORWARDED; so a policy allows 8080 but not 8443 -- the app alternates ports (e.g. a TLS endpoint on 8443 and plain on 8080), which is the intermittency.",
-              "Every drop has the same shape: identity 18822 (frontend) to identity 27710 (checkout) on port 8443, dropped at the SYN with reason Policy denied -- an L3/L4 decision, before any L7 proxy. The forwarded flows are the same pair on 8080. So frontend is allowed to reach checkout:8080 but not checkout:8443; calls that use the TLS port fail, the rest succeed, which looks intermittent from the application's point of view. Hubble's identity numbers confirm it is not a labelling mismatch: the same identity is allowed on one port and denied on another."
+              "Every drop has the same shape: identity 18822 (frontend) to identity 27710 (checkout) on port 8443, dropped at the SYN with reason Policy denied -- an L3/L4 decision, before any L7 proxy. The forwarded flows are the same pair on 8080. So frontend is allowed to reach checkout:8080 but not checkout:8443; calls that use the TLS port fail, the rest succeed, which looks intermittent from the application's point of view. Hubble's identity numbers confirm it is not a labeling mismatch: the same identity is allowed on one port and denied on another."
             ),
             part(
               "Finding the policy",
@@ -357,7 +357,7 @@ export const CCA_LABS: SeedLabSet = {
             part(
               "DNS visibility for the namespace",
               "A CiliumNetworkPolicy selecting all Pods in travel (endpointSelector {}) with an egress rule to kube-dns on 53 UDP/TCP carrying rules.dns matchPattern \"*\" -- which allows all queries and makes them visible; because this policy defines egress, add an egress rule allowing everything else (toEntities all or toEndpoints {} plus toEntities world) so no existing traffic is cut; or use the proxy-visibility annotation Egress/53/UDP/DNS per Pod.",
-              "apiVersion: cilium.io/v2\nkind: CiliumNetworkPolicy\nmetadata: {name: dns-visibility, namespace: travel}\nspec:\n  endpointSelector: {}\n  egress:\n  - toEndpoints:\n    - matchLabels:\n        k8s:io.kubernetes.pod.namespace: kube-system\n        k8s-app: kube-dns\n    toPorts:\n    - ports: [{port: \"53\", protocol: UDP}, {port: \"53\", protocol: TCP}]\n      rules:\n        dns:\n        - matchPattern: \"*\"\n  - toEntities: [all]\nmatchPattern \"*\" allows every query while routing them through the DNS proxy, so Hubble shows each lookup and answer. Because an egress rule now selects every Pod in travel, the namespace would become egress default-deny -- the second rule (toEntities: [all]) keeps all other egress open, preserving current behaviour. Per-Pod alternative: policy.cilium.io/proxy-visibility: \"<Egress/53/UDP/DNS>\"."
+              "apiVersion: cilium.io/v2\nkind: CiliumNetworkPolicy\nmetadata: {name: dns-visibility, namespace: travel}\nspec:\n  endpointSelector: {}\n  egress:\n  - toEndpoints:\n    - matchLabels:\n        k8s:io.kubernetes.pod.namespace: kube-system\n        k8s-app: kube-dns\n    toPorts:\n    - ports: [{port: \"53\", protocol: UDP}, {port: \"53\", protocol: TCP}]\n      rules:\n        dns:\n        - matchPattern: \"*\"\n  - toEntities: [all]\nmatchPattern \"*\" allows every query while routing them through the DNS proxy, so Hubble shows each lookup and answer. Because an egress rule now selects every Pod in travel, the namespace would become egress default-deny -- the second rule (toEntities: [all]) keeps all other egress open, preserving current behavior. Per-Pod alternative: policy.cilium.io/proxy-visibility: \"<Egress/53/UDP/DNS>\"."
             ),
             part(
               "What Hubble shows and the cost",
@@ -443,7 +443,7 @@ export const CCA_LABS: SeedLabSet = {
             part(
               "Least-disruptive fix",
               "Either revert policyEnforcementMode to default (another rolling restart) or, faster and without restarting agents, add an allow-all CiliumNetworkPolicy to legacy (endpointSelector {} with ingress fromEntities all and egress toEntities all) and to any other policy-less namespace, which restores traffic within seconds since policies apply live; then decide namespace by namespace what real policies should be, and consider enforcing 'always' only after every namespace has a policy.",
-              "Policies take effect without restarts, so the fastest fix is a namespace allow-all:\napiVersion: cilium.io/v2\nkind: CiliumNetworkPolicy\nmetadata: {name: allow-all-legacy, namespace: legacy}\nspec:\n  endpointSelector: {}\n  ingress: [{fromEntities: [all]}]\n  egress: [{toEntities: [all]}]\nkubectl apply restores connectivity in seconds; repeat for any other namespace without policies (kubectl get cnp -A shows which have none). Then either keep always and tighten namespace by namespace, or roll back to default with Helm in the next window if the organisation is not ready. Lesson: switching to always is a cluster-wide default-deny and needs an inventory of policy-less namespaces first."
+              "Policies take effect without restarts, so the fastest fix is a namespace allow-all:\napiVersion: cilium.io/v2\nkind: CiliumNetworkPolicy\nmetadata: {name: allow-all-legacy, namespace: legacy}\nspec:\n  endpointSelector: {}\n  ingress: [{fromEntities: [all]}]\n  egress: [{toEntities: [all]}]\nkubectl apply restores connectivity in seconds; repeat for any other namespace without policies (kubectl get cnp -A shows which have none). Then either keep always and tighten namespace by namespace, or roll back to default with Helm in the next window if the organization is not ready. Lesson: switching to always is a cluster-wide default-deny and needs an inventory of policy-less namespaces first."
             ),
           ],
         },
@@ -456,7 +456,7 @@ export const CCA_LABS: SeedLabSet = {
       kind: "build",
       title: "Connect two clusters with Cluster Mesh and make a service global",
       brief:
-        "The fictional payments firm Wendover runs two Cilium clusters, eu-1 and eu-2, in different data centres with routable node networks and non-overlapping Pod CIDRs. They want the Service ledger (namespace fin) to be reachable from Pods in either cluster by its normal name, with requests preferring the local cluster's backends and failing over to the other cluster when local backends are gone.",
+        "The fictional payments firm Wendover runs two Cilium clusters, eu-1 and eu-2, in different data centers with routable node networks and non-overlapping Pod CIDRs. They want the Service ledger (namespace fin) to be reachable from Pods in either cluster by its normal name, with requests preferring the local cluster's backends and failing over to the other cluster when local backends are gone.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -480,7 +480,7 @@ export const CCA_LABS: SeedLabSet = {
             ),
             part(
               "Verification and policy note",
-              "cilium clustermesh status shows global services synchronised; cilium-dbg service list on an agent shows the ledger frontend with backends from both clusters (remote ones flagged); scale eu-1's ledger to 0 and watch traffic from eu-1 Pods succeed via eu-2 in Hubble; mentions that network policies can select remote endpoints by labels including io.cilium.k8s.policy.cluster.",
+              "cilium clustermesh status shows global services synchronized; cilium-dbg service list on an agent shows the ledger frontend with backends from both clusters (remote ones flagged); scale eu-1's ledger to 0 and watch traffic from eu-1 Pods succeed via eu-2 in Hubble; mentions that network policies can select remote endpoints by labels including io.cilium.k8s.policy.cluster.",
               "kubectl -n kube-system exec ds/cilium --context eu-1 -- cilium-dbg service list | grep ledger   # backends include eu-2 Pod IPs\nkubectl --context eu-1 -n fin scale deploy/ledger --replicas=0\nhubble observe --context eu-1 -n fin --to-service fin/ledger   # flows now FORWARDED to eu-2 backends\nScale back up and traffic returns to local backends. Policies work across the mesh because identities are shared: a CiliumNetworkPolicy can restrict a global service's callers to a cluster with matchLabels io.cilium.k8s.policy.cluster: eu-1."
             ),
           ],
@@ -530,7 +530,7 @@ export const CCA_LABS: SeedLabSet = {
       slug: "bgp-advertise-cidrs",
       objective: "Understand options to connect Cilium-managed clusters with external networks: the BGP control plane (peering policies, advertised Pod CIDRs and LoadBalancer IPs) and LB IPAM",
       kind: "build",
-      title: "Advertise Pod and LoadBalancer addresses to the data-centre routers with BGP",
+      title: "Advertise Pod and LoadBalancer addresses to the data-center routers with BGP",
       brief:
         "The fictional manufacturer Brindley Steel runs an on-premises Cilium cluster in native routing mode. The network team has given them ASN 65010 for the cluster, their top-of-rack routers peer at 10.50.0.1 and 10.50.0.2 in ASN 65000, and a range 192.0.2.0/24 reserved for LoadBalancer addresses. The cluster must advertise its Pod CIDRs so external systems can reach Pods directly, and Services of type LoadBalancer must receive addresses from the reserved range and be reachable from the plant network.",
       safetyNote: GENERAL_SAFETY,

@@ -4,6 +4,7 @@
 import type { Pool } from "pg";
 import type { SeedTrack, SeedCredential } from "./data";
 import { activeUnits, objectiveRetiredAt } from "./catalog";
+import { toUsSpelling } from "../../lib/us-spelling";
 import type { SeedLabSet } from "./labs/types";
 import { labContentHash, labContentProblems, type LabContent } from "../../lib/lab-content";
 
@@ -155,7 +156,9 @@ export async function seedCredentialExam(
        on conflict (exam_id, sort_order) do update
          set name = excluded.name,
              weight_percent = excluded.weight_percent`,
-      [examId, units[i].title, units[i].weight ?? null, i]
+      // REQ-220: weights that are only our study emphasis are not a vendor
+      // blueprint, so they are not recorded as one.
+      [examId, units[i].title, cred.domainWeights === "study_emphasis" ? null : units[i].weight ?? null, i]
     );
   }
   // REQ-102: a blueprint that loses a domain must not keep the old row --
@@ -343,7 +346,10 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
           `update objectives set title = $1, lab_prompt = $2, retired_at = $4::timestamptz where id = $3`,
           [objTitle, lab, existingObj.rows[0].id, objRetiredAt]
         );
-        if (existingObj.rows[0].title !== objTitle) {
+        // REQ-220: a retitle that only changes British to US spelling is the
+        // same objective; its stored lessons stay (they are regenerated or
+        // corrected on their own schedule, not thrown away for spelling).
+        if (existingObj.rows[0].title !== objTitle && toUsSpelling(existingObj.rows[0].title) !== toUsSpelling(objTitle)) {
           const gone = await invalidateGeneratedContent(pool, existingObj.rows[0].id);
           retitled++;
           console.log(

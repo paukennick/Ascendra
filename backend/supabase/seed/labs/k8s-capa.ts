@@ -126,7 +126,7 @@ export const CAPA_LABS: SeedLabSet = {
             ),
             part(
               "Fix: configure a repository",
-              "Create the artifact-repositories ConfigMap in the workflow namespace (or set artifactRepository in workflow-controller-configmap) with an s3 section pointing at the MinIO/S3 endpoint, bucket, and a Secret for accessKeySecret/secretKeySecret, and annotate it as default; then re-submit; optionally set the key template so artifacts are organised per workflow.",
+              "Create the artifact-repositories ConfigMap in the workflow namespace (or set artifactRepository in workflow-controller-configmap) with an s3 section pointing at the MinIO/S3 endpoint, bucket, and a Secret for accessKeySecret/secretKeySecret, and annotate it as default; then re-submit; optionally set the key template so artifacts are organized per workflow.",
               "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: artifact-repositories\n  namespace: argo\n  annotations:\n    workflows.argoproj.io/default-artifact-repository: halverson-minio\ndata:\n  halverson-minio: |\n    s3:\n      endpoint: minio.storage.svc:9000\n      bucket: argo-artifacts\n      insecure: true\n      accessKeySecret: {name: minio-creds, key: accesskey}\n      secretKeySecret: {name: minio-creds, key: secretkey}\n      keyFormat: \"{{workflow.namespace}}/{{workflow.name}}/{{pod.name}}\"\nThe controller reads this ConfigMap in the workflow's namespace; the annotation names the default. Create the Secret with the MinIO credentials, then argo submit again -- extract uploads, transform downloads, and argo get shows both green."
             ),
             part(
@@ -161,7 +161,7 @@ export const CAPA_LABS: SeedLabSet = {
       kind: "build",
       title: "Deploy one service to twelve clusters with an ApplicationSet",
       brief:
-        "The fictional courier network Fairweather Logistics has twelve clusters registered in Argo CD, each labelled with region (eu, us, apac) and tier (edge, core). The service dispatch lives in the config repo at apps/dispatch with overlays per tier. They want one definition that creates an Application per cluster, deploying the right tier overlay into namespace dispatch, with automated sync, and they want the platform's own Argo CD Applications managed the same way.",
+        "The fictional courier network Fairweather Logistics has twelve clusters registered in Argo CD, each labeled with region (eu, us, apac) and tier (edge, core). The service dispatch lives in the config repo at apps/dispatch with overlays per tier. They want one definition that creates an Application per cluster, deploying the right tier overlay into namespace dispatch, with automated sync, and they want the platform's own Argo CD Applications managed the same way.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -359,7 +359,7 @@ export const CAPA_LABS: SeedLabSet = {
             part(
               "Push back",
               "Making analysis tolerate a 90-second cold start hides a user-facing problem: after promotion, newly started Pods will still serve 503s for 90 seconds during scaling or restarts; the right fix is a startup/readiness probe (and a readiness gate) so a Pod is not Ready until the cache is warm, which also makes the original analysis correct; the smarter analysis is a complement, not a substitute.",
-              "The 'make analysis smarter' request treats a symptom. Any Pod of 6.0.0 that starts later -- an HPA scale-up, a node drain -- will answer 503 for 90 seconds to real users, because readiness says it is ready when it is not. Fix the Pod template: a readinessProbe (or startupProbe) on an endpoint that returns 200 only once the schedule cache is loaded. Then the preview Service only routes to warm Pods, the original smoke analysis would have passed on its own, and the analysis changes become defence in depth rather than a workaround."
+              "The 'make analysis smarter' request treats a symptom. Any Pod of 6.0.0 that starts later -- an HPA scale-up, a node drain -- will answer 503 for 90 seconds to real users, because readiness says it is ready when it is not. Fix the Pod template: a readinessProbe (or startupProbe) on an endpoint that returns 200 only once the schedule cache is loaded. Then the preview Service only routes to warm Pods, the original smoke analysis would have passed on its own, and the analysis changes become defense in depth rather than a workaround."
             ),
           ],
         },
