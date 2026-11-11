@@ -1,0 +1,450 @@
+{
+  "slug": "ltc-change-in-condition",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: looks, vital signs, glucose, baseline, urine and intake, SBAR naming an acute change, standing-order care, objective note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "baseline",
+          "choice": "baseline",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 5,
+          "tick": 190
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 6,
+          "tick": 190
+        },
+        {
+          "type": "act",
+          "action": "chart",
+          "seq": 7,
+          "tick": 190
+        },
+        {
+          "type": "act",
+          "action": "urine",
+          "seq": 8,
+          "tick": 190
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "sit": "change",
+            "bg": "full",
+            "asmt": "infection",
+            "rec": "come"
+          },
+          "seq": 9,
+          "tick": 190
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "seq": 10,
+          "tick": 190
+        },
+        {
+          "type": "teach",
+          "prompt": "scopeQ",
+          "choice": "data",
+          "seq": 11,
+          "tick": 190
+        },
+        {
+          "type": "skip",
+          "timer": "rnT",
+          "instance": 3,
+          "to": 790,
+          "seq": 12,
+          "tick": 190
+        },
+        {
+          "type": "act",
+          "action": "family",
+          "seq": 13,
+          "tick": 790
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 14,
+          "tick": 790
+        }
+      ],
+      "expect": {
+        "ending": "transferred",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "data": "met",
+          "report": "met",
+          "scope": "met",
+          "standing": "met",
+          "noWait": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toVitals": 190,
+          "toReport": 0,
+          "toTransfer": 1690
+        },
+        "stateHash": "0dff0fa74f32e1e4"
+      },
+      "reasoning": {
+        "cues": "met"
+      }
+    },
+    {
+      "id": "routineFirst",
+      "title": "Vital signs and baseline, but the first report sounds routine; a second, clear report 25 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 1,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "baseline",
+          "choice": "baseline",
+          "seq": 2,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "chart",
+          "seq": 4,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "sit": "tired",
+            "bg": "min",
+            "asmt": "normal",
+            "rec": "wait"
+          },
+          "seq": 5,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "seq": 6,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 7,
+          "tick": 1800
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "sit": "change",
+            "bg": "full",
+            "asmt": "infection",
+            "rec": "come"
+          },
+          "seq": 8,
+          "tick": 1980
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 9,
+          "tick": 1980
+        }
+      ],
+      "expect": {
+        "ending": "transferredLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "data": "partial",
+          "report": "partial",
+          "scope": "met",
+          "standing": "partial",
+          "noWait": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toVitals": 300,
+          "toReport": 1680,
+          "toTransfer": 3480
+        },
+        "stateHash": "a33912f3ec94ed4c"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "noBaseline",
+      "title": "Reports quickly from the vital signs alone, never checking her baseline; an opinion in the note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "baseline",
+          "choice": "baseline",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 190
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "sit": "change",
+            "bg": "full",
+            "asmt": "infection",
+            "rec": "come"
+          },
+          "seq": 4,
+          "tick": 190
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 5,
+          "tick": 190
+        }
+      ],
+      "expect": {
+        "ending": "transferredLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "data": "missed",
+          "report": "met",
+          "scope": "met",
+          "standing": "missed",
+          "noWait": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "toVitals": 190,
+          "toReport": 0,
+          "toTransfer": 1690
+        },
+        "stateHash": "ebea8a718c38a2f9"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "sedated",
+      "title": "Failure: lorazepam for the restlessness and a recheck planned for later; the report comes after the assistant's second warning",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "seq": 1,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "recheckLater",
+          "seq": 2,
+          "tick": 300
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 1800
+        },
+        {
+          "type": "teach",
+          "prompt": "baseline",
+          "choice": "baseline",
+          "seq": 5,
+          "tick": 1800
+        },
+        {
+          "type": "act",
+          "action": "chart",
+          "seq": 6,
+          "tick": 1980
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "sit": "change",
+            "bg": "full",
+            "asmt": "infection",
+            "rec": "come"
+          },
+          "seq": 7,
+          "tick": 1980
+        }
+      ],
+      "expect": {
+        "ending": "transferredLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 21,
+        "criteria": {
+          "data": "partial",
+          "report": "met",
+          "scope": "missed",
+          "standing": "missed",
+          "noWait": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toVitals": 1980,
+          "toReport": 0,
+          "toTransfer": 3480
+        },
+        "stateHash": "50ffa7e21b53a366"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "explainedAway",
+      "title": "Failure: 'it's her dementia', a leftover antibiotic, and no vital signs",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "leftoverAbx",
+          "seq": 2,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "recheckLater",
+          "seq": 3,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 4,
+          "tick": 300
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 5,
+          "tick": 1200
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 7,
+        "criteria": {
+          "data": "missed",
+          "report": "missed",
+          "scope": "missed",
+          "standing": "missed",
+          "noWait": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "toVitals": -1,
+          "toReport": -1,
+          "toTransfer": -1
+        },
+        "stateHash": "703b6a472c8f14af"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1360 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ltc-change-in-condition",
+  "title": "A resident who is not herself",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate, last measured",
+          "value": "vHr",
+          "unit": "/min",
+          "sub": "at {vAt|clock}",
+          "alarm": {
+            "high": 100
+          },
+          "announce": {
+            "bands": [
+              100,
+              110,
+              120
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              110,
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate, last measured",
+          "value": "vRr",
+          "unit": "/min",
+          "alarm": {
+            "high": 22
+          },
+          "announce": {
+            "bands": [
+              20,
+              24
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation, last measured",
+          "value": "vSpo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature, last measured",
+          "value": "vTemp",
+          "unit": "C",
+          "announce": {
+            "bands": [
+              37.5,
+              38
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Fingerstick glucose",
+          "value": "gluLast",
+          "unit": "mg/dL",
+          "announce": {
+            "bands": [
+              70,
+              180
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "gluLast > 0"
+        }
+      ],
+      "infusions": "Baseline checked: {not isNull(chartAt)|yesno}. RN told: {not isNull(reportAt)|yesno}.",
+      "banner": [
+        {
+          "when": "rnHere",
+          "text": "The RN supervisor is at the bedside."
+        }
+      ]
+    }
+  },
+  "objective": "Recognizing the client whose condition requires immediate RN or provider involvement",
+  "secondaryObjectives": [
+    "Give a clear handoff, using a structured tool such as SBAR -- situation, background, assessment, recommendation -- when reporting a concern",
+    "Contribute to the six clinical judgment steps -- recognize and analyze cues, prioritize hypotheses, generate solutions, take action, evaluate outcomes -- within the PN role, reporting findings that need RN or provider judgment",
+    "What the practical nurse license permits, and where it stops"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_PN_Test Plan-F.pdf",
+      "note": "Read 2026-11-11 (primary PDF): Coordinated Care 18-24% of items, including 'Provide care within the legal scope of practice'; Physiological Adaptation: 'Recognize and report change in client condition'; Reduction of Risk Potential: 'Monitor and evaluate client vital signs'. The test plan does not name SBAR."
+    },
+    {
+      "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-11",
+      "note": "The objective and secondary objectives are the course's own titles (the PN collects data and reports findings that need RN or provider judgment; SBAR as a structured handoff tool)."
+    }
+  ],
+  "brief": {
+    "situation": "14:00 in a long-term care home. You are the LPN for one hall; the RN supervisor covers the building. A nursing assistant stops you: Mrs. Alvarez in Room 22, 82, 'isn't herself today'. She didn't eat lunch and is very sleepy.",
+    "handover": [
+      "Mrs. Alvarez has moderate dementia and lives here long term. The assistant says she usually walks to lunch with her walker and chats.",
+      "Standing orders allow the LPN to take vital signs, SpO2 and a fingerstick glucose, give oxygen at 2 L by nasal cannula for SpO2 below 92%, and encourage fluids.",
+      "Her daughter visits most afternoons."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Collect the data you need, compare it with her baseline, and decide who needs to know. Some steps take a few minutes.",
+      "Partway through you are asked to write what you think is happening. The case ends at 16:00, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "1s",
+    "maxDuration": "2h",
+    "calendar": "clock"
+  },
+  "params": {
+    "sevRise": {
+      "value": 0.005,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Untreated, her infection progresses to septic collapse about 1 h 40 min after 14:00. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sevFall": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Once the provider's plan is under way, she slowly stabilizes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "collapseSev": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Severity at which she becomes unresponsive and hypotensive. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "vitalsTime": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Vital signs and SpO2: about 3 min."
+      }
+    },
+    "rnWalk": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "RN supervisor to the room: about 10 min."
+      }
+    },
+    "providerCall": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "RN reaches the provider and gets orders: about 15 min."
+      }
+    },
+    "reportWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Authored: the RN told within 15 min of the first abnormal vital signs."
+      }
+    },
+    "reviewAt": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 16:00."
+      }
+    }
+  },
+  "state": {
+    "sev": {
+      "type": "number",
+      "init": 0.5,
+      "min": 0,
+      "max": 2
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vHr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "/min"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "vRr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 80,
+      "unit": "/min"
+    },
+    "vSpo2": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100,
+      "unit": "%"
+    },
+    "vTemp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 43,
+      "unit": "C"
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "abnormalAt": {
+      "type": "time",
+      "init": null
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "gluLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 500,
+      "unit": "mg/dL"
+    },
+    "gluAt": {
+      "type": "time",
+      "init": null
+    },
+    "chartAt": {
+      "type": "time",
+      "init": null
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "urineAt": {
+      "type": "time",
+      "init": null
+    },
+    "fluidsAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2On": {
+      "type": "bool",
+      "init": false
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    },
+    "reportAt": {
+      "type": "time",
+      "init": null
+    },
+    "reportEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "rnHere": {
+      "type": "bool",
+      "init": false
+    },
+    "ordersAt": {
+      "type": "time",
+      "init": null
+    },
+    "sedated": {
+      "type": "bool",
+      "init": false
+    },
+    "oldAbx": {
+      "type": "bool",
+      "init": false
+    },
+    "waited": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "familyTold": {
+      "type": "bool",
+      "init": false
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "planOn": {
+      "expr": "not isNull(ordersAt)"
+    },
+    "hr": {
+      "expr": "round(clamp(78 + 45 * sev + 2 * sin(t / 31), 50, 180))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(136 - 50 * sev, 60, 200))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(16 + 10 * sev)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(o2On ? 97 - 2 * sev : 96 - 7 * sev, 75, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round((37.2 + 1.3 * sev) * 10) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "abnormal": {
+      "expr": "vHr > 100 or vSbp < 110 or vRr > 22 or vSpo2 < 92 or vTemp >= 37.8"
+    }
+  },
+  "processes": [
+    {
+      "id": "infection",
+      "update": {
+        "sev": "max(0.1, planOn ? sev - sevFall * dt / 60 : sev + sevRise * dt / 60)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "On the hall",
+      "clock": "running",
+      "actions": [
+        "look",
+        "vitals",
+        "glucose",
+        "chart",
+        "urine",
+        "fluids",
+        "oxygen",
+        "report",
+        "lorazepam",
+        "leftoverAbx",
+        "recheckLater",
+        "family",
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Go to Room 22 and look at her",
+      "group": "Collect data",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "sev >= 0.7",
+              "then": [
+                {
+                  "log": "Hard to rouse, mumbling, skin hot and dry, lips dry. Breathing fast.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Drowsy, opens her eyes to her name then drifts off, picking at the blanket. Skin warm, mouth dry. She doesn't know where she is.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Take vital signs and SpO2",
+      "group": "Collect data",
+      "available": "not vPending",
+      "why": "Already taking them.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Taking her vital signs (about 3 min)."
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Fingerstick glucose (standing order)",
+      "group": "Collect data",
+      "available": "isNull(gluAt)",
+      "why": "Already checked.",
+      "effects": [
+        {
+          "set": "gluLast",
+          "to": "128"
+        },
+        {
+          "set": "gluAt",
+          "to": "t"
+        },
+        {
+          "log": "Glucose 128 mg/dL: not the cause of the drowsiness.",
+          "kind": "find"
+        }
+      ]
+    },
+    "chart": {
+      "label": "Check her care plan, baseline and recent notes",
+      "group": "Collect data",
+      "effects": [
+        {
+          "if": "isNull(chartAt)",
+          "then": [
+            {
+              "set": "chartAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Baseline: oriented to herself, chatty, walks with a walker, eats most meals. Usual BP 130s/70s, HR 70s. Yesterday's note: 'urine dark and strong-smelling, encouraged fluids.' Advance directive: full treatment, hospital transfer acceptable.",
+          "kind": "find"
+        }
+      ]
+    },
+    "urine": {
+      "label": "Check her brief and intake and output",
+      "group": "Collect data",
+      "effects": [
+        {
+          "if": "isNull(urineAt)",
+          "then": [
+            {
+              "set": "urineAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Small amount of dark, cloudy, foul-smelling urine. Intake today about 300 mL.",
+          "kind": "find"
+        }
+      ]
+    },
+    "fluids": {
+      "label": "Offer fluids (standing order)",
+      "group": "Care",
+      "effects": [
+        {
+          "if": "isNull(fluidsAt)",
+          "then": [
+            {
+              "set": "fluidsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "She takes a few sips with help, then turns away."
+        }
+      ]
+    },
+    "oxygen": {
+      "label": "Oxygen 2 L by nasal cannula (standing order, SpO2 below 92%)",
+      "group": "Care",
+      "available": "vSpo2 > 0 and vSpo2 < 92 and not o2On",
+      "why": "Only for a measured SpO2 below 92% (or already on).",
+      "effects": [
+        {
+          "set": "o2On",
+          "to": "true"
+        },
+        {
+          "if": "isNull(o2At)",
+          "then": [
+            {
+              "set": "o2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Oxygen 2 L by nasal cannula on."
+        }
+      ]
+    },
+    "report": {
+      "label": "Report to the RN supervisor (SBAR)",
+      "group": "Report",
+      "available": "isNull(reportEffAt)",
+      "why": "The RN is already coming.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "change",
+                  "label": "Mrs. Alvarez in 22 has had an acute change: new drowsiness and confusion, fever, HR and RR up, BP down from her baseline"
+                },
+                {
+                  "value": "tired",
+                  "label": "Mrs. Alvarez is a bit tired today"
+                },
+                {
+                  "value": "dementia",
+                  "label": "Her dementia seems worse"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "82, moderate dementia, usually chatty and walking; dark urine yesterday; intake 300 mL today; glucose 128"
+                },
+                {
+                  "value": "min",
+                  "label": "Long-term resident with dementia"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "infection",
+                  "label": "I'm worried this is an infection, maybe her urine, and she's getting worse"
+                },
+                {
+                  "value": "normal",
+                  "label": "Probably just a bad day"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "come",
+                  "label": "Please come and assess her now and contact the provider"
+                },
+                {
+                  "value": "wait",
+                  "label": "I'll recheck her at the end of the shift"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(reportAt)",
+          "then": [
+            {
+              "set": "reportAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "sit == \"change\" and asmt == \"infection\" and rec == \"come\" and isNull(reportEffAt)",
+          "then": [
+            {
+              "set": "reportEffAt",
+              "to": "t"
+            },
+            {
+              "schedule": "rnT",
+              "after": "rnWalk"
+            }
+          ],
+          "else": [
+            {
+              "log": "RN supervisor: \"Keep an eye on her and recheck at the end of the shift.\"",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "log": "Called the RN supervisor."
+        }
+      ]
+    },
+    "lorazepam": {
+      "label": "Give her PRN lorazepam for the picking and restlessness",
+      "group": "Medications",
+      "available": "not sedated",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "sedated",
+          "to": "true"
+        },
+        {
+          "log": "Lorazepam given. She is quieter, and now even harder to rouse: the sedation hides the change.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "leftoverAbx": {
+      "label": "Give her the leftover antibiotic from last month's course",
+      "group": "Medications",
+      "available": "not oldAbx",
+      "why": "Outside the LPN's scope and not ordered.",
+      "effects": [
+        {
+          "set": "oldAbx",
+          "to": "true"
+        },
+        {
+          "log": "You give a leftover antibiotic with no current order. That is a medication error outside your scope, and it does not treat whatever this is.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "recheckLater": {
+      "label": "Plan to recheck her in an hour",
+      "group": "Report",
+      "effects": [
+        {
+          "add": "waited",
+          "by": "1"
+        },
+        {
+          "log": "You plan to look in again in an hour.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "family": {
+      "label": "Update her daughter when she arrives",
+      "group": "Report",
+      "available": "not isNull(reportEffAt) and not familyTold",
+      "why": "Report to the RN first.",
+      "effects": [
+        {
+          "set": "familyTold",
+          "to": "true"
+        },
+        {
+          "log": "Her daughter is told her mother is unwell and the nurses and provider are looking into it."
+        }
+      ]
+    },
+    "note": {
+      "label": "Document",
+      "group": "Report",
+      "available": "isNull(noteAt)",
+      "why": "Already documented.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Objective data, times, who was told"
+            },
+            {
+              "value": "opinion",
+              "label": "'Confused and uncooperative, dementia progressing'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"obj\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "log": "Note: time, what the assistant reported, vital signs, glucose, urine and intake, her behavior compared with baseline, who was told and what was ordered."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Note: 'Resident confused and uncooperative today, dementia progressing.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "vitalsT": {
+      "label": "vital signs",
+      "wait": {
+        "skipLabel": "the vital signs (about 3 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 3 min."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "set": "vHr",
+          "to": "hr"
+        },
+        {
+          "set": "vSbp",
+          "to": "sbp"
+        },
+        {
+          "set": "vDbp",
+          "to": "dbp"
+        },
+        {
+          "set": "vRr",
+          "to": "rr"
+        },
+        {
+          "set": "vSpo2",
+          "to": "spo2"
+        },
+        {
+          "set": "vTemp",
+          "to": "temp"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "HR {hr}, BP {sbp}/{dbp}, RR {rr}, SpO2 {spo2}%, temperature {temp}.",
+          "kind": "find"
+        },
+        {
+          "if": "hr > 100 or sbp < 110 or rr > 22 or spo2 < 92 or temp >= 37.8",
+          "then": [
+            {
+              "if": "isNull(abnormalAt)",
+              "then": [
+                {
+                  "set": "abnormalAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "rnT": {
+      "label": "the RN supervisor",
+      "wait": {
+        "skipLabel": "the RN supervisor (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 10 min."
+      },
+      "effects": [
+        {
+          "set": "rnHere",
+          "to": "true"
+        },
+        {
+          "schedule": "ordersT",
+          "after": "providerCall"
+        },
+        {
+          "log": "RN supervisor at the bedside: assesses her and calls the provider.",
+          "kind": "good"
+        }
+      ]
+    },
+    "ordersT": {
+      "label": "the provider's orders",
+      "wait": {
+        "skipLabel": "the provider's orders (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 15 min."
+      },
+      "effects": [
+        {
+          "set": "ordersAt",
+          "to": "t"
+        },
+        {
+          "log": "Provider (by phone to the RN): transfer to the emergency department for a sepsis work-up. Ambulance called; the RN gives the transfer report.",
+          "kind": "good"
+        }
+      ]
+    },
+    "endT": {
+      "label": "16:00",
+      "wait": {
+        "skipLabel": "16:00, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 16:00."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "cna",
+      "when": "t >= 1800 and isNull(reportEffAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "The assistant: \"She's worse, she won't wake up properly for me.\"",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "lowSat",
+      "when": "spo2 < 90 and not o2On",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Her lips look dusky.",
+          "kind": "find"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "not isNull(abnormalAt) or t >= 1200",
+      "question": "What cues tell you this is a change that needs the RN now, what might be causing it, and what is your part as the LPN?",
+      "parts": [
+        {
+          "label": "Cues and the likely cause",
+          "criteria": "Names an acute change from her baseline (new drowsiness and confusion, not eating, fever, HR and RR up, BP down from her usual) rather than 'her dementia'; ranks infection (likely urinary, from the dark foul urine and low intake) as most likely and serious, and notes glucose has been ruled out.",
+          "modelAnswer": "This is an acute change, not her dementia: she is usually chatty and walking, and now she is drowsy and confused, not eating, febrile, tachycardic and tachypneic, with a BP well below her usual. Dark, foul urine and very little intake point to a urinary infection, possibly sepsis. Her glucose is normal."
+        },
+        {
+          "label": "The LPN's part",
+          "criteria": "Collects data (vital signs, SpO2, glucose, urine and intake, comparison with baseline), gives only standing-order care, reports at once to the RN with an SBAR that names the change and asks the RN to come and contact the provider, documents objectively; does not sedate her, give unordered drugs, or wait.",
+          "modelAnswer": "Collect the data and compare it with her baseline, use the standing orders (fluids, oxygen if SpO2 is below 92%), and report now to the RN with an SBAR: an acute change, likely infection, please come and assess and call the provider. Document objectively. No sedation, no leftover antibiotics, no waiting until the end of the shift."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and isNull(ordersAt)",
+      "class": "harm",
+      "rationale": "A resident with an acute change still unreported to anyone who can act at 16:00 is deteriorating unattended, so this case calls it harm.",
+      "source": {
+        "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+        "checkedAt": "2026-11-11",
+        "url": "https://nclex.com/files/2026_PN_Test Plan-F.pdf",
+        "note": "Read 2026-11-11 (primary PDF): Coordinated Care 18-24% of items, including 'Provide care within the legal scope of practice'; Physiological Adaptation: 'Recognize and report change in client condition'; Reduction of Risk Potential: 'Monitor and evaluate client vital signs'. The test plan does not name SBAR."
+      }
+    }
+  },
+  "endings": {
+    "collapse": {
+      "label": "She collapses on the unit",
+      "class": "harm",
+      "when": "sev >= collapseSev",
+      "terminal": true,
+      "narrative": "The assistant finds her unresponsive with a weak, fast pulse and a BP of {sbp}/{dbp}. 911 is called; she goes to the hospital in septic shock."
+    },
+    "transferred": {
+      "label": "Change recognized and reported; transferred early",
+      "class": "target",
+      "when": "not isNull(ordersAt) and not isNull(reportEffAt) and not isNull(abnormalAt) and timeAt(reportEffAt) <= timeAt(abnormalAt) + reportWindow and not isNull(chartAt) and not sedated and not oldAbx",
+      "terminal": true,
+      "narrative": "{timeAt(ordersAt)|clock}: the ambulance takes Mrs. Alvarez to the emergency department with your data in the RN's transfer report. You found the change, measured it against her baseline and got the RN to her fast."
+    },
+    "transferredLate": {
+      "label": "Transferred, by a slower route",
+      "class": "recovered",
+      "when": "not isNull(ordersAt)",
+      "terminal": true,
+      "narrative": "{timeAt(ordersAt)|clock}: she is on her way to the hospital, but the route cost time or safety: a report that sounded routine, a late report, no baseline comparison, or a drug she should not have had."
+    },
+    "time_up": {
+      "label": "16:00 and nobody who can act has seen her",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "16:00: Mrs. Alvarez is worse, HR {hr}, BP {sbp}/{dbp}, and still on the hall without an assessment by the RN or a call to the provider."
+    }
+  },
+  "endingOrder": [
+    "collapse",
+    "transferred",
+    "transferredLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "data",
+        "label": "Collected data and compared it with her baseline",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(firstVAt)",
+            "score": "missed",
+            "why": "No vital signs were taken."
+          },
+          {
+            "when": "isNull(chartAt)",
+            "score": "missed",
+            "why": "Her baseline was never checked, so the change could not be measured."
+          },
+          {
+            "when": "not isNull(gluAt) and not isNull(urineAt)",
+            "score": "met",
+            "why": "Vital signs, glucose, urine and intake, compared with her baseline."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Vital signs and baseline, but the glucose or the urine and intake were missed."
+          }
+        ]
+      },
+      {
+        "id": "report",
+        "label": "Reported to the RN at once with an SBAR that landed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(reportEffAt)",
+            "score": "missed",
+            "why": "The RN was never told in a way that brought her to the room."
+          },
+          {
+            "when": "not isNull(reportEffAt) and not isNull(abnormalAt) and timeAt(reportEffAt) <= timeAt(abnormalAt) + reportWindow",
+            "score": "met",
+            "why": "Reported at {timeAt(reportEffAt)|clock}."
+          },
+          {
+            "when": "isNull(abnormalAt)",
+            "score": "partial",
+            "why": "Reported, but with no vital signs to back it."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Reported at {timeAt(reportEffAt)|clock}, more than 15 minutes after the abnormal vital signs."
+          }
+        ]
+      },
+      {
+        "id": "scope",
+        "label": "Stayed within the LPN's scope",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "oldAbx",
+            "score": "missed",
+            "why": "Gave an unordered antibiotic."
+          },
+          {
+            "when": "sedated",
+            "score": "missed",
+            "why": "Sedated a resident with an unexplained change, masking it."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Only standing-order care and data collection."
+          }
+        ]
+      },
+      {
+        "id": "standing",
+        "label": "Standing-order care",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(fluidsAt) and (vSpo2 >= 92 or o2On)",
+            "score": "met",
+            "why": "Fluids offered; oxygen on when SpO2 was below 92%."
+          },
+          {
+            "when": "not isNull(fluidsAt) or o2On",
+            "score": "partial",
+            "why": "Some of the standing-order care was given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No fluids or oxygen under the standing orders."
+          }
+        ]
+      },
+      {
+        "id": "noWait",
+        "label": "Did not wait to recheck later",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "waited > 0",
+            "score": "missed",
+            "why": "Planned to recheck later instead of reporting."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No waiting."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Objective documentation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteObjective",
+            "score": "met",
+            "why": "Objective, timed note."
+          },
+          {
+            "when": "isNull(noteAt)",
+            "score": "missed",
+            "why": "Not documented."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The note gave an opinion instead of data."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: named an acute change and the LPN's part",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toVitals",
+        "label": "14:00 to the first vital signs",
+        "value": "isNull(firstVAt) ? -1 : timeAt(firstVAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "toReport",
+        "label": "Abnormal vital signs to an effective report",
+        "value": "isNull(reportEffAt) or isNull(abnormalAt) ? -1 : timeAt(reportEffAt) - timeAt(abnormalAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "toTransfer",
+        "label": "14:00 to the transfer order",
+        "value": "isNull(ordersAt) ? -1 : timeAt(ordersAt)",
+        "format": "duration",
+        "expert": "under 45 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00",
+        "text": "Go and look: drowsy, confused, dry. Vital signs and SpO2, a fingerstick glucose."
+      },
+      {
+        "at": "14:03",
+        "text": "Check the care plan: her baseline is chatty and walking, BP 130s/70s. Yesterday's dark urine; 300 mL in today. Fever, HR and RR up, BP down: an acute change."
+      },
+      {
+        "at": "~14:06",
+        "text": "SBAR to the RN: acute change, likely infection, please come and assess and call the provider. Offer fluids; oxygen only if SpO2 is below 92%."
+      },
+      {
+        "at": "~14:16",
+        "text": "RN at the bedside; provider orders a transfer. Objective note; update the daughter."
+      }
+    ],
+    "debrief": {
+      "collapse": {
+        "headline": "She collapsed on the hall",
+        "body": "The assistant's 'not herself' was the first cue. Find when vital signs were taken, whether they were compared with her baseline, and when the RN heard it as an acute change."
+      },
+      "transferred": {
+        "headline": "Recognized, reported, transferred",
+        "body": "You collected the data, compared it with her baseline, reported an acute change with an SBAR that asked for what she needed, and stayed within your scope. That is the expert path."
+      },
+      "transferredLate": {
+        "headline": "Transferred, by a slower route",
+        "body": "She is on her way, but check how long the report took, whether it sounded routine, whether you checked her baseline, and whether anything outside your scope was given."
+      },
+      "time_up": {
+        "headline": "Nobody who could act saw her",
+        "body": "An acute change in a resident with dementia is reported, not explained away. When the first answer is to wait and she keeps worsening, report again."
+      }
+    },
+    "modelReasoning": "'Not herself' from a nursing assistant is a cue to act. The LPN collects data (vital signs, SpO2, glucose, urine and intake) and compares it with the resident's baseline from the care plan: new drowsiness and confusion, fever, tachycardia, tachypnea and a pressure well below her usual mean an acute change, most likely an infection (urinary here), possibly sepsis, not her dementia. Report it at once to the RN with an SBAR that names the change and asks the RN to come and contact the provider; give only standing-order care; document objectively. Sedating her or giving unordered drugs is outside the LPN's scope and hides or worsens the problem; waiting to recheck later lets her deteriorate."
+  },
+  "chapters": [
+    {
+      "id": "reported",
+      "label": "The RN is coming",
+      "when": "not isNull(reportEffAt)"
+    }
+  ],
+  "teaching": {
+    "baseline": {
+      "during": "vitalsT",
+      "ask": "While you take her vital signs: what will tell you whether these numbers are a change?",
+      "choices": [
+        {
+          "id": "baseline",
+          "label": "Her own baseline in the care plan"
+        },
+        {
+          "id": "norms",
+          "label": "Adult normal ranges alone"
+        },
+        {
+          "id": "cna",
+          "label": "Whether the assistant is worried"
+        }
+      ],
+      "expect": "baseline",
+      "explain": "Her baseline. In long-term care a BP of 108 can be a big drop for someone who usually runs in the 130s; compare with her own record, then report the difference.",
+      "source": {
+        "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+        "checkedAt": "2026-11-11",
+        "note": "The objective and secondary objectives are the course's own titles (the PN collects data and reports findings that need RN or provider judgment; SBAR as a structured handoff tool)."
+      }
+    },
+    "scopeQ": {
+      "during": "rnT",
+      "ask": "While the RN comes: which of these is within your role right now?",
+      "choices": [
+        {
+          "id": "data",
+          "label": "Recheck her vital signs and stay with her"
+        },
+        {
+          "id": "abx",
+          "label": "Start the leftover antibiotic"
+        },
+        {
+          "id": "dx",
+          "label": "Tell the daughter she has a UTI"
+        }
+      ],
+      "expect": "data",
+      "explain": "Collect and report data and stay with her. Starting an unordered drug is outside the LPN's scope, and naming a diagnosis to the family is not the LPN's to make.",
+      "source": {
+        "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+        "checkedAt": "2026-11-11",
+        "url": "https://nclex.com/files/2026_PN_Test Plan-F.pdf",
+        "note": "Read 2026-11-11 (primary PDF): Coordinated Care 18-24% of items, including 'Provide care within the legal scope of practice'; Physiological Adaptation: 'Recognize and report change in client condition'; Reduction of Risk Potential: 'Monitor and evaluate client vital signs'. The test plan does not name SBAR."
+      }
+    }
+  }
+}
