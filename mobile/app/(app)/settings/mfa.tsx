@@ -372,7 +372,7 @@ export default function MfaSettings() {
     setError(null);
     let idToken: string | null = null;
     try {
-      idToken = await googleSignInAsync();
+      idToken = await withBackgroundHold(() => googleSignInAsync());
     } catch {
       idToken = null;
     }
