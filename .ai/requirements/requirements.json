@@ -7626,6 +7626,51 @@
       "risk_notes": [
         "none: no production behaviour changes"
       ]
+    },
+    {
+      "id": "REQ-219",
+      "category": "security",
+      "title": "Fix batch G4: accounts and security (audit 2026-11)",
+      "description": "Nick approved fix batch G4 on 2026-11-10 after the audit (FAIL-1100..1129). (1) Turning off the last two-factor method is decided and written under a row lock; sign-in treats 'on with no method' as off. (2) Backup-code regeneration takes the shared proofs (Google re-auth or a code). (3) A rejected Google token is a 401 not reported to the error tracker, with a per-IP limit; the Google link route answers the same. (4) Google sign-in that attaches to an existing account mails its address (Nick's decision). (5) Per-IP ceiling on login. (6) Error reports drop the query string; the reset token is handed to the verify-email page in a cookie, not the redirect URL. (7) Terms and Privacy agreement is enforced on the server: requireUser answers 403 terms_required for an account that has not accepted what its client must accept (X-Ascendra-App / X-Ascendra-Legal rules of lib/legal.ts), except accept, onboarding, auth/me (read), account export and delete, logout-all and support (Nick's decision; onboarding and support added so the app can read the gate state and a person can ask for help). (8) Lows: sessions listed and ended by family; max password length on change and reset; a password change spends reset links and sign-in challenges; sign-in codes count against the per-address mail limit; authenticator codes work once (totp_last_step); previous Terms versions are a list; support content reports need a visible objective; inbound email deliveries are deduplicated by svix-id; catalog review findings are validated and stored in one transaction; the paid-access rule is shared with lib/entitlements.ts. Migration 075.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/app/api/auth",
+        "backend/lib/auth",
+        "backend/lib/legal.ts",
+        "backend/lib/error-tracker.ts",
+        "backend/instrumentation.ts",
+        "backend/app/verify-email",
+        "backend/app/api/support/route.ts",
+        "backend/app/api/inbound/email/route.ts",
+        "backend/app/api/catalog/review-findings/route.ts",
+        "backend/lib/ai-access.ts",
+        "backend/lib/entitlements.ts",
+        "backend/supabase/migrations/075_accounts_security_g4.sql",
+        "backend/lib/schema-status.ts",
+        "mobile/app/(app)/settings/mfa.tsx",
+        "mobile/app/(app)/account/sessions.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Two simultaneous MFA turn-offs never leave the flag on with no method or skip the last-method code",
+        "A Google-only account regenerates backup codes with Google or a code",
+        "A rejected Google token is a 401 and not reported",
+        "An account that has not agreed is refused 403 terms_required on every signed-in route except the open list and a build that accepted its own older text is not refused",
+        "An authenticator code works once",
+        "A replayed inbound delivery forwards once"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend npm run test:db seeded twice and as app_runtime",
+        "mobile typecheck and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        ".ai/checklists/pre-completion.md"
+      ],
+      "risk_notes": []
     }
   ]
 }
