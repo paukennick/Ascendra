@@ -147,7 +147,7 @@ export async function GET(req: Request) {
     }
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }
@@ -312,7 +312,7 @@ export async function POST(req: Request) {
     if (isDuplicateRetry(err)) return conflict(ALREADY_REVISED);
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof IdempotencyConflictError) return conflict(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

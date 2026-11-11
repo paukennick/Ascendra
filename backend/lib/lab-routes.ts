@@ -35,7 +35,7 @@ import { requireStudyNotice } from "@/lib/study-notice";
 
 export function labRouteError(err: unknown) {
   if (err instanceof AuthError) return unauthorized(err.message);
-  if (err instanceof AcknowledgementError) return forbidden(err.message);
+  if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
   if (err instanceof LabError) return NextResponse.json({ error: err.message }, { status: err.status });
   if (err instanceof GradingInProgressError) return NextResponse.json({ error: err.message }, { status: 409 });
   return serverError(err);

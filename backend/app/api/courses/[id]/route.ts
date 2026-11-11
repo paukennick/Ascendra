@@ -1,5 +1,5 @@
 import { query } from "@/lib/db";
-import { ok, notFound, unauthorized, serverError } from "@/lib/http";
+import { ok, notFound, unauthorized, serverError, forbidden } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { isActive, isFavoriteSelect, ownedOrCatalog, trackProgressLateral, unitMasteryLateral } from "@/lib/progress-sql";
 import { courseReadiness } from "@/lib/readiness";
@@ -7,6 +7,7 @@ import { cachedExamBlueprint, courseReadinessCache, stampOf } from "@/lib/readin
 import { featureLock } from "@/lib/entitlements";
 import { READINESS_LOCKED_TEXT } from "@/lib/billing-config";
 import { studyNoticeAcceptedSql } from "@/lib/study-notice";
+import { isMatureCategory, matureContentNeededSql, matureContentRequiredBody, MATURE_CONTENT_REQUIRED_MESSAGE } from "@/lib/mature-content";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,8 @@ export async function GET(
               ${isFavoriteSelect("$2")},
               -- REQ-165: a gated course now needs the one study notice.
               ${studyNoticeAcceptedSql("$2")} as __acknowledged,
+              -- REQ-224: a mental health course needs the 18+ confirmation.
+              ${matureContentNeededSql("st", "$2")} as __mature_needed,
               (select max(a.created_at)::text from attempts a where a.user_id = $2) as __attempt_stamp
        from subject_tracks st
        ${trackProgressLateral("$2")}
@@ -41,6 +44,11 @@ export async function GET(
       [id, userId]
     );
     if (!tracks[0]) return notFound("Track not found");
+    // REQ-224: opening a mental health course without the 18+ confirmation is
+    // refused before any of its content is read; the app shows the notice and
+    // asks again (mobile/src/lib/matureContent.ts).
+    const matureNeeded = (tracks[0] as { __mature_needed?: unknown }).__mature_needed;
+    if (isMatureCategory(matureNeeded)) return forbidden(MATURE_CONTENT_REQUIRED_MESSAGE, matureContentRequiredBody(matureNeeded));
 
     const units = await query(
       `select cu.*, vm.total_objectives, vm.mastered_objectives, vm.needs_review_objectives, vm.avg_score_0_4
@@ -79,7 +87,7 @@ export async function GET(
       requires_acknowledgement?: boolean;
       disclaimer_version?: number;
     };
-    const { __acknowledged, __attempt_stamp, ...trackOut } = tracks[0] as Record<string, unknown>;
+    const { __acknowledged, __attempt_stamp, __mature_needed: _mature, ...trackOut } = tracks[0] as Record<string, unknown>;
     const acknowledgement: { required: boolean; acknowledged: boolean } = track.requires_acknowledgement
       ? { required: true, acknowledged: __acknowledged === true }
       : { required: false, acknowledged: true };

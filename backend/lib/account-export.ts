@@ -109,6 +109,10 @@ export const EXPORT_SECTIONS = {
   // Then REQ-119's first-run record, learning events and exam results.
   legalAcceptances:
     "select user_id, document, version, source, accepted_at from legal_acceptances where user_id = $1 order by accepted_at asc, document asc, version asc",
+  // REQ-224 (migration 077): the 18+ confirmations for mature-content
+  // categories (mental health): category, notice version, age, where, when.
+  matureContentConfirmations:
+    "select user_id, category_slug, notice_version, min_age, source, confirmed_at from mature_content_confirmations where user_id = $1 order by confirmed_at asc, category_slug asc, notice_version asc",
   onboarding: "select * from learner_onboarding where user_id = $1 order by user_id asc",
   learnerEvents: "select * from learner_events where user_id = $1 order by created_at asc, id asc",
   examOutcomes: "select * from exam_outcomes where user_id = $1 order by exam_date asc, id asc",

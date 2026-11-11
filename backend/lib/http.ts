@@ -28,8 +28,11 @@ export function unauthorized(message = "Unauthorized") {
 // Authenticated, but not allowed to do this yet -- currently a course whose
 // disclaimer the user hasn't accepted. Distinct from 401 so the client can
 // tell "sign in" apart from "accept the disclaimer first".
-export function forbidden(message = "Forbidden") {
-  return NextResponse.json({ error: message, acknowledgementRequired: true }, { status: 403 });
+// REQ-224: `extra` (an AcknowledgementError's) says which acknowledgement --
+// { code: "study_notice_required" } or { code: "mature_content_required",
+// category, noticeVersion, minAge } -- so the app can ask for the right one.
+export function forbidden(message = "Forbidden", extra?: Record<string, unknown>) {
+  return NextResponse.json({ ...(extra ?? {}), error: message, acknowledgementRequired: true }, { status: 403 });
 }
 
 // The request conflicts with what is already recorded: a second revision of
@@ -89,6 +92,13 @@ export function serverError(err: unknown) {
   const requestId = randomUUID();
   if (err instanceof UserFacingError) {
     return NextResponse.json({ ...(err.extra ?? {}), error: err.message, requestId }, { status: err.status });
+  }
+  // REQ-224: an AcknowledgementError (study notice, 18+ mature content) that a
+  // route did not map itself is still the learner's to fix: 403, not 500.
+  // Duck-typed because lib/auth/requireAcknowledgement.ts imports this file.
+  const ack = err as { acknowledgementRequired?: unknown; extra?: unknown; message?: unknown } | null;
+  if (err instanceof Error && ack?.acknowledgementRequired === true && typeof ack.message === "string") {
+    return forbidden(ack.message, (ack.extra ?? undefined) as Record<string, unknown> | undefined);
   }
   const code = (err as { code?: unknown } | null)?.code;
   if (typeof code === "string" && CLIENT_INPUT_PG_CODES.has(code)) {

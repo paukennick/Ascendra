@@ -46,7 +46,7 @@ export async function GET(req: Request) {
     return ok({ messages: rows });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }
@@ -204,7 +204,7 @@ export async function POST(req: Request) {
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof ChatIdConflictError) return conflict(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }
