@@ -1,0 +1,738 @@
+{
+  "slug": "neonatal-rds-escalating-support",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: CPAP to 7, surfactant call at the threshold, LISA, oxygen weaned to 90-94%, slipped prongs found within 2 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "interface",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "params": {
+            "cm": "7"
+          },
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "lisa",
+          "choice": "lisa",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 7,
+          "tick": 1800
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "up5"
+          },
+          "seq": 8,
+          "tick": 2590
+        },
+        {
+          "type": "chapter",
+          "chapter": "threshold",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 2650
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "rds",
+            "bg": "full",
+            "rec": "surf"
+          },
+          "seq": 10,
+          "tick": 2650
+        },
+        {
+          "type": "teach",
+          "prompt": "target",
+          "choice": "t9094",
+          "seq": 11,
+          "tick": 2650
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 8,
+          "to": 2830,
+          "seq": 12,
+          "tick": 2650
+        },
+        {
+          "type": "act",
+          "action": "surfactant",
+          "seq": 13,
+          "tick": 2830
+        },
+        {
+          "type": "teach",
+          "prompt": "afterSurf",
+          "choice": "fall",
+          "seq": 14,
+          "tick": 2830
+        },
+        {
+          "type": "act",
+          "action": "interface",
+          "seq": 15,
+          "tick": 3130
+        },
+        {
+          "type": "chapter",
+          "chapter": "afterSurf",
+          "choice": "continue",
+          "seq": 16,
+          "tick": 4030
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "down5"
+          },
+          "seq": 17,
+          "tick": 4810
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "down5"
+          },
+          "seq": 18,
+          "tick": 6850
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "up5"
+          },
+          "seq": 19,
+          "tick": 12610
+        }
+      ],
+      "expect": {
+        "ending": "stable",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "surfactant": "met",
+          "targets": "met",
+          "interface": "met",
+          "pressure": "met",
+          "escalate": "met",
+          "noBlindOxygen": "met",
+          "gas": "met"
+        },
+        "kpis": {
+          "toSurf": 1440,
+          "hyper": 0,
+          "low": 2,
+          "toFix": 130,
+          "finalFio2": 0.3
+        },
+        "stateHash": "33893c7fd21bca05"
+      },
+      "reasoning": {
+        "whatNow": "met"
+      }
+    },
+    {
+      "id": "lateSurf",
+      "title": "Slow: CPAP left at 6, the surfactant call 40 minutes after the threshold, prongs found after 8 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "interface",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "lisa",
+          "choice": "lisa",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 6,
+          "tick": 1800
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "up5"
+          },
+          "seq": 7,
+          "tick": 1990
+        },
+        {
+          "type": "chapter",
+          "chapter": "threshold",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 2050
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "up5"
+          },
+          "seq": 9,
+          "tick": 3130
+        },
+        {
+          "type": "act",
+          "action": "interface",
+          "seq": 10,
+          "tick": 3490
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "down5"
+          },
+          "seq": 11,
+          "tick": 3550
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "rds",
+            "bg": "full",
+            "rec": "surf"
+          },
+          "seq": 12,
+          "tick": 4390
+        },
+        {
+          "type": "teach",
+          "prompt": "target",
+          "choice": "t9094",
+          "seq": 13,
+          "tick": 4390
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 11,
+          "to": 4570,
+          "seq": 14,
+          "tick": 4390
+        },
+        {
+          "type": "act",
+          "action": "surfactant",
+          "seq": 15,
+          "tick": 4570
+        },
+        {
+          "type": "teach",
+          "prompt": "afterSurf",
+          "choice": "fall",
+          "seq": 16,
+          "tick": 4570
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "up5"
+          },
+          "seq": 17,
+          "tick": 5230
+        },
+        {
+          "type": "chapter",
+          "chapter": "afterSurf",
+          "choice": "continue",
+          "seq": 18,
+          "tick": 5770
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "down5"
+          },
+          "seq": 19,
+          "tick": 6250
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "down5"
+          },
+          "seq": 20,
+          "tick": 7450
+        }
+      ],
+      "expect": {
+        "ending": "stableLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 69,
+        "criteria": {
+          "surfactant": "partial",
+          "targets": "met",
+          "interface": "met",
+          "pressure": "partial",
+          "escalate": "partial",
+          "noBlindOxygen": "partial",
+          "gas": "met"
+        },
+        "kpis": {
+          "toSurf": 3780,
+          "hyper": 0,
+          "low": 1,
+          "toFix": 490,
+          "finalFio2": 0.3
+        },
+        "stateHash": "c9b6e8978af51397"
+      },
+      "reasoning": {
+        "whatNow": "partial"
+      }
+    },
+    {
+      "id": "noWean",
+      "title": "Surfactant on time, but the oxygen is never weaned: hours above 95% on extra oxygen",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "interface",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "params": {
+            "cm": "7"
+          },
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "lisa",
+          "choice": "lisa",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 7,
+          "tick": 1800
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "up5"
+          },
+          "seq": 8,
+          "tick": 2590
+        },
+        {
+          "type": "chapter",
+          "chapter": "threshold",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 2650
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "rds",
+            "bg": "full",
+            "rec": "surf"
+          },
+          "seq": 10,
+          "tick": 2650
+        },
+        {
+          "type": "teach",
+          "prompt": "target",
+          "choice": "t9094",
+          "seq": 11,
+          "tick": 2650
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 8,
+          "to": 2830,
+          "seq": 12,
+          "tick": 2650
+        },
+        {
+          "type": "act",
+          "action": "surfactant",
+          "seq": 13,
+          "tick": 2830
+        },
+        {
+          "type": "teach",
+          "prompt": "afterSurf",
+          "choice": "fall",
+          "seq": 14,
+          "tick": 2830
+        },
+        {
+          "type": "act",
+          "action": "interface",
+          "seq": 15,
+          "tick": 3130
+        },
+        {
+          "type": "chapter",
+          "chapter": "afterSurf",
+          "choice": "continue",
+          "seq": 16,
+          "tick": 4030
+        }
+      ],
+      "expect": {
+        "ending": "stableLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "surfactant": "met",
+          "targets": "missed",
+          "interface": "met",
+          "pressure": "met",
+          "escalate": "met",
+          "noBlindOxygen": "met",
+          "gas": "met"
+        },
+        "kpis": {
+          "toSurf": 1440,
+          "hyper": 137,
+          "low": 1,
+          "toFix": 130,
+          "finalFio2": 0.35
+        },
+        "stateHash": "0cba87bcc201de52"
+      },
+      "reasoning": {
+        "whatNow": "met"
+      }
+    },
+    {
+      "id": "oxygenOnly",
+      "title": "Failure: oxygen turned up for every dip, a routine call, no surfactant, prongs never checked",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 3,
+          "tick": 1800
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "up5"
+          },
+          "seq": 4,
+          "tick": 1990
+        },
+        {
+          "type": "chapter",
+          "chapter": "threshold",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 2050
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sat",
+            "bg": "min",
+            "rec": "watch"
+          },
+          "seq": 6,
+          "tick": 2590
+        },
+        {
+          "type": "teach",
+          "prompt": "target",
+          "choice": "t9094",
+          "seq": 7,
+          "tick": 2590
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 6,
+          "to": 2770,
+          "seq": 8,
+          "tick": 2590
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "up5"
+          },
+          "seq": 9,
+          "tick": 3130
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "up5"
+          },
+          "seq": 10,
+          "tick": 4930
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "up5"
+          },
+          "seq": 11,
+          "tick": 7330
+        },
+        {
+          "type": "chapter",
+          "chapter": "afterSurf",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 9550
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "down5"
+          },
+          "seq": 13,
+          "tick": 9550
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "down5"
+          },
+          "seq": 14,
+          "tick": 9610
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "down5"
+          },
+          "seq": 15,
+          "tick": 9670
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "step": "down5"
+          },
+          "seq": 16,
+          "tick": 9730
+        }
+      ],
+      "expect": {
+        "ending": "stableLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 19,
+        "criteria": {
+          "surfactant": "missed",
+          "targets": "met",
+          "interface": "missed",
+          "pressure": "partial",
+          "escalate": "missed",
+          "noBlindOxygen": "missed",
+          "gas": "missed"
+        },
+        "kpis": {
+          "toSurf": 7552,
+          "hyper": 2,
+          "low": 2,
+          "toFix": -1,
+          "finalFio2": 0.3
+        },
+        "stateHash": "5a2ff830d3238637"
+      },
+      "reasoning": {
+        "whatNow": "missed"
+      }
+    },
+    {
+      "id": "noTitration",
+      "title": "Failure: CPAP turned down to 5, no surfactant call, the oxygen never adjusted and the prongs never checked",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "params": {
+            "cm": "5"
+          },
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 4,
+          "tick": 1800
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 19,
+        "criteria": {
+          "surfactant": "missed",
+          "targets": "partial",
+          "interface": "missed",
+          "pressure": "missed",
+          "escalate": "missed",
+          "noBlindOxygen": "met",
+          "gas": "missed"
+        },
+        "kpis": {
+          "toSurf": -1,
+          "hyper": 0,
+          "low": 119,
+          "toFix": -1,
+          "finalFio2": 0.3
+        },
+        "stateHash": "4d64cb0e608f6bb2"
+      },
+      "reasoning": {
+        "whatNow": "missed"
+      }
+    }
+  ]
+}
