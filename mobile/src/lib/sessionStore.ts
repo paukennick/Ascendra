@@ -113,3 +113,58 @@ function globalLocks(): unknown {
   const nav = (globalThis as { navigator?: { locks?: unknown } }).navigator;
   return nav?.locks ?? null;
 }
+
+// REQ-217 (FAIL-1040, FAIL-1041): what a failed refresh means. Only a 401 from
+// /api/auth/refresh says the server has ended this session (the token is
+// unknown, spent or expired); then the device signs out. Anything else --
+// offline, a timeout, a 5xx, "update required" -- says nothing about the
+// session, so the device keeps its token and the screen offers a retry. It
+// used to sign out on every failure, so a train tunnel or a deploy cost the
+// learner their session.
+export type RefreshResult = boolean | { ok: false; expired: boolean; error?: unknown };
+export type RefreshOutcome = "refreshed" | "expired" | "unavailable";
+
+export function refreshOutcome(result: RefreshResult): RefreshOutcome {
+  if (result === true) return "refreshed";
+  if (result === false) return "expired";
+  return result.expired ? "expired" : "unavailable";
+}
+
+export function refreshFailure(err: unknown): { ok: false; expired: boolean; error: unknown } {
+  const status = err && typeof err === "object" ? (err as { status?: unknown }).status : undefined;
+  return { ok: false, expired: status === 401, error: err };
+}
+
+// REQ-217 (FAIL-1042): the /api/auth/ routes a signed-out person calls. A 401
+// from these is an answer about what was sent (wrong password, spent token),
+// not "the access token expired", so the client never refreshes and resends
+// them. Every other /api/auth/ route (me, unlock, logout-all, sessions, change
+// password, the two-factor setup routes, Google link) needs the session and
+// does refresh once on a 401. Before, the whole prefix was exempt, so "Sign out
+// of all devices" failed on an expired access token and the app said it worked.
+const SIGNED_OUT_AUTH_ROUTES: readonly RegExp[] = [
+  /^\/api\/auth\/login$/,
+  /^\/api\/auth\/register$/,
+  /^\/api\/auth\/refresh$/,
+  /^\/api\/auth\/logout$/, // names the session by its own token; works when the access token is stale
+  /^\/api\/auth\/forgot-password$/,
+  /^\/api\/auth\/reset-password$/,
+  /^\/api\/auth\/resend-verification$/,
+  /^\/api\/auth\/mfa\/verify$/,
+  /^\/api\/auth\/mfa\/challenge(?:\/|$)/,
+  /^\/api\/auth\/oauth\/google$/, // sign-in; "/google/link" is a signed-in route
+];
+
+export function isSignedOutAuthRoute(path: string): boolean {
+  const bare = path.split("?")[0];
+  return SIGNED_OUT_AUTH_ROUTES.some((r) => r.test(bare));
+}
+
+// REQ-217 (FAIL-1040): whether the rotated refresh token is written to the
+// device now or marked for sealing later. With biometric unlock on, the sealed
+// key needs the OS prompt for every write on Android (and every update on
+// iOS), so a silent refresh never writes it: the live token stays in memory and
+// is sealed when the app goes to the background.
+export function rotationWrite(input: { biometricOn: boolean; sealSuspended: boolean }): "mark-dirty" | "plain" {
+  return input.biometricOn && !input.sealSuspended ? "mark-dirty" : "plain";
+}

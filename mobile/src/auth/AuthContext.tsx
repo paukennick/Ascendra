@@ -19,6 +19,7 @@ import {
 } from "@/lib/autoLock";
 import { localDataGuard, userLocalDataKeys } from "@/lib/localData";
 import { api, ApiError, isReauthRefusal, registerAuthHooks } from "@/api/client";
+import { friendlyError } from "@/lib/errorMessage";
 import {
   BIOMETRIC_SESSION_KEY,
   keepsBiometricPreference,
@@ -27,8 +28,11 @@ import {
   showBiometricSignIn,
   type SealedSessionEnd,
   planRefresh,
+  refreshFailure,
   refreshTokenToKeep,
+  rotationWrite,
   withRefreshLock,
+  type RefreshResult,
 } from "@/lib/sessionStore";
 import { cancelStudyReminders } from "@/lib/reminderScheduler";
 import { TERMS_VERSION } from "@/lib/legal";
@@ -75,7 +79,10 @@ const SEAL_OPTIONS = { requireAuthentication: true, authenticationPrompt: "Unloc
 
 // "locked" = a biometric-gated session exists on this device but hasn't been
 // unlocked yet this app launch.
-export type AuthStatus = "loading" | "signedOut" | "locked" | "signedIn";
+// REQ-217 (FAIL-1041): "retry" = a session is stored on this device but the
+// server could not be reached to resume it (offline, a timeout, a 5xx). The
+// token is kept; the root layout offers Try again and Sign out.
+export type AuthStatus = "loading" | "signedOut" | "locked" | "signedIn" | "retry";
 
 export interface LoginResult {
   emailVerificationRequired?: boolean;
@@ -91,7 +98,12 @@ interface AuthContextValue {
   // REQ-119: acceptedTermsVersion is sent only by a form whose "I agree" was ticked.
   register: (email: string, password: string, displayName?: string, acceptedTermsVersion?: string, ageConfirmed?: boolean) => Promise<void>;
   logout: () => Promise<void>;
-  logoutAll: () => Promise<void>;
+  // REQ-217 (FAIL-1043): ok only when the server confirmed it ended every
+  // session; on a failure this device stays signed in and says why.
+  logoutAll: () => Promise<{ ok: boolean; error?: string }>;
+  // REQ-217: the "retry" status's Try again; the message of the last failure.
+  restoreSession: () => Promise<void>;
+  restoreError: string | null;
   completeMfaLogin: (challengeToken: string, code: string) => Promise<void>;
   loginWithGoogle: (idToken: string, ageConfirmed?: boolean) => Promise<LoginResult>;
   refreshUser: () => Promise<void>;
@@ -165,7 +177,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const accessTokenRef = useRef<string | null>(null);
   const refreshTokenRef = useRef<string | null>(null);
   const biometricEnabledRef = useRef(false);
-  const inFlightRefresh = useRef<Promise<boolean> | null>(null);
+  const inFlightRefresh = useRef<Promise<RefreshResult> | null>(null);
+  // REQ-217 (FAIL-1040): with biometric unlock on, a silent refresh rotates the
+  // token in memory only (writing the sealed key prompts for the fingerprint on
+  // Android every time). sealDirtyRef says the sealed copy is behind; it is
+  // written when the app goes to the background. sealSuspendedRef: that write
+  // failed once this launch (no prompt could be shown), so the session is on
+  // the plain key until the next sign-in or unlock seals it again.
+  const sealDirtyRef = useRef(false);
+  const sealSuspendedRef = useRef(false);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
   const backgroundedAtRef = useRef<number | null>(null);
   // Web: last keyboard/mouse/touch input. A ref so unlocking can reset it.
   const webLastActivityRef = useRef(Date.now());
@@ -258,13 +279,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setBiometricSessionFlag("0");
   }, []);
 
+  // Stores a token the device has just been handed by a sign-in or an unlock
+  // (a moment the learner is present, so the OS prompt can show): sealed behind
+  // the biometric prompt when that is on. A failed or cancelled seal never
+  // loses the session -- the server has already rotated the token -- it keeps
+  // it on the plain key, flag "0", so the next launch resumes instead of
+  // finding a spent sealed copy (REQ-217, FAIL-1040; the pattern is the one
+  // applySession always had).
+  const storeSessionToken = useCallback(async (token: string) => {
+    sealDirtyRef.current = false;
+    if (!biometricEnabledRef.current) {
+      await secureStorage.setItem(REFRESH_TOKEN_KEY, token);
+      return;
+    }
+    try {
+      await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, token, SEAL_OPTIONS);
+      await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1");
+      setBiometricSessionFlag("1");
+      sealSuspendedRef.current = false;
+      await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
+    } catch {
+      sealSuspendedRef.current = true;
+      await secureStorage.setItem(REFRESH_TOKEN_KEY, token);
+      await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY).catch(() => undefined);
+      await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "0").catch(() => undefined);
+      setBiometricSessionFlag("0");
+    }
+  }, []);
+
   // Dedupes concurrent refresh attempts (e.g. several screens' requests all
   // 401 at once) into a single in-flight call. Never touches the
   // biometric-gated key -- that's only ever read by unlockWithBiometric,
-  // once per app launch.
-  const refresh = useCallback(async (): Promise<boolean> => {
+  // once per app launch, and written at sign-in, unlock and background.
+  //
+  // REQ-217 (FAIL-1041): only a 401 from the server signs the device out. A
+  // failure to reach it keeps the token and is returned for the caller to show.
+  const refresh = useCallback(async (): Promise<RefreshResult> => {
     if (inFlightRefresh.current) return inFlightRefresh.current;
-    const attempt = withRefreshLock(async () => {
+    const attempt = withRefreshLock<RefreshResult>(async () => {
       const storedRefreshToken =
         IS_WEB || !refreshTokenRef.current ? await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null) : null;
       const plan = planRefresh({ web: IS_WEB, memoryToken: refreshTokenRef.current, storedToken: storedRefreshToken });
@@ -275,26 +327,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // REQ-192: an old web tab's token leaves storage before it is sent, so
       // a failed exchange falls back to sign-in and is never tried again.
       if (plan.kind === "body" && plan.migratingLegacy) await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
+      let res: { accessToken: string; refreshToken?: string };
       try {
-        const res = await api.post<{ accessToken: string; refreshToken?: string }>(
+        res = await api.post<{ accessToken: string; refreshToken?: string }>(
           "/api/auth/refresh",
           plan.kind === "body" ? { refreshToken: plan.token } : undefined
         );
-        accessTokenRef.current = res.accessToken;
-        const keep = refreshTokenToKeep(IS_WEB, res);
-        refreshTokenRef.current = keep;
-        if (keep && biometricEnabledRef.current) {
-          await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, keep, SEAL_OPTIONS);
-          await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1").catch(() => undefined);
-          setBiometricSessionFlag("1");
-        } else if (keep) {
-          await secureStorage.setItem(REFRESH_TOKEN_KEY, keep);
-        }
-        return true;
-      } catch {
-        await clearAuth();
-        return false;
+      } catch (err) {
+        const failure = refreshFailure(err);
+        // The server said no: this session is over. Anything else says nothing
+        // about it, so the token stays (a legacy web token was already removed
+        // above and goes back to sign-in as before).
+        if (failure.expired) await clearAuth();
+        return failure;
       }
+      accessTokenRef.current = res.accessToken;
+      const keep = refreshTokenToKeep(IS_WEB, res);
+      if (keep) refreshTokenRef.current = keep;
+      // The exchange succeeded and the server has rotated the token: nothing
+      // below may sign the learner out, whatever the device's storage does.
+      if (keep) {
+        try {
+          if (rotationWrite({ biometricOn: biometricEnabledRef.current, sealSuspended: sealSuspendedRef.current }) === "mark-dirty") {
+            sealDirtyRef.current = true;
+          } else {
+            await secureStorage.setItem(REFRESH_TOKEN_KEY, keep);
+          }
+        } catch (err) {
+          console.warn("Could not store the refreshed session:", err);
+        }
+      }
+      return true;
     }, IS_WEB ? undefined : null);
     inFlightRefresh.current = attempt;
     try {
@@ -334,9 +397,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // intentional-close logout still runs first when it gets the chance, so
   // by the time a killed app reaches this effect again there is usually
   // nothing left in SecureStore for refresh() to find anyway.)
+  // Resumes the session a cold start (or the retry button) found. REQ-217
+  // (FAIL-1041): when the server can't be reached the token is kept and the
+  // status is "retry"; only the server's own 401 sends the learner to sign-in.
+  const resumeSession = useCallback(async () => {
+    const result = await refresh();
+    if (result !== true) {
+      // false / expired: refresh() already signed out. Otherwise: keep it.
+      if (typeof result === "object" && !result.expired) {
+        setRestoreError(friendlyError(result.error));
+        setStatus("retry");
+      }
+      return;
+    }
+    try {
+      const res = await api.get<{ user: AuthUser }>("/api/auth/me");
+      // REQ-177: a resumed session (a restart, a reloaded tab) locks when
+      // the learner was away long enough, or a lock was open.
+      const [[, lastSeenAt], [, lockedFlag], [, setting]] = await AsyncStorage.multiGet([
+        LAST_SEEN_KEY,
+        LOCKED_KEY,
+        LOCK_AFTER_KEY,
+      ]).catch(() => [[LAST_SEEN_KEY, null], [LOCKED_KEY, null], [LOCK_AFTER_KEY, null]] as [string, string | null][]);
+      if (shouldLockOnColdStart({ now: Date.now(), lastSeenAt, lockedFlag, setting: parseLockAfter(setting) })) lockApp();
+      else persistLastSeen();
+      setRestoreError(null);
+      setUser(res.user);
+      setStatus("signedIn");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        await clearAuth();
+      } else {
+        setRestoreError(friendlyError(err));
+        setStatus("retry");
+      }
+    }
+  }, [refresh, clearAuth, lockApp, persistLastSeen]);
+
   useEffect(() => {
     (async () => {
-      const biometricOn = (await secureStorage.getItem(BIOMETRIC_ENABLED_KEY)) === "1";
+      // REQ-217: a throwing read (a keystore error) used to leave the app on
+      // the splash screen forever. It reads as "no biometric preference".
+      const biometricOn = (await secureStorage.getItem(BIOMETRIC_ENABLED_KEY).catch(() => null)) === "1";
       biometricEnabledRef.current = biometricOn;
       setBiometricEnabled(biometricOn);
       // REQ-192: after a logout the preference stays on but no sealed
@@ -347,27 +449,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setStatus("locked");
         return;
       }
-      const refreshed = await refresh();
-      if (!refreshed) return;
-      try {
-        const res = await api.get<{ user: AuthUser }>("/api/auth/me");
-        // REQ-177: a resumed session (a restart, a reloaded tab) locks when
-        // the learner was away long enough, or a lock was open.
-        const [[, lastSeenAt], [, lockedFlag], [, setting]] = await AsyncStorage.multiGet([
-          LAST_SEEN_KEY,
-          LOCKED_KEY,
-          LOCK_AFTER_KEY,
-        ]).catch(() => [[LAST_SEEN_KEY, null], [LOCKED_KEY, null], [LOCK_AFTER_KEY, null]] as [string, string | null][]);
-        if (shouldLockOnColdStart({ now: Date.now(), lastSeenAt, lockedFlag, setting: parseLockAfter(setting) })) lockApp();
-        else persistLastSeen();
-        setUser(res.user);
-        setStatus("signedIn");
-      } catch {
-        await clearAuth();
-      }
+      await resumeSession();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const restoreSession = useCallback(async () => {
+    setRestoreError(null);
+    await resumeSession();
+  }, [resumeSession]);
 
   // Shared by login, Google sign-in, and the MFA challenge -- all three end
   // the same way once a real session comes back from the backend.
@@ -378,23 +468,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (IS_WEB) {
       // REQ-192: the cookie holds it; drop any token an older version left.
       await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
-    } else if (keep && biometricEnabledRef.current) {
-      // Biometric unlock stayed on through the logout: seal the new session
-      // so the next launch locks instead of losing it.
-      // If sealing fails (a cancelled prompt), keep it like a plain sign-in;
-      // the "0" flag sends the next launch through the plain token.
-      try {
-        await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, keep, SEAL_OPTIONS);
-        await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1");
-        setBiometricSessionFlag("1");
-        await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
-      } catch {
-        await secureStorage.setItem(REFRESH_TOKEN_KEY, keep);
-        await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "0").catch(() => undefined);
-        setBiometricSessionFlag("0");
-      }
     } else if (keep) {
-      await secureStorage.setItem(REFRESH_TOKEN_KEY, keep);
+      // A sign-in is a moment the learner is present, so the sealed write
+      // (the OS prompt) can show. Biometric unlock stayed on through the
+      // logout: seal the new session so the next launch locks instead of
+      // losing it. A cancelled prompt keeps it like a plain sign-in; the "0"
+      // flag sends the next launch through the plain token.
+      sealSuspendedRef.current = false;
+      await storeSessionToken(keep);
     }
     // A sign-in just proved it's them.
     releaseLock();
@@ -409,7 +490,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Non-fatal -- the minimal user object from the auth response still works.
     }
-  }, [releaseLock]);
+  }, [releaseLock, storeSessionToken]);
 
   type LoginResponse =
     | { accessToken: string; refreshToken?: string; user: AuthUser; mfaRequired?: undefined }
@@ -511,12 +592,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await endSession();
   }, [endSession]);
 
-  const logoutAll = useCallback(async () => {
+  // REQ-217 (FAIL-1043): "Sign out of all devices" reports success only when
+  // the server answered 200. It used to swallow every failure -- an expired
+  // access token was never refreshed for /api/auth/ routes, so the call failed
+  // with a 401 -- then wiped this phone and said it had worked, leaving the
+  // other devices signed in. Now the request refreshes and retries like any
+  // signed-in call, and a failure leaves this device signed in with a message.
+  const logoutAll = useCallback(async (): Promise<{ ok: boolean; error?: string }> => {
     const userId = userRef.current?.id;
-    await api.post("/api/auth/logout-all").catch(() => undefined);
+    try {
+      await api.post("/api/auth/logout-all");
+    } catch (err) {
+      return { ok: false, error: friendlyError(err) };
+    }
     if (userId) await clearUserLocalData(userId);
     await endSealedSession("logoutAll");
     await clearAuth();
+    return { ok: true };
   }, [clearAuth, endSealedSession]);
 
   // REQ-177: native -- time in the background locks the app (an overlay;
@@ -542,6 +634,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         backgroundHold.noteBackground();
         if (backgroundedAtRef.current === null) backgroundedAtRef.current = Date.now();
         persistLastSeen();
+        // REQ-217 (FAIL-1040): the one place a silently rotated token is
+        // written to the sealed key.
+        if (sealDirtyRef.current && refreshTokenRef.current) void storeSessionToken(refreshTokenRef.current).catch(() => undefined);
       } else if (next === "active") {
         const at = backgroundedAtRef.current;
         backgroundedAtRef.current = null;
@@ -554,7 +649,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
     return () => sub.remove();
-  }, [status, lockApp, persistLastSeen]);
+  }, [status, lockApp, persistLastSeen, storeSessionToken]);
 
   // Web's counterpart to the native lock above. REQ-177: after the "Lock
   // after" time without input, or with the tab hidden that long, the lock
@@ -631,10 +726,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const confirmed = await confirmBiometric("Confirm to enable biometric sign-in for Ascendra");
     if (!confirmed) return { ok: false, error: "Could not confirm biometrics." };
 
-    await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, refreshTokenRef.current, SEAL_OPTIONS);
-    await secureStorage.deleteItem(REFRESH_TOKEN_KEY);
-    await secureStorage.setItem(BIOMETRIC_ENABLED_KEY, "1");
-    await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1");
+    // REQ-217: a failed write (a prompt cancelled, a keystore error) used to
+    // throw out of the switch with nothing said. Nothing is half-done: the
+    // plain copy stays until the sealed one is in place.
+    try {
+      await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, refreshTokenRef.current, SEAL_OPTIONS);
+      await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1");
+      await secureStorage.deleteItem(REFRESH_TOKEN_KEY);
+      await secureStorage.setItem(BIOMETRIC_ENABLED_KEY, "1"); // last: the preference is on only once the rest is in place
+    } catch {
+      await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY).catch(() => undefined);
+      await secureStorage.deleteItem(BIOMETRIC_SESSION_KEY).catch(() => undefined);
+      if (!(await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null))) {
+        await secureStorage.setItem(REFRESH_TOKEN_KEY, refreshTokenRef.current).catch(() => undefined);
+      }
+      return { ok: false, error: "Couldn't turn this on. If you cancelled the fingerprint prompt, try again and confirm it." };
+    }
+    sealDirtyRef.current = false;
+    sealSuspendedRef.current = false;
     setBiometricSessionFlag("1");
     biometricEnabledRef.current = true;
     setBiometricEnabled(true);
@@ -652,6 +761,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await secureStorage.deleteItem(BIOMETRIC_ENABLED_KEY);
     await secureStorage.deleteItem(BIOMETRIC_SESSION_KEY).catch(() => undefined);
     setBiometricSessionFlag("0");
+    sealDirtyRef.current = false;
     biometricEnabledRef.current = false;
     setBiometricEnabled(false);
   }, []);
@@ -675,10 +785,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       accessTokenRef.current = res.accessToken;
       refreshTokenRef.current = res.refreshToken;
-      await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, res.refreshToken, {
-        requireAuthentication: true,
-        authenticationPrompt: "Unlock Ascendra",
-      });
+      // The server has rotated the token, so the sealed copy is spent: write
+      // the new one now, while the learner is here. If that write fails (a
+      // cancelled second prompt), storeSessionToken keeps the session on the
+      // plain key instead of leaving a spent copy to replay (REQ-217,
+      // FAIL-1040).
+      sealSuspendedRef.current = false;
+      await storeSessionToken(res.refreshToken);
       const me = await api.get<{ user: AuthUser }>("/api/auth/me");
       releaseLock();
       setUser(me.user);
@@ -699,15 +812,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // can retry or fall back, never trapped and never silently signed in.
       return false;
     }
-  }, [clearAuth, endSealedSession, releaseLock]);
+  }, [clearAuth, endSealedSession, releaseLock, storeSessionToken]);
 
   // REQ-177: unlocking the lock after time away. The session is still live
   // in memory; this only confirms it's the learner. Biometric: the OS
   // prompt with the device passcode as its fallback, under a background
   // hold so the passcode screen (a separate activity on Android) can't
   // re-lock on "Immediately". Password: POST /api/auth/unlock. An access
-  // token that expired while locked is refreshed once (the client never
-  // refreshes /api/auth/* itself); a refused refresh signs out.
+  // token that expired while locked is refreshed once by the API client
+  // (REQ-217: unlock is a signed-in route; a refused refresh signs out there,
+  // an unreachable server leaves the lock up with its message).
   const unlockMethod = unlockMethodFor(biometricEnabled, Platform.OS);
   const unlockApp = useCallback(
     async (input?: { reauth?: string; googleIdToken?: string }): Promise<{ ok: boolean; error?: string }> => {
@@ -717,22 +831,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         releaseLock();
         return { ok: true };
       }
-      const send = () => api.post("/api/auth/unlock", input ?? {});
       try {
-        try {
-          await send();
-        } catch (err) {
-          if (!(err instanceof ApiError) || err.status !== 401 || isReauthRefusal(err.data)) throw err;
-          if (!(await refresh())) return { ok: false, error: "Your session ended. Sign in again." };
-          await send();
-        }
+        await api.post("/api/auth/unlock", input ?? {});
         releaseLock();
         return { ok: true };
       } catch (err) {
-        return { ok: false, error: err instanceof Error ? err.message : "Couldn't unlock. Try again." };
+        // A 401 that is not a wrong answer means the session itself ended
+        // (the client already tried to refresh it).
+        if (err instanceof ApiError && err.status === 401 && !isReauthRefusal(err.data)) {
+          return { ok: false, error: "Your session ended. Sign in again." };
+        }
+        return { ok: false, error: friendlyError(err) };
       }
     },
-    [refresh, releaseLock]
+    [releaseLock]
   );
 
   // "Use password instead" from the lock screen: end the sealed session and
@@ -753,6 +865,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         logout,
         logoutAll,
+        restoreSession,
+        restoreError,
         completeMfaLogin,
         loginWithGoogle,
         refreshUser,

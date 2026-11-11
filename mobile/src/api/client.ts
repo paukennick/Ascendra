@@ -3,6 +3,7 @@
 
 import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "../lib/errorMessage.ts";
 import { LEGAL_VERSION_HEADER, TERMS_VERSION } from "../lib/legal.ts";
+import { isSignedOutAuthRoute, refreshOutcome, type RefreshResult } from "../lib/sessionStore.ts";
 import { studyNoticeGate } from "../lib/studyNotice.ts";
 import { APP_PLATFORM_HEADER, APP_VERSION, APP_VERSION_HEADER, appHeaders, readUpdateRequired, type AppIdentity, type UpdateRequired } from "../lib/appVersion.ts";
 
@@ -33,13 +34,13 @@ export class ApiError extends Error {
 // AuthContext itself needs to call `api.post(...)`, so a direct import here
 // would be circular.
 let getAccessToken: (() => string | null) | null = null;
-let refreshAccessToken: (() => Promise<boolean>) | null = null;
+let refreshAccessToken: (() => Promise<RefreshResult>) | null = null;
 let onAuthExpired: (() => void) | null = null;
 let setAccessToken: ((token: string) => void) | null = null;
 
 export function registerAuthHooks(hooks: {
   getAccessToken: () => string | null;
-  refresh: () => Promise<boolean>;
+  refresh: () => Promise<RefreshResult>;
   onAuthExpired: () => void;
   setAccessToken?: (token: string) => void;
 }): void {
@@ -248,10 +249,17 @@ export function isReauthRefusal(data: unknown): boolean {
   return !!data && typeof data === "object" && (data as { reauthRequired?: unknown }).reauthRequired === true;
 }
 
-// One silent refresh-and-retry on a 401, never for /api/auth/* itself
-// (a 401 from login is just "wrong password", not "needs a refresh", and
-// retrying refresh's own 401 would recurse). A timeout is never retried
-// here: the screen's own Retry decides, reusing any idempotency key.
+// One silent refresh-and-retry on a 401, except for the routes a signed-out
+// person calls (isSignedOutAuthRoute: a 401 from login is just "wrong
+// password", and retrying refresh's own 401 would recurse). REQ-217
+// (FAIL-1042): the other /api/auth/ routes -- logout-all, unlock, sessions --
+// need the session and do refresh. A timeout is never retried here: the
+// screen's own Retry decides, reusing any idempotency key.
+//
+// REQ-217 (FAIL-1041): when the refresh fails, only a 401 from it (the server
+// ended the session) signs the device out. Anything else -- offline, a
+// timeout, a 5xx -- throws that failure to the screen, which shows its calm
+// message and a retry, and the session stays.
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -275,13 +283,18 @@ async function request<T>(
       !isReauthRefusal(err.data) &&
       !alreadyRetried &&
       refreshAccessToken &&
-      !path.startsWith("/api/auth/");
+      !isSignedOutAuthRoute(path);
     if (canRetry) {
-      const refreshed = await refreshAccessToken!();
-      if (refreshed) {
+      const result = await refreshAccessToken!();
+      const outcome = refreshOutcome(result);
+      if (outcome === "refreshed") {
         return request<T>(path, options, opts, true);
       }
-      onAuthExpired?.();
+      if (outcome === "expired") {
+        onAuthExpired?.();
+      } else if (typeof result === "object" && result.error instanceof Error) {
+        throw result.error;
+      }
     }
     throw err;
   }
