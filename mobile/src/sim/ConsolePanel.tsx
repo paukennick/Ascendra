@@ -9,18 +9,18 @@ import type { ConsoleSeverity, ConsoleTone } from "./engine/v1/types.ts";
 // Three blocks in reading order: the alert queue, the assets, the log and
 // event lines; meters (attacker stage, evidence) under the assets. Each alert,
 // asset and log line is one accessible element whose label says its state in
-// words; severity and tone are a word plus a colour, never colour alone.
+// words; severity and tone are a word plus a color, never color alone.
 // Every element is at least 48 dp (MIN_TOUCH). "Read the console" speaks the
 // whole screen. Containment and investigation are the scenario's action
 // groups (ActionBar), not part of this panel, so the panel holds no rule.
 
-const SEVERITY_COLOUR: Record<ConsoleSeverity, string> = { critical: colors.bad, high: colors.bad, medium: colors.warn, low: colors.muted };
-const TONE_COLOUR: Record<ConsoleTone, string> = { ok: colors.good, watch: colors.warn, bad: colors.bad, held: colors.accent };
+const SEVERITY_COLOR: Record<ConsoleSeverity, string> = { critical: colors.bad, high: colors.bad, medium: colors.warn, low: colors.muted };
+const TONE_COLOR: Record<ConsoleTone, string> = { ok: colors.good, watch: colors.warn, bad: colors.bad, held: colors.accent };
 
-function Pill({ text, colour }: { text: string; colour: string }) {
+function Pill({ text, color }: { text: string; color: string }) {
   return (
-    <View style={{ borderWidth: 1, borderColor: colour, borderRadius: radius.sm, paddingHorizontal: 6, paddingVertical: 1, alignSelf: "flex-start" }}>
-      <Muted style={{ fontSize: 12, color: colour, fontWeight: "700" }}>{text}</Muted>
+    <View style={{ borderWidth: 1, borderColor: color, borderRadius: radius.sm, paddingHorizontal: 6, paddingVertical: 1, alignSelf: "flex-start" }}>
+      <Muted style={{ fontSize: 12, color, fontWeight: "700" }}>{text}</Muted>
     </View>
   );
 }
@@ -37,10 +37,10 @@ export function ConsolePanel({ v, onRead }: { v: ConsoleView | null; onRead: () 
             key={a.id}
             accessible
             accessibilityLabel={`${a.open ? "Open. " : ""}${a.a11y}`}
-            style={{ minHeight: MIN_TOUCH, borderWidth: a.open ? 2 : 1, borderColor: a.open ? SEVERITY_COLOUR[a.severity] : colors.borderLight, borderRadius: radius.sm, padding: spacing.sm, gap: 2 }}
+            style={{ minHeight: MIN_TOUCH, borderWidth: a.open ? 2 : 1, borderColor: a.open ? SEVERITY_COLOR[a.severity] : colors.borderLight, borderRadius: radius.sm, padding: spacing.sm, gap: 2 }}
           >
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, alignItems: "center" }}>
-              <Pill text={SEVERITY_WORDS[a.severity]} colour={SEVERITY_COLOUR[a.severity]} />
+              <Pill text={SEVERITY_WORDS[a.severity]} color={SEVERITY_COLOR[a.severity]} />
               <Muted style={{ fontSize: 12 }}>{`${a.time} · ${a.status}`}</Muted>
             </View>
             <Body style={{ fontWeight: a.open ? "700" : "400" }}>{a.title}</Body>
@@ -56,11 +56,11 @@ export function ConsolePanel({ v, onRead }: { v: ConsoleView | null; onRead: () 
               key={a.id}
               accessible
               accessibilityLabel={a.a11y}
-              style={{ flexGrow: 1, flexBasis: "45%", minWidth: 150, minHeight: MIN_TOUCH, borderWidth: 1, borderColor: a.tone === "ok" ? colors.borderLight : TONE_COLOUR[a.tone], borderRadius: radius.sm, padding: spacing.sm, gap: 2 }}
+              style={{ flexGrow: 1, flexBasis: "45%", minWidth: 150, minHeight: MIN_TOUCH, borderWidth: 1, borderColor: a.tone === "ok" ? colors.borderLight : TONE_COLOR[a.tone], borderRadius: radius.sm, padding: spacing.sm, gap: 2 }}
             >
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: spacing.xs }}>
                 <Muted style={{ fontSize: 12 }}>{a.kind}</Muted>
-                <Pill text={TONE_WORDS[a.tone]} colour={TONE_COLOUR[a.tone]} />
+                <Pill text={TONE_WORDS[a.tone]} color={TONE_COLOR[a.tone]} />
               </View>
               <Body style={{ fontWeight: "700" }}>{a.label}</Body>
               <Muted>{a.status}</Muted>
