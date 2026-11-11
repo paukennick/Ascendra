@@ -1,0 +1,728 @@
+{
+  "slug": "sepsis-to-septic-shock",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: cultures then antibiotic within minutes, 30 mL/kg, early SBAR, peripheral norepinephrine, repeat lactate at 2 h",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "lactate",
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "1000"
+          },
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "1000"
+          },
+          "seq": 5,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "shock",
+            "bg": "full",
+            "asmt": "septic",
+            "rec": "come"
+          },
+          "seq": 6,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "source",
+          "seq": 7,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "culturesT",
+          "instance": 2,
+          "to": 330,
+          "seq": 8,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 9,
+          "tick": 330
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 10,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.1"
+          },
+          "seq": 11,
+          "tick": 1710
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.15"
+          },
+          "seq": 12,
+          "tick": 3810
+        },
+        {
+          "type": "act",
+          "action": "lactate",
+          "seq": 13,
+          "tick": 7410
+        },
+        {
+          "type": "skip",
+          "timer": "lacResultT",
+          "instance": 11,
+          "to": 8010,
+          "seq": 14,
+          "tick": 7410
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.1"
+          },
+          "seq": 15,
+          "tick": 8010
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.05"
+          },
+          "seq": 16,
+          "tick": 8310
+        }
+      ],
+      "expect": {
+        "ending": "stabilized",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "lactateEarly": "met",
+          "cultures": "met",
+          "antibiotic": "met",
+          "fluids": "met",
+          "noOverload": "met",
+          "pressor": "met",
+          "mapRestored": "met",
+          "escalate": "met",
+          "relactate": "met",
+          "source": "met"
+        },
+        "kpis": {
+          "toAbx": 330,
+          "toFluid30": 1320,
+          "toPressor": 1710,
+          "hypoMinutes": 0,
+          "fluidTotal": 3000,
+          "lastLactate": 2.9
+        },
+        "stateHash": "669a9677afccdbc2"
+      },
+      "reasoning": {
+        "whatNow": "met"
+      }
+    },
+    {
+      "id": "slowSafe",
+      "title": "Slow but safe: antibiotic at 45 min, the call 20 min after the first low MAP, norepinephrine late",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "500"
+          },
+          "seq": 2,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "lactate",
+          "seq": 3,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 4,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "1000"
+          },
+          "seq": 5,
+          "tick": 600
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 6,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 7,
+          "tick": 2700
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "500"
+          },
+          "seq": 8,
+          "tick": 2700
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "shock",
+            "bg": "full",
+            "asmt": "septic",
+            "rec": "come"
+          },
+          "seq": 9,
+          "tick": 3900
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 8,
+          "to": 4080,
+          "seq": 10,
+          "tick": 3900
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.15"
+          },
+          "seq": 11,
+          "tick": 5580
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.2"
+          },
+          "seq": 12,
+          "tick": 5880
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.3"
+          },
+          "seq": 13,
+          "tick": 6180
+        },
+        {
+          "type": "act",
+          "action": "lactate",
+          "seq": 14,
+          "tick": 7980
+        },
+        {
+          "type": "skip",
+          "timer": "lacResultT",
+          "instance": 13,
+          "to": 8580,
+          "seq": 15,
+          "tick": 7980
+        }
+      ],
+      "expect": {
+        "ending": "stabilizedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 73,
+        "criteria": {
+          "lactateEarly": "met",
+          "cultures": "met",
+          "antibiotic": "met",
+          "fluids": "met",
+          "noOverload": "met",
+          "pressor": "partial",
+          "mapRestored": "partial",
+          "escalate": "partial",
+          "relactate": "met",
+          "source": "missed"
+        },
+        "kpis": {
+          "toAbx": 2700,
+          "toFluid30": 2220,
+          "toPressor": 5580,
+          "hypoMinutes": 67,
+          "fluidTotal": 3000,
+          "lastLactate": 4.7
+        },
+        "stateHash": "3d83085951ed4408"
+      },
+      "reasoning": {
+        "whatNow": "partial"
+      }
+    },
+    {
+      "id": "noAntibiotic",
+      "title": "Failure: fluids only, a routine call, no cultures, no antibiotic, no lactate",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "1000"
+          },
+          "seq": 1,
+          "tick": 300
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 2,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "fever",
+            "bg": "min",
+            "asmt": "dry",
+            "rec": "fluid"
+          },
+          "seq": 3,
+          "tick": 1800
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 3,
+          "to": 1980,
+          "seq": 4,
+          "tick": 1800
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "1000"
+          },
+          "seq": 5,
+          "tick": 1980
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 23,
+        "criteria": {
+          "lactateEarly": "missed",
+          "cultures": "missed",
+          "antibiotic": "missed",
+          "fluids": "met",
+          "noOverload": "met",
+          "pressor": "missed",
+          "mapRestored": "partial",
+          "escalate": "missed",
+          "relactate": "missed",
+          "source": "missed"
+        },
+        "kpis": {
+          "toAbx": -1,
+          "toFluid30": 2700,
+          "toPressor": -1,
+          "hypoMinutes": 71,
+          "fluidTotal": 3000,
+          "lastLactate": 0
+        },
+        "stateHash": "f16694af8f67db0a"
+      },
+      "reasoning": {
+        "whatNow": "missed"
+      }
+    },
+    {
+      "id": "lateAntibioticCentralLine",
+      "title": "Failure: antibiotic at 100 min, no extra fluid, norepinephrine only through a central line",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "lactate",
+          "seq": 2,
+          "tick": 600
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 3,
+          "tick": 691
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "shock",
+            "bg": "full",
+            "asmt": "septic",
+            "rec": "come"
+          },
+          "seq": 4,
+          "tick": 1291
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 4,
+          "to": 1471,
+          "seq": 5,
+          "tick": 1291
+        },
+        {
+          "type": "act",
+          "action": "line",
+          "seq": 6,
+          "tick": 1471
+        },
+        {
+          "type": "skip",
+          "timer": "lineT",
+          "instance": 6,
+          "to": 4171,
+          "seq": 7,
+          "tick": 1471
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.2"
+          },
+          "seq": 8,
+          "tick": 2071
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 9,
+          "tick": 6000
+        },
+        {
+          "type": "skip",
+          "timer": "culturesT",
+          "instance": 8,
+          "to": 6300,
+          "seq": 10,
+          "tick": 6000
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 11,
+          "tick": 6079
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.3"
+          },
+          "seq": 12,
+          "tick": 6379
+        },
+        {
+          "type": "act",
+          "action": "lactate",
+          "seq": 13,
+          "tick": 7879
+        },
+        {
+          "type": "skip",
+          "timer": "lacResultT",
+          "instance": 10,
+          "to": 8479,
+          "seq": 14,
+          "tick": 7879
+        }
+      ],
+      "expect": {
+        "ending": "time_up",
+        "class": "harm",
+        "rating": "bad",
+        "score": 59,
+        "criteria": {
+          "lactateEarly": "met",
+          "cultures": "partial",
+          "antibiotic": "partial",
+          "fluids": "missed",
+          "noOverload": "met",
+          "pressor": "met",
+          "mapRestored": "missed",
+          "escalate": "met",
+          "relactate": "met",
+          "source": "missed"
+        },
+        "kpis": {
+          "toAbx": 6079,
+          "toFluid30": -1,
+          "toPressor": 2071,
+          "hypoMinutes": 97,
+          "fluidTotal": 1000,
+          "lastLactate": 5.5
+        },
+        "stateHash": "5a3db8747fa2583f"
+      },
+      "reasoning": {
+        "whatNow": "partial"
+      }
+    },
+    {
+      "id": "fluidOverload",
+      "title": "On time, but 6 liters of fluid on the unit: pulmonary edema and a breathing tube",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "lactate",
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "1000"
+          },
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "1000"
+          },
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "shock",
+            "bg": "full",
+            "asmt": "septic",
+            "rec": "come"
+          },
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "source",
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "culturesT",
+          "instance": 2,
+          "to": 330,
+          "seq": 8,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 9,
+          "tick": 330
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 10,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.1"
+          },
+          "seq": 11,
+          "tick": 1710
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "1000"
+          },
+          "seq": 12,
+          "tick": 1830
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "1000"
+          },
+          "seq": 13,
+          "tick": 1830
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "1000"
+          },
+          "seq": 14,
+          "tick": 3630
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "ml": "1000"
+          },
+          "seq": 15,
+          "tick": 3630
+        },
+        {
+          "type": "act",
+          "action": "lactate",
+          "seq": 16,
+          "tick": 7377
+        },
+        {
+          "type": "skip",
+          "timer": "lacResultT",
+          "instance": 14,
+          "to": 7977,
+          "seq": 17,
+          "tick": 7377
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.05"
+          },
+          "seq": 18,
+          "tick": 7977
+        }
+      ],
+      "expect": {
+        "ending": "stabilizedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 91,
+        "criteria": {
+          "lactateEarly": "met",
+          "cultures": "met",
+          "antibiotic": "met",
+          "fluids": "met",
+          "noOverload": "missed",
+          "pressor": "met",
+          "mapRestored": "met",
+          "escalate": "met",
+          "relactate": "met",
+          "source": "met"
+        },
+        "kpis": {
+          "toAbx": 330,
+          "toFluid30": 1290,
+          "toPressor": 1710,
+          "hypoMinutes": 0,
+          "fluidTotal": 7000,
+          "lastLactate": 2.9
+        },
+        "stateHash": "40eb10c06862390e"
+      },
+      "reasoning": {
+        "whatNow": "met"
+      }
+    }
+  ]
+}

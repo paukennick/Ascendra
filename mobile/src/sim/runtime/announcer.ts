@@ -2,7 +2,9 @@
 // Alarms entering or leaving are assertive and immediate. New log entries
 // of kind good, bad or find and skip results are polite, at most one polite
 // announcement per 10 s; several due at once are joined in one sentence.
-// Nothing polite is spoken while a text field has focus.
+// Nothing polite is spoken while a text field has focus. REQ-225: `news`
+// carries polite sentences the screen derives itself (a client session's
+// rapport or distress moving into another band), queued like log news.
 
 export const POLITE_EVERY_MS = 10_000;
 
@@ -24,7 +26,7 @@ export function newAnnouncer(): AnnouncerState {
 
 export function announce(
   s: AnnouncerState,
-  input: { alarms: string[]; log: { kind: string; text: string }[]; nowMs: number; typing: boolean }
+  input: { alarms: string[]; log: { kind: string; text: string }[]; nowMs: number; typing: boolean; news?: string[] }
 ): { state: AnnouncerState; out: Announcement[] } {
   const out: Announcement[] = [];
   const entered = input.alarms.filter((a) => !s.alarms.includes(a));
@@ -32,7 +34,7 @@ export function announce(
   if (entered.length) out.push({ text: `Alarm: ${entered.join(". ")}.`, assertive: true });
   if (left.length) out.push({ text: `Alarm cleared: ${left.join(". ")}.`, assertive: true });
   const fresh = input.log.slice(s.seenLog).filter((l) => l.kind === "good" || l.kind === "bad" || l.kind === "find" || l.kind === "skip" || l.kind === "alarm");
-  const queued = [...s.queued, ...fresh.filter((l) => l.kind !== "alarm").map((l) => l.text)];
+  const queued = [...s.queued, ...fresh.filter((l) => l.kind !== "alarm").map((l) => l.text), ...(input.news ?? [])];
   for (const l of fresh) if (l.kind === "alarm") out.push({ text: l.text, assertive: true });
   let lastPoliteMs = s.lastPoliteMs;
   let rest = queued;

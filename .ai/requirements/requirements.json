@@ -8003,6 +8003,202 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-222",
+      "category": "content",
+      "title": "Sim library batch S2a: CCRN Adult sepsis, DKA and acute ischemic stroke scenarios",
+      "description": "Nick approved a sim library on 2026-11-10 (quality over speed). Three CCRN Adult bedside scenarios on engine 1.1 with no engine, renderer or schema change: sepsis to septic shock, DKA first six hours, acute ischemic stroke (in-hospital alert, LVO). Each: sourced params with checkedAt 2026-11-10, clinical outcome profile with noProgress, a reasoning moment, every class reachable, critical criteria in the target condition, KPIs, expert path, debrief, unscored teaching prompts with sources, chapters, five golden paths. Registered in lib/sim/documents.ts under existing CCRN objectives. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/CCRNADULT/",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/documents.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "sims:lint clean for the three documents",
+        "golden replays match",
+        "each document has Good Mediocre and Bad golden paths",
+        "seed twice is idempotent",
+        "sims dbtest passes"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "npm run seed twice on a throwaway Postgres",
+        "lib/sims.dbtest.ts",
+        "mobile tsc and npm test"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.3",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "teaching-model numbers are authored and flagged",
+        "SSC 2026 read only through secondary summaries"
+      ]
+    },
+    {
+      "id": "REQ-223",
+      "category": "content",
+      "title": "Sim library batch S2b: CCRN post-op hemorrhage, CNA choking and fall",
+      "description": "Nick approved a sim library on 2026-11-10 (quality over speed). Three scenarios on the existing bedside renderer and engine 1.1, no engine or renderer change: CCRNADULT/bleeding-after-whipple (hemorrhagic shock after a Whipple: recognition from trends, blood early, MTP, crystalloid as a bridge, calcium, warming, escalation), CNA/resident-chokes-at-lunch and CNA/resident-found-on-floor (nurse-aide scope only). Sourced params with checkedAt, reasoning moment, endings for every class, critical criteria, KPIs, expert path, debriefs, teaching prompts, chapters and a focused start where useful, golden paths Good/Mediocre/Bad. Seed fix: re-check dates clamp to the month's end (FAIL-1190).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/CCRNADULT/bleeding-after-whipple.sim.json",
+        "backend/supabase/seed/sims/CCRNADULT/bleeding-after-whipple.golden.json",
+        "backend/supabase/seed/sims/CNA/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/content-hash.ts",
+        "backend/lib/sim/documents.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "CNA sims are classified clinical and get study pace by default",
+        "npm run seed is idempotent on a fresh database"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "sim:cross-runtime engine-print",
+        "npm run seed twice plus lib/sims.dbtest.ts",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "authored timing and physiology estimates are flagged in their source notes",
+        "the European trauma bleeding guideline 2023 full text could not be read; its points are confirmed from summaries",
+        "at 3x the choking crisis is fast; learners can switch to 1x"
+      ]
+    },
+    {
+      "id": "REQ-225",
+      "category": "feature",
+      "title": "Sims: client session screen type (people layer) and the first three EPPP cases (EPPP-B)",
+      "description": "A client session renderer (screen type session) for mental-health courses behind SIMS_RENDERERS and on by default, and three EPPP scenarios registered by course code and exact objective title: suicide risk and safety planning, duty to warn and protect (Washington), and a DSM-5-TR diagnostic intake. Nick approved 2026-11-10 (quality over speed).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/EPPP",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "session renderer behind SIMS_RENDERERS with session@1 capability",
+        "accessibility to the bedside and board standard",
+        "three EPPP scenarios with golden paths Good Mediocre Bad",
+        "seed resolves course code and objective title and fails clearly",
+        "no engine stepping change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture",
+        "sims DB tests",
+        "mobile tsc and npm test"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.3",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "FAIL-1222 open: tamponade code_epiHarm unreachable on the server in jsonb key order; needs Nick's decision (engine ending order or content fix). EPPP course must land before npm run seed (seed stops plainly until then)."
+      ]
+    },
+    {
+      "id": "REQ-227",
+      "category": "feature",
+      "title": "Sims: explicit ending order (engine 1.2, endingOrder) so the server and the app always agree",
+      "description": "Endings were checked in the key order of the document's endings map, which the server's jsonb column does not keep (shorter keys first), so the server could end a run differently from the app and from the golden paths; on the live tamponade case full-dose epinephrine reached ROSC instead of its harm ending (FAIL-1222). Nick approved the engine approach 2026-11-10. Engine minor 2 adds an optional endingOrder list (every ending with a when, once; never time_up); a document without it is stepped exactly as before, so every older version, hash and stored run replays unchanged. The validator requires it from minor 2 when two endings have a when; the content linter errors when a document without it ends a golden path differently in written, reversed or jsonb key order; modules list their own order. All 12 seeded documents and the module fixture host are migrated (tamponade's epinephrine harm path now reaches harm).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims",
+        "backend/scripts",
+        "mobile/src/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "endingOrder lets the author set the order endings are checked in",
+        "result never depends on key order",
+        "older versions and stored runs replay unchanged",
+        "every seeded sim migrated",
+        "lint error for an order-dependent ending set",
+        "storage-order test passes for every sim with no todo"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle",
+        "sims session and runtime-role dbtests",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 4.1 4.5 5.3 22.6",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "a new content hash puts each migrated sim back into expert review",
+        "an app still on engine 1.1 cannot open a minor-2 version and falls back only to an approved runnable version",
+        "runs open on the old version keep the old order until they end",
+        "teaching prompts have the same key-order flaw (FAIL-1250)"
+      ]
+    },
+    {
+      "id": "REQ-226",
+      "category": "security",
+      "title": "G4 follow-ups: separate hourly budget for emailed sign-in codes; app opens the Terms screen on terms_required",
+      "description": "Two follow-ups to batch G4 (REQ-219) approved by Nick. (1) Emailed sign-in codes (POST /api/auth/mfa/challenge/send-email-code) shared the five-an-hour per-address mail budget (mayEmail, event mail_to_address) with password-reset, verification, registration and email-change mails, so someone who knew an email-only account's password could use up the budget and block the learner's sign-in codes for up to an hour. Sign-in codes now have their own per-address hourly budget (event mfa_code_mail_to, five an hour, stored in auth_events like every other limit; no migration), and the other mails keep theirs. (2) The server answers 403 { code: terms_required } from signed-in routes when the account has not accepted the current Terms and Privacy Policy; a build that skipped its launch prompt showed that as error text. The mobile API client now hands that code to the onboarding provider, which reloads the launch state (GET /api/onboarding, a termsOptional route) so the launch gate opens the existing Terms acceptance screen. Mirrors study_notice_required (FAIL-1061); JavaScript only, so it ships over the air.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/auth/mailLimit.ts",
+        "backend/app/api/auth/mfa/challenge/send-email-code",
+        "backend/lib/accounts-security-g4.dbtest.ts",
+        "mobile/src/api/client.ts",
+        "mobile/src/auth/OnboardingContext.tsx",
+        "mobile/src/lib/legal.ts"
+      ],
+      "acceptance_criteria": [
+        "A reset",
+        "verification",
+        "registration or email-change mail does not use up the sign-in code budget and a sign-in code does not use up theirs",
+        "The sign-in code budget still caps itself at five an hour per address with a plain 429",
+        "A 403 terms_required from any signed-in request reloads the launch state once at a time and opens the Terms screen; it is not retried and does not loop",
+        "No migration and no native or app.json change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend npm run test:db (new and affected dbtests) on a throwaway local Postgres",
+        "mobile npx tsc --noEmit",
+        "mobile npm test",
+        "./omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        ".ai/failures/failure-ledger.json"
+      ],
+      "risk_notes": [
+        "A sign-in code now adds up to five mails an hour on top of five other mails an hour to the same address (ten an hour in total per address); the per-challenge cap of 3 per 10 minutes is unchanged",
+        "Implemented and verified on fix/g4b-followups; awaiting Nick's review and merge."
+      ]
     }
   ]
 }

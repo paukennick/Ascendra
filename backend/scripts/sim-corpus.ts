@@ -226,6 +226,32 @@ cases.push({
   },
 });
 
+// 6b. REQ-227 (engine minor 2): `endingOrder` decides which of two endings that
+// are both true ends the run, whatever the key order of `endings`. Here
+// `done` is written before `never` but the list puts `never` first.
+cases.push({
+  id: "endings-explicit-order",
+  spec: "5.3 Settle step 2 with `endingOrder` (engine minor 2): endings with a `when` are evaluated in the listed order, not the key order of `endings`; the first true one is reached",
+  doc: base({
+    engine: { major: 1, minor: 2 },
+    state: { x: num(0, 0, 10) },
+    processes: [{ id: "grow", update: { x: "x + 1" } }],
+    phases: { main: { label: "Main", actions: [], clock: "running" } },
+    endings: {
+      done: { label: "Done", class: "target", when: "x >= 4", narrative: "Done.", terminal: true },
+      never: { label: "Listed first", class: "harm", when: "x >= 4", narrative: "Listed first, so it wins.", terminal: true },
+      time_up: { label: "Time up", class: "recovered", narrative: "Time is up.", terminal: true },
+    },
+    endingOrder: ["never", "done"],
+  }),
+  seed: 1,
+  script: [{ advance: 10 }],
+  expect: {
+    ticks: [{ tick: 3, phase: "main" }],
+    final: { tick: 4, ended: "never", class: "harm" },
+  },
+});
+
 // 7. Blocked clock: a prompt stops advance; the answer is a command at the same tick.
 cases.push({
   id: "blocked-clock",

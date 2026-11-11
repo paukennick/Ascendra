@@ -36,11 +36,13 @@ async function compile(course: string, slug: string): Promise<ScenarioDoc> {
 const golden = (course: string, slug: string) => read(join(seeds, course, `${slug}.golden.json`));
 
 describe("capabilities", () => {
-  test("the header names the engine and both renderers at level 3", async () => {
-    assert.equal(simCaps(), "protocol=1;engine=1.1;renderers=bedside@3,board@3");
+  test("the header names the engine, bedside and board at level 3 and the client session at level 1 (REQ-225)", async () => {
+    assert.equal(simCaps(), "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1");
     const { parseCaps, runnable } = await import("../../../backend/lib/sim/server-run.ts");
     const caps = parseCaps(simCaps());
-    for (const r of SIM_RENDERERS) assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: 3, screen_type: r.type }, caps), true);
+    for (const r of SIM_RENDERERS) assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: r.level, screen_type: r.type }, caps), true);
+    // A session version that needs a later session renderer is not offered.
+    assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: 2, screen_type: "session" }, caps), false);
   });
 });
 

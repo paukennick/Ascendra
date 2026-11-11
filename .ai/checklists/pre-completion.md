@@ -68,7 +68,10 @@
   sameAttempt); request bodies go through readJson, learner text through
   textField before any model call, and client-supplied ids through
   lib/visibility.ts; anything that mails an address the caller typed goes
-  through mayEmail and escapes it.
+  through mayEmail and escapes it; an emailed sign-in code goes through
+  mayEmailSignInCode, its own per-address budget, so mail anyone can trigger
+  (reset, verification) can't use up the one the learner needs to get in, nor
+  the reverse (REQ-226, FAIL-1240).
 - AI-layer changes (REQ-115, FAIL-290..307): text a learner or course author
   wrote goes into a prompt only escaped (`escapeLearnerText`, `fenceLearnerText`,
   `quoteTitle`), never stripped; a recorded verdict goes through
@@ -129,7 +132,10 @@
   older one must not be stranded), and leave `UNDECLARED_LEGAL_VERSIONS` and
   `LEGACY_LEGAL_VERSIONS` frozen; a mobile test checks `TERMS_VERSION`.
   REQ-219 (FAIL-1109): the server enforces agreement in `requireUser` (403
-  `terms_required`, per the same header rules). A new signed-in route is
+  `terms_required`, per the same header rules; the app's client hands it to
+  the onboarding provider, which reloads the launch state so the Terms screen
+  opens, REQ-226 FAIL-1241 -- a refusal code the server adds for a state the
+  launch gate owns gets a client hook in the same change). A new signed-in route is
   enforced by default; one a person needs in order to agree, leave or ask for
   help passes `{ termsOptional: true }` and is added to the list in
   lib/terms-enforcement.dbtest.ts. Integration suites run with enforcement off
@@ -252,6 +258,17 @@
   request succeeds (`pendingIdFor`). A screen a learner can leave with the back
   gesture flushes its work through a `beforeRemove` guard. A button that throws
   work away asks first. A catch on a load shows the error, never an empty state.
+- Sim documents (REQ-227, FAIL-1222): a scenario is stored as jsonb, which does
+  not keep object key order, so a result may never depend on the key order of
+  a map. A document with two or more endings that have a `when` declares
+  `endingOrder` (engine minor 2) and the minor it needs; the order is never
+  left to the order the file was written in. `npm run sims:lint` errors when a
+  document without it ends a golden path differently in written, reversed or
+  jsonb key order, and `lib/sim/storage-order.test.ts` replays every seeded
+  document that way. A new engine feature that adds a field is a new minor and
+  is added to the documents' declared minor; an app still on the older minor is
+  told to update, so say so in the change notes. Maps the engine still reads
+  in key order (`teaching`, FAIL-1250) are listed in docs/sims.md 22.6.
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

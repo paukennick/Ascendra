@@ -92,9 +92,15 @@ export function earliestRecheck(doc: ScenarioDoc, defaultMonths: number): string
   return earliest;
 }
 
-function addMonths(iso: string, months: number): string {
+// REQ-223 (FAIL-1190): the day is clamped to the last day of the target
+// month, so 2026-10-31 + 6 months is 2027-04-30, never the impossible
+// 2027-04-31 that Postgres refused as sources_recheck_by and stopped the seed.
+export function addMonths(iso: string, months: number): string {
   const [y, m, d] = iso.split("-").map(Number);
   const total = y * 12 + (m - 1) + months;
+  const ny = Math.floor(total / 12);
+  const nm = (total % 12) + 1;
+  const last = new Date(Date.UTC(ny, nm, 0)).getUTCDate();
   const pad = (n: number): string => (n < 10 ? `0${n}` : String(n));
-  return `${Math.floor(total / 12)}-${pad((total % 12) + 1)}-${pad(d)}`;
+  return `${ny}-${pad(nm)}-${pad(Math.min(d, last))}`;
 }

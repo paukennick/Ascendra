@@ -64,8 +64,9 @@ let TAMP: string;
 let TB: string;
 let PRIVATE_SIM: string;
 
-// REQ-209: the seeded tamponade case is engine minor 1, so the current app says 1.1.
-const CAPS = "protocol=1;engine=1.1;renderers=bedside@3,board@3";
+// REQ-227: the seeded documents declare engine minor 2 (endingOrder), so the current app says 1.2.
+const CAPS = "protocol=1;engine=1.2;renderers=bedside@3,board@3";
+const ENGINE_11 = "protocol=1;engine=1.1;renderers=bedside@3,board@3";
 // The app as shipped before REQ-209.
 const OLD_CAPS = "protocol=1;engine=1.0;renderers=bedside@3,board@3";
 
@@ -261,7 +262,7 @@ describe("switches, listing and capabilities", () => {
     assert.equal("reviewStatus" in byId[TAMP], false, "review status stays internal (19.4 item 5)");
     const old = await list(u, null);
     assert.ok(old.body.sims.every((s: any) => s.runnable === false));
-    const noBoard = await list(u, "protocol=1;engine=1.1;renderers=bedside@3");
+    const noBoard = await list(u, "protocol=1;engine=1.2;renderers=bedside@3");
     assert.equal(Object.fromEntries(noBoard.body.sims.map((s: any) => [s.id, s.runnable]))[TB], false);
   });
 
@@ -295,9 +296,20 @@ describe("switches, listing and capabilities", () => {
 describe("starting, resuming and the lease", () => {
   test("an app that cannot run the version gets 409 app_update_required", async () => {
     const u = await newUser();
-    const s = await start(u, TB, {}, "protocol=1;engine=1.1;renderers=board@2");
+    const s = await start(u, TB, {}, "protocol=1;engine=1.2;renderers=board@2");
     assert.equal(s.status, 409);
     assert.equal(s.body.code, "app_update_required");
+  });
+
+  test("REQ-227: the seeded sims need engine 1.2 (endingOrder); an app that still says 1.1 is told to update, not served the old order", async () => {
+    const u = await newUser();
+    const l = await list(u, ENGINE_11);
+    assert.ok(l.body.sims.length > 0 && l.body.sims.every((x: any) => x.runnable === false));
+    for (const id of [TAMP, TB]) {
+      const s = await start(u, id, {}, ENGINE_11);
+      assert.equal(s.status, 409, id);
+      assert.equal(s.body.code, "app_update_required", id);
+    }
   });
 
   test("start returns the client document without server-only parts; resume keeps the run and takes the lease", async () => {

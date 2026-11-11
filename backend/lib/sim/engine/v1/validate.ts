@@ -118,6 +118,17 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
   security: {},
   infrastructure: {},
   data: {},
+  // REQ-225 (docs/sims.md 9.2, 20.2): a session with a client. Target: the
+  // session's safety or diagnostic task done within its window with the
+  // alliance intact; recovered: done late, partly, or at a cost to the
+  // alliance or the client's autonomy; harm: a client left at foreseeable
+  // risk, a required protective step not taken, or confidentiality broken
+  // without a legal basis. Times are sim seconds from the session's start.
+  "clinical-session": {
+    allianceTarget: { value: 6, tighter: "higher", note: "rapport >= 6/10 at the close of the session" },
+    allianceRecovered: { value: 3, tighter: "higher", note: "rapport below this at the close is a rupture" },
+    safetyWindow: { value: 1200, tighter: "lower", note: "the critical safety question asked <= 20 min after the cue" },
+  },
 };
 
 export type SafetyFamily = "clinical" | "fitness" | "general";
@@ -408,6 +419,7 @@ function structural(doc: ScenarioDoc, col: Collector): DocInfo | null {
     if (!doc.scoring.debrief[k] && e.terminal) col.warn(`scoring.debrief.${k}`, "no debrief headline and body for this ending");
   }
   if (terminals < 1) col.error("endings", "at least one terminal ending");
+  endingOrderRules(doc, col);
   for (const k of Object.keys(doc.scoring.debrief)) if (!doc.endings[k]) col.error(`scoring.debrief.${k}`, "no such ending");
 
   // reasoning
@@ -1230,6 +1242,36 @@ function usesFeature(doc: ScenarioDoc, feature: string): boolean {
   }
 }
 
+// REQ-227 (FAIL-1222, engine minor 2): the order endings are checked in must
+// not depend on the key order of `endings`, which jsonb does not keep. From
+// minor 2 a document with two or more endings that have a `when` declares
+// `endingOrder`: every such ending exactly once, never time_up (it has no
+// `when`). A document below minor 2 may not use it (an older engine would
+// ignore it and check endings in key order); whether its key-order result
+// still happens to be the same is the content linter's job (sims lint).
+function endingOrderRules(doc: ScenarioDoc, col: Collector): void {
+  const withWhen = Object.keys(doc.endings).filter((k) => k !== "time_up" && doc.endings[k].when);
+  const order = doc.endingOrder;
+  if (order === undefined) {
+    if (doc.engine.minor >= 2 && withWhen.length >= 2) col.error("endingOrder", `engine minor ${doc.engine.minor} needs an explicit endingOrder when two or more endings have a when (the order must not depend on key order; list ${withWhen.join(", ")})`);
+    return;
+  }
+  if (doc.engine.minor < 2) col.error("engine.minor", "endingOrder needs engine minor 2");
+  if (!Array.isArray(order) || order.some((x) => typeof x !== "string")) {
+    col.error("endingOrder", "must be a list of ending ids");
+    return;
+  }
+  const seen = new Set<string>();
+  order.forEach((k, i) => {
+    if (seen.has(k)) col.error(`endingOrder[${i}]`, `"${k}" is listed twice`);
+    seen.add(k);
+    if (!Object.prototype.hasOwnProperty.call(doc.endings, k)) col.error(`endingOrder[${i}]`, `no ending "${k}"`);
+    else if (k === "time_up") col.error(`endingOrder[${i}]`, "time_up is reached by tick count and is not ordered");
+    else if (!doc.endings[k].when) col.error(`endingOrder[${i}]`, `"${k}" has no when, so it has no place in the order`);
+  });
+  for (const k of withWhen) if (!seen.has(k)) col.error("endingOrder", `ending "${k}" has a when but is not in endingOrder`);
+}
+
 // REQ-209 (docs/sims.md 5.4a-5.4e, layer 2): the shape of the optional
 // focused start, chapters and teaching prompts. Structure only; whether this
 // scenario may use them at all, and whether they work, is pacingRules.
@@ -1379,6 +1421,37 @@ function screenCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collecto
       if (meterIds.has(m.id)) col.error(`screen.board.meters[${i}]`, `duplicate meter id ${m.id}`);
       meterIds.add(m.id);
       checkTemplate(m.value, root, WHERE_TICK, `screen.board.meters[${i}].value`, info, col);
+    });
+  }
+  // REQ-225: the client session's bindings, checked like tile bindings.
+  if (s.type === "session" && !s.session) col.error("screen.session", "a session screen needs its client bindings");
+  if (s.session) {
+    const se = s.session;
+    if (!se.client || !se.client.name) col.error("screen.session.client", "needs the client's name");
+    else checkTemplate(se.client.presentation, root, WHERE_TICK, "screen.session.client.presentation", info, col);
+    if (!se.gauges.length) col.error("screen.session.gauges", "needs at least one gauge (rapport, distress, ...)");
+    const ids = new Set<string>();
+    se.gauges.forEach((g, i) => {
+      const path = `screen.session.gauges[${i}]`;
+      if (ids.has(g.id)) col.error(path, `duplicate gauge id ${g.id}`);
+      ids.add(g.id);
+      if (!g.spokenLabel) col.error(path, "needs a spokenLabel");
+      checkOne(g.value, root, WHERE_TICK, `${path}.value`, info, col, T_NUM);
+      if (!(g.max > 0)) col.error(`${path}.max`, "must be positive");
+      if (g.bands.some((b, j) => j > 0 && b <= g.bands[j - 1])) col.error(`${path}.bands`, "must rise strictly");
+      if (g.words.length !== g.bands.length + 1) col.error(`${path}.words`, "needs one word more than bands (the state in words, 13.1)");
+    });
+    (se.notes ?? []).forEach((n, i) => {
+      const path = `screen.session.notes[${i}]`;
+      if (ids.has(n.id)) col.error(path, `duplicate id ${n.id}`);
+      ids.add(n.id);
+      checkTemplate(n.text, root, WHERE_TICK, `${path}.text`, info, col);
+      if (n.when) checkOne(n.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+      if (n.alert) checkOne(n.alert, root, WHERE_TICK, `${path}.alert`, info, col, "bool");
+    });
+    (se.record?.items ?? []).forEach((it, j) => {
+      checkOne(it.when, root, WHERE_TICK, `screen.session.record.items[${j}].when`, info, col, "bool");
+      checkTemplate(it.label, root, WHERE_TICK, `screen.session.record.items[${j}].label`, info, col);
     });
   }
 }
@@ -1602,7 +1675,7 @@ function addMonths(iso: string, months: number): string {
 
 function sourceStaleness(doc: ScenarioDoc, col: Collector, now: string | undefined): void {
   if (!now) return;
-  const defaultMonths = doc.outcome.profile === "clinical" || doc.outcome.profile === "cloud" ? 6 : 12;
+  const defaultMonths = doc.outcome.profile === "clinical" || doc.outcome.profile === "clinical-session" || doc.outcome.profile === "cloud" ? 6 : 12;
   const check = (path: string, s: Source | undefined): void => {
     if (!s || !isIsoDate(s.checkedAt)) return;
     const due = s.recheckBy && isIsoDate(s.recheckBy) ? s.recheckBy : addMonths(s.checkedAt, defaultMonths);
@@ -1758,6 +1831,9 @@ export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn
   const teachingSeen = new Set<string>();
   const availableActions = new Set<string>();
   let waitAlways = true;
+  // REQ-225 (FAIL-1220): the warning is about a running phase; a path that
+  // never boundaries in one (turn-based, stopped) used to keep it true.
+  let runningBoundaries = 0;
   let boundaries = 0;
   const run = createRun(doc, path.seed);
   const snapshots = path.expect.snapshots ?? [];
@@ -1774,6 +1850,7 @@ export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn
   const noteBoundary = (): void => {
     boundaries++;
     // a routine wait (the q15 check) is a recurring check, not a reason to skip
+    if (clockMode(run) === "running" && !run.state.ended) runningBoundaries++;
     if (clockMode(run) === "running" && !clockBlocked(run) && !run.state.ended && !waits(run).some((w) => !w.routine)) waitAlways = false;
     for (const ch of run.c.doc.chapters ?? []) if (chapterHolds(run, ch)) chaptersSeen.add(ch.id);
     for (const t of teachingAvailable(run)) teachingSeen.add(t.id);
@@ -1838,7 +1915,7 @@ export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn
   }
   const hash = stateHashFn ? stateHashFn(run) : "";
   if (!error && path.expect.stateHash && hash && hash !== path.expect.stateHash) mismatches.push(`state hash ${hash}, expected ${path.expect.stateHash}`);
-  return { path, error, debrief, mismatches, availableActions, waitAlways: waitAlways && boundaries > 2, stateHash: hash, finalTick: run.state.tick, chaptersSeen, teachingSeen, minWallSeconds: minWallSeconds(run), focusedAt: run.focusedAt };
+  return { path, error, debrief, mismatches, availableActions, waitAlways: waitAlways && boundaries > 2 && runningBoundaries > 0, stateHash: hash, finalTick: run.state.tick, chaptersSeen, teachingSeen, minWallSeconds: minWallSeconds(run), focusedAt: run.focusedAt };
 }
 
 // Read a state or derived value by name (and, for the lint, an action's availability).

@@ -85,6 +85,46 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // REQ-222, REQ-223, REQ-225, REQ-226 and REQ-227, merged 2026-11-11 (UTC).
+    id: "2026-11-11-c",
+    date: "2026-11-11",
+    covers: ["REQ-222", "REQ-223", "REQ-225", "REQ-226", "REQ-227"],
+    title: "Nine new practice scenarios",
+    items: [
+      {
+        icon: "zap",
+        headline: "Six new bedside scenarios",
+        body:
+          "Critical care: sepsis, diabetic ketoacidosis, stroke and bleeding after surgery. " +
+          "Nurse aide: a resident who chokes and a resident found on the floor.",
+        requires: "sims",
+      },
+      {
+        icon: "compass",
+        headline: "Practice a client session",
+        body:
+          "The EPPP course has three scenarios where you lead a session with a fictional client: " +
+          "a suicide risk assessment, a duty-to-warn decision and a diagnostic intake. Take them at your own pace.",
+        requires: "sims",
+      },
+      {
+        icon: "tool",
+        headline: "Scenario endings fixed",
+        body:
+          "Each scenario now reaches the same ending in the app and on our servers. " +
+          "In the tamponade case, a full-dose epinephrine choice now ends as the harm it causes.",
+        requires: "sims",
+      },
+      {
+        icon: "shield",
+        headline: "Sign-in codes always get through",
+        body:
+          "Emailed sign-in codes have their own hourly limit, so password reset emails can't use it up. " +
+          "If you still need to accept the updated Terms, the app takes you straight there.",
+      },
+    ],
+  },
+  {
     // REQ-212/213, REQ-216 to REQ-220 and REQ-224, merged 2026-11-11 (UTC).
     id: "2026-11-11-b",
     date: "2026-11-11",
