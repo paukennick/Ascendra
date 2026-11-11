@@ -15419,6 +15419,32 @@
       "prevention_rules": [],
       "prevention_notes": "When a rule and a displayed measurement describe the same thing, test that they agree.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1344",
+      "date": "2026-11-11",
+      "title": "Two DPT debriefs repeated the client-visible time_up narrative",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts 'client document leaks nothing server-only' failed for the TKA and stroke cases: server-only debrief text reached the client document.",
+      "how_detected": "test (backend npm test, lib/sim/documents.test.ts)",
+      "root_cause": "The time_up debrief body was written with the same sentence as the ending's narrative, which the client document keeps; the leak check cannot tell the copies apart.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/supabase/seed/sims/DPT/tka-gait-dvt-red-flag.sim.json",
+        "backend/supabase/seed/sims/DPT/stroke-balance-fall-risk.sim.json"
+      ],
+      "fix_summary": "Debrief bodies now say something the narrative does not.",
+      "fix_commits": [
+        "0726be1"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the full backend npm test, not only the linter and the new tests, before reporting a new sim.",
+      "recurrence_of": ""
     }
   ]
 }
