@@ -1,0 +1,2073 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "med-surg-deterioration-sbar",
+  "title": "Four clients, one deteriorating",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Bed 12 heart rate, last measured",
+          "value": "vHr",
+          "unit": "/min",
+          "sub": "at {vAt|clock}",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120,
+              130
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Bed 12 blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Bed 12 respiratory rate, last measured",
+          "value": "vRr",
+          "unit": "/min",
+          "alarm": {
+            "high": 28
+          },
+          "announce": {
+            "bands": [
+              22,
+              28
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Bed 12 oxygen saturation, last measured",
+          "value": "vSpo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Bed 12 temperature, last measured",
+          "value": "vTemp",
+          "unit": "C",
+          "announce": {
+            "bands": [
+              38,
+              38.5
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "busy",
+          "label": "You",
+          "spokenLabel": "What you are doing",
+          "value": "rnTask",
+          "unit": "",
+          "sub": "{rnLabel}",
+          "announce": {
+            "bands": [
+              1
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "infusions": "Bed 10 pain medicine given: {not isNull(painAt)|yesno}. Bed 14 insulin given: {not isNull(insulinAt)|yesno}. Bed 11 teaching done: {not isNull(teachAt)|yesno}.",
+      "banner": [
+        {
+          "when": "teamHere",
+          "text": "Bed 12: {isNull(rrtAt) ? \"surgical resident\" : \"rapid response team\"} at the bedside."
+        }
+      ]
+    }
+  },
+  "objective": "Unstable versus stable: recognizing which client is actually deteriorating",
+  "secondaryObjectives": [
+    "Prioritizing by acuity rather than by who asked first",
+    "What can never be delegated: assessment, evaluation, teaching, unstable clients",
+    "Advocate for a client through the chain of command when concerns go unanswered, as part of the nurse's professional duty"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_RN_Test Plan_English-F.pdf",
+      "note": "Read 2026-11-11 (primary PDF): Management of Care 10-16% of items, including 'Prioritize the delivery of client care based on acuity' and 'Provide and receive handoff of care (report) on assigned clients'; Reduction of Risk Potential includes 'Recognize trends and changes in client condition and intervene as needed'. The test plan does not name SBAR or rapid response teams."
+    },
+    {
+      "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-11",
+      "note": "The objective and its secondary objectives are the course's own titles, built from the 2026 test plan. Delegation wording (the nurse cannot delegate assessment, evaluation or the care of unstable clients; assignment to another RN is a handoff) is the course's own, from the NCSBN/ANA delegation guidelines it cites; not re-fetched for this scenario."
+    },
+    {
+      "cite": "Prescott HC, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026. Crit Care Med 2026;54(4)",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+      "note": "As relayed by secondary summaries (read for the CCRN sepsis case 2026-11-10, not re-read): antimicrobials immediately, ideally within 1 h, in possible septic shock; cultures first only without delaying the dose; crystalloid first line; lactate measured. The primary text was not opened."
+    }
+  ],
+  "brief": {
+    "situation": "07:30 on a surgical unit. You are the RN for four clients, with one nursing assistant; the charge nurse has no assignment this morning. Night shift's report is done.",
+    "handover": [
+      "Bed 10, Ms. Ortiz, 45, day 1 after a laparoscopic cholecystectomy: asked for her oral pain medicine at 07:25, pain 6/10, last dose 03:00. Stable.",
+      "Bed 11, Mr. Kim, 70, for discharge at 09:30 after a hernia repair: needs his discharge teaching. Stable.",
+      "Bed 12, Mr. Davis, 68, day 2 after a bowel resection: at 06:00 the assistant charted HR 104, RR 22, temperature 38.1, BP 112/70. Night shift says he was 'a bit restless'.",
+      "Bed 14, Mrs. Patel, 59, type 2 diabetes: rapid-acting insulin is due with breakfast at 08:00. Stable."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Tasks you do yourself take time and you can do one at a time; the tile marked You shows what you are on. The nursing assistant and the charge nurse can take tasks within their roles.",
+      "Bed 12's vital signs show only when someone measures them.",
+      "Partway through you are asked to write how you are ranking your clients. The case ends at 09:30, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "07:30",
+    "tick": "1s",
+    "maxDuration": "2h",
+    "calendar": "clock"
+  },
+  "params": {
+    "sevRise": {
+      "value": 0.006,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Untreated, his sepsis from an anastomotic leak reaches collapse about two hours after 07:30. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sevFall": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "With fluid and the antibiotic running, he slowly improves. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "collapseSev": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Severity at which he becomes hypotensive and unresponsive. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "assessTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A focused assessment with vital signs: about 5 min."
+      }
+    },
+    "callTime": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "An SBAR phone call: about 3 min."
+      }
+    },
+    "residentWalk": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Surgical resident to the bedside: about 15 min."
+      }
+    },
+    "rrtWalk": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Rapid response team at the bedside: about 5 min."
+      }
+    },
+    "labsTime": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Two sets of cultures and a lactate: about 8 min."
+      }
+    },
+    "infuseTime": {
+      "value": 420,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Hanging the fluid bolus and the antibiotic: about 7 min."
+      }
+    },
+    "painTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Reassess and give an oral pain medicine: about 5 min."
+      }
+    },
+    "insulinTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Check the glucose and give the insulin with the tray: about 10 min."
+      }
+    },
+    "teachTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Discharge teaching: about 15 min."
+      }
+    },
+    "uapTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The assistant takes vital signs or finishes a task: about 5 min."
+      }
+    },
+    "rrtHr": {
+      "value": 130,
+      "unit": "/min",
+      "source": {
+        "cite": "Hospital policy (authored for this scenario)",
+        "checkedAt": "2026-11-11",
+        "note": "Rapid response criteria include HR above 130, Rapid response criteria differ between hospitals; these are typical authored values, not a standard."
+      }
+    },
+    "rrtSbp": {
+      "value": 90,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Hospital policy (authored for this scenario)",
+        "checkedAt": "2026-11-11",
+        "note": "systolic below 90, Rapid response criteria differ between hospitals; these are typical authored values, not a standard."
+      }
+    },
+    "rrtRr": {
+      "value": 28,
+      "unit": "/min",
+      "source": {
+        "cite": "Hospital policy (authored for this scenario)",
+        "checkedAt": "2026-11-11",
+        "note": "respiratory rate above 28, SpO2 below 90, acute confusion, or the nurse being worried. Rapid response criteria differ between hospitals; these are typical authored values, not a standard."
+      }
+    },
+    "escWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Authored: an effective escalation within 15 min of the RN finding the abnormal assessment. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "treatWindow": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Prescott HC, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026. Crit Care Med 2026;54(4)",
+        "checkedAt": "2026-11-10",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+        "note": "As relayed by secondary summaries (read for the CCRN sepsis case 2026-11-10, not re-read): antimicrobials immediately, ideally within 1 h, in possible septic shock; cultures first only without delaying the dose; crystalloid first line; lactate measured. The primary text was not opened. Authored target: the antibiotic running within an hour of the RN's assessment, in line with the guideline's 'within 1 h' in possible septic shock."
+      }
+    },
+    "painWindow": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Authored: a stable client's due pain medicine within 30 min of the request."
+      }
+    },
+    "insulinDue": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Insulin with the 08:00 tray; within 30 min of it counts as on time."
+      }
+    },
+    "insulinLate": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "More than 30 min after the tray is late."
+      }
+    },
+    "teachBy": {
+      "value": 6300,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Teaching finished by 09:15, before his 09:30 ride."
+      }
+    },
+    "reviewAt": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 09:30."
+      }
+    }
+  },
+  "state": {
+    "sev": {
+      "type": "number",
+      "init": 0.34,
+      "min": 0,
+      "max": 2
+    },
+    "rnBusy": {
+      "type": "bool",
+      "init": false
+    },
+    "rnTask": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 9
+    },
+    "rnLabel": {
+      "type": "enum",
+      "values": [
+        "Free",
+        "Assessing Bed 12",
+        "On the phone about Bed 12",
+        "Drawing Bed 12's cultures and lactate",
+        "Starting Bed 12's fluid and antibiotic",
+        "Giving Bed 10's pain medicine",
+        "Giving Bed 14's insulin",
+        "Teaching Bed 11",
+        "With the team at Bed 12"
+      ],
+      "init": "Free"
+    },
+    "firstRnTask": {
+      "type": "enum",
+      "values": [
+        "none",
+        "bed12",
+        "bed10",
+        "bed11",
+        "bed14"
+      ],
+      "init": "none"
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vHr": {
+      "type": "number",
+      "init": 104,
+      "min": 0,
+      "max": 250,
+      "unit": "/min"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 112,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "vRr": {
+      "type": "number",
+      "init": 22,
+      "min": 0,
+      "max": 80,
+      "unit": "/min"
+    },
+    "vSpo2": {
+      "type": "number",
+      "init": 95,
+      "min": 0,
+      "max": 100,
+      "unit": "%"
+    },
+    "vTemp": {
+      "type": "number",
+      "init": 38.1,
+      "min": 30,
+      "max": 43,
+      "unit": "C"
+    },
+    "assessAt": {
+      "type": "time",
+      "init": null
+    },
+    "findAt": {
+      "type": "time",
+      "init": null
+    },
+    "uapVitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "uapPending": {
+      "type": "bool",
+      "init": false
+    },
+    "delegatedAssess": {
+      "type": "bool",
+      "init": false
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "residentComing": {
+      "type": "bool",
+      "init": false
+    },
+    "rrtAt": {
+      "type": "time",
+      "init": null
+    },
+    "teamHere": {
+      "type": "bool",
+      "init": false
+    },
+    "ordersAt": {
+      "type": "time",
+      "init": null
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "fluidAt": {
+      "type": "time",
+      "init": null
+    },
+    "abxAt": {
+      "type": "time",
+      "init": null
+    },
+    "abxBeforeCultures": {
+      "type": "bool",
+      "init": false
+    },
+    "painAt": {
+      "type": "time",
+      "init": null
+    },
+    "insulinAt": {
+      "type": "time",
+      "init": null
+    },
+    "teachAt": {
+      "type": "time",
+      "init": null
+    },
+    "chargeTook": {
+      "type": "enum",
+      "values": [
+        "none",
+        "bed11",
+        "bed14"
+      ],
+      "init": "none"
+    },
+    "bathDelegated": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "treated": {
+      "expr": "not isNull(fluidAt) and not isNull(abxAt)"
+    },
+    "hr": {
+      "expr": "round(clamp(92 + 45 * sev + 2 * sin(t / 31), 50, 190))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(128 - 52 * sev, 50, 200))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(18 + 14 * sev)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(98 - 7 * sev, 75, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round((37.8 + 1.1 * sev) * 10) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "confused": {
+      "expr": "sev >= 0.55"
+    },
+    "meetsRrt": {
+      "expr": "hr > rrtHr or sbp < rrtSbp or rr > rrtRr or spo2 < 90 or confused"
+    }
+  },
+  "processes": [
+    {
+      "id": "sepsis",
+      "update": {
+        "sev": "max(0.1, treated ? sev - sevFall * dt / 60 : sev + sevRise * dt / 60)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "On the unit",
+      "clock": "running",
+      "actions": [
+        "assess12",
+        "call",
+        "rrt",
+        "labs",
+        "infuse",
+        "pain",
+        "insulin",
+        "teach",
+        "uapVitals",
+        "uapAssess",
+        "uapBath",
+        "chargeTeach",
+        "chargeInsulin"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "assess12": {
+      "label": "Go to Bed 12: focused assessment and vital signs",
+      "group": "Bed 12",
+      "available": "not rnBusy",
+      "why": "You are busy with another task (see the You tile).",
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "true"
+        },
+        {
+          "set": "rnTask",
+          "to": "1"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Assessing Bed 12\""
+        },
+        {
+          "if": "firstRnTask == \"none\"",
+          "then": [
+            {
+              "set": "firstRnTask",
+              "to": "\"bed12\""
+            }
+          ]
+        },
+        {
+          "schedule": "assessT",
+          "after": "assessTime"
+        },
+        {
+          "log": "At Bed 12: assessing Mr. Davis (about 5 min)."
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the surgical resident (SBAR)",
+      "group": "Bed 12",
+      "available": "not rnBusy and not residentComing",
+      "why": "You are busy, or the resident is already coming.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "sepsis",
+                  "label": "Mr. Davis in 12 meets sepsis warning signs: HR, RR and temperature up, BP falling, newly confused"
+                },
+                {
+                  "value": "check",
+                  "label": "Just letting you know his vitals are a bit off"
+                },
+                {
+                  "value": "pain",
+                  "label": "He's restless; can he have something?"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "68, day 2 after a bowel resection, 06:00 vitals already abnormal, abdomen more tender"
+                },
+                {
+                  "value": "min",
+                  "label": "Post-op day 2"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "leak",
+                  "label": "I'm worried about sepsis, maybe a leak"
+                },
+                {
+                  "value": "unsure",
+                  "label": "Not sure what's going on"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "come",
+                  "label": "Please come now; I'd like cultures, a lactate, fluid and an antibiotic"
+                },
+                {
+                  "value": "later",
+                  "label": "Can you see him on rounds?"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "true"
+        },
+        {
+          "set": "rnTask",
+          "to": "2"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"On the phone about Bed 12\""
+        },
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "callT",
+          "after": "callTime",
+          "with": {
+            "effective": "sit == \"sepsis\" and rec == \"come\" and not isNull(assessAt)"
+          }
+        },
+        {
+          "log": "Paging the surgical resident."
+        }
+      ]
+    },
+    "rrt": {
+      "label": "Activate the rapid response team",
+      "group": "Bed 12",
+      "available": "isNull(rrtAt) and not teamHere",
+      "why": "The team is already coming or here.",
+      "effects": [
+        {
+          "if": "isNull(rrtAt)",
+          "then": [
+            {
+              "set": "rrtAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "rrtT",
+          "after": "rrtWalk"
+        },
+        {
+          "log": "Rapid response team activated for Bed 12."
+        }
+      ]
+    },
+    "labs": {
+      "label": "Draw Bed 12's blood cultures and lactate",
+      "group": "Bed 12",
+      "available": "not rnBusy and not isNull(ordersAt) and isNull(labsAt)",
+      "why": "Needs the orders first, and you must be free.",
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "true"
+        },
+        {
+          "set": "rnTask",
+          "to": "3"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Drawing Bed 12's cultures and lactate\""
+        },
+        {
+          "schedule": "labsT",
+          "after": "labsTime"
+        }
+      ]
+    },
+    "infuse": {
+      "label": "Start Bed 12's fluid bolus and antibiotic",
+      "group": "Bed 12",
+      "available": "not rnBusy and not isNull(ordersAt) and isNull(abxAt)",
+      "why": "Needs the orders first, and you must be free.",
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "true"
+        },
+        {
+          "set": "rnTask",
+          "to": "4"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Starting Bed 12's fluid and antibiotic\""
+        },
+        {
+          "schedule": "infuseT",
+          "after": "infuseTime"
+        }
+      ]
+    },
+    "pain": {
+      "label": "Bed 10: reassess pain and give the oral medicine",
+      "group": "Other clients",
+      "available": "not rnBusy and isNull(painAt)",
+      "why": "You are busy with another task (see the You tile).",
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "true"
+        },
+        {
+          "set": "rnTask",
+          "to": "5"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Giving Bed 10's pain medicine\""
+        },
+        {
+          "if": "firstRnTask == \"none\"",
+          "then": [
+            {
+              "set": "firstRnTask",
+              "to": "\"bed10\""
+            }
+          ]
+        },
+        {
+          "schedule": "painT",
+          "after": "painTime"
+        }
+      ]
+    },
+    "insulin": {
+      "label": "Bed 14: glucose and breakfast insulin",
+      "group": "Other clients",
+      "available": "not rnBusy and isNull(insulinAt) and chargeTook != \"bed14\"",
+      "why": "Busy, or already done or handed off.",
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "true"
+        },
+        {
+          "set": "rnTask",
+          "to": "6"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Giving Bed 14's insulin\""
+        },
+        {
+          "if": "firstRnTask == \"none\"",
+          "then": [
+            {
+              "set": "firstRnTask",
+              "to": "\"bed14\""
+            }
+          ]
+        },
+        {
+          "schedule": "insulinT",
+          "after": "insulinTime"
+        }
+      ]
+    },
+    "teach": {
+      "label": "Bed 11: discharge teaching",
+      "group": "Other clients",
+      "available": "not rnBusy and isNull(teachAt) and chargeTook != \"bed11\"",
+      "why": "Busy, or already done or handed off.",
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "true"
+        },
+        {
+          "set": "rnTask",
+          "to": "7"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Teaching Bed 11\""
+        },
+        {
+          "if": "firstRnTask == \"none\"",
+          "then": [
+            {
+              "set": "firstRnTask",
+              "to": "\"bed11\""
+            }
+          ]
+        },
+        {
+          "schedule": "teachT",
+          "after": "teachTime"
+        }
+      ]
+    },
+    "uapVitals": {
+      "label": "Ask the assistant: vital signs on Bed 12 now",
+      "group": "Delegate",
+      "available": "not uapPending",
+      "why": "The assistant is busy.",
+      "effects": [
+        {
+          "set": "uapPending",
+          "to": "true"
+        },
+        {
+          "schedule": "uapT",
+          "after": "uapTime"
+        },
+        {
+          "log": "The nursing assistant is taking Bed 12's vital signs."
+        }
+      ]
+    },
+    "uapAssess": {
+      "label": "Ask the assistant: check on Bed 12 and tell me if he's okay",
+      "group": "Delegate",
+      "available": "not uapPending",
+      "why": "The assistant is busy.",
+      "effects": [
+        {
+          "set": "delegatedAssess",
+          "to": "true"
+        },
+        {
+          "set": "uapPending",
+          "to": "true"
+        },
+        {
+          "schedule": "uapT",
+          "after": "uapTime"
+        },
+        {
+          "log": "The assistant goes to look at Bed 12."
+        }
+      ]
+    },
+    "uapBath": {
+      "label": "Ask the assistant: Bed 14's morning care and breakfast set-up",
+      "group": "Delegate",
+      "available": "not bathDelegated",
+      "why": "Already asked.",
+      "effects": [
+        {
+          "set": "bathDelegated",
+          "to": "true"
+        },
+        {
+          "log": "The assistant takes Bed 14's morning care and tray set-up."
+        }
+      ]
+    },
+    "chargeTeach": {
+      "label": "Ask the charge nurse to take Bed 11's discharge teaching",
+      "group": "Delegate",
+      "available": "chargeTook == \"none\" and isNull(teachAt)",
+      "why": "The charge nurse is already helping.",
+      "effects": [
+        {
+          "set": "chargeTook",
+          "to": "\"bed11\""
+        },
+        {
+          "schedule": "chargeTeachT",
+          "after": "teachTime"
+        },
+        {
+          "log": "Handoff to the charge nurse for Bed 11's teaching and discharge."
+        }
+      ]
+    },
+    "chargeInsulin": {
+      "label": "Ask the charge nurse to take Bed 14's insulin",
+      "group": "Delegate",
+      "available": "chargeTook == \"none\" and isNull(insulinAt)",
+      "why": "The charge nurse is already helping.",
+      "effects": [
+        {
+          "set": "chargeTook",
+          "to": "\"bed14\""
+        },
+        {
+          "schedule": "chargeInsT",
+          "after": "insulinTime"
+        },
+        {
+          "log": "Handoff to the charge nurse for Bed 14's glucose and insulin."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "assessT": {
+      "label": "the Bed 12 assessment",
+      "wait": {
+        "skipLabel": "the Bed 12 assessment (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 5 min."
+      },
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "false"
+        },
+        {
+          "set": "rnTask",
+          "to": "0"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Free\""
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "set": "vHr",
+          "to": "hr"
+        },
+        {
+          "set": "vSbp",
+          "to": "sbp"
+        },
+        {
+          "set": "vDbp",
+          "to": "dbp"
+        },
+        {
+          "set": "vRr",
+          "to": "rr"
+        },
+        {
+          "set": "vSpo2",
+          "to": "spo2"
+        },
+        {
+          "set": "vTemp",
+          "to": "temp"
+        },
+        {
+          "if": "isNull(assessAt)",
+          "then": [
+            {
+              "set": "assessAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Bed 12: HR {hr}, BP {sbp}/{dbp}, RR {rr}, SpO2 {spo2}%, temperature {temp}. {confused ? \"Confused about where he is, picking at the sheets.\" : \"Restless and anxious.\"} Abdomen more distended and tender than on night shift's note; skin warm and clammy; little urine since 04:00.",
+          "kind": "find"
+        },
+        {
+          "if": "meetsRrt",
+          "then": [
+            {
+              "if": "isNull(findAt)",
+              "then": [
+                {
+                  "set": "findAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "He meets the rapid response criteria.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "if": "isNull(findAt)",
+              "then": [
+                {
+                  "set": "findAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "Not yet at the rapid response criteria, but every sign is moving the wrong way since 06:00.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "callT": {
+      "label": "the call",
+      "wait": {
+        "skipLabel": "the call (about 3 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "effective": {
+          "type": "bool"
+        }
+      },
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 3 min."
+      },
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "false"
+        },
+        {
+          "set": "rnTask",
+          "to": "0"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Free\""
+        },
+        {
+          "if": "timer.with.effective",
+          "then": [
+            {
+              "set": "residentComing",
+              "to": "true"
+            },
+            {
+              "if": "isNull(callEffAt)",
+              "then": [
+                {
+                  "set": "callEffAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "if": "isNull(ordersAt)",
+              "then": [
+                {
+                  "set": "ordersAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "schedule": "residentT",
+              "after": "residentWalk"
+            },
+            {
+              "log": "Resident: \"Sounds like sepsis, maybe a leak. Two sets of blood cultures and a lactate, then a fluid bolus and the broad-spectrum antibiotic from the order set. I'm on my way.\"",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Resident: \"Recheck his vitals in an hour and let me know.\"",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "rrtT": {
+      "label": "the rapid response team",
+      "wait": {
+        "skipLabel": "the rapid response team (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Hospital policy (authored for this scenario)",
+        "checkedAt": "2026-11-11",
+        "note": "The team arrives within about 5 minutes. Rapid response criteria differ between hospitals; these are typical authored values, not a standard."
+      },
+      "effects": [
+        {
+          "set": "teamHere",
+          "to": "true"
+        },
+        {
+          "if": "isNull(ordersAt)",
+          "then": [
+            {
+              "set": "ordersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not isNull(assessAt)",
+          "then": [
+            {
+              "if": "isNull(callEffAt)",
+              "then": [
+                {
+                  "set": "callEffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Rapid response team at Bed 12: they agree on sepsis and give orders for cultures, a lactate, fluid and an antibiotic, and call the surgeon.",
+          "kind": "good"
+        }
+      ]
+    },
+    "residentT": {
+      "label": "the resident arriving",
+      "wait": {
+        "skipLabel": "the resident (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 15 min."
+      },
+      "effects": [
+        {
+          "set": "teamHere",
+          "to": "true"
+        },
+        {
+          "log": "Surgical resident at Bed 12, examining his abdomen and ordering a CT.",
+          "kind": "good"
+        }
+      ]
+    },
+    "labsT": {
+      "label": "cultures and lactate",
+      "wait": {
+        "skipLabel": "the cultures and lactate (about 8 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 8 min."
+      },
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "false"
+        },
+        {
+          "set": "rnTask",
+          "to": "0"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Free\""
+        },
+        {
+          "set": "labsAt",
+          "to": "t"
+        },
+        {
+          "log": "Two sets of blood cultures and a lactate sent from Bed 12.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "infuseT": {
+      "label": "fluid and antibiotic",
+      "wait": {
+        "skipLabel": "the fluid and antibiotic (about 7 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 7 min."
+      },
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "false"
+        },
+        {
+          "set": "rnTask",
+          "to": "0"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Free\""
+        },
+        {
+          "set": "fluidAt",
+          "to": "t"
+        },
+        {
+          "set": "abxAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(labsAt)",
+          "then": [
+            {
+              "set": "abxBeforeCultures",
+              "to": "true"
+            },
+            {
+              "log": "The antibiotic went in before the cultures were drawn.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "log": "Bed 12: fluid bolus running and the first antibiotic dose hung.",
+          "kind": "good"
+        }
+      ]
+    },
+    "painT": {
+      "label": "Bed 10's pain medicine",
+      "wait": {
+        "skipLabel": "Bed 10's pain medicine (about 5 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 5 min."
+      },
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "false"
+        },
+        {
+          "set": "rnTask",
+          "to": "0"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Free\""
+        },
+        {
+          "set": "painAt",
+          "to": "t"
+        },
+        {
+          "log": "Bed 10: pain reassessed and her oral medicine given. Recheck in an hour.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "insulinT": {
+      "label": "Bed 14's insulin",
+      "wait": {
+        "skipLabel": "Bed 14's insulin (about 10 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 10 min."
+      },
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "false"
+        },
+        {
+          "set": "rnTask",
+          "to": "0"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Free\""
+        },
+        {
+          "set": "insulinAt",
+          "to": "t"
+        },
+        {
+          "log": "Bed 14: glucose checked and insulin given with her tray.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "teachT": {
+      "label": "Bed 11's teaching",
+      "wait": {
+        "skipLabel": "Bed 11's teaching (about 15 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 15 min."
+      },
+      "effects": [
+        {
+          "set": "rnBusy",
+          "to": "false"
+        },
+        {
+          "set": "rnTask",
+          "to": "0"
+        },
+        {
+          "set": "rnLabel",
+          "to": "\"Free\""
+        },
+        {
+          "set": "teachAt",
+          "to": "t"
+        },
+        {
+          "log": "Bed 11: discharge teaching done, with teach-back.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "chargeTeachT": {
+      "label": "the charge nurse's teaching",
+      "wait": {
+        "skipLabel": "the charge nurse's teaching (about 15 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 15 min."
+      },
+      "effects": [
+        {
+          "set": "teachAt",
+          "to": "t"
+        },
+        {
+          "log": "Charge nurse: Bed 11's teaching done.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "chargeInsT": {
+      "label": "the charge nurse's insulin",
+      "wait": {
+        "skipLabel": "the charge nurse at Bed 14 (about 10 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 10 min."
+      },
+      "effects": [
+        {
+          "set": "insulinAt",
+          "to": "t"
+        },
+        {
+          "log": "Charge nurse: Bed 14's insulin given with her tray.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "uapT": {
+      "label": "the assistant's report",
+      "wait": {
+        "skipLabel": "the assistant's report (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 5 min."
+      },
+      "effects": [
+        {
+          "set": "uapPending",
+          "to": "false"
+        },
+        {
+          "if": "isNull(uapVitalsAt)",
+          "then": [
+            {
+              "set": "uapVitalsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "delegatedAssess",
+          "then": [
+            {
+              "set": "delegatedAssess",
+              "to": "true"
+            },
+            {
+              "log": "Assistant: \"He says he's fine, just tired. He's a bit sweaty.\" No vital signs taken; the assistant is not trained to judge whether he is okay.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "set": "vAt",
+              "to": "t"
+            },
+            {
+              "set": "vHr",
+              "to": "hr"
+            },
+            {
+              "set": "vSbp",
+              "to": "sbp"
+            },
+            {
+              "set": "vDbp",
+              "to": "dbp"
+            },
+            {
+              "set": "vRr",
+              "to": "rr"
+            },
+            {
+              "set": "vSpo2",
+              "to": "spo2"
+            },
+            {
+              "set": "vTemp",
+              "to": "temp"
+            },
+            {
+              "log": "Assistant: Bed 12 HR {hr}, BP {sbp}/{dbp}, RR {rr}, SpO2 {spo2}%, temperature {temp}. \"He seems confused.\"",
+              "kind": "find"
+            }
+          ]
+        }
+      ]
+    },
+    "reviewT": {
+      "label": "09:30",
+      "wait": {
+        "skipLabel": "09:30, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Med-surg unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 09:30."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "reviewT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "bell10",
+      "when": "t >= 1500 and isNull(painAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "Bed 10's call light again: her pain is 7/10 now.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "tray",
+      "when": "t >= 1800",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "08:00: breakfast trays are here.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "lowBp",
+      "when": "sbp < 90 and not treated",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "The assistant: \"Bed 12's machine is beeping, his pressure is low.\"",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "rank": {
+      "trigger": "not isNull(assessAt) or t >= 900",
+      "question": "Rank your four clients for the next hour and say why. What do you do about Bed 12 right now?",
+      "parts": [
+        {
+          "label": "Ranking",
+          "criteria": "Puts Bed 12 first because his cues (rising HR and RR, fever, falling BP, new confusion, a tender distended abdomen after bowel surgery) say unstable and worsening, ahead of a stable client's pain request, a due insulin and teaching; notes that who asked first does not set the order.",
+          "modelAnswer": "Bed 12 first: his 06:00 vital signs were already off and now he is more tachycardic, tachypneic, febrile, hypotensive and confused after bowel surgery. That is an unstable client. Bed 14's insulin is time-bound with the tray, Bed 10's pain is real but she is stable, and Bed 11's teaching can be handed to the charge nurse."
+        },
+        {
+          "label": "Bed 12 now",
+          "criteria": "Escalates at once with an SBAR that names sepsis and asks the provider to come (or activates the rapid response team, and uses the chain of command if the answer is to wait); carries out cultures before the antibiotic without delaying it; keeps the assessment of an unstable client with the RN and delegates only tasks within the assistant's role.",
+          "modelAnswer": "Call the surgical resident with an SBAR naming sepsis and asking them to come now, or call the rapid response team since he meets the criteria; if told to recheck in an hour, go up the chain. Draw cultures and a lactate, then start the fluid and antibiotic. Keep his assessment myself; ask the assistant for Bed 14's tray set-up and the charge nurse for Bed 11's teaching."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and not treated",
+      "class": "harm",
+      "rationale": "A client with sepsis warning signs still untreated two hours into the shift is deteriorating unattended, so this case calls it harm.",
+      "source": {
+        "cite": "Prescott HC, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026. Crit Care Med 2026;54(4)",
+        "checkedAt": "2026-11-10",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+        "note": "As relayed by secondary summaries (read for the CCRN sepsis case 2026-11-10, not re-read): antimicrobials immediately, ideally within 1 h, in possible septic shock; cultures first only without delaying the dose; crystalloid first line; lactate measured. The primary text was not opened. The class choice is the author's, per docs/sims.md 9.2."
+      }
+    }
+  },
+  "endings": {
+    "collapse": {
+      "label": "Bed 12 collapses",
+      "class": "harm",
+      "when": "sev >= collapseSev",
+      "terminal": true,
+      "narrative": "Mr. Davis is grey, hypotensive and barely responsive. The rapid response team rushes him to the ICU in septic shock. His warning signs were on the chart at 06:00."
+    },
+    "rescued": {
+      "label": "Bed 12 rescued early",
+      "class": "target",
+      "when": "t >= reviewAt and firstRnTask == \"bed12\" and not isNull(callEffAt) and not isNull(findAt) and timeAt(callEffAt) <= timeAt(findAt) + escWindow and treated and not isNull(assessAt) and timeAt(abxAt) <= timeAt(assessAt) + treatWindow and not delegatedAssess",
+      "terminal": true,
+      "narrative": "09:30: Mr. Davis is on his way to CT and step-down with the fluid and antibiotic running, HR {hr}, BP {sbp}/{dbp}. You saw him first and escalated in minutes. The debrief shows how your other three clients fared."
+    },
+    "rescuedLate": {
+      "label": "Bed 12 treated, by a slower route",
+      "class": "recovered",
+      "when": "t >= reviewAt and treated",
+      "terminal": true,
+      "narrative": "09:30: Mr. Davis is being treated and is no worse, but the route cost time: a stable client seen first, a call that did not land, a late antibiotic, or his assessment handed to the assistant."
+    },
+    "time_up": {
+      "label": "09:30 and Bed 12 still untreated",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "09:30: Mr. Davis is worse, HR {hr}, BP {sbp}/{dbp}, and nothing has started. The day's other tasks took the time his deterioration needed."
+    }
+  },
+  "endingOrder": [
+    "collapse",
+    "rescued",
+    "rescuedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "firstBed12",
+        "label": "Saw the unstable client first",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "firstRnTask == \"bed12\"",
+            "score": "met",
+            "why": "Your first task was Bed 12's assessment."
+          },
+          {
+            "when": "firstRnTask == \"none\"",
+            "score": "missed",
+            "why": "You never assessed Bed 12 yourself."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "You started with a stable client; Bed 12 waited."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Escalated in minutes, and up the chain if needed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callEffAt)",
+            "score": "missed",
+            "why": "Nobody who could treat him was brought to the bedside."
+          },
+          {
+            "when": "not isNull(callEffAt) and not isNull(findAt) and timeAt(callEffAt) <= timeAt(findAt) + escWindow",
+            "score": "met",
+            "why": "Effective escalation at {timeAt(callEffAt)|clock}{isNull(rrtAt) ? \"\" : \" (rapid response)\"}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Escalation landed at {timeAt(callEffAt)|clock}, more than 15 minutes after your assessment."
+          }
+        ]
+      },
+      {
+        "id": "noDelegateAssess",
+        "label": "Kept the assessment of an unstable client",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "delegatedAssess",
+            "score": "missed",
+            "why": "You asked the assistant to judge whether an unstable client was okay: assessment is never delegated."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Assessment stayed with you."
+          }
+        ]
+      },
+      {
+        "id": "treated",
+        "label": "Cultures, then fluid and antibiotic within the hour",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not treated",
+            "score": "missed",
+            "why": "The ordered fluid and antibiotic never started."
+          },
+          {
+            "when": "abxBeforeCultures",
+            "score": "partial",
+            "why": "Started at {timeAt(abxAt)|clock}, but before the cultures."
+          },
+          {
+            "when": "treated and not isNull(assessAt) and timeAt(abxAt) <= timeAt(assessAt) + treatWindow",
+            "score": "met",
+            "why": "Fluid and antibiotic running at {timeAt(abxAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Started at {timeAt(abxAt)|clock}, more than an hour after your assessment."
+          }
+        ]
+      },
+      {
+        "id": "insulin",
+        "label": "Bed 14's insulin with her tray",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(insulinAt)",
+            "score": "missed",
+            "why": "Bed 14's insulin was not given."
+          },
+          {
+            "when": "timeAt(insulinAt) <= insulinDue",
+            "score": "met",
+            "why": "Given at {timeAt(insulinAt)|clock}."
+          },
+          {
+            "when": "timeAt(insulinAt) <= insulinLate",
+            "score": "partial",
+            "why": "Given at {timeAt(insulinAt)|clock}, after the tray."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Given at {timeAt(insulinAt)|clock}, long after the tray."
+          }
+        ]
+      },
+      {
+        "id": "pain",
+        "label": "Bed 10's pain medicine",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(painAt)",
+            "score": "missed",
+            "why": "Bed 10 never got her pain medicine."
+          },
+          {
+            "when": "timeAt(painAt) <= 300 + painWindow",
+            "score": "met",
+            "why": "Given at {timeAt(painAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Given at {timeAt(painAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "teach",
+        "label": "Bed 11 taught before discharge",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(teachAt)",
+            "score": "missed",
+            "why": "Bed 11 left without teaching."
+          },
+          {
+            "when": "timeAt(teachAt) <= teachBy",
+            "score": "met",
+            "why": "Teaching done at {timeAt(teachAt)|clock}{chargeTook == \"bed11\" ? \" by the charge nurse\" : \"\"}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Teaching finished at {timeAt(teachAt)|clock}, close to his ride."
+          }
+        ]
+      },
+      {
+        "id": "delegate",
+        "label": "Gave the assistant tasks within the role",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "(bathDelegated or not isNull(uapVitalsAt)) and not delegatedAssess",
+            "score": "met",
+            "why": "The assistant had appropriate tasks."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The assistant was not used for appropriate tasks."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "rank",
+        "label": "Written reasoning: ranked by acuity and escalated Bed 12",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toAssess",
+        "label": "Start of shift to Bed 12 assessment",
+        "value": "isNull(assessAt) ? -1 : timeAt(assessAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "toEsc",
+        "label": "Assessment to effective escalation",
+        "value": "isNull(callEffAt) or isNull(findAt) ? -1 : timeAt(callEffAt) - timeAt(findAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "toAbx",
+        "label": "Assessment to antibiotic",
+        "value": "isNull(abxAt) or isNull(assessAt) ? -1 : timeAt(abxAt) - timeAt(assessAt)",
+        "format": "duration",
+        "expert": "under 45 min"
+      },
+      {
+        "id": "finalSbp",
+        "label": "Bed 12 systolic at the end",
+        "value": "sbp",
+        "format": "number",
+        "expert": "100 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "07:30",
+        "text": "Bed 12 first: his 06:00 vital signs were already abnormal after bowel surgery. Ask the assistant to set up Bed 14's tray and morning care."
+      },
+      {
+        "at": "07:35",
+        "text": "Assessment: tachycardic, tachypneic, febrile, BP falling, new confusion, tender distended abdomen. SBAR to the resident naming sepsis, asking them to come (or call rapid response; he meets the criteria)."
+      },
+      {
+        "at": "07:39",
+        "text": "Hand Bed 11's teaching to the charge nurse. Cultures and lactate, then the fluid and the antibiotic."
+      },
+      {
+        "at": "~07:55",
+        "text": "Bed 10's pain medicine; Bed 14's insulin with the 08:00 tray. Reassess Bed 12 with the resident."
+      }
+    ],
+    "debrief": {
+      "collapse": {
+        "headline": "Bed 12 collapsed",
+        "body": "His 06:00 vital signs were already a warning. Find when you first saw him, when someone who could treat him arrived, and what you did first instead."
+      },
+      "rescued": {
+        "headline": "Bed 12 rescued early",
+        "body": "Acuity, not the order of requests, set your priorities; you escalated in minutes and kept the assessment yourself. Check the other three clients: the expert path also hands stable tasks to the assistant and the charge nurse so nobody else waits."
+      },
+      "rescuedLate": {
+        "headline": "Treated, by a slower route",
+        "body": "He is being treated, but check what you did first, how long the escalation took, whether a 'recheck in an hour' was accepted, and who assessed him."
+      },
+      "time_up": {
+        "headline": "Bed 12 never treated",
+        "body": "Two hours went to stable clients while the unstable one worsened. Rank by acuity and escalate up the chain when the first answer is to wait."
+      }
+    },
+    "modelReasoning": "Prioritize by acuity, not by who asked first. Bed 12 is a post-operative client with abnormal vital signs at 06:00 that are now worse, new confusion and a tender, distended abdomen: an unstable client with probable sepsis (an anastomotic leak is the worry). See him first, then escalate at once with an SBAR that names the concern and asks for what he needs, or activate the rapid response team when he meets the criteria; if the answer is to wait and the concern stands, go up the chain of command. Draw cultures before the antibiotic without delaying it, and start the fluid and antibiotic promptly. Assessment of an unstable client cannot be delegated; give the assistant tasks within the role and hand stable RN tasks (teaching, a due insulin) to another RN."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Help is coming to Bed 12",
+      "when": "not isNull(callEffAt)"
+    },
+    {
+      "id": "treatmentRunning",
+      "label": "Bed 12's fluid and antibiotic running",
+      "when": "treated"
+    }
+  ],
+  "teaching": {
+    "notDelegable": {
+      "during": "assessT",
+      "ask": "While you assess: which of these could you hand to the nursing assistant right now?",
+      "choices": [
+        {
+          "id": "tray",
+          "label": "Setting up Bed 14's tray and morning care"
+        },
+        {
+          "id": "judge",
+          "label": "Checking whether Bed 12 is okay"
+        },
+        {
+          "id": "teach",
+          "label": "Bed 11's discharge teaching"
+        }
+      ],
+      "expect": "tray",
+      "explain": "Morning care and tray set-up are within the assistant's role. Judging whether an unstable client is okay is assessment, and teaching is the nurse's: neither is delegated to assistive personnel. Teaching can go to another RN.",
+      "source": {
+        "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+        "checkedAt": "2026-11-11",
+        "note": "The objective and its secondary objectives are the course's own titles, built from the 2026 test plan. Delegation wording (the nurse cannot delegate assessment, evaluation or the care of unstable clients; assignment to another RN is a handoff) is the course's own, from the NCSBN/ANA delegation guidelines it cites; not re-fetched for this scenario."
+      }
+    },
+    "chain": {
+      "during": "callT",
+      "ask": "If the resident says 'recheck him in an hour' and you are still worried, what next?",
+      "choices": [
+        {
+          "id": "chain",
+          "label": "Call the rapid response team or go up the chain of command"
+        },
+        {
+          "id": "wait",
+          "label": "Recheck in an hour as told"
+        },
+        {
+          "id": "note",
+          "label": "Document the call and wait"
+        }
+      ],
+      "expect": "chain",
+      "explain": "Advocate through the chain of command: he meets the rapid response criteria, and a nurse who remains worried does not accept a plan that leaves an unstable client untreated.",
+      "source": {
+        "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+        "checkedAt": "2026-11-11",
+        "note": "The objective and its secondary objectives are the course's own titles, built from the 2026 test plan. Delegation wording (the nurse cannot delegate assessment, evaluation or the care of unstable clients; assignment to another RN is a handoff) is the course's own, from the NCSBN/ANA delegation guidelines it cites; not re-fetched for this scenario."
+      }
+    },
+    "cultures": {
+      "during": "labsT",
+      "ask": "Why draw the cultures before the antibiotic, and what if they would take an hour?",
+      "choices": [
+        {
+          "id": "before",
+          "label": "Before, unless it would delay the antibiotic"
+        },
+        {
+          "id": "always",
+          "label": "Always before, however long it takes"
+        },
+        {
+          "id": "after",
+          "label": "After; the antibiotic matters more"
+        }
+      ],
+      "expect": "before",
+      "explain": "Cultures first so the antibiotic does not hide the organism, but not at the cost of a delay: the antibiotic is time-critical in possible septic shock.",
+      "source": {
+        "cite": "Prescott HC, et al. Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026. Crit Care Med 2026;54(4)",
+        "checkedAt": "2026-11-10",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+        "note": "As relayed by secondary summaries (read for the CCRN sepsis case 2026-11-10, not re-read): antimicrobials immediately, ideally within 1 h, in possible septic shock; cultures first only without delaying the dose; crystalloid first line; lactate measured. The primary text was not opened."
+      }
+    }
+  }
+}

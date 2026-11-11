@@ -1,0 +1,693 @@
+{
+  "slug": "med-surg-deterioration-sbar",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: Bed 12 first, an SBAR naming sepsis, teaching handed to the charge nurse, cultures then fluid and antibiotic, then pain and insulin",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "uapBath",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "assess12",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "notDelegable",
+          "choice": "tray",
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "rank",
+          "answered": true,
+          "seq": 5,
+          "tick": 305
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sepsis",
+            "bg": "full",
+            "asmt": "leak",
+            "rec": "come"
+          },
+          "seq": 6,
+          "tick": 305
+        },
+        {
+          "type": "teach",
+          "prompt": "chain",
+          "choice": "chain",
+          "seq": 7,
+          "tick": 305
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 485
+        },
+        {
+          "type": "act",
+          "action": "chargeTeach",
+          "seq": 9,
+          "tick": 485
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 10,
+          "tick": 485
+        },
+        {
+          "type": "teach",
+          "prompt": "cultures",
+          "choice": "before",
+          "seq": 11,
+          "tick": 485
+        },
+        {
+          "type": "act",
+          "action": "infuse",
+          "seq": 12,
+          "tick": 965
+        },
+        {
+          "type": "chapter",
+          "chapter": "treatmentRunning",
+          "choice": "continue",
+          "seq": 13,
+          "tick": 1385
+        },
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 14,
+          "tick": 1385
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "seq": 15,
+          "tick": 1685
+        }
+      ],
+      "expect": {
+        "ending": "rescued",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "firstBed12": "met",
+          "escalate": "met",
+          "noDelegateAssess": "met",
+          "treated": "met",
+          "insulin": "met",
+          "pain": "met",
+          "teach": "met",
+          "delegate": "met"
+        },
+        "kpis": {
+          "toAssess": 305,
+          "toEsc": 180,
+          "toAbx": 1080,
+          "finalSbp": 118
+        },
+        "stateHash": "0d9a0a8403175e42"
+      },
+      "reasoning": {
+        "rank": "met"
+      }
+    },
+    {
+      "id": "slowRrt",
+      "title": "Bed 10's pain first, then Bed 12; a routine call answered 'recheck in an hour', then the rapid response team 15 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "assess12",
+          "seq": 2,
+          "tick": 330
+        },
+        {
+          "type": "teach",
+          "prompt": "notDelegable",
+          "choice": "tray",
+          "seq": 3,
+          "tick": 330
+        },
+        {
+          "type": "reason",
+          "moment": "rank",
+          "answered": true,
+          "seq": 4,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "check",
+            "bg": "min",
+            "asmt": "unsure",
+            "rec": "later"
+          },
+          "seq": 5,
+          "tick": 630
+        },
+        {
+          "type": "teach",
+          "prompt": "chain",
+          "choice": "chain",
+          "seq": 6,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "rrt",
+          "seq": 7,
+          "tick": 1710
+        },
+        {
+          "type": "skip",
+          "timer": "rrtT",
+          "instance": 5,
+          "to": 2010,
+          "seq": 8,
+          "tick": 1710
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 9,
+          "tick": 2010
+        },
+        {
+          "type": "teach",
+          "prompt": "cultures",
+          "choice": "before",
+          "seq": 10,
+          "tick": 2010
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 2490
+        },
+        {
+          "type": "act",
+          "action": "infuse",
+          "seq": 12,
+          "tick": 2490
+        },
+        {
+          "type": "chapter",
+          "chapter": "treatmentRunning",
+          "choice": "continue",
+          "seq": 13,
+          "tick": 2910
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "seq": 14,
+          "tick": 2910
+        },
+        {
+          "type": "act",
+          "action": "teach",
+          "seq": 15,
+          "tick": 3510
+        }
+      ],
+      "expect": {
+        "ending": "rescuedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 67,
+        "criteria": {
+          "firstBed12": "missed",
+          "escalate": "partial",
+          "noDelegateAssess": "met",
+          "treated": "met",
+          "insulin": "met",
+          "pain": "met",
+          "teach": "met",
+          "delegate": "missed"
+        },
+        "kpis": {
+          "toAssess": 630,
+          "toEsc": 1380,
+          "toAbx": 2280,
+          "finalSbp": 106
+        },
+        "stateHash": "153c6fe53582389a"
+      },
+      "reasoning": {
+        "rank": "partial"
+      }
+    },
+    {
+      "id": "delegatedAssessment",
+      "title": "Asks the assistant whether Bed 12 is okay, gives insulin and pain medicine first, sees Bed 12 at 08:15",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "uapAssess",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 3,
+          "tick": 610
+        },
+        {
+          "type": "reason",
+          "moment": "rank",
+          "answered": true,
+          "seq": 4,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "assess12",
+          "seq": 5,
+          "tick": 2700
+        },
+        {
+          "type": "teach",
+          "prompt": "notDelegable",
+          "choice": "tray",
+          "seq": 6,
+          "tick": 2700
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sepsis",
+            "bg": "full",
+            "asmt": "leak",
+            "rec": "come"
+          },
+          "seq": 7,
+          "tick": 3000
+        },
+        {
+          "type": "teach",
+          "prompt": "chain",
+          "choice": "chain",
+          "seq": 8,
+          "tick": 3000
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 3180
+        },
+        {
+          "type": "act",
+          "action": "chargeTeach",
+          "seq": 10,
+          "tick": 3180
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 11,
+          "tick": 3180
+        },
+        {
+          "type": "teach",
+          "prompt": "cultures",
+          "choice": "before",
+          "seq": 12,
+          "tick": 3180
+        },
+        {
+          "type": "act",
+          "action": "infuse",
+          "seq": 13,
+          "tick": 3660
+        },
+        {
+          "type": "chapter",
+          "chapter": "treatmentRunning",
+          "choice": "continue",
+          "seq": 14,
+          "tick": 4080
+        }
+      ],
+      "expect": {
+        "ending": "rescuedLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 61,
+        "criteria": {
+          "firstBed12": "missed",
+          "escalate": "met",
+          "noDelegateAssess": "missed",
+          "treated": "met",
+          "insulin": "met",
+          "pain": "met",
+          "teach": "met",
+          "delegate": "missed"
+        },
+        "kpis": {
+          "toAssess": 3000,
+          "toEsc": 180,
+          "toAbx": 1080,
+          "finalSbp": 97
+        },
+        "stateHash": "968d0ed0af8d531a"
+      },
+      "reasoning": {
+        "rank": "partial"
+      }
+    },
+    {
+      "id": "waitAnHour",
+      "title": "Sees Bed 12 first but accepts 'recheck in an hour'; the second call lands too late to start treatment",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "assess12",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "notDelegable",
+          "choice": "tray",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "rank",
+          "answered": true,
+          "seq": 3,
+          "tick": 310
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "check",
+            "bg": "min",
+            "asmt": "unsure",
+            "rec": "later"
+          },
+          "seq": 4,
+          "tick": 310
+        },
+        {
+          "type": "teach",
+          "prompt": "chain",
+          "choice": "chain",
+          "seq": 5,
+          "tick": 310
+        },
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 6,
+          "tick": 490
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "seq": 7,
+          "tick": 790
+        },
+        {
+          "type": "act",
+          "action": "teach",
+          "seq": 8,
+          "tick": 1390
+        },
+        {
+          "type": "act",
+          "action": "uapVitals",
+          "seq": 9,
+          "tick": 6000
+        },
+        {
+          "type": "skip",
+          "timer": "uapT",
+          "instance": 7,
+          "to": 6300,
+          "seq": 10,
+          "tick": 6000
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sepsis",
+            "bg": "full",
+            "asmt": "leak",
+            "rec": "come"
+          },
+          "seq": 11,
+          "tick": 6300
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 6480
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 78,
+        "criteria": {
+          "firstBed12": "met",
+          "escalate": "partial",
+          "noDelegateAssess": "met",
+          "treated": "missed",
+          "insulin": "met",
+          "pain": "met",
+          "teach": "met",
+          "delegate": "met"
+        },
+        "kpis": {
+          "toAssess": 310,
+          "toEsc": 6170,
+          "toAbx": -1,
+          "finalSbp": 76
+        },
+        "stateHash": "da89727a7a06cea3"
+      },
+      "reasoning": {
+        "rank": "partial"
+      }
+    },
+    {
+      "id": "tunnelVision",
+      "title": "Bed 12 rescued fast, but nothing delegated or handed off: Bed 10, 11 and 14 left waiting",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "assess12",
+          "seq": 1,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "notDelegable",
+          "choice": "tray",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "rank",
+          "answered": true,
+          "seq": 3,
+          "tick": 305
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sepsis",
+            "bg": "full",
+            "asmt": "leak",
+            "rec": "come"
+          },
+          "seq": 4,
+          "tick": 305
+        },
+        {
+          "type": "teach",
+          "prompt": "chain",
+          "choice": "chain",
+          "seq": 5,
+          "tick": 305
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 485
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 7,
+          "tick": 485
+        },
+        {
+          "type": "teach",
+          "prompt": "cultures",
+          "choice": "before",
+          "seq": 8,
+          "tick": 485
+        },
+        {
+          "type": "act",
+          "action": "infuse",
+          "seq": 9,
+          "tick": 965
+        },
+        {
+          "type": "chapter",
+          "chapter": "treatmentRunning",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 1385
+        }
+      ],
+      "expect": {
+        "ending": "rescued",
+        "class": "target",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "firstBed12": "met",
+          "escalate": "met",
+          "noDelegateAssess": "met",
+          "treated": "met",
+          "insulin": "missed",
+          "pain": "missed",
+          "teach": "missed",
+          "delegate": "missed"
+        },
+        "kpis": {
+          "toAssess": 305,
+          "toEsc": 180,
+          "toAbx": 1080,
+          "finalSbp": 118
+        },
+        "stateHash": "45ebdf9053dc3459"
+      },
+      "reasoning": {
+        "rank": "met"
+      }
+    },
+    {
+      "id": "tasksFirst",
+      "title": "Failure: the stable clients' tasks in the order they asked, Bed 12 never assessed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "seq": 2,
+          "tick": 310
+        },
+        {
+          "type": "reason",
+          "moment": "rank",
+          "answered": true,
+          "seq": 3,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "teach",
+          "seq": 4,
+          "tick": 910
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 44,
+        "criteria": {
+          "firstBed12": "missed",
+          "escalate": "missed",
+          "noDelegateAssess": "met",
+          "treated": "missed",
+          "insulin": "met",
+          "pain": "met",
+          "teach": "met",
+          "delegate": "missed"
+        },
+        "kpis": {
+          "toAssess": -1,
+          "toEsc": -1,
+          "toAbx": -1,
+          "finalSbp": 76
+        },
+        "stateHash": "17eeb4b9c956153e"
+      },
+      "reasoning": {
+        "rank": "missed"
+      }
+    }
+  ]
+}
