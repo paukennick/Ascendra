@@ -279,7 +279,7 @@ export function checkExpr(ast: Ast, scope: Scope, opts: CheckOptions): CheckResu
       case "name": {
         const t = lookup(sc, a.name);
         if (t === undefined) {
-          if (opts.where.scoring && (a.name === "ending" || a.name === "outcomeClass" || a.name === "pausedTotal" || a.name === "skips")) {
+          if (opts.where.scoring && (a.name === "ending" || a.name === "outcomeClass" || a.name === "pausedTotal" || a.name === "skips" || a.name === "focusedAt")) {
             return scoringZeroArg(a.name, a.pos);
           }
           throw new CheckError(`unknown name "${a.name}"`, a.pos);

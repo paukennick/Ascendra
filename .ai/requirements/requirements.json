@@ -7444,6 +7444,52 @@
         "Mobile lockfile moves 61 packages (native fingerprint may change)",
         "B16 (2026-11-10): after a real restore run 071 again (psql --single-transaction -f), then set app_runtime's password again (FAIL-897)"
       ]
+    },
+    {
+      "id": "REQ-209",
+      "category": "feature",
+      "title": "Sim pacing: study pace 3x, focused start, skip offer, teaching prompts, chapters",
+      "description": "Nick, 2026-11-09: a running-phase sim case took 30 to 60 real minutes on a phone. For scenarios with a running phase in a clinical or fitness track only: (1) a logged pace command, Study 3x (default) or Exam realism 1x, chosen at launch and changeable mid-run, with the server speed bound charging each tick at its logged pace; (2) an optional focused start reached through the engine with no learner actions, with fair scoring (onset-based timing unchanged, recognition criterion na when the start is after the expert recognition point); (3) a Skip to the next change offer after about 30 quiet real seconds using the existing skip, logged and in the debrief; (4) unscored teaching prompts answered by choice with sourced rationales (4 on tamponade); (5) chapters with Continue or Save and finish later via checkpoint and resume. Engine minor 1; runs begun before it replay at 1x unchanged; IT, cloud and PM sims untouched. Migration 073 allows the new command types.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim/**",
+        "backend/lib/sims.ts",
+        "backend/lib/sims.dbtest.ts",
+        "backend/lib/schema-status.ts",
+        "backend/supabase/migrations/073_sim_pacing_commands.sql",
+        "backend/supabase/seed/sims/CCRNADULT/**",
+        "mobile/src/sim/**",
+        "mobile/app/(app)/course/[trackId]/sim/**",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "existing goldens match at 1x and non-clinical goldens are byte-identical",
+        "legitimate 3x accepted and a client faster than its logged pace refused",
+        "a run with no logged pace replays at 1x and a pre-change run and checkpoint resume",
+        "non-clinical sims never advance on their own (10 idle minutes tested)",
+        "pace and skip offer and chapters in the app with spoken labels and pause at every speed",
+        "teaching prompts unscored with cited sources"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db seeded twice",
+        "sims:lint",
+        "sim:sync-engine --check",
+        "mobile typecheck and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "ESC 2025 myocarditis and pericarditis guideline supersedes the 2015 one cited and could not be read",
+        "Sagrista-Sauleda 2008 data are medical not post-surgical tamponade",
+        "begin evolves 780 ticks synchronously on the UI thread and is unmeasured on Hermes",
+        "apply migration 073 before the backend that writes pace commands"
+      ]
     }
   ]
 }

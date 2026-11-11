@@ -206,12 +206,17 @@ protamine, the 5-minute drip reassessment, the surgeon's 15-minute recheck
 and the next q15 drainage check. Each button reads "Skip to … (≈ N min)"
 and its spoken label says how much real time it skips. A skip steps the
 physiology second by second, stops early at a new alarm or result, and is
-logged and reported in the debrief. One authoring observation: the q15
-drainage check is always pending, so in the prototype a skip is available
-at almost every moment of the live phase (alarms and results still stop
-it). Whether a recurring check counts as a `wait` is an authoring choice
-per scenario; the linter warns when some `wait` is pending at every tick
-of a golden path (16).
+logged and reported in the debrief. Authoring note (REQ-209, replacing an
+earlier observation that a skip was available at almost every moment): the
+q15 drainage check is always pending, and a skip to it used to be offered
+nearly all the time. A recurring check is now marked `wait.routine: true`.
+A routine wait keeps its "Skip to" button in the waits row (so "skip always
+available" is still true of the row, as the learner may skip to the next
+chart check), but it is never the target of the "Skip to the next change"
+offer (5.4c), which would otherwise be on offer at every moment and could
+skip over the recognition window. The linter's "some `wait` is pending at
+every tick" warning ignores routine waits (16). Whether a recurring check is
+`routine` is an authoring choice per scenario.
 
 Also needed: decaying effects, drips with dose choices, assessments whose
 text depends on state bands, an SBAR call built from four choices whose
@@ -406,14 +411,18 @@ Deliberate differences, beyond the 3.1 reclassification:
 - **Drips** always offer "Turn off"; the prototype offers it only while one
   runs (turning off a drip that is off changes nothing).
 - **Contraindicated actions: none in this case** (Nick, 2026-11-09: a harm
-  ending only where a published guideline names the action). The 2015 ESC
-  pericardial guidelines (Adler et al., Eur Heart J 2015;36:2921-2964,
-  checked 2026-11-09) mark vasodilators and diuretics "not recommended" in
-  tamponade (class III, level C); this case offers neither before
-  re-exploration (nicardipine appears only in phase 2, after the tamponade is
-  relieved). Protamine with a normal ACT and dobutamine in tamponade have no
-  guideline naming them as contraindicated, so they stay poor choices in the
-  scoring and are listed for clinical review (19.3).
+  ending only where a published guideline names the action). The 2025 ESC
+  guideline on myocarditis and pericarditis (Schulz-Menger et al., Eur Heart
+  J 2025;46(40):3952-4041, section 11.8.3, checked 2026-11-09) says to avoid
+  diuretics and positive-pressure ventilation in tamponade; this case offers
+  no diuretic and the patient is already ventilated, which the case does not
+  change. The 2015 guideline (Adler et al., Eur Heart J 2015;36:2921-2964) is
+  kept only for the point the 2025 text does not cover: vasodilators are "not
+  recommended" in tamponade (class III, level C); this case offers none
+  before re-exploration (nicardipine appears only in phase 2, after the
+  tamponade is relieved). Protamine with a normal ACT and dobutamine in
+  tamponade have no guideline naming them as contraindicated, so they stay
+  poor choices in the scoring and are listed for clinical review (19.3).
 - **The chest-tube tile** reads `history` in whole 5-second samples, so for
   a few seconds after clearing the tubes (when the 15-minute window's far
   edge crosses that moment) it differs from the prototype's interpolated
@@ -1502,15 +1511,198 @@ exactly the rows for ticks 2 and 3, and the next command must be stamped
   On the phone a long skip is computed in chunks of at most 250 ticks per
   frame with a progress line, so a 90-minute skip (5,400 ticks) never
   freezes the UI thread on Hermes (14).
-- **No speed control.** The prototype's old 5x/10x/20x control is gone, as
-  in the revised prototypes: compressing time anywhere except an explicit
-  wait would misteach how long things take.
+- **Speed.** Compressing time anywhere except an explicit wait would
+  misteach how long things take, so the prototype's free 5x/10x/20x control
+  is gone. The one exception is the approved two-position **pace** (5.4a):
+  Study pace 3x (the default in clinical and fitness sims) and Exam realism
+  1x, a logged command, so a replay matches.
 - **Pause** is always available while the clock runs. It stops the clock
   and is logged. It is never penalised in scoring and there is no pause
   budget (decisions 2 and R2): timing criteria are measured on the **sim clock
   only**, so "tubes checked within 15 min of onset" means 15 sim minutes,
   however long the learner paused. The debrief shows total paused time for
   the learner's own information.
+
+### 5.4a Pace (REQ-209; Nick, 2026-11-09)
+
+In a `running` phase one sim minute used to take one real minute, so a full
+tamponade case took 30 to 60 minutes on a phone. Pace is the approved fix.
+
+- **Two positions.** *Study pace* (3x: one real minute is three sim minutes)
+  and *Exam realism* (1x). Study pace is the default where pacing is offered;
+  the learner chooses on the launch card (with the start point, 5.4b) and may
+  change at any time while the run is open. Pause stays available at every
+  speed (13.3, WCAG 2.2.1).
+- **A logged command.** `pace { pace: 1 | 3 }`. It changes how fast real
+  time runs the *same* ticks: sim state, the state hash, physiology and
+  every delay are in sim time and are untouched. Pace is outside `SimState`
+  and the hash, and is derived from the last `pace` command in the log
+  (`Run.pace`, `lastLoggedPace`); a run with none replays at **1x**. The
+  engine counts real-time ticks per pace (`Run.paceTicks`, also in
+  checkpoints).
+- **App.** At 3x the frame clock runs a tick every 333 ms
+  (`tickMsFor`, `mobile/src/sim/runtime/pacing.ts`), with the same
+  at-most-3-ticks-per-frame catch-up and 3 s stall rule as 5.4.
+- **Server speed bound** (5.7). `minWallSeconds(run)` is the sum over paces
+  of `paceTicks[p] * dt / p`: the least wall time the logged paces allow. A
+  sync or finish is refused 409 `too_fast` when it exceeds the server's wall
+  time since the run started plus the same tolerance (5 s plus 1%) as before.
+  So a legitimate 3x run is accepted, and a client that plays faster than the
+  speed it logged (or plays 3x without logging it, which reads as 1x) is
+  refused. A run that only ever ran at 1x gets exactly the old check. The
+  bound is cumulative, as before: each segment is charged at its own logged
+  speed, but the comparison is against total wall time.
+- **The clock and the debrief.** The sim clock is the largest text on the
+  screen (`simClock`: time, minutes elapsed, and pace in a running phase) and
+  is read aloud. The debrief reports sim minutes and the pace used
+  (`DebriefData.pacing`: start and final pace, number of changes, real-time
+  ticks at each pace, and a sentence).
+- **Offline detection** divides the real-time span by 3 once the run has
+  played at 3x, so 2 minutes of wall time at 3x is not read as 6 minutes
+  offline. It can only under-flag, and offline play is recorded, not penalised.
+
+**Who gets it.** Pacing (pace, focused start, the skip offer, teaching
+prompts, chapters) applies only to a scenario that has a `running` phase
+**and** sits in a clinical or fitness safety family (`pacingEligible`,
+`lib/sim/server-run.ts`; mirrored by the lint rule `pacingRules`). Every
+other sim, the IT, cloud and project-management ones, is unchanged and
+byte-identical: the server answers 400 `pacing_not_available` to a pacing
+command for them, the validator makes the new document keys a lint error for
+the general family, and `RunPayload.pacing.eligible` is false so the app
+shows none of it. Turn-based and stopped phases never tick in real time
+(5.4), so nothing in them moves except by the learner's own action; this is
+tested for every general-family scenario by ten idle minutes
+(`lib/sim/idle.test.ts`, `mobile/src/sim/pacing.test.ts`).
+
+### 5.4b Focused start (REQ-209)
+
+A scenario may offer one **focused start** (`focusedStart: { label, at,
+summary, source }`), chosen by the learner at launch. For tamponade it is
+"Start near the deterioration" at 13 min (tick 780: 11 min after the
+drainage stopped at 2 min, inside the brief's 10 to 12 min).
+
+- **Reached through the engine.** The first command is `begin { start:
+  "focused" }`; the engine evolves the normal start to `at` with **no learner
+  actions** (the same `stepTick` real time uses), not counted as real time
+  (so the speed bound charges nothing for it), and records `focusedAt`. It is
+  valid only as the very first command, only where pacing is offered. The
+  lint rule `pacingRules` runs it on three seeds and requires that it reaches
+  `at` with no ending, no alarm interrupting and no prompt or reasoning
+  moment open.
+- **Fair scoring, exactly.** Timing is measured from **onset** exactly as in
+  a full case, so the targets (page the surgeon by 20 min, re-exploration,
+  and so on) are unchanged and a focused run does not get extra time. What
+  changes is *recognition credit*: the `tubes` criterion ("noticed the
+  sudden stop in chest tube drainage") has a first row `focusedAt >
+  recognizeExpertAt -> na`. `recognizeExpertAt` is a sourced param (540 s: the
+  expert path inspects the tubes 9 min into the case). A run that joins after
+  the point where the expert path has already noticed the drainage stop is
+  therefore not scored on noticing it, and `na` removes the criterion from
+  the process score (it is not counted as missed). A focused start before
+  that point (none exists for tamponade) would score `tubes` normally. The
+  debrief marks the run as a focused start (`DebriefData.focusedStart`).
+- **Mastery.** A focused run is an ordinary mastery attempt (a choice for
+  Nick to confirm, 19.6): the criteria that are scored are the same ones.
+
+### 5.4c The skip offer: "Skip to the next change" (REQ-209)
+
+When nothing is happening, the app offers one button using the **existing
+skip** (5.4), logged as a `skip` command with `calm: true`.
+
+- **Engine rule** (`calmSkip(run)`, pure): a running phase; no prompt or
+  reasoning moment open; no alarm condition true now (no `interruptsSkip`
+  trigger holds); no timer of any kind due within 60 sim seconds
+  (`CALM_MIN_SPAN_SECONDS`; "nothing urgent due"); and a pending wait that is
+  not `routine`. It returns the wait to skip to.
+- **App rule** (`calmOffer`): additionally nothing in the log, findings,
+  phase or prompts has changed for about **30 real seconds** while the clock
+  ran (`CALM_IDLE_MS`; paused time does not count).
+- **Server.** The skip route accepts `calm`; it keeps the flag only if the
+  server's own replay agrees the offer stood (else 409 `no_offer`), and
+  refuses it where pacing is not offered (400).
+- **Labels and the debrief.** The button reads "Skip to the next change" and
+  its spoken label names the wait and the sim time skipped ("Skip to the next
+  change: the echo result. Skips about 10 minutes of simulated time. It stops
+  early if an alarm or a result comes in."). The log line ends "(skip offer)";
+  the debrief counts them (`DebriefData.calmSkips`) beside the ordinary skips.
+  A skip still stops early at an alarm or a result.
+
+### 5.4d Teaching prompts during named waits (REQ-209)
+
+A scenario may carry `teaching: { id: { during, ask, choices, expect,
+explain, source } }`. While the named timer's wait is pending (for tamponade:
+the fluid bolus, the echo, the surgeon's callback and the surgeon's walk) the
+app shows one prediction question, answered by tapping a choice.
+
+- **No model call, and not scored.** The answer is checked locally against
+  `expect`, the feedback shows the explanation and the source, and the
+  answer is logged as a `teach` command so a replay and the debrief ("Your
+  predictions (not scored)") show it. **Decision: unscored**, not lightly
+  scored. These are questions about what the learner expects, not about what
+  they did, and a wrong prediction on a question the sources only partly
+  support should not move the rating. They have no effect on state, the hash
+  or the score.
+- **Tamponade prompts** (each with a sourced rationale, `checkedAt`
+  2026-11-09, and an explicit `FLAG` in its source note where the evidence
+  is indirect). The primary source of three is the 2025 ESC guideline
+  (Eur Heart J 2025;46:3952), read for this project through the publisher's
+  free-access page; its section numbers and wording are relayed, not yet
+  re-read by the author of the prompts. (1) CVP after a fluid bolus: the
+  direction rests on Sagrista-Sauleda 2008 (medical tamponade, not
+  post-surgical), and the guideline agrees that temporary fluid can
+  stabilise a patient while drainage is arranged (11.8.3). (2) Whether a
+  normal-looking echo rules tamponade out after cardiac surgery: grounded in
+  11.8 (a clinical diagnosis that echo confirms; post-surgical collections
+  may be loculated and compress one chamber). The guideline does not say
+  whether a normal transthoracic echo excludes tamponade and does not cover
+  transesophageal echo, so those statements are attributed to Eur J
+  Cardiothorac Surg 2022 and J Card Surg 2008 instead. (3) Whether to wait
+  for Beck's triad: the guideline says it is classically seen in surgical
+  tamponade, so the prompt asks whether to wait for all three, not whether
+  they will appear (the first version said the triad is uncommon, on a review
+  of tamponade in general). (4) The least specific echo finding, from Table 17
+  (11.8.2): a plethoric vena cava, sensitivity about 97% and specificity about
+  40%; the ranges for the other signs overlap, so a "most specific sign"
+  question is not supported. There is no prompt for "drainage stopped": no
+  source was found for it. The 2025 guideline supersedes the 2015 one the
+  scenario first cited; the 2015 entry stays only for vasodilators (3.2).
+- **Family interruption.** Not added: the people layer is not in the engine.
+
+### 5.4e Chapters: continue, or save and finish later (REQ-209)
+
+A scenario may declare `chapters: [{ id, label, when }]`: natural break
+points (for tamponade: the surgeon at the bedside, re-exploration begins,
+back in the ICU). When a boundary's `when` first holds, the app pauses and
+offers **Continue** or **Save and finish later**; both are logged as a
+`chapter` command. The offer is a pure function of state and the command log
+(`chapterDue`), so another device that replays the log offers the same
+break or none, and does not ask again after it was answered. "Save and
+finish later" is the existing checkpoint and resume: the run stays open on
+the server, and "Continue the run" on any device replays it to the same
+place (tested on a second device in `lib/sims.dbtest.ts` and
+`mobile/src/sim/pacing.test.ts`). The chapter lint rule requires every
+chapter to be reached by at least one golden path.
+
+### 5.4f Compatibility (REQ-209)
+
+- **Engine minor 1** (`ENGINE_VERSION` 1.1). The new document keys and
+  `wait.routine` are minor-1 features (`FEATURE_MINOR`): a document that
+  uses one must declare `engine.minor >= 1`, and a minor-0 document cannot.
+  Stepping did not change, so there is no new major and every existing golden
+  still matches at 1x.
+- **Runs begun before REQ-209** are pinned to a minor-0 version and carry no
+  pace command: they replay at 1x, resume, finish and score exactly as before,
+  and the app does not show the launch card for any run that already has a
+  command. A minor-0 checkpoint restores with all its ticks counted at 1x
+  (`engineReadable`, `restoreRun`).
+- **Old apps.** An open run on a minor-1 version is not handed to an app that
+  lacks engine 1.1 (409 `app_update_required`, "Update the app to continue");
+  the run is kept for the updated app. A minor-0 run is handed back to any app.
+- **Schema.** Migration 073 widens the `sim_run_commands.type` check to allow
+  `pace`, `begin`, `teach` and `chapter`. Apply it before the code that writes
+  those commands (without it the first logged pace is a failed insert); runs
+  that never log one are unaffected. `lib/schema-status.ts` probes for it.
+
 
 ### 5.5 Determinism
 
@@ -1596,8 +1788,10 @@ How C handles each concern:
   inside a skip, sequence gap). **Speed-up** is bounded: the real-time
   part of sim time (ticks advanced in `running` phases outside skips) may
   not exceed the server-measured wall time since the run started plus a
-  tolerance (5 s plus 1%). So a bot cannot play a 30-minute case in 2
-  seconds. Turns phases and skips are not real time and are bounded by the
+  tolerance (5 s plus 1%). Since REQ-209 each real-time tick is charged at
+  the pace the run had logged when it was played (1/3 of a second at 3x,
+  5.4a), so the bound allows the logged speed and refuses anything faster.
+  So a bot cannot play a 30-minute case in 2 seconds. Turns phases and skips are not real time and are bounded by the
   waits the server's own replay shows.
 - **Save-scumming and the other side of the bound.** The speed bound is
   one-sided: it stops playing too fast, not playing a branch, seeing it go
@@ -3087,6 +3281,18 @@ rules below followed. Nick approved all of them.
   every accepted command and the app replays from tick 0 instead of a
   checkpoint; the run starts with the clock paused until the learner runs it.
 
+### 19.6 Choices made in REQ-209, for Nick to confirm
+
+1. A focused-start run counts toward mastery like any other attempt; the
+   criterion it skips (`tubes`) is `na`, so it is left out of the process
+   score rather than counted as missed (5.4b). The alternative is to record
+   a focused run as practice that does not count toward mastery.
+2. Teaching prompts are unscored (5.4d), logged and shown in the debrief.
+3. Pace is the same for the whole scenario by default (3x); exam realism is
+   a choice at launch or mid-run, not a separate "exam mode" that refuses
+   3x.
+4. Settled (Nick, 2026-11-09): focused runs count toward mastery as built, and exam realism stays a pace choice, not a separate mode. The 2025 ESC guideline was read against the tamponade sources (5.4d).
+
 ## 20. Sims for every subject family (Nick, 2026-11-07)
 
 Nick: sims are "where the money is made", quality over speed, and every
@@ -3329,7 +3535,7 @@ type and the check.
 | `GET /api/sims/runs/:runId/debrief` | The stored debrief. |
 
 The app sends its capabilities as `x-sim-caps:
-protocol=1;engine=1.0;renderers=bedside@3,board@3`. Access uses the `sims`
+protocol=1;engine=1.0;renderers=bedside@3,board@3` (engine=1.1 since REQ-209, 5.4f). Access uses the `sims`
 feature key (Pro; one sample per course on Free and Plus). A clinical or
 fitness sim needs the study notice on every run route.
 
@@ -3438,3 +3644,44 @@ run on the version served now. A quarantined version's open runs carry on
 on the sim screen (it sends the tick and hash at the moment of sending)
 and on the debrief.
 
+### 22.2 Pace, focused start, the skip offer, teaching prompts and chapters as built (REQ-209)
+
+Design in 5.4a to 5.4f. What was built:
+
+- **Engine** (`lib/sim/engine/v1/`, copied to `mobile/src/sim/engine/v1/` by
+  `npm run sim:sync-engine`): `ENGINE_MINOR` 1; commands `pace`, `begin`,
+  `teach`, `chapter` and `skip { calm }`; `Run.pace`, `paceTicks`,
+  `focusedAt`; `lastLoggedPace`, `minWallSeconds`, `calmSkip`,
+  `teachingDue`, `chapterDue`; the debrief fields `pacing`, `focusedStart`,
+  `calmSkips`, `teaching`, `chapters`. The validator adds the structure
+  rules, `FEATURE_MINOR`, and `pacingRules` (a running phase and a clinical
+  or fitness family; `begin` reachable on three seeds; every chapter and
+  teaching prompt reached by a golden path). Golden `expect` gains
+  `minWallSeconds` and `focusedAt`.
+- **Server** (`lib/sims.ts`, `lib/sim/server-run.ts`): `RunPayload.pacing`
+  (`eligible`, `studyPace`, `examPace`, `defaultPace`); 400
+  `pacing_not_available`; 409 `no_offer`; the paced speed bound at sync and
+  finish; the open-run guard for old apps. **Migration 073** (5.4f).
+- **App** (`mobile/src/sim/`): `runtime/pacing.ts` (pure), the launch card,
+  pace control, skip offer, teaching card and chapter card in `SimPanels.tsx`,
+  wired in `useSimRun.ts` and the sim screen. 48 dp targets and spoken labels
+  throughout.
+- **Tamponade** (`tamponade-after-cabg.sim.json`, engine minor 1): the
+  focused start, three chapters, four teaching prompts, `q15check` marked
+  routine, and the `tubes` row for a focused start. New goldens `expert3x`
+  and `focused3x` are appended to its golden file; the ten existing paths are
+  unchanged. TicketBurst (AWSSAA, AWSSAP band) got nothing and its documents
+  and goldens are untouched.
+- **Run lengths** of the expert path (real time at the screen, excluding
+  reading and typing; 7,200 further sim ticks are skipped waits that cost no
+  real time): 1x, 2,580 ticks = 43.0 min; 3x, 860 s = 14.3 min; 3x with the
+  focused start, (2,440 - 780) / 3 = 553 s = 9.2 min.
+- **Tests.** Engine and server: `lib/sim/pacing.test.ts`,
+  `lib/sim/idle.test.ts`, the schema conformance and golden tests;
+  `lib/sims.dbtest.ts` "pacing (REQ-209)" and the 073 schema test; app:
+  `mobile/src/sim/pacing.test.ts`.
+- **Not built.** A PT treatment-session sim and a fitness client-trainer
+  change: no PT or fitness `running` sim exists in this codebase (the fitness
+  client trainer is turns with a 1-day tick, so it needs nothing); the
+  engine features apply to a new one by declaring them. A family
+  interruption: no people layer.

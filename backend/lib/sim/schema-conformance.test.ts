@@ -12,10 +12,12 @@ import type {
   Action,
   ActionParam,
   Catalog,
+  Chapter,
   Derived,
   Effect,
   Ending,
   FieldSpec,
+  FocusedStart,
   History,
   OutcomeSpec,
   Param,
@@ -29,6 +31,7 @@ import type {
   Source,
   StateVar,
   Table,
+  TeachingPrompt,
   TimerSpec,
   Trigger,
 } from "./engine/v1/types.ts";
@@ -36,10 +39,12 @@ import {
   actionParamSchema,
   actionSchema,
   catalogSchema,
+  chapterSchema,
   derivedSchema,
   effectSchema,
   endingSchema,
   fieldSpecSchema,
+  focusedStartSchema,
   goldenFileSchema,
   historySchema,
   outcomeSpecSchema,
@@ -56,6 +61,7 @@ import {
   sourceSchema,
   stateVarSchema,
   tableSchema,
+  teachingPromptSchema,
   timerSpecSchema,
   triggerSchema,
 } from "./schema.ts";
@@ -88,6 +94,9 @@ ok<Mutual<z.infer<typeof outcomeSpecSchema>, OutcomeSpec>>(true);
 ok<Mutual<z.infer<typeof endingSchema>, Ending>>(true);
 ok<Mutual<z.infer<typeof screenSpecSchema>, ScreenSpec>>(true);
 ok<Mutual<z.infer<typeof scoringSchema>, Scoring>>(true);
+ok<Mutual<z.infer<typeof focusedStartSchema>, FocusedStart>>(true);
+ok<Mutual<z.infer<typeof chapterSchema>, Chapter>>(true);
+ok<Mutual<z.infer<typeof teachingPromptSchema>, TeachingPrompt>>(true);
 ok<Mutual<z.infer<typeof scenarioSchema>, ScenarioDoc>>(true);
 
 describe("scenario schema conformance", () => {

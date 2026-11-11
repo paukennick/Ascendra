@@ -112,7 +112,7 @@ export const actionSchema = z.object({
 
 export const timerSpecSchema = z.object({
   label: template,
-  wait: z.object({ skipLabel: template }).optional(),
+  wait: z.object({ skipLabel: template, routine: z.boolean().optional() }).optional(),
   instances: z.enum(["one", "many"]),
   interruptsSkip: z.boolean().optional(),
   with: z.record(id, fieldSpecSchema).optional(),
@@ -207,6 +207,21 @@ export const scoringSchema = z.object({
   modelReasoning: z.string().max(6000),
 });
 
+// REQ-209: the optional pacing declarations (types.ts FocusedStart, Chapter,
+// TeachingPrompt). Cross-checks (a running phase, a clinical or fitness
+// scenario, a pending wait, reachable points) are lint rules in validate.ts.
+export const focusedStartSchema = z.object({ label: z.string().min(1).max(80), summary: z.string().min(1).max(240), at: duration, source: sourceSchema });
+export const chapterSchema = z.object({ id, label: z.string().min(1).max(80), when: expr });
+export const teachingPromptSchema = z.object({
+  during: id,
+  when: expr.optional(),
+  ask: z.string().min(1).max(160),
+  choices: z.array(z.object({ id, label: z.string().min(1).max(120) })).min(2).max(4),
+  expect: id,
+  explain: z.string().min(1).max(600),
+  source: sourceSchema,
+});
+
 export const scenarioSchema = z.object({
   schemaVersion: z.literal(1),
   engine: z.object({ major: z.literal(1), minor: z.number() }),
@@ -237,6 +252,9 @@ export const scenarioSchema = z.object({
   outcome: outcomeSpecSchema,
   endings: z.record(id, endingSchema).refine((e) => Object.keys(e).length <= 12, "at most 12 endings"),
   scoring: scoringSchema,
+  focusedStart: focusedStartSchema.optional(),
+  chapters: z.array(chapterSchema).max(6).optional(),
+  teaching: z.record(id, teachingPromptSchema).refine((t) => Object.keys(t).length <= 6, "at most 6 teaching prompts").optional(),
 });
 
 export type ScenarioDocParsed = z.infer<typeof scenarioSchema>;
@@ -260,6 +278,8 @@ export const goldenFileSchema = z.object({
         kpis: z.record(z.string(), z.union([z.number(), z.string(), z.null()])).optional(),
         snapshots: z.array(z.object({ tick: z.number(), values: z.record(z.string(), z.unknown()) })).optional(),
         stateHash: z.string().optional(),
+        minWallSeconds: z.number().optional(), // REQ-209: the paced run's fewest wall-clock seconds
+        focusedAt: z.number().optional(), // REQ-209: the tick a focused start began at
       }),
       reasoning: z.record(z.string(), criterionScoreSchema).optional(),
       notes: z.string().optional(),

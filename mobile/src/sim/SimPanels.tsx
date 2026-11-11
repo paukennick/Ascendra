@@ -10,6 +10,8 @@ import type { ActionParam, WaitInfo } from "./engine/v1/types.ts";
 import { slotChoices, waitLabel, type ActionView, type RunView, type TileView, type ZoneView } from "./runtime/view.ts";
 import { cprCommandText, measureTaps, MEASURE_EVERY_MS, STOP_AFTER_MS, tapFeedback, windowAfter, type TapMeasure } from "./runtime/tapPad.ts";
 import type { CommandInput } from "./runtime/session.ts";
+import type { CalmOffer, ChapterOffer, LaunchChoice, LaunchView, PaceOption, TeachFeedback, TeachOffer } from "./runtime/pacing.ts";
+import type { Pace } from "./engine/v1/types.ts";
 import type { ReasoningResult, SimDebrief } from "./useSimRun";
 
 // REQ-190 (docs/sims.md 8, 13): the sim screen's panels. Every panel reads
@@ -122,6 +124,101 @@ export function WaitsRow({ run, waits, turns, onSkip, disabled }: { run: Run; wa
         );
       })}
     </View>
+  );
+}
+
+// REQ-209 (docs/sims.md 5.4a): the pace choice. Two buttons, one selected;
+// Pause stays on the clock row at every speed (WCAG 2.2.1).
+export function PaceControl({ options, onPick, disabled }: { options: PaceOption[]; onPick: (p: Pace) => void; disabled?: boolean }) {
+  return (
+    <View accessibilityRole="radiogroup" accessibilityLabel="Clock speed" style={{ gap: spacing.xs }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+        {options.map((o) => (
+          <Button key={o.pace} label={o.label} accessibilityLabel={o.a11y} variant={o.selected ? "primary" : "ghost"} size="sm" fullWidth={false} disabled={disabled} onPress={() => onPick(o.pace)} />
+        ))}
+      </View>
+      <Muted style={{ fontSize: 12 }}>{options.find((o) => o.selected)?.hint}</Muted>
+    </View>
+  );
+}
+
+// REQ-209 (5.4a, 5.4b): asked once, before the clock first runs.
+export function LaunchCard({ view, choice, onChoice, onStart }: { view: LaunchView; choice: LaunchChoice; onChoice: (c: LaunchChoice) => void; onStart: () => void }) {
+  return (
+    <Card elevated>
+      <H2>Before you start</H2>
+      <H3>Where to begin</H3>
+      {view.starts.map((st) => (
+        <Button
+          key={st.id}
+          label={st.label}
+          accessibilityLabel={`${st.label}. ${st.summary}${choice.start === st.id ? " Selected." : ""}`}
+          variant={choice.start === st.id ? "primary" : "ghost"}
+          onPress={() => onChoice({ ...choice, start: st.id })}
+        />
+      ))}
+      <Muted>{view.starts.find((st) => st.id === choice.start)?.summary}</Muted>
+      <H3>How fast the clock runs</H3>
+      <PaceControl options={view.paces} onPick={(p) => onChoice({ ...choice, pace: p })} />
+      <Muted style={{ fontSize: 12 }}>Only the waiting changes. The patient, the timings and the scoring are the same at either speed, and you can change speed or pause at any time.</Muted>
+      <Button label="Start" icon="play" onPress={onStart} />
+    </Card>
+  );
+}
+
+// REQ-209 (5.4c): offered after about 30 quiet real seconds when nothing is
+// alarming, pending or due soon. It is the existing skip, so it stops early on
+// any alarm or result.
+export function SkipOffer({ offer, onSkip, disabled }: { offer: CalmOffer; onSkip: () => void; disabled: boolean }) {
+  return (
+    <Card>
+      <View accessibilityLiveRegion="polite">
+        <Muted>Quiet for a while. Nothing is alarming or due soon.</Muted>
+      </View>
+      <Button label={offer.label} accessibilityLabel={offer.a11y} icon="fast-forward" variant="ghost" disabled={disabled} onPress={onSkip} />
+    </Card>
+  );
+}
+
+// REQ-209 (5.4d): a prediction while a named wait runs. Answered by choice;
+// not scored; the clock keeps running (pause any time).
+export function TeachingCard({ offer, feedback, onAnswer, onDismiss }: { offer: TeachOffer | null; feedback: TeachFeedback | null; onAnswer: (choice: string) => void; onDismiss: () => void }) {
+  if (feedback) {
+    return (
+      <Card>
+        <View accessibilityLiveRegion="polite" style={{ gap: spacing.xs }}>
+          <Badge label="Prediction (not scored)" color={colors.accent} icon="help-circle" />
+          <Body>{feedback.headline}</Body>
+          <Body>{feedback.explain}</Body>
+          <Muted style={{ fontSize: 12 }}>Source: {feedback.source.cite}</Muted>
+        </View>
+        <Button label="Got it" variant="ghost" size="sm" fullWidth={false} onPress={onDismiss} />
+      </Card>
+    );
+  }
+  if (!offer) return null;
+  return (
+    <Card>
+      <Badge label="While you wait: a prediction (not scored)" color={colors.accent} icon="help-circle" />
+      <H3>{offer.ask}</H3>
+      {offer.choices.map((c) => <Button key={c.id} label={c.label} variant="ghost" onPress={() => onAnswer(c.id)} />)}
+    </Card>
+  );
+}
+
+// REQ-209 (5.4e): the clock is paused at the break. Either choice keeps the
+// run saved; "later" can be picked up on any device.
+export function ChapterCard({ offer, onContinue, onLater }: { offer: ChapterOffer; onContinue: () => void; onLater: () => void }) {
+  return (
+    <Card elevated>
+      <View accessibilityLiveRegion="polite" style={{ gap: spacing.xs }}>
+        <Badge label="Chapter done: the clock is paused" color={colors.good} icon="check-circle" />
+        <H2>{offer.title}</H2>
+        <Muted>Your run is saved. You can carry on now, or stop here and pick it up later on this or another device.</Muted>
+      </View>
+      <Button label={offer.continueLabel} icon="play" accessibilityLabel={`Continue. ${offer.a11y}`} onPress={onContinue} />
+      <Button label={offer.laterLabel} icon="bookmark" variant="ghost" onPress={onLater} />
+    </Card>
   );
 }
 
@@ -446,6 +543,26 @@ export function DebriefView({ d, onAgain, onBack }: { d: SimDebrief; onAgain: ()
           {quit ? <Muted>Nothing was recorded for mastery.</Muted> : null}
         </View>
       </Card>
+      {d.pacing || d.focusedStart || d.calmSkips || d.chapters?.length ? (
+        <Card>
+          <H2>How this run was paced</H2>
+          {d.pacing ? <Body>{d.pacing.note}</Body> : null}
+          {d.focusedStart ? <Body>Started with "{d.focusedStart.label}" at {d.focusedStart.time}. Timing targets still count from the start of the case, and anything that start skipped is left out of your score, not counted against you.</Body> : null}
+          {d.calmSkips ? <Muted>You took the "Skip to the next change" offer {d.calmSkips === 1 ? "once" : `${d.calmSkips} times`}.</Muted> : null}
+          {d.chapters?.map((c) => <Muted key={c.chapter}>{c.time} {c.choice === "later" ? "Saved to finish later after" : "Finished"}: {c.label}</Muted>)}
+        </Card>
+      ) : null}
+      {d.teaching?.length ? (
+        <Card>
+          <H2>Your predictions (not scored)</H2>
+          {d.teaching.map((t) => (
+            <View key={t.prompt} accessible accessibilityLabel={`${t.ask} You chose: ${t.chosen}. The evidence points to: ${t.expected}.`} style={{ gap: 2, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm }}>
+              <Body>{t.ask}</Body>
+              <Muted style={{ color: t.matched ? colors.good : colors.warn }}>You chose: {t.chosen}{t.matched ? "" : `. The evidence points to: ${t.expected}`}</Muted>
+            </View>
+          ))}
+        </Card>
+      ) : null}
       {d.criteria.length ? (
         <Card>
           <H2>What was scored</H2>

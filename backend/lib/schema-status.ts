@@ -422,6 +422,12 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and exists(select 1 from pg_proc where proname = 'review_schedule_enrol' and prosrc like '%retired_at%') as ok`,
   },
   {
+    // REQ-209: pace, begin, teach and chapter are logged sim commands.
+    migration: "073_sim_pacing_commands.sql",
+    what: "the pace, begin, teach and chapter command types on sim_run_commands (pacing, focused start, teaching answers, chapter breaks)",
+    sql: `select exists(select 1 from pg_constraint where conrelid = 'sim_run_commands'::regclass and conname = 'sim_run_commands_type_073') as ok`,
+  },
+  {
     migration: "032_lesson_progress_tombstone.sql",
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,
