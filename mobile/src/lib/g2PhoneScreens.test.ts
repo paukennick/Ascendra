@@ -125,3 +125,40 @@ describe("sign-in screens say so when offline (FAIL-1045)", () => {
     }
   });
 });
+
+describe("study reminders (FAIL-1057..1059)", () => {
+  test("a serial queue runs jobs one at a time, in order, and survives a failure", async () => {
+    const { createSerialQueue } = await import("./serialQueue.ts");
+    const serial = createSerialQueue();
+    const log: string[] = [];
+    const job = (tag: string, ms: number, fail = false) => async () => {
+      log.push(`${tag}:start`);
+      await new Promise((r) => setTimeout(r, ms));
+      log.push(`${tag}:end`);
+      if (fail) throw new Error(tag);
+      return tag;
+    };
+    const results = await Promise.allSettled([serial(job("a", 15)), serial(job("b", 1, true)), serial(job("c", 1))]);
+    assert.deepEqual(log, ["a:start", "a:end", "b:start", "b:end", "c:start", "c:end"]);
+    assert.deepEqual(results.map((r) => r.status), ["fulfilled", "rejected", "fulfilled"]);
+  });
+  test("every change to the schedule goes through the queue", () => {
+    const src = read("./reminderScheduler.ts");
+    assert.match(src, /return serial\(\(\) => applyNow\(userId, prefs, opts\)\)/);
+    assert.match(src, /export function cancelStudyReminders\(\): Promise<void> \{\s*return serial\(cancelAll\)/);
+    const apply = src.slice(src.indexOf("async function applyNow"), src.indexOf("let lastSync"));
+    assert.doesNotMatch(apply, /cancelStudyReminders/, "inside the queue only the unqueued cancel is used");
+  });
+  test("a reminder tap opens Review; any other notification is left alone", async () => {
+    const { reminderTapTarget, REMINDER_KIND } = await import("./reminders.ts");
+    assert.equal(reminderTapTarget({ kind: REMINDER_KIND, trackId: "t" }), "/review");
+    assert.equal(reminderTapTarget({ kind: "other" }), null);
+    assert.equal(reminderTapTarget(null), null);
+    assert.match(read("../../app/_layout.tsx"), /useReminderTap\(/);
+    assert.match(read("./reminderScheduler.ts"), /const KIND = REMINDER_KIND;/);
+  });
+  test("signing out cancels the notifications but keeps the setting", () => {
+    const auth = read("../auth/AuthContext.tsx");
+    assert.match(auth.slice(auth.indexOf("async function clearUserLocalData"), auth.indexOf("const REFRESH_TOKEN_KEY")), /await cancelStudyReminders\(\)/);
+  });
+});
