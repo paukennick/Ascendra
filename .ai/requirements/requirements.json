@@ -7626,6 +7626,38 @@
       "risk_notes": [
         "none: no production behaviour changes"
       ]
+    },
+    {
+      "id": "REQ-221",
+      "category": "operations",
+      "title": "Operations and docs audit fixes (G6)",
+      "description": "Audit of 2026-11-11, batch G6. This branch carries only M8 (FAIL-1167): Android offers a password saved for the website inside the app only if the app also declares the website (Digital Asset Links asset_statements). Native config change: needs a new build. The other G6 findings are on fix/g6-operations; both branches add REQ-221, so the requirement entry conflicts at merge and is resolved by keeping one with both parts.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/plugins/withAssetStatements.js",
+        "mobile/app.json",
+        "backend/public/.well-known/README.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "app.json lists the plugin for https://www.ascendra-learn.com",
+        "prebuild writes the asset_statements meta-data and string",
+        "assetlinks.json keeps its existing fingerprint"
+      ],
+      "validation_required": [
+        "mobile npx tsc --noEmit and npm test",
+        "expo prebuild --platform android in a scratch copy",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "backend/public/.well-known/README.md"
+      ],
+      "risk_notes": [
+        "needs a new EAS build",
+        "the Play app signing fingerprint must be added to assetlinks.json by Nick for Play installs"
+      ]
     }
   ]
 }
