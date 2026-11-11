@@ -437,6 +437,16 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and to_regclass('public.inbound_email_events') is not null as ok`,
   },
   {
+    // REQ-224: every mental health course route reads the 18+ confirmation
+    // table, and the seed resolves the EPPP course's subcategory by slug.
+    migration: "077_mental_health_mature_content.sql",
+    what: "mature_content_confirmations (18+ gate on mental health courses, account export) and the mental-health category with psychology-licensure (seed)",
+    sql: `select to_regclass('public.mature_content_confirmations') is not null
+             and exists(select 1 from pg_constraint where conname = 'mature_content_confirmations_category_077')
+             and exists(select 1 from education_subcategories s join education_categories c on c.id = s.category_id
+                         where c.slug = 'mental-health' and s.slug = 'psychology-licensure') as ok`,
+  },
+  {
     // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
     migration: "074_independent_confirmation.sql",
     what: "the 074 mastery_detail() (Independent needs a second unassisted correct answer 24 h after the first)",
