@@ -1,0 +1,1526 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 0
+  },
+  "slug": "duty-to-protect-threat",
+  "title": "Session: a threat against an ex-partner's new partner",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Evan Marsh",
+        "presentation": "{distress >= 6 ? \"Tearful, voice low, hands clenched\" : distress >= 3 ? \"Quiet and slumped, answering in short sentences\" : \"Calmer now, sitting back in the chair\"}; {rapport >= 6 ? \"he holds your gaze\" : rapport >= 3 ? \"he glances at you, jaw tight\" : \"he glares past you\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "remark",
+          "label": "What he said",
+          "text": "'Some days I think everyone would be better off if Kyle wasn't around.'",
+          "when": "remarkHeard and not threatActual"
+        },
+        {
+          "id": "threat",
+          "label": "Threat",
+          "text": "Says he will shoot Kyle Brandt at Saturday's 10:00 game at Hillside Park field; his deer rifle is in his truck.",
+          "when": "threatActual",
+          "alert": "threatActual and not (policeNotified and victimWarned)"
+        },
+        {
+          "id": "historyN",
+          "label": "History",
+          "text": "Shoved Kyle in the parking lot two weeks ago; the bar-fight assault six years ago.",
+          "when": "historyAsked"
+        },
+        {
+          "id": "subN",
+          "label": "Alcohol",
+          "text": "Drinks heavily on weekends; drank before the parking-lot incident.",
+          "when": "substanceAsked"
+        },
+        {
+          "id": "rifleSafe",
+          "label": "Means",
+          "text": "Agreed to leave the rifle with his brother tonight.",
+          "when": "meansRemoved"
+        },
+        {
+          "id": "told",
+          "label": "Evan knows",
+          "text": "You told him what the law requires you to do now, and why.",
+          "when": "clientTold"
+        }
+      ],
+      "record": {
+        "label": "Record so far",
+        "items": [
+          {
+            "label": "Consulted a colleague and the practice's risk line",
+            "when": "consulted"
+          },
+          {
+            "label": "Law enforcement notified (local police)",
+            "when": "policeNotified"
+          },
+          {
+            "label": "Kyle Brandt warned by phone",
+            "when": "victimWarned"
+          },
+          {
+            "label": "Documented: threat {threatDoc}, actions {actionsDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Apply duty-to-warn and duty-to-protect obligations",
+  "sources": [
+    {
+      "cite": "ASPPB, EPPP (Part 1-Knowledge) content areas: Assessment and diagnosis 16%, Treatment, intervention, prevention and supervision 15%, Ethical, legal and professional issues 16%; Part 2-Skills: Assessment and intervention 33%, Ethical practice 17%",
+      "checkedAt": "2026-11-10",
+      "url": "https://asppb.net/?p=235"
+    },
+    {
+      "cite": "APA, Ethical Principles of Psychologists and Code of Conduct (2002, amended 2010 and 2016, effective 2017): 4.01, 4.02, 4.04, 4.05, 10.01",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.apa.org/ethics/code",
+      "note": "The current code. APA's Ethics Code Task Force has a revised draft under comment review (expected late 2026 or early 2027) and nothing new has been adopted (apa.org/ethics/task-force, updated July 2026)."
+    },
+    {
+      "cite": "RCW 71.05.120(3) (amended 2019 c 446 s 22 and 2020 c 302 s 11): no relief from 'the duty to warn or to take reasonable precautions to provide protection from violent behavior where the patient has communicated an actual threat of physical violence against a reasonably identifiable victim or victims'; the duty 'is discharged if reasonable efforts are made to communicate the threat to the victim or victims and to law enforcement personnel'",
+      "checkedAt": "2026-11-10",
+      "url": "https://lawfilesext.leg.wa.gov/Law/RCW/RCW%20%2071%20%20TITLE/RCW%20%2071%20.%2005%20%20CHAPTER/RCW%20%2071%20.%2005%20.120.htm",
+      "note": "Read on the Legislature's site; the duty-to-warn sentence is now subsection (3) (it was (2) before the 2016-2020 amendments)."
+    },
+    {
+      "cite": "Volk v. DeMeerleer, Washington Supreme Court No. 91387-1 (en banc, 2016): an outpatient relationship can be a special relationship (Restatement (Second) of Torts s 315); under Petersen v. State, 100 Wn.2d 421 (1983), the professional must use reasonable care, consistent with the standards of the profession, to protect the patient's foreseeable victims; foreseeability is a question of fact",
+      "checkedAt": "2026-11-10",
+      "url": "https://law.justia.com/cases/washington/supreme-court/2016/91387-1.html",
+      "note": "The University of Washington's 2025 duty-to-protect teaching slides (Piel, 15 Aug 2025) still present Volk as the outpatient standard and report that RCW 71.05.120(3) was held not to apply outside involuntary commitment; that point is relayed from the slides, not read in the opinion. SB 5800 (2017), which would have narrowed the duty to an actual threat against an identifiable person, died in committee (LegiScan). Reporter citation not confirmed on the page read."
+    },
+    {
+      "cite": "Piel J. Legal duty to protect. UW Behavioral Health Institute TeleBH series, 15 Aug 2025",
+      "checkedAt": "2026-11-10",
+      "url": "https://bhinstitute.uw.edu/wp-content/uploads/2025/08/TeleBH-2025-Session-08-Duty-to-Protect-Piel-08-15-2025.pdf"
+    },
+    {
+      "cite": "UW School of Law, Volk v. DeMeerleer study for the Washington House Judiciary Committee, 1 Dec 2017: Volk 'substantially changed the duty to protect and the duty to warn in Washington in the outpatient context'",
+      "checkedAt": "2026-11-10",
+      "url": "https://app.leg.wa.gov/ReportsToTheLegislature/Home/GetPDF?fileName=FinalVolkReport_9b39fb66-e26f-40de-96b9-56f28b48ff90.pdf"
+    },
+    {
+      "cite": "Tarasoff v. Regents of the University of California, 17 Cal.3d 425 (1976): a duty to use reasonable care to protect the intended victim, which may be discharged by warning the victim, notifying police or other reasonable steps; 'The protective privilege ends where the public peril begins' (17 Cal.3d at 442)",
+      "checkedAt": "2026-11-10",
+      "url": "https://en.wikipedia.org/wiki/Tarasoff_v._Regents_of_the_University_of_California"
+    },
+    {
+      "cite": "HHS, HIPAA FAQ 520 and 45 CFR 164.512(j): disclosure without authorization when necessary to prevent or lessen a serious and imminent threat, to a person reasonably able to prevent or lessen it (including the target and law enforcement), consistent with applicable law and ethics",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.hhs.gov/hipaa/for-professionals/faq/520/does-hipaa-permit-a-health-care-provider-to-disclose-information-if-the-patient-is-a-danger/index.html"
+    }
+  ],
+  "brief": {
+    "situation": "Evan Marsh, 44 (a fictional client), is in his fifth outpatient session with you, a licensed psychologist in Tacoma, Washington, for anger and stress since his divorce. His ex-wife Dana's new partner, Kyle Brandt, has started coming to their daughter Mia's soccer games. Evan arrives tense. You have 50 minutes.",
+    "handover": [
+      "Intake note: limits of confidentiality reviewed and signed at intake. One misdemeanor assault six years ago (a bar fight). No prior threats in therapy."
+    ],
+    "howItWorks": [
+      "Choose what to ask and how to respond. Evan answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "His rapport, distress and how much he discloses change with what you say. What he tells you depends on the trust you have built.",
+      "After the session you can consult, contact the police and the person threatened, and document. Washington law and the APA Ethics Code decide what is required and what is too much."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "70min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-10",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-10",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-10",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 3,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "limitsAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "remarkHeard": {
+      "type": "bool",
+      "init": false
+    },
+    "exploredAt": {
+      "type": "time",
+      "init": null
+    },
+    "threatActual": {
+      "type": "bool",
+      "init": false
+    },
+    "meansAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "historyAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "substanceAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "meansRemoved": {
+      "type": "bool",
+      "init": false
+    },
+    "clientTold": {
+      "type": "bool",
+      "init": false
+    },
+    "consulted": {
+      "type": "bool",
+      "init": false
+    },
+    "policeNotified": {
+      "type": "bool",
+      "init": false
+    },
+    "victimWarned": {
+      "type": "bool",
+      "init": false
+    },
+    "overShared": {
+      "type": "bool",
+      "init": false
+    },
+    "premature": {
+      "type": "bool",
+      "init": false
+    },
+    "threatDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "actual",
+        "vague"
+      ],
+      "init": "none"
+    },
+    "actionsDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "both",
+        "partial",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "limits",
+        "checkIn",
+        "reflect",
+        "lecture",
+        "explore",
+        "askHistory",
+        "askMeans",
+        "askSubstance",
+        "deescalate",
+        "removeMeans",
+        "tellClient",
+        "warnNow",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "consult",
+        "callPolice",
+        "warnVictim",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "limits": {
+      "label": "Explain confidentiality and its limits",
+      "group": "Open",
+      "available": "not talking and (isNull(limitsAt))",
+      "why": "Already explained this session.",
+      "effects": [
+        {
+          "log": "You explain what stays private and when the law requires you to act: a risk of serious harm to self or others, and abuse of a child or vulnerable adult.",
+          "kind": "act"
+        },
+        {
+          "set": "limitsAt",
+          "to": "t"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "finding": "Evan nods. \"Okay. Good to know where the lines are.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Evan is quiet for a moment. \"Yeah. That's it exactly.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "End the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "checkIn": {
+      "label": "Open-ended check-in: 'How has the week been?'",
+      "group": "Open",
+      "available": "not talking and (not remarkHeard)",
+      "why": "He has told you about his week.",
+      "effects": [
+        {
+          "log": "You ask how the week has been and give him room.",
+          "kind": "act"
+        },
+        {
+          "set": "remarkHeard",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Kyle was at Mia's game again. Sitting with Dana like he's her dad.\" He grips the armrest. \"Some days I think everyone would be better off if Kyle wasn't around.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "lecture": {
+      "label": "Warn him: 'Talk like that can get you in serious trouble.'",
+      "group": "Respond",
+      "available": "not talking",
+      "why": "Let the conversation continue first (the button above the actions).",
+      "effects": [
+        {
+          "log": "You tell him that kind of talk can get him in trouble.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"Forget I said anything.\" He crosses his arms."
+        },
+        {
+          "log": "A warning before you understand the statement shuts the assessment down.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "explore": {
+      "label": "Explore the remark: 'Tell me more about what you mean.'",
+      "group": "Assess the threat",
+      "available": "not talking and (remarkHeard and not threatActual)",
+      "why": "Hear him out first (or he has told you).",
+      "effects": [
+        {
+          "log": "You ask, calmly, what he means about Kyle.",
+          "kind": "act"
+        },
+        {
+          "if": "isNull(exploredAt)",
+          "then": [
+            {
+              "set": "exploredAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "set": "threatActual",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "3"
+                },
+                {
+                  "add": "distress",
+                  "by": "1"
+                },
+                {
+                  "finding": "He looks straight at you. \"If he's at the game Saturday, I'm done talking. My deer rifle's in the truck. Ten o'clock, Hillside Park field. I'll shoot him.\""
+                },
+                {
+                  "log": "An actual threat of physical violence against a reasonably identifiable person: Kyle Brandt, Saturday 10:00, a rifle.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"I'm just venting. Forget it.\" (Not yet enough trust to say more.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askHistory": {
+      "label": "Ask about past violence toward Kyle or anyone",
+      "group": "Assess the threat",
+      "available": "not talking and (remarkHeard and not historyAsked)",
+      "why": "Hear him out first (or you have asked).",
+      "effects": [
+        {
+          "log": "You ask whether anything has happened between him and Kyle, and about past violence.",
+          "kind": "act"
+        },
+        {
+          "set": "historyAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"I shoved him in the parking lot two weeks ago. And that bar thing, years back. That's it.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askMeans": {
+      "label": "Ask about weapons he has access to",
+      "group": "Assess the threat",
+      "available": "not talking and (remarkHeard and not meansAsked)",
+      "why": "Hear him out first (or you have asked).",
+      "effects": [
+        {
+          "log": "You ask what weapons he has and where they are.",
+          "kind": "act"
+        },
+        {
+          "set": "meansAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"The rifle. It's behind the seat of my truck. Loaded? Not right now.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askSubstance": {
+      "label": "Ask about alcohol",
+      "group": "Assess the threat",
+      "available": "not talking and (not substanceAsked)",
+      "why": "You have asked.",
+      "effects": [
+        {
+          "log": "You ask about drinking.",
+          "kind": "act"
+        },
+        {
+          "set": "substanceAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"Weekends, a lot. I'd had a few before the parking lot.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "deescalate": {
+      "label": "Explore what he stands to lose: Mia, his custody, his freedom",
+      "group": "Respond",
+      "available": "not talking and (threatActual)",
+      "why": "Understand the threat first.",
+      "effects": [
+        {
+          "log": "You ask what would happen to Mia, and to him, if he did it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "rapport >= 4 ? 1 : 0"
+        },
+        {
+          "add": "distress",
+          "by": "-1"
+        },
+        {
+          "finding": "He is quiet. \"She'd see it. She'd lose me too.\" His shoulders drop."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "removeMeans": {
+      "label": "Ask him to leave the rifle with someone tonight",
+      "group": "Respond",
+      "available": "not talking and (meansAsked and threatActual and not meansRemoved)",
+      "why": "Know about the weapon and the threat first (or it is done).",
+      "effects": [
+        {
+          "log": "You ask him to leave the rifle with someone he trusts, tonight.",
+          "kind": "act"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 5",
+              "then": [
+                {
+                  "set": "meansRemoved",
+                  "to": "true"
+                },
+                {
+                  "finding": "\"My brother. I'll drop it at his place on the way home.\" He texts his brother in front of you."
+                },
+                {
+                  "log": "Means removed: the rifle goes to his brother tonight.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"It's my rifle.\" He shakes his head."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "tellClient": {
+      "label": "Tell Evan what you are required to do now, and why",
+      "group": "Respond",
+      "available": "not talking and (threatActual and not clientTold)",
+      "why": "There is nothing yet that you must act on (or you have told him).",
+      "effects": [
+        {
+          "log": "You tell him plainly that his threat means you must act to protect Kyle, including contacting the police and Kyle, and that you will keep working with him.",
+          "kind": "act"
+        },
+        {
+          "set": "clientTold",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "rapport >= 6 ? -1 : -2"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"You're calling the cops on me?\" A long silence. \"...I get it. I'd want someone to call if it was Mia.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "warnNow": {
+      "label": "Step out and call the police and Kyle now",
+      "group": "Act",
+      "available": "not talking and (not policeNotified)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You step out and call the police and then Kyle Brandt about Evan.",
+          "kind": "act"
+        },
+        {
+          "if": "not threatActual",
+          "then": [
+            {
+              "set": "premature",
+              "to": "true"
+            },
+            {
+              "add": "rapport",
+              "by": "-3"
+            },
+            {
+              "log": "Disclosed on a remark you had not assessed: nothing yet showed an actual threat.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "policeNotified",
+          "to": "true"
+        },
+        {
+          "set": "victimWarned",
+          "to": "true"
+        },
+        {
+          "finding": "The officer takes the details. Kyle answers and listens. When you come back Evan asks where you went."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "5min"
+        }
+      ]
+    },
+    "consult": {
+      "label": "Consult a colleague and the practice's risk-management line",
+      "group": "After the session",
+      "available": "not consulted",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "consulted",
+          "to": "true"
+        },
+        {
+          "log": "You consult: the colleague agrees the threat is actual and specific; the risk line confirms the statute and Volk.",
+          "kind": "act"
+        }
+      ]
+    },
+    "callPolice": {
+      "label": "Notify law enforcement",
+      "group": "After the session",
+      "available": "not policeNotified",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "share",
+          "kind": "choice",
+          "label": "What you share",
+          "options": [
+            {
+              "value": "threat",
+              "label": "The threat: who, what, when, where, the rifle, and that you are warning Kyle"
+            },
+            {
+              "value": "full",
+              "label": "Everything: his diagnosis, history and what he has said in therapy"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "policeNotified",
+          "to": "true"
+        },
+        {
+          "if": "share == \"full\"",
+          "then": [
+            {
+              "set": "overShared",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "if": "not threatActual",
+          "then": [
+            {
+              "set": "premature",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "Police notified ({share == \"full\" ? \"everything\" : \"the threat only\"}).",
+          "kind": "act"
+        }
+      ]
+    },
+    "warnVictim": {
+      "label": "Warn Kyle Brandt",
+      "group": "After the session",
+      "available": "not victimWarned",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "share",
+          "kind": "choice",
+          "label": "What you share",
+          "options": [
+            {
+              "value": "threat",
+              "label": "The threat: who, when and where, and that police are informed"
+            },
+            {
+              "value": "full",
+              "label": "Everything: Evan's diagnosis, history and therapy"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "victimWarned",
+          "to": "true"
+        },
+        {
+          "if": "share == \"full\"",
+          "then": [
+            {
+              "set": "overShared",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "if": "not threatActual",
+          "then": [
+            {
+              "set": "premature",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "Kyle warned ({share == \"full\" ? \"everything\" : \"the threat only\"}).",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the threat and what you did",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "threat",
+              "label": "The statement",
+              "options": [
+                {
+                  "value": "actual",
+                  "label": "An actual threat against an identifiable person"
+                },
+                {
+                  "value": "vague",
+                  "label": "Venting, no threat"
+                }
+              ]
+            },
+            {
+              "id": "actions",
+              "label": "What you did",
+              "options": [
+                {
+                  "value": "both",
+                  "label": "Police notified and the person warned"
+                },
+                {
+                  "value": "partial",
+                  "label": "One of the two"
+                },
+                {
+                  "value": "nothing",
+                  "label": "No disclosure"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "threatDoc",
+          "to": "threat"
+        },
+        {
+          "set": "actionsDoc",
+          "to": "actions"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: statement {threat}, actions {actions}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-10",
+        "note": "A 50-minute outpatient session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "The client stands, says this is not helping, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictDuty",
+      "when": "threatActual",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "discharge"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "discharge": {
+      "title": "Predict (not scored)",
+      "context": "Evan has made an actual threat against Kyle. Under RCW 71.05.120(3), which reasonable efforts discharge the duty to warn or protect?",
+      "choices": [
+        {
+          "id": "victimPolice",
+          "label": "Communicating the threat to the victim and to law enforcement",
+          "effects": [
+            {
+              "log": "Prediction: the victim and law enforcement.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. The statute says the duty is discharged by reasonable efforts to communicate the threat to the victim or victims and to law enforcement personnel. Under Volk (2016), outpatient care also carries a duty of reasonable care toward foreseeable victims."
+        },
+        {
+          "id": "documentOnly",
+          "label": "Documenting it and raising it again next session",
+          "effects": [
+            {
+              "log": "Prediction: documentation alone.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "No. Documentation records what you did; it discharges nothing. The statute names reasonable efforts to communicate the threat to the victim and to law enforcement."
+        },
+        {
+          "id": "family",
+          "label": "Telling his ex-wife so she can pass it on",
+          "effects": [
+            {
+              "log": "Prediction: tell his ex-wife.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "No. The statute names the victim and law enforcement. Telling someone else discloses without discharging the duty."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Explain, for the record, why Evan's statement did or did not trigger a duty to warn or protect in Washington, what you did about it, and how you limited what you disclosed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Legal and ethical basis",
+          "criteria": "Identifies an actual threat of physical violence against a reasonably identifiable victim (RCW 71.05.120(3)); notes that Volk v. DeMeerleer extends an outpatient clinician's duty of reasonable care to foreseeable victims; cites APA 4.05(b) (disclosure without consent as mandated or permitted by law to protect others).",
+          "modelAnswer": "Evan communicated an actual threat of physical violence (to shoot Kyle Brandt at Saturday's game with the rifle in his truck) against a reasonably identifiable victim, which triggers the duty under RCW 71.05.120(3); under Volk v. DeMeerleer an outpatient clinician owes reasonable care to foreseeable victims as well. APA 4.05(b) permits disclosure without consent where the law requires or permits it to protect others."
+        },
+        {
+          "label": "Actions and minimum disclosure",
+          "criteria": "Names the reasonable efforts that discharge the duty (warning Kyle and notifying law enforcement), the protective steps with Evan (the rifle to his brother, telling him what you must do), consultation, and limiting disclosure to the threat itself (APA 4.04).",
+          "modelAnswer": "I explored the remark before acting, told Evan what I had to do, and he agreed to leave the rifle with his brother. After consulting I notified the police and warned Kyle, sharing only the threat (who, when, where, the weapon) and not his diagnosis or therapy content, per APA 4.04. I will see him again this week."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-10",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-10"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-10",
+          "note": "The remark comes in the check-in; exploring it within 20 minutes leaves time to act inside the hour (author's scenario timing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not threatActual and not policeNotified and not victimWarned",
+      "class": "harm",
+      "rationale": "The remark hid a specific plan to shoot an identifiable person within days. A session that never found it, and protected no one, leaves a foreseeable victim unprotected (Volk v. DeMeerleer).",
+      "source": {
+        "cite": "Volk v. DeMeerleer, Washington Supreme Court No. 91387-1 (en banc, 2016): an outpatient relationship can be a special relationship (Restatement (Second) of Torts s 315); under Petersen v. State, 100 Wn.2d 421 (1983), the professional must use reasonable care, consistent with the standards of the profession, to protect the patient's foreseeable victims; foreseeability is a question of fact",
+        "checkedAt": "2026-11-10",
+        "url": "https://law.justia.com/cases/washington/supreme-court/2016/91387-1.html",
+        "note": "The University of Washington's 2025 duty-to-protect teaching slides (Piel, 15 Aug 2025) still present Volk as the outpatient standard and report that RCW 71.05.120(3) was held not to apply outside involuntary commitment; that point is relayed from the slides, not read in the opinion. SB 5800 (2017), which would have narrowed the duty to an actual threat against an identifiable person, died in committee (LegiScan). Reporter citation not confirmed on the page read."
+      }
+    }
+  },
+  "endings": {
+    "overShared": {
+      "label": "Disclosed more than the law allows",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and overShared",
+      "narrative": "Kyle and the police were told about Evan's diagnosis and therapy, not just the threat. Evan learns of it from his ex-wife; he does not come back."
+    },
+    "walkout": {
+      "label": "He walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Evan left mid-session, angry, with his rifle in the truck and nothing in place."
+    },
+    "dutyUnmet": {
+      "label": "No one was protected",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not (policeNotified and victimWarned)",
+      "narrative": "Evan went home with his rifle and his plan for Saturday, and {threatActual ? \"the threat you heard\" : \"a threat you never uncovered\"} reached no one who could act on it."
+    },
+    "protected": {
+      "label": "Kyle protected, Evan kept in care",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not walkedOut and not overShared and not premature and threatActual and timeAt(exploredAt) <= safetyWindow and policeNotified and victimWarned and clientTold and meansRemoved and consulted and threatDoc == \"actual\" and actionsDoc == \"both\" and rapport >= allianceTarget",
+      "narrative": "The police and Kyle know about the threat and nothing more; the rifle is at Evan's brother's; Evan is angry, and coming back on Thursday."
+    },
+    "prematureEnd": {
+      "label": "Protected, after an early disclosure",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and premature",
+      "narrative": "The calls were made before you knew there was a threat. It turned out there was one, but the disclosure was a guess, and Evan's trust took the hit."
+    },
+    "protectedGaps": {
+      "label": "Protected, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The duty was discharged, but parts of the assessment, the work with Evan or the record were late or missing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "scoring": {
+    "criteria": [
+      {
+        "id": "assessThreat",
+        "label": "Explored the remark and assessed the threat (target, means, plan, history)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "threatActual and timeAt(exploredAt) <= safetyWindow and meansAsked and historyAsked",
+            "score": "met",
+            "why": "Explored it {timeAt(exploredAt) / 60} min in; asked about the weapon and past violence."
+          },
+          {
+            "when": "threatActual",
+            "score": "partial",
+            "why": "Found the threat, but late or without asking about the weapon or past violence."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never found out what the remark meant."
+          }
+        ]
+      },
+      {
+        "id": "discharge",
+        "label": "Discharged the duty: the victim warned and law enforcement notified (RCW 71.05.120(3))",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "policeNotified and victimWarned",
+            "score": "met",
+            "why": "Both the police and Kyle were told of the threat."
+          },
+          {
+            "when": "policeNotified or victimWarned",
+            "score": "partial",
+            "why": "Only {policeNotified ? \"the police\" : \"Kyle\"} was told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither the police nor Kyle was told."
+          }
+        ]
+      },
+      {
+        "id": "minimum",
+        "label": "Disclosed only what protection needed (APA 4.04, 4.05)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "overShared",
+            "score": "missed",
+            "why": "Shared his diagnosis and therapy content, beyond the threat."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Shared the threat and nothing more."
+          }
+        ]
+      },
+      {
+        "id": "assessFirst",
+        "label": "Assessed before disclosing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "premature",
+            "score": "missed",
+            "why": "Disclosed before anything showed an actual threat."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Disclosed only once the threat was clear."
+          }
+        ]
+      },
+      {
+        "id": "informClient",
+        "label": "Told Evan what you had to do (APA 4.02(b))",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "clientTold",
+            "score": "met",
+            "why": "Told him plainly, in session."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "He was not told."
+          }
+        ]
+      },
+      {
+        "id": "meansCrit",
+        "label": "Worked on removing the weapon",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "meansRemoved",
+            "score": "met",
+            "why": "The rifle goes to his brother tonight."
+          },
+          {
+            "when": "meansAsked",
+            "score": "partial",
+            "why": "Knew about the rifle; it stayed in the truck."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never asked about weapons."
+          }
+        ]
+      },
+      {
+        "id": "consultCrit",
+        "label": "Consulted before acting",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "consulted",
+            "score": "met",
+            "why": "Consulted a colleague and the risk line."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Did not consult."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept Evan in care",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Documented the threat and the actions accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "threatDoc == \"actual\" and actionsDoc == (policeNotified and victimWarned ? \"both\" : policeNotified or victimWarned ? \"partial\" : \"nothing\")",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written legal and ethical basis",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToExplore",
+        "label": "Minutes to exploring the remark",
+        "value": "isNull(exploredAt) ? -1 : timeAt(exploredAt) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Open check-in; reflect the anger before reacting to the remark."
+      },
+      {
+        "at": "10-25 min",
+        "text": "Explore what he means; ask about the weapon, past violence and drinking. The threat is actual, specific and against an identifiable person."
+      },
+      {
+        "at": "25-40 min",
+        "text": "Work on what he stands to lose; ask him to leave the rifle with his brother; tell him plainly what you must do and why."
+      },
+      {
+        "at": "After",
+        "text": "Consult; notify the police and warn Kyle with the threat only; document the threat and both actions."
+      }
+    ],
+    "debrief": {
+      "protected": {
+        "headline": "Good: Kyle protected, Evan kept in care",
+        "body": "You found the threat by listening, discharged the duty with the minimum needed, and kept Evan in care."
+      },
+      "protectedGaps": {
+        "headline": "Protected, with gaps",
+        "body": "The duty was discharged; the criteria below show what was late or missing."
+      },
+      "prematureEnd": {
+        "headline": "Protected, by a guess",
+        "body": "Disclosing on a remark you had not assessed has no legal footing even when it turns out right. Explore first; act once the threat is actual."
+      },
+      "dutyUnmet": {
+        "headline": "No one was protected",
+        "body": "An actual threat against an identifiable person triggers the duty in Washington, and Volk extends it to foreseeable victims of outpatients. Warning the person and notifying the police discharges it."
+      },
+      "overShared": {
+        "headline": "Disclosed too much",
+        "body": "The law permits disclosing the threat to protect Kyle, not Evan's diagnosis or therapy. APA 4.04 limits a disclosure to what is germane."
+      },
+      "walkout": {
+        "headline": "The alliance broke",
+        "body": "A lecture before understanding the remark closed the conversation, and with it the chance to find and manage the threat."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A vague remark is a cue to explore, not to disclose. Once Evan named Kyle, a time, a place and a rifle, Washington's RCW 71.05.120(3) duty applies (an actual threat against a reasonably identifiable victim), and Volk v. DeMeerleer adds a duty of reasonable care toward foreseeable victims in outpatient care. Reasonable efforts to warn Kyle and notify law enforcement discharge it; consulting, removing the weapon and telling Evan keep it safe and keep him in care; sharing only the threat respects APA 4.04 and 4.05."
+  }
+}

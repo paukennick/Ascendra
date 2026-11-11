@@ -1800,6 +1800,9 @@ export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn
   const teachingSeen = new Set<string>();
   const availableActions = new Set<string>();
   let waitAlways = true;
+  // REQ-225 (FAIL-1220): the warning is about a running phase; a path that
+  // never boundaries in one (turn-based, stopped) used to keep it true.
+  let runningBoundaries = 0;
   let boundaries = 0;
   const run = createRun(doc, path.seed);
   const snapshots = path.expect.snapshots ?? [];
@@ -1816,6 +1819,7 @@ export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn
   const noteBoundary = (): void => {
     boundaries++;
     // a routine wait (the q15 check) is a recurring check, not a reason to skip
+    if (clockMode(run) === "running" && !run.state.ended) runningBoundaries++;
     if (clockMode(run) === "running" && !clockBlocked(run) && !run.state.ended && !waits(run).some((w) => !w.routine)) waitAlways = false;
     for (const ch of run.c.doc.chapters ?? []) if (chapterHolds(run, ch)) chaptersSeen.add(ch.id);
     for (const t of teachingAvailable(run)) teachingSeen.add(t.id);
@@ -1880,7 +1884,7 @@ export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn
   }
   const hash = stateHashFn ? stateHashFn(run) : "";
   if (!error && path.expect.stateHash && hash && hash !== path.expect.stateHash) mismatches.push(`state hash ${hash}, expected ${path.expect.stateHash}`);
-  return { path, error, debrief, mismatches, availableActions, waitAlways: waitAlways && boundaries > 2, stateHash: hash, finalTick: run.state.tick, chaptersSeen, teachingSeen, minWallSeconds: minWallSeconds(run), focusedAt: run.focusedAt };
+  return { path, error, debrief, mismatches, availableActions, waitAlways: waitAlways && boundaries > 2 && runningBoundaries > 0, stateHash: hash, finalTick: run.state.tick, chaptersSeen, teachingSeen, minWallSeconds: minWallSeconds(run), focusedAt: run.focusedAt };
 }
 
 // Read a state or derived value by name (and, for the lint, an action's availability).

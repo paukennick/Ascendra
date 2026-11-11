@@ -34,6 +34,12 @@ async function seedOne(c: PoolClient, entry: DocumentEntry, doc: ScenarioDoc): P
     [entry.course, doc.objective]
   );
   if (obj.rows.length !== 1) {
+    // REQ-225: say which is missing, the course or the objective, so a sim
+    // that lands before its course (the EPPP sessions) fails plainly.
+    const course = await c.query(`select 1 from subject_tracks where code = $1 and user_id is null`, [entry.course]);
+    if (!course.rows.length) {
+      throw new Error(`sims: course ${entry.course} is not seeded, so sim ${entry.slug} cannot be registered to "${doc.objective}"; seed the course first`);
+    }
     throw new Error(`sims: ${entry.course} has ${obj.rows.length} active objectives titled "${doc.objective}" (sim ${entry.slug}); expected exactly one`);
   }
   const { id: objectiveId, family } = obj.rows[0];
