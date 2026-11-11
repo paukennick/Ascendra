@@ -98,7 +98,7 @@ export function spec(): StepsSpec {
           c.act("call", ROUTINE_CALL);
           c.skip("callbackT");
           c.act("bolus", { ml: "1000" });
-          c.waitUntil((r) => r.state.ended !== null && r.state.ended !== undefined && r.state.ended !== false);
+          c.waitUntil((r) => r.state.ended !== null);
         },
       },
       {
@@ -143,7 +143,8 @@ export function spec(): StepsSpec {
           c.act("norepi", { dose: "0.1" });
           while (c.run.state.vars.intubated !== true) {
             c.waitUntil((r) => (r.state.vars.nRunning as number) < 2 || r.state.vars.intubated === true);
-            if (c.run.state.vars.intubated !== true) c.act("bolus", { ml: "1000" });
+            // re-read after the wait: waitUntil can end the loop's condition (TS narrows the first read)
+            if ((c.run.state.vars.intubated as unknown) !== true) c.act("bolus", { ml: "1000" });
           }
           titrateToReview(c, 0.1);
         },
