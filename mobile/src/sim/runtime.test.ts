@@ -37,7 +37,9 @@ const golden = (course: string, slug: string) => read(join(seeds, course, `${slu
 
 describe("capabilities", () => {
   test("the header names the engine, bedside and board at level 3 and the client session at level 1 (REQ-225)", async () => {
-    assert.equal(simCaps(), "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1");
+    // REQ-232: and the PT treatment session at level 1 (the server's parser
+    // must take the hyphen, FAIL-1340; the loop below checks it does).
+    assert.equal(simCaps(), "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1,treatment-session@1");
     const { parseCaps, runnable } = await import("../../../backend/lib/sim/server-run.ts");
     const caps = parseCaps(simCaps());
     for (const r of SIM_RENDERERS) assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: r.level, screen_type: r.type }, caps), true);

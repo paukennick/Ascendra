@@ -58,6 +58,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("EPPP", "duty-to-protect-threat"),
   entry("EPPP", "diagnostic-intake-mood"),
   // ---- end REQ-225 (EPPP-B) -------------------------------------------
+  // ---- REQ-232: PT treatment-session scenarios, course DPT ------------
+  entry("DPT", "icu-early-mobility"),
+  entry("DPT", "tka-gait-dvt-red-flag"),
+  entry("DPT", "stroke-balance-fall-risk"),
+  // ---- end REQ-232 -----------------------------------------------------
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
@@ -67,6 +72,15 @@ export const EPPP_OBJECTIVES = [
   "Assess suicide risk and plan safety in a clinical interview",
   "Apply duty-to-warn and duty-to-protect obligations",
   "Conduct a diagnostic intake using DSM-5-TR criteria",
+] as const;
+
+// REQ-232: the DPT treatment-session documents (the PT renderer) and the
+// objective titles they are registered to (active objectives of course DPT).
+export const DPT_TREATMENT_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "DPT");
+export const DPT_OBJECTIVES = [
+  "Selecting and performing interventions for cardiovascular and pulmonary conditions to achieve patient goals",
+  "Total knee arthroplasty rehabilitation per the 2026 APTA guideline: range-of-motion work instead of continuous passive motion, progressive strengthening, motor function training, and early daily quadriceps NMES",
+  "Selecting and performing interventions for neurological and musculoskeletal conditions",
 ] as const;
 
 export interface Compiled {

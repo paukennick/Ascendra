@@ -1,0 +1,1922 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "tka-gait-dvt-red-flag",
+  "title": "After a knee replacement: progress, then a swollen calf",
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Reyes, 68",
+        "presentation": "{phase == \"visit2\" or (phase == \"done\" and visit == 2) ? \"Thursday, day 15\" : phase == \"home\" ? \"At home between visits\" : \"Monday, day 12\"} after a left total knee replacement. Aspirin 81 mg twice a day for clot prevention. Front-wheeled walker."
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate, pulse oximeter",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation, pulse oximeter",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure you took",
+          "value": [
+            "bpS",
+            "bpD"
+          ],
+          "unit": "mmHg",
+          "sub": "taken {isNull(bpAt) ? 0 : t - timeAt(bpAt)|duration} ago",
+          "announce": {
+            "bands": [
+              140,
+              160
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "not isNull(bpAt)"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 28
+          },
+          "announce": {
+            "bands": [
+              20,
+              28
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "rpe",
+          "label": "RPE",
+          "spokenLabel": "His last rating of exertion, Borg 6 to 20",
+          "value": "rpeSaid",
+          "unit": "/20",
+          "announce": {
+            "bands": [
+              13,
+              15
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(rpeAt)"
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "His last knee pain rating out of 10",
+          "value": "painSaid",
+          "unit": "/10",
+          "announce": {
+            "bands": [
+              5,
+              7
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(painAt)"
+        }
+      ],
+      "activity": "{activityText}",
+      "measures": [
+        {
+          "id": "rom1",
+          "label": "Left knee range of motion (Monday)",
+          "result": "Flexion 85 degrees, extension lacking 8 degrees (goniometer)",
+          "when": "not isNull(rom1At)"
+        },
+        {
+          "id": "quad1",
+          "label": "Quadriceps (Monday)",
+          "result": "Straight-leg raise with a 10-degree extensor lag; quadriceps 3+/5",
+          "when": "not isNull(quad1At)"
+        },
+        {
+          "id": "girth1",
+          "label": "Girth (Monday)",
+          "result": "Knee 44 cm left, 40 cm right. Calf 38.5 cm left, 38 cm right",
+          "when": "not isNull(girth1At)"
+        },
+        {
+          "id": "rom2",
+          "label": "Left knee range of motion (Thursday)",
+          "result": "Flexion 92 degrees, extension lacking 6 degrees",
+          "when": "not isNull(rom2At)"
+        },
+        {
+          "id": "girth2",
+          "label": "Girth (Thursday)",
+          "result": "Knee 43.5 cm left. Calf 42 cm left, 38 cm right: 4 cm larger",
+          "when": "not isNull(girth2At)",
+          "flag": "not isNull(girth2At)"
+        },
+        {
+          "id": "calf2",
+          "label": "Left calf (Thursday)",
+          "result": "Tender along the deep veins, warm, pitting edema to mid-shin on the left only",
+          "when": "not isNull(palp2At)",
+          "flag": "not isNull(palp2At)"
+        },
+        {
+          "id": "calf1",
+          "label": "Left calf (Monday)",
+          "result": "Soft, not tender, no edema below the knee",
+          "when": "not isNull(palp1At)"
+        },
+        {
+          "id": "wells",
+          "label": "Wells criteria for DVT",
+          "result": "{wellsScore} points: {wellsScore >= 2 ? \"DVT likely\" : \"DVT unlikely\"}",
+          "when": "not isNull(wellsAt)",
+          "flag": "not isNull(wellsAt) and wellsScore >= 2"
+        }
+      ],
+      "dosage": {
+        "label": "Interventions",
+        "items": [
+          {
+            "label": "NMES to the quadriceps: {nmesHigh ? \"highest tolerable intensity, about 15 contractions\" : \"low, sensory-level intensity\"}",
+            "when": "not isNull(nmesAt)"
+          },
+          {
+            "label": "Knee ROM: heel slides and seated knee bends, 2 x 10 with holds",
+            "when": "not isNull(romExAt)"
+          },
+          {
+            "label": "Strengthening: quad sets, straight-leg raises, mini-squats at the counter, 2 x 10",
+            "when": "not isNull(strengthAt)"
+          },
+          {
+            "label": "Gait training with the walker, about 3 min bouts",
+            "when": "not isNull(walkerAt)"
+          },
+          {
+            "label": "Gait training with a cane",
+            "when": "not isNull(caneAt)"
+          },
+          {
+            "label": "Continuous passive motion machine recommended for home",
+            "when": "cpmAdvised"
+          },
+          {
+            "label": "Calf massage",
+            "when": "not isNull(massageAt)"
+          },
+          {
+            "label": "Education: clot and lung-clot warning signs and what to do",
+            "when": "not isNull(educatedAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleDvt",
+          "label": "Signs of a deep vein clot",
+          "text": "Calf pain, tenderness, swelling, warmth or discoloration: stop lower-limb exercise, score the Wells criteria, and tell the surgeon today for a duplex scan.",
+          "met": "dvtSuspected"
+        },
+        {
+          "id": "rulePe",
+          "label": "Sudden breathlessness, chest pain or a falling SpO2",
+          "text": "Stop, sit him down, call 911.",
+          "met": "not isNull(peAt)"
+        },
+        {
+          "id": "ruleSpo2",
+          "label": "SpO2 below 90% during activity",
+          "text": "Stop and let him recover; find out why.",
+          "met": "spo2 < 90"
+        },
+        {
+          "id": "ruleHr",
+          "label": "Heart rate over 120 during walking",
+          "text": "Ease off; it should recover within a few minutes of rest.",
+          "met": "hr > 120"
+        }
+      ]
+    }
+  },
+  "objective": "Total knee arthroplasty rehabilitation per the 2026 APTA guideline: range-of-motion work instead of continuous passive motion, progressive strengthening, motor function training, and early daily quadriceps NMES",
+  "secondaryObjectives": [
+    "Determining when a patient needs further examination, consultation or referral to another professional",
+    "Selecting and performing interventions for neurological and musculoskeletal conditions"
+  ],
+  "sources": [
+    {
+      "cite": "APTA. Physical therapist management of total knee arthroplasty: revision 2026. Phys Ther. 2026;106. doi:10.1093/ptj/pzag058 (PMC13403188)",
+      "checkedAt": "2026-11-11",
+      "url": "https://europepmc.org/article/PMC/PMC13403188",
+      "note": "Read 2026-11-11 in the Europe PMC full text. Physical therapists should not use continuous passive motion after primary, uncomplicated TKA (high quality, strong); should include passive, active-assistive and active ROM exercise (moderate); should apply NMES to the quadriceps at least daily, started early, at the highest tolerable intensity (moderate). Team members should be aware of complications that may affect exercise, including thromboembolism."
+    },
+    {
+      "cite": "Hillegass E, Puthoff M, Frese EM, et al. Role of physical therapists in the management of individuals at risk for or diagnosed with venous thromboembolism: evidence-based clinical practice guideline. Phys Ther. 2016;96:143-166",
+      "checkedAt": "2026-11-11",
+      "url": "https://scholarblogs.emory.edu/buddterrace/files/2016/03/CPG-for-Individuals-at-Risk-for-or-Diagnosed-with-Venous-Thromboembolism.pdf",
+      "note": "Read 2026-11-11 (a hosted copy of the published PDF). Action statement 5: establish the likelihood of LE DVT when there is pain, tenderness, swelling, warmth or discoloration; action statement 6: recommend further medical testing after the Wells criteria, before mobilization; action statement 8: mobilize once anticoagulation has reached therapeutic levels. Wells (two-level): major surgery within 12 weeks, localized tenderness along the deep veins, entire leg swollen, calf swelling at least 3 cm more than the other side, pitting edema confined to the symptomatic leg and others score 1 each; an alternative diagnosis at least as likely scores -2; 2 or more is DVT likely, which calls for a duplex ultrasound before mobility."
+    },
+    {
+      "cite": "Hillegass E, et al. Role of physical therapists in the management of individuals at risk for or diagnosed with venous thromboembolism: evidence-based clinical practice guideline 2022. Phys Ther. 2022;102(8):pzac057",
+      "checkedAt": "2026-11-11",
+      "url": "https://guidelinecentral.com/guideline/8553/pocket-guide/1697588",
+      "note": "FLAG: read 2026-11-11 only through Guideline Central's pocket-guide summary (the publisher's full text could not be fetched): when signs and symptoms are present, determine the likelihood of VTE with standardized tools and share the results with the interprofessional team; mobilization begins once a medication's therapeutic level or an acceptable time after it has been reached; the risks of inactivity are greater than those of mobilization."
+    },
+    {
+      "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+      "note": "Read 2026-11-11 through a text extraction of the PDF. Normal exercise response: HR rises about 10 beats/min per MET and returns to the pre-exercise level in 3-5 min; SBP rises about 10 mmHg per MET. Stop criteria include SBP drop >10 mmHg with increasing workload, new or worsening dysrhythmia, RR >40, unable to speak comfortably, SpO2 <90% or a drop of 4% or more (acute coronary syndrome), SpO2 <85% (lung disease); lung disease activity target 88-92%. Orthostatic hypotension: SBP drop >20 or DBP drop >10 mmHg within 3 min of standing. Beta blockers: lower HR with exercise and a dampened BP response; use the RPE scale in addition to HR."
+    },
+    {
+      "cite": "CAPTE, Standards and Required Elements for Accreditation of Physical Therapist Education Programs (2024 standards), Standard 7D",
+      "checkedAt": "2026-10-08",
+      "url": "https://www.capteonline.org/globalassets/capte-docs/2024-capte-pt-standards-required-elements.pdf",
+      "note": "FLAG: not re-read for this scenario; the scope (7D10-7D16 interventions, 7D1 examination) is the DPT course seed's reading of 2026-10-08."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-11",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. The direction of each response follows the cited sources; the sizes and time constants are authored."
+    }
+  ],
+  "brief": {
+    "situation": "Outpatient clinic, Monday 14:00. You are the physical therapist. Mr. Reyes, 68, had a left total knee replacement 12 days ago. Today you progress his exercise and walking; you will see him again on Thursday.",
+    "handover": [
+      "Surgeon's protocol: weight bearing as tolerated, range of motion and strengthening, no restrictions.",
+      "Aspirin 81 mg twice a day for clot prevention for 6 weeks.",
+      "Walks with a front-wheeled walker. Lives with his wife; wants to walk his dog again.",
+      "Discharge note from the hospital: no complications."
+    ],
+    "howItWorks": [
+      "Each visit runs in real time at the pace you choose: study pace (3x) or exam realism (1x). Pause any time.",
+      "His heart rate, saturation and breathing respond to exercise and recover with rest. Tests and measures appear on screen as you take them.",
+      "Between visits, one step skips to Thursday.",
+      "A written question comes early. Then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "10s",
+    "maxDuration": "4d",
+    "calendar": "clock"
+  },
+  "params": {
+    "hrRest": {
+      "value": 78,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. His resting heart rate."
+      }
+    },
+    "hrPerMet": {
+      "value": 10,
+      "unit": "bpm/MET",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Read 2026-11-11 through a text extraction of the PDF. Normal exercise response: HR rises about 10 beats/min per MET and returns to the pre-exercise level in 3-5 min; SBP rises about 10 mmHg per MET. Stop criteria include SBP drop >10 mmHg with increasing workload, new or worsening dysrhythmia, RR >40, unable to speak comfortably, SpO2 <90% or a drop of 4% or more (acute coronary syndrome), SpO2 <85% (lung disease); lung disease activity target 88-92%. Orthostatic hypotension: SBP drop >20 or DBP drop >10 mmHg within 3 min of standing. Beta blockers: lower HR with exercise and a dampened BP response; use the RPE scale in addition to HR."
+      }
+    },
+    "sbpPerMet": {
+      "value": 10,
+      "unit": "mmHg/MET",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Read 2026-11-11 through a text extraction of the PDF. Normal exercise response: HR rises about 10 beats/min per MET and returns to the pre-exercise level in 3-5 min; SBP rises about 10 mmHg per MET. Stop criteria include SBP drop >10 mmHg with increasing workload, new or worsening dysrhythmia, RR >40, unable to speak comfortably, SpO2 <90% or a drop of 4% or more (acute coronary syndrome), SpO2 <85% (lung disease); lung disease activity target 88-92%. Orthostatic hypotension: SBP drop >20 or DBP drop >10 mmHg within 3 min of standing. Beta blockers: lower HR with exercise and a dampened BP response; use the RPE scale in addition to HR."
+      }
+    },
+    "tauVit": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Vitals approach each new level with a 1-minute time constant: 95% of a change in about 3 minutes, inside the guide's 3-5 minute recovery."
+      }
+    },
+    "peAfter": {
+      "value": 720,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. FLAG: if the clot is not found and he has not been sent for a scan, part of it embolizes about 12 minutes into Thursday's visit. The timing is authored so the danger falls inside the run; exercise is not modeled as its cause."
+      }
+    },
+    "peHr": {
+      "value": 30,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. FLAG: a pulmonary embolism adds about 30 beats/min to his rate."
+      }
+    },
+    "peDesat": {
+      "value": 8,
+      "unit": "%",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. FLAG: and takes about 8 points off his saturation."
+      }
+    },
+    "daysAway": {
+      "value": 259200,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Three days between Monday's and Thursday's visits."
+      }
+    },
+    "emsSec": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Paramedics arrive about 8 minutes after a 911 call from the clinic."
+      }
+    },
+    "reasonAt": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The written question opens 30 s into Monday's visit."
+      }
+    }
+  },
+  "state": {
+    "visit": {
+      "type": "number",
+      "init": 1,
+      "min": 1,
+      "max": 2
+    },
+    "pos": {
+      "type": "enum",
+      "values": [
+        "seated",
+        "table",
+        "exercise",
+        "walker",
+        "cane"
+      ],
+      "init": "seated"
+    },
+    "hr": {
+      "type": "number",
+      "init": 78,
+      "min": 40,
+      "max": 200
+    },
+    "spo2": {
+      "type": "number",
+      "init": 97,
+      "min": 70,
+      "max": 100,
+      "unit": "%"
+    },
+    "rr": {
+      "type": "number",
+      "init": 16,
+      "min": 8,
+      "max": 50
+    },
+    "bpS": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 260
+    },
+    "bpD": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 160
+    },
+    "bpAt": {
+      "type": "time",
+      "init": null
+    },
+    "rpeSaid": {
+      "type": "number",
+      "init": 6,
+      "min": 6,
+      "max": 20
+    },
+    "rpeAt": {
+      "type": "time",
+      "init": null
+    },
+    "rpeWalking": {
+      "type": "bool",
+      "init": false
+    },
+    "painSaid": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "painAt": {
+      "type": "time",
+      "init": null
+    },
+    "hist1At": {
+      "type": "time",
+      "init": null
+    },
+    "rom1At": {
+      "type": "time",
+      "init": null
+    },
+    "quad1At": {
+      "type": "time",
+      "init": null
+    },
+    "girth1At": {
+      "type": "time",
+      "init": null
+    },
+    "palp1At": {
+      "type": "time",
+      "init": null
+    },
+    "nmesAt": {
+      "type": "time",
+      "init": null
+    },
+    "nmesHigh": {
+      "type": "bool",
+      "init": false
+    },
+    "romExAt": {
+      "type": "time",
+      "init": null
+    },
+    "strengthAt": {
+      "type": "time",
+      "init": null
+    },
+    "walkerAt": {
+      "type": "time",
+      "init": null
+    },
+    "caneAt": {
+      "type": "time",
+      "init": null
+    },
+    "cpmAdvised": {
+      "type": "bool",
+      "init": false
+    },
+    "v2At": {
+      "type": "time",
+      "init": null
+    },
+    "hist2At": {
+      "type": "time",
+      "init": null
+    },
+    "rom2At": {
+      "type": "time",
+      "init": null
+    },
+    "girth2At": {
+      "type": "time",
+      "init": null
+    },
+    "palp2At": {
+      "type": "time",
+      "init": null
+    },
+    "wellsAt": {
+      "type": "time",
+      "init": null
+    },
+    "altAsLikely": {
+      "type": "bool",
+      "init": false
+    },
+    "load2At": {
+      "type": "time",
+      "init": null
+    },
+    "loadAfterSuspect": {
+      "type": "bool",
+      "init": false
+    },
+    "massageAt": {
+      "type": "time",
+      "init": null
+    },
+    "surgeonAt": {
+      "type": "time",
+      "init": null
+    },
+    "selfCallAt": {
+      "type": "time",
+      "init": null
+    },
+    "educatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "peAt": {
+      "type": "time",
+      "init": null
+    },
+    "emsAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "load": {
+      "expr": "pos == \"cane\" ? 2.8 : pos == \"walker\" ? 2.5 : pos == \"exercise\" ? 2 : 1.2"
+    },
+    "pe": {
+      "expr": "not isNull(peAt)"
+    },
+    "dvtSuspected": {
+      "expr": "not isNull(hist2At) or not isNull(girth2At) or not isNull(palp2At)"
+    },
+    "suspectAt": {
+      "expr": "min(isNull(hist2At) ? 1e9 : timeAt(hist2At), min(isNull(girth2At) ? 1e9 : timeAt(girth2At), isNull(palp2At) ? 1e9 : timeAt(palp2At)))"
+    },
+    "referred": {
+      "expr": "not isNull(surgeonAt) or not isNull(selfCallAt)"
+    },
+    "wellsScore": {
+      "expr": "1 + (isNull(girth2At) ? 0 : 1) + (isNull(palp2At) ? 0 : 2) + (altAsLikely ? -2 : 0)"
+    },
+    "v1Progress": {
+      "expr": "not isNull(walkerAt) and (not isNull(romExAt) or not isNull(strengthAt))"
+    },
+    "hrGoal": {
+      "expr": "hrRest + hrPerMet * (load - 1) + (pe ? peHr : 0)"
+    },
+    "spo2Goal": {
+      "expr": "97 - (load >= 2.5 ? 1 : 0) - (pe ? peDesat : 0)"
+    },
+    "rrGoal": {
+      "expr": "16 + 3 * (load - 1) + (pe ? 10 : 0)"
+    },
+    "rpe": {
+      "expr": "round(clamp(8 + 2.5 * (load - 1) + (pe ? 5 : 0), 6, 20))",
+      "precision": 0
+    },
+    "kneePain": {
+      "expr": "round(clamp(3 + (load >= 2 ? 1 : 0) + (visit == 2 and dvtActive ? 1 : 0), 0, 10))",
+      "precision": 0
+    },
+    "dvtActive": {
+      "expr": "visit == 2"
+    },
+    "activityText": {
+      "expr": "pe ? \"Sitting, breathless, hand on his chest\" : pos == \"walker\" ? (visit == 2 ? \"Walking with the walker; limping on the left, says his calf feels tight\" : \"Walking with the walker, step-through pattern, knee stiff in swing\") : pos == \"cane\" ? \"Walking with a cane in his right hand, slower, steady\" : pos == \"exercise\" ? \"Doing his exercises\" : pos == \"table\" ? \"On the treatment table\" : \"Sitting\""
+    }
+  },
+  "processes": [
+    {
+      "id": "vitals",
+      "when": "phase == \"visit1\" or phase == \"visit2\"",
+      "update": {
+        "hr": "hr + (hrGoal - hr) * dt / tauVit",
+        "spo2": "spo2 + (spo2Goal - spo2) * dt / tauVit",
+        "rr": "rr + (rrGoal - rr) * dt / tauVit"
+      }
+    }
+  ],
+  "phases": {
+    "visit1": {
+      "label": "Monday's visit",
+      "clock": "running",
+      "actions": [
+        "askHistory",
+        "measureRom",
+        "measureQuad",
+        "measureGirth",
+        "palpateCalf",
+        "takeBp",
+        "askRpe",
+        "askPain",
+        "nmes",
+        "romEx",
+        "strength",
+        "gaitWalker",
+        "gaitCane",
+        "sitDown",
+        "adviseCpm",
+        "endVisit1"
+      ]
+    },
+    "home": {
+      "label": "Between visits",
+      "clock": "turns",
+      "actions": []
+    },
+    "visit2": {
+      "label": "Thursday's visit",
+      "clock": "running",
+      "actions": [
+        "askHistory",
+        "measureRom",
+        "measureGirth",
+        "palpateCalf",
+        "takeBp",
+        "askRpe",
+        "askPain",
+        "wells",
+        "romEx",
+        "strength",
+        "gaitWalker",
+        "sitDown",
+        "massage",
+        "callSurgeon",
+        "tellHimCall",
+        "call911",
+        "educate",
+        "endVisit2"
+      ]
+    },
+    "done": {
+      "label": "After the visits",
+      "clock": "stopped",
+      "actions": []
+    }
+  },
+  "initialPhase": "visit1",
+  "actions": {
+    "askHistory": {
+      "label": "Ask how he has been and screen for new symptoms (calf, chest, breathing, wound, fever)",
+      "group": "Examine",
+      "available": "visit == 1 ? isNull(hist1At) : isNull(hist2At)",
+      "why": "Already asked this visit.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "visit == 1",
+              "then": [
+                {
+                  "set": "hist1At",
+                  "to": "t"
+                },
+                {
+                  "log": "\"Sore after the exercises, about a 3, better with ice. No calf pain, no chest pain, breathing fine. The wound is dry.\"",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "hist2At",
+                  "to": "t"
+                },
+                {
+                  "log": "\"My left calf has ached since last night, like a cramp that won't go. The whole lower leg feels tighter.\" No chest pain, breathing fine.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "measureRom": {
+      "label": "Measure knee range of motion with a goniometer",
+      "group": "Examine",
+      "available": "visit == 1 ? isNull(rom1At) : isNull(rom2At)",
+      "why": "Already measured this visit.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "visit == 1",
+              "then": [
+                {
+                  "set": "rom1At",
+                  "to": "t"
+                },
+                {
+                  "set": "pos",
+                  "to": "\"table\""
+                },
+                {
+                  "log": "Left knee: flexion 85 degrees, extension lacking 8 degrees.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "rom2At",
+                  "to": "t"
+                },
+                {
+                  "set": "pos",
+                  "to": "\"table\""
+                },
+                {
+                  "log": "Left knee: flexion 92 degrees, extension lacking 6 degrees.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "measureQuad": {
+      "label": "Test the quadriceps: straight-leg raise and manual muscle test",
+      "group": "Examine",
+      "available": "isNull(quad1At)",
+      "why": "Already tested.",
+      "effects": [
+        {
+          "set": "quad1At",
+          "to": "t"
+        },
+        {
+          "set": "pos",
+          "to": "\"table\""
+        },
+        {
+          "log": "Straight-leg raise with a 10-degree extensor lag; quadriceps 3+/5.",
+          "kind": "find"
+        }
+      ]
+    },
+    "measureGirth": {
+      "label": "Measure knee and calf girth on both legs",
+      "group": "Examine",
+      "available": "visit == 1 ? isNull(girth1At) : isNull(girth2At)",
+      "why": "Already measured this visit.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "visit == 1",
+              "then": [
+                {
+                  "set": "girth1At",
+                  "to": "t"
+                },
+                {
+                  "log": "Knee 44 cm left, 40 cm right. Calf 38.5 cm left, 38 cm right.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "girth2At",
+                  "to": "t"
+                },
+                {
+                  "log": "Calf 42 cm left, 38 cm right: 4 cm larger on the operated side (Monday: 0.5 cm). Knee 43.5 cm.",
+                  "kind": "alarm"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "palpateCalf": {
+      "label": "Look at and palpate both calves",
+      "group": "Examine",
+      "available": "visit == 1 ? isNull(palp1At) : isNull(palp2At)",
+      "why": "Already examined this visit.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "visit == 1",
+              "then": [
+                {
+                  "set": "palp1At",
+                  "to": "t"
+                },
+                {
+                  "log": "Both calves soft, not tender, no edema below the knee.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "palp2At",
+                  "to": "t"
+                },
+                {
+                  "log": "Left calf warm and tender along the deep veins, pitting edema to mid-shin; the right is normal.",
+                  "kind": "alarm"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "takeBp": {
+      "label": "Take his blood pressure",
+      "group": "Monitor",
+      "effects": [
+        {
+          "set": "bpS",
+          "to": "round(132 + sbpPerMet * (load - 1) + (pe ? -18 : 0))"
+        },
+        {
+          "set": "bpD",
+          "to": "round(78 + (pe ? -8 : 0))"
+        },
+        {
+          "set": "bpAt",
+          "to": "t"
+        },
+        {
+          "log": "BP {bpS}/{bpD}.",
+          "kind": "find"
+        }
+      ]
+    },
+    "askRpe": {
+      "label": "Ask his rating of exertion (Borg 6-20)",
+      "group": "Monitor",
+      "effects": [
+        {
+          "set": "rpeSaid",
+          "to": "rpe"
+        },
+        {
+          "set": "rpeAt",
+          "to": "t"
+        },
+        {
+          "if": "pos == \"walker\" or pos == \"cane\"",
+          "then": [
+            {
+              "set": "rpeWalking",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "\"About {rpe}.\"",
+          "kind": "find"
+        }
+      ]
+    },
+    "askPain": {
+      "label": "Ask his knee pain (0-10)",
+      "group": "Monitor",
+      "effects": [
+        {
+          "set": "painSaid",
+          "to": "kneePain"
+        },
+        {
+          "set": "painAt",
+          "to": "t"
+        },
+        {
+          "log": "\"The knee is about a {kneePain}.\"",
+          "kind": "find"
+        }
+      ]
+    },
+    "nmes": {
+      "label": "NMES to the quadriceps",
+      "group": "Treat",
+      "available": "isNull(nmesAt)",
+      "why": "Already given.",
+      "params": [
+        {
+          "id": "dose",
+          "kind": "choice",
+          "label": "Intensity",
+          "options": [
+            {
+              "value": "high",
+              "label": "Highest intensity he tolerates, about 15 strong contractions, and daily at home"
+            },
+            {
+              "value": "low",
+              "label": "Low, sensory-level intensity for comfort"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "nmesAt",
+          "to": "t"
+        },
+        {
+          "set": "nmesHigh",
+          "to": "dose == \"high\""
+        },
+        {
+          "set": "pos",
+          "to": "\"table\""
+        },
+        {
+          "log": "NMES to the left quadriceps.",
+          "kind": "act"
+        }
+      ]
+    },
+    "romEx": {
+      "label": "Knee ROM exercise: heel slides and seated knee bends, 2 x 10",
+      "group": "Treat",
+      "available": "visit == 1 ? isNull(romExAt) : true",
+      "why": "Done this visit.",
+      "effects": [
+        {
+          "if": "isNull(romExAt)",
+          "then": [
+            {
+              "set": "romExAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pos",
+          "to": "\"exercise\""
+        },
+        {
+          "if": "visit == 2 and dvtSuspected",
+          "then": [
+            {
+              "set": "loadAfterSuspect",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "if": "visit == 2 and isNull(load2At)",
+          "then": [
+            {
+              "set": "load2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Heel slides and seated knee bends, 2 x 10 with a 5-second hold.",
+          "kind": "act"
+        }
+      ]
+    },
+    "strength": {
+      "label": "Strengthening: quad sets, straight-leg raises, mini-squats, 2 x 10",
+      "group": "Treat",
+      "available": "visit == 1 ? isNull(strengthAt) : true",
+      "why": "Done this visit.",
+      "effects": [
+        {
+          "if": "isNull(strengthAt)",
+          "then": [
+            {
+              "set": "strengthAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pos",
+          "to": "\"exercise\""
+        },
+        {
+          "if": "visit == 2 and dvtSuspected",
+          "then": [
+            {
+              "set": "loadAfterSuspect",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "if": "visit == 2 and isNull(load2At)",
+          "then": [
+            {
+              "set": "load2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Quad sets, straight-leg raises and mini-squats at the counter, 2 x 10.",
+          "kind": "act"
+        }
+      ]
+    },
+    "gaitWalker": {
+      "label": "Gait training with the walker",
+      "group": "Treat",
+      "available": "not pe",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(walkerAt)",
+          "then": [
+            {
+              "set": "walkerAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pos",
+          "to": "\"walker\""
+        },
+        {
+          "if": "visit == 2 and dvtSuspected",
+          "then": [
+            {
+              "set": "loadAfterSuspect",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "if": "visit == 2 and isNull(load2At)",
+          "then": [
+            {
+              "set": "load2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Walking with the walker in the hallway, cueing heel strike and knee bend in swing.",
+          "kind": "act"
+        }
+      ]
+    },
+    "gaitCane": {
+      "label": "Progress to a cane (in the right hand)",
+      "group": "Treat",
+      "available": "pos == \"walker\" and visit == 1",
+      "why": "Start with the walker.",
+      "effects": [
+        {
+          "if": "isNull(caneAt)",
+          "then": [
+            {
+              "set": "caneAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pos",
+          "to": "\"cane\""
+        },
+        {
+          "log": "Cane in the right hand; he walks slower but steady, with good knee bend.",
+          "kind": "act"
+        }
+      ]
+    },
+    "sitDown": {
+      "label": "Sit him down to rest",
+      "group": "Treat",
+      "available": "pos != \"seated\"",
+      "why": "He is sitting.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"seated\""
+        },
+        {
+          "log": "He sits down to rest.",
+          "kind": "act"
+        }
+      ]
+    },
+    "adviseCpm": {
+      "label": "Recommend a continuous passive motion machine for home",
+      "group": "Treat",
+      "available": "not cpmAdvised",
+      "why": "Already recommended.",
+      "effects": [
+        {
+          "set": "cpmAdvised",
+          "to": "true"
+        },
+        {
+          "log": "You suggest a CPM machine for home.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "massage": {
+      "label": "Massage the calf to ease the cramp",
+      "group": "Treat",
+      "available": "isNull(massageAt)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "massageAt",
+          "to": "t"
+        },
+        {
+          "set": "loadAfterSuspect",
+          "to": "true"
+        },
+        {
+          "log": "You massage his left calf. It is warm and he winces.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "wells": {
+      "label": "Score the Wells criteria for DVT",
+      "group": "Decide",
+      "available": "isNull(wellsAt)",
+      "why": "Already scored.",
+      "params": [
+        {
+          "id": "alt",
+          "kind": "choice",
+          "label": "Is another diagnosis at least as likely as a DVT?",
+          "options": [
+            {
+              "value": "no",
+              "label": "No: the swelling, tenderness and warmth are in the calf, beyond the usual knee swelling"
+            },
+            {
+              "value": "yes",
+              "label": "Yes: this is ordinary post-operative swelling"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "wellsAt",
+          "to": "t"
+        },
+        {
+          "set": "altAsLikely",
+          "to": "alt == \"yes\""
+        },
+        {
+          "log": "Wells: {wellsScore} points ({wellsScore >= 2 ? \"DVT likely\" : \"DVT unlikely\"}).",
+          "kind": "find"
+        }
+      ]
+    },
+    "callSurgeon": {
+      "label": "Call the surgeon's office now (SBAR) for a same-day duplex scan",
+      "group": "Decide",
+      "available": "isNull(surgeonAt) and not pe",
+      "why": "Already called.",
+      "effects": [
+        {
+          "set": "surgeonAt",
+          "to": "t"
+        },
+        {
+          "set": "pos",
+          "to": "\"seated\""
+        },
+        {
+          "log": "SBAR to the surgeon's PA: \"Day 15 after a left TKA on aspirin; new left calf pain since last night, calf 4 cm larger than Monday, warm, tender along the deep veins, pitting edema; Wells likely. I've stopped his lower-limb exercise.\" The PA books a duplex scan for this afternoon.",
+          "kind": "good"
+        }
+      ]
+    },
+    "tellHimCall": {
+      "label": "Tell him to call his surgeon about the calf when he gets home",
+      "group": "Decide",
+      "available": "isNull(selfCallAt) and isNull(surgeonAt) and not pe",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "selfCallAt",
+          "to": "t"
+        },
+        {
+          "log": "\"Give your surgeon a call about that calf when you get home.\"",
+          "kind": "act"
+        }
+      ]
+    },
+    "call911": {
+      "label": "Call 911",
+      "group": "Decide",
+      "available": "isNull(emsAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "set": "emsAt",
+          "to": "t"
+        },
+        {
+          "set": "pos",
+          "to": "\"seated\""
+        },
+        {
+          "schedule": "emsT",
+          "after": "emsSec"
+        },
+        {
+          "log": "911 called: \"68-year-old, 15 days after knee replacement, sudden shortness of breath, SpO2 {round(spo2)}%, HR {round(hr)}.\" You keep him sitting upright and stay with him.",
+          "kind": "good"
+        }
+      ]
+    },
+    "educate": {
+      "label": "Teach the warning signs of a clot and a lung clot, and what to do",
+      "group": "Decide",
+      "available": "isNull(educatedAt)",
+      "why": "Already taught.",
+      "effects": [
+        {
+          "set": "educatedAt",
+          "to": "t"
+        },
+        {
+          "log": "You explain: calf pain, swelling or warmth means call the surgeon; sudden breathlessness or chest pain means call 911.",
+          "kind": "good"
+        }
+      ]
+    },
+    "endVisit1": {
+      "label": "Finish Monday's visit with his home program",
+      "group": "Finish",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"seated\""
+        },
+        {
+          "log": "Home program given. See you Thursday.",
+          "kind": "sys"
+        },
+        {
+          "phase": "home"
+        },
+        {
+          "schedule": "daysT",
+          "after": "daysAway"
+        }
+      ]
+    },
+    "endVisit2": {
+      "label": "Finish Thursday's visit",
+      "group": "Finish",
+      "available": "not pe",
+      "why": "Not with him like this.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"seated\""
+        },
+        {
+          "log": "The visit ends.",
+          "kind": "sys"
+        },
+        {
+          "phase": "done"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "daysT": {
+      "label": "the days until Thursday",
+      "wait": {
+        "skipLabel": "Thursday's visit (3 days)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Three days between Monday's and Thursday's visits."
+      },
+      "effects": [
+        {
+          "set": "visit",
+          "to": "2"
+        },
+        {
+          "set": "v2At",
+          "to": "t"
+        },
+        {
+          "set": "hr",
+          "to": "84"
+        },
+        {
+          "set": "pos",
+          "to": "\"seated\""
+        },
+        {
+          "phase": "visit2"
+        },
+        {
+          "log": "Thursday 14:00. Mr. Reyes walks in with the walker, limping more than on Monday.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "emsT": {
+      "label": "the paramedics",
+      "wait": {
+        "skipLabel": "the paramedics arriving (about 8 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Paramedics arrive about 8 minutes after a 911 call from the clinic."
+      },
+      "effects": [
+        {
+          "log": "Paramedics arrive and take him to the emergency department.",
+          "kind": "sys"
+        },
+        {
+          "phase": "done"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "peOnset",
+      "when": "phase == \"visit2\" and isNull(peAt) and not referred and t - timeAt(v2At) >= peAfter",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "peAt",
+          "to": "t"
+        },
+        {
+          "set": "pos",
+          "to": "\"seated\""
+        },
+        {
+          "log": "He stops, grabs the chair and sits: \"I can't get my breath... my chest hurts when I breathe in.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "calfCue",
+      "when": "phase == \"visit2\" and pos == \"walker\" and isNull(hist2At)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "hist2At",
+          "to": "t"
+        },
+        {
+          "log": "Walking, he winces: \"My left calf has been aching since last night. Like a cramp.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "keptLoading",
+      "when": "phase == \"visit2\" and dvtSuspected and (pos == \"walker\" or pos == \"exercise\") and t - suspectAt >= 30",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "loadAfterSuspect",
+          "to": "true"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "plan": {
+      "trigger": "phase == \"visit1\" and t >= reasonAt",
+      "question": "Monday, day 12 after his knee replacement: what will you measure and give today, at what dose, and what would make you stop and call his surgeon at any visit?",
+      "parts": [
+        {
+          "label": "Measures and interventions",
+          "criteria": "Measures knee flexion and extension with a goniometer, quadriceps (extensor lag) and girth; plans ROM exercise (passive, active-assisted, active), progressive strengthening, gait training, and quadriceps NMES at least daily at the highest tolerable intensity; does not plan CPM.",
+          "modelAnswer": "Goniometry for flexion and extension, a straight-leg raise for extensor lag, knee and calf girth on both sides. Heel slides and knee bends, quad sets, straight-leg raises and mini-squats, gait training with the walker, and NMES to the quadriceps at the strongest intensity he tolerates, daily. No CPM."
+        },
+        {
+          "label": "When to stop and call",
+          "criteria": "Names DVT signs (calf pain, tenderness, swelling of about 3 cm or more versus the other side, warmth, pitting edema) as a reason to stop lower-limb exercise, score the Wells criteria and contact the surgeon the same day for a scan; names sudden breathlessness, chest pain or falling SpO2 as a reason to call 911.",
+          "modelAnswer": "If he has new calf pain, tenderness, warmth, pitting edema or a calf 3 cm bigger than the other, I stop the leg exercise, score the Wells criteria and call his surgeon today for a duplex scan. Sudden shortness of breath, chest pain or a falling saturation means 911."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+          "checkedAt": "2026-11-11",
+          "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+          "note": "Read 2026-11-11 through a text extraction of the PDF. Stop criteria for activity include a falling SpO2 and being unable to speak comfortably. The 2-minute limit to stop and call 911 once a lung clot is suspected is authored."
+        }
+      },
+      "spo2Floor": {
+        "value": 90,
+        "source": {
+          "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+          "checkedAt": "2026-11-11",
+          "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+          "note": "Read 2026-11-11 through a text extraction of the PDF. Collaborate with the team when SpO2 is below 90%; tighter than the profile default of 88% for a patient without lung disease."
+        }
+      },
+      "escalateWindow": {
+        "value": 900,
+        "source": {
+          "cite": "Hillegass E, Puthoff M, Frese EM, et al. Role of physical therapists in the management of individuals at risk for or diagnosed with venous thromboembolism: evidence-based clinical practice guideline. Phys Ther. 2016;96:143-166",
+          "checkedAt": "2026-11-11",
+          "url": "https://scholarblogs.emory.edu/buddterrace/files/2016/03/CPG-for-Individuals-at-Risk-for-or-Diagnosed-with-Venous-Thromboembolism.pdf",
+          "note": "Read 2026-11-11 (a hosted copy of the published PDF). Action statement 5: establish the likelihood of LE DVT when there is pain, tenderness, swelling, warmth or discoloration; action statement 6: recommend further medical testing after the Wells criteria, before mobilization; action statement 8: mobilize once anticoagulation has reached therapeutic levels. Wells (two-level): major surgery within 12 weeks, localized tenderness along the deep veins, entire leg swollen, calf swelling at least 3 cm more than the other side, pitting edema confined to the symptomatic leg and others score 1 each; an alternative diagnosis at least as likely scores -2; 2 or more is DVT likely, which calls for a duplex ultrasound before mobility."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "phase == \"done\" and referred and not v1Progress",
+      "class": "recovered",
+      "rationale": "The clot was handled, but Monday's visit gave no walking or exercise progression, which the 2026 guideline expects after TKA; a gap in his rehab, not harm in itself.",
+      "source": {
+        "cite": "APTA. Physical therapist management of total knee arthroplasty: revision 2026. Phys Ther. 2026;106. doi:10.1093/ptj/pzag058 (PMC13403188)",
+        "checkedAt": "2026-11-11",
+        "url": "https://europepmc.org/article/PMC/PMC13403188",
+        "note": "Read 2026-11-11 in the Europe PMC full text. Physical therapists should not use continuous passive motion after primary, uncomplicated TKA (high quality, strong); should include passive, active-assistive and active ROM exercise (moderate); should apply NMES to the quadriceps at least daily, started early, at the highest tolerable intensity (moderate). Team members should be aware of complications that may affect exercise, including thromboembolism."
+      }
+    }
+  },
+  "endings": {
+    "peMissed": {
+      "label": "A lung clot without a 911 call",
+      "class": "harm",
+      "terminal": true,
+      "when": "pe and isNull(emsAt) and t - timeAt(peAt) > stopWindow",
+      "narrative": "Part of the clot reached his lungs and nobody called 911 for minutes. He is taken to the emergency department in worse shape than he needed to be."
+    },
+    "peCaught": {
+      "label": "A lung clot, 911 called",
+      "class": "recovered",
+      "terminal": true,
+      "when": "phase == \"done\" and not isNull(emsAt)",
+      "narrative": "The clot was not caught in time and part of it reached his lungs, but you stopped, sat him upright and called 911 at once. He is treated in the emergency department."
+    },
+    "sentHome": {
+      "label": "Sent home with an untreated clot",
+      "class": "harm",
+      "terminal": true,
+      "when": "phase == \"done\" and visit == 2 and not referred",
+      "narrative": "He went home with the calf untested. Two days later he is admitted with a pulmonary embolism."
+    },
+    "referredSameDay": {
+      "label": "Progressed on Monday, scanned the same day on Thursday",
+      "class": "target",
+      "terminal": true,
+      "when": "phase == \"done\" and not isNull(surgeonAt) and timeAt(surgeonAt) - timeAt(v2At) <= escalateWindow and not loadAfterSuspect and (isNull(load2At) or suspectAt < timeAt(load2At)) and v1Progress and not pe",
+      "narrative": "Monday moved his rehab on. On Thursday you found the calf signs before loading the leg, scored the Wells criteria and got him a same-day scan. The scan shows a deep vein clot; he starts anticoagulation, and his rehab resumes once it is at a therapeutic level."
+    },
+    "referredNoRehab": {
+      "label": "Scanned the same day, but no progress on Monday",
+      "class": "recovered",
+      "terminal": true,
+      "when": "phase == \"done\" and referred and not v1Progress",
+      "narrative": "The clot was found and referred, but Monday's visit did not progress his walking or exercise."
+    },
+    "referredGaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "phase == \"done\" and referred",
+      "narrative": "The clot was referred, but something was late or missing: the leg was loaded after the signs appeared, the screen came late, or he was left to call the surgeon himself."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "peMissed",
+    "peCaught",
+    "sentHome",
+    "referredSameDay",
+    "referredNoRehab",
+    "referredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "screenFirst",
+        "label": "Thursday: screened for clot signs before loading the leg",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "visit == 1",
+            "score": "na",
+            "why": "The run ended before Thursday."
+          },
+          {
+            "when": "not dvtSuspected",
+            "score": "missed",
+            "why": "Never asked about or examined the calf on Thursday."
+          },
+          {
+            "when": "isNull(load2At) or suspectAt < timeAt(load2At)",
+            "score": "met",
+            "why": "Asked and examined before any exercise or walking."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "He was exercising or walking before you screened; the calf came up only then."
+          }
+        ]
+      },
+      {
+        "id": "heldLoading",
+        "label": "Stopped lower-limb exercise and did not massage the calf once a clot was suspected",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "visit == 1",
+            "score": "na",
+            "why": "The run ended before Thursday."
+          },
+          {
+            "when": "loadAfterSuspect",
+            "score": "missed",
+            "why": "The leg was exercised, walked or massaged after the calf signs appeared."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No leg exercise, walking or massage after the signs."
+          }
+        ]
+      },
+      {
+        "id": "sameDay",
+        "label": "Called the surgeon the same day for a scan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "visit == 1",
+            "score": "na",
+            "why": "The run ended before Thursday."
+          },
+          {
+            "when": "not isNull(surgeonAt) and timeAt(surgeonAt) - timeAt(v2At) <= escalateWindow",
+            "score": "met",
+            "why": "Surgeon called {(timeAt(surgeonAt) - timeAt(v2At))|duration} into the visit; scan booked today."
+          },
+          {
+            "when": "not isNull(surgeonAt) or not isNull(selfCallAt)",
+            "score": "partial",
+            "why": "Referred late, or left to him to call."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody contacted the surgeon about the calf."
+          }
+        ]
+      },
+      {
+        "id": "pe911",
+        "label": "Called 911 at once for the lung-clot signs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not pe",
+            "score": "na",
+            "why": "No lung clot."
+          },
+          {
+            "when": "not isNull(emsAt) and timeAt(emsAt) - timeAt(peAt) <= stopWindow",
+            "score": "met",
+            "why": "911 called {(timeAt(emsAt) - timeAt(peAt))|duration} after the breathlessness started."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No prompt 911 call."
+          }
+        ]
+      },
+      {
+        "id": "wellsScored",
+        "label": "Scored the Wells criteria correctly",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(wellsAt)",
+            "score": "missed",
+            "why": "Wells not scored."
+          },
+          {
+            "when": "wellsScore >= 2",
+            "score": "met",
+            "why": "Wells {wellsScore}: DVT likely."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Scored as unlikely: calf signs beyond the knee are not ordinary post-operative swelling."
+          }
+        ]
+      },
+      {
+        "id": "measured",
+        "label": "Monday: measured ROM, quadriceps and girth (baseline)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(rom1At) and not isNull(quad1At) and not isNull(girth1At)",
+            "score": "met",
+            "why": "Goniometry, extensor lag and girth on both legs."
+          },
+          {
+            "when": "not isNull(rom1At) or not isNull(quad1At) or not isNull(girth1At)",
+            "score": "partial",
+            "why": "Some of ROM, quadriceps and girth measured."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No measures on Monday."
+          }
+        ]
+      },
+      {
+        "id": "nmesDose",
+        "label": "Monday: quadriceps NMES at the highest tolerable intensity",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(nmesAt) and nmesHigh",
+            "score": "met",
+            "why": "Strong contractions at his highest tolerable intensity, daily."
+          },
+          {
+            "when": "not isNull(nmesAt)",
+            "score": "partial",
+            "why": "Given at a sensory level, below the guideline's dose."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No NMES."
+          }
+        ]
+      },
+      {
+        "id": "progressed",
+        "label": "Monday: ROM and strengthening exercise and gait training, no CPM",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "cpmAdvised",
+            "score": "missed",
+            "why": "CPM is not recommended after primary TKA."
+          },
+          {
+            "when": "v1Progress",
+            "score": "met",
+            "why": "Exercise and gait training on Monday."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No gait training or exercise on Monday."
+          }
+        ]
+      },
+      {
+        "id": "monitored",
+        "label": "Checked exertion while he walked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "rpeWalking",
+            "score": "met",
+            "why": "Asked his RPE while walking."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Exertion never checked while walking."
+          }
+        ]
+      },
+      {
+        "id": "educated",
+        "label": "Taught the clot and lung-clot warning signs",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(educatedAt)",
+            "score": "met",
+            "why": "Calf signs: call the surgeon; breathlessness or chest pain: 911."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No warning-sign teaching."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written plan: measures, doses, and when to stop",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toSurgeon",
+        "label": "Thursday's start to calling the surgeon",
+        "value": "isNull(surgeonAt) ? -1 : timeAt(surgeonAt) - timeAt(v2At)",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "wells",
+        "label": "Wells score",
+        "value": "isNull(wellsAt) ? -1 : wellsScore",
+        "format": "number",
+        "expert": "4 (likely)"
+      },
+      {
+        "id": "to911",
+        "label": "Breathlessness to 911",
+        "value": "not pe or isNull(emsAt) ? -1 : timeAt(emsAt) - timeAt(peAt)",
+        "format": "duration",
+        "expert": "under 1 min (if it happens)"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Mon 14:00",
+        "text": "Ask about new symptoms including the calf; measure knee ROM, extensor lag and knee and calf girth on both legs."
+      },
+      {
+        "at": "Mon 14:05",
+        "text": "Quadriceps NMES at the highest tolerable intensity; heel slides and knee bends; quad sets, straight-leg raises and mini-squats."
+      },
+      {
+        "at": "Mon 14:15",
+        "text": "Gait training with the walker, checking RPE; try a cane if he is steady. No CPM."
+      },
+      {
+        "at": "Thu 14:00",
+        "text": "Screen first: a calf ache since last night. Measure the calf (4 cm larger than Monday) and examine it (warm, tender, pitting edema). No exercise, no walking, no massage."
+      },
+      {
+        "at": "Thu 14:05",
+        "text": "Wells 4, likely. Call the surgeon's office with SBAR for a same-day duplex scan; teach the warning signs of a clot and a lung clot."
+      }
+    ],
+    "debrief": {
+      "referredSameDay": {
+        "headline": "Progressed, then scanned the same day",
+        "body": "You moved his rehab on with guideline doses, screened before loading the leg on Thursday, and turned a likely Wells score into a same-day scan. That is the expert path."
+      },
+      "referredNoRehab": {
+        "headline": "Scanned the same day, no progress on Monday",
+        "body": "The clot was handled well. Monday needed more: ROM and strengthening exercise, gait training and strong NMES, not a CPM machine."
+      },
+      "referredGaps": {
+        "headline": "Referred, with gaps",
+        "body": "He got to his surgeon, which mattered most. Look at when you screened, whether the leg was loaded or massaged after the signs, and who made the call."
+      },
+      "peCaught": {
+        "headline": "A lung clot, 911 called at once",
+        "body": "Your response to the emergency was right. The lesson is upstream: a screen at the start of Thursday's visit would have found the calf before it came to this."
+      },
+      "peMissed": {
+        "headline": "A lung clot without a 911 call",
+        "body": "The most useful kind of run to learn from. Sudden breathlessness and chest pain after surgery mean stop, sit him upright and call 911."
+      },
+      "sentHome": {
+        "headline": "Sent home with an untreated clot",
+        "body": "Calf pain, swelling, warmth and tenderness after surgery need a Wells score and a same-day call, never a massage and a home program."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The run reached its time limit."
+      }
+    },
+    "modelReasoning": "Monday: measure flexion and extension with a goniometer, extensor lag and girth on both legs (a baseline); give ROM exercise (passive, active-assisted, active), progressive strengthening, gait training, and quadriceps NMES at least daily at the highest tolerable intensity; do not use CPM. Thursday: screen before loading. New calf pain, a calf 4 cm larger than Monday, warmth, tenderness along the deep veins and pitting edema give a Wells score of 4 (surgery within 12 weeks, calf swelling 3 cm or more, localized tenderness, pitting edema), so DVT is likely: stop lower-limb exercise, do not massage, and contact the surgeon the same day for a duplex scan; mobilize again once anticoagulation is therapeutic. Teach the warning signs. Sudden breathlessness or pleuritic chest pain means 911."
+  },
+  "chapters": [
+    {
+      "id": "thursday",
+      "label": "Thursday's visit",
+      "when": "phase == \"visit2\""
+    }
+  ],
+  "teaching": {
+    "peWhy": {
+      "during": "emsT",
+      "ask": "While the paramedics are on their way: what most likely happened?",
+      "choices": [
+        {
+          "id": "pe",
+          "label": "Part of a calf clot reached his lungs (a pulmonary embolism)"
+        },
+        {
+          "id": "panic",
+          "label": "A panic attack after exercise"
+        },
+        {
+          "id": "deconditioning",
+          "label": "Ordinary deconditioning after surgery"
+        }
+      ],
+      "expect": "pe",
+      "explain": "Two weeks after a knee replacement, a swollen tender calf followed by sudden breathlessness and chest pain that is worse on breathing in points to a pulmonary embolism. That is why calf signs get a Wells score and a same-day scan before the leg is loaded.",
+      "source": {
+        "cite": "Hillegass E, Puthoff M, Frese EM, et al. Role of physical therapists in the management of individuals at risk for or diagnosed with venous thromboembolism: evidence-based clinical practice guideline. Phys Ther. 2016;96:143-166",
+        "checkedAt": "2026-11-11",
+        "url": "https://scholarblogs.emory.edu/buddterrace/files/2016/03/CPG-for-Individuals-at-Risk-for-or-Diagnosed-with-Venous-Thromboembolism.pdf",
+        "note": "Read 2026-11-11 (a hosted copy of the published PDF). Action statement 5: establish the likelihood of LE DVT when there is pain, tenderness, swelling, warmth or discoloration; action statement 6: recommend further medical testing after the Wells criteria, before mobilization; action statement 8: mobilize once anticoagulation has reached therapeutic levels. Wells (two-level): major surgery within 12 weeks, localized tenderness along the deep veins, entire leg swollen, calf swelling at least 3 cm more than the other side, pitting edema confined to the symptomatic leg and others score 1 each; an alternative diagnosis at least as likely scores -2; 2 or more is DVT likely, which calls for a duplex ultrasound before mobility."
+      }
+    }
+  }
+}
