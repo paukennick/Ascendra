@@ -21,8 +21,11 @@ import { localDataGuard, userLocalDataKeys } from "@/lib/localData";
 import { api, ApiError, isReauthRefusal, registerAuthHooks } from "@/api/client";
 import {
   BIOMETRIC_SESSION_KEY,
+  keepsBiometricPreference,
   launchStateFor,
   logoutCalls,
+  showBiometricSignIn,
+  type SealedSessionEnd,
   planRefresh,
   refreshTokenToKeep,
   withRefreshLock,
@@ -101,6 +104,9 @@ interface AuthContextValue {
   enableBiometric: () => Promise<{ ok: boolean; error?: string }>;
   disableBiometric: () => Promise<void>;
   unlockWithBiometric: () => Promise<boolean>;
+  // REQ-212 (FAIL-1003): true only while a sealed session is on this device,
+  // so the login screen's "Use <fingerprint>" button has something to unlock.
+  biometricSignInReady: boolean;
   useFallbackSignIn: () => Promise<void>;
   // REQ-177: the lock after time away (src/lib/autoLock.ts). An overlay
   // over the signed-in screens, which stay mounted; `status` stays
@@ -142,6 +148,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [biometricLabel, setBiometricLabel] = useState("Biometric unlock");
+  // REQ-212: mirrors BIOMETRIC_SESSION_KEY ("1" sealed, "0" none, null = an
+  // install from before the flag, which counts as sealed).
+  const [biometricSessionFlag, setBiometricSessionFlag] = useState<string | null>("0");
   const [webIdleWarningSecondsLeft, setWebIdleWarningSecondsLeft] = useState<number | null>(null);
   const [appLocked, setAppLocked] = useState(false);
   const [lockAfter, setLockAfterState] = useState<LockAfter>(DEFAULT_LOCK_AFTER);
@@ -227,16 +236,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.multiRemove([LOCKED_KEY, LAST_SEEN_KEY]).catch(() => undefined);
   }, []);
 
-  // Drops biometric enrollment on this device -- for logoutAll (revoking
-  // every session makes this device's local shortcut stale too) and for an
-  // explicit "use password instead" (useFallbackSignIn). A plain logout no
-  // longer calls this: see the comment on logout below.
-  const clearBiometricEnrollment = useCallback(async () => {
+  // Ends the sealed session on this device. REQ-212 (FAIL-1002): only
+  // logoutAll (revoking every session makes this device's shortcut stale
+  // too) also turns the biometric preference off. "Use password instead" on
+  // the launch lock -- the only way from the lock to the login and Create
+  // account screens -- and a missing or rejected sealed token keep it, like
+  // a plain logout (REQ-192): the next password sign-in seals the new
+  // session again. They used to delete the preference, so biometrics were
+  // found switched off after going to sign in or create an account.
+  const endSealedSession = useCallback(async (reason: SealedSessionEnd) => {
+    await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY).catch(() => undefined);
+    if (keepsBiometricPreference(reason)) {
+      await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "0").catch(() => undefined);
+      setBiometricSessionFlag("0");
+      return;
+    }
     biometricEnabledRef.current = false;
     setBiometricEnabled(false);
-    await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY).catch(() => undefined);
     await secureStorage.deleteItem(BIOMETRIC_ENABLED_KEY).catch(() => undefined);
     await secureStorage.deleteItem(BIOMETRIC_SESSION_KEY).catch(() => undefined);
+    setBiometricSessionFlag("0");
   }, []);
 
   // Dedupes concurrent refresh attempts (e.g. several screens' requests all
@@ -267,6 +286,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (keep && biometricEnabledRef.current) {
           await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, keep, SEAL_OPTIONS);
           await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1").catch(() => undefined);
+          setBiometricSessionFlag("1");
         } else if (keep) {
           await secureStorage.setItem(REFRESH_TOKEN_KEY, keep);
         }
@@ -322,6 +342,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // REQ-192: after a logout the preference stays on but no sealed
       // session is left, so the launch goes to sign-in, not the lock.
       const sessionFlag = biometricOn ? await secureStorage.getItem(BIOMETRIC_SESSION_KEY).catch(() => null) : null;
+      setBiometricSessionFlag(biometricOn ? sessionFlag : "0");
       if (launchStateFor(biometricOn, sessionFlag) === "locked") {
         setStatus("locked");
         return;
@@ -365,10 +386,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, keep, SEAL_OPTIONS);
         await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1");
+        setBiometricSessionFlag("1");
         await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
       } catch {
         await secureStorage.setItem(REFRESH_TOKEN_KEY, keep);
         await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "0").catch(() => undefined);
+        setBiometricSessionFlag("0");
       }
     } else if (keep) {
       await secureStorage.setItem(REFRESH_TOKEN_KEY, keep);
@@ -438,9 +461,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // A plain "Log out" ends this session but leaves the device's own
   // settings alone -- biometric unlock stays on, so logging back in doesn't
-  // also mean re-enabling it. (Contrast logoutAll below, and
-  // useFallbackSignIn, which are both an explicit choice to drop this
-  // device's enrollment.)
+  // also mean re-enabling it. (Contrast logoutAll below, the one explicit
+  // choice to drop this device's enrollment; REQ-212 made "Use password
+  // instead" keep it too.)
   //
   // REQ-192: it always ends the session on the server too, on every
   // platform. Before, with biometric unlock on, the session was left live
@@ -471,6 +494,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!IS_WEB && biometricEnabledRef.current) {
       await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY).catch(() => undefined);
       await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "0").catch(() => undefined);
+      setBiometricSessionFlag("0");
     }
     await clearAuth();
   }, [clearAuth]);
@@ -491,9 +515,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const userId = userRef.current?.id;
     await api.post("/api/auth/logout-all").catch(() => undefined);
     if (userId) await clearUserLocalData(userId);
-    await clearBiometricEnrollment();
+    await endSealedSession("logoutAll");
     await clearAuth();
-  }, [clearAuth, clearBiometricEnrollment]);
+  }, [clearAuth, endSealedSession]);
 
   // REQ-177: native -- time in the background locks the app (an overlay;
   // the screens underneath stay mounted, so a half-answered lesson or an
@@ -611,6 +635,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await secureStorage.deleteItem(REFRESH_TOKEN_KEY);
     await secureStorage.setItem(BIOMETRIC_ENABLED_KEY, "1");
     await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1");
+    setBiometricSessionFlag("1");
     biometricEnabledRef.current = true;
     setBiometricEnabled(true);
     return { ok: true };
@@ -626,6 +651,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY);
     await secureStorage.deleteItem(BIOMETRIC_ENABLED_KEY);
     await secureStorage.deleteItem(BIOMETRIC_SESSION_KEY).catch(() => undefined);
+    setBiometricSessionFlag("0");
     biometricEnabledRef.current = false;
     setBiometricEnabled(false);
   }, []);
@@ -639,7 +665,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         authenticationPrompt: "Unlock Ascendra",
       });
       if (!token) {
-        await clearBiometricEnrollment();
+        await endSealedSession("sealedTokenMissing");
         await clearAuth();
         return false;
       }
@@ -666,14 +692,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // cancelled prompt, no network -- leaves the enrolment alone so a
       // retry is still possible.
       if (err instanceof ApiError && err.status === 401) {
-        await clearBiometricEnrollment();
+        await endSealedSession("sealedTokenRejected");
         await clearAuth();
       }
       // Wrong/cancelled/unavailable -- stay on the lock screen so the user
       // can retry or fall back, never trapped and never silently signed in.
       return false;
     }
-  }, [clearAuth, clearBiometricEnrollment, releaseLock]);
+  }, [clearAuth, endSealedSession, releaseLock]);
 
   // REQ-177: unlocking the lock after time away. The session is still live
   // in memory; this only confirms it's the learner. Biometric: the OS
@@ -709,13 +735,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [refresh, releaseLock]
   );
 
-  // "Use password instead" from the lock screen: drop the biometric
-  // enrollment and go to the normal sign-in flow. Doesn't touch the account
-  // itself -- just this device's local shortcut to it.
+  // "Use password instead" from the lock screen: end the sealed session and
+  // go to the normal sign-in flow. REQ-212 (FAIL-1002): the biometric
+  // preference stays on (Settings turns it off), so signing in again -- or
+  // creating an account from the login screen -- doesn't switch it off.
   const useFallbackSignIn = useCallback(async () => {
-    await clearBiometricEnrollment();
+    await endSealedSession("passwordInstead");
     await clearAuth();
-  }, [clearAuth, clearBiometricEnrollment]);
+  }, [clearAuth, endSealedSession]);
 
   return (
     <AuthContext.Provider
@@ -735,6 +762,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         enableBiometric,
         disableBiometric,
         unlockWithBiometric,
+        biometricSignInReady: showBiometricSignIn(biometricAvailable, biometricEnabled, biometricSessionFlag),
         useFallbackSignIn,
         webIdleWarningSecondsLeft,
         appLocked,

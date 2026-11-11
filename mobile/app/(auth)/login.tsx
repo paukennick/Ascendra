@@ -12,7 +12,7 @@ import { mfaHandoffFrom, setMfaHandoff, setVerifyEmailHandoff } from "@/lib/hand
 
 export default function Login() {
   const router = useRouter();
-  const { login, loginWithGoogle, biometricAvailable, biometricEnabled, biometricLabel, unlockWithBiometric } = useAuth();
+  const { login, loginWithGoogle, biometricSignInReady, biometricLabel, unlockWithBiometric } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -152,7 +152,10 @@ export default function Login() {
           returnKeyType="go"
           onSubmitEditing={onSubmit}
         />
-        {biometricAvailable && biometricEnabled ? (
+        {/* REQ-212 (FAIL-1003): only while a sealed session is on the device.
+            After a logout there is nothing to unlock, and a tap used to read
+            the empty key and switch biometrics off. */}
+        {biometricSignInReady ? (
           <Button
             label={`Use ${biometricLabel}`}
             variant="ghost"

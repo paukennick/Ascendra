@@ -7558,6 +7558,44 @@
       "risk_notes": [
         "the test event appears as a real error in Sentry and should be resolved there"
       ]
+    },
+    {
+      "id": "REQ-212",
+      "category": "Mobile authentication",
+      "title": "Login workflows on Android: biometric unlock stays on through sign-in and Create account; autofill hints checked",
+      "description": "Nick reported on the 2026-11-11 Android preview build that biometrics are turned off when navigating to Create account and that saved username and password are not offered on the login screen. Biometrics (FAIL-1002 and FAIL-1003): leaving the launch lock with 'Use password instead' and tapping the login screen's biometric button after a logout both deleted the device's biometric preference; now only Sign out of all devices does. Autofill: the login and register hints are unchanged since before batch-10 and reach the native field (checked in react-native's Android TextInput); no code cause was found for the reported symptom and it needs a device check. The MFA code field gained its missing Android hint (FAIL-1004).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib/sessionStore.ts",
+        "mobile/app/(auth)/login.tsx",
+        "mobile/app/(auth)/mfa-challenge.tsx",
+        "mobile/src/lib/loginWorkflow.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "With biometric unlock on 'Use password instead' leads to sign-in and the preference is still on afterwards",
+        "Only Sign out of all devices or the Settings toggle turns biometric unlock off",
+        "The login biometric button appears only while a sealed session is on the device",
+        "Login keeps username plus current-password and register keeps username plus new-password and TextField forwards them",
+        "The MFA code field carries autoComplete one-time-code",
+        "mobile tsc and npm test pass"
+      ],
+      "validation_required": [
+        "typescript_format",
+        "unit_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Code reading and node tests only: the Android app was not run here so the OS prompt and the autofill service are unobserved",
+        "The biometric preference is one per device: a different account signed in on the device has its session sealed too (unchanged)",
+        "'Use password instead' cannot revoke the sealed token on the server (reading it needs the biometric prompt) so that session expires on its own as before",
+        "JavaScript only: no app.json or plugin change"
+      ]
     }
   ]
 }

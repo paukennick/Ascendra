@@ -70,6 +70,28 @@ export function sealedSessionPresent(flag: string | null): boolean {
   return flag !== "0";
 }
 
+// REQ-212 (FAIL-1002): the ways a sealed session on this device can end, and
+// which of them also turn the biometric preference off. Only "Sign out of all
+// devices" is an explicit choice to drop this device's shortcut. Everything
+// else ends the session and keeps the preference, so the next password
+// sign-in seals the new session again -- the way a plain logout already
+// worked (REQ-192). Before, "Use password instead" on the launch lock (the
+// only way from the lock to the login and Create account screens) and a
+// missing or rejected sealed token both switched biometrics off.
+export type SealedSessionEnd = "logout" | "logoutAll" | "passwordInstead" | "sealedTokenMissing" | "sealedTokenRejected";
+
+export function keepsBiometricPreference(reason: SealedSessionEnd): boolean {
+  return reason !== "logoutAll";
+}
+
+// REQ-212 (FAIL-1003): the login screen's "Use <fingerprint>" button. It only
+// works while a sealed session is on the device; after a logout (flag "0")
+// there is nothing to unlock, and tapping it used to read the empty key and
+// switch biometrics off.
+export function showBiometricSignIn(available: boolean, enabled: boolean, sessionFlag: string | null): boolean {
+  return available && enabled && sealedSessionPresent(sessionFlag);
+}
+
 export type LaunchState = "locked" | "resume";
 
 export function launchStateFor(biometricOn: boolean, sessionFlag: string | null): LaunchState {

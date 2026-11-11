@@ -11962,6 +11962,89 @@
       ],
       "fix_summary": "The held-back answer is a 409 carrying 'We couldn't write a scenario we're confident in just now. Please try again.'",
       "prevention_notes": "pbq-holdback.dbtest.ts asserts the 409 and the message"
+    },
+    {
+      "id": "FAIL-1002",
+      "date": "2026-11-10",
+      "title": "Biometric unlock was switched off when leaving the launch lock to sign in or create an account",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Reported by Nick on the Android preview build (2026-11-11 release): biometrics are turned off after navigating to Create account. With biometric unlock on the app opens on the lock screen; its only way to the login and Create account screens is 'Use password instead', and afterwards Settings showed biometric unlock off",
+      "how_detected": "user report (Nick), confirmed by code reading",
+      "root_cause": "useFallbackSignIn ('Use password instead') called clearBiometricEnrollment, which deleted BIOMETRIC_ENABLED_KEY as well as the sealed session; unlockWithBiometric did the same on a missing or rejected sealed token. REQ-192 had made a plain logout keep the preference but left these paths on the old drop-everything behaviour. The preference is one per device, not per account, so every later sign-in on the device started with it off",
+      "requirement": "REQ-212",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/app/lock.tsx"
+      ],
+      "fix_summary": "clearBiometricEnrollment became endSealedSession(reason): it always deletes the sealed token and writes the session flag 0; only logoutAll also deletes the preference (keepsBiometricPreference in src/lib/sessionStore.ts). The next password sign-in seals the new session again",
+      "fix_commits": [
+        "4480117"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/loginWorkflow.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "loginWorkflow.test.ts fails if anything but disableBiometric and the logoutAll branch deletes the preference key or if an auth screen touches biometric state",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1003",
+      "date": "2026-11-10",
+      "title": "The login screen's biometric button turned biometrics off after a plain logout",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Found while tracing FAIL-1002 (code reading): after a plain logout the login screen still shows 'Use <fingerprint>'; tapping it fails with 'Couldn't unlock' and switches biometric unlock off",
+      "how_detected": "code review while debugging the reported biometric bug",
+      "root_cause": "REQ-192 made logout delete the sealed refresh token and write the session flag 0 but the login button was still gated only on biometricAvailable && biometricEnabled. unlockWithBiometric then read an empty key and called clearBiometricEnrollment",
+      "requirement": "REQ-212",
+      "affected": [
+        "mobile/app/(auth)/login.tsx",
+        "mobile/src/auth/AuthContext.tsx"
+      ],
+      "fix_summary": "AuthContext tracks the sealed-session flag in state and exposes biometricSignInReady (showBiometricSignIn: hardware and preference and a sealed session); login.tsx shows the button only then. A missing token no longer drops the preference (FAIL-1002)",
+      "fix_commits": [
+        "4480117"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/loginWorkflow.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "loginWorkflow.test.ts pins the gate and that every write of the session flag updates the state the button reads",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1004",
+      "date": "2026-11-10",
+      "title": "The two-factor code field was excluded from Android autofill",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Found while checking the reported login autofill bug: the MFA challenge's code field had textContentType oneTimeCode only, so Android offered no code suggestion there",
+      "how_detected": "code reading of node_modules/react-native ReactTextInputManager.kt while debugging the autofill report",
+      "root_cause": "textContentType is iOS-only. react-native's Android TextInput sets IMPORTANT_FOR_AUTOFILL_NO when autoComplete is absent (ReactTextInputManager.setTextContentType), so the field was opted out of autofill on Android",
+      "requirement": "REQ-212",
+      "affected": [
+        "mobile/app/(auth)/mfa-challenge.tsx"
+      ],
+      "fix_summary": "autoComplete one-time-code (sms-otp on Android) for codes; off for backup codes",
+      "fix_commits": [
+        "4480117"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/loginWorkflow.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "loginWorkflow.test.ts pins the hint and the autofill props of login and register and that TextField forwards them unchanged",
+      "recurrence_of": ""
     }
   ]
 }
