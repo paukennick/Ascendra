@@ -309,8 +309,10 @@ describe("mastery evidence (REQ-123)", () => {
     );
     assert.deepEqual(a, { kind: "labtask", assessment_type: "lab_build", objective_id: OBJ_BUILD, format: "open", assisted: false });
     const m = await mastery(u, OBJ_BUILD);
-    assert.equal(m!.status, "Independent", m!.evidence);
+    // REQ-218: one correct unassisted run is Guided until a later sitting confirms it.
+    assert.equal(m!.status, "Guided", m!.evidence);
     assert.match(m!.evidence, /unassisted formats: performance/);
+    assert.match(m!.evidence, /Independent needs a second correct unassisted answer/);
     assert.equal(await mastery(u, OBJ_SIBLING), null, "not unit-wide");
     const detail = await queryOne<{ weighted_accuracy: string; evidence_weight: string }>(`select * from mastery_detail($1, $2)`, [u, OBJ_BUILD]);
     assert.equal(Number(detail!.weighted_accuracy), 1);
@@ -461,7 +463,7 @@ describe("Report a problem, quarantine and voiding", () => {
   test("a lab can be reported; enough reports pull it; confirming it wrong voids its attempts and recomputes mastery", async () => {
     const learner = await newUser();
     await finishBuild(learner);
-    assert.equal((await mastery(learner, OBJ_BUILD))!.status, "Independent");
+    assert.equal((await mastery(learner, OBJ_BUILD))!.status, "Guided"); // REQ-218: one sitting
     const threshold = await quarantineThreshold();
     for (let i = 0; i < threshold; i++) {
       const u = i === 0 ? learner : await newUser();
@@ -475,7 +477,7 @@ describe("Report a problem, quarantine and voiding", () => {
     const voided = await confirmItemWrong({ kind: "lab", itemId: BUILD, objectiveId: OBJ_BUILD, question: "Lab build" }, "test");
     assert.ok(voided >= 1);
     const m = await mastery(learner, OBJ_BUILD);
-    assert.notEqual(m!.status, "Independent", "the voided lab no longer counts");
+    assert.notEqual(m!.status, "Guided", "the voided lab no longer counts");
     await query(`delete from item_status where item_kind = 'lab' and item_id = $1`, [BUILD]);
     await query(`delete from item_flags where item_kind = 'lab' and item_id = $1`, [BUILD]);
   });
