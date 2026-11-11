@@ -192,3 +192,45 @@ describe("study notice and PBQ load failures (FAIL-1060, FAIL-1061)", () => {
     assert.match(src, /units === null && unitsError \? <ErrorBanner/);
   });
 });
+
+describe("plan-locked screens say so (FAIL-1064)", () => {
+  test("lockedMessage reads the server's wording", async () => {
+    const { lockedMessage } = await import("./featureLock.ts");
+    assert.equal(lockedMessage({ sets: [], locked: { feature: "comparison", message: " Comparisons are in Plus. " } }), "Comparisons are in Plus.");
+    assert.equal(lockedMessage({ locked: {} }), "This is part of a plan you don't have yet.");
+    assert.equal(lockedMessage({ sets: [] }), null);
+    assert.equal(lockedMessage({ locked: null }), null);
+    assert.equal(lockedMessage(null), null);
+  });
+  test("both screens render it and hide the misleading empty state", () => {
+    const compare = read("../../app/(app)/course/[trackId]/compare.tsx");
+    assert.match(compare, /\{locked \? <EmptyState icon="lock"/);
+    assert.match(compare, /!locked && sets && sets\.length === 0 && !pending && !failed/);
+    const unit = read("../../app/(app)/unit-check.tsx");
+    assert.match(unit, /!loading && locked/);
+    assert.match(unit, /!loading && !locked && status && !status\.eligible/);
+  });
+});
+
+describe("biometric unlock is offered only where sealing can work (FAIL-1063)", () => {
+  test("rule", async () => {
+    const { biometricOffered } = await import("./sessionStore.ts");
+    assert.equal(biometricOffered({ hardware: true, enrolled: true, strong: true }), true);
+    assert.equal(biometricOffered({ hardware: true, enrolled: true, strong: false }), false, "weak biometric only");
+    assert.equal(biometricOffered({ hardware: true, enrolled: true, strong: null }), true, "older native module can't tell");
+    assert.equal(biometricOffered({ hardware: true, enrolled: false, strong: true }), false);
+    assert.equal(biometricOffered({ hardware: false, enrolled: true, strong: true }), false);
+  });
+  test("the switch catches a failed change and explains; the check is wired", () => {
+    const settings = read("../../app/(app)/settings.tsx");
+    const toggle = settings.slice(settings.indexOf("async function toggleBiometric"), settings.indexOf("return (\n    <Screen>"));
+    assert.match(toggle, /\} catch \{[\s\S]*Alert\.alert\(/);
+    assert.match(read("./biometric.ts"), /biometricOffered\(/);
+  });
+  test("enabling never leaves a half-set state: the preference is written last, and a failure restores the plain token", () => {
+    const auth = read("../auth/AuthContext.tsx");
+    const enable = auth.slice(auth.indexOf("const enableBiometric = useCallback"), auth.indexOf("const disableBiometric"));
+    assert.ok(enable.indexOf("setItem(REFRESH_TOKEN_SECURE_KEY") < enable.indexOf('setItem(BIOMETRIC_ENABLED_KEY, "1")'));
+    assert.match(enable, /catch \{[\s\S]*setItem\(REFRESH_TOKEN_KEY, refreshTokenRef\.current\)[\s\S]*return \{ ok: false/);
+  });
+});

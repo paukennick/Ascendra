@@ -168,3 +168,14 @@ export function isSignedOutAuthRoute(path: string): boolean {
 export function rotationWrite(input: { biometricOn: boolean; sealSuspended: boolean }): "mark-dirty" | "plain" {
   return input.biometricOn && !input.sealSuspended ? "mark-dirty" : "plain";
 }
+
+// REQ-217 (FAIL-1063): biometric unlock seals the refresh token behind the OS
+// prompt (expo-secure-store requireAuthentication), which on Android needs a
+// STRONG biometric (class 3). A phone with only a weak one (some face unlocks)
+// has hardware and an enrolment, so the switch was offered, and then every
+// write failed. It is offered only where sealing can work. `strong` is null
+// when this build can't tell (an older native module): then the earlier rule
+// (hardware and enrolment) stands.
+export function biometricOffered(input: { hardware: boolean; enrolled: boolean; strong: boolean | null }): boolean {
+  return input.hardware && input.enrolled && input.strong !== false;
+}
