@@ -20,6 +20,7 @@ import { ensureConceptSets, ensurePrerequisites, generateLearnedSets } from "./u
 import {
   claimInsight,
   editPrerequisites,
+  finishInsight,
   learnedSetCandidates,
   misconceptionPromptBlock,
   PrerequisiteEditError,
@@ -479,15 +480,19 @@ describe("claims and account data", () => {
       throw new Error("model down");
     };
     assert.equal(await ensureConceptSets(privateTrack, null), "failed");
+    assert.equal(await claimInsight(privateTrack, "concept_sets", randomUUID()), false);
+    await query(`update course_insights set claimed_at = now() - interval '11 minutes' where track_id = $1`, [privateTrack]);
+    const retry = randomUUID();
+    assert.equal(await claimInsight(privateTrack, "concept_sets", retry), true);
+    assert.equal(await finishInsight(privateTrack, "concept_sets", retry, "failed", null), true);
     // REQ-113 (Audit 3 mobile L4, FAIL-268): the app is told the cards failed
     // to generate, rather than shown "no look-alike concepts were found".
+    // Asked last: the route starts a background retry, which would race the
+    // back-off claims above once they are past the back-off (CI, Nov 11).
     const owner = (await queryOne<{ user_id: string }>(`select user_id from subject_tracks where id = $1`, [privateTrack]))!.user_id;
     const failedList = await (await comparisonsGet(get(owner), ctx("id", privateTrack))).json();
     assert.equal(failedList.failed, true);
     assert.equal(failedList.pending, false);
-    assert.equal(await claimInsight(privateTrack, "concept_sets", randomUUID()), false);
-    await query(`update course_insights set claimed_at = now() - interval '11 minutes' where track_id = $1`, [privateTrack]);
-    assert.equal(await claimInsight(privateTrack, "concept_sets", randomUUID()), true);
     // A course with fewer than two objectives has nothing to compare: ready, no call.
     assert.equal(await ensureConceptSets(otherTrack, null), "ready");
   });

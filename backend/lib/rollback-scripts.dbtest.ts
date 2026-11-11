@@ -70,7 +70,12 @@ describe("rollback scripts", () => {
       const sql = script("rollback-064.sql");
       await c.query(shared ? sql.replace("execute 'drop role content_recheck';", "null;") : sql);
       assert.equal((await c.query(`select 1 from pg_roles where rolname = 'content_recheck'`)).rowCount, shared ? 1 : 0);
-      assert.equal((await c.query(`select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and has_table_privilege('content_recheck', c.oid, 'SELECT') and c.relkind = 'r'`)).rowCount, 0, "no privileges left");
+      // has_table_privilege() errors on a role that no longer exists, so the
+      // privilege check applies only where the role was kept (shared cluster).
+      // On CI and production the role is gone, which already means no privileges.
+      if (shared) {
+        assert.equal((await c.query(`select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and has_table_privilege('content_recheck', c.oid, 'SELECT') and c.relkind = 'r'`)).rowCount, 0, "no privileges left");
+      }
       assert.equal((await c.query(`select to_regclass('public.exec_checks') as r`)).rows[0].r, null);
       assert.equal((await c.query(`select 1 from pg_policies where 'content_recheck' = any (roles)`)).rowCount, 0);
       assert.equal((await c.query(`select 1 from schema_migrations where filename = '064_recheck_role.sql'`)).rowCount, 0);
