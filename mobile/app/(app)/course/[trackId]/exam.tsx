@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Switch, Text, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import * as Crypto from "expo-crypto";
-import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { Stack, useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
+import { useAuth } from "@/auth/AuthContext";
+import { pendingIdFor, type PendingId } from "@/lib/pendingId";
 import { api, ApiError } from "@/api/client";
 import { ReportProblem } from "@/components/ReportProblem";
 import type { ExamItem, ExamProfile, ExamResponse, ExamSessionSummary, ExamSessionView } from "@/types/exam";
@@ -25,6 +27,7 @@ import { ExamConfidence, ExamQuestion, FlagButton } from "@/components/ExamQuest
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import { whenLabel } from "@/lib/time";
 import {
+  examLeaveGuard,
   FORMAT_LABEL,
   formatClock,
   isAnswered,
@@ -74,16 +77,23 @@ export default function ExamScreen() {
     }, [view, loadStart])
   );
 
+  // REQ-217 (FAIL-1048): one id per start request, kept until a start succeeds.
+  // A new id on every press turned a retry after a lost answer into a second
+  // session; the same id lets the server answer with the first.
+  const pendingStart = useRef<PendingId | null>(null);
   async function start(mode: "sprint" | "mock") {
     setBusy(true);
     setError(null);
     try {
+      const timed = mode === "sprint" ? sprintTimed : mockTimed;
+      pendingStart.current = pendingIdFor(pendingStart.current, `${trackId}:${mode}:${timed}`, Crypto.randomUUID);
       const res = await api.post<ExamSessionView>("/api/exam/sessions", {
         trackId,
         mode,
-        timed: mode === "sprint" ? sprintTimed : mockTimed,
-        clientSessionId: Crypto.randomUUID(),
+        timed,
+        clientSessionId: pendingStart.current.id,
       });
+      pendingStart.current = null;
       setView(res);
     } catch (err) {
       setError((err as Error).message);
@@ -421,15 +431,44 @@ function RunView({
     submit(true);
   }, [submit]);
 
-  async function leave() {
+  // What "Leave anyway" does, set by whichever way out was taken.
+  const pendingLeave = useRef<() => void>(onLeave);
+  async function leaveWith(proceed: () => void) {
+    pendingLeave.current = proceed;
     leaveQuestion();
     const flushed = await q.flush();
     if (flushed.unsaved.length) {
       setConfirmLeave(unsavedMessage(flushed.unsaved));
       return;
     }
-    onLeave();
+    proceed();
   }
+  function leave() {
+    void leaveWith(onLeave);
+  }
+
+  // REQ-217 (FAIL-1049): the back gesture, the header's back and Android's back
+  // button left the screen without saving the question on screen or warning about
+  // answers that had not reached the server -- only "Leave and finish later" did.
+  // Every way out now goes through the same flush and warning (the two-factor
+  // screen's pattern: a "beforeRemove" listener, never held against a sign-out or lock).
+  const navigation = useNavigation();
+  const { status } = useAuth();
+  const statusRef = useRef(status);
+  statusRef.current = status;
+  const allowLeave = useRef(false);
+  const leaveWithRef = useRef(leaveWith);
+  leaveWithRef.current = leaveWith;
+  useEffect(() => {
+    return navigation.addListener("beforeRemove", (e) => {
+      if (!examLeaveGuard(allowLeave.current, statusRef.current === "signedIn")) return;
+      e.preventDefault();
+      void leaveWithRef.current(() => {
+        allowLeave.current = true;
+        navigation.dispatch(e.data.action);
+      });
+    });
+  }, [navigation]);
 
   const counts = navCounts(items);
   if (!item) return <Loading />;
@@ -497,7 +536,7 @@ function RunView({
         message={t("exam.leaveUnsaved.message", { message: confirmLeave ?? "" })}
         options={[
           { label: t("exam.stay"), variant: "primary", onPress: () => q.retryFailed() },
-          { label: t("exam.leaveAnyway"), onPress: onLeave },
+          { label: t("exam.leaveAnyway"), onPress: () => pendingLeave.current() },
         ]}
         onCancel={() => setConfirmLeave(null)}
       />
