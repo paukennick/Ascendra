@@ -1,0 +1,1714 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "neonatal-sepsis-hypoglycemia",
+  "title": "Newborn sepsis with low glucose",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 100,
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "announce": {
+            "bands": [
+              55,
+              45
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "not isNull(bpAt)"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 70
+          },
+          "announce": {
+            "bands": [
+              60,
+              70
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              95,
+              92
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Axillary temperature",
+          "value": "temp",
+          "unit": "C",
+          "alarm": {
+            "low": 36.5
+          },
+          "announce": {
+            "bands": [
+              36.5,
+              36,
+              37.5
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Last glucose result",
+          "value": "gluLast",
+          "unit": "mg/dL",
+          "announce": {
+            "bands": [
+              45,
+              35,
+              25
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "gluLast > 0"
+        },
+        {
+          "id": "crt",
+          "label": "Cap refill",
+          "spokenLabel": "Capillary refill time",
+          "value": "crt",
+          "unit": "s",
+          "announce": {
+            "bands": [
+              3,
+              4
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "lookN > 0"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "D10W infusion running: {dexInf|yesno}. Warmer: {warmer|yesno}."
+    }
+  },
+  "objective": "Name maternal, neonatal and treatment-related risk factors for neonatal sepsis, and recognize its subtle signs, including hypothermia rather than fever",
+  "secondaryObjectives": [
+    "Obtain adequate-volume blood cultures and give empiric ampicillin with an aminoglycoside promptly, knowing cephalosporins alone miss Listeria",
+    "Recognize neonatal hypoglycemia (jitteriness, poor feeding, lethargy, apnea, seizures), start early feeding, and give IV dextrose when needed",
+    "Explain how cold stress causes hypoglycemia, acidosis and hypoxemia, and rewarm using skin-to-skin contact, radiant warmers or incubators"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Neonatal test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-neonatal",
+      "note": "The objective and its secondary objectives are the course's own titles (backend/supabase/seed/tracks/ccrn-peds-neo.ts, read there from the handbook 2026-10-31). Not re-fetched for this scenario."
+    },
+    {
+      "cite": "Puopolo KM, Benitz WE, Zaoutis TE; AAP Committee on Fetus and Newborn, Committee on Infectious Diseases. Management of Neonates Born at >=35 0/7 Weeks' Gestation With Suspected or Proven Early-Onset Bacterial Sepsis. Pediatrics 2018;142(6):e20182894",
+      "checkedAt": "2026-11-11",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/30455342/",
+      "note": "Primary text read 2026-11-11 (a hosted PDF of the clinical report): pediatric culture bottles 'generally require a minimum inoculum of 1 mL of blood'; 'Ampicillin and gentamicin, in combination, is the first choice for empirical therapy for EOS'; suspected intraamniotic infection is a single maternal intrapartum temperature of 39.0 C or more, or 38.0-38.9 C persisting more than 30 minutes, plus another sign; the categorical algorithm counts ROM over 18 hours; CSF culture ideally before antibiotics in the highest-risk infants, but not if it would compromise the infant. The report sets no minute count for the first dose."
+    },
+    {
+      "cite": "UCSF Benioff Children's Hospitals. Screening and Management of Hypoglycemia in Late Preterm and Term Infants >=34 weeks GA (clinical pathway, based on the AAP 2011 clinical report, Adamkin DH, Pediatrics 2011;127(3):575-579)",
+      "checkedAt": "2026-11-11",
+      "url": "https://medconnection.ucsfbenioffchildrens.org/news/screening-and-management-of-hypoglycemia-in-late-preterm-and-term-infants-greater-than-or-equal-to-34-weeks-ga",
+      "note": "Read 2026-11-11. The AAP 2011 report itself was not opened; its values are as relayed by this pathway: concerning signs (seizure, lethargy, hypotonia, apnea, cyanosis) with glucose below 45 mg/dL get IV treatment; at 4-24 h the AAP threshold for asymptomatic infants is below 35 with a target above 45; IV bolus D10W 2-3 mL/kg; then D10W at 80 mL/kg/day (3.5 mL/kg/h), a glucose infusion rate of 5.5 mg/kg/min; recheck 30 minutes after a symptomatic IV intervention."
+    },
+    {
+      "cite": "Weiss SL, Peters MJ, Oczkowski SJW, et al. Surviving Sepsis Campaign International Guidelines for the Management of Sepsis and Septic Shock in Children 2026. Intensive Care Med, published online 2026-03-23, doi:10.1007/s00134-026-08360-2",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-the-management-of-sepsis-and-septic-shock-in",
+      "note": "Covers infants from 37 weeks' gestation. Read only through secondary summaries on 2026-11-11 (Pulmonology Advisor via HCN, 2026-06-03; vikkypaedia substack): antimicrobials within 1 h in suspected septic shock, within 3 h after rapid evaluation in probable sepsis without shock. The primary text was not opened."
+    },
+    {
+      "cite": "Sweet DG, Carnielli VP, Greisen G, et al. European Consensus Guidelines on the Management of Respiratory Distress Syndrome: 2022 Update. Neonatology 2023;120(1):3-23",
+      "checkedAt": "2026-11-11",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10064400/",
+      "note": "Read 2026-11-11: 'Core temperature should be maintained between 36.5 C and 37.5 C at all times' (C1). Written for preterm infants with RDS; used here for the same normal range in a term infant."
+    }
+  ],
+  "brief": {
+    "situation": "08:00, admission to the NICU from the mother-baby unit. A girl born at 39 weeks, 3.4 kg, now 8 hours old. Her mother is GBS positive and had one dose of ampicillin shortly before delivery, which the obstetric team recorded as inadequate prophylaxis; membranes were ruptured for 20 hours; maternal temperature 38.4 for an hour in labor.",
+    "handover": [
+      "Fed poorly at 06:00 and refused at 07:30. The nurse found her jittery and cool to the touch.",
+      "Axillary temperature 36.1, HR 176, RR 68, SpO2 96% in room air. No glucose has been checked since birth.",
+      "No IV yet. The neonatal nurse practitioner is on the unit."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Results and procedures take minutes; you can skip ahead while you wait, and the skip stops at an alarm or a result.",
+      "Medications need the nurse practitioner's order; call with an SBAR.",
+      "Partway through you are asked to write what you think is happening. The case ends at the three-hour review, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "08:00",
+    "tick": "1s",
+    "maxDuration": "3h",
+    "calendar": "clock"
+  },
+  "params": {
+    "weight": {
+      "value": 3.4,
+      "unit": "kg"
+    },
+    "salineBolus": {
+      "value": 10,
+      "unit": "mL/kg",
+      "source": {
+        "cite": "Surviving Sepsis Campaign Children's Guidelines 2020, SCCM 'Fluid Therapy' sheet",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.sccm.org/sccm/media/ssc/SSC-Childrens-Guidelines-Microlearning-Fluid-Therapy.pdf",
+        "note": "Read 2026-11-11: '10-20mL/kg per bolus'. The 2026 update applies from 37 weeks' gestation (as relayed); the smaller end of the range is used for a newborn."
+      }
+    },
+    "gelRise": {
+      "value": 8,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Rise from one dose of 40% dextrose gel (0.5 mL/kg on the pathway). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "gluDrop": {
+      "value": 0.25,
+      "unit": "mg/dL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Without dextrose the glucose keeps falling in a septic, cold, unfed newborn: about 15 mg/dL per hour, faster when cold. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bolusRise": {
+      "value": 30,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Rise from a 2 mL/kg D10W bolus. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "infTarget": {
+      "value": 70,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Level the D10W infusion at 5.5 mg/kg/min settles toward in this infant. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "gluTau": {
+      "value": 20,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Time constant of the glucose settling on the infusion. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "seizeGlu": {
+      "value": 20,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Glucose at which this infant seizes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sevRise": {
+      "value": 0.006,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Untreated, sepsis progresses to shock and collapse about 2.5 h after admission. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sevFall": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "After the antibiotics act, she slowly improves. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "abxLag": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Antibiotics change the course about an hour after the first dose. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "collapseSev": {
+      "value": 1.2,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Severity at which she collapses in septic shock. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "warmRate": {
+      "value": 0.03,
+      "unit": "C/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Radiant warmer on servo control: about 0.5 C every 15-20 min. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "coolRate": {
+      "value": 0.005,
+      "unit": "C/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Without a warmer she keeps cooling slowly. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "gluTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Point-of-care glucose: about 1 min."
+      }
+    },
+    "ivTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Peripheral IV in a term newborn: about 10 min."
+      }
+    },
+    "cultureTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Blood culture of at least 1 mL by venipuncture or from the new IV: about 5 min."
+      }
+    },
+    "callback": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Nurse practitioner on the unit: about 2 min to come to the bedside."
+      }
+    },
+    "dexWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "UCSF Benioff Children's Hospitals. Screening and Management of Hypoglycemia in Late Preterm and Term Infants >=34 weeks GA (clinical pathway, based on the AAP 2011 clinical report, Adamkin DH, Pediatrics 2011;127(3):575-579)",
+        "checkedAt": "2026-11-11",
+        "url": "https://medconnection.ucsfbenioffchildrens.org/news/screening-and-management-of-hypoglycemia-in-late-preterm-and-term-infants-greater-than-or-equal-to-34-weeks-ga",
+        "note": "Authored: IV dextrose running within 15 min of a symptomatic low result. The pathway gives the IV indication, not a minute count."
+      }
+    },
+    "recheckWindow": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "UCSF Benioff Children's Hospitals. Screening and Management of Hypoglycemia in Late Preterm and Term Infants >=34 weeks GA (clinical pathway, based on the AAP 2011 clinical report, Adamkin DH, Pediatrics 2011;127(3):575-579)",
+        "checkedAt": "2026-11-11",
+        "url": "https://medconnection.ucsfbenioffchildrens.org/news/screening-and-management-of-hypoglycemia-in-late-preterm-and-term-infants-greater-than-or-equal-to-34-weeks-ga",
+        "note": "Read 2026-11-11. The AAP 2011 report itself was not opened; its values are as relayed by this pathway: concerning signs (seizure, lethargy, hypotonia, apnea, cyanosis) with glucose below 45 mg/dL get IV treatment; at 4-24 h the AAP threshold for asymptomatic infants is below 35 with a target above 45; IV bolus D10W 2-3 mL/kg; then D10W at 80 mL/kg/day (3.5 mL/kg/h), a glucose infusion rate of 5.5 mg/kg/min; recheck 30 minutes after a symptomatic IV intervention."
+      }
+    },
+    "abxLate": {
+      "value": 10800,
+      "unit": "s",
+      "source": {
+        "cite": "Weiss SL, Peters MJ, Oczkowski SJW, et al. Surviving Sepsis Campaign International Guidelines for the Management of Sepsis and Septic Shock in Children 2026. Intensive Care Med, published online 2026-03-23, doi:10.1007/s00134-026-08360-2",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-the-management-of-sepsis-and-septic-shock-in",
+        "note": "Covers infants from 37 weeks' gestation. Read only through secondary summaries on 2026-11-11 (Pulmonology Advisor via HCN, 2026-06-03; vikkypaedia substack): antimicrobials within 1 h in suspected septic shock, within 3 h after rapid evaluation in probable sepsis without shock. The primary text was not opened. 3 h: the outer bound for probable sepsis without shock, used only to separate partial from missed."
+      }
+    },
+    "reasonAt": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The written question opens after the first glucose result, or at 20 min. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reviewAt": {
+      "value": 10800,
+      "unit": "s",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The three-hour review, when the case ends."
+      }
+    }
+  },
+  "state": {
+    "glucose": {
+      "type": "number",
+      "init": 31,
+      "min": 5,
+      "max": 300,
+      "unit": "mg/dL"
+    },
+    "sev": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "tempC": {
+      "type": "number",
+      "init": 36.1,
+      "min": 33,
+      "max": 39,
+      "unit": "C"
+    },
+    "warmer": {
+      "type": "bool",
+      "init": false
+    },
+    "warmAt": {
+      "type": "time",
+      "init": null
+    },
+    "iv": {
+      "type": "bool",
+      "init": false
+    },
+    "ivPending": {
+      "type": "bool",
+      "init": false
+    },
+    "gluLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 300,
+      "unit": "mg/dL"
+    },
+    "gluFirstAt": {
+      "type": "time",
+      "init": null
+    },
+    "lowSeenAt": {
+      "type": "time",
+      "init": null
+    },
+    "dexBolusAt": {
+      "type": "time",
+      "init": null
+    },
+    "dexInf": {
+      "type": "bool",
+      "init": false
+    },
+    "dexInfAt": {
+      "type": "time",
+      "init": null
+    },
+    "recheckAt": {
+      "type": "time",
+      "init": null
+    },
+    "fedAt": {
+      "type": "time",
+      "init": null
+    },
+    "gelAt": {
+      "type": "time",
+      "init": null
+    },
+    "culturesStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "culturesAt": {
+      "type": "time",
+      "init": null
+    },
+    "abxAt": {
+      "type": "time",
+      "init": null
+    },
+    "abxBeforeCultures": {
+      "type": "bool",
+      "init": false
+    },
+    "ceftriaxone": {
+      "type": "bool",
+      "init": false
+    },
+    "orders": {
+      "type": "bool",
+      "init": false
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "pendingCall": {
+      "type": "bool",
+      "init": false
+    },
+    "lookN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100
+    },
+    "bpAt": {
+      "type": "time",
+      "init": null
+    },
+    "boluses": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "lowSecs": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    }
+  },
+  "derived": {
+    "abxOn": {
+      "expr": "not isNull(abxAt) and t >= timeAt(abxAt) + abxLag"
+    },
+    "hr": {
+      "expr": "round(clamp(150 + 40 * sev + 2 * sin(t / 27), 80, 230))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round(clamp(50 - 22 * max(0, sev - 0.4) + 3 * boluses * (sev > 0.6 ? 1 : 0.5), 15, 70))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(map * 1.3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(map * 0.8)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(clamp(48 + 30 * sev, 30, 100))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(98 - 6 * max(0, sev - 0.6), 70, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round(tempC * 10) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "crt": {
+      "expr": "clamp(round((2 + 2.5 * max(0, sev - 0.3)) * 2) / 2, 1, 8)",
+      "unit": "s",
+      "precision": 1
+    },
+    "cold": {
+      "expr": "tempC < 36.5"
+    }
+  },
+  "processes": [
+    {
+      "id": "sepsis",
+      "update": {
+        "sev": "max(0, abxOn ? sev - sevFall * dt / 60 : sev + sevRise * dt / 60)"
+      }
+    },
+    {
+      "id": "sugar",
+      "update": {
+        "glucose": "dexInf ? glucose + (infTarget - glucose) * (1 - exp(-dt / (gluTau * 60))) : glucose - gluDrop * (cold ? 1.4 : 1) * dt / 60"
+      }
+    },
+    {
+      "id": "heat",
+      "update": {
+        "tempC": "warmer ? min(36.9, tempC + warmRate * dt / 60) : max(34.5, tempC - coolRate * dt / 60)"
+      }
+    },
+    {
+      "id": "clocks",
+      "update": {
+        "lowSecs": "glucose < 25 ? lowSecs + dt : 0"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the warmer",
+      "clock": "running",
+      "actions": [
+        "look",
+        "glucoseCheck",
+        "warm",
+        "feed",
+        "gel",
+        "ivStart",
+        "dexBolus",
+        "dexDrip",
+        "cultures",
+        "abx",
+        "bolus",
+        "call"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Assess her (tone, color, perfusion, BP)",
+      "group": "Assess",
+      "effects": [
+        {
+          "add": "lookN",
+          "by": "1"
+        },
+        {
+          "if": "isNull(bpAt)",
+          "then": [
+            {
+              "set": "bpAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "sev >= 0.8",
+              "then": [
+                {
+                  "log": "Grey, floppy, capillary refill {crt|1dp} s, weak pulses. BP {sbp}/{dbp}. Grunting.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "glucose < 25",
+              "then": [
+                {
+                  "log": "Jittery, then a few seconds of lip-smacking and staring. Capillary refill {crt|1dp} s. BP {sbp}/{dbp}.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "sev >= 0.5",
+              "then": [
+                {
+                  "log": "Lethargic, mottled, capillary refill {crt|1dp} s, tachypneic. BP {sbp}/{dbp}.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Jittery when handled, weak suck, cool feet, capillary refill {crt|1dp} s. BP {sbp}/{dbp}.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "glucoseCheck": {
+      "label": "Point-of-care glucose (heel stick)",
+      "group": "Labs",
+      "effects": [
+        {
+          "schedule": "gluT",
+          "after": "gluTime",
+          "with": {
+            "v": "round(glucose)"
+          }
+        },
+        {
+          "log": "Heel-stick glucose (about 1 min)."
+        }
+      ]
+    },
+    "warm": {
+      "label": "Radiant warmer on servo control",
+      "group": "Care",
+      "available": "not warmer",
+      "why": "Already under the warmer.",
+      "effects": [
+        {
+          "set": "warmer",
+          "to": "true"
+        },
+        {
+          "set": "warmAt",
+          "to": "t"
+        },
+        {
+          "log": "Under the radiant warmer, skin probe on, servo set for a normal temperature."
+        }
+      ]
+    },
+    "feed": {
+      "label": "Offer a feed (breast milk or formula)",
+      "group": "Care",
+      "effects": [
+        {
+          "if": "isNull(fedAt)",
+          "then": [
+            {
+              "set": "fedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Offered a feed: she takes a few sucks and falls asleep. Almost nothing taken.",
+          "kind": "find"
+        }
+      ]
+    },
+    "gel": {
+      "label": "Give dextrose gel",
+      "group": "Care",
+      "available": "isNull(gelAt)",
+      "why": "Already given.",
+      "effects": [
+        {
+          "if": "isNull(gelAt)",
+          "then": [
+            {
+              "set": "gelAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "glucose",
+          "by": "gelRise"
+        },
+        {
+          "log": "Dextrose gel rubbed into the buccal mucosa."
+        }
+      ]
+    },
+    "ivStart": {
+      "label": "Place a peripheral IV",
+      "group": "Access",
+      "available": "not iv and not ivPending",
+      "why": "An IV is in or being placed.",
+      "effects": [
+        {
+          "set": "ivPending",
+          "to": "true"
+        },
+        {
+          "schedule": "ivT",
+          "after": "ivTime"
+        },
+        {
+          "log": "Placing a peripheral IV (about 10 min)."
+        }
+      ]
+    },
+    "dexBolus": {
+      "label": "D10W 2 mL/kg IV bolus (6.8 mL)",
+      "group": "Orders",
+      "available": "iv and orders",
+      "why": "Needs an IV and the nurse practitioner's order.",
+      "effects": [
+        {
+          "if": "isNull(dexBolusAt)",
+          "then": [
+            {
+              "set": "dexBolusAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "glucose",
+          "by": "bolusRise"
+        },
+        {
+          "log": "D10W 6.8 mL pushed over a few minutes."
+        }
+      ]
+    },
+    "dexDrip": {
+      "label": "D10W infusion at 80 mL/kg/day (11.3 mL/h)",
+      "group": "Orders",
+      "available": "iv and orders and not dexInf",
+      "why": "Needs an IV and the order (or it is already running).",
+      "effects": [
+        {
+          "set": "dexInf",
+          "to": "true"
+        },
+        {
+          "if": "isNull(dexInfAt)",
+          "then": [
+            {
+              "set": "dexInfAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "D10W running at 11.3 mL/h: a glucose infusion rate of about 5.5 mg/kg/min."
+        }
+      ]
+    },
+    "cultures": {
+      "label": "Draw a blood culture (at least 1 mL)",
+      "group": "Labs",
+      "available": "isNull(culturesStartAt)",
+      "why": "Already drawn.",
+      "effects": [
+        {
+          "set": "culturesStartAt",
+          "to": "t"
+        },
+        {
+          "schedule": "culturesT",
+          "after": "cultureTime"
+        },
+        {
+          "log": "Drawing a blood culture of at least 1 mL (about 5 min)."
+        }
+      ]
+    },
+    "abx": {
+      "label": "Give the first antibiotic doses",
+      "group": "Orders",
+      "available": "iv and orders and isNull(abxAt)",
+      "why": "Needs an IV and the order (or already given).",
+      "params": [
+        {
+          "id": "drug",
+          "kind": "choice",
+          "label": "Antibiotics",
+          "options": [
+            {
+              "value": "ampgent",
+              "label": "Ampicillin and gentamicin"
+            },
+            {
+              "value": "ceftri",
+              "label": "Ceftriaxone alone"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "abxAt",
+          "to": "t"
+        },
+        {
+          "if": "drug == \"ceftri\"",
+          "then": [
+            {
+              "set": "ceftriaxone",
+              "to": "true"
+            },
+            {
+              "log": "Ceftriaxone alone given.",
+              "kind": "sys"
+            }
+          ],
+          "else": [
+            {
+              "log": "Ampicillin and gentamicin, first doses, given."
+            }
+          ]
+        },
+        {
+          "if": "isNull(culturesAt)",
+          "then": [
+            {
+              "set": "abxBeforeCultures",
+              "to": "true"
+            },
+            {
+              "log": "Antibiotics given before the blood culture was drawn: the culture may now grow nothing.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Normal saline 10 mL/kg (34 mL)",
+      "group": "Orders",
+      "available": "iv and orders and boluses < 3",
+      "why": "Needs an IV and the order (no more than three).",
+      "effects": [
+        {
+          "add": "boluses",
+          "by": "1"
+        },
+        {
+          "log": "Normal saline 34 mL over 10 minutes."
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the neonatal nurse practitioner (SBAR)",
+      "group": "Escalate",
+      "available": "not pendingCall",
+      "why": "On the way.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "sepsis",
+                  "label": "Jittery, poor feeding, cold, tachycardic: I'm worried about sepsis and low glucose"
+                },
+                {
+                  "value": "feeding",
+                  "label": "She's not feeding well"
+                },
+                {
+                  "value": "cold",
+                  "label": "She's a little cool"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "39 weeks, mother GBS positive with inadequate prophylaxis, ROM 20 h, maternal fever 38.4"
+                },
+                {
+                  "value": "min",
+                  "label": "Term baby from mother-baby"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "orders",
+                  "label": "Please come: I need orders for IV dextrose, a culture and antibiotics"
+                },
+                {
+                  "value": "feed",
+                  "label": "Should I keep trying to feed her?"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pendingCall",
+          "to": "true"
+        },
+        {
+          "if": "sit == \"sepsis\" and isNull(callEffAt)",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "callbackT",
+          "after": "callback",
+          "with": {
+            "effective": "sit == \"sepsis\""
+          }
+        },
+        {
+          "log": "Called the nurse practitioner, who is coming to the bedside."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "gluT": {
+      "label": "the glucose result",
+      "wait": {
+        "skipLabel": "the glucose (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "v": {
+          "type": "number",
+          "unit": "mg/dL"
+        }
+      },
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Point-of-care glucose: about 1 min."
+      },
+      "effects": [
+        {
+          "set": "gluLast",
+          "to": "timer.with.v"
+        },
+        {
+          "if": "isNull(gluFirstAt)",
+          "then": [
+            {
+              "set": "gluFirstAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not isNull(dexBolusAt) and isNull(recheckAt)",
+          "then": [
+            {
+              "set": "recheckAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "timer.with.v < 45",
+              "then": [
+                {
+                  "if": "isNull(lowSeenAt)",
+                  "then": [
+                    {
+                      "set": "lowSeenAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Glucose {timer.with.v} mg/dL: low, in a baby who is jittery and not feeding.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Glucose {timer.with.v} mg/dL.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ivT": {
+      "label": "the IV",
+      "wait": {
+        "skipLabel": "the IV (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Peripheral IV in a term newborn: about 10 min."
+      },
+      "effects": [
+        {
+          "set": "iv",
+          "to": "true"
+        },
+        {
+          "set": "ivPending",
+          "to": "false"
+        },
+        {
+          "log": "Peripheral IV in.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "culturesT": {
+      "label": "blood culture drawn",
+      "wait": {
+        "skipLabel": "the blood culture (about 5 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 5 min."
+      },
+      "effects": [
+        {
+          "set": "culturesAt",
+          "to": "t"
+        },
+        {
+          "log": "Blood culture, 1 mL, sent.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "callbackT": {
+      "label": "the nurse practitioner arriving",
+      "wait": {
+        "skipLabel": "the nurse practitioner (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "effective": {
+          "type": "bool"
+        }
+      },
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 2 min to the bedside."
+      },
+      "effects": [
+        {
+          "set": "pendingCall",
+          "to": "false"
+        },
+        {
+          "if": "timer.with.effective",
+          "then": [
+            {
+              "set": "orders",
+              "to": "true"
+            },
+            {
+              "log": "Nurse practitioner: \"Agree, sepsis risk and symptomatic hypoglycemia. D10 2 mL/kg then 80 mL/kg/day, recheck the glucose in 30 minutes. A 1 mL blood culture, then ampicillin and gentamicin. Keep her warm.\"",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Nurse practitioner: \"Keep offering feeds and recheck her temperature in an hour.\"",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "reviewT": {
+      "label": "the three-hour review",
+      "wait": {
+        "skipLabel": "the three-hour review",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The three-hour review, when the case ends."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "reviewT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "subtle",
+      "when": "glucose < 25",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Lip-smacking and a staring spell: a possible subtle seizure.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "hrHigh",
+      "when": "hr > 180",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: heart rate above 180.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "spo2Low",
+      "when": "spo2 < 92",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: SpO2 below 92.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "whatNow": {
+      "trigger": "not isNull(gluFirstAt) or t >= reasonAt",
+      "question": "What do you think is happening to this baby, and what do you do first?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "Names possible early-onset sepsis from the risk factors (GBS with inadequate prophylaxis, ROM over 18 h, maternal intrapartum fever) and the subtle signs (hypothermia rather than fever, poor feeding, jitteriness, tachycardia), plus symptomatic hypoglycemia worsened by cold stress.",
+          "modelAnswer": "Early-onset sepsis until proven otherwise: GBS-positive mother with inadequate prophylaxis, 20 hours of ruptured membranes and a maternal fever, and a baby who is cool rather than febrile, feeding poorly, jittery and tachycardic. The glucose is low and she has symptoms, and cold stress is burning more of it."
+        },
+        {
+          "label": "What first",
+          "criteria": "Warms her; treats symptomatic hypoglycemia with IV dextrose (bolus then infusion) rather than feeds alone, and rechecks in about 30 min; draws a blood culture of at least 1 mL then gives ampicillin and gentamicin promptly; escalates with an SBAR.",
+          "modelAnswer": "Warmer on, call the nurse practitioner, IV in. Symptomatic low glucose needs IV dextrose, a 2 mL/kg D10 bolus then an infusion, and a recheck in 30 minutes, not just a feed. A 1 mL blood culture, then ampicillin and gentamicin without delay."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {
+      "abxWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Weiss SL, Peters MJ, Oczkowski SJW, et al. Surviving Sepsis Campaign International Guidelines for the Management of Sepsis and Septic Shock in Children 2026. Intensive Care Med, published online 2026-03-23, doi:10.1007/s00134-026-08360-2",
+          "checkedAt": "2026-11-11",
+          "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-the-management-of-sepsis-and-septic-shock-in",
+          "note": "Covers infants from 37 weeks' gestation. Read only through secondary summaries on 2026-11-11 (Pulmonology Advisor via HCN, 2026-06-03; vikkypaedia substack): antimicrobials within 1 h in suspected septic shock, within 3 h after rapid evaluation in probable sepsis without shock. The primary text was not opened. FLAG: authored target of 1 h from admission for a newborn with sepsis signs; the SSC 1-hour figure is for septic shock and the AAP report sets no minute count."
+        }
+      },
+      "escWindow": {
+        "value": 600,
+        "source": {
+          "cite": "NICU unit practice (authored estimate)",
+          "checkedAt": "2026-11-11",
+          "note": "Nurse practitioner called within 10 min of admission."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "t >= reviewAt and (glucose < 45 or tempC < 36.5)",
+      "class": "harm",
+      "rationale": "A septic newborn still hypoglycemic or cold at three hours is still being injured by the problems she arrived with, so this case calls it harm.",
+      "source": {
+        "cite": "UCSF Benioff Children's Hospitals. Screening and Management of Hypoglycemia in Late Preterm and Term Infants >=34 weeks GA (clinical pathway, based on the AAP 2011 clinical report, Adamkin DH, Pediatrics 2011;127(3):575-579)",
+        "checkedAt": "2026-11-11",
+        "url": "https://medconnection.ucsfbenioffchildrens.org/news/screening-and-management-of-hypoglycemia-in-late-preterm-and-term-infants-greater-than-or-equal-to-34-weeks-ga",
+        "note": "Target above 45 mg/dL (AAP 2011, as relayed). The class choice is the author's, per docs/sims.md 9.2."
+      }
+    }
+  },
+  "endings": {
+    "seizure": {
+      "label": "Hypoglycemic seizure",
+      "class": "harm",
+      "when": "lowSecs >= 300",
+      "terminal": true,
+      "narrative": "Five minutes with a glucose below 25: rhythmic jerking of her arm and apnea. Prolonged symptomatic hypoglycemia risks lasting brain injury."
+    },
+    "collapse": {
+      "label": "Collapse in septic shock",
+      "class": "harm",
+      "when": "sev >= collapseSev",
+      "terminal": true,
+      "narrative": "Grey, floppy and apneic with a falling heart rate: septic shock. The team starts positive-pressure ventilation and calls for help."
+    },
+    "stable": {
+      "label": "Stabilized: glucose, warmth and antibiotics on time",
+      "class": "target",
+      "when": "t >= reviewAt and glucose >= 45 and tempC >= 36.5 and not isNull(lowSeenAt) and not isNull(dexBolusAt) and timeAt(dexBolusAt) <= timeAt(lowSeenAt) + dexWindow and dexInf and not isNull(abxAt) and timeAt(abxAt) <= abxWindow and not ceftriaxone and not abxBeforeCultures and not isNull(culturesStartAt)",
+      "terminal": true,
+      "narrative": "Three hours in she is warm ({temp} C), her glucose holds at {round(glucose)} on the infusion, and ampicillin and gentamicin went in early after a proper culture."
+    },
+    "stableLate": {
+      "label": "Stabilized, by a slower route",
+      "class": "recovered",
+      "when": "t >= reviewAt and glucose >= 45 and tempC >= 36.5",
+      "terminal": true,
+      "narrative": "She is warm and her glucose is up at three hours, but something cost time: a late or oral-only glucose treatment, antibiotics late or before the culture, or the wrong antibiotic."
+    },
+    "time_up": {
+      "label": "Still low or cold at three hours",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Three hours in her glucose is {round(glucose)} and her temperature {temp} C. The basics were never brought under control."
+    }
+  },
+  "endingOrder": [
+    "seizure",
+    "collapse",
+    "stable",
+    "stableLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "ivDextrose",
+        "label": "IV dextrose for symptomatic hypoglycemia",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(lowSeenAt)",
+            "score": "missed",
+            "why": "The glucose was never checked; it was low."
+          },
+          {
+            "when": "isNull(dexBolusAt)",
+            "score": "missed",
+            "why": "A symptomatic low glucose was treated without IV dextrose."
+          },
+          {
+            "when": "not isNull(lowSeenAt) and not isNull(dexBolusAt) and timeAt(dexBolusAt) <= timeAt(lowSeenAt) + dexWindow",
+            "score": "met",
+            "why": "D10W bolus at {timeAt(dexBolusAt)|clock}, {timeAt(dexBolusAt) - timeAt(lowSeenAt)|duration} after the result."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "D10W bolus at {timeAt(dexBolusAt)|clock}, more than 15 minutes after the low result."
+          }
+        ]
+      },
+      {
+        "id": "antibiotics",
+        "label": "Ampicillin and gentamicin within the hour",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(abxAt)",
+            "score": "missed",
+            "why": "No antibiotics were given."
+          },
+          {
+            "when": "ceftriaxone",
+            "score": "missed",
+            "why": "Ceftriaxone alone: a cephalosporin misses Listeria; ampicillin and gentamicin are the first choice."
+          },
+          {
+            "when": "timeAt(abxAt) <= abxWindow",
+            "score": "met",
+            "why": "Given at {timeAt(abxAt)|clock}."
+          },
+          {
+            "when": "timeAt(abxAt) <= abxLate",
+            "score": "partial",
+            "why": "Given at {timeAt(abxAt)|clock}, more than an hour in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Given more than three hours in."
+          }
+        ]
+      },
+      {
+        "id": "culture",
+        "label": "A 1 mL blood culture before the antibiotics",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(culturesStartAt)",
+            "score": "missed",
+            "why": "No blood culture was drawn."
+          },
+          {
+            "when": "abxBeforeCultures",
+            "score": "missed",
+            "why": "The culture came after the antibiotics."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Culture drawn at {timeAt(culturesStartAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "infusion",
+        "label": "Dextrose infusion after the bolus, glucose rechecked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dexInf and not isNull(recheckAt) and not isNull(dexBolusAt) and timeAt(recheckAt) <= timeAt(dexBolusAt) + recheckWindow + 600",
+            "score": "met",
+            "why": "Infusion running and the glucose rechecked at {timeAt(recheckAt)|clock}."
+          },
+          {
+            "when": "dexInf",
+            "score": "partial",
+            "why": "Infusion running, but the glucose was not rechecked about 30 minutes after the bolus."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No dextrose infusion: a bolus alone wears off."
+          }
+        ]
+      },
+      {
+        "id": "warm",
+        "label": "Warmed her early",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(warmAt)",
+            "score": "missed",
+            "why": "Never warmed: cold stress burns glucose and worsens acidosis."
+          },
+          {
+            "when": "timeAt(warmAt) <= 600",
+            "score": "met",
+            "why": "Warmer on at {timeAt(warmAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Warmer on at {timeAt(warmAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Called the nurse practitioner early",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(callEffAt)",
+            "score": "missed",
+            "why": "The call did not name sepsis or ask for orders."
+          },
+          {
+            "when": "timeAt(callEffAt) <= escWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callEffAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Called at {timeAt(callEffAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "glucoseFirst",
+        "label": "Checked the glucose early",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(gluFirstAt)",
+            "score": "missed",
+            "why": "No glucose check."
+          },
+          {
+            "when": "timeAt(gluFirstAt) <= 600",
+            "score": "met",
+            "why": "First glucose at {timeAt(gluFirstAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "First glucose at {timeAt(gluFirstAt)|clock}."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "whatNow",
+        "label": "Written reasoning: named early-onset sepsis and symptomatic hypoglycemia",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toDex",
+        "label": "Low result to IV dextrose",
+        "value": "isNull(dexBolusAt) or isNull(lowSeenAt) ? -1 : timeAt(dexBolusAt) - timeAt(lowSeenAt)",
+        "format": "duration",
+        "expert": "under 15 min"
+      },
+      {
+        "id": "toAbx",
+        "label": "Admission to antibiotics",
+        "value": "isNull(abxAt) ? -1 : timeAt(abxAt)",
+        "format": "duration",
+        "expert": "under 45 min"
+      },
+      {
+        "id": "finalGlu",
+        "label": "Glucose at the end (mg/dL)",
+        "value": "round(glucose)",
+        "format": "number",
+        "expert": "50-80"
+      },
+      {
+        "id": "finalTemp",
+        "label": "Temperature at the end (C)",
+        "value": "temp",
+        "format": "number",
+        "expert": "36.5-37.5"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:00",
+        "text": "Warmer on, glucose check, assess: cool, jittery, tachycardic, poor feeding, with three sepsis risk factors. Call the nurse practitioner naming sepsis and low glucose. Start an IV."
+      },
+      {
+        "at": "08:01",
+        "text": "Glucose 31 with symptoms: IV dextrose, not a feed. Gel can bridge while the IV goes in."
+      },
+      {
+        "at": "~08:10",
+        "text": "IV in: D10W 2 mL/kg, then 80 mL/kg/day. Blood culture of at least 1 mL, then ampicillin and gentamicin."
+      },
+      {
+        "at": "~08:45",
+        "text": "Recheck the glucose 30 min after the bolus. Keep warming to 36.5-37.5."
+      }
+    ],
+    "debrief": {
+      "seizure": {
+        "headline": "Hypoglycemic seizure",
+        "body": "A jittery, poorly feeding baby with a low glucose has symptomatic hypoglycemia: IV dextrose, not a feed. Find when the glucose was first checked and when IV dextrose started."
+      },
+      "collapse": {
+        "headline": "Collapse in septic shock",
+        "body": "The risk factors and the subtle signs were there at 08:00. Find when the culture and the antibiotics went in."
+      },
+      "stable": {
+        "headline": "Stabilized on time",
+        "body": "Warmth, IV dextrose for symptomatic hypoglycemia with an infusion and a recheck, a proper culture and ampicillin with gentamicin inside the hour. That is the expert path."
+      },
+      "stableLate": {
+        "headline": "Stabilized, by a slower route",
+        "body": "She is better, but check the dextrose timing, whether the culture came first, the antibiotic choice and time, and when she was warmed."
+      },
+      "time_up": {
+        "headline": "Still low or cold",
+        "body": "Glucose and temperature are basics that keep injuring a septic newborn until they are fixed."
+      }
+    },
+    "modelReasoning": "A term newborn with three risk factors for early-onset sepsis (GBS colonization with inadequate prophylaxis, prolonged rupture of membranes, maternal intrapartum fever) presenting with subtle signs: hypothermia rather than fever, poor feeding, jitteriness and tachycardia. Her glucose is low and she is symptomatic, so she needs IV dextrose (a 2 mL/kg D10W bolus, then about 80 mL/kg/day) with a recheck in about 30 minutes; feeding alone is for the asymptomatic infant. Cold stress increases glucose use, so warm her to 36.5-37.5. Draw a blood culture of at least 1 mL, then give ampicillin and gentamicin promptly; a cephalosporin alone misses Listeria."
+  },
+  "chapters": [
+    {
+      "id": "dextroseIn",
+      "label": "IV dextrose running",
+      "when": "dexInf"
+    },
+    {
+      "id": "antibioticsIn",
+      "label": "Antibiotics given",
+      "when": "not isNull(abxAt)"
+    }
+  ],
+  "teaching": {
+    "ivNotFeed": {
+      "during": "gluT",
+      "ask": "If this glucose comes back at 31 in a jittery baby who will not feed, what treats it?",
+      "choices": [
+        {
+          "id": "iv",
+          "label": "IV dextrose bolus, then an infusion"
+        },
+        {
+          "id": "feed",
+          "label": "A feed and a recheck in an hour"
+        },
+        {
+          "id": "wait",
+          "label": "Recheck in 30 minutes first"
+        }
+      ],
+      "expect": "iv",
+      "explain": "IV dextrose. Feeding and a recheck is the plan for an asymptomatic baby; a symptomatic low glucose (jitteriness, poor feeding, lethargy) needs IV treatment, a 2-3 mL/kg D10W bolus and then an infusion.",
+      "source": {
+        "cite": "UCSF Benioff Children's Hospitals. Screening and Management of Hypoglycemia in Late Preterm and Term Infants >=34 weeks GA (clinical pathway, based on the AAP 2011 clinical report, Adamkin DH, Pediatrics 2011;127(3):575-579)",
+        "checkedAt": "2026-11-11",
+        "url": "https://medconnection.ucsfbenioffchildrens.org/news/screening-and-management-of-hypoglycemia-in-late-preterm-and-term-infants-greater-than-or-equal-to-34-weeks-ga",
+        "note": "Read 2026-11-11. The AAP 2011 report itself was not opened; its values are as relayed by this pathway: concerning signs (seizure, lethargy, hypotonia, apnea, cyanosis) with glucose below 45 mg/dL get IV treatment; at 4-24 h the AAP threshold for asymptomatic infants is below 35 with a target above 45; IV bolus D10W 2-3 mL/kg; then D10W at 80 mL/kg/day (3.5 mL/kg/h), a glucose infusion rate of 5.5 mg/kg/min; recheck 30 minutes after a symptomatic IV intervention."
+      }
+    },
+    "volume": {
+      "during": "culturesT",
+      "ask": "Why does the culture need at least 1 mL of blood?",
+      "choices": [
+        {
+          "id": "yield",
+          "label": "Smaller volumes can miss bacteria that are there"
+        },
+        {
+          "id": "lab",
+          "label": "The lab will reject anything smaller"
+        },
+        {
+          "id": "none",
+          "label": "It doesn't; a few drops is enough"
+        }
+      ],
+      "expect": "yield",
+      "explain": "Newborn bacteremia can be low-level; pediatric bottles need about 1 mL for reliable recovery of organisms, so a small sample can give a falsely negative result.",
+      "source": {
+        "cite": "Puopolo KM, Benitz WE, Zaoutis TE; AAP Committee on Fetus and Newborn, Committee on Infectious Diseases. Management of Neonates Born at >=35 0/7 Weeks' Gestation With Suspected or Proven Early-Onset Bacterial Sepsis. Pediatrics 2018;142(6):e20182894",
+        "checkedAt": "2026-11-11",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30455342/",
+        "note": "Quoted: pediatric bottles 'generally require a minimum inoculum of 1 mL of blood for optimal recovery of organisms.'"
+      }
+    },
+    "listeria": {
+      "during": "ivT",
+      "ask": "While the IV goes in: why ampicillin plus gentamicin rather than a cephalosporin alone?",
+      "choices": [
+        {
+          "id": "listeria",
+          "label": "Cephalosporins alone miss Listeria"
+        },
+        {
+          "id": "cheap",
+          "label": "It is cheaper"
+        },
+        {
+          "id": "same",
+          "label": "There is no difference"
+        }
+      ],
+      "expect": "listeria",
+      "explain": "Listeria monocytogenes is resistant to cephalosporins; ampicillin covers it and GBS, and gentamicin adds gram-negative coverage. The AAP names the combination as the first choice for early-onset sepsis.",
+      "source": {
+        "cite": "Puopolo KM, Benitz WE, Zaoutis TE; AAP Committee on Fetus and Newborn, Committee on Infectious Diseases. Management of Neonates Born at >=35 0/7 Weeks' Gestation With Suspected or Proven Early-Onset Bacterial Sepsis. Pediatrics 2018;142(6):e20182894",
+        "checkedAt": "2026-11-11",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30455342/",
+        "note": "Quoted: 'Ampicillin and gentamicin, in combination, is the first choice for empirical therapy for EOS.' The Listeria point is from the course objective; the report was read for the combination."
+      }
+    }
+  }
+}

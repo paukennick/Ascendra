@@ -64,6 +64,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CCRNPEDS", "pediatric-septic-shock-fluids"),
   entry("CCRNPEDS", "pediatric-dka-cerebral-edema"),
   entry("CCRNNEO", "neonatal-rds-escalating-support"),
+  entry("CCRNNEO", "neonatal-sepsis-hypoglycemia"),
   // ---- end REQ-233 ----
 ];
 

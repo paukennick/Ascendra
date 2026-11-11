@@ -1,0 +1,707 @@
+{
+  "slug": "neonatal-sepsis-hypoglycemia",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: warmer, glucose and an SBAR at once, gel while the IV goes in, D10 bolus and infusion, 1 mL culture, ampicillin and gentamicin, recheck at 30 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "warm",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sepsis",
+            "bg": "full",
+            "rec": "orders"
+          },
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ivStart",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "ivNotFeed",
+          "choice": "iv",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "listeria",
+          "choice": "listeria",
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 9,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "gel",
+          "seq": 10,
+          "tick": 70
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 3,
+          "to": 130,
+          "seq": 11,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "dexBolus",
+          "seq": 12,
+          "tick": 610
+        },
+        {
+          "type": "act",
+          "action": "dexDrip",
+          "seq": 13,
+          "tick": 610
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 14,
+          "tick": 610
+        },
+        {
+          "type": "teach",
+          "prompt": "volume",
+          "choice": "yield",
+          "seq": 15,
+          "tick": 610
+        },
+        {
+          "type": "skip",
+          "timer": "culturesT",
+          "instance": 5,
+          "to": 910,
+          "seq": 16,
+          "tick": 610
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "params": {
+            "drug": "ampgent"
+          },
+          "seq": 17,
+          "tick": 910
+        },
+        {
+          "type": "chapter",
+          "chapter": "dextroseIn",
+          "choice": "continue",
+          "seq": 18,
+          "tick": 2710
+        },
+        {
+          "type": "chapter",
+          "chapter": "antibioticsIn",
+          "choice": "continue",
+          "seq": 19,
+          "tick": 2710
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 20,
+          "tick": 2710
+        }
+      ],
+      "expect": {
+        "ending": "stable",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "ivDextrose": "met",
+          "antibiotics": "met",
+          "culture": "met",
+          "infusion": "met",
+          "warm": "met",
+          "escalate": "met",
+          "glucoseFirst": "met"
+        },
+        "kpis": {
+          "toDex": 540,
+          "toAbx": 910,
+          "finalGlu": 70,
+          "finalTemp": 36.9
+        },
+        "stateHash": "ff47d5e6fd291fc6"
+      },
+      "reasoning": {
+        "whatNow": "met"
+      }
+    },
+    {
+      "id": "slowSafe",
+      "title": "Slow: a feed first, the call at 15 minutes, dextrose 25 minutes after the low result, antibiotics at 75 minutes, warmed at 20 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "feed",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "gel",
+          "seq": 4,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sepsis",
+            "bg": "full",
+            "rec": "orders"
+          },
+          "seq": 5,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "ivStart",
+          "seq": 6,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "warm",
+          "seq": 7,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "dexBolus",
+          "seq": 8,
+          "tick": 1560
+        },
+        {
+          "type": "act",
+          "action": "dexDrip",
+          "seq": 9,
+          "tick": 1560
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 10,
+          "tick": 1560
+        },
+        {
+          "type": "chapter",
+          "chapter": "dextroseIn",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 4500
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "params": {
+            "drug": "ampgent"
+          },
+          "seq": 12,
+          "tick": 4500
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 13,
+          "tick": 4500
+        }
+      ],
+      "expect": {
+        "ending": "stableLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 63,
+        "criteria": {
+          "ivDextrose": "partial",
+          "antibiotics": "partial",
+          "culture": "met",
+          "infusion": "partial",
+          "warm": "partial",
+          "escalate": "partial",
+          "glucoseFirst": "met"
+        },
+        "kpis": {
+          "toDex": 1440,
+          "toAbx": 4500,
+          "finalGlu": 70,
+          "finalTemp": 36.9
+        },
+        "stateHash": "74d099b1e3a3f5c2"
+      },
+      "reasoning": {
+        "whatNow": "partial"
+      }
+    },
+    {
+      "id": "wrongDrug",
+      "title": "Glucose and warmth well handled, but ceftriaxone alone given before any culture",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "warm",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sepsis",
+            "bg": "full",
+            "rec": "orders"
+          },
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ivStart",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 5,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "gel",
+          "seq": 6,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "dexBolus",
+          "seq": 7,
+          "tick": 610
+        },
+        {
+          "type": "act",
+          "action": "dexDrip",
+          "seq": 8,
+          "tick": 610
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "params": {
+            "drug": "ceftri"
+          },
+          "seq": 9,
+          "tick": 610
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 10,
+          "tick": 610
+        },
+        {
+          "type": "chapter",
+          "chapter": "dextroseIn",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 2410
+        },
+        {
+          "type": "chapter",
+          "chapter": "antibioticsIn",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 2410
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 13,
+          "tick": 2410
+        }
+      ],
+      "expect": {
+        "ending": "stableLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 69,
+        "criteria": {
+          "ivDextrose": "met",
+          "antibiotics": "missed",
+          "culture": "missed",
+          "infusion": "met",
+          "warm": "met",
+          "escalate": "met",
+          "glucoseFirst": "met"
+        },
+        "kpis": {
+          "toDex": 540,
+          "toAbx": 610,
+          "finalGlu": 70,
+          "finalTemp": 36.9
+        },
+        "stateHash": "1b6e3b02d761a581"
+      },
+      "reasoning": {
+        "whatNow": "partial"
+      }
+    },
+    {
+      "id": "feedOnly",
+      "title": "Failure: feeds offered for poor feeding, the glucose never checked",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "feed",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "feeding",
+            "bg": "min",
+            "rec": "feed"
+          },
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "feed",
+          "seq": 3,
+          "tick": 900
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 4,
+          "tick": 1200
+        }
+      ],
+      "expect": {
+        "ending": "seizure",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "ivDextrose": "missed",
+          "antibiotics": "missed",
+          "culture": "missed",
+          "infusion": "missed",
+          "warm": "missed",
+          "escalate": "missed",
+          "glucoseFirst": "missed"
+        },
+        "kpis": {
+          "toDex": -1,
+          "toAbx": -1,
+          "finalGlu": 23,
+          "finalTemp": 36
+        },
+        "stateHash": "930f6fab3888372b"
+      },
+      "reasoning": {
+        "whatNow": "missed"
+      }
+    },
+    {
+      "id": "neverWarmed",
+      "title": "Glucose and antibiotics on time, but never warmed: still cold at three hours",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sepsis",
+            "bg": "full",
+            "rec": "orders"
+          },
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ivStart",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 4,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "gel",
+          "seq": 5,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "dexBolus",
+          "seq": 6,
+          "tick": 610
+        },
+        {
+          "type": "act",
+          "action": "dexDrip",
+          "seq": 7,
+          "tick": 610
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 8,
+          "tick": 610
+        },
+        {
+          "type": "skip",
+          "timer": "culturesT",
+          "instance": 5,
+          "to": 910,
+          "seq": 9,
+          "tick": 610
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "params": {
+            "drug": "ampgent"
+          },
+          "seq": 10,
+          "tick": 910
+        },
+        {
+          "type": "chapter",
+          "chapter": "dextroseIn",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 2710
+        },
+        {
+          "type": "chapter",
+          "chapter": "antibioticsIn",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 2710
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 13,
+          "tick": 2710
+        }
+      ],
+      "expect": {
+        "ending": "time_up",
+        "class": "harm",
+        "rating": "bad",
+        "score": 81,
+        "criteria": {
+          "ivDextrose": "met",
+          "antibiotics": "met",
+          "culture": "met",
+          "infusion": "met",
+          "warm": "missed",
+          "escalate": "met",
+          "glucoseFirst": "met"
+        },
+        "kpis": {
+          "toDex": 540,
+          "toAbx": 910,
+          "finalGlu": 70,
+          "finalTemp": 35.2
+        },
+        "stateHash": "2ea8133a1eb04aa8"
+      },
+      "reasoning": {
+        "whatNow": "partial"
+      }
+    },
+    {
+      "id": "noAntibiotics",
+      "title": "Failure: glucose and warmth handled, but no culture and no antibiotics",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "warm",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sepsis",
+            "bg": "full",
+            "rec": "orders"
+          },
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ivStart",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 5,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "gel",
+          "seq": 6,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "dexBolus",
+          "seq": 7,
+          "tick": 610
+        },
+        {
+          "type": "act",
+          "action": "dexDrip",
+          "seq": 8,
+          "tick": 610
+        },
+        {
+          "type": "chapter",
+          "chapter": "dextroseIn",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 3000
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 10,
+          "tick": 3000
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 11,
+          "tick": 3000
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 63,
+        "criteria": {
+          "ivDextrose": "met",
+          "antibiotics": "missed",
+          "culture": "missed",
+          "infusion": "partial",
+          "warm": "met",
+          "escalate": "met",
+          "glucoseFirst": "met"
+        },
+        "kpis": {
+          "toDex": 540,
+          "toAbx": -1,
+          "finalGlu": 70,
+          "finalTemp": 36.9
+        },
+        "stateHash": "1937b8939b0ac6cd"
+      },
+      "reasoning": {
+        "whatNow": "partial"
+      }
+    }
+  ]
+}
