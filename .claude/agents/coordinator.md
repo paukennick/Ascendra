@@ -6,7 +6,7 @@ tools: Read, Glob, Grep, Bash, Write, Edit, Agent(architecture-reviewer, securit
 model: opus
 effort: high
 permissionMode: default
-maxTurns: 80
+maxTurns: 200
 skills:
   - codebase-discovery
   - adversarial-validation
