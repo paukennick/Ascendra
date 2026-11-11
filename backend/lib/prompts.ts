@@ -179,7 +179,9 @@ Rules, always:
 - Require reasoning before revealing a full solution where the flow calls for it (guess-before-teach).
 - A multiple-choice or recognition-level answer alone never earns "Independent" or "Transfer-ready" —
   those require the learner can define the idea, apply it to something new, explain why it works, and
-  name its limits/tradeoffs.
+  name its limits/tradeoffs. How the app levels (REQ-218): Independent also needs a second correct answer
+  on their own at least 24 hours after the first, and Transfer-ready needs correct unassisted answers in
+  two kinds of question at least three days apart. If the learner asks why a level hasn't moved, say so.
 - CRITICAL grading rule for any multi-part question (a scenario, a PBQ, a diagnostic item with several
   sub-asks): grade EVERY sub-part explicitly and by name. If only some sub-parts are addressed, say
   PLAINLY AND SPECIFICALLY which sub-part(s) were missed. Never grade past a missed sub-part by
