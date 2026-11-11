@@ -552,8 +552,17 @@ batches because the practice questions are written from the teaching text:
    queue, then saves **insert-if-absent**: it never replaces a lesson, a lesson
    a content fix voided or corrected, an authored lesson or a learner's own
    version. A lesson that fails a check is logged in `item_holdbacks` (review
-   with `npm run items`) and not saved; its first learner visit makes it through
-   the full pipeline, retry included.
+   with `npm run items`) and not saved.
+4. REQ-235: a held half gets the app's one steered retry, as a live call
+   (purpose `pregen_retry`, not discounted, inside `max_usd`, outside the
+   global daily ceiling like the rest of pre-generation). A held teaching text
+   is retried during the first collect, and if the retry passes that lesson is
+   finished live there (its practice was never in the batch); a held practice
+   half is retried during the second collect. Only a retry that passes every
+   check is saved. A retry the cap cannot cover is not made: the lesson stays
+   held and its first learner visit makes it through the full pipeline. Both
+   collects print the retry counts (retried, saved after the retry, held again,
+   not retried for budget), and the summary carries them.
 
 Left out always: retired objectives and units, hidden courses (`hidden_at`
 passed), private courses, authored lessons, and any objective that already has
@@ -621,7 +630,8 @@ the same `tracks` and `max_usd`. "Not finished yet" means run it later. When it
 has ended it starts the **practice batch** and prints its id. Wait again, then
 run `collect` with `batch_id` = the practice batch id and `intro_batch_id` = the
 intro batch id. That run saves the lessons and prints the counts (saved,
-already had one, held back, failed) and the actual cost. Run each collect once
+already had one, held back, failed, and the REQ-235 retry counts) and the actual
+cost. Run each collect once
 per ended batch: a repeat of the first starts nothing (the workflow refuses
 when a newer batch exists), and a repeat of the second only re-checks lessons
 still unsaved. To cover what was cut off, go back to (b): saved lessons drop out
