@@ -1,0 +1,1902 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 1
+  },
+  "slug": "resident-chokes-at-lunch",
+  "title": "A resident chokes at lunch",
+  "screen": {
+    "type": "bedside",
+    "level": 1,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "breaths",
+          "label": "Breathing",
+          "spokenLabel": "Breaths per minute you can see",
+          "value": "rrSeen",
+          "unit": "/min",
+          "alarm": {
+            "low": 6
+          },
+          "announce": {
+            "bands": [
+              10,
+              1
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "noAir",
+          "label": "No air",
+          "spokenLabel": "Seconds without air moving (a sim aid; at the table you would not see this number)",
+          "value": "noAirShown",
+          "unit": "s",
+          "announce": {
+            "bands": [
+              60,
+              120,
+              240
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(severeAt)"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation on the nurse's pulse oximeter",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90,
+              85
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "nurseHere"
+        }
+      ],
+      "banner": [
+        {
+          "when": "obst == \"none\"",
+          "text": "Lunch in the dining room. Mr. Rossi is eating roast beef."
+        },
+        {
+          "when": "obst == \"mild\"",
+          "text": "Mr. Rossi is coughing hard and red in the face. He can speak."
+        },
+        {
+          "when": "obst == \"severe\" and responsive",
+          "text": "Mr. Rossi cannot speak or cough. Hands at his throat, lips turning blue."
+        },
+        {
+          "when": "not responsive and not breathing",
+          "text": "Mr. Rossi is limp and not breathing."
+        },
+        {
+          "when": "not responsive and breathing",
+          "text": "Mr. Rossi is breathing again, eyes still closed."
+        },
+        {
+          "when": "obst == \"cleared\" and responsive",
+          "text": "Mr. Rossi is breathing and coughing, frightened."
+        }
+      ]
+    }
+  },
+  "objective": "The Heimlich maneuver, named explicitly in the regulation",
+  "secondaryObjectives": [
+    "Recognising an emergency and summoning help correctly",
+    "Know that nursing home staff must start CPR and other basic life support for a resident in need until emergency services take over, unless the resident's physician orders or advance directive say otherwise",
+    "Reporting changes to the nurse: what, when and in what words"
+  ],
+  "sources": [
+    {
+      "cite": "Kleinman ME, Buick JE, Huber N, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+      "checkedAt": "2026-11-10",
+      "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+      "note": "Read 2026-11-10: severe FBAO in an adult, repeated cycles of 5 back blows (slaps) followed by 5 abdominal thrusts until the object is expelled or the person becomes unresponsive (COR 1, LOE B-NR); activate the emergency response system for severe FBAO (COR 1); mild FBAO, let the person clear the airway by coughing while watching for severe signs (COR 1); unresponsive, start CPR beginning with compressions (COR 1); remove a visible foreign body when opening the airway for breaths (COR 1); blind finger sweeps should not be performed (COR 3: Harm); compressions 100-120/min, at least 2 in (5 cm), 30:2 before an advanced airway."
+    },
+    {
+      "cite": "42 CFR 483.152(b): nurse aide training program content",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.law.cornell.edu/cfr/text/42/483.152",
+      "note": "Read 2026-11-10 (Cornell LII copy): (b)(1)(iii) 'Safety/emergency procedures, including the Heimlich maneuver' is in the 16 hours before any resident contact; (b)(2)(iv) 'Recognizing abnormal changes in body functioning and the importance of reporting such changes to a supervisor.'"
+    },
+    {
+      "cite": "42 CFR 483.24(a)(3): nursing home staff provide basic life support, including CPR, before emergency medical services arrive, subject to the resident's physician orders and advance directives",
+      "checkedAt": "2026-09-18",
+      "url": "https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-G/part-483/subpart-B/section-483.24",
+      "note": "FLAG: not re-read for this scenario (the eCFR and Cornell pages for 483.24 were not reachable on 2026-11-10); the wording is the CNA course seed's (backend/supabase/seed/tracks/nursing.ts, CFR 483.24). The brief states that this resident is a full code, so the aide starts CPR."
+    },
+    {
+      "cite": "Credentia, 2024 National Nurse Aide Assessment Program (NNAAP) Written (Oral) Examination Content Outline (effective April 2024)",
+      "checkedAt": "2026-11-10",
+      "url": "https://kb-pa.credentia.com/en/article/the-2024-national-nurse-aide-assessment-program-nnaap",
+      "note": "Read 2026-11-10: Basic Nursing Skills (35% of the exam) includes Safety/Emergency and Data Collection and Reporting; Role of the Nurse Aide includes Communication and Member of the Health Care Team. The outline does not name choking."
+    },
+    {
+      "cite": "Prometric, Nurse Aide Written Test Content Outline (version 20160129)",
+      "checkedAt": "2026-11-10",
+      "url": "https://prometric.com/media/1136/download",
+      "note": "Read 2026-11-10: IV.B acute situations include choking/aspiration and changes in level of consciousness; I.A the legal obligation to report incidents and observations to the licensed nurse. FLAG: dated 2016; no newer Prometric outline was found, and states using Prometric may publish their own."
+    },
+    {
+      "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 3.2 Emergency Situations",
+      "checkedAt": "2026-11-10",
+      "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/3-2-emergency-situations/",
+      "note": "Read 2026-11-10: notify the nurse at any sign of choking and act to clear the airway; encourage forceful coughing; a person who cannot cough, speak or breathe needs immediate help; CPR if the person becomes unconscious; seek medical attention afterward. The chapter describes abdominal thrusts only and predates the 2025 AHA back-blow sequence, which this scenario follows instead."
+    },
+    {
+      "cite": "MedlinePlus (A.D.A.M.), Choking - adult or child over 1 year (UF Health copy)",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.ufhealth.org/adam/1/000049",
+      "note": "Read 2026-11-10: 'Without oxygen, brain damage can occur in as little as 4 to 6 minutes'; danger signs include inability to speak and bluish skin; an adult will often grab the throat. The page shows no review date."
+    }
+  ],
+  "brief": {
+    "situation": "12:15, the dining room of a nursing home. You are the nurse aide on the floor at lunch. Mr. Rossi, 81, sits at your table: regular diet, feeds himself, mild memory loss, no swallowing restrictions in the care plan. Full code (no DNR order).",
+    "handover": [
+      "Care plan: set up the meal, cut meat into small pieces on request, encourage him to sit upright and eat slowly.",
+      "The nurse is at the medication cart in the hallway.",
+      "Facility policy: shout for help or use the overhead call; the nurse activates the emergency response and calls 911."
+    ],
+    "howItWorks": [
+      "The clock runs in real time at the pace you choose: study pace (3x) or exam realism (1x). Pause any time.",
+      "Your actions are a nurse aide's: watch, ask, call for help, back blows and abdominal thrusts, CPR, report and write it down. No medicines or orders.",
+      "Each set of back blows, thrusts or compressions takes as long as it would at the table.",
+      "Early on you are asked to write what you would do. Then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "12:15",
+    "tick": "1s",
+    "maxDuration": "15min",
+    "calendar": "clock"
+  },
+  "params": {
+    "mildAt": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "Mr. Rossi starts coughing 30 s into lunch."
+      }
+    },
+    "severeOnset": {
+      "value": 75,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "The cough stops working 45 s later: severe obstruction."
+      }
+    },
+    "locSec": {
+      "value": 100,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. He becomes unresponsive after about 100 s with no air moving. FLAG: no source gives a time to unconsciousness in complete airway obstruction; this is an authored estimate kept well inside the 4-6 min in the brain-injury source."
+      }
+    },
+    "anoxicSec": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "MedlinePlus (A.D.A.M.), Choking - adult or child over 1 year (UF Health copy)",
+        "checkedAt": "2026-11-10",
+        "url": "https://www.ufhealth.org/adam/1/000049",
+        "note": "Five minutes with no air moving is the harm threshold, the middle of 'as little as 4 to 6 minutes' in the source. Read 2026-11-10: 'Without oxygen, brain damage can occur in as little as 4 to 6 minutes'; danger signs include inability to speak and bluish skin; an adult will often grab the throat. The page shows no review date."
+      }
+    },
+    "setSec": {
+      "value": 10,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Five back blows or five abdominal thrusts take about 10 s."
+      }
+    },
+    "cprSetSec": {
+      "value": 18,
+      "unit": "s",
+      "source": {
+        "cite": "Kleinman ME, Buick JE, Huber N, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+        "checkedAt": "2026-11-10",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+        "note": "30 compressions at 100-120 per minute take 15-18 s."
+      }
+    },
+    "clearAt": {
+      "value": 3,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. The food comes out on the third set of back blows or abdominal thrusts (about 30 s of good rescue). A blind finger sweep undoes one set."
+      }
+    },
+    "cprClearSets": {
+      "value": 2,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. After two sets of compressions the food has moved up and can be seen when the mouth is opened."
+      }
+    },
+    "nurseResponse": {
+      "value": 90,
+      "unit": "s",
+      "source": {
+        "cite": "Nursing home practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The nurse reaches the dining room about 90 s after a shout for help. No published standard was found for this interval."
+      }
+    },
+    "leaveSec": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Nursing home practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Leaving the dining room to find the nurse and coming back with her takes about 2 min."
+      }
+    },
+    "noticeAt": {
+      "value": 420,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "If nobody calls for help, another aide notices at 12:22 and runs for the nurse."
+      }
+    },
+    "wakeSec": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Once air moves again he starts breathing and opens his eyes about 30 s later."
+      }
+    },
+    "rescuePartialWindow": {
+      "value": 45,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "Back blows or thrusts 20-45 s after the severe signs: partial."
+      }
+    },
+    "cprWindow": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "Kleinman ME, Buick JE, Huber N, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+        "checkedAt": "2026-11-10",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+        "note": "Compressions within 30 s of him going limp; the guideline says start CPR at once, without a number."
+      }
+    }
+  },
+  "state": {
+    "obst": {
+      "type": "enum",
+      "values": [
+        "none",
+        "mild",
+        "severe",
+        "cleared"
+      ],
+      "init": "none"
+    },
+    "responsive": {
+      "type": "bool",
+      "init": true
+    },
+    "breathing": {
+      "type": "bool",
+      "init": true
+    },
+    "noAir": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3600,
+      "unit": "s"
+    },
+    "spo2v": {
+      "type": "number",
+      "init": 96,
+      "min": 30,
+      "max": 100,
+      "unit": "%"
+    },
+    "effort": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "severeAt": {
+      "type": "time",
+      "init": null
+    },
+    "collapseAt": {
+      "type": "time",
+      "init": null
+    },
+    "clearedAt": {
+      "type": "time",
+      "init": null
+    },
+    "clearedConscious": {
+      "type": "bool",
+      "init": false
+    },
+    "askedAt": {
+      "type": "time",
+      "init": null
+    },
+    "encouragedAt": {
+      "type": "time",
+      "init": null
+    },
+    "helpAt": {
+      "type": "time",
+      "init": null
+    },
+    "shouted": {
+      "type": "bool",
+      "init": false
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "away": {
+      "type": "bool",
+      "init": false
+    },
+    "nurseCalled": {
+      "type": "bool",
+      "init": false
+    },
+    "nurseHere": {
+      "type": "bool",
+      "init": false
+    },
+    "rescueAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstSet": {
+      "type": "enum",
+      "values": [
+        "none",
+        "blows",
+        "thrusts"
+      ],
+      "init": "none"
+    },
+    "blowSets": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "thrustSets": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "mildInterfere": {
+      "type": "bool",
+      "init": false
+    },
+    "sweeps": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "waterGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "onFloor": {
+      "type": "bool",
+      "init": false
+    },
+    "cprAt": {
+      "type": "time",
+      "init": null
+    },
+    "cprSets": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100
+    },
+    "objectUp": {
+      "type": "bool",
+      "init": false
+    },
+    "objectSeen": {
+      "type": "bool",
+      "init": false
+    },
+    "breathsGiven": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "reported": {
+      "type": "bool",
+      "init": false
+    },
+    "reportFull": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "documentedObjective": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "history": {
+    "spo2H": {
+      "of": "spo2v",
+      "every": "5s",
+      "keep": "5min"
+    }
+  },
+  "derived": {
+    "live": {
+      "expr": "phase == \"live\""
+    },
+    "rrSeen": {
+      "expr": "obst == \"severe\" or not breathing ? 0 : (obst == \"mild\" ? 28 : (isNull(clearedAt) ? 16 : (t - timeAt(clearedAt) < 120 ? 26 : 20)))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(spo2v)",
+      "unit": "%",
+      "precision": 0
+    },
+    "noAirShown": {
+      "expr": "round(noAir)",
+      "unit": "s",
+      "precision": 0
+    },
+    "free": {
+      "expr": "live and not away and not busy"
+    }
+  },
+  "processes": [
+    {
+      "id": "airway",
+      "when": "live",
+      "update": {
+        "noAir": "noAir + (breathing ? 0 : dt)",
+        "spo2v": "breathing ? min(96, spo2v + 0.5 * dt) : max(40, spo2v - 0.35 * dt)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the table",
+      "clock": "running",
+      "actions": [
+        "ask",
+        "encourage",
+        "help",
+        "leave",
+        "blows",
+        "thrusts",
+        "water",
+        "sweep",
+        "lower",
+        "cpr",
+        "look",
+        "remove",
+        "breaths",
+        "report",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "ask": {
+      "label": "Ask: \"Are you choking? Can you speak?\"",
+      "group": "Assess",
+      "available": "live and not away",
+      "why": "You are away from the table.",
+      "effects": [
+        {
+          "if": "isNull(askedAt)",
+          "then": [
+            {
+              "set": "askedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "obst == \"none\"",
+              "then": [
+                {
+                  "log": "\"I'm fine, just eating.\"",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "obst == \"mild\"",
+              "then": [
+                {
+                  "log": "He nods, coughs hard and croaks: \"Went down the wrong way.\" Air is moving.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "obst == \"severe\" and responsive",
+              "then": [
+                {
+                  "log": "He nods. No sound comes out. No cough, no air moving, lips going blue.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "not responsive",
+              "then": [
+                {
+                  "log": "No answer. He is limp.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "\"I'm OK... my stomach is sore.\" He is breathing and talking.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "encourage": {
+      "label": "Stay with him and encourage him to keep coughing",
+      "group": "Act",
+      "available": "live and not away",
+      "why": "You are away from the table.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "obst == \"mild\"",
+              "then": [
+                {
+                  "if": "isNull(encouragedAt)",
+                  "then": [
+                    {
+                      "set": "encouragedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "\"Keep coughing, Mr. Rossi, I'm right here.\" He coughs hard; you watch for signs it is getting worse.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "obst == \"severe\"",
+              "then": [
+                {
+                  "log": "He can't cough any more. Coughing will not clear this now.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "He is not coughing.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "help": {
+      "label": "Shout for help: \"Choking! Get the nurse and the emergency team!\"",
+      "group": "Call",
+      "available": "live and not away and not nurseCalled",
+      "why": "Help is already on the way.",
+      "effects": [
+        {
+          "if": "isNull(helpAt)",
+          "then": [
+            {
+              "set": "helpAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "shouted",
+          "to": "true"
+        },
+        {
+          "set": "nurseCalled",
+          "to": "true"
+        },
+        {
+          "schedule": "nurseT",
+          "after": "nurseResponse"
+        },
+        {
+          "log": "You shout from beside him. Another aide runs for the nurse; the nurse will activate the emergency response. You stay with Mr. Rossi.",
+          "kind": "good"
+        }
+      ]
+    },
+    "leave": {
+      "label": "Leave the dining room to find the nurse",
+      "group": "Call",
+      "available": "live and not away and not nurseCalled",
+      "why": "Help is already on the way.",
+      "effects": [
+        {
+          "if": "isNull(helpAt)",
+          "then": [
+            {
+              "set": "helpAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "set": "away",
+          "to": "true"
+        },
+        {
+          "set": "nurseCalled",
+          "to": "true"
+        },
+        {
+          "schedule": "nurseT",
+          "after": "leaveSec"
+        },
+        {
+          "log": "You hurry out to find the nurse. Mr. Rossi is alone at the table.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "blows": {
+      "label": "Give 5 back blows",
+      "group": "Act",
+      "available": "free and responsive and obst != \"cleared\"",
+      "why": "You are away from the table or in the middle of a set.",
+      "effects": [
+        {
+          "if": "obst == \"mild\"",
+          "then": [
+            {
+              "set": "mildInterfere",
+              "to": "true"
+            },
+            {
+              "log": "He is still coughing hard and moving air. The guidance for mild choking is to let him cough and watch.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "obst == \"severe\"",
+          "then": [
+            {
+              "if": "isNull(rescueAt)",
+              "then": [
+                {
+                  "set": "rescueAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "if": "firstSet == \"none\"",
+              "then": [
+                {
+                  "set": "firstSet",
+                  "to": "\"blows\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "setDoneT",
+          "after": "setSec",
+          "with": {
+            "kind": "\"blows\""
+          }
+        },
+        {
+          "log": "Standing behind him, you lean him forward and give 5 firm back blows between the shoulder blades with the heel of your hand."
+        }
+      ]
+    },
+    "thrusts": {
+      "label": "Give 5 abdominal thrusts",
+      "group": "Act",
+      "available": "free and responsive and obst != \"cleared\"",
+      "why": "You are away from the table or in the middle of a set.",
+      "effects": [
+        {
+          "if": "obst == \"mild\"",
+          "then": [
+            {
+              "set": "mildInterfere",
+              "to": "true"
+            },
+            {
+              "log": "He is still coughing hard and moving air. The guidance for mild choking is to let him cough and watch.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "obst == \"severe\"",
+          "then": [
+            {
+              "if": "isNull(rescueAt)",
+              "then": [
+                {
+                  "set": "rescueAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "if": "firstSet == \"none\"",
+              "then": [
+                {
+                  "set": "firstSet",
+                  "to": "\"thrusts\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "setDoneT",
+          "after": "setSec",
+          "with": {
+            "kind": "\"thrusts\""
+          }
+        },
+        {
+          "log": "Behind him, fist just above the navel and well below the breastbone, other hand over it: 5 quick inward and upward thrusts."
+        }
+      ]
+    },
+    "water": {
+      "label": "Give him a sip of water",
+      "group": "Act",
+      "available": "live and not away and obst != \"none\"",
+      "why": "You are away from the table.",
+      "effects": [
+        {
+          "set": "waterGiven",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "obst == \"severe\" or not responsive",
+              "then": [
+                {
+                  "log": "He cannot swallow; the water spills from his mouth. No air moves.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Water is not a treatment for choking; he coughs and splutters.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "sweep": {
+      "label": "Sweep his mouth with a finger",
+      "group": "Act",
+      "available": "live and not away and obst != \"none\"",
+      "why": "You are away from the table.",
+      "effects": [
+        {
+          "add": "sweeps",
+          "by": "1"
+        },
+        {
+          "if": "obst == \"severe\"",
+          "then": [
+            {
+              "set": "effort",
+              "to": "max(0, effort - 1)"
+            }
+          ]
+        },
+        {
+          "log": "You can't see anything. The blind sweep pushes the food further in.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "lower": {
+      "label": "Lower him to the floor on his back",
+      "group": "Act",
+      "available": "live and not away and not responsive and not onFloor",
+      "why": "He is responsive, or already on the floor.",
+      "effects": [
+        {
+          "set": "onFloor",
+          "to": "true"
+        },
+        {
+          "log": "You support his head and ease him out of the chair onto his back on the floor. Chairs pushed back."
+        }
+      ]
+    },
+    "cpr": {
+      "label": "CPR: 30 compressions",
+      "group": "Act",
+      "available": "free and not responsive and not breathing and onFloor",
+      "why": "Only for someone unresponsive and not breathing, on a firm surface, when you are free.",
+      "effects": [
+        {
+          "if": "isNull(cprAt)",
+          "then": [
+            {
+              "set": "cprAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "setDoneT",
+          "after": "cprSetSec",
+          "with": {
+            "kind": "\"cpr\""
+          }
+        },
+        {
+          "log": "Heel of your hand on the center of his chest, other hand on top: 30 compressions, at least 2 inches deep, 100-120 a minute."
+        }
+      ]
+    },
+    "look": {
+      "label": "Open his mouth and look",
+      "group": "Assess",
+      "available": "live and not away and not responsive and onFloor and not busy",
+      "why": "Only once he is unresponsive on the floor and you are between sets.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "obst == \"severe\" and objectUp",
+              "then": [
+                {
+                  "set": "objectSeen",
+                  "to": "true"
+                },
+                {
+                  "log": "A piece of meat at the back of his mouth, where you can see it.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "obst == \"severe\"",
+              "then": [
+                {
+                  "log": "Nothing you can see. Keep going with compressions.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "His mouth is clear.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "remove": {
+      "label": "Take out the food you can see",
+      "group": "Act",
+      "available": "live and objectSeen and obst == \"severe\"",
+      "why": "Only an object you can see.",
+      "effects": [
+        {
+          "set": "obst",
+          "to": "\"cleared\""
+        },
+        {
+          "set": "clearedAt",
+          "to": "t"
+        },
+        {
+          "log": "You hook out the piece of meat you can see. The airway is open.",
+          "kind": "good"
+        }
+      ]
+    },
+    "breaths": {
+      "label": "Give 2 breaths with a face shield",
+      "group": "Act",
+      "available": "free and not responsive and onFloor and not breathing",
+      "why": "Only for someone unresponsive and not breathing, when you are free.",
+      "effects": [
+        {
+          "add": "breathsGiven",
+          "by": "2"
+        },
+        {
+          "cases": [
+            {
+              "when": "obst == \"severe\"",
+              "then": [
+                {
+                  "log": "Head tilted, chin lifted: the chest does not rise. The airway is still blocked.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "breathing",
+                  "to": "true"
+                },
+                {
+                  "schedule": "wakeT",
+                  "after": "wakeSec"
+                },
+                {
+                  "log": "The chest rises with each breath. He gasps, then starts breathing on his own.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "report": {
+      "label": "Report to the nurse",
+      "group": "Call",
+      "available": "nurseHere and not reported and (obst == \"cleared\") and breathing",
+      "why": "Once the nurse is here and he is breathing.",
+      "params": [
+        {
+          "id": "rep",
+          "kind": "form",
+          "label": "Report",
+          "fields": [
+            {
+              "id": "what",
+              "label": "What you saw",
+              "options": [
+                {
+                  "value": "obj",
+                  "label": "At 12:15 he started coughing, then stopped: no sound, no air, hands at his throat, lips blue"
+                },
+                {
+                  "value": "interp",
+                  "label": "He panicked and ate too fast"
+                }
+              ]
+            },
+            {
+              "id": "did",
+              "label": "What you did",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "Shouted for help, then back blows and abdominal thrusts (or CPR) until the food came out; the time it came out"
+                },
+                {
+                  "value": "vague",
+                  "label": "I did the Heimlich"
+                }
+              ]
+            },
+            {
+              "id": "now",
+              "label": "How he is now",
+              "options": [
+                {
+                  "value": "now",
+                  "label": "Breathing and talking, still coughing, says his stomach is sore"
+                },
+                {
+                  "value": "fine",
+                  "label": "He's fine now"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "reported",
+          "to": "true"
+        },
+        {
+          "set": "reportFull",
+          "to": "what == \"obj\" and did == \"full\" and now == \"now\""
+        },
+        {
+          "log": "You report to the nurse. She checks his breathing, listens to his chest and looks at his abdomen.",
+          "kind": "good"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write it down (facility form)",
+      "group": "Call",
+      "available": "reported and not documented",
+      "why": "Report to the nurse first.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "choice",
+          "label": "Your note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Times, what you saw and heard, what you did, his words, who you told"
+            },
+            {
+              "value": "opinion",
+              "label": "\"Resident choked because he doesn't chew properly. Heimlich done. OK now.\""
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "set": "documentedObjective",
+          "to": "note == \"obj\""
+        },
+        {
+          "log": "Note written per facility policy."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "setDoneT": {
+      "label": "the set you are giving",
+      "wait": {
+        "skipLabel": "the end of this set"
+      },
+      "instances": "one",
+      "with": {
+        "kind": {
+          "type": "enum",
+          "values": [
+            "blows",
+            "thrusts",
+            "cpr"
+          ]
+        }
+      },
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Five back blows or five abdominal thrusts take about 10 s."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "live",
+          "then": [
+            {
+              "cases": [
+                {
+                  "when": "timer.with.kind == \"blows\" and obst == \"severe\" and responsive",
+                  "then": [
+                    {
+                      "add": "blowSets",
+                      "by": "1"
+                    },
+                    {
+                      "add": "effort",
+                      "by": "1"
+                    }
+                  ]
+                },
+                {
+                  "when": "timer.with.kind == \"thrusts\" and obst == \"severe\" and responsive",
+                  "then": [
+                    {
+                      "add": "thrustSets",
+                      "by": "1"
+                    },
+                    {
+                      "add": "effort",
+                      "by": "1"
+                    }
+                  ]
+                },
+                {
+                  "when": "timer.with.kind == \"cpr\"",
+                  "then": [
+                    {
+                      "add": "cprSets",
+                      "by": "1"
+                    },
+                    {
+                      "if": "obst == \"severe\" and cprSets >= cprClearSets",
+                      "then": [
+                        {
+                          "set": "objectUp",
+                          "to": "true"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "when": "true",
+                  "then": []
+                }
+              ]
+            },
+            {
+              "if": "obst == \"severe\" and responsive and effort >= clearAt",
+              "then": [
+                {
+                  "set": "obst",
+                  "to": "\"cleared\""
+                },
+                {
+                  "set": "breathing",
+                  "to": "true"
+                },
+                {
+                  "set": "clearedAt",
+                  "to": "t"
+                },
+                {
+                  "set": "clearedConscious",
+                  "to": "true"
+                },
+                {
+                  "log": "A piece of roast beef flies out. He coughs, gasps and starts breathing, frightened and crying.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "nurseT": {
+      "label": "the nurse arriving",
+      "wait": {
+        "skipLabel": "the nurse arriving"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Nursing home practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The nurse reaches the dining room about 90 s after a shout for help. No published standard was found for this interval."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "set": "nurseHere",
+              "to": "true"
+            },
+            {
+              "set": "away",
+              "to": "false"
+            },
+            {
+              "cases": [
+                {
+                  "when": "not responsive and not breathing",
+                  "then": [
+                    {
+                      "log": "The nurse is here and has called 911. \"Keep going with CPR; I'll take the airway when you're ready.\"",
+                      "kind": "good"
+                    }
+                  ]
+                },
+                {
+                  "when": "obst == \"severe\"",
+                  "then": [
+                    {
+                      "log": "The nurse is here and has called 911. \"Keep going; 5 and 5.\"",
+                      "kind": "good"
+                    }
+                  ]
+                },
+                {
+                  "when": "true",
+                  "then": [
+                    {
+                      "log": "The nurse arrives with a pulse oximeter and clips it on his finger.",
+                      "kind": "good"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "wakeT": {
+      "label": "him waking",
+      "wait": {
+        "skipLabel": "him waking (about 30 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Once air moves again he starts breathing and opens his eyes about 30 s later."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "set": "responsive",
+              "to": "true"
+            },
+            {
+              "log": "He opens his eyes and coughs. Breathing on his own.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "toMild",
+      "when": "live and t >= mildAt and obst == \"none\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "obst",
+          "to": "\"mild\""
+        },
+        {
+          "log": "Mr. Rossi starts coughing hard, red in the face.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "toSevere",
+      "when": "live and t >= severeOnset and obst == \"mild\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "obst",
+          "to": "\"severe\""
+        },
+        {
+          "set": "breathing",
+          "to": "false"
+        },
+        {
+          "set": "severeAt",
+          "to": "t"
+        },
+        {
+          "log": "The coughing stops. No sound. His hands go to his throat and his lips are turning blue.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "collapse",
+      "when": "live and obst == \"severe\" and responsive and noAir >= locSec",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "responsive",
+          "to": "false"
+        },
+        {
+          "set": "collapseAt",
+          "to": "t"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "cancel": "setDoneT"
+        },
+        {
+          "if": "away",
+          "then": [
+            {
+              "log": "Alone at the table, he slumps sideways out of his chair to the floor.",
+              "kind": "alarm"
+            },
+            {
+              "set": "onFloor",
+              "to": "true"
+            }
+          ],
+          "else": [
+            {
+              "log": "He goes limp in his chair and stops responding.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "noticed",
+      "when": "live and t >= noticeAt and not nurseCalled",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "nurseCalled",
+          "to": "true"
+        },
+        {
+          "schedule": "nurseT",
+          "after": "60"
+        },
+        {
+          "log": "Another aide sees what is happening and runs for the nurse.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "whatNow": {
+      "trigger": "live and t >= mildAt + 5",
+      "question": "Mr. Rossi is coughing hard and says something went down the wrong way. What do you do now, and what would make you act differently?",
+      "parts": [
+        {
+          "label": "Now",
+          "criteria": "Stays with him and encourages him to keep coughing because forceful coughing with speech means air is moving (mild obstruction); does not give back blows, abdominal thrusts, water or a finger sweep while he can cough and speak; watches him closely.",
+          "modelAnswer": "He can cough and talk, so air is moving: stay with him, encourage him to keep coughing and watch him. No back blows, thrusts, water or finger in the mouth while he can cough."
+        },
+        {
+          "label": "If it changes",
+          "criteria": "Names at least two signs of severe obstruction (cannot speak, silent or weak cough, cannot breathe, hands at the throat, blue lips) and the response: shout for help and activate the emergency response while staying, then cycles of 5 back blows and 5 abdominal thrusts until it comes out; CPR if he becomes unresponsive. Stays within the aide's role (no medications or orders).",
+          "modelAnswer": "If he can't speak or cough, or turns blue with his hands at his throat, that is severe: shout for help so the nurse and emergency team come while I stay, then 5 back blows and 5 abdominal thrusts, again and again until it comes out. If he goes limp, lower him to the floor and start CPR, looking in his mouth before breaths and taking out only what I can see."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {
+      "callWindow": {
+        "value": 30,
+        "source": {
+          "cite": "Kleinman ME, Buick JE, Huber N, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+          "checkedAt": "2026-11-10",
+          "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+          "note": "Emergency response activated within 30 s of the severe signs (the expert path shouts at 2 s); the guideline says activate, without a number."
+        }
+      },
+      "rescueWindow": {
+        "value": 20,
+        "source": {
+          "cite": "Kleinman ME, Buick JE, Huber N, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+          "checkedAt": "2026-11-10",
+          "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+          "note": "First back blows within 20 s of the severe signs (the expert path starts at 3 s); the guideline gives the sequence, not a time."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "obst == \"cleared\" and breathing and not documented and t >= 899",
+      "class": "recovered",
+      "rationale": "He is breathing again, but a resident who needed back blows and abdominal thrusts must be checked by the nurse and the event recorded; leaving the report or note undone is a gap, not harm in itself.",
+      "source": {
+        "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 3.2 Emergency Situations",
+        "checkedAt": "2026-11-10",
+        "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/3-2-emergency-situations/",
+        "note": "Read 2026-11-10: notify the nurse at any sign of choking and act to clear the airway; encourage forceful coughing; a person who cannot cough, speak or breathe needs immediate help; CPR if the person becomes unconscious; seek medical attention afterward. The chapter describes abdominal thrusts only and predates the 2025 AHA back-blow sequence, which this scenario follows instead."
+      }
+    }
+  },
+  "endings": {
+    "anoxic": {
+      "label": "Too long without air",
+      "class": "harm",
+      "when": "live and not breathing and noAir >= anoxicSec",
+      "terminal": true,
+      "narrative": "Mr. Rossi has gone {round(noAir / 60)} minutes without air moving. Paramedics take over and transport him. He has a pulse, but a brain without oxygen for this long is often injured."
+    },
+    "safe": {
+      "label": "Cleared while awake, help called, reported",
+      "class": "target",
+      "when": "documented and clearedConscious and shouted and isNull(leftAt) and not isNull(helpAt) and timeAt(helpAt) - timeAt(severeAt) <= callWindow and not isNull(rescueAt) and timeAt(rescueAt) - timeAt(severeAt) <= rescueWindow",
+      "terminal": true,
+      "narrative": "The food came out {(timeAt(clearedAt) - timeAt(severeAt))|duration} after his airway closed, before he lost consciousness. The nurse checked him and he stays in the dining room with staff close by. Your report and note are in the record."
+    },
+    "breathingAgain": {
+      "label": "Breathing again, by a harder route",
+      "class": "recovered",
+      "when": "documented",
+      "terminal": true,
+      "narrative": "Mr. Rossi is breathing again after {(timeAt(clearedAt) - timeAt(severeAt))|duration} without air. The nurse sends him to the hospital to be checked."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its 15-minute limit with the report or note still undone."
+    }
+  },
+  "scoring": {
+    "criteria": [
+      {
+        "id": "helpCalled",
+        "label": "Called for help without leaving him",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(helpAt) or isNull(severeAt)",
+            "score": "missed",
+            "why": "You did not call for help."
+          },
+          {
+            "when": "not isNull(leftAt)",
+            "score": "partial",
+            "why": "You went to find the nurse yourself and left him alone."
+          },
+          {
+            "when": "timeAt(helpAt) <= timeAt(severeAt) + callWindow",
+            "score": "met",
+            "why": "Help called at {timeAt(helpAt)|clock}, {max(0, timeAt(helpAt) - timeAt(severeAt))|duration} after the severe signs, staying with him."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Help called {(timeAt(helpAt) - timeAt(severeAt))|duration} after the severe signs; the expert shouts at once."
+          }
+        ]
+      },
+      {
+        "id": "rescue",
+        "label": "Started back blows or abdominal thrusts quickly while he was awake",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(rescueAt)",
+            "score": "missed",
+            "why": "No back blows or abdominal thrusts while he was awake and choking."
+          },
+          {
+            "when": "timeAt(rescueAt) - timeAt(severeAt) <= rescueWindow",
+            "score": "met",
+            "why": "First set {(timeAt(rescueAt) - timeAt(severeAt))|duration} after the severe signs."
+          },
+          {
+            "when": "timeAt(rescueAt) - timeAt(severeAt) <= rescuePartialWindow",
+            "score": "partial",
+            "why": "First set {(timeAt(rescueAt) - timeAt(severeAt))|duration} after the severe signs; the expert starts within seconds."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "First set more than 45 s after the severe signs."
+          }
+        ]
+      },
+      {
+        "id": "sequence",
+        "label": "Used the 2025 sequence: 5 back blows, then 5 abdominal thrusts",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "blowSets + thrustSets == 0",
+            "score": "na",
+            "why": "No sets were given while he was awake."
+          },
+          {
+            "when": "firstSet == \"blows\" and thrustSets >= 1",
+            "score": "met",
+            "why": "Started with back blows and alternated with abdominal thrusts."
+          },
+          {
+            "when": "firstSet == \"blows\" or (blowSets >= 1 and thrustSets >= 1)",
+            "score": "partial",
+            "why": "Back blows and thrusts both count, but the 2025 sequence is 5 back blows, then 5 abdominal thrusts, repeated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Abdominal thrusts only: the 2025 AHA sequence starts with 5 back blows."
+          }
+        ]
+      },
+      {
+        "id": "mildRight",
+        "label": "Let him cough while he could (mild choking)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "mildInterfere",
+            "score": "missed",
+            "why": "Back blows or thrusts while he was still coughing and talking. Let a forceful cough work and watch."
+          },
+          {
+            "when": "not isNull(encouragedAt)",
+            "score": "met",
+            "why": "Stayed and encouraged him to cough while air was moving."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "No harm done, but encouraging him to keep coughing while you watch is the step."
+          }
+        ]
+      },
+      {
+        "id": "noHarmfulAids",
+        "label": "No blind finger sweep and no water",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "sweeps == 0 and not waterGiven",
+            "score": "met",
+            "why": "No blind sweeps and no water."
+          },
+          {
+            "when": "sweeps > 0",
+            "score": "missed",
+            "why": "A blind finger sweep can push the food further in (AHA 2025: do not perform)."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Water does not clear a blocked airway; he cannot swallow it."
+          }
+        ]
+      },
+      {
+        "id": "stayed",
+        "label": "Stayed with him",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(leftAt)",
+            "score": "met",
+            "why": "You never left him."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "You left him alone at {timeAt(leftAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "cpr",
+        "label": "Once he went limp: to the floor, compressions, look before breaths",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(collapseAt)",
+            "score": "na",
+            "why": "He never lost consciousness."
+          },
+          {
+            "when": "isNull(cprAt)",
+            "score": "missed",
+            "why": "No compressions after he went limp."
+          },
+          {
+            "when": "timeAt(cprAt) - timeAt(collapseAt) <= cprWindow and objectSeen",
+            "score": "met",
+            "why": "Compressions {(timeAt(cprAt) - timeAt(collapseAt))|duration} after he went limp; looked and took out only what you could see."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Compressions started {(timeAt(cprAt) - timeAt(collapseAt))|duration} after he went limp, or the food was never found by looking before breaths."
+          }
+        ]
+      },
+      {
+        "id": "report",
+        "label": "Reported to the nurse in objective words",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not reported",
+            "score": "missed",
+            "why": "No report to the nurse."
+          },
+          {
+            "when": "reportFull",
+            "score": "met",
+            "why": "What you saw, what you did and how he is now, in objective words."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Reported, but part of it was opinion or vague ('ate too fast', 'did the Heimlich', 'fine now')."
+          }
+        ]
+      },
+      {
+        "id": "documented",
+        "label": "Wrote an objective note",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not documented",
+            "score": "missed",
+            "why": "No note written."
+          },
+          {
+            "when": "documentedObjective",
+            "score": "met",
+            "why": "Times, observations, actions and his words."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "A note, but with opinion and blame instead of observations."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "whatNow",
+        "label": "Written reasoning: mild versus severe choking and the response",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toHelp",
+        "label": "Severe signs to calling for help",
+        "value": "isNull(helpAt) or isNull(severeAt) ? -1 : max(0, timeAt(helpAt) - timeAt(severeAt))",
+        "format": "duration",
+        "expert": "a few seconds"
+      },
+      {
+        "id": "toRescue",
+        "label": "Severe signs to the first back blows",
+        "value": "isNull(rescueAt) or isNull(severeAt) ? -1 : timeAt(rescueAt) - timeAt(severeAt)",
+        "format": "duration",
+        "expert": "a few seconds"
+      },
+      {
+        "id": "noAir",
+        "label": "Time without air",
+        "value": "round(noAir)",
+        "format": "duration",
+        "expert": "about 35 s"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "12:15:30",
+        "text": "He coughs hard and can talk: ask, stay, encourage the cough, watch."
+      },
+      {
+        "at": "12:16:15",
+        "text": "Silent, hands at his throat, lips blue: ask 'Are you choking?' (he nods), shout for help so the nurse and emergency team come, and stay."
+      },
+      {
+        "at": "12:16:18",
+        "text": "5 back blows, then 5 abdominal thrusts, then back blows: the food comes out about 30 s after the airway closed."
+      },
+      {
+        "at": "12:17:45",
+        "text": "Nurse arrives: report what you saw, what you did and how he is now in objective words, then write the note."
+      }
+    ],
+    "debrief": {
+      "safe": {
+        "headline": "Cleared while awake, help called, reported",
+        "body": "You let the cough work, recognized the moment it stopped working, called for help without leaving, and used the 2025 sequence. That is the expert path."
+      },
+      "breathingAgain": {
+        "headline": "Breathing again, by a harder route",
+        "body": "He is breathing, but it took longer than it needed to or he lost consciousness on the way. Look at the seconds after the cough went silent: shout, stay, 5 back blows and 5 thrusts."
+      },
+      "anoxic": {
+        "headline": "Too long without air",
+        "body": "The most useful kind of run to learn from. Find the moment the cough went silent, and what shouting for help and starting back blows right then would have changed."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "He was breathing, but the report or the note never happened. A resident who needed thrusts must be checked by the nurse."
+      }
+    },
+    "modelReasoning": "A forceful cough with speech is mild choking: air is moving, so the aide stays, encourages the cough and watches, and does not slap, thrust, sweep or give water. When the cough goes silent and he cannot speak, with his hands at his throat and blue lips, it is severe: shout for help so the nurse and emergency team come while staying with him, then repeated cycles of 5 back blows and 5 abdominal thrusts (AHA 2025) until it comes out. If he goes limp: lower him to the floor, start CPR with compressions, and look in the mouth before breaths, taking out only what can be seen. Afterward the nurse must check him; the aide reports what was seen, done and heard in objective words and writes it down."
+  },
+  "teaching": {
+    "fiveAndFive": {
+      "during": "nurseT",
+      "when": "obst == \"severe\" and responsive",
+      "ask": "While the nurse is on her way: how many back blows before you switch to abdominal thrusts?",
+      "choices": [
+        {
+          "id": "one",
+          "label": "One, then thrusts"
+        },
+        {
+          "id": "five",
+          "label": "Five, then five thrusts, and repeat"
+        },
+        {
+          "id": "until",
+          "label": "Keep slapping until it comes out"
+        }
+      ],
+      "expect": "five",
+      "explain": "The 2025 AHA guideline: repeated cycles of 5 back blows followed by 5 abdominal thrusts until the object comes out or the person becomes unresponsive. Earlier courses taught abdominal thrusts alone.",
+      "source": {
+        "cite": "Kleinman ME, Buick JE, Huber N, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+        "checkedAt": "2026-11-10",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+        "note": "Read 2026-11-10: severe FBAO in an adult, repeated cycles of 5 back blows (slaps) followed by 5 abdominal thrusts until the object is expelled or the person becomes unresponsive (COR 1, LOE B-NR); activate the emergency response system for severe FBAO (COR 1); mild FBAO, let the person clear the airway by coughing while watching for severe signs (COR 1); unresponsive, start CPR beginning with compressions (COR 1); remove a visible foreign body when opening the airway for breaths (COR 1); blind finger sweeps should not be performed (COR 3: Harm); compressions 100-120/min, at least 2 in (5 cm), 30:2 before an advanced airway."
+      }
+    },
+    "lookFirst": {
+      "during": "setDoneT",
+      "when": "not responsive and not isNull(cprAt)",
+      "ask": "After these compressions you will give breaths. What do you do first?",
+      "choices": [
+        {
+          "id": "sweep",
+          "label": "Sweep the mouth with a finger"
+        },
+        {
+          "id": "look",
+          "label": "Open the mouth, look, and take out only what you can see"
+        },
+        {
+          "id": "skip",
+          "label": "Go straight to the breaths"
+        }
+      ],
+      "expect": "look",
+      "explain": "Remove a foreign body you can see when you open the airway for breaths. Blind finger sweeps are a 'do not do' (they can push the object further in).",
+      "source": {
+        "cite": "Kleinman ME, Buick JE, Huber N, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+        "checkedAt": "2026-11-10",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+        "note": "Read 2026-11-10: severe FBAO in an adult, repeated cycles of 5 back blows (slaps) followed by 5 abdominal thrusts until the object is expelled or the person becomes unresponsive (COR 1, LOE B-NR); activate the emergency response system for severe FBAO (COR 1); mild FBAO, let the person clear the airway by coughing while watching for severe signs (COR 1); unresponsive, start CPR beginning with compressions (COR 1); remove a visible foreign body when opening the airway for breaths (COR 1); blind finger sweeps should not be performed (COR 3: Harm); compressions 100-120/min, at least 2 in (5 cm), 30:2 before an advanced airway."
+      }
+    },
+    "stillCheck": {
+      "during": "nurseT",
+      "when": "obst == \"cleared\" and breathing",
+      "ask": "He is breathing and talking now. Does he still need the nurse to check him?",
+      "choices": [
+        {
+          "id": "yes",
+          "label": "Yes: abdominal thrusts can injure, and food may have gone into the lungs"
+        },
+        {
+          "id": "no",
+          "label": "No: if he is talking he is fine"
+        }
+      ],
+      "expect": "yes",
+      "explain": "After choking stops, the person still needs medical attention, and anyone who needed abdominal thrusts should be checked. The aide's job is to report what happened in objective words; the nurse assesses.",
+      "source": {
+        "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 3.2 Emergency Situations",
+        "checkedAt": "2026-11-10",
+        "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/3-2-emergency-situations/",
+        "note": "'Seek medical attention for the client' after choking (read 2026-11-10). FLAG: the injury risk from abdominal thrusts is general first-aid teaching, not quoted from this source."
+      }
+    }
+  }
+}

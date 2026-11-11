@@ -41,6 +41,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // ---- REQ-223 (batch S2b): post-op hemorrhage (CCRN Adult), choking and a
   // fall (CNA, nurse-aide scope). Keep these entries together. ----
   entry("CCRNADULT", "bleeding-after-whipple"),
+  entry("CNA", "resident-chokes-at-lunch"),
   // ---- end REQ-223 (S2b) ----
 ];
 

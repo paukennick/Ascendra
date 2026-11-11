@@ -50,6 +50,7 @@ export function spec(): StepsSpec {
           teach(c);
           c.act("surgeon", FULL);
           afterCall(c);
+          c.act("look");
           c.act("erBlood");
           teach(c);
           c.act("mtp");
