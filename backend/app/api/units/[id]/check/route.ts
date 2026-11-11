@@ -1,4 +1,5 @@
 import { hasUnstorableText } from "@/lib/text-input";
+import { requireStudyNotice } from "@/lib/study-notice";
 import { ok, badRequest, notFound } from "@/lib/http";
 import { requireUser } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForUnit } from "@/lib/auth/requireAcknowledgement";
@@ -45,6 +46,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireUser(req);
+    // REQ-205 (FAIL-907): this route sends what the learner wrote to the model, so
+    // the study notice that says so must have been accepted -- checked here, not
+    // only in the app.
+    await requireStudyNotice(user.id);
     if (!isUuid(id)) return notFound("Unit not found");
     const body = await req.json().catch(() => null);
     if (!isUuid(body?.checkId)) return badRequest("checkId is required");

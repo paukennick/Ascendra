@@ -11,7 +11,7 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
     <Screen>
       <H1>{doc.title}</H1>
       <Muted style={{ marginTop: spacing.xs }}>
-        {doc.status ? `${doc.status} ` : ""}Last updated {doc.updated}.
+        Last updated {doc.updated}.
       </Muted>
       {doc.intro ? <Body style={{ marginTop: spacing.md }}>{doc.intro}</Body> : null}
       {doc.sections.map((s) => (

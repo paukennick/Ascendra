@@ -2,6 +2,7 @@
 // 404 for an objective in someone else's private course, before any lesson is
 // read or any model call is made. Calls the route handlers directly.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -21,7 +22,10 @@ const auth = (u: string) => ({ authorization: `Bearer ${signAccessToken({ sub: u
 const ctx = { params: Promise.resolve({ id: objective }) };
 
 before(async () => {
-  for (const u of [owner, other]) await query(`insert into app_users (id, email) values ($1, $2)`, [u, `${u}@example.test`]);
+  for (const u of [owner, other]) {
+    await query(`insert into app_users (id, email) values ($1, $2)`, [u, `${u}@example.test`]);
+    await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
+  }
   await query(
     `insert into subject_tracks (id, code, title, track_type, user_id) values ($1, $2, 'Private', 'certification', $3)`,
     [track, `PRIV-${run}`, owner]

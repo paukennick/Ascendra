@@ -7,6 +7,7 @@
 // model; the finished run records one attempt with the answers in words.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 delete process.env.LABS_SERVE_UNREVIEWED;
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -55,6 +56,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `ilab-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const headers = (u: string, protocol: string | null) => ({

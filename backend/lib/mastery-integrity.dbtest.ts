@@ -3,6 +3,7 @@
 // PBQ route handlers are called directly; the model is a fake client that
 // records what it was sent and answers with a fixed verdict.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -38,6 +39,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `mi-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const auth = (u: string) => ({

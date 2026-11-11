@@ -7,6 +7,7 @@
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 // REQ-125: unreviewed labs are served by default; the tests run on the default.
 delete process.env.LABS_SERVE_UNREVIEWED;
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { source } from "../supabase/seed/sources";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
@@ -76,6 +77,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `lab-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const auth = (u: string) => ({ authorization: `Bearer ${signAccessToken({ sub: u, email: `${u}@example.test` })}`, "content-type": "application/json" });
@@ -707,6 +709,7 @@ describe("REQ-125 (reverses REQ-124 decision 11): serving and the lab disclaimer
 
   test("REQ-165: a clinical or fitness lab can't be started or graded until the study notice is accepted (403)", async () => {
     const u = await newUser();
+    await query(`delete from legal_acceptances where user_id = $1 and document = 'study_notice'`, [u]); // this test is about not having accepted it
     // An acknowledgement under the old per-family gate (051) no longer counts.
     await query(`insert into lab_disclaimer_acknowledgements (user_id, family, version) values ($1, 'clinical', 1), ($1, 'fitness', 1)`, [u]);
     for (const lab of [cLab, fLab]) {

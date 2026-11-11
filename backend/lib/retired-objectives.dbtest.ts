@@ -33,6 +33,7 @@ import * as errors from "../app/api/errors/route";
 import * as pbq from "../app/api/pbq/route";
 import * as unitRoute from "../app/api/units/[id]/route";
 import * as unitCheck from "../app/api/units/[id]/check/route";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 
 const run = Date.now().toString(36);
 const track = randomUUID();
@@ -68,6 +69,7 @@ before(async () => {
   } as never);
   user = randomUUID();
   await query(`insert into app_users (id, email) values ($1, $2)`, [user, `${user}@example.test`]);
+  await recordStudyNoticeAcceptance(user); // REQ-205 (FAIL-907): model routes need the notice
   await query(`insert into subject_tracks (id, code, title, track_type, user_id) values ($1, $2, 'Retired reach', 'certification', null)`, [track, `RR${run}`]);
   await query(`insert into course_units (id, track_id, title, sort_order, weight) values ($1, $2, 'Kept', 1, 50)`, [unitOk, track]);
   await query(`insert into course_units (id, track_id, title, sort_order, weight, retired_at) values ($1, $2, 'Gone', 2, 50, now() - interval '1 day')`, [unitGone, track]);

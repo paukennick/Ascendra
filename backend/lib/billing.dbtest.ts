@@ -13,6 +13,7 @@
 //      billing issue.
 //   4. Grants, web checkout, /api/billing/me and the export.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -89,6 +90,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `bill-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const billingRows = async (u: string) =>

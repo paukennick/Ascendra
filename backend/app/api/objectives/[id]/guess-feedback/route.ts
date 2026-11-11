@@ -1,4 +1,5 @@
 import { getLessonFor } from "@/lib/lesson-store";
+import { requireStudyNotice } from "@/lib/study-notice";
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError, readJson } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { guessFeedbackPrompt, guessFeedbackSchema } from "@/lib/prompts";
@@ -38,6 +39,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!g.ok) return badRequest(g.error);
 
     const user = await requireUser(req);
+    // REQ-205 (FAIL-907): this route sends what the learner wrote to the model, so
+    // the study notice that says so must have been accepted -- checked here, not
+    // only in the app.
+    await requireStudyNotice(user.id);
     // REQ-129: 404 for an objective in another user's private track, before
     // anything is read, rate-limited or sent to Anthropic.
     if (!(await taughtObjective(id, user.id))) return notFound("Objective not found");

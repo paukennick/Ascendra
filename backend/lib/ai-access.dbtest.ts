@@ -34,6 +34,7 @@ import { GET as lessonGet, POST as regenPost } from "../app/api/objectives/[id]/
 import { POST as explainPost } from "../app/api/objectives/[id]/explain-back/route";
 import { POST as guessPost } from "../app/api/objectives/[id]/guess-feedback/route";
 import { POST as pbqPost } from "../app/api/pbq/route";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 
 const run = Date.now().toString(36);
 const track = randomUUID(), unit = randomUUID(), obj = randomUUID(), scen = randomUUID();
@@ -66,6 +67,7 @@ async function newUser(opts: { email?: string; name?: string } = {}): Promise<st
     opts.email ?? `aimodes-${run}-${users.length}@example.test`,
     opts.name ?? null,
   ]);
+  await recordStudyNoticeAcceptance(u); // REQ-205 (FAIL-907): model routes need the notice
   return u;
 }
 const emailOf = async (u: string) => (await queryOne<{ email: string }>(`select email from app_users where id = $1`, [u]))!.email;

@@ -1,5 +1,5 @@
+import { legalContext } from "@/lib/legal";
 import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
-import { isLegacyClient } from "@/lib/client-version";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { STUDY_NOTICE_VERSION, isCurrentStudyNoticeVersion, recordStudyNoticeAcceptance } from "@/lib/study-notice";
 import { onboardingState } from "@/lib/onboarding";
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       return badRequest(`version must be the current study notice version (${STUDY_NOTICE_VERSION})`);
     }
     await recordStudyNoticeAcceptance(user.id);
-    return ok(await onboardingState(user.id, { legacy: isLegacyClient(req) }));
+    return ok(await onboardingState(user.id, legalContext(req)));
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

@@ -5,6 +5,8 @@ import Feather from "@expo/vector-icons/Feather";
 import { BrandMark, Screen, Card, H1, Muted, TextField, Button, ErrorBanner } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
 import { TERMS_VERSION } from "@/lib/legal";
+import { ageCheckError } from "@/lib/ageConfirmation";
+import { AgeCheckbox } from "@/components/AgeCheckbox";
 import { ApiError } from "@/api/client";
 import { colors, fonts } from "@/lib/theme";
 
@@ -16,6 +18,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [ageOk, setAgeOk] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -37,10 +40,16 @@ export default function Register() {
       setError("You need to agree to the Terms and Privacy Policy to create an account.");
       return;
     }
+    // REQ-205: 16 or older, confirmed with one tick.
+    const ageError = ageCheckError(ageOk);
+    if (ageError) {
+      setError(ageError);
+      return;
+    }
     setSubmitting(true);
     try {
       // REQ-119: the version agreed to is recorded with the account.
-      await register(email.trim(), password, displayName.trim() || undefined, TERMS_VERSION);
+      await register(email.trim(), password, displayName.trim() || undefined, TERMS_VERSION, ageOk);
       router.replace({ pathname: "/verify-email-pending", params: { email: email.trim(), from: "register" } });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
@@ -128,6 +137,7 @@ export default function Register() {
             .
           </Text>
         </Pressable>
+        <AgeCheckbox checked={ageOk} onToggle={() => setAgeOk((v) => !v)} />
         <Button label="Create account" onPress={onSubmit} loading={submitting} icon="user-plus" />
       </Card>
       <Button label="Already have an account? Log in" variant="link" onPress={() => router.replace("/login")} />

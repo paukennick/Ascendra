@@ -1,5 +1,6 @@
 import { consumeGradedAnswer } from "@/lib/ai-access";
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError, readJson } from "@/lib/http";
+import { requireStudyNotice } from "@/lib/study-notice";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import {
   findClientAttempt,
@@ -106,6 +107,10 @@ export async function POST(req: Request) {
     }
 
     const authUser = await requireUser(req);
+    // REQ-205 (FAIL-907): a written answer goes to the model, so the study
+    // notice that says so must have been accepted -- checked here, not only in
+    // the app. A multiple-choice answer sends nothing and is not held up.
+    if (format === "open") await requireStudyNotice(authUser.id);
 
     // REQ-129: ids in the body are untrusted; the objective must be in a track
     // the caller can see, and a unitId sent alongside must be its own unit.

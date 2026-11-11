@@ -1,4 +1,5 @@
 import { ok, badRequest, notFound } from "@/lib/http";
+import { requireStudyNotice } from "@/lib/study-notice";
 import { requireUser } from "@/lib/auth/requireUser";
 import { isUuid } from "@/lib/visibility";
 import { validClientAttemptId } from "@/lib/lesson-progress";
@@ -34,6 +35,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (format === "open") {
       if (typeof body.answer !== "string" || !body.answer.trim()) return badRequest("answer is required for format 'open'");
       if (body.answer.length > MAX_ANSWER) return badRequest(`answer must be at most ${MAX_ANSWER} characters`);
+      // REQ-205 (FAIL-907): this route sends what the learner wrote to the model, so
+      // the study notice that says so must have been accepted -- checked here, not
+      // only in the app.
+      await requireStudyNotice(user.id);
     }
     const result = await answerItem(user.id, id, pos, {
       format,

@@ -1,7 +1,6 @@
 import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { LEGAL_VERSIONS, acceptedDocumentVersions, recordAcceptance } from "@/lib/legal";
-import { isLegacyClient } from "@/lib/client-version";
+import { LEGAL_VERSIONS, acceptedDocumentVersions, recordAcceptance, legalContext } from "@/lib/legal";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +18,7 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => null);
     // REQ-175: a legacy client (no X-Ascendra-App) may echo the previous
     // versions; they are recorded exactly as sent.
-    const versions = acceptedDocumentVersions(body, { legacy: isLegacyClient(req) });
+    const versions = acceptedDocumentVersions(body, legalContext(req));
     if (!versions) {
       return badRequest("These terms have been updated. Reload the page to see the current version.");
     }

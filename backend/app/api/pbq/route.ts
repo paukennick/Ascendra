@@ -1,5 +1,6 @@
 import { consumeGradedAnswer } from "@/lib/ai-access";
 import { query, queryOne } from "@/lib/db";
+import { requireStudyNotice } from "@/lib/study-notice";
 import { gradePbqAnswer } from "@/lib/pbq-grading";
 import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError, readJson } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
@@ -167,6 +168,10 @@ export async function POST(req: Request) {
     const confidence: number | null = rawConfidence ?? null;
 
     const authUser = await requireUser(req);
+    // REQ-205 (FAIL-907): this route sends what the learner wrote to the model, so
+    // the study notice that says so must have been accepted -- checked here, not
+    // only in the app.
+    await requireStudyNotice(authUser.id);
 
     // REQ-129: reach the scenario through its unit and track so a scenario in
     // another user's private track is a 404, and gate on the scenario's own

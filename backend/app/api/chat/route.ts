@@ -1,4 +1,5 @@
 import { query } from "@/lib/db";
+import { requireStudyNotice } from "@/lib/study-notice";
 import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError, readJson } from "@/lib/http";
 import { callClaude, getFastModel } from "@/lib/anthropic";
 import { buildChatRequest } from "@/lib/chat-request";
@@ -73,6 +74,10 @@ export async function POST(req: Request) {
 
     const user = await requireUser(req);
     const userId = user.id;
+    // REQ-205 (FAIL-907): this route sends what the learner wrote to the model, so
+    // the study notice that says so must have been accepted -- checked here, not
+    // only in the app.
+    await requireStudyNotice(userId);
 
     // REQ-129: the track must be visible to the caller, and a unit must be
     // visible and belong to that track (it is stored on the message and

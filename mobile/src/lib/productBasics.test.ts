@@ -272,7 +272,7 @@ describe("privacy policy AI facts (H3)", () => {
     }
     assert.match(page, /may not train its models/);
     assert.match(page, /within 30 days/);
-    assert.match(page, /status: DRAFT/);
-    assert.match(content, /const DRAFT = "Draft for legal review/);
+    // REQ-205: Nick removed the draft banner on 2026-11-09; no document carries a status any more.
+    assert.doesNotMatch(content, /status: DRAFT|const DRAFT|Draft for legal review/);
   });
 });

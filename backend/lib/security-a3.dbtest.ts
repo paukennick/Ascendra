@@ -7,6 +7,7 @@ process.env.CHOICE_ORDER_SECRET ??= "choice-secret-a3sec";
 // REQ-114: the fact-check gate has its own tests (lib/item-quality.dbtest.ts);
 // the fake model here answers only these routes' own calls.
 process.env.ITEM_FACT_CHECK = "off";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, before, after, describe } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -63,6 +64,7 @@ async function newUser() {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id,email) values ($1,$2)`, [u, `${u}@x.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 function fakeParse(body: any) {

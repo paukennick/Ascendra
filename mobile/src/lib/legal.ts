@@ -5,7 +5,12 @@
 // sends it when someone signs up, and the server records it only if it is
 // the current one. Change both, together with the pages, when the text
 // changes in a way people should agree to again.
-export const TERMS_VERSION = "2026-11-09";
+export const TERMS_VERSION = "2026-11-10";
+
+// REQ-205: sent on every request (src/api/client.ts) so the server knows
+// which text this build shows. Without it, an installed build that still
+// carries an older text could not be told from one that carries the new text.
+export const LEGAL_VERSION_HEADER = "X-Ascendra-Legal";
 
 export interface TermsState {
   currentVersion: string;

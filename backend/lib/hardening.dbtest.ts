@@ -4,6 +4,7 @@
 // before REQ-135; every input bug has a boundary test. Route handlers are
 // called directly; nothing calls the model.
 process.env.AUTH_JWT_SECRET ??= "hardening-test-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import crypto, { randomUUID } from "node:crypto";
@@ -53,6 +54,7 @@ async function makeUser(tag: string, extra: { password?: string; mfa?: boolean }
      values ($1, $2, $3, now(), null, $4, $4)`,
     [id, email, hash, extra.mfa ?? false]
   );
+  await recordStudyNoticeAcceptance(id); // REQ-205: model routes need the notice
   users.push(id);
   return { id, email };
 }

@@ -156,7 +156,7 @@ describe("new accounts start with everything seen", () => {
       new Request("http://t/api/auth/register", {
         method: "POST",
         headers: { "content-type": "application/json", "x-forwarded-for": `10.9.${Math.floor(Math.random() * 250)}.1` },
-        body: JSON.stringify({ email, password: testPw(`wn-${run}-long-enough`) }),
+        body: JSON.stringify({ email, password: testPw(`wn-${run}-long-enough`), ageConfirmed: true }),
       })
     );
     assert.equal(res.status, 201);
@@ -182,7 +182,7 @@ describe("new accounts start with everything seen", () => {
       new Request("http://t/api/auth/oauth/google", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ idToken: "stub" }),
+        body: JSON.stringify({ idToken: "stub", ageConfirmed: true }),
       })
     );
     assert.equal(res.status, 200, await res.clone().text());

@@ -107,7 +107,25 @@
   builds keep sending the old one until they update, and no OTA may be
   possible. Move the old value to `PREVIOUS_LEGAL_VERSIONS` (lib/legal.ts) so
   legacy clients (no `X-Ascendra-App`) can still accept what they show, and
-  never answer a version gate with a raw validation string.
+  never answer a version gate with a raw validation string. REQ-205
+  (FAIL-901): a request's headers say which text its build carries
+  (`legalContext`, lib/legal.ts): no `X-Ascendra-App` is the oldest
+  generation, `X-Ascendra-App` without `X-Ascendra-Legal` is the next, and a
+  build declaring `X-Ascendra-Legal` carries exactly that text. Each
+  generation still installed can accept its own version, recorded as sent, and
+  its launch gate is satisfied by it; a build declaring the current version
+  must accept the current one (that is how an updated app is asked once).
+  At the next bump move the old `LEGAL_VERSIONS` into
+  `PREVIOUS_LEGAL_VERSIONS` and leave `UNDECLARED_LEGAL_VERSIONS` and
+  `LEGACY_LEGAL_VERSIONS` frozen; a mobile test checks `TERMS_VERSION`.
+- Legal and privacy text (REQ-205, FAIL-900..912): a sentence about what is
+  kept, deleted or sent matches the code, the inventory
+  (docs/legal/data-inventory.md, which a DB test checks names every table with
+  a `user_id`) and the delete-account page, in the same change. A new
+  per-learner table says what survives account deletion. A new route that sends
+  learner text to the model calls `requireStudyNotice` (lib/study-notice.ts).
+  No bracketed placeholder ships in legal text, and the contact address is the
+  `support-contact.ts` constant.
 - A 401 that means "what you typed is wrong" (a reauth refusal) carries
   `reauthRequired: true`; the app never refreshes and resends it (REQ-177,
   FAIL-562). A lock or sign-out added to the app keeps in-progress screens
