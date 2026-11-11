@@ -162,3 +162,33 @@ describe("study reminders (FAIL-1057..1059)", () => {
     assert.match(auth.slice(auth.indexOf("async function clearUserLocalData"), auth.indexOf("const REFRESH_TOKEN_KEY")), /await cancelStudyReminders\(\)/);
   });
 });
+
+describe("study notice and PBQ load failures (FAIL-1060, FAIL-1061)", () => {
+  test("a 403 study_notice_required reloads the onboarding state", async () => {
+    const { isStudyNoticeRequired } = await import("./studyNotice.ts");
+    assert.equal(isStudyNoticeRequired(403, { code: "study_notice_required" }), true);
+    assert.equal(isStudyNoticeRequired(403, { code: "other" }), false);
+    assert.equal(isStudyNoticeRequired(401, { code: "study_notice_required" }), false);
+    assert.equal(isStudyNoticeRequired(403, null), false);
+    (globalThis as { __DEV__?: boolean }).__DEV__ = false;
+    const { api, registerStudyNoticeRequiredHook, registerAuthHooks } = await import("../api/client.ts");
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (async () => new Response(JSON.stringify({ error: "Before you start", code: "study_notice_required" }), { status: 403 })) as typeof fetch;
+    try {
+      let reloads = 0;
+      registerAuthHooks({ getAccessToken: () => "t", refresh: async () => true, onAuthExpired: () => undefined });
+      registerStudyNoticeRequiredHook(() => void reloads++);
+      await assert.rejects(api.get("/api/units/x/anything"));
+      assert.equal(reloads, 1);
+    } finally {
+      registerStudyNoticeRequiredHook(null);
+      globalThis.fetch = realFetch;
+    }
+    assert.match(read("../auth/OnboardingContext.tsx"), /registerStudyNoticeRequiredHook\(/);
+  });
+  test("the PBQ picker shows a load failure, not 'No units yet'", () => {
+    const src = read("../../app/(app)/course/[trackId]/pbq.tsx");
+    assert.doesNotMatch(src, /\.catch\(\(\) => setUnits\(\[\]\)\)/);
+    assert.match(src, /units === null && unitsError \? <ErrorBanner/);
+  });
+});

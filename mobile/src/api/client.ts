@@ -4,7 +4,7 @@
 import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "../lib/errorMessage.ts";
 import { LEGAL_VERSION_HEADER, TERMS_VERSION } from "../lib/legal.ts";
 import { isSignedOutAuthRoute, refreshOutcome, type RefreshResult } from "../lib/sessionStore.ts";
-import { studyNoticeGate } from "../lib/studyNotice.ts";
+import { isStudyNoticeRequired, studyNoticeGate } from "../lib/studyNotice.ts";
 import { APP_PLATFORM_HEADER, APP_VERSION, APP_VERSION_HEADER, appHeaders, readUpdateRequired, type AppIdentity, type UpdateRequired } from "../lib/appVersion.ts";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
@@ -118,6 +118,14 @@ export function registerUpdateRequiredHook(hook: ((info: UpdateRequired) => void
   onUpdateRequired = hook;
 }
 
+// REQ-217 (FAIL-1061): the server says the study notice is not accepted; the
+// onboarding provider registers this to reload its state (which opens the notice).
+let onStudyNoticeRequired: (() => void) | null = null;
+
+export function registerStudyNoticeRequiredHook(hook: (() => void) | null): void {
+  onStudyNoticeRequired = hook;
+}
+
 export const DEFAULT_TIMEOUT_MS = 15_000;
 export const MODEL_TIMEOUT_MS = 180_000;
 
@@ -228,6 +236,13 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
         onUpdateRequired(update);
       } catch {
         /* the screen must never break the request's own error handling */
+      }
+    }
+    if (isStudyNoticeRequired(status, data) && onStudyNoticeRequired) {
+      try {
+        onStudyNoticeRequired();
+      } catch {
+        /* never let the reload break the request's own error handling */
       }
     }
     if ((status === 402 || status === 429) && data && onBillingRefusal) {
