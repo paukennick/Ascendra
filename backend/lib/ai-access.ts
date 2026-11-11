@@ -6,6 +6,7 @@ import { allowanceLimit, billingEnabled } from "@/lib/billing-config";
 import { recordCountedUse, whenPhrase, GIVES_ACCESS, type AllowanceUse } from "@/lib/entitlements";
 import {
   CEILING_CACHE_MS,
+  CEILING_FRESH_FRACTION,
   COACH_PREVIEW_MESSAGE,
   GLOBAL_PAUSE_MESSAGE,
   LESSON_PREPARING_MESSAGE,
@@ -86,6 +87,21 @@ export async function requireAiFeature(userId: string, feature: "coach" | "regen
 
 const NO_USE: AllowanceUse = { release: async () => {} };
 
+// REQ-216 (low): a counted use is given back on EVERY path that stores no
+// graded answer (the grader throws, the write fails, a copy of the same answer
+// was stored first), and never twice. `release` of the use itself is not
+// idempotent: two give-backs would hand the learner a free answer.
+export function releaseOnce(use: AllowanceUse): AllowanceUse {
+  let given = false;
+  return {
+    release: async () => {
+      if (given) return;
+      given = true;
+      await use.release();
+    },
+  };
+}
+
 // An AI-graded written answer (grade_open, explain-back, lab written parts,
 // sim reasoning, PBQ, unit check). When the mode gives this learner the Free
 // AI experience it is counted against Free's daily graded-answer allowance
@@ -131,9 +147,13 @@ export function resetGlobalSpendCache(): void {
 // Model spend across every learner since midnight UTC, reused for up to
 // CEILING_CACHE_MS per server instance. A failed read counts as no spend
 // (the per-learner budget still stands).
-export async function globalSpendTodayUsd(now = new Date()): Promise<number> {
+// `freshAtOrAbove` (REQ-216): the cached sum is not reused once it is at or
+// above this many dollars, so near the ceiling every check reads fresh.
+export async function globalSpendTodayUsd(now = new Date(), freshAtOrAbove?: number): Promise<number> {
   const day = utcDayStart(now).getTime();
-  if (cache && cache.day === day && now.getTime() - cache.at < CEILING_CACHE_MS) return cache.usd;
+  if (cache && cache.day === day && now.getTime() - cache.at < CEILING_CACHE_MS && (freshAtOrAbove === undefined || cache.usd < freshAtOrAbove)) {
+    return cache.usd;
+  }
   const usd = await globalSpendSinceUsd(new Date(day)).catch(() => 0);
   cache = { day, at: now.getTime(), usd };
   return usd;
@@ -142,7 +162,7 @@ export async function globalSpendTodayUsd(now = new Date()): Promise<number> {
 export async function globalCeilingReached(env: Env = process.env): Promise<boolean> {
   const ceiling = globalDailyCeilingUsd(env);
   if (ceiling === null) return false;
-  return (await globalSpendTodayUsd()) >= ceiling;
+  return (await globalSpendTodayUsd(new Date(), ceiling * CEILING_FRESH_FRACTION)) >= ceiling;
 }
 
 async function ceilingUserKind(userId: string, env: Env): Promise<AiUserKind> {

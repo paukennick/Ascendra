@@ -1,4 +1,4 @@
-import { consumeGradedAnswer } from "@/lib/ai-access";
+import { consumeGradedAnswer, releaseOnce } from "@/lib/ai-access";
 import { NextResponse } from "next/server";
 import { ok, unauthorized, forbidden, serverError } from "@/lib/http";
 import { AuthError } from "@/lib/auth/requireUser";
@@ -125,7 +125,10 @@ export async function submitLab(
     // the daily graded-answer allowance on a tier that has a count (Free);
     // given back if grading fails. At the limit the run stays open for later.
     // REQ-170: the count that applies is the learner's tier on this course.
-    const use = await consumeGradedAnswer(userId, async () => consumeAllowance(userId, "graded_answer", await tierForCourse(userId, lab.track_id))); // REQ-201
+    // REQ-216 (low): the use is counted before grading, so it is given back on
+    // every path that stores no graded step: the grader throws, the write fails,
+    // or a copy of this step was stored first (`replayed`).
+    const use = releaseOnce(await consumeGradedAnswer(userId, async () => consumeAllowance(userId, "graded_answer", await tierForCourse(userId, lab.track_id)))); // REQ-201
     const ctx = (await coachContextForObjective(lab.objective_id)) ?? undefined;
     const graded = await gradeLabStep(
       {
@@ -146,7 +149,11 @@ export async function submitLab(
       await use.release();
       throw err;
     });
-    const result = await recordStep(input, graded);
+    const result = await recordStep(input, graded).catch(async (err) => {
+      await use.release();
+      throw err;
+    });
+    if (result.replayed) await use.release();
     // The grader judged the lab's own rubric wrong: that is this learner's
     // flag on the lab, and enough of them pull it for a person to check.
     if (!result.replayed && graded.classification === KEY_SUSPECT) {

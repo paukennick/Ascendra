@@ -8,8 +8,9 @@ import type { CoachContext } from "@/lib/coach-context";
 import { reconciled, trivialAnswer, trivialGrade } from "@/lib/grade-consistency";
 import { coachContextForObjective, coachContextForTrack } from "@/lib/coach-context";
 import { queryOne } from "@/lib/db";
-import { factCheckGate, type CheckItem } from "@/lib/fact-check";
-import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
+import { factCheckGate, verdictClaims, verdictHolds, verdictUnchecked, type CheckItem } from "@/lib/fact-check";
+import { lowConfidenceOf, noteListedClaims, recordHoldback } from "@/lib/item-quality";
+import { steerText } from "@/lib/generation-gate";
 import {
   type CleanConceptSet,
   cleanConceptSets,
@@ -114,20 +115,35 @@ export async function ensureConceptSets(trackId: string, userId: string | null):
       objectives: objectives.map((o) => ({ unit: o.unit_title, title: o.title })),
       ctx,
     });
-    const out = await callClaudeStructured({
-      system,
-      messages: [{ role: "user", content: user }],
-      schema: conceptSetsSchema,
-      maxTokens: 8000,
-      model,
-      effort: "medium",
-      thinking: "off",
-      purpose: "concept_sets",
-      userId,
-    });
-    const kept = await holdUncertainSets(trackId, out.sets as RawConceptSet[], model);
-    const clean = cleanConceptSets(kept, objectives.map((o) => o.id), await existingSetKeys(trackId));
-    await saveConceptSets(trackId, await gateConceptSets(trackId, clean, ctx, model), "generated", model);
+    const attempt = async (steer: string | null) => {
+      const out = await callClaudeStructured({
+        system,
+        messages: [{ role: "user", content: steer ? `${user}\n\n${steer}` : user }],
+        schema: conceptSetsSchema,
+        maxTokens: 8000,
+        model,
+        effort: "medium",
+        thinking: "off",
+        purpose: "concept_sets",
+        userId,
+      });
+      const kept = await holdUncertainSets(trackId, out.sets as RawConceptSet[], model);
+      const clean = cleanConceptSets(kept.kept, objectives.map((o) => o.id), await existingSetKeys(trackId));
+      const gated = await gateConceptSets(trackId, clean, ctx, model);
+      const saved = await saveConceptSets(trackId, gated.kept, "generated", model);
+      return { saved: saved.length, held: kept.held + gated.held, errored: gated.errored, claims: [...kept.claims, ...gated.claims] };
+    };
+    let r = await attempt(null);
+    // REQ-216 (H2): when every card was held back, the course's cards are
+    // written once more, steered with what held the first draft back. (Not
+    // when the checker itself failed: that is retried on the next visit.)
+    if (!r.saved && r.held && !r.errored) r = await attempt(steerText(r.claims));
+    // FAIL-1011: nothing saved and something held back or unchecked used to
+    // finish as "ready" with no cards, and was never tried again (production:
+    // 4 of 4 cards held). It now finishes "failed", which a later visit retries.
+    if (!r.saved && (r.held || r.errored)) {
+      throw new Error(`no comparison card was saved (${r.held} held back, ${r.errored} not checked)`);
+    }
   });
 }
 
@@ -167,8 +183,8 @@ export async function generateLearnedSets(trackId: string, userId: string | null
       });
       // objectiveNumber 1 is this objective; any other number means "none".
       const kept = await holdUncertainSets(trackId, [out as RawConceptSet], model);
-      const clean = cleanConceptSets(kept, [c.objectiveId], await existingSetKeys(trackId));
-      await saveConceptSets(trackId, await gateConceptSets(trackId, clean, ctx, model), "learned", model);
+      const clean = cleanConceptSets(kept.kept, [c.objectiveId], await existingSetKeys(trackId));
+      await saveConceptSets(trackId, (await gateConceptSets(trackId, clean, ctx, model)).kept, "learned", model);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.warn(`[understanding] learned set failed for ${c.objectiveId}:`, (err as Error).message);
@@ -177,16 +193,29 @@ export async function generateLearnedSets(trackId: string, userId: string | null
   return made;
 }
 
-// REQ-114 (Audit 3 H1): a comparison card whose writer listed uncertain
-// claims is never saved; logged in item_holdbacks instead.
-async function holdUncertainSets(trackId: string, sets: RawConceptSet[], model: string): Promise<RawConceptSet[]> {
+// REQ-114 (Audit 3 H1), changed by REQ-216: a comparison card is held back
+// (logged in item_holdbacks, never saved) only when its writer rated it LOW;
+// claims it merely lists are logged. Production held 4 of 4 for disclaimers.
+async function holdUncertainSets(
+  trackId: string,
+  sets: RawConceptSet[],
+  model: string
+): Promise<{ kept: RawConceptSet[]; held: number; claims: string[] }> {
   const kept: RawConceptSet[] = [];
+  const claims: string[] = [];
+  let held = 0;
   for (const s of sets ?? []) {
-    const unsure = uncertaintyOf(s as RawConceptSet & { confidence?: unknown; uncertainClaims?: unknown });
-    if (unsure) await recordHoldback({ kind: "comparison", trackId, reason: "uncertain", claims: unsure, content: s, model });
-    else kept.push(s);
+    const unsure = lowConfidenceOf(s as RawConceptSet & { confidence?: unknown; uncertainClaims?: unknown });
+    if (unsure) {
+      held++;
+      claims.push(...unsure);
+      await recordHoldback({ kind: "comparison", trackId, reason: "uncertain", claims: unsure, content: s, model });
+    } else {
+      noteListedClaims(`comparison (${trackId})`, s as RawConceptSet & { confidence?: unknown; uncertainClaims?: unknown });
+      kept.push(s);
+    }
   }
-  return kept;
+  return { kept, held, claims };
 }
 
 // Scenarios per fact-check call: the course-level generation can write up
@@ -194,15 +223,18 @@ async function holdUncertainSets(trackId: string, sets: RawConceptSet[], model: 
 const GATE_BATCH = 20;
 
 // REQ-114 (recommendation 1): every scenario of every new card is answered
-// by an independent fast-model call without the key; a scenario it does not
-// agree with is dropped, and a card left with fewer than two is held back
-// whole (logged). One call per GATE_BATCH scenarios, once per course.
+// by an independent call without the key; a scenario it DISAGREES with is
+// dropped (REQ-216: claims it lists while agreeing are logged), and a card
+// left with fewer than two is held back whole (logged). A scenario the check
+// could not answer (the call failed) is dropped without a holdback: it says
+// nothing about the scenario. One call per GATE_BATCH scenarios, once per
+// course.
 export async function gateConceptSets(
   trackId: string,
   sets: CleanConceptSet[],
   ctx: CoachContext | undefined,
   model: string
-): Promise<CleanConceptSet[]> {
+): Promise<{ kept: CleanConceptSet[]; held: number; errored: number; claims: string[] }> {
   const items: CheckItem[] = [];
   sets.forEach((s, si) =>
     s.scenarios.forEach((q, qi) =>
@@ -216,32 +248,47 @@ export async function gateConceptSets(
       })
     )
   );
-  const verdicts = new Map<string, { publish: boolean; claims: string[]; error: string | null }>();
+  type V = { state: "ok" | "hold" | "unchecked"; claims: string[] };
+  const verdicts = new Map<string, V>();
   for (let i = 0; i < items.length; i += GATE_BATCH) {
     const gate = await factCheckGate(items.slice(i, i + GATE_BATCH), { ctx });
     for (const it of items.slice(i, i + GATE_BATCH)) {
       const v = gate.verdicts.get(it.key);
-      verdicts.set(it.key, { publish: !!v?.publish, claims: v?.unsupportedClaims ?? [], error: gate.error });
+      if (gate.error || verdictUnchecked(v)) verdicts.set(it.key, { state: "unchecked", claims: [] });
+      else if (verdictHolds(v)) verdicts.set(it.key, { state: "hold", claims: verdictClaims(v) });
+      else {
+        if (v?.unsupportedClaims.length) {
+          // eslint-disable-next-line no-console
+          console.warn(`[item-quality] comparison (${trackId}) scenario agreed with the key; checker could not confirm: ${v.unsupportedClaims.join(" | ").slice(0, 500)}`);
+        }
+        verdicts.set(it.key, { state: "ok", claims: [] });
+      }
     }
   }
   const out: CleanConceptSet[] = [];
+  let held = 0;
+  let errored = 0;
+  const claims: string[] = [];
   for (const [si, s] of sets.entries()) {
-    const failed = s.scenarios.filter((_, qi) => !verdicts.get(`s${si}q${qi}`)?.publish);
-    const scenarios = s.scenarios.filter((_, qi) => verdicts.get(`s${si}q${qi}`)?.publish);
-    if (failed.length) {
-      const errs = s.scenarios.map((_, qi) => verdicts.get(`s${si}q${qi}`)).filter((v) => v && !v.publish);
+    const states = s.scenarios.map((_, qi) => verdicts.get(`s${si}q${qi}`) ?? { state: "unchecked" as const, claims: [] });
+    const scenarios = s.scenarios.filter((_, qi) => states[qi].state === "ok");
+    const heldHere = states.filter((v) => v.state === "hold");
+    errored += states.filter((v) => v.state === "unchecked").length;
+    if (heldHere.length) {
+      held += heldHere.length;
+      claims.push(...heldHere.flatMap((v) => v.claims));
       await recordHoldback({
         kind: "comparison",
         trackId,
-        reason: errs.some((v) => v?.error) ? "fact_check_error" : "fact_check",
-        claims: errs.flatMap((v) => (v?.error ? [v.error] : v?.claims ?? [])),
-        content: { set: s.key, scenarios: failed, keptScenarios: scenarios.length },
+        reason: "fact_check",
+        claims: heldHere.flatMap((v) => v.claims),
+        content: { set: s.key, scenarios: s.scenarios.filter((_, qi) => states[qi].state === "hold"), keptScenarios: scenarios.length },
         model,
       });
     }
     if (scenarios.length >= 2) out.push({ ...s, scenarios });
   }
-  return out;
+  return { kept: out, held, errored, claims };
 }
 
 // The course's prerequisite map, generated on first need.

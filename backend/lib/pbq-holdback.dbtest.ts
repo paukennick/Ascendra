@@ -23,6 +23,7 @@ const unit = randomUUID();
 const users: string[] = [];
 let replies: Array<{ confidence: string; uncertainClaims: string[] }> = [];
 let calls = 0;
+const prompts: string[] = [];
 
 async function newUser(): Promise<string> {
   const u = randomUUID();
@@ -45,8 +46,9 @@ before(async () => {
       create: async () => {
         throw new Error("not used");
       },
-      parse: async () => {
+      parse: async (body: { messages: Array<{ content: unknown }> }) => {
         calls++;
+        prompts.push(String(body.messages[0].content));
         const r = replies.shift() ?? { confidence: "high", uncertainClaims: [] };
         return {
           parsed_output: { title: "Audit", scenario: "1) classify 2) justify", subParts: ["classify", "justify"], ...r },
@@ -60,6 +62,7 @@ before(async () => {
 
 beforeEach(async () => {
   calls = 0;
+  prompts.length = 0;
   replies = [];
   await query(`delete from item_holdbacks where unit_id = $1`, [unit]);
 });
@@ -88,6 +91,9 @@ describe("FAIL-1000/1001: generating a PBQ scenario", () => {
     assert.equal(body.scenario.title, "Audit");
     assert.equal(calls, 2);
     assert.equal(await holdbacks(), 1, "the held-back one is still logged");
+    // REQ-216: the second attempt is steered with the first one's claims.
+    assert.doesNotMatch(prompts[0], /unsure of the port/);
+    assert.match(prompts[1], /unsure of the port/);
   });
 
   test("two low-confidence scenarios: a 409 with the real message, nothing stored, both logged", async () => {
@@ -96,7 +102,7 @@ describe("FAIL-1000/1001: generating a PBQ scenario", () => {
     const before = (await query<{ n: number }>(`select count(*)::int as n from pbq_scenarios where unit_id = $1`, [unit]))[0].n;
     const res = await generate(await newUser());
     assert.equal(res.status, 409);
-    assert.match(((await res.json()) as { error: string }).error, /couldn't write a scenario we're confident in/);
+    assert.match(((await res.json()) as { error: string }).error, /didn't use it: the writer wasn't confident/);
     assert.equal(calls, 2, "only one extra try");
     assert.equal(await holdbacks(), 2);
     const afterCount = (await query<{ n: number }>(`select count(*)::int as n from pbq_scenarios where unit_id = $1`, [unit]))[0].n;
