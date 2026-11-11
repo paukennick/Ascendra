@@ -66,7 +66,7 @@ describe("refused AI requests", () => {
   test("regenerate shows the limited-preview and paused words, not 'check your connection'", () => {
     assert.equal(regenerateErrorMessage(err(403, { ...preview, aiAccess: { ...preview.aiAccess, feature: "regenerate" } })), preview.error);
     assert.equal(regenerateErrorMessage(err(429, paused)), paused.error);
-    assert.equal(regenerateErrorMessage(err(403, { error: "Accept the disclaimer first" })), REGENERATE_FAILED);
+    assert.equal(regenerateErrorMessage(err(403, { error: "Accept the disclaimer first" })), "Accept the disclaimer first");
   });
   test("a typed answer over the daily limit shows the server's limit message", () => {
     assert.equal(gradeSubmitError(err(429, graded)), graded.error);

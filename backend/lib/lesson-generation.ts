@@ -3,7 +3,7 @@ import { queryOne } from "@/lib/db";
 import { UserFacingError } from "@/lib/http";
 import { presentationOrder, presentationSeed, shuffleForPresentation } from "@/lib/choice-order";
 import { callClaudeStructured, getModel } from "@/lib/anthropic";
-import { fixFor, generateValid, lessonIntroProblems, lessonPracticeProblems, shufflePractice } from "@/lib/content-validator";
+import { fixFor, generateValid, lessonIntroProblems, lessonPracticeHardProblems, lessonPracticeLint, shufflePractice } from "@/lib/content-validator";
 import { coachContextForObjective, type CoachContext } from "@/lib/coach-context";
 import {
   lessonIntroPrompt,
@@ -275,7 +275,7 @@ export const claudeGenerator: LessonGenerator = {
         purpose: "lesson_practice",
         userId: meta?.userId ?? null,
       });
-    }, lessonPracticeProblems);
+    }, lessonPracticeHardProblems, undefined, lessonPracticeLint);
     return shufflePractice(made);
   },
   model: getModel,

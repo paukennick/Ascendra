@@ -3,7 +3,7 @@ import { servableSql } from "@/lib/item-quality";
 import { generateGated } from "@/lib/generation-gate";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
-import { fixFor, generateValid, InvalidContentError, quizItemProblems, shuffleChoices } from "@/lib/content-validator";
+import { fixFor, generateValid, InvalidContentError, quizItemHardProblems, quizItemLint, shuffleChoices } from "@/lib/content-validator";
 import { coachQuizPrompt, coachQuizSchema, type CoachQuizItem } from "@/lib/prompts";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { presentationOrder, presentationSeed, shownIndexOf, shuffleForPresentation, storedIndexAt } from "@/lib/choice-order";
@@ -224,7 +224,7 @@ export const generateQuizItem: GenerateQuizItem = async (objectiveId, userId, st
     thinking: "off",
     purpose: "coach_quiz",
     userId,
-  }), quizItemProblems);
+  }), quizItemHardProblems, undefined, quizItemLint);
   const shuffled = shuffleChoices(made.choices, made.correctIndex);
   return { ...made, choices: shuffled.choices, correctIndex: shuffled.correctIndex };
 };
@@ -266,7 +266,7 @@ export async function writeCheckedQuizItem(
         throw new Error("quiz item has the wrong shape");
       }
       // Audit 3 M2: whatever generated it, nothing invalid is stored.
-      const problems = quizItemProblems(made);
+      const problems = quizItemHardProblems(made);
       if (problems.length) throw new InvalidContentError("quiz question", problems);
       return made;
     },
