@@ -53,6 +53,17 @@ export const MFA_USER_LOCKED_MESSAGE =
   "That's a lot of code attempts, so sign-in codes for this account are paused for 15 minutes to keep it safe. " +
   "Nothing is wrong with your account. Wait a little, then try again with a fresh code or a backup code.";
 
+// REQ-219 (FAIL-1102): Google sign-ins per IP address (the route's own check
+// before the token is verified), as register limits sign-ups per IP.
+export const GOOGLE_SIGNIN_IP_LIMIT = { max: 30, windowMinutes: 15 };
+
+// REQ-219 (FAIL-1105): password checks per IP address across every address
+// tried, ahead of login's per-(address, IP) pair. Wrong guesses count; a
+// correct password gives its attempt back, so a school or office behind one
+// address is limited by its failures, not its sign-ins.
+export const LOGIN_IP_EVENT = "login_ip";
+export const LOGIN_IP_LIMIT = { max: 60, windowMinutes: 15 };
+
 // REQ-135: check-and-record as one atomic step. checkRateLimit followed by
 // recordAuthEvent is two statements, so N requests sent at once all read
 // "under the limit" before any of them records, and all N get through --
