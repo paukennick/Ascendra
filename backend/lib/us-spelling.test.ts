@@ -83,3 +83,19 @@ describe("US English spelling (REQ-220)", () => {
     assert.deepEqual(found, [], "convert to US spelling (lib/us-spelling.ts), or allow a proper name there");
   });
 });
+
+// REQ-228 (FAIL-1263): only the Terms and Privacy wait for their next version
+// (Nick, 2026-11-10). mobile/src/content/legal.ts is excluded whole above
+// because it holds both, so the FAQ, About and Sources pages in the same file
+// slipped through ("licence" in the FAQ). They are checked here.
+describe("legal.ts pages that are not Terms or Privacy are US English", () => {
+  test("FAQ, About and Sources", async () => {
+    const { FAQ, ABOUT, SOURCES } = await import("../../mobile/src/content/legal");
+    const found: string[] = [];
+    for (const doc of [FAQ, ABOUT, SOURCES]) {
+      const text = [doc.title, doc.intro ?? "", ...doc.sections.flatMap((s: { title: string; body: string[] }) => [s.title, ...s.body])].join("\n");
+      for (const w of britishWords(text)) found.push(`${doc.title}: ${w.word} -> ${w.us}`);
+    }
+    assert.deepEqual(found, []);
+  });
+});

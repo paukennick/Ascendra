@@ -9,6 +9,7 @@ import { MisconceptionNote, RefresherOffer, UnderstandingActions } from "@/compo
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import type { GradeResult, LessonContent, MasteryStatus, NextObjective } from "@/types";
+import { masteryAdvice, SOLO_HINT_NOTE, SOLO_OPEN_NOTE } from "@/lib/masteryAdvice";
 import { ReportProblem } from "@/components/ReportProblem";
 import { ReportLessonProblem } from "@/components/ReportLessonProblem";
 import {
@@ -880,28 +881,6 @@ export default function LessonFlow() {
   );
 }
 
-// What the status just reached means, and the one concrete thing that
-// moves it up. The rubric lives in backend/lib/mastery.ts; nothing in the
-// app explained it before, so a learner answering multiple choice forever
-// would never find out why they were stuck at Guided.
-function masteryAdvice(status: MasteryStatus | null): string {
-  switch (status) {
-    // REQ-134: matches mastery_from_attempts (backend migration 029).
-    case "Transfer-ready":
-      return "Top of the rubric: you've answered on your own, correctly, on separate days. Spaced review will still bring it back if you ever miss it.";
-    case "Independent":
-      return "You answered the solo check on your own. Come back tomorrow or later and answer a fresh question (\"Regenerate lesson\") on your own to make it Transfer-ready.";
-    case "Guided":
-      return "Guided practice, the choices hint, or a question you'd answered before tops out here. Answer a solo check in free response, without the hint, to earn Independent.";
-    case "Introduced":
-      return "Not there yet -- the explanation is one tap back, and this objective will come up for review.";
-    case "Needs review":
-      return "This one is flagged for review. Re-read the explanation and try the solo check in free response.";
-    default:
-      return "Pick up the next objective, or revisit this one.";
-  }
-}
-
 const STEP_META: Record<Step, { label: string; icon: React.ComponentProps<typeof Feather>["name"] }> = {
   guess: { label: "Guess", icon: "help-circle" },
   teach: { label: "Teach", icon: "book-open" },
@@ -1310,8 +1289,8 @@ function CheckStep({
             // (open/mc) is the saved state, so a revealed hint survives resume.
             <Muted style={{ fontSize: 12 }}>
               {mode === "mc"
-                ? "Choices are a hint: a correct multiple-choice answer caps mastery at Guided."
-                : "Answer in your own words -- a correct free-response answer earns Independent."}
+                ? SOLO_HINT_NOTE
+                : SOLO_OPEN_NOTE}
             </Muted>
           )}
 
