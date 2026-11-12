@@ -30,7 +30,141 @@
 // exam guide before a release; migration 007 refuses to store any exam record
 // outside 'draft' status without both an objectives URL and that timestamp.
 
-import type { SeedTrack } from "../data";
+import type { SeedTrack, UnitSource } from "../data";
+
+// ---------------------------------------------------------------------------
+// REQ-235 (batch H wave 1, "make holds rare"): dated unit sources for the two
+// launch AWS courses. Each unit names its exam-guide domain page with the
+// official task statements (headings only: the guides are AWS's material,
+// so the knowledge/skills bullets stay paraphrased in the objectives), and
+// the AWS documentation pages that settle the limits and defaults a writer
+// is most likely to remember from an older version. Every value below was
+// read on the page named, on 2026-11-11, not from memory. The lesson writer
+// and the fact-checker get both (lib/current-facts.ts).
+// ---------------------------------------------------------------------------
+const B11 = "2026-11-11";
+const SAA_GUIDE = "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/solutions-architect-associate-03";
+const MLA_GUIDE = "https://docs.aws.amazon.com/aws-certification/latest/machine-learning-engineer-associate-02/machine-learning-engineer-associate-02";
+const guide = (base: string, n: number, title: string, outline: string[]): UnitSource => ({
+  title,
+  url: `${base}-domain${n}.html`,
+  kind: "exam_outline",
+  checkedAt: B11,
+  outline,
+});
+const doc = (title: string, url: string, keyValues: string[], kind: UnitSource["kind"] = "reference"): UnitSource => ({ title, url, kind, checkedAt: B11, keyValues });
+
+export const AWS_SAA_UNIT_SOURCES: Record<string, UnitSource[]> = {
+  "Design Secure Architectures": [
+    guide(SAA_GUIDE, 1, "SAA-C03 exam guide, Domain 1", [
+      "Task 1.1: Design secure access to AWS resources",
+      "Task 1.2: Design secure workloads and applications",
+      "Task 1.3: Determine appropriate data security controls",
+    ]),
+    doc("AWS KMS Developer Guide, Rotate AWS KMS keys", "https://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html", [
+      "automatic rotation of a customer managed key generates new key material every year by default (365 days); a custom rotation period can be set, and on-demand rotation is available whether or not automatic rotation is on",
+      "AWS managed keys are rotated automatically every year",
+    ]),
+    doc("AWS Certificate Manager User Guide, certificate characteristics and managed renewal", "https://docs.aws.amazon.com/acm/latest/userguide/acm-certificate-characteristics.html", [
+      "ACM certificates are valid for 198 days",
+      "ACM renews Amazon-issued certificates it manages: automatically with DNS validation, by email notice otherwise; imported certificates are not eligible for managed renewal",
+    ]),
+  ],
+  "Design Resilient Architectures": [
+    guide(SAA_GUIDE, 2, "SAA-C03 exam guide, Domain 2", [
+      "Task 2.1: Design scalable and loosely coupled architectures",
+      "Task 2.2: Design highly available and/or fault-tolerant architectures",
+    ]),
+    doc("Disaster Recovery of Workloads on AWS (whitepaper), Disaster recovery options in the cloud", "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html", [
+      "four DR strategies, cheapest and slowest first: backup and restore, pilot light, warm standby, multi-site active/active",
+    ]),
+    doc("Amazon SQS Developer Guide, message quotas", "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-messages.html", [
+      "maximum message size 1 MiB (1,048,576 bytes); larger payloads use the Extended Client Library with Amazon S3",
+      "message retention: default 4 days, minimum 60 seconds, maximum 14 days",
+      "visibility timeout: default 30 seconds, minimum 0, maximum 12 hours",
+    ]),
+    doc("AWS Lambda Developer Guide, Lambda quotas", "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html", [
+      "function timeout up to 900 seconds (15 minutes) for standard functions",
+      "function memory 128 MB to 10,240 MB in 1-MB increments",
+    ]),
+  ],
+  "Design High-Performing Architectures": [
+    guide(SAA_GUIDE, 3, "SAA-C03 exam guide, Domain 3", [
+      "Task 3.1: Determine high-performing and/or scalable storage solutions",
+      "Task 3.2: Design high-performing and elastic compute solutions",
+      "Task 3.3: Determine high-performing database solutions",
+      "Task 3.4: Determine high-performing and/or scalable network architectures",
+      "Task 3.5: Determine high-performing data ingestion and transformation solutions",
+    ]),
+    doc("Amazon EBS User Guide, Amazon EBS volume types and General Purpose SSD volumes", "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html", [
+      "gp3: baseline 3,000 IOPS and 125 MiB/s at any size; up to 80,000 IOPS and 2,000 MiB/s; 1 GiB-64 TiB",
+      "gp2: up to 16,000 IOPS; io1: up to 64,000 IOPS; io2 Block Express: up to 256,000 IOPS and 4,000 MiB/s on Nitro-based instances, 99.999% durability, Multi-Attach supported",
+    ]),
+  ],
+  "Design Cost-Optimized Architectures": [
+    guide(SAA_GUIDE, 4, "SAA-C03 exam guide, Domain 4", [
+      "Task 4.1: Design cost-optimized storage solutions",
+      "Task 4.2: Design cost-optimized compute solutions",
+      "Task 4.3: Design cost-optimized database solutions",
+      "Task 4.4: Design cost-optimized network architectures",
+    ]),
+    doc("Amazon S3 User Guide, Understanding and managing Amazon S3 storage classes", "https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html", [
+      "minimum storage duration: S3 Standard-IA and S3 One Zone-IA 30 days; S3 Glacier Instant Retrieval and S3 Glacier Flexible Retrieval 90 days; S3 Glacier Deep Archive 180 days; S3 Standard, S3 Intelligent-Tiering and S3 Express One Zone none",
+      "minimum billable object size 128 KB for Standard-IA, One Zone-IA and Glacier Instant Retrieval",
+      "S3 One Zone-IA and S3 Express One Zone store data in one Availability Zone; the other classes in at least 3",
+    ]),
+    doc("Amazon EC2 User Guide, Spot Instance interruption notices", "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-instance-termination-notices.html", [
+      "a Spot Instance interruption notice is given two minutes before Amazon EC2 stops or terminates the instance",
+    ]),
+    doc("Savings Plans User Guide, What are Savings Plans?", "https://docs.aws.amazon.com/savingsplans/latest/userguide/what-is-savings-plans.html", [
+      "a Savings Plan commits to a consistent amount of compute usage (measured per hour) for a one- or three-year term",
+    ]),
+  ],
+};
+
+export const AWS_MLA_UNIT_SOURCES: Record<string, UnitSource[]> = {
+  "Data Preparation for ML and AI": [
+    guide(MLA_GUIDE, 1, "MLA-C02 exam guide, Domain 1", [
+      "Task 1.1: Collect and store data",
+      "Task 1.2: Perform data transformation, feature engineering, and pre-processing",
+      "Task 1.3: Validate data quality and manage bias",
+    ]),
+    doc("Amazon SageMaker AI Developer Guide, Pre-training Data Bias", "https://docs.aws.amazon.com/sagemaker/latest/dg/clarify-measure-data-bias.html", [
+      "SageMaker Clarify pre-training bias metrics include Class Imbalance (CI), Difference in Proportions of Labels (DPL), Kullback-Leibler Divergence (KL), Jensen-Shannon Divergence (JS) and Lp-norm",
+    ]),
+  ],
+  "ML Model and Foundation Model Development": [
+    guide(MLA_GUIDE, 2, "MLA-C02 exam guide, Domain 2", [
+      "Task 2.1: Choose appropriate modeling approaches for ML and AI solutions",
+      "Task 2.2: Train, fine-tune, and customize models for ML and AI solutions",
+      "Task 2.3: Analyze and evaluate the performance of ML and AI systems",
+    ]),
+  ],
+  "Deployment and Orchestration of ML and AI Workflows": [
+    guide(MLA_GUIDE, 3, "MLA-C02 exam guide, Domain 3", [
+      "Task 3.1: Manage deployment infrastructure for ML and AI model types",
+      "Task 3.2: Provision and configure resources for ML and AI workloads based on existing architecture and requirements",
+      "Task 3.3: Implement automated orchestration and continuous integration and continuous delivery (CI/CD) pipelines for MLOps and AI workloads",
+    ]),
+    doc("Amazon SageMaker AI Developer Guide, Inference options in Amazon SageMaker AI", "https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model-options.html", [
+      "real-time inference: payloads up to 25 MB, processing up to 60 seconds (8 minutes for streaming responses)",
+      "serverless inference: payloads up to 4 MB, processing up to 60 seconds; suits intermittent or unpredictable traffic; optional Provisioned Concurrency",
+      "asynchronous inference: payloads up to 1 GB, processing up to one hour, can scale to 0 instances; the request payload is placed in Amazon S3",
+      "batch transform: offline inference on datasets of GBs, processing times of days, no persistent endpoint",
+    ]),
+  ],
+  "Operating, Monitoring, and Securing ML and AI Solutions": [
+    guide(MLA_GUIDE, 4, "MLA-C02 exam guide, Domain 4", [
+      "Task 4.1: Monitor ML and AI model inference and performance",
+      "Task 4.2: Optimize and manage ML and AI infrastructure costs and performance",
+      "Task 4.3: Secure ML and AI workloads and model endpoints",
+    ]),
+    doc("Amazon SageMaker AI Developer Guide, Data and model quality monitoring with Amazon SageMaker Model Monitor", "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor.html", [
+      "Model Monitor's four monitor types: data quality, model quality, bias drift and feature attribution drift",
+      "the page states that Amazon SageMaker Model Monitor is no longer open to new customers (read 2026-11-11); do not present it as available to a new account",
+    ]),
+  ],
+};
 
 const AWS_PROVIDER = {
   providerSlug: "aws",
@@ -226,6 +360,7 @@ export const AWS_SAA_TRACK: SeedTrack = {
   units: [
     {
       title: "Design Secure Architectures",
+      sources: AWS_SAA_UNIT_SOURCES["Design Secure Architectures"],
       weight: 30,
       gate: "Given a design with a security hole, name the missing control, the AWS service that provides it, and the specific failure it prevents -- and say whether the fix belongs in identity, network, or data.",
       objectives: [
@@ -255,6 +390,7 @@ export const AWS_SAA_TRACK: SeedTrack = {
     },
     {
       title: "Design Resilient Architectures",
+      sources: AWS_SAA_UNIT_SOURCES["Design Resilient Architectures"],
       weight: 26,
       gate: "Given an RTO and RPO, pick the disaster recovery strategy that meets them at the lowest cost, and point at the single points of failure your design removed.",
       objectives: [
@@ -289,6 +425,7 @@ export const AWS_SAA_TRACK: SeedTrack = {
     },
     {
       title: "Design High-Performing Architectures",
+      sources: AWS_SAA_UNIT_SOURCES["Design High-Performing Architectures"],
       weight: 24,
       gate: "Given a performance requirement and a metric, choose the compute, storage, database, and network configuration that meets it -- and name the metric you would watch to know it worked.",
       objectives: [
@@ -322,6 +459,7 @@ export const AWS_SAA_TRACK: SeedTrack = {
     },
     {
       title: "Design Cost-Optimized Architectures",
+      sources: AWS_SAA_UNIT_SOURCES["Design Cost-Optimized Architectures"],
       weight: 20,
       gate: "Given a running architecture and a bill, name the three changes that cut the most cost without breaking the stated requirements, and say what each one gives up.",
       objectives: [
@@ -1289,6 +1427,7 @@ export const AWS_MLA_TRACK: SeedTrack = {
   units: [
     {
       title: "Data Preparation for ML and AI",
+      sources: AWS_MLA_UNIT_SOURCES["Data Preparation for ML and AI"],
       weight: 28,
       gate: "Take a raw, messy, multimodal dataset to something trainable: stored in the right format, features engineered, documents chunked for retrieval, PII masked, bias and class imbalance measured rather than assumed. Largest domain on the exam.",
       objectives: [
@@ -1321,6 +1460,7 @@ export const AWS_MLA_TRACK: SeedTrack = {
     },
     {
       title: "ML Model and Foundation Model Development",
+      sources: AWS_MLA_UNIT_SOURCES["ML Model and Foundation Model Development"],
       weight: 24,
       gate: "Given a business problem, choose between an AWS AI service, a built-in algorithm, a fine-tuned foundation model, and a RAG pipeline -- then prove the choice with an evaluation metric that actually matches the task.",
       objectives: [
@@ -1355,6 +1495,7 @@ export const AWS_MLA_TRACK: SeedTrack = {
     },
     {
       title: "Deployment and Orchestration of ML and AI Workflows",
+      sources: AWS_MLA_UNIT_SOURCES["Deployment and Orchestration of ML and AI Workflows"],
       weight: 24,
       gate: "Put a model, a knowledge base, and an agent into production behind a pipeline that can retrain, re-index, redeploy, and roll back without a human editing anything by hand.",
       objectives: [
@@ -1392,6 +1533,7 @@ export const AWS_MLA_TRACK: SeedTrack = {
     },
     {
       title: "Operating, Monitoring, and Securing ML and AI Solutions",
+      sources: AWS_MLA_UNIT_SOURCES["Operating, Monitoring, and Securing ML and AI Solutions"],
       weight: 24,
       gate: "Given a deployed AI system, say what you watch, what tells you the model has drifted or an agent is failing silently, what it costs per token, and which control stops it leaking customer data.",
       objectives: [

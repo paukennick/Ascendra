@@ -20,17 +20,25 @@
 //               functions the app uses (writer's doubt, the second-model
 //               fact-check gate, the exec-check queue) -> insert-if-absent.
 //
-// What the app does that a batch cannot is the one steered retry of a held
-// back half. A lesson that needs it is held back (logged in item_holdbacks
-// exactly as the app would) and NOT saved: its first learner visit generates
-// it through the full pipeline, retry included.
+// REQ-235 ("make holds rare"): a held back half gets the app's one steered
+// retry here too, as a LIVE call (purpose `pregen_retry`, outside the global
+// ceiling like the rest of pre-generation, inside --max-usd): the held draft
+// is logged in item_holdbacks exactly as the app would, the retry is written
+// with the same steer the live gate uses (checkedIntro / checkedPractice),
+// and only a retry that passes every check is saved. A held intro is
+// retried while its intro batch is collected and, if the retry passes, that
+// lesson is finished live there (its practice was never in the batch); a
+// held practice half is retried while the practice batch is collected. A
+// retry that the budget cannot cover is not made: the lesson is held, and
+// its first learner visit generates it through the full pipeline. The
+// summary counts retried, saved after a retry, and held after a retry.
 //
 // Never printed or put in the summary: prompts, lesson text, claims.
 // Counts, ids, the estimate and batch ids only.
 
 import { query, queryOne } from "@/lib/db";
 import { isActive } from "@/lib/progress-sql";
-import { buildRequest, getModel } from "@/lib/anthropic";
+import { buildRequest, callClaudeStructured, getModel } from "@/lib/anthropic";
 import {
   lessonIntroPrompt,
   lessonPracticePrompt,
@@ -53,6 +61,7 @@ import { callCostUsd } from "@/lib/ai-pricing";
 import { flushAiCallLog, insertAiCallRecord, setAiCallSink, type AiCallRecord } from "@/lib/ai-calls";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import {
+  BATCH_DISCOUNT,
   BudgetError,
   batchRequestUpperUsd,
   batchUsageUsd,
@@ -92,6 +101,9 @@ export interface BatchesClient {
 export interface Ctx {
   batches: BatchesClient;
   log: (message: string) => void;
+  // REQ-235: who writes the one steered retry; the live model by default
+  // (liveRetryWriter). Tests supply their own.
+  retryWriter?: RetryWriter;
 }
 
 // A counts-only record of a run, written to the workflow artifact.
@@ -119,6 +131,11 @@ export interface Summary {
   skipped?: number;
   failedBy?: Record<string, number>;
   stoppedForBudget?: boolean;
+  // REQ-235: the one steered retry of a held half (live, `pregen_retry`).
+  retried?: number;
+  savedAfterRetry?: number;
+  heldAfterRetry?: number;
+  notRetriedForBudget?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -431,28 +448,109 @@ async function quietHoldbackLog<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 class NoRetryInBatch extends Error {}
+// REQ-235: the live retry itself failed (the call, or the app's content lint
+// on what came back). Not a verdict on the content: reported as a failure.
+class RetryFailed extends Error {
+  constructor(readonly category: string) {
+    super(category);
+  }
+}
+
+// One live request, worst case: the batch upper bound without the discount.
+export function liveRequestUpperUsd(model: string, params: Params): number {
+  return batchRequestUpperUsd(model, params) / BATCH_DISCOUNT;
+}
+
+// REQ-235: the live steered retry, as the app's claudeGenerator writes it
+// (same prompt builders, same steer text from checkedIntro / checkedPractice),
+// one call, purpose `pregen_retry`, charged to no learner (an operator script,
+// REQ-202). The app's content lint runs on the result; a draft that fails it
+// is a failure, not a second attempt.
+export interface RetryWriter {
+  intro(obj: ObjectiveRow, steer: string): Promise<LessonIntroContent>;
+  practice(obj: ObjectiveRow, teach: string, steer: string | null): Promise<LessonPracticeContent>;
+}
+
+export const liveRetryWriter: RetryWriter = {
+  async intro(obj, steer) {
+    const { system, user } = lessonIntroPrompt({ ...baseOf(obj), steer });
+    let made: LessonIntroContent;
+    try {
+      made = introFromModel(
+        await callClaudeStructured({ system, messages: [{ role: "user", content: user }], schema: lessonIntroSchema, maxTokens: 4000, model: getModel(), effort: "medium", thinking: "off", purpose: "pregen_retry", userId: null })
+      );
+    } catch {
+      throw new RetryFailed("retry call failed");
+    }
+    if (lessonIntroProblems(made).length) throw new RetryFailed("retry content check");
+    return made;
+  },
+  async practice(obj, teach, steer) {
+    const { system, user } = lessonPracticePrompt({ ...baseOf(obj), teach, steer: steer ?? undefined, verify: wantsVerification(obj.ctx) });
+    let made: LessonPracticeContent;
+    try {
+      made = (await callClaudeStructured({
+        system,
+        messages: [{ role: "user", content: user }],
+        schema: lessonPracticeSchema,
+        maxTokens: 6000,
+        model: getModel(),
+        effort: "medium",
+        thinking: "off",
+        purpose: "pregen_retry",
+        userId: null,
+      })) as LessonPracticeContent;
+    } catch {
+      throw new RetryFailed("retry call failed");
+    }
+    if (lessonPracticeProblems(made).length) throw new RetryFailed("retry content check");
+    return shufflePractice(made);
+  },
+};
+
+// What the generator may do when checkedIntro / checkedPractice ask for the
+// one retry. Absent (a dry run) or `allow` false (the budget): refused, and
+// the lesson is held back as before REQ-235.
+interface RetryHooks {
+  writer: RetryWriter;
+  obj: ObjectiveRow;
+  allow(): boolean;
+}
 
 // The batch's output, shaped as the app's generator would have produced it,
 // so checkedIntro / checkedPractice can run on it. A request for a second
-// attempt (their one retry) is refused: the lesson is then held back and the
-// app makes it on first visit.
-function batchGenerator(model: string, intro: LessonIntroContent, factCheck: FactChecker, queueExec: LessonGenerator["queueExec"]): LessonGenerator {
+// attempt (their one retry) goes to the live retry writer when the hooks
+// allow it (REQ-235), and is refused otherwise: the lesson is then held back
+// and the app makes it on first visit.
+function batchGenerator(
+  model: string,
+  intro: LessonIntroContent,
+  factCheck: FactChecker,
+  queueExec: LessonGenerator["queueExec"],
+  retry?: RetryHooks
+): LessonGenerator & { retried: number } {
   let introCalls = 0;
-  return {
+  const gen = {
+    retried: 0,
     // checkedIntro asks for the first draft (the batch's) and then, if that
-    // was held back, for its one retry (refused).
-    async intro() {
-      if (introCalls++) throw new NoRetryInBatch();
-      return intro;
+    // was held back, for its one retry.
+    async intro(_o: ObjectiveRow, _a?: unknown, meta?: { introSteer?: string }) {
+      if (!introCalls++) return intro;
+      if (!retry || !retry.allow()) throw new NoRetryInBatch();
+      gen.retried++;
+      return retry.writer.intro(retry.obj, meta?.introSteer ?? "");
     },
     // checkedPractice is handed the first draft; any call is its retry.
-    async practice() {
-      throw new NoRetryInBatch();
+    async practice(_o: ObjectiveRow, _a?: unknown, meta?: { steer?: string; teach?: string }) {
+      if (!retry || !retry.allow()) throw new NoRetryInBatch();
+      gen.retried++;
+      return retry.writer.practice(retry.obj, meta?.teach ?? "", meta?.steer ?? null);
     },
     model: () => model,
     factCheck,
     queueExec,
   };
+  return gen as LessonGenerator & { retried: number };
 }
 
 function pregenFactChecker(): FactChecker {
@@ -515,34 +613,81 @@ async function collectIntro(
   // Still wanted: no lesson since, active, listed, not authored -- in priority order.
   const rows = await selectCandidates({ tracks: opts.tracks, ids: [...rawIntros.keys()] });
   const skipped = rawIntros.size - rows.length;
-  await quietHoldbackLog(async () => {
-    for (const r of rows) {
-      const id = r.objective_id;
-      const intro = introFromModel(rawIntros.get(id) as never);
-      if (lessonIntroProblems(intro).length) {
-        liveFailed.push({ objectiveId: id, reason: "content check" });
-        continue;
+  const writer = ctx.retryWriter ?? liveRetryWriter;
+  const factUpper = factCheckUpperUsd(model);
+  const r235 = { retried: 0, saved: 0, heldAfter: 0, notRetried: 0, kept: 0 };
+  const { t, restore } = opts.dryRun ? { t: { usd: 0, calls: 0 }, restore: () => {} } : installTally();
+  try {
+    await quietHoldbackLog(async () => {
+      for (const r of rows) {
+        const id = r.objective_id;
+        const intro = introFromModel(rawIntros.get(id) as never);
+        if (lessonIntroProblems(intro).length) {
+          liveFailed.push({ objectiveId: id, reason: "content check" });
+          continue;
+        }
+        if (opts.dryRun) {
+          if (lowConfidenceOf(intro)) held++;
+          else intros.set(id, intro);
+          continue;
+        }
+        const obj = await loadObjective(id);
+        if (!obj || obj.retired || obj.authored) continue;
+        // REQ-235: a held intro is retried live, and the lesson finished live,
+        // only when the cap still covers the whole lesson at its worst case:
+        // the intro retry, a practice draft and its retry, two fact-checks.
+        const lessonUpper =
+          liveRequestUpperUsd(model, introParams(model, obj)) + 2 * liveRequestUpperUsd(model, practiceParams(model, obj, "t".repeat(CONTENT_LIMITS.teach))) + 2 * factUpper;
+        let allowed = true;
+        const hooks: RetryHooks = {
+          writer,
+          obj,
+          allow: () => (allowed = opts.maxUsd === null || introUsd + t.usd + lessonUpper <= opts.maxUsd),
+        };
+        const gen = batchGenerator(model, intro, pregenFactChecker(), queueExecCheck, hooks);
+        try {
+          // The app's own check of the writer's doubt (logs the holdback).
+          const checked = await checkedIntro(id, obj, { gen, meta: {} });
+          if (!gen.retried) {
+            intros.set(id, checked);
+            continue;
+          }
+          // The retried intro passed: its practice was never in the batch, so
+          // the lesson is finished here, through the app's own checks.
+          const first = await writer.practice(obj, checked.teach, null);
+          const practice = await checkedPractice(id, obj, first, { shared: true, gen, meta: { teach: checked.teach } });
+          if (await queryOne(`select 1 from lesson_content where objective_id = $1`, [id])) {
+            r235.kept++;
+            continue;
+          }
+          await saveLesson({ kind: "shared" }, id, { ...checked, ...practice }, model);
+          r235.saved++;
+        } catch (err) {
+          if (err instanceof NoRetryInBatch || err instanceof ContentHeldBackError) {
+            held++;
+            if (gen.retried) r235.heldAfter++;
+            if (!allowed) r235.notRetried++;
+          } else if (err instanceof RetryFailed) liveFailed.push({ objectiveId: id, reason: err.category });
+          else if (err instanceof FactCheckUnavailableError) liveFailed.push({ objectiveId: id, reason: "fact-check did not run" });
+          else liveFailed.push({ objectiveId: id, reason: "intro check error" });
+        } finally {
+          r235.retried += gen.retried;
+        }
       }
-      if (opts.dryRun) {
-        if (lowConfidenceOf(intro)) held++;
-        else intros.set(id, intro);
-        continue;
-      }
-      const obj = await loadObjective(id);
-      if (!obj || obj.retired || obj.authored) continue;
-      try {
-        // The app's own check of the writer's doubt (logs the holdback).
-        intros.set(id, await checkedIntro(id, obj, { gen: batchGenerator(model, intro, pregenFactChecker(), undefined), meta: {} }));
-      } catch (err) {
-        if (err instanceof NoRetryInBatch || err instanceof ContentHeldBackError) held++;
-        else liveFailed.push({ objectiveId: id, reason: "intro check error" });
-      }
-    }
-  });
+    });
+  } finally {
+    restore();
+    await flushAiCallLog();
+  }
   const usable = rows.filter((r) => intros.has(r.objective_id));
   const { priced, dropped } = await price(usable, "practice", model, (id) => intros.get(id)!.teach);
-  // The budget left is what the cap allows after the intro batch's real cost.
-  const left = opts.maxUsd === null ? null : opts.maxUsd - introUsd;
+  // The budget left is what the cap allows after the intro batch's real cost
+  // and any live retries (REQ-235).
+  const left = opts.maxUsd === null ? null : opts.maxUsd - introUsd - t.usd;
+  if (r235.retried || r235.notRetried)
+    ctx.log(
+      `Held intros retried once, steered: ${r235.retried} retried, ${r235.saved} lessons saved after the retry, ${r235.heldAfter} held again, ${r235.notRetried} not retried (budget). Live calls (retries and their fact-checks) cost ${usd(t.usd)}.`
+    );
   const budget = fillBudget(priced, left);
   ctx.log(`Teaching texts: ${rawIntros.size + failed.length} returned, ${priced.length} passed the checks, ${held} held back, ${liveFailed.length} failed, ${skipped + dropped} skipped (no longer eligible or already have a lesson).`);
   ctx.log(left === null ? `Practice batch, upper bound:` : `Practice batch, upper bound against the ${usd(left)} left of ${usd(opts.maxUsd!)}:`);
@@ -557,7 +702,14 @@ async function collectIntro(
     failed: liveFailed.length,
     skipped: skipped + dropped,
     failedBy: tally(liveFailed),
+    retried: r235.retried,
+    saved: r235.saved,
+    savedAfterRetry: r235.saved,
+    heldAfterRetry: r235.heldAfter,
+    notRetriedForBudget: r235.notRetried,
+    alreadyHadOne: r235.kept,
   } satisfies Partial<Summary>);
+  if (summary.actualUsd) summary.actualUsd = { batch: summary.actualUsd.batch, factCheck: round4(t.usd), total: round4(summary.actualUsd.batch + t.usd) };
   if (!budget.selected.length) {
     ctx.log(budget.cutoff ? "Nothing fits in the remaining budget. No practice batch was created." : "Nothing to continue with. No practice batch was created.");
     return summary;
@@ -619,6 +771,10 @@ async function collectPractice(
   let held = 0;
   let skipped = 0;
   let stopped = false;
+  let retried = 0;
+  let savedAfterRetry = 0;
+  let heldAfterRetry = 0;
+  let notRetried = 0;
   const liveFailed = [...myFailed];
   const factUpper = factCheckUpperUsd(model);
   const cap = opts.maxUsd;
@@ -655,7 +811,15 @@ async function collectPractice(
         // The stored answer position is shuffled before the fact-check sees it
         // (REQ-187), as in the app's generator.
         const practice = shufflePractice(l.practice as LessonPracticeContent);
-        const gen = batchGenerator(model, intro, checker, queueExecCheck);
+        // REQ-235: a held practice half gets one live steered retry when the
+        // cap still covers it and its fact-check at their worst case.
+        const retryUpper = liveRequestUpperUsd(model, practiceParams(model, obj, intro.teach)) + factUpper;
+        let allowed = true;
+        const gen = batchGenerator(model, intro, checker, queueExecCheck, {
+          writer: ctx.retryWriter ?? liveRetryWriter,
+          obj,
+          allow: () => (allowed = cap === null || practiceUsd + introUsd + t.usd + retryUpper <= cap),
+        });
         try {
           await checkedIntro(l.objectiveId, obj, { gen, meta: {} });
           const checked = await checkedPractice(l.objectiveId, obj, practice, { shared: true, gen, meta: { teach: intro.teach } });
@@ -667,12 +831,20 @@ async function collectPractice(
           }
           await saveLesson({ kind: "shared" }, l.objectiveId, { ...intro, ...checked }, model);
           saved++;
+          if (gen.retried) savedAfterRetry++;
         } catch (err) {
-          if (err instanceof NoRetryInBatch || err instanceof ContentHeldBackError) held++;
+          if (err instanceof NoRetryInBatch || err instanceof ContentHeldBackError) {
+            held++;
+            if (gen.retried) heldAfterRetry++;
+            if (!allowed) notRetried++;
+          }
           // REQ-216: a fact-check that did not run is not a verdict on the lesson: it is
           // neither held nor saved, and the next run (or a first visit) tries again.
           else if (err instanceof FactCheckUnavailableError) liveFailed.push({ objectiveId: l.objectiveId, reason: "fact-check did not run" });
+          else if (err instanceof RetryFailed) liveFailed.push({ objectiveId: l.objectiveId, reason: err.category });
           else liveFailed.push({ objectiveId: l.objectiveId, reason: "save error" });
+        } finally {
+          retried += gen.retried;
         }
       }
     });
@@ -687,9 +859,12 @@ async function collectPractice(
   summary.skipped = skipped;
   summary.failedBy = tally(liveFailed);
   summary.stoppedForBudget = stopped;
+  Object.assign(summary, { retried, savedAfterRetry, heldAfterRetry, notRetriedForBudget: notRetried } satisfies Partial<Summary>);
   summary.actualUsd = { batch: round4(practiceUsd + introUsd), factCheck: round4(t.usd), total: round4(practiceUsd + introUsd + t.usd) };
   if (opts.dryRun) ctx.log(`Dry run: ${ordered.length} lessons returned, ${liveFailed.length} would fail the content check. Nothing was checked by the model or saved.`);
   ctx.log(`Saved ${saved} new lessons; ${kept} already had one and were left alone; ${held} held back for review (npm run items -- list); ${liveFailed.length} failed; ${skipped} skipped (no longer eligible).`);
+  if (retried || notRetried)
+    ctx.log(`Held practice halves retried once, steered: ${retried} retried, ${savedAfterRetry} saved after the retry, ${heldAfterRetry} held again, ${notRetried} not retried (budget).`);
   if (stopped) ctx.log(`Stopped early: the next fact-check could pass --max-usd. Run collect again with a larger --max-usd to finish, or leave the rest to first visits.`);
   const f = summary.failedBy;
   if (Object.keys(f).length) ctx.log(`Failed by cause: ${Object.entries(f).map(([k, n]) => `${k} ${n}`).join(", ")}. Failed and held lessons are simply still missing; the app generates them on first visit, or run submit again.`);

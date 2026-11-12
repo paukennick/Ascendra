@@ -33,11 +33,15 @@ import {
   practiceParams,
   selectCandidates,
   submitRun,
+  liveRequestUpperUsd,
+  liveRetryWriter,
   type BatchInfo,
   type BatchesClient,
   type Ctx,
+  type RetryWriter,
 } from "./pregen";
-import { BudgetError, parseRequestId, requestIds } from "../scripts/pregenerate-lib";
+import { loadObjective } from "./lesson-generation";
+import { BudgetError, batchUsageUsd, factCheckUpperUsd, parseRequestId, requestIds } from "../scripts/pregenerate-lib";
 
 const MODEL = process.env.ANTHROPIC_MODEL!;
 const codeA = `PGA${run}`.toUpperCase();
@@ -190,7 +194,28 @@ class FakeBatches implements BatchesClient {
 
 let fake: FakeBatches;
 let logs: string[];
-const ctx = (): Ctx => ({ batches: fake, log: (m) => logs.push(m) });
+// REQ-235: the one steered retry of a held half. By default the fake writer
+// repeats the batch's own draft (so a held lesson is held again, as before
+// REQ-235); a test can make the retry come back clean.
+type Over = { intro?: (id: string) => Record<string, unknown>; practice?: (id: string) => Record<string, unknown> };
+let batchOver: Over = {};
+let retryOver: Over | null = null;
+let retryCalls: { kind: "intro" | "practice"; id: string; steer: string | null }[] = [];
+const idOfTitle = (title: string) => [...titleOf.entries()].find(([, t]) => t === title)![0];
+const fakeRetryWriter: RetryWriter = {
+  async intro(obj, steer) {
+    const id = idOfTitle(obj.title);
+    retryCalls.push({ kind: "intro", id, steer });
+    const over = (retryOver ?? batchOver).intro?.(id) ?? {};
+    return introFromModel(introBody(id, over) as never);
+  },
+  async practice(obj, _teach, steer) {
+    const id = idOfTitle(obj.title);
+    retryCalls.push({ kind: "practice", id, steer });
+    return practiceBody(id, (retryOver ?? batchOver).practice?.(id) ?? {}) as never;
+  },
+};
+const ctx = (): Ctx => ({ batches: fake, log: (m) => logs.push(m), retryWriter: fakeRetryWriter });
 
 // The fact-check model: answers from a per-objective policy keyed by the tag
 // in the question text.
@@ -236,6 +261,9 @@ beforeEach(async () => {
   logs = [];
   parseBodies = [];
   policy = () => "agree";
+  batchOver = {};
+  retryOver = null;
+  retryCalls = [];
   installModel();
 });
 
@@ -259,7 +287,8 @@ async function insertLesson(objectiveId: string, tag: string) {
 
 // Drives a full run to the point where the practice batch is ended and its
 // lines are in the fake. Returns the batch ids.
-async function runToPracticeBatch(tracks: string[], over: { intro?: (id: string) => Record<string, unknown>; practice?: (id: string) => Record<string, unknown> } = {}) {
+async function runToPracticeBatch(tracks: string[], over: Over = {}) {
+  batchOver = over;
   await submitRun({ tracks, limit: null, maxUsd: 50, dryRun: false, allowConcurrent: false }, ctx());
   const introBatch = fake.created[0];
   fake.results_.set(introBatch.id, introBatch.requests.map((r) => okLine(r.custom_id, introBody(parseRequestId(r.custom_id)!.objectiveId, over.intro?.(parseRequestId(r.custom_id)!.objectiveId)))));
@@ -408,13 +437,15 @@ describe("FAIL-970/971/975: the practice batch is built from the teaching text, 
     assert.ok(!plainCourse.includes("recomputes the soloCheck answer"));
   });
 
-  test("an intro the writer is unsure of is held back (logged), never continued, and costs nothing more", async () => {
+  test("an intro the writer is unsure of is held back (logged) and never continued in the batch; an unsure retry is held too", async () => {
     const { practiceBatch } = await runToPracticeBatch([codeB], {
       intro: (id) => (id === ids.b2 ? { confidence: "low", uncertainClaims: ["SECRETCLAIM a 2026 limit"] } : {}),
     });
     assert.deepEqual(practiceBatch.requests.map((r) => parseRequestId(r.custom_id)!.objectiveId), [ids.b1]);
-    const held = await query<{ item_kind: string; reason: string }>(`select item_kind, reason from item_holdbacks where objective_id = $1`, [ids.b2]);
-    assert.deepEqual(held.map((h) => [h.item_kind, h.reason]), [["lesson_intro", "uncertain"]]);
+    // REQ-235: retried once, steered; the retry was unsure too, so both drafts are logged and nothing is saved.
+    const held = await query<{ item_kind: string; reason: string }>(`select item_kind, reason from item_holdbacks where objective_id = $1 order by created_at`, [ids.b2]);
+    assert.deepEqual(held.map((h) => [h.item_kind, h.reason]), [["lesson_intro", "uncertain"], ["lesson_intro", "uncertain"]]);
+    assert.equal(await lessonRow(ids.b2), null);
     assert.ok(!logs.join("\n").includes("SECRETCLAIM"), "claims are never printed");
   });
 
@@ -498,7 +529,8 @@ describe("FAIL-970..978: collect saves through the app's own gates", () => {
     assert.equal(by.get(ids.b2), undefined, "a missing verdict is a check that did not run: no holdback (REQ-216)");
     assert.equal(by.get(ids.a2), "uncertain");
     // the unsure writer's lesson never reached the fact-check model
-    assert.equal(parseBodies.length - callsBefore, 4, "4 fact-checks for 5 lessons");
+    // REQ-235: b1's steered retry (here the same disputed draft) is checked once more.
+    assert.equal(parseBodies.length - callsBefore, 5, "4 first fact-checks for 5 lessons, plus b1's retry");
   });
 
   test("a verification program is queued for the sandbox job, never run", async () => {
@@ -609,6 +641,106 @@ describe("FAIL-970..978: collect saves through the app's own gates", () => {
     assert.equal(fake.created[1].requests.length, 1);
     assert.equal(parseRequestId(fake.created[1].requests[0].custom_id)!.objectiveId, parseRequestId(b.requests[0].custom_id)!.objectiveId);
     void requestIds;
+  });
+});
+
+// --- REQ-235: the one steered retry ----------------------------------------
+
+describe("REQ-235 (FAIL-1400): a held pre-generated half is retried once, steered, like the live gate", () => {
+  test("a held intro is retried with its claims as the steer; a clean retry is finished live and saved, outside the practice batch", async () => {
+    retryOver = { intro: () => ({}), practice: () => ({}) };
+    const { practiceBatch, s1 } = await runToPracticeBatch([codeB], {
+      intro: (id) => (id === ids.b2 ? { confidence: "low", uncertainClaims: ["SECRETCLAIM a 2026 limit"] } : {}),
+    });
+    assert.deepEqual(practiceBatch.requests.map((r) => parseRequestId(r.custom_id)!.objectiveId), [ids.b1], "b2 is not in the batch");
+    assert.deepEqual(retryCalls.map((c) => [c.kind, c.id]), [["intro", ids.b2], ["practice", ids.b2]]);
+    assert.match(retryCalls[0].steer ?? "", /SECRETCLAIM a 2026 limit/, "the retry is steered with what held the first draft");
+    assert.equal(retryCalls[1].steer, null, "the first practice draft of a retried lesson is not a retry");
+    assert.equal(s1.retried, 1);
+    assert.equal(s1.savedAfterRetry, 1);
+    assert.equal(s1.heldAfterRetry, 0);
+    const row = await lessonRow(ids.b2);
+    assert.ok(row, "saved after the retry");
+    assert.equal(row!.fade_choices[row!.fade_correct_index], CORRECT);
+    const held = await query<{ item_kind: string }>(`select item_kind from item_holdbacks where objective_id = $1`, [ids.b2]);
+    assert.deepEqual(held.map((h) => h.item_kind), ["lesson_intro"], "the held first draft is logged once");
+    assert.ok(parseBodies.length >= 1, "the retried lesson's checks went through the fact-check");
+    assert.ok(!logs.join("\n").includes("SECRETCLAIM"), "claims are never printed");
+  });
+
+  test("a held practice half is retried with the steer; a clean retry is saved and counted", async () => {
+    retryOver = { practice: () => ({}) };
+    const { introBatch, practiceBatch } = await runToPracticeBatch([codeB], {
+      practice: (id) => (id === ids.b1 ? { confidence: "low", uncertainClaims: ["SECRETCLAIM unsure"] } : {}),
+    });
+    const s = await collectPractice(introBatch.id, practiceBatch.id, [codeB]);
+    assert.equal(s.saved, 2);
+    assert.equal(s.held, 0);
+    assert.equal(s.retried, 1);
+    assert.equal(s.savedAfterRetry, 1);
+    assert.deepEqual(retryCalls.map((c) => [c.kind, c.id]), [["practice", ids.b1]]);
+    assert.match(retryCalls[0].steer ?? "", /SECRETCLAIM unsure/);
+    assert.ok(logs.some((l) => /Held practice halves retried once, steered: 1 retried, 1 saved after the retry, 0 held again/.test(l)));
+  });
+
+  test("a disputed key whose retry is disputed too is held: two drafts logged, nothing saved, counted as held after a retry", async () => {
+    policy = (text) => (text.includes("Objective b1 ") ? "disagree" : "agree");
+    const { introBatch, practiceBatch } = await runToPracticeBatch([codeB]);
+    const s = await collectPractice(introBatch.id, practiceBatch.id, [codeB]);
+    assert.equal(s.held, 1);
+    assert.equal(s.heldAfterRetry, 1);
+    assert.equal(s.saved, 1);
+    assert.equal(await lessonRow(ids.b1), null);
+    const rows = await query<{ reason: string; claims: string[] }>(`select reason, claims from item_holdbacks where objective_id = $1 order by created_at`, [ids.b1]);
+    assert.equal(rows.length, 2);
+    assert.ok(rows.every((r) => r.reason === "fact_check"));
+    assert.ok(JSON.stringify(rows[1].claims).includes("[not served"), "the second is marked not served");
+  });
+
+  test("a retry the cap cannot cover is not made: the lesson is held as before and counted", async () => {
+    const { introBatch, practiceBatch } = await runToPracticeBatch([codeB], {
+      practice: (id) => (id === ids.b1 ? { confidence: "low", uncertainClaims: ["unsure"] } : {}),
+    });
+    // Room for the two batches and a fact-check (and a half), not for a live practice retry.
+    const batchUsd = 2 * batchUsageUsd(MODEL, { input_tokens: 2000, output_tokens: 1500 }) + 2 * batchUsageUsd(MODEL, { input_tokens: 3000, output_tokens: 2000 });
+    const fact = factCheckUpperUsd(MODEL);
+    assert.ok(liveRequestUpperUsd(MODEL, practiceParams(MODEL, (await loadObjective(ids.b1))!, "t".repeat(3000))) > fact / 2, "the fixture leaves no room for a retry");
+    const s = await collectPractice(introBatch.id, practiceBatch.id, [codeB], batchUsd + fact * 1.5);
+    assert.equal(retryCalls.length, 0);
+    assert.equal(s.notRetriedForBudget, 1);
+    assert.equal(s.held, 1);
+  });
+
+  test("the live retry writer sends the steer, records purpose pregen_retry with no learner, and runs the app's lint", async () => {
+    const objId = ids.b1;
+    const obj = (await loadObjective(objId))!;
+    let sent: any = null;
+    __setClientForTest({
+      messages: {
+        create: async () => {
+          throw new Error("no create expected");
+        },
+        parse: async (body: any) => {
+          sent = body;
+          return { parsed_output: practiceBody(objId), stop_reason: "end_turn", usage: { input_tokens: 1000, output_tokens: 500 } };
+        },
+      },
+    } as never);
+    const out = await liveRetryWriter.practice(obj, "the teaching text", "STEERMARK leave out the 2026 limit");
+    assert.equal(out.fadeChoices[out.fadeCorrectIndex], CORRECT, "shuffled with the key kept");
+    assert.ok(JSON.stringify(sent).includes("STEERMARK"), "the steer reaches the prompt");
+    await flushAiCallLog();
+    const row = await queryOne<{ purpose: string; user_id: string | null }>(`select purpose, user_id from ai_calls where model = $1 order by created_at desc limit 1`, [MODEL]);
+    assert.deepEqual(row, { purpose: "pregen_retry", user_id: null });
+    __setClientForTest({
+      messages: {
+        create: async () => {
+          throw new Error("no create expected");
+        },
+        parse: async () => ({ parsed_output: practiceBody(objId, { fadeChoices: ["a", "a", "a", "a"] }), stop_reason: "end_turn", usage: { input_tokens: 1, output_tokens: 1 } }),
+      },
+    } as never);
+    await assert.rejects(liveRetryWriter.practice(obj, "t", null), /retry content check/);
   });
 });
 

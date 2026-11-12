@@ -245,7 +245,15 @@
   scans every throw site), and the app keeps the server's words for 502/503.
   A counted use is released with `releaseOnce` on every path that stores
   nothing. A route that calls the model for a replayable id takes a
-  `withGradingClaim` first.
+  `withGradingClaim` first. REQ-235 (FAIL-1400..1408): a batch or script
+  path that holds an item gives it the same one steered retry (pregen:
+  `pregen_retry`, inside its budget) and reports the counts; a course unit
+  that generation teaches names dated `sources` with its official outline
+  statements (`outline`, headings only where copyrighted) and the key values
+  a writer would otherwise remember from an older version; a re-read clinical
+  value records the day it was read and whether only a summary was read;
+  anything that reads `item_holdbacks` for a report leaves staged findings and
+  replaced lessons out and returns counts only.
 - Phone sessions and screens (REQ-217, FAIL-1040..1066): a silent refresh never
   writes the biometric-sealed key (Android prompts for every write); it is
   written at sign-in, unlock and when the app goes to the background, and a
