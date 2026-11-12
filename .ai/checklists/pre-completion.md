@@ -253,7 +253,12 @@
   a writer would otherwise remember from an older version; a re-read clinical
   value records the day it was read and whether only a summary was read;
   anything that reads `item_holdbacks` for a report leaves staged findings and
-  replaced lessons out and returns counts only.
+  replaced lessons out and returns counts only. REQ-248 (FAIL-1600..1604): a
+  batch path decides a failure on the HARD problems only (`*HardProblems`);
+  style findings (`*Lint`) get the app's one steered retry (`fixFor`) and a
+  style-only retry is used, as `generateValid` does; a cost upper bound names
+  every call a unit of work can make (retries included); a full paid run
+  needs an explicit confirmation after a trial.
 - Phone sessions and screens (REQ-217, FAIL-1040..1066): a silent refresh never
   writes the biometric-sealed key (Android prompts for every write); it is
   written at sign-in, unlock and when the app goes to the background, and a

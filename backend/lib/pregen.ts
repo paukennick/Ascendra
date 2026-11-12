@@ -33,6 +33,19 @@
 // its first learner visit generates it through the full pipeline. The
 // summary counts retried, saved after a retry, and held after a retry.
 //
+// REQ-248 (FAIL-1600): the distractor lint (lessonPracticeLint: cue words, a
+// longer key, a count mismatch) is a STYLE finding, as in the app
+// (generateValid's `lintOf`, REQ-216 M6). Before REQ-248 a first draft with
+// any lint finding failed outright here and was never retried, while the app
+// retries it once, steered with the findings (fixFor), and serves a retry
+// whose only problems are style findings. Now pre-generation does the same:
+// hard problems still fail; a draft with style findings only gets one live
+// steered retry (`pregen_retry`, inside --max-usd, styleRetry below); a
+// retry with hard problems fails, a retry with style findings only goes on
+// through the same fact-check and holdback gates and is saved, logged as the
+// app logs it. A style retry the cap cannot cover is not made: the lesson
+// stays missing and its first learner visit generates it.
+//
 // Never printed or put in the summary: prompts, lesson text, claims.
 // Counts, ids, the estimate and batch ids only.
 
@@ -53,7 +66,7 @@ import { saveLesson } from "@/lib/lesson-store";
 import { makeModelFactChecker, type FactChecker } from "@/lib/fact-check";
 import { lowConfidenceOf } from "@/lib/item-quality";
 import { FactCheckUnavailableError } from "@/lib/generation-gate";
-import { CONTENT_LIMITS, lessonIntroProblems, lessonPracticeProblems, shufflePractice } from "@/lib/content-validator";
+import { CONTENT_LIMITS, fixFor, lessonIntroProblems, lessonPracticeHardProblems, lessonPracticeLint, shufflePractice } from "@/lib/content-validator";
 import { hasAuthoredLesson } from "@/lib/authored-lessons";
 import { wantsVerification } from "@/lib/verify-execution";
 import { queueExecCheck } from "@/lib/exec-checks";
@@ -139,6 +152,20 @@ export interface Summary {
   savedAfterRetry?: number;
   heldAfterRetry?: number;
   notRetriedForBudget?: number;
+  // REQ-248: the one steered retry of a draft whose only content-check
+  // problems are style findings (the distractor lint), as the app makes it.
+  styleRetried?: number;
+  savedAfterStyleRetry?: number;
+  // saved with style findings still there after the retry (the app serves these too)
+  servedWithStyleFindings?: number;
+  // the retry had hard problems (or its call failed): the lesson is still missing
+  failedAfterStyleRetry?: number;
+  styleNotRetriedForBudget?: number;
+  // a dry run: drafts that would get a style retry
+  wouldStyleRetry?: number;
+  // style findings on first drafts, as kinds (problemKind); problemKinds
+  // stays the problems of lessons that FAILED the content check
+  styleFindingKinds?: Record<string, number>;
 }
 
 // ---------------------------------------------------------------------------
@@ -253,14 +280,17 @@ async function price(rows: Row[], phase: "intro" | "practice", model: string, te
       dropped++;
       continue;
     }
-    const practiceUsd = batchRequestUpperUsd(model, practiceParams(model, obj, phase === "intro" ? placeholder : teachOf!(r.objective_id)));
+    const practice = practiceParams(model, obj, phase === "intro" ? placeholder : teachOf!(r.objective_id));
+    const practiceUsd = batchRequestUpperUsd(model, practice);
     const introUsd = phase === "intro" ? batchRequestUpperUsd(model, introParams(model, obj)) : 0;
     priced.push({
       objectiveId: r.objective_id,
       trackCode: r.track_code.toUpperCase(),
       unitId: r.unit_id,
       unitTitle: r.unit_title,
-      usd: introUsd + practiceUsd + fact,
+      // REQ-248: plus one live steered retry of the questions (style
+      // findings), at the live price.
+      usd: introUsd + practiceUsd + liveRequestUpperUsd(model, practice) + fact,
       obj,
     });
   }
@@ -300,8 +330,8 @@ export async function plan(opts: { tracks: string[]; limit: number | null; maxUs
 }
 
 function printPlan(r: PlanResult, maxUsd: number | null, log: (m: string) => void) {
-  log(`Model: ${r.summary.model}. Each lesson is 2 batch requests (teaching text, then practice) plus one live fact-check when it is saved.`);
-  log(`Upper bound (what --max-usd is checked against: every request at its max output, fact-check included):`);
+  log(`Model: ${r.summary.model}. Each lesson is 2 batch requests (teaching text, then practice) plus one live fact-check when it is saved, and at most one live steered retry of its questions.`);
+  log(`Upper bound (what --max-usd is checked against: every request at its max output, the fact-check and one live retry at the live price included):`);
   for (const l of planLines(r.plan, maxUsd)) log(l);
   if (r.dropped) log(`  (${r.dropped} objectives left out: retired, or authored.)`);
   log(`Actual cost is usually well under the upper bound; collect prints it.`);
@@ -353,11 +383,10 @@ export async function submitRun(
   // built (not the planning figures).
   const fact = factCheckUpperUsd(model);
   const chosenRows = r.priced.filter((p) => chosen.has(p.objectiveId));
-  const rebuilt = chosenRows.reduce(
-    (a, p, i) =>
-      a + batchRequestUpperUsd(model, requests[i].params as Params) + batchRequestUpperUsd(model, practiceParams(model, p.obj, "t".repeat(CONTENT_LIMITS.teach))) + fact,
-    0
-  );
+  const rebuilt = chosenRows.reduce((a, p, i) => {
+    const practice = practiceParams(model, p.obj, "t".repeat(CONTENT_LIMITS.teach));
+    return a + batchRequestUpperUsd(model, requests[i].params as Params) + batchRequestUpperUsd(model, practice) + liveRequestUpperUsd(model, practice) + fact;
+  }, 0);
   if (rebuilt > opts.maxUsd * 1.0000001) throw new BudgetError(`Refusing to submit: the built requests could cost up to ${usd(rebuilt)}, over --max-usd ${usd(opts.maxUsd)}. Nothing was sent.`);
   summary.requests = requests.length;
   if (opts.dryRun) {
@@ -479,8 +508,9 @@ export function liveRequestUpperUsd(model: string, params: Params): number {
 // REQ-235: the live steered retry, as the app's claudeGenerator writes it
 // (same prompt builders, same steer text from checkedIntro / checkedPractice),
 // one call, purpose `pregen_retry`, charged to no learner (an operator script,
-// REQ-202). The app's content lint runs on the result; a draft that fails it
-// is a failure, not a second attempt.
+// REQ-202). The app's content checks run on the result; a draft with a hard
+// problem is a failure, not a second attempt (REQ-248: style findings are
+// left to the caller, styleRetry, as the app's generateValid does).
 export interface RetryWriter {
   intro(obj: ObjectiveRow, steer: string): Promise<LessonIntroContent>;
   practice(obj: ObjectiveRow, teach: string, steer: string | null): Promise<LessonPracticeContent>;
@@ -518,10 +548,51 @@ export const liveRetryWriter: RetryWriter = {
     } catch {
       throw new RetryFailed("retry call failed");
     }
-    if (lessonPracticeProblems(made).length) throw new RetryFailed("retry content check");
+    // REQ-248: only HARD problems fail a retry here, as in the app; style
+    // findings are the caller's (styleRetry).
+    if (lessonPracticeHardProblems(made).length) throw new RetryFailed("retry content check");
     return shufflePractice(made);
   },
 };
+
+// REQ-248: a style retry the cap cannot cover. The lesson stays missing; its
+// first learner visit generates it.
+export class StyleRetryNotAffordable extends Error {
+  constructor() {
+    super("style retry not affordable");
+  }
+}
+
+export interface StyleRetryOutcome {
+  practice: LessonPracticeContent;
+  retried: boolean;
+  // style findings left after the retry (the app serves such a draft too)
+  servedWithFindings: boolean;
+}
+
+// REQ-248 (FAIL-1600): the app's rule for style findings (generateValid with
+// `lintOf`, REQ-216 M6), for a practice draft that has passed the hard checks.
+// No style findings: the draft as it is. Style findings: ONE live retry,
+// steered with them (fixFor, after any steer the retry already carries) --
+// only when `allow()` says the cap covers it, else StyleRetryNotAffordable.
+// The retry is checked again: a hard problem is RetryFailed (the lesson is
+// still missing); style findings alone are logged in the app's words, as kinds
+// (problemKind: no option text in the public log), and the retry is used.
+export async function styleRetry(
+  draft: LessonPracticeContent,
+  r: { writer: RetryWriter; obj: ObjectiveRow; teach: string; steer?: string | null; allow: () => boolean; log: (m: string) => void; onRetry?: () => void }
+): Promise<StyleRetryOutcome> {
+  const lint = lessonPracticeLint(draft);
+  if (!lint.length) return { practice: draft, retried: false, servedWithFindings: false };
+  if (!r.allow()) throw new StyleRetryNotAffordable();
+  r.onRetry?.();
+  const steer = [r.steer, fixFor(lint)].filter(Boolean).join("\n\n");
+  const again = await r.writer.practice(r.obj, r.teach, steer);
+  if (lessonPracticeHardProblems(again).length) throw new RetryFailed("retry content check");
+  const left = lessonPracticeLint(again);
+  if (left.length) r.log(`[content-validator] lesson served with style findings after one retry: ${left.slice(0, 5).map(problemKind).join(" ")}`);
+  return { practice: again, retried: true, servedWithFindings: left.length > 0 };
+}
 
 // What the generator may do when checkedIntro / checkedPractice ask for the
 // one retry. Absent (a dry run) or `allow` false (the budget): refused, and
@@ -530,6 +601,11 @@ interface RetryHooks {
   writer: RetryWriter;
   obj: ObjectiveRow;
   allow(): boolean;
+  // REQ-248: a held half's retry gets the style rule too (the app's
+  // gen.practice is generateValid with the lint, every call).
+  log: (m: string) => void;
+  onStyleRetry?: () => void;
+  onStyleServed?: () => void;
 }
 
 // The batch's output, shaped as the app's generator would have produced it,
@@ -559,7 +635,19 @@ function batchGenerator(
     async practice(_o: ObjectiveRow, _a?: unknown, meta?: { steer?: string; teach?: string }) {
       if (!retry || !retry.allow()) throw new NoRetryInBatch();
       gen.retried++;
-      return retry.writer.practice(retry.obj, meta?.teach ?? "", meta?.steer ?? null);
+      const draft = await retry.writer.practice(retry.obj, meta?.teach ?? "", meta?.steer ?? null);
+      if (lessonPracticeHardProblems(draft).length) throw new RetryFailed("retry content check");
+      const out = await styleRetry(draft, {
+        writer: retry.writer,
+        obj: retry.obj,
+        teach: meta?.teach ?? "",
+        steer: meta?.steer ?? null,
+        allow: retry.allow,
+        log: retry.log,
+        onRetry: retry.onStyleRetry,
+      });
+      if (out.servedWithFindings) retry.onStyleServed?.();
+      return out.practice;
     },
     model: () => model,
     factCheck,
@@ -632,6 +720,8 @@ async function collectIntro(
   const writer = ctx.retryWriter ?? liveRetryWriter;
   const factUpper = factCheckUpperUsd(model);
   const r235 = { retried: 0, saved: 0, heldAfter: 0, notRetried: 0, kept: 0 };
+  // REQ-248: style retries of the practice half of a lesson finished here.
+  const style = { retried: 0, saved: 0, served: 0, failedAfter: 0, notRetried: 0 };
   const { t, restore } = opts.dryRun ? { t: { usd: 0, calls: 0 }, restore: () => {} } : installTally();
   try {
     await quietHoldbackLog(async () => {
@@ -657,10 +747,17 @@ async function collectIntro(
         const lessonUpper =
           liveRequestUpperUsd(model, introParams(model, obj)) + 2 * liveRequestUpperUsd(model, practiceParams(model, obj, "t".repeat(CONTENT_LIMITS.teach))) + 2 * factUpper;
         let allowed = true;
+        let styleTried = false;
         const hooks: RetryHooks = {
           writer,
           obj,
           allow: () => (allowed = opts.maxUsd === null || introUsd + t.usd + lessonUpper <= opts.maxUsd),
+          log: ctx.log,
+          onStyleRetry: () => {
+            style.retried++;
+            styleTried = true;
+          },
+          onStyleServed: () => style.served++,
         };
         const gen = batchGenerator(model, intro, pregenFactChecker(), queueExecCheck, hooks);
         try {
@@ -672,20 +769,30 @@ async function collectIntro(
           }
           // The retried intro passed: its practice was never in the batch, so
           // the lesson is finished here, through the app's own checks.
-          const first = await writer.practice(obj, checked.teach, null);
-          const practice = await checkedPractice(id, obj, first, { shared: true, gen, meta: { teach: checked.teach } });
+          const draft = await writer.practice(obj, checked.teach, null);
+          // REQ-248: the app's style rule on this first practice draft too.
+          const first = await styleRetry(draft, { writer, obj, teach: checked.teach, allow: hooks.allow, log: ctx.log, onRetry: hooks.onStyleRetry });
+          if (first.servedWithFindings) style.served++;
+          const practice = await checkedPractice(id, obj, first.practice, { shared: true, gen, meta: { teach: checked.teach } });
           if (await queryOne(`select 1 from lesson_content where objective_id = $1`, [id])) {
             r235.kept++;
             continue;
           }
           await saveLesson({ kind: "shared" }, id, { ...checked, ...practice }, model);
           r235.saved++;
+          if (styleTried) style.saved++;
         } catch (err) {
           if (err instanceof NoRetryInBatch || err instanceof ContentHeldBackError) {
             held++;
             if (gen.retried) r235.heldAfter++;
             if (!allowed) r235.notRetried++;
-          } else if (err instanceof RetryFailed) liveFailed.push({ objectiveId: id, reason: err.category });
+          } else if (err instanceof StyleRetryNotAffordable) {
+            style.notRetried++;
+            liveFailed.push({ objectiveId: id, reason: "style retry not affordable" });
+          } else if (err instanceof RetryFailed) {
+            if (styleTried) style.failedAfter++;
+            liveFailed.push({ objectiveId: id, reason: err.category });
+          }
           else if (err instanceof FactCheckUnavailableError) liveFailed.push({ objectiveId: id, reason: "fact-check did not run" });
           else liveFailed.push({ objectiveId: id, reason: "intro check error" });
         } finally {
@@ -705,6 +812,10 @@ async function collectIntro(
   if (r235.retried || r235.notRetried)
     ctx.log(
       `Held intros retried once, steered: ${r235.retried} retried, ${r235.saved} lessons saved after the retry, ${r235.heldAfter} held again, ${r235.notRetried} not retried (budget). Live calls (retries and their fact-checks) cost ${usd(t.usd)}.`
+    );
+  if (style.retried || style.notRetried)
+    ctx.log(
+      `Practice drafts of those lessons with style findings only, retried once, steered (as the app does): ${style.retried} retried, ${style.served} saved with style findings left, ${style.failedAfter} failed after the retry, ${style.notRetried} not retried (budget).`
     );
   const budget = fillBudget(priced, left);
   ctx.log(`Teaching texts: ${rawIntros.size + failed.length} returned, ${priced.length} passed the checks, ${held} held back, ${liveFailed.length} failed, ${skipped + dropped} skipped (no longer eligible or already have a lesson).`);
@@ -727,6 +838,11 @@ async function collectIntro(
     heldAfterRetry: r235.heldAfter,
     notRetriedForBudget: r235.notRetried,
     alreadyHadOne: r235.kept,
+    styleRetried: style.retried,
+    savedAfterStyleRetry: style.saved,
+    servedWithStyleFindings: style.served,
+    failedAfterStyleRetry: style.failedAfter,
+    styleNotRetriedForBudget: style.notRetried,
   } satisfies Partial<Summary>);
   if (summary.actualUsd) summary.actualUsd = { batch: summary.actualUsd.batch, factCheck: round4(t.usd), total: round4(summary.actualUsd.batch + t.usd) };
   if (!budget.selected.length) {
@@ -737,7 +853,8 @@ async function collectIntro(
   const requests = priced
     .filter((p) => chosen.has(p.objectiveId))
     .map((p) => ({ custom_id: requestIds(p.objectiveId).practice, params: plain(practiceParams(model, p.obj, intros.get(p.objectiveId)!.teach)) }));
-  const rebuilt = requests.reduce((a, q) => a + batchRequestUpperUsd(model, q.params as Params) + factCheckUpperUsd(model), 0);
+  // REQ-248: each lesson's possible live style retry is reserved too.
+  const rebuilt = requests.reduce((a, q) => a + batchRequestUpperUsd(model, q.params as Params) + liveRequestUpperUsd(model, q.params as Params) + factCheckUpperUsd(model), 0);
   if (left !== null && rebuilt > left * 1.0000001) throw new BudgetError(`Refusing to submit the practice batch: it could cost up to ${usd(rebuilt)}, over the ${usd(left)} left. Nothing was sent.`);
   if (opts.dryRun) {
     ctx.log(`Dry run: built ${requests.length} practice requests, sent nothing, wrote nothing.`);
@@ -794,6 +911,9 @@ async function collectPractice(
   let savedAfterRetry = 0;
   let heldAfterRetry = 0;
   let notRetried = 0;
+  // REQ-248: the style retry (distractor lint only), as the app makes it.
+  const style = { retried: 0, saved: 0, served: 0, failedAfter: 0, notRetried: 0, would: 0 };
+  const styleKinds: Record<string, number> = {};
   const liveFailed = [...myFailed];
   const problemKinds: Record<string, number> = {};
   const factUpper = factCheckUpperUsd(model);
@@ -818,13 +938,20 @@ async function collectPractice(
           continue;
         }
         const intro = introFromModel(l.intro);
-        const problems = [...lessonIntroProblems(intro), ...lessonPracticeProblems(l.practice)];
-        if (problems.length) {
-          countKinds(problemKinds, problems);
+        // REQ-248 (FAIL-1600): hard problems fail the lesson; style findings
+        // (the distractor lint) get the app's one steered retry below.
+        const hard = [...lessonIntroProblems(intro), ...lessonPracticeHardProblems(l.practice)];
+        if (hard.length) {
+          countKinds(problemKinds, [...hard, ...lessonPracticeLint(l.practice)]);
           liveFailed.push({ objectiveId: l.objectiveId, reason: "content check" });
           continue;
         }
-        if (opts.dryRun) continue;
+        const lint = lessonPracticeLint(l.practice);
+        if (lint.length) countKinds(styleKinds, lint);
+        if (opts.dryRun) {
+          if (lint.length) style.would++;
+          continue;
+        }
         if (cap !== null && practiceUsd + introUsd + t.usd + factUpper > cap) {
           stopped = true;
           break;
@@ -834,16 +961,22 @@ async function collectPractice(
         const practice = shufflePractice(l.practice as LessonPracticeContent);
         // REQ-235: a held practice half gets one live steered retry when the
         // cap still covers it and its fact-check at their worst case.
+        // REQ-248: the style retry is held to the same worst case.
         const retryUpper = liveRequestUpperUsd(model, practiceParams(model, obj, intro.teach)) + factUpper;
         let allowed = true;
-        const gen = batchGenerator(model, intro, checker, queueExecCheck, {
-          writer: ctx.retryWriter ?? liveRetryWriter,
-          obj,
-          allow: () => (allowed = cap === null || practiceUsd + introUsd + t.usd + retryUpper <= cap),
-        });
+        let styleTried = false;
+        const writer = ctx.retryWriter ?? liveRetryWriter;
+        const allow = () => (allowed = cap === null || practiceUsd + introUsd + t.usd + retryUpper <= cap);
+        const onStyleRetry = () => {
+          style.retried++;
+          styleTried = true;
+        };
+        const gen = batchGenerator(model, intro, checker, queueExecCheck, { writer, obj, allow, log: ctx.log, onStyleRetry, onStyleServed: () => style.served++ });
         try {
+          const first = await styleRetry(practice, { writer, obj, teach: intro.teach, allow, log: ctx.log, onRetry: onStyleRetry });
+          if (first.servedWithFindings) style.served++;
           await checkedIntro(l.objectiveId, obj, { gen, meta: {} });
-          const checked = await checkedPractice(l.objectiveId, obj, practice, { shared: true, gen, meta: { teach: intro.teach } });
+          const checked = await checkedPractice(l.objectiveId, obj, first.practice, { shared: true, gen, meta: { teach: intro.teach } });
           // Insert-if-absent, re-checked right before the write (the checks
           // take seconds; saveLesson alone would replace a PULLED lesson).
           if (await queryOne(`select 1 from lesson_content where objective_id = $1`, [l.objectiveId])) {
@@ -853,17 +986,25 @@ async function collectPractice(
           await saveLesson({ kind: "shared" }, l.objectiveId, { ...intro, ...checked }, model);
           saved++;
           if (gen.retried) savedAfterRetry++;
+          if (styleTried) style.saved++;
         } catch (err) {
           if (err instanceof NoRetryInBatch || err instanceof ContentHeldBackError) {
             held++;
             if (gen.retried) heldAfterRetry++;
             if (!allowed) notRetried++;
           }
+          // REQ-248: a style retry the cap cannot cover: still missing, made on first visit.
+          else if (err instanceof StyleRetryNotAffordable) {
+            style.notRetried++;
+            liveFailed.push({ objectiveId: l.objectiveId, reason: "style retry not affordable" });
+          }
           // REQ-216: a fact-check that did not run is not a verdict on the lesson: it is
           // neither held nor saved, and the next run (or a first visit) tries again.
           else if (err instanceof FactCheckUnavailableError) liveFailed.push({ objectiveId: l.objectiveId, reason: "fact-check did not run" });
-          else if (err instanceof RetryFailed) liveFailed.push({ objectiveId: l.objectiveId, reason: err.category });
-          else liveFailed.push({ objectiveId: l.objectiveId, reason: "save error" });
+          else if (err instanceof RetryFailed) {
+            if (styleTried) style.failedAfter++;
+            liveFailed.push({ objectiveId: l.objectiveId, reason: err.category });
+          } else liveFailed.push({ objectiveId: l.objectiveId, reason: "save error" });
         } finally {
           retried += gen.retried;
         }
@@ -881,15 +1022,34 @@ async function collectPractice(
   summary.failedBy = tally(liveFailed);
   summary.problemKinds = problemKinds;
   summary.stoppedForBudget = stopped;
-  Object.assign(summary, { retried, savedAfterRetry, heldAfterRetry, notRetriedForBudget: notRetried } satisfies Partial<Summary>);
+  Object.assign(summary, {
+    retried,
+    savedAfterRetry,
+    heldAfterRetry,
+    notRetriedForBudget: notRetried,
+    styleRetried: style.retried,
+    savedAfterStyleRetry: style.saved,
+    servedWithStyleFindings: style.served,
+    failedAfterStyleRetry: style.failedAfter,
+    styleNotRetriedForBudget: style.notRetried,
+    styleFindingKinds: styleKinds,
+    ...(opts.dryRun ? { wouldStyleRetry: style.would } : {}),
+  } satisfies Partial<Summary>);
   summary.actualUsd = { batch: round4(practiceUsd + introUsd), factCheck: round4(t.usd), total: round4(practiceUsd + introUsd + t.usd) };
-  if (opts.dryRun) ctx.log(`Dry run: ${ordered.length} lessons returned, ${liveFailed.length} would fail the content check. Nothing was checked by the model or saved.`);
+  if (opts.dryRun)
+    ctx.log(`Dry run: ${ordered.length} lessons returned, ${liveFailed.length} would fail the content check, ${style.would} would get a steered retry for style findings. Nothing was checked by the model or saved.`);
   ctx.log(`Saved ${saved} new lessons; ${kept} already had one and were left alone; ${held} held back for review (npm run items -- list); ${liveFailed.length} failed; ${skipped} skipped (no longer eligible).`);
   if (retried || notRetried)
     ctx.log(`Held practice halves retried once, steered: ${retried} retried, ${savedAfterRetry} saved after the retry, ${heldAfterRetry} held again, ${notRetried} not retried (budget).`);
+  if (style.retried || style.notRetried)
+    ctx.log(
+      `Practice drafts with style findings only, retried once, steered (as the app does): ${style.retried} retried, ${style.saved} saved after the retry (${style.served} with style findings left, served as the app serves them), ${style.failedAfter} failed after the retry, ${style.notRetried} not retried (budget).`
+    );
   if (stopped) ctx.log(`Stopped early: the next fact-check could pass --max-usd. Run collect again with a larger --max-usd to finish, or leave the rest to first visits.`);
   const kinds = Object.entries(problemKinds).sort((a, b) => b[1] - a[1]).slice(0, 15);
-  if (kinds.length) ctx.log(`Content-check problems (lessons with each): ${kinds.map(([k, n]) => `${n} x ${k}`).join(" | ")}`);
+  if (kinds.length) ctx.log(`Content-check problems of failed lessons (lessons with each): ${kinds.map(([k, n]) => `${n} x ${k}`).join(" | ")}`);
+  const styleList = Object.entries(styleKinds).sort((a, b) => b[1] - a[1]).slice(0, 15);
+  if (styleList.length) ctx.log(`Style findings on first drafts (lessons with each; each got the steered retry): ${styleList.map(([k, n]) => `${n} x ${k}`).join(" | ")}`);
   const f = summary.failedBy;
   if (Object.keys(f).length) ctx.log(`Failed by cause: ${Object.entries(f).map(([k, n]) => `${k} ${n}`).join(", ")}. Failed and held lessons are simply still missing; the app generates them on first visit, or run submit again.`);
   ctx.log(`Actual cost: batches ${usd(summary.actualUsd.batch)} + live fact-checks ${usd(summary.actualUsd.factCheck)} = ${usd(summary.actualUsd.total)}`);

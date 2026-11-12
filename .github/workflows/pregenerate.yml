@@ -8,7 +8,10 @@
 #   estimate  no model call, no write: per-track lesson count and the UPPER-BOUND
 #             cost, and where max_usd would cut off (the default)
 #   submit    creates the intro batch for `tracks` (in priority order, whole
-#             units, never past max_usd). Refuses if max_usd is blank.
+#             units, never past max_usd). Refuses if max_usd is blank. With
+#             `limit` blank it is a FULL run and also needs confirm_full_run
+#             ticked (REQ-248): run a trial (limit 25) first, collect it, and
+#             check that most lessons were saved.
 #   collect   batch_id = the batch to collect. An ended INTRO batch checks the
 #             teaching texts and starts the practice batch; an ended PRACTICE
 #             batch (also give intro_batch_id) fact-checks and saves the
@@ -52,6 +55,10 @@ on:
         description: "Hard cap in USD on the UPPER-BOUND cost; required for submit and collect"
         type: string
         default: "110"
+      confirm_full_run:
+        description: "submit with limit blank (a full run): tick only after a trial run was collected and most of its lessons were saved"
+        type: boolean
+        default: false
 concurrency:
   group: pregenerate
   cancel-in-progress: false
@@ -79,6 +86,7 @@ jobs:
           BATCH_ID: ${{ inputs.batch_id }}
           INTRO_BATCH_ID: ${{ inputs.intro_batch_id }}
           MAX_USD: ${{ inputs.max_usd }}
+          CONFIRM_FULL_RUN: ${{ inputs.confirm_full_run }}
         run: |
           fail() { echo "::error::$1"; exit 1; }
           test -n "$PROD_DATABASE_URL" || fail "Add PROD_DATABASE_URL to the production-database environment."
@@ -92,6 +100,9 @@ jobs:
           if [ "$MODE" = "submit" ]; then
             test -n "$TRACKS" || fail "submit needs tracks (in priority order); it never submits the whole catalog."
             test -n "$MAX_USD" || fail "submit needs max_usd."
+            if [ -z "$LIMIT" ] && [ "$CONFIRM_FULL_RUN" != "true" ]; then
+              fail "submit with limit blank is a full run: run a trial first (limit 25), collect it, check most lessons were saved, then tick confirm_full_run. Runbook: Pre-generating lessons."
+            fi
           fi
           if [ "$MODE" = "collect" ]; then
             test -n "$BATCH_ID" || fail "collect needs batch_id."
@@ -115,6 +126,7 @@ jobs:
           BATCH_ID: ${{ inputs.batch_id }}
           INTRO_BATCH_ID: ${{ inputs.intro_batch_id }}
           MAX_USD: ${{ inputs.max_usd }}
+          CONFIRM_FULL_RUN: ${{ inputs.confirm_full_run }}
           SUMMARY: ${{ runner.temp }}/pregen-summary.json
         run: |
           set -- --summary "$SUMMARY"
@@ -126,6 +138,7 @@ jobs:
           if [ -n "$LIMIT" ]; then set -- "$@" --limit "$LIMIT"; fi
           if [ -n "$MAX_USD" ]; then set -- "$@" --max-usd "$MAX_USD"; fi
           if [ -n "$INTRO_BATCH_ID" ]; then set -- "$@" --intro-batch "$INTRO_BATCH_ID"; fi
+          if [ "$MODE" = "submit" ] && [ "$CONFIRM_FULL_RUN" = "true" ]; then set -- "$@" --confirm-full-run; fi
           npm run --silent pregen -- "$@"
       - name: Summary (counts only)
         if: always()
