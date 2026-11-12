@@ -52,9 +52,10 @@
 --
 -- LOCKING. Three new tables; one nullable column with a constant default on
 -- subject_tracks and one nullable column on learner_events (catalog-only
--- changes in PG 11+, no rewrite); the learner_events check is swapped with
--- NOT VALID then VALIDATE (VALIDATE takes SHARE UPDATE EXCLUSIVE, which does
--- not block inserts). lock_timeout 5 s as usual.
+-- changes in PG 11+, no rewrite, but an instant ACCESS EXCLUSIVE each); the
+-- learner_events checks are swapped with NOT VALID (an instant ACCESS
+-- EXCLUSIVE) then VALIDATE (SHARE UPDATE EXCLUSIVE, which does not block
+-- inserts). lock_timeout 5 s as usual.
 --
 -- ROLLBACK:
 --   drop table if exists learner_level_changes, learner_unit_levels, learner_course_profiles;
