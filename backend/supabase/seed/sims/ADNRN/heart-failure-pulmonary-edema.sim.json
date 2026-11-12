@@ -1,0 +1,1562 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "heart-failure-pulmonary-edema",
+  "title": "Can't lie flat at 04:50",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              92,
+              90,
+              85
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 25
+          },
+          "announce": {
+            "bands": [
+              22,
+              25,
+              30
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              100,
+              110,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "uo",
+          "label": "Urine",
+          "spokenLabel": "Urine since the furosemide",
+          "value": "uo",
+          "unit": "mL",
+          "announce": {
+            "bands": [
+              100,
+              300
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(furoAt)"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Saline 0.9% at 100 mL/h running: {fluidsOn|yesno}. Oxygen: {o2|0dp} L/min. Upright: {upright|yesno}. BiPAP: {nippv|yesno}.",
+      "banner": [
+        {
+          "when": "rrtHere",
+          "text": "The rapid response team is in the room."
+        },
+        {
+          "when": "congestion >= frothC",
+          "text": "Pink, frothy sputum."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize heart failure findings -- graded edema, weight gain, orthopnea, crackles -- and pulmonary edema as an emergency",
+  "secondaryObjectives": [
+    "Fluid volume deficit and overload",
+    "Hypertension, heart failure and cardiomyopathy"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf",
+      "note": "Read 2026-11-11 (primary PDF). Activity statements used: 'Manage the care of a client with a fluid and electrolyte imbalance'; 'Manage the care of a client with alteration in hemodynamics, tissue perfusion and hemostasis'; 'Evaluate client response to medication'."
+    },
+    {
+      "cite": "McDonagh TA, et al. 2021 ESC Guidelines for the diagnosis and treatment of acute and chronic heart failure. Eur Heart J 2021;42(36):3599-3726",
+      "checkedAt": "2026-11-11",
+      "url": "https://academic.oup.com/eurheartj/article/42/36/3599/6358045",
+      "note": "Read 2026-11-11 (primary text, acute heart failure section). Oxygen recommended for SpO2 <90% or PaO2 <60 mmHg; non-invasive positive pressure ventilation as soon as possible in respiratory distress (respiratory rate >25/min, SpO2 <90%); initial IV furosemide 1-2 times the daily oral dose taken before admission (20-40 mg if none); response checked by spot urine sodium after 2 or 6 h and/or hourly urine output, satisfactory if urine sodium >50-70 mEq/L at 2 h and/or urine output >100-150 mL/h in the first 6 h; IV vasodilators may be considered with SBP >110 mmHg; routine opiates not recommended."
+    },
+    {
+      "cite": "Heidenreich PA, et al. 2022 AHA/ACC/HFSA Guideline for the Management of Heart Failure. Circulation 2022;145:e895-e1032",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.the-hospitalist.org/hospitalist/article/32921/cardiology/how-to-treat-heart-failure-new-updates/",
+      "note": "Read only through a secondary summary (The Hospitalist, 'How to treat heart failure: new updates', read 2026-11-11); the publisher pages refused the fetch. As summarized: patients admitted with significant fluid overload should be treated promptly with an IV loop diuretic; a patient on a home diuretic starts at about their total daily home dose given IV. The ACC's 2026-06-30 release on the Second Universal Definition of Heart Failure says the next AHA/ACC management guideline is expected in late 2027, so the 2022 guideline is still current. No number in this case is taken from it."
+    },
+    {
+      "cite": "Pfizer. Furosemide Injection, prescribing information (clinical pharmacology)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.pfizermedical.com/furosemide-1/clinical-pharmacology",
+      "note": "Read 2026-11-11 (primary web page). After IV administration the onset of diuresis is within 5 minutes, the peak effect within the first half hour, and the diuretic effect lasts about 2 hours."
+    },
+    {
+      "cite": "Ascendra ADN-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-11",
+      "note": "The objective and secondary objectives are the course's own titles (heart failure findings and pulmonary edema as an emergency; fluid volume overload; hypertension, heart failure and cardiomyopathy)."
+    }
+  ],
+  "brief": {
+    "situation": "04:50 on a medical unit. Mrs. Bennett in Room 22, 76, admitted yesterday at 05:00 with pneumonia, puts her call light on: \"I can't breathe lying down.\" She is on telemetry and continuous pulse oximetry.",
+    "handover": [
+      "Heart failure with reduced ejection fraction (EF 30%). Her home furosemide 40 mg by mouth daily was held on admission because she looked dry.",
+      "0.9% saline has run at 100 mL/h since admission. Ceftriaxone and azithromycin for the pneumonia. Oxygen 2 L by nasal cannula, SpO2 94% at midnight.",
+      "Night orders: notify the provider for SpO2 below 90%; daily weight at 05:00. This morning's 04:00 labs are back."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Recognize what this is, act, escalate, and check that the treatment is working. Orders and the drug's effect take a few minutes.",
+      "Partway through you are asked to write what you think is happening. The case ends by 07:00, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "04:50",
+    "tick": "1s",
+    "maxDuration": "130min",
+    "calendar": "clock"
+  },
+  "params": {
+    "fluidRise": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. With the saline still running, her congestion climbs 0.008 a minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "baseRise": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Without a diuretic her congestion keeps climbing slowly even with the saline off (her own heart failure, off her furosemide). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "diureticFall": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. At full effect the diuretic clears 0.015 of congestion a minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nippvFall": {
+      "value": 0.005,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. BiPAP lowers preload and clears a little more congestion. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "furoOnset": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Pfizer. Furosemide Injection, prescribing information",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/furosemide-1/clinical-pharmacology",
+        "note": "Read 2026-11-11. IV: onset of diuresis within 5 minutes."
+      }
+    },
+    "furoPeak": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Pfizer. Furosemide Injection, prescribing information",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/furosemide-1/clinical-pharmacology",
+        "note": "Read 2026-11-11. IV: peak effect within the first half hour; the model ramps to full effect at 30 min."
+      }
+    },
+    "furoEnd": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "Pfizer. Furosemide Injection, prescribing information",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/furosemide-1/clinical-pharmacology",
+        "note": "Read 2026-11-11. IV: diuretic effect lasts about 2 hours."
+      }
+    },
+    "uoRate": {
+      "value": 8,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. About 480 mL an hour at full effect, a satisfactory response by the ESC's >100-150 mL/h. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "failC": {
+      "value": 2.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Congestion at which she tires and needs intubation (SpO2 below 80% on oxygen). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "frothC": {
+      "value": 1.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Congestion at which pink frothy sputum appears. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "okC": {
+      "value": 0.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Congestion at which she is decongesting: SpO2 92% or more on 4 L or less, RR about 21. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "o2Window": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "2021 ESC Guidelines for heart failure, acute heart failure section",
+        "checkedAt": "2026-11-11",
+        "url": "https://academic.oup.com/eurheartj/article/42/36/3599/6358045",
+        "note": "Read 2026-11-11. Oxygen for SpO2 <90%. FLAG: the 5-minute window is this case's."
+      }
+    },
+    "fluidWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Authored: the saline stopped within 10 min of finding the overload."
+      }
+    },
+    "callWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Authored: the provider called with an SBAR that lands within 15 min."
+      }
+    },
+    "furoWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Authored: the IV furosemide given within 10 min of the order."
+      }
+    },
+    "uoCheckAfter": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "2021 ESC Guidelines for heart failure, acute heart failure section",
+        "checkedAt": "2026-11-11",
+        "url": "https://academic.oup.com/eurheartj/article/42/36/3599/6358045",
+        "note": "Read 2026-11-11. Diuretic response by hourly urine output (>100-150 mL/h in the first 6 h). The case asks for a urine output measured at least 45 min after the dose."
+      }
+    },
+    "providerCall": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The provider calls back and writes orders: about 10 min."
+      }
+    },
+    "rrtArrive": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Rapid response team to the room: about 5 min."
+      }
+    },
+    "reviewAt": {
+      "value": 7800,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 07:00."
+      }
+    }
+  },
+  "state": {
+    "congestion": {
+      "type": "number",
+      "init": 1.1,
+      "min": 0,
+      "max": 3
+    },
+    "fluidsOn": {
+      "type": "bool",
+      "init": true
+    },
+    "fluidsOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "upright": {
+      "type": "bool",
+      "init": false
+    },
+    "uprightAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2": {
+      "type": "number",
+      "init": 2,
+      "min": 0,
+      "max": 15,
+      "unit": "L/min"
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    },
+    "nippv": {
+      "type": "bool",
+      "init": false
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "weightAt": {
+      "type": "time",
+      "init": null
+    },
+    "ioAt": {
+      "type": "time",
+      "init": null
+    },
+    "kAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "ordersAt": {
+      "type": "time",
+      "init": null
+    },
+    "furoAt": {
+      "type": "time",
+      "init": null
+    },
+    "uo": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5000,
+      "unit": "mL"
+    },
+    "uoCheckAt": {
+      "type": "time",
+      "init": null
+    },
+    "rrtAt": {
+      "type": "time",
+      "init": null
+    },
+    "rrtHere": {
+      "type": "bool",
+      "init": false
+    },
+    "bolus": {
+      "type": "bool",
+      "init": false
+    },
+    "lorazepam": {
+      "type": "bool",
+      "init": false
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "furoSince": {
+      "expr": "isNull(furoAt) ? -1 : t - timeAt(furoAt)"
+    },
+    "furoEff": {
+      "expr": "furoSince < furoOnset ? 0 : (furoSince < furoPeak ? (furoSince - furoOnset) / (furoPeak - furoOnset) : (furoSince < furoEnd ? 1 : 0))"
+    },
+    "o2Boost": {
+      "expr": "o2 >= 15 ? 7 : (o2 >= 6 ? 4 : (o2 >= 4 ? 2 : 0))"
+    },
+    "spo2": {
+      "expr": "round(clamp(97 - 8 * congestion + o2Boost + (upright ? 2 : 0) + (nippv ? 6 : 0) - (lorazepam ? 2 : 0), 60, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(clamp(14 + 12 * congestion - (upright ? 2 : 0) - (nippv ? 4 : 0) - (lorazepam ? 3 : 0), 8, 45))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(78 + 28 * congestion + 2 * sin(t / 23))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(130 + 30 * congestion)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.56)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "distress": {
+      "expr": "spo2 < 90 or rr > 25"
+    }
+  },
+  "processes": [
+    {
+      "id": "fluid",
+      "update": {
+        "congestion": "max(0, congestion + dt / 60 * ((fluidsOn ? fluidRise : 0) + (furoEff > 0 ? 0 : baseRise) - diureticFall * furoEff - (nippv ? nippvFall : 0)))",
+        "uo": "uo + dt / 60 * uoRate * furoEff"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "Room 22",
+      "clock": "running",
+      "actions": [
+        "look",
+        "sitUp",
+        "oxygen",
+        "stopFluids",
+        "weight",
+        "io",
+        "labs",
+        "call",
+        "furosemide",
+        "urine",
+        "rrt",
+        "bolus",
+        "lorazepam",
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Look, listen to her lungs, check her neck veins and legs",
+      "group": "Recognize",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "congestion >= frothC",
+              "then": [
+                {
+                  "log": "Gasping, pink frothy sputum, crackles all the way up both lungs, neck veins distended to the jaw, 2+ pitting edema to mid-shin, skin cool and clammy.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "congestion > okC",
+              "then": [
+                {
+                  "log": "Sitting forward gripping the rail, speaking in short phrases; crackles to mid-lung on both sides, neck veins distended, 2+ pitting edema of both ankles. She can't lie flat.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Breathing easier; crackles only at the bases, talking in full sentences.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "sitUp": {
+      "label": "Sit her bolt upright, legs down",
+      "group": "Act",
+      "available": "not upright",
+      "why": "Already upright.",
+      "effects": [
+        {
+          "set": "upright",
+          "to": "true"
+        },
+        {
+          "if": "isNull(uprightAt)",
+          "then": [
+            {
+              "set": "uprightAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "High Fowler's with her legs down over the side of the bed."
+        }
+      ]
+    },
+    "oxygen": {
+      "label": "Increase oxygen",
+      "group": "Act",
+      "params": [
+        {
+          "id": "dev",
+          "kind": "choice",
+          "label": "Device",
+          "options": [
+            {
+              "value": "nc4",
+              "label": "Nasal cannula 4 L"
+            },
+            {
+              "value": "nc6",
+              "label": "Nasal cannula 6 L"
+            },
+            {
+              "value": "nrb",
+              "label": "Non-rebreather mask 15 L"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dev == \"nc4\"",
+              "then": [
+                {
+                  "set": "o2",
+                  "to": "4"
+                }
+              ]
+            },
+            {
+              "when": "dev == \"nc6\"",
+              "then": [
+                {
+                  "set": "o2",
+                  "to": "6"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "o2",
+                  "to": "15"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "isNull(o2At)",
+          "then": [
+            {
+              "set": "o2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Oxygen changed; SpO2 {spo2}%."
+        }
+      ]
+    },
+    "stopFluids": {
+      "label": "Stop the saline and keep the IV as a saline lock",
+      "group": "Act",
+      "available": "fluidsOn",
+      "why": "Already stopped.",
+      "effects": [
+        {
+          "set": "fluidsOn",
+          "to": "false"
+        },
+        {
+          "if": "isNull(fluidsOffAt)",
+          "then": [
+            {
+              "set": "fluidsOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Saline stopped; the IV is locked for medications."
+        }
+      ]
+    },
+    "weight": {
+      "label": "Weigh her on the bed scale",
+      "group": "Recognize",
+      "effects": [
+        {
+          "if": "isNull(weightAt)",
+          "then": [
+            {
+              "set": "weightAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "71.6 kg; 69.8 kg on admission: up 1.8 kg in a day.",
+          "kind": "find"
+        }
+      ]
+    },
+    "io": {
+      "label": "Total intake and output since admission",
+      "group": "Recognize",
+      "effects": [
+        {
+          "if": "isNull(ioAt)",
+          "then": [
+            {
+              "set": "ioAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "In 2,650 mL (saline 2,400 mL, oral 250 mL); out 900 mL of urine.",
+          "kind": "find"
+        }
+      ]
+    },
+    "labs": {
+      "label": "Review the 04:00 labs",
+      "group": "Recognize",
+      "effects": [
+        {
+          "if": "isNull(kAt)",
+          "then": [
+            {
+              "set": "kAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Potassium 3.6 mEq/L, sodium 136, creatinine 1.1 (1.0 on admission). BNP was sent at 04:00 and is pending.",
+          "kind": "find"
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the provider (SBAR)",
+      "group": "Escalate",
+      "available": "isNull(callEffAt)",
+      "why": "The provider has the picture.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "hf",
+                  "label": "Mrs. Bennett in 22 has sudden shortness of breath and can't lie flat: SpO2 88% on 2 L, RR 27, crackles to mid-lung, distended neck veins"
+                },
+                {
+                  "value": "sob",
+                  "label": "Mrs. Bennett is short of breath, maybe the pneumonia"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "HFrEF with EF 30%, home furosemide 40 mg held since admission, saline at 100 mL/h for 24 h; up 1.8 kg, in 2,650 out 900; K 3.6"
+                },
+                {
+                  "value": "min",
+                  "label": "Admitted yesterday with pneumonia"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "edema",
+                  "label": "Acute decompensated heart failure with pulmonary edema from fluid overload"
+                },
+                {
+                  "value": "pneumonia",
+                  "label": "The pneumonia is getting worse"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "diurese",
+                  "label": "I've stopped the saline and sat her up. Please order IV furosemide now and come and see her"
+                },
+                {
+                  "value": "abx",
+                  "label": "Could we broaden her antibiotics?"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "sit == \"hf\" and asmt == \"edema\" and isNull(callEffAt)",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            },
+            {
+              "schedule": "ordersT",
+              "after": "providerCall"
+            },
+            {
+              "log": "Provider: \"Agreed. I'll put orders in and come up.\"",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Provider: \"Keep the oxygen up and recheck in an hour.\"",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "furosemide": {
+      "label": "Give furosemide 40 mg IV (ordered)",
+      "group": "Act",
+      "available": "not isNull(ordersAt) and isNull(furoAt)",
+      "why": "No order yet, or already given.",
+      "effects": [
+        {
+          "if": "isNull(furoAt)",
+          "then": [
+            {
+              "set": "furoAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "furoT",
+          "after": "furoPeak"
+        },
+        {
+          "log": "Furosemide 40 mg IV given. Onset within 5 minutes, peak within 30."
+        }
+      ]
+    },
+    "urine": {
+      "label": "Measure her urine output",
+      "group": "Evaluate",
+      "available": "not isNull(furoAt)",
+      "why": "Nothing to measure yet: no diuretic given.",
+      "effects": [
+        {
+          "if": "furoSince >= uoCheckAfter",
+          "then": [
+            {
+              "if": "isNull(uoCheckAt)",
+              "then": [
+                {
+                  "set": "uoCheckAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Urine since the furosemide: {round(uo)|0dp} mL.",
+          "kind": "find"
+        }
+      ]
+    },
+    "rrt": {
+      "label": "Call the rapid response team",
+      "group": "Escalate",
+      "available": "isNull(rrtAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "if": "isNull(rrtAt)",
+          "then": [
+            {
+              "set": "rrtAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "rrtT",
+          "after": "rrtArrive"
+        },
+        {
+          "log": "Rapid response team called."
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Give a 500 mL saline bolus for the low urine output",
+      "group": "Act",
+      "available": "not bolus",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "bolus",
+          "to": "true"
+        },
+        {
+          "add": "congestion",
+          "by": "0.4"
+        },
+        {
+          "set": "fluidsOn",
+          "to": "true"
+        },
+        {
+          "log": "500 mL of saline into lungs that are already full of fluid. She is more breathless.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "lorazepam": {
+      "label": "Give her PRN lorazepam for the panic",
+      "group": "Act",
+      "available": "not lorazepam",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "lorazepam",
+          "to": "true"
+        },
+        {
+          "log": "Lorazepam given. She is calmer and breathes less hard, and the numbers hide how sick she is.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "note": {
+      "label": "Document",
+      "group": "Evaluate",
+      "available": "isNull(noteAt)",
+      "why": "Already documented.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Findings with times, weight and intake/output, what was done, the response, who was told"
+            },
+            {
+              "value": "opinion",
+              "label": "'Anxious overnight, reassured'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"obj\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "log": "Note: 04:50 findings, weight +1.8 kg, intake/output +1,750 mL, saline stopped, oxygen, provider called, furosemide time, urine output and vital signs after."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Note: 'Anxious overnight, reassured.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "ordersT": {
+      "label": "the provider's orders",
+      "wait": {
+        "skipLabel": "the provider's orders (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 10 min."
+      },
+      "effects": [
+        {
+          "set": "ordersAt",
+          "to": "t"
+        },
+        {
+          "log": "Orders: furosemide 40 mg IV now (her daily oral dose), chest x-ray, BMP now and in 6 hours, strict intake and output with hourly urine output, daily weight, oxygen to keep SpO2 at least 90%; call the rapid response team if she is no better.",
+          "kind": "good"
+        }
+      ]
+    },
+    "furoT": {
+      "label": "the furosemide's peak",
+      "wait": {
+        "skipLabel": "the furosemide's peak (30 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Pfizer. Furosemide Injection, prescribing information (clinical pharmacology)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/furosemide-1/clinical-pharmacology",
+        "note": "Read 2026-11-11 (primary web page). After IV administration the onset of diuresis is within 5 minutes, the peak effect within the first half hour, and the diuretic effect lasts about 2 hours."
+      },
+      "effects": [
+        {
+          "log": "30 minutes since the furosemide: the peak of its effect. Urine so far {round(uo)|0dp} mL.",
+          "kind": "find"
+        }
+      ]
+    },
+    "rrtT": {
+      "label": "the rapid response team",
+      "wait": {
+        "skipLabel": "the rapid response team (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 5 min."
+      },
+      "effects": [
+        {
+          "set": "rrtHere",
+          "to": "true"
+        },
+        {
+          "if": "distress",
+          "then": [
+            {
+              "set": "nippv",
+              "to": "true"
+            },
+            {
+              "log": "Rapid response team: respiratory therapy starts BiPAP for her breathing (SpO2 below 90% or RR above 25).",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Rapid response team at the bedside: she is improving; they stay a while.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "if": "isNull(callEffAt)",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            },
+            {
+              "schedule": "ordersT",
+              "after": "providerCall"
+            },
+            {
+              "log": "The team's nurse calls the provider about pulmonary edema.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "endT": {
+      "label": "07:00",
+      "wait": {
+        "skipLabel": "07:00, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 07:00."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "froth",
+      "when": "congestion >= frothC",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "She coughs up pink, frothy sputum.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "t >= 600",
+      "question": "What findings tell you this is heart failure and not the pneumonia, why tonight, and what makes it an emergency?",
+      "parts": [
+        {
+          "label": "Findings and why tonight",
+          "criteria": "Names orthopnea, crackles, distended neck veins, graded pitting edema, a 1.8 kg weight gain and a positive fluid balance with low oxygen and fast breathing as fluid overload in a heart with an EF of 30%; links it to 24 hours of saline with her furosemide held; ranks it above worsening pneumonia.",
+          "modelAnswer": "She can't lie flat, has crackles to mid-lung, distended neck veins and 2+ ankle edema, is up 1.8 kg and 1.75 L positive, with SpO2 88% and RR 27. In someone with an EF of 30% who has had 2.4 L of saline and no furosemide, that is acute decompensated heart failure with pulmonary edema, not the pneumonia getting worse."
+        },
+        {
+          "label": "Why it's an emergency and what to do",
+          "criteria": "Treats pulmonary edema as an emergency: sits her up, raises the oxygen to keep SpO2 at least 90%, stops the saline, calls the provider with an SBAR asking for IV furosemide, gives it promptly, checks potassium, measures urine output to judge the response, and escalates to the rapid response team for BiPAP if she stays in distress; no fluid bolus or sedative.",
+          "modelAnswer": "Fluid in the alveoli can tire her into respiratory failure, so: upright, more oxygen to keep SpO2 at least 90%, stop the saline, SBAR to the provider asking for IV furosemide, give it as soon as it's ordered after checking her potassium, then measure urine output: more than 100-150 mL an hour means it's working. If she stays below 90% or above 25 breaths a minute, the rapid response team for BiPAP. No bolus, no lorazepam."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and congestion > okC",
+      "class": "harm",
+      "rationale": "Still in pulmonary edema two hours after the first call light means two hours of hypoxemia in a heart that cannot cope; this case calls it harm.",
+      "source": {
+        "cite": "McDonagh TA, et al. 2021 ESC Guidelines for the diagnosis and treatment of acute and chronic heart failure. Eur Heart J 2021;42(36):3599-3726",
+        "checkedAt": "2026-11-11",
+        "url": "https://academic.oup.com/eurheartj/article/42/36/3599/6358045",
+        "note": "Read 2026-11-11 (primary text, acute heart failure section). Oxygen recommended for SpO2 <90% or PaO2 <60 mmHg; non-invasive positive pressure ventilation as soon as possible in respiratory distress (respiratory rate >25/min, SpO2 <90%); initial IV furosemide 1-2 times the daily oral dose taken before admission (20-40 mg if none); response checked by spot urine sodium after 2 or 6 h and/or hourly urine output, satisfactory if urine sodium >50-70 mEq/L at 2 h and/or urine output >100-150 mL/h in the first 6 h; IV vasodilators may be considered with SBP >110 mmHg; routine opiates not recommended."
+      }
+    }
+  },
+  "endings": {
+    "intubated": {
+      "label": "Respiratory failure: intubated",
+      "class": "harm",
+      "when": "congestion >= failC",
+      "terminal": true,
+      "narrative": "She tires; SpO2 {spo2}% on oxygen, RR {rr}. The intensive care team intubates her and moves her to the ICU."
+    },
+    "decongesting": {
+      "label": "Pulmonary edema treated early and checked",
+      "class": "target",
+      "when": "congestion <= okC and not isNull(uprightAt) and not isNull(o2At) and timeAt(uprightAt) <= o2Window and timeAt(o2At) <= o2Window and not isNull(fluidsOffAt) and timeAt(fluidsOffAt) <= fluidWindow and not isNull(callEffAt) and not isNull(callAt) and timeAt(callEffAt) <= callWindow and not isNull(furoAt) and timeAt(furoAt) <= timeAt(ordersAt) + furoWindow and not isNull(kAt) and not isNull(uoCheckAt) and not nippv and not bolus and not lorazepam",
+      "terminal": true,
+      "narrative": "{t|clock}: SpO2 {spo2}%, RR {rr}, {round(uo)|0dp} mL of urine since the furosemide. You recognized pulmonary edema, treated it as an emergency, and checked that the diuretic was working."
+    },
+    "decongestingLate": {
+      "label": "Decongesting, by a slower route",
+      "class": "recovered",
+      "when": "congestion <= okC",
+      "terminal": true,
+      "narrative": "{t|clock}: SpO2 {spo2}%, RR {rr}. She is improving, but the route cost time or safety: a slow start on oxygen or position, saline left running, a late or unclear call, BiPAP she might not have needed, no check of the response, or a bolus or sedative."
+    },
+    "time_up": {
+      "label": "07:00 and still in pulmonary edema",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "07:00: SpO2 {spo2}%, RR {rr}, still crackling to mid-lung after two hours."
+    }
+  },
+  "endingOrder": [
+    "intubated",
+    "decongesting",
+    "decongestingLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "positionO2",
+        "label": "Upright with more oxygen within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(uprightAt) or isNull(o2At)",
+            "score": "missed",
+            "why": "She was not both sat up and given more oxygen."
+          },
+          {
+            "when": "timeAt(uprightAt) <= o2Window and timeAt(o2At) <= o2Window",
+            "score": "met",
+            "why": "Upright at {timeAt(uprightAt)|clock}, oxygen up at {timeAt(o2At)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Upright and more oxygen, but later than 5 minutes."
+          }
+        ]
+      },
+      {
+        "id": "fluids",
+        "label": "Stopped the saline",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "bolus",
+            "score": "missed",
+            "why": "Gave a saline bolus to a client in pulmonary edema."
+          },
+          {
+            "when": "isNull(fluidsOffAt)",
+            "score": "missed",
+            "why": "The saline kept running."
+          },
+          {
+            "when": "timeAt(fluidsOffAt) <= fluidWindow",
+            "score": "met",
+            "why": "Stopped at {timeAt(fluidsOffAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Stopped at {timeAt(fluidsOffAt)|clock}, after 10 minutes."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "SBAR that got IV furosemide, given promptly",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(furoAt)",
+            "score": "missed",
+            "why": "No diuretic was given."
+          },
+          {
+            "when": "not isNull(callAt) and not isNull(callEffAt) and timeAt(callEffAt) <= callWindow and timeAt(furoAt) <= timeAt(ordersAt) + furoWindow",
+            "score": "met",
+            "why": "Provider called at {timeAt(callEffAt)|clock}; furosemide in at {timeAt(furoAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Furosemide given, but the call was late, unclear or made by the rapid response team, or the dose waited after the order."
+          }
+        ]
+      },
+      {
+        "id": "response",
+        "label": "Checked potassium and the diuretic response",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(kAt) and not isNull(uoCheckAt)",
+            "score": "met",
+            "why": "Potassium reviewed and urine output measured 45 minutes or more after the dose."
+          },
+          {
+            "when": "not isNull(kAt) or not isNull(uoCheckAt)",
+            "score": "partial",
+            "why": "Potassium or urine output, not both."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither the potassium nor the response to the furosemide was checked."
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Collected the heart failure findings",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lookAt) and not isNull(weightAt) and not isNull(ioAt)",
+            "score": "met",
+            "why": "Lungs, neck veins, edema, weight and intake/output."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Examined her, but missed the weight or the fluid balance."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never examined her lungs, neck veins or legs."
+          }
+        ]
+      },
+      {
+        "id": "noHarm",
+        "label": "No sedative for the breathlessness",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "lorazepam",
+            "score": "missed",
+            "why": "Lorazepam for air hunger hides the problem and can slow her breathing."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No sedative."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Objective documentation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteObjective",
+            "score": "met",
+            "why": "Findings, times and the response documented."
+          },
+          {
+            "when": "isNull(noteAt)",
+            "score": "missed",
+            "why": "Not documented."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The note gave an opinion instead of findings."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: heart failure findings and pulmonary edema as an emergency",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toO2",
+        "label": "04:50 to more oxygen",
+        "value": "isNull(o2At) ? -1 : timeAt(o2At)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toFuro",
+        "label": "04:50 to the furosemide",
+        "value": "isNull(furoAt) ? -1 : timeAt(furoAt)",
+        "format": "duration",
+        "expert": "under 20 min"
+      },
+      {
+        "id": "urine",
+        "label": "Urine output since the furosemide",
+        "value": "round(uo)",
+        "format": "number",
+        "expert": "over 300 mL in the first hour"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "04:50",
+        "text": "Look and listen: orthopnea, crackles to mid-lung, distended neck veins, 2+ ankle edema. Sit her up, oxygen up, stop the saline."
+      },
+      {
+        "at": "04:52",
+        "text": "Weight +1.8 kg, intake/output +1,750 mL, potassium 3.6. SBAR to the provider: pulmonary edema from fluid overload; IV furosemide please."
+      },
+      {
+        "at": "~05:02",
+        "text": "Orders in: furosemide 40 mg IV at once. Objective note."
+      },
+      {
+        "at": "05:47 onward",
+        "text": "Urine output measured (well over 100-150 mL an hour); SpO2 above 92%, RR falling."
+      }
+    ],
+    "debrief": {
+      "intubated": {
+        "headline": "Respiratory failure",
+        "body": "Orthopnea, crackles and distended neck veins after a day of saline with her furosemide held is pulmonary edema. Find when she was sat up, when the saline stopped, and when furosemide went in."
+      },
+      "decongesting": {
+        "headline": "Recognized and treated as an emergency",
+        "body": "Upright, oxygen, saline off, a clear SBAR, furosemide within minutes of the order, and urine output measured to prove it worked. That is the expert path."
+      },
+      "decongestingLate": {
+        "headline": "Improving, by a slower route",
+        "body": "She is improving, but check how quickly she was sat up and given oxygen, when the saline stopped, whether the call named heart failure, whether BiPAP was needed, and whether the response was measured."
+      },
+      "time_up": {
+        "headline": "Still in pulmonary edema at 07:00",
+        "body": "Oxygen and position buy time; a diuretic removes the fluid. Without an SBAR that names fluid overload, the order never comes."
+      }
+    },
+    "modelReasoning": "Orthopnea, crackles to mid-lung, distended neck veins, 2+ pitting edema, a 1.8 kg gain and a 1.75 L positive balance in a client with an EF of 30%, after 24 hours of saline with her furosemide held, is acute decompensated heart failure with pulmonary edema, not worsening pneumonia. It is an emergency: sit her upright with her legs down, raise the oxygen to keep SpO2 at least 90%, stop the saline, and call the provider with an SBAR that names fluid overload and asks for IV furosemide (the ESC starts at 1-2 times the daily oral dose). Check potassium, give the furosemide as soon as it is ordered (onset within 5 minutes, peak within 30), and evaluate by urine output: more than 100-150 mL an hour is a satisfactory response. If she stays below 90% or above 25 breaths a minute, the rapid response team for non-invasive ventilation. A fluid bolus or a sedative makes it worse."
+  },
+  "chapters": [
+    {
+      "id": "diuresing",
+      "label": "Furosemide in",
+      "when": "not isNull(furoAt)"
+    }
+  ],
+  "teaching": {
+    "furoQ": {
+      "during": "ordersT",
+      "ask": "While the provider writes orders: how fast should IV furosemide work?",
+      "choices": [
+        {
+          "id": "fast",
+          "label": "Diuresis within 5 minutes, peak within 30"
+        },
+        {
+          "id": "hours",
+          "label": "Not for 2-3 hours"
+        },
+        {
+          "id": "day",
+          "label": "By tomorrow's weight"
+        }
+      ],
+      "expect": "fast",
+      "explain": "IV furosemide starts diuresis within 5 minutes, peaks within the first half hour and lasts about 2 hours, so the response is measurable within the hour.",
+      "source": {
+        "cite": "Pfizer. Furosemide Injection, prescribing information (clinical pharmacology)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/furosemide-1/clinical-pharmacology",
+        "note": "Read 2026-11-11 (primary web page). After IV administration the onset of diuresis is within 5 minutes, the peak effect within the first half hour, and the diuretic effect lasts about 2 hours."
+      }
+    },
+    "nippvQ": {
+      "during": "rrtT",
+      "ask": "While the team comes: when does she need non-invasive ventilation?",
+      "choices": [
+        {
+          "id": "distress",
+          "label": "Respiratory distress: RR above 25 and SpO2 below 90% despite oxygen"
+        },
+        {
+          "id": "always",
+          "label": "Every client with heart failure"
+        },
+        {
+          "id": "never",
+          "label": "Only after intubation fails"
+        }
+      ],
+      "expect": "distress",
+      "explain": "The ESC recommends non-invasive positive pressure ventilation as soon as possible in respiratory distress, named as a respiratory rate above 25 and SpO2 below 90%.",
+      "source": {
+        "cite": "McDonagh TA, et al. 2021 ESC Guidelines for the diagnosis and treatment of acute and chronic heart failure. Eur Heart J 2021;42(36):3599-3726",
+        "checkedAt": "2026-11-11",
+        "url": "https://academic.oup.com/eurheartj/article/42/36/3599/6358045",
+        "note": "Read 2026-11-11 (primary text, acute heart failure section). Oxygen recommended for SpO2 <90% or PaO2 <60 mmHg; non-invasive positive pressure ventilation as soon as possible in respiratory distress (respiratory rate >25/min, SpO2 <90%); initial IV furosemide 1-2 times the daily oral dose taken before admission (20-40 mg if none); response checked by spot urine sodium after 2 or 6 h and/or hourly urine output, satisfactory if urine sodium >50-70 mEq/L at 2 h and/or urine output >100-150 mL/h in the first 6 h; IV vasodilators may be considered with SBP >110 mmHg; routine opiates not recommended."
+      }
+    },
+    "workingQ": {
+      "during": "furoT",
+      "ask": "While the diuretic peaks: what tells you it is working?",
+      "choices": [
+        {
+          "id": "uo",
+          "label": "Urine output over 100-150 mL an hour, breathing easier, SpO2 rising"
+        },
+        {
+          "id": "bp",
+          "label": "Her blood pressure falling below 100"
+        },
+        {
+          "id": "none",
+          "label": "Nothing until tomorrow's weight"
+        }
+      ],
+      "expect": "uo",
+      "explain": "The ESC judges the early response by hourly urine output (more than 100-150 mL/h in the first 6 hours) or urine sodium, alongside her breathing and saturation.",
+      "source": {
+        "cite": "McDonagh TA, et al. 2021 ESC Guidelines for the diagnosis and treatment of acute and chronic heart failure. Eur Heart J 2021;42(36):3599-3726",
+        "checkedAt": "2026-11-11",
+        "url": "https://academic.oup.com/eurheartj/article/42/36/3599/6358045",
+        "note": "Read 2026-11-11 (primary text, acute heart failure section). Oxygen recommended for SpO2 <90% or PaO2 <60 mmHg; non-invasive positive pressure ventilation as soon as possible in respiratory distress (respiratory rate >25/min, SpO2 <90%); initial IV furosemide 1-2 times the daily oral dose taken before admission (20-40 mg if none); response checked by spot urine sodium after 2 or 6 h and/or hourly urine output, satisfactory if urine sodium >50-70 mEq/L at 2 h and/or urine output >100-150 mL/h in the first 6 h; IV vasodilators may be considered with SBP >110 mmHg; routine opiates not recommended."
+      }
+    }
+  }
+}

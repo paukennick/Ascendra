@@ -16163,6 +16163,28 @@
       ],
       "prevention_notes": "documented with FAIL-1360's turns-phase ordering note; no lint rule",
       "recurrence_of": "FAIL-1360"
+    },
+    {
+      "id": "FAIL-1500",
+      "date": "2026-11-11",
+      "title": "Lint warns 'never available' for an action used right after the timer or trigger that unlocked it",
+      "status": "open",
+      "severity": "low",
+      "symptom": "sims:lint warned 'actions.furosemide: never available in any golden path' (ADNRN/heart-failure-pulmonary-edema) and 'actions.supportSam: never available in any golden path' (BSNRN/charge-nurse-short-staffed-shift), although golden paths sent those actions and the engine accepted them.",
+      "how_detected": "the generator-gate check script on the wave-2 documents (lint output)",
+      "root_cause": "replayGoldenPath (engine/v1/validate.ts) samples availability only at command boundaries after each command (noteBoundary). An action that becomes available when a timer or trigger fires during the ticks advanced before the next command, and is that next command, is never sampled as available.",
+      "requirement": "REQ-240",
+      "affected": [
+        "backend/lib/sim/engine/v1/validate.ts",
+        "mobile/src/sim/engine/v1/validate.ts"
+      ],
+      "fix_summary": "Not fixed: the change is in the engine folder, out of scope for REQ-240 (no engine changes). Worked around in the two goldens by sending one repeatable command (note, followUp) before the newly available action. Proposed fix: also sample availability just before each command is applied (after the tick loop).",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Open; a regression test belongs with the validate.ts fix (a fixture whose only use of an action is right after the timer that unlocks it should not warn).",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.13 records the workaround for authors until validate.ts samples availability before each command.",
+      "recurrence_of": ""
     }
   ]
 }

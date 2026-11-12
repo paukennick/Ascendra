@@ -1,0 +1,666 @@
+{
+  "slug": "heart-failure-pulmonary-edema",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: look and listen, sit up, oxygen to 4 L, saline off, weight, intake/output, potassium, SBAR naming pulmonary edema, furosemide on the order, urine output measured at 46 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "sitUp",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "dev": "nc4"
+          },
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "stopFluids",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "weight",
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "io",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "hf",
+            "bg": "full",
+            "asmt": "edema",
+            "rec": "diurese"
+          },
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "furoQ",
+          "choice": "fast",
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 11,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 12,
+          "tick": 605
+        },
+        {
+          "type": "act",
+          "action": "furosemide",
+          "seq": 13,
+          "tick": 605
+        },
+        {
+          "type": "teach",
+          "prompt": "workingQ",
+          "choice": "uo",
+          "seq": 14,
+          "tick": 605
+        },
+        {
+          "type": "chapter",
+          "chapter": "diuresing",
+          "choice": "continue",
+          "seq": 15,
+          "tick": 3365
+        },
+        {
+          "type": "act",
+          "action": "urine",
+          "seq": 16,
+          "tick": 3365
+        }
+      ],
+      "expect": {
+        "ending": "decongesting",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "positionO2": "met",
+          "fluids": "met",
+          "escalate": "met",
+          "response": "met",
+          "data": "met",
+          "noHarm": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toO2": 5,
+          "toFuro": 605,
+          "urine": 291
+        },
+        "stateHash": "f993c4a081e6313f"
+      },
+      "reasoning": {
+        "cues": "met"
+      }
+    },
+    {
+      "id": "slowCall",
+      "title": "Sits her up and raises the oxygen at 6 minutes, saline off at 12, a call about the pneumonia first and a clear SBAR at 20 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "sitUp",
+          "seq": 2,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "dev": "nc6"
+          },
+          "seq": 3,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sob",
+            "bg": "min",
+            "asmt": "pneumonia",
+            "rec": "abx"
+          },
+          "seq": 4,
+          "tick": 360
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 5,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "stopFluids",
+          "seq": 6,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 7,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "hf",
+            "bg": "full",
+            "asmt": "edema",
+            "rec": "diurese"
+          },
+          "seq": 8,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 9,
+          "tick": 1200
+        },
+        {
+          "type": "teach",
+          "prompt": "furoQ",
+          "choice": "fast",
+          "seq": 10,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "furosemide",
+          "seq": 11,
+          "tick": 1800
+        },
+        {
+          "type": "teach",
+          "prompt": "workingQ",
+          "choice": "uo",
+          "seq": 12,
+          "tick": 1800
+        },
+        {
+          "type": "chapter",
+          "chapter": "diuresing",
+          "choice": "continue",
+          "seq": 13,
+          "tick": 4560
+        },
+        {
+          "type": "act",
+          "action": "urine",
+          "seq": 14,
+          "tick": 4560
+        }
+      ],
+      "expect": {
+        "ending": "decongestingLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 69,
+        "criteria": {
+          "positionO2": "partial",
+          "fluids": "partial",
+          "escalate": "partial",
+          "response": "met",
+          "data": "partial",
+          "noHarm": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toO2": 360,
+          "toFuro": 1800,
+          "urine": 374
+        },
+        "stateHash": "2c881236add592ba"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "teamCalls",
+      "title": "Upright, a non-rebreather and the saline off, then the rapid response team instead of a call; the team's nurse calls the provider",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "sitUp",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "dev": "nrb"
+          },
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "stopFluids",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "weight",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "rrt",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "nippvQ",
+          "choice": "distress",
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "furoQ",
+          "choice": "fast",
+          "seq": 8,
+          "tick": 320
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 9,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "furosemide",
+          "seq": 10,
+          "tick": 920
+        },
+        {
+          "type": "teach",
+          "prompt": "workingQ",
+          "choice": "uo",
+          "seq": 11,
+          "tick": 920
+        },
+        {
+          "type": "chapter",
+          "chapter": "diuresing",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 3680
+        },
+        {
+          "type": "act",
+          "action": "urine",
+          "seq": 13,
+          "tick": 3680
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 14,
+          "tick": 3680
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 15,
+          "tick": 3680
+        }
+      ],
+      "expect": {
+        "ending": "decongestingLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "positionO2": "met",
+          "fluids": "met",
+          "escalate": "partial",
+          "response": "met",
+          "data": "partial",
+          "noHarm": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toO2": 20,
+          "toFuro": 920,
+          "urine": 301
+        },
+        "stateHash": "3c12b56779697b2d"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "noCheck",
+      "title": "Fast and complete treatment, but neither the potassium nor the urine output is checked",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "sitUp",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "dev": "nc4"
+          },
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "stopFluids",
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "hf",
+            "bg": "full",
+            "asmt": "edema",
+            "rec": "diurese"
+          },
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "furoQ",
+          "choice": "fast",
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 7,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "furosemide",
+          "seq": 8,
+          "tick": 605
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 9,
+          "tick": 605
+        },
+        {
+          "type": "teach",
+          "prompt": "workingQ",
+          "choice": "uo",
+          "seq": 10,
+          "tick": 605
+        }
+      ],
+      "expect": {
+        "ending": "decongestingLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "positionO2": "met",
+          "fluids": "met",
+          "escalate": "met",
+          "response": "missed",
+          "data": "partial",
+          "noHarm": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toO2": 5,
+          "toFuro": 605,
+          "urine": 291
+        },
+        "stateHash": "da5466c08d3756ee"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "pneumoniaOnly",
+      "title": "Failure: upright, more oxygen and the saline off, but the call is about the pneumonia and no diuretic ever comes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "sitUp",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "dev": "nc4"
+          },
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "stopFluids",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sob",
+            "bg": "min",
+            "asmt": "pneumonia",
+            "rec": "abx"
+          },
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 7,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "time_up",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "positionO2": "met",
+          "fluids": "met",
+          "escalate": "missed",
+          "response": "missed",
+          "data": "partial",
+          "noHarm": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "toO2": 30,
+          "toFuro": -1,
+          "urine": 0
+        },
+        "stateHash": "296566e6b8ecd9d3"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "bolusSedate",
+      "title": "Failure: no examination, lorazepam for the panic and a saline bolus for the urine output",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "io",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 4,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "intubated",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "positionO2": "missed",
+          "fluids": "missed",
+          "escalate": "missed",
+          "response": "missed",
+          "data": "missed",
+          "noHarm": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toO2": -1,
+          "toFuro": -1,
+          "urine": 0
+        },
+        "stateHash": "77d2df17064a2280"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    }
+  ]
+}

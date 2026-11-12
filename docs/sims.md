@@ -4637,6 +4637,72 @@ shown with `|min` or `|duration`.
   path ends in an earlier ending), so the linter's `time_up` warning remains,
   as in the NAT case.
 
+### 22.13 Bedside wave 2, nursing: LPN/VN, ADN-RN and BSN-RN (REQ-240)
+
+Six documents on the existing bedside renderer and engine 1.2; no engine,
+renderer, schema or migration change. Each declares engine minor 2 and
+`endingOrder`, has endings in all three outcome classes, four critical
+criteria inside its `target` condition, KPIs, an expert path, a debrief per
+ending, one reasoning moment and five or six golden paths built by
+`npm run sim:golden -- steps <name>` (`scripts/sim-golden/<name>.steps.ts`).
+The five running cases have three sourced teaching prompts each, written in
+jsonb key order (FAIL-1362), and default to study pace (3x); none has a
+focused start, because each needs action from the first minute.
+
+| Course / slug | Objective (exact title, abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| LPNVN/ltc-pressure-injury-infection | Infection, sepsis and recognizing early deterioration | gown and gloves before the wound care; measured and compared with the record; SBAR that lands within 15 min of the first sign; within the wound orders | lpn-wound |
+| LPNVN/ltc-insulin-hypoglycemia | Contribute to each step of clinical judgment ... and report what needs RN judgment | treated by protocol within 5 min; fast carbohydrate, not fat; recheck at 13-20 min; RN told and the lunch lispro held for review | lpn-hypo |
+| ADNRN/pca-oversedation-naloxone | Map the nursing process onto the six clinical judgment steps, and use evaluation ... | PCA paused and sedation checked within 3 min; naloxone 0.1 mg titrated; capnography and a reassessment 30 min or more after the last dose; SBAR that changes the plan | adn-opioid |
+| ADNRN/heart-failure-pulmonary-edema | Recognize heart failure findings ... and pulmonary edema as an emergency | upright with more oxygen within 5 min; saline stopped; SBAR that gets IV furosemide, given promptly; potassium and urine output checked | adn-hf |
+| BSNRN/assisted-living-norovirus-outbreak | Take part in a community health assessment and use the nursing process to form a community diagnosis and plan of care | core measures on day one without waiting for the lab; state told on day one; case definition, line list and daily surveillance; declared over only after 96 h without a new case | bsn-outbreak |
+| BSNRN/charge-nurse-short-staffed-shift | Know that nurse managers coordinate care, delegate and support staff's professional development | the unstable client to an RN within 15 min; the assistant given specific directions, never assessment; the transfusion matched to scope and competence; a staff safety concern heard and the staffing gap raised | bsn-charge |
+
+- **The outbreak is learner-paced.** A 12-day outbreak cannot run at 3x, so
+  its one phase is `turns` with a 1-hour tick: nothing moves until the
+  learner advances to the next 08:30 update (or the lab result). Teaching
+  prompts and chapters need a running phase (5.4a lint), so it has neither;
+  the server offers no pacing for it. Its epidemic is a small SIR model with
+  authored transmission factors per measure (all FLAG); the end rule (four
+  quiet daily updates, 96 hours) is the NC DPH LTCF guidance, used because
+  the CDC 2011 guideline does not state one.
+- **Objective choice.** Every objective passes the keyword selection screen
+  (12.2). For the LPN hypoglycemia and ADN opioid cases the most specific
+  titles ("Know insulin onset, peak and duration ..." and "Pain management,
+  including the opioid-tolerant patient") screen at one of four, so the
+  nearest qualifying clinical-judgment titles were used and the specific
+  ones are listed as secondary objectives. Nick may prefer the specific
+  titles; the change is the `objective` line only (a new hash).
+- **Sources** carry `checkedAt` 2026-11-11. Read in primary text: the 2026
+  NCLEX-PN and NCLEX-RN test plans, ADA Standards of Care 2026 section 6
+  (PMC), CDC's low blood sugar page, the Lupin glucagon label, Lilly's lispro
+  pharmacodynamics answer, CDC enhanced barrier precautions, the NPIAP 2016
+  staging poster, Sepsis-3 (JAMA 2016), the Pfizer naloxone, hydromorphone
+  and furosemide labels, the POSS as reproduced by RNAO, the 2021 ESC heart
+  failure guideline (acute section), the MMWR 2011 norovirus guideline, the
+  NC DPH norovirus LTCF summary, CDC Principles of Epidemiology lesson 6, the
+  ANA-NCSBN 2019 delegation guidelines and the AACN Essentials page. Read
+  only through summaries: the 2022 AHA/ACC/HFSA heart failure guideline (The
+  Hospitalist; the publisher refused the fetch; the ACC's 2026-06-30 release
+  says the next management guideline is due late 2027) and the ASPMN 2020
+  sedation-monitoring revisions (a University at Buffalo news item). No
+  number in either case is taken from those two. Authored teaching-model
+  numbers say so, and those standing in for a missing guideline number carry
+  `FLAG` (for example the glucose rise per gram of carbohydrate, the opioid
+  and naloxone effect sizes, the congestion and diuresis rates, the wound
+  infection time course, and every outbreak transmission factor).
+- **Authoring finding (FAIL-1500, open).** The linter's "never available in
+  any golden path" warning samples availability only after each command, so
+  an action whose first use comes right after the timer or trigger that
+  unlocked it is reported as never available. Until `validate.ts` samples
+  before each command too, send one other command first (the goldens here
+  do: a note or a follow-up).
+- **`time_up`** is reached by a golden path in the LPN hypoglycemia case
+  (class recovered: treated, but the cause never reached the provider), the
+  heart failure case (harm: still in pulmonary edema at 07:00) and the
+  outbreak (recovered: nobody called it over by day 12); elsewhere an earlier
+  ending always comes first and the linter's warning remains.
+
 ### 22.12 NCE and NCMHCE client sessions (REQ-239)
 
 Five more cases on the client `session` screen (22.5), for the two NBCC
