@@ -1,0 +1,992 @@
+{
+  "slug": "rag-assistant-data-leak",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Privacy in, read the logs, disable the contractor, preserve, permission-aware retrieval by 21 min, review the connector, list recipients, masking; notify everyone who must act",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reviewLogs",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "suspendContractor",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 21,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "restrictRetrieval",
+          "params": {
+            "how": "permissionAware"
+          },
+          "seq": 9,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 36,
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "reviewConnector",
+          "seq": 11,
+          "tick": 36
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 42,
+          "seq": 12,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "listExposed",
+          "seq": 13,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 50,
+          "seq": 14,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "redact",
+          "seq": 15,
+          "tick": 50
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 55,
+          "seq": 16,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 17,
+          "tick": 55
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 19,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "connector",
+            "who": "four"
+          },
+          "seq": 20,
+          "tick": 55
+        }
+      ],
+      "expect": {
+        "ending": "contained",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "leakStopped": "met",
+          "dataControl": "met",
+          "scope": "met",
+          "evidence": "met",
+          "contractor": "met",
+          "masked": "met",
+          "keptService": "met",
+          "escalated": "met",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "leakedK": 83,
+          "minToStop": 21,
+          "recipients": 4
+        },
+        "stateHash": "fbde5dc00e9f85cf"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "promptOnly",
+      "title": "Adds a line to the system prompt and masks numbers: the contractor moves to contracts, then scripts the API key and walks every folder by 50 min",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "restrictRetrieval",
+          "params": {
+            "how": "promptOnly"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "redact",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 17,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 17,
+          "seq": 7,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 8,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 27,
+          "seq": 9,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 27,
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 37,
+          "seq": 12,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 47,
+          "seq": 14,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 47
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 57,
+          "seq": 16,
+          "tick": 47
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 17,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "it"
+          },
+          "seq": 18,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "inject",
+            "who": "one"
+          },
+          "seq": 19,
+          "tick": 50
+        }
+      ],
+      "expect": {
+        "ending": "bulkLeak",
+        "class": "harm",
+        "rating": "bad",
+        "score": 23,
+        "criteria": {
+          "leakStopped": "missed",
+          "dataControl": "missed",
+          "scope": "missed",
+          "evidence": "missed",
+          "contractor": "missed",
+          "masked": "met",
+          "keptService": "met",
+          "escalated": "missed",
+          "notifiedCrit": "partial",
+          "record": "missed"
+        },
+        "kpis": {
+          "leakedK": 1111,
+          "minToStop": -1,
+          "recipients": 0
+        },
+        "stateHash": "7d4b70578fb875f1"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "deleteFirst",
+      "title": "Reads the logs, disables the contractor and deletes the HR and Finance collections before keeping any logs or manifest",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reviewLogs",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "suspendContractor",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "restrictRetrieval",
+          "params": {
+            "how": "removed"
+          },
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 23,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "listExposed",
+          "seq": 9,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 31,
+          "seq": 10,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 11,
+          "tick": 31
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 13,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "connector",
+            "who": "four"
+          },
+          "seq": 14,
+          "tick": 31
+        }
+      ],
+      "expect": {
+        "ending": "evidenceLost",
+        "class": "harm",
+        "rating": "bad",
+        "score": 77,
+        "criteria": {
+          "leakStopped": "met",
+          "dataControl": "met",
+          "scope": "met",
+          "evidence": "missed",
+          "contractor": "met",
+          "masked": "missed",
+          "keptService": "met",
+          "escalated": "met",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "leakedK": 82,
+          "minToStop": 13,
+          "recipients": 4
+        },
+        "stateHash": "e869487fa2e8fc68"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "contractorOnly",
+      "title": "Disables the contractor and investigates fully, but leaves retrieval as it was for everyone else",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reviewLogs",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "suspendContractor",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 21,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "listExposed",
+          "seq": 9,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 29,
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 11,
+          "tick": 29
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "nobody"
+          },
+          "seq": 13,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "connector",
+            "who": "four"
+          },
+          "seq": 14,
+          "tick": 29
+        }
+      ],
+      "expect": {
+        "ending": "stillLeaking",
+        "class": "harm",
+        "rating": "bad",
+        "score": 59,
+        "criteria": {
+          "leakStopped": "missed",
+          "dataControl": "missed",
+          "scope": "met",
+          "evidence": "met",
+          "contractor": "met",
+          "masked": "missed",
+          "keptService": "met",
+          "escalated": "met",
+          "notifiedCrit": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "leakedK": 85,
+          "minToStop": -1,
+          "recipients": 4
+        },
+        "stateHash": "9e2717179f0a52dd"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "assistantOff",
+      "title": "Turns AskOps off at once, then preserves, investigates and disables the contractor: safe, but nothing fixed and the assistant is gone",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "assistantOff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "reviewLogs",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 18,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "reviewConnector",
+          "seq": 7,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 24,
+          "seq": 8,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "listExposed",
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 32,
+          "seq": 10,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "suspendContractor",
+          "seq": 11,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 35,
+          "seq": 12,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 13,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 37,
+          "seq": 14,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 15,
+          "tick": 37
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 17,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "connector",
+            "who": "four"
+          },
+          "seq": 18,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "containedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 68,
+        "criteria": {
+          "leakStopped": "met",
+          "dataControl": "partial",
+          "scope": "met",
+          "evidence": "met",
+          "contractor": "met",
+          "masked": "missed",
+          "keptService": "missed",
+          "escalated": "partial",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "leakedK": 61,
+          "minToStop": 0,
+          "recipients": 4
+        },
+        "stateHash": "4f03d902411a99f0"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "lateFix",
+      "title": "Investigates the connector and recipients first; the contractor reaches contracts at 15 min; fixed at 41 min with permission-aware retrieval",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "reviewConnector",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reviewLogs",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 14,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "listExposed",
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 22,
+          "seq": 6,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 22,
+          "seq": 7,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "suspendContractor",
+          "seq": 8,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 25,
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 33,
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "listExposed",
+          "seq": 12,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 41,
+          "seq": 13,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "restrictRetrieval",
+          "params": {
+            "how": "permissionAware"
+          },
+          "seq": 14,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 56,
+          "seq": 15,
+          "tick": 41
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 16,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 58,
+          "seq": 17,
+          "tick": 56
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 18,
+          "tick": 58
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 19,
+          "tick": 58
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 20,
+          "tick": 58
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "connector",
+            "who": "four"
+          },
+          "seq": 21,
+          "tick": 58
+        }
+      ],
+      "expect": {
+        "ending": "containedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 77,
+        "criteria": {
+          "leakStopped": "partial",
+          "dataControl": "met",
+          "scope": "met",
+          "evidence": "met",
+          "contractor": "met",
+          "masked": "missed",
+          "keptService": "met",
+          "escalated": "partial",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "leakedK": 109,
+          "minToStop": 41,
+          "recipients": 4
+        },
+        "stateHash": "55e70dd9b2b79b48"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

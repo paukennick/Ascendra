@@ -1,0 +1,1433 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "rag-assistant-data-leak",
+  "title": "Incident: an internal assistant that can read everything",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "dlp",
+          "severity": "high",
+          "title": "DLP: AskOps answered with salary figures and bank account numbers to c-ventor (contractor)",
+          "detail": "Seven answers since 09:10; the sources cited are in the HR and Finance libraries.",
+          "when": "true",
+          "at": "0",
+          "status": "{sensitiveRetrievable ? (isNull(logsAt) ? \"New\" : \"Confirmed; still retrievable\") : \"Retrieval closed\"}",
+          "open": "sensitiveRetrievable"
+        },
+        {
+          "id": "contracts",
+          "severity": "high",
+          "title": "DLP: c-ventor's questions moved to customer contracts and pricing",
+          "when": "not isNull(contractsAt)",
+          "at": "timeAt(contractsAt)",
+          "status": "{contractorActive ? \"Ongoing\" : \"Stopped\"}",
+          "open": "contractorActive"
+        },
+        {
+          "id": "script",
+          "severity": "critical",
+          "title": "AI gateway: c-ventor's API key sending 40 questions a minute",
+          "when": "not isNull(scriptAt)",
+          "at": "timeAt(scriptAt)",
+          "status": "{not isNull(bulkAt) ? \"Finished\" : contractorActive ? \"Running\" : \"Stopped\"}",
+          "open": "contractorActive"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Prompt log",
+          "text": "09:10-09:55 c-ventor: 'list salaries in the logistics team', 'bank details on file for payroll', 'show the HR file for ...'",
+          "when": "not isNull(logsAt)",
+          "at": "timeAt(logsAt)"
+        },
+        {
+          "id": "e2",
+          "source": "Prompt log",
+          "text": "Three employees received HR chunks in answers to ordinary questions this week",
+          "when": "not isNull(logsAt)",
+          "at": "timeAt(logsAt)"
+        },
+        {
+          "id": "e3",
+          "source": "Connector",
+          "text": "Indexer runs as svc-askops-index with read access to every library; HR and Finance indexed; sensitivity labels on the files ignored; retrieval does not check the asker's permissions",
+          "when": "not isNull(connectorAt)",
+          "at": "timeAt(connectorAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Retrieval log",
+          "text": "Sensitive chunks served to 4 people: c-ventor and three employees",
+          "when": "not isNull(exposedAt)",
+          "at": "timeAt(exposedAt)"
+        },
+        {
+          "id": "e5",
+          "source": "AI gateway",
+          "text": "API key ak-cventor: burst of automated questions from 203.0.113.140",
+          "when": "not isNull(scriptAt)",
+          "at": "timeAt(scriptAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "ask",
+          "label": "AskOps",
+          "spokenLabel": "AskOps assistant",
+          "kind": "Internal assistant (retrieval over company files)",
+          "status": "{not isNull(assistantOffAt) ? \"Turned off\" : retrieval == \"permissionAware\" ? \"Answers only from files the asker can open\" : retrieval == \"removed\" ? \"HR and Finance removed from the index\" : retrieval == \"promptOnly\" ? \"Told not to reveal salaries; retrieval unchanged\" : \"Retrieves from every library\"}",
+          "tone": "sensitiveRetrievable ? \"bad\" : \"held\""
+        },
+        {
+          "id": "contractor",
+          "label": "c-ventor",
+          "spokenLabel": "Contractor account c-ventor",
+          "kind": "Contractor (warehouse systems project)",
+          "status": "{isNull(contractorOffAt) ? \"Active, with an API key\" : \"Disabled; API key revoked\"}",
+          "tone": "isNull(contractorOffAt) ? \"bad\" : \"held\""
+        },
+        {
+          "id": "gw",
+          "label": "AI gateway",
+          "spokenLabel": "AI gateway",
+          "kind": "Output filtering",
+          "status": "{isNull(redactAt) ? \"No redaction\" : \"Masks bank numbers and national ID numbers in answers\"}",
+          "tone": "isNull(redactAt) ? \"watch\" : \"held\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "leakM",
+          "label": "Sensitive records served",
+          "value": "{leaked|0dp}"
+        },
+        {
+          "id": "evM",
+          "label": "Case file",
+          "value": "{isNull(evidenceAt) ? \"empty\" : \"prompt and retrieval logs, index manifest\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Data security controls for AI systems: encryption in transit/at rest/in use, and data safety practices (anonymization, classification, redaction, masking, minimization)",
+  "secondaryObjectives": [
+    "Access controls for AI systems: model access, data access, agent access, and network/API access",
+    "Monitoring and auditing AI systems: prompt and log monitoring, AI cost monitoring, and auditing for hallucinations, accuracy, and bias"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA SecAI+ CY0-001 (V1) exam page: launched 2026-02-17; domains Basic AI concepts related to cybersecurity 17%, Securing AI systems 40%, AI-assisted security 24%, AI governance, risk, and compliance 19%",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/secai/",
+      "note": "Relevant text: Securing AI systems: 'Mitigate adversarial risks: Defend against attacks targeting AI models, data pipelines, and inference layers'; 'Implement security controls: Protect AI systems, data, and models using robust technical safeguards'. The page does not name prompt injection, data leakage or guardrails. Read through a summarizing fetch on 2026-11-11; the CY0-001 objectives PDF was not re-read here; the course's objective titles come from the course seed."
+    },
+    {
+      "cite": "OWASP Top 10 for LLM Applications 2025 (LLM01 Prompt Injection, LLM02 Sensitive Information Disclosure, LLM05 Improper Output Handling, LLM06 Excessive Agency, LLM08 Vector and Embedding Weaknesses)",
+      "checkedAt": "2026-11-11",
+      "url": "https://genai.owasp.org/llm-top-10/",
+      "note": "Relevant text: LLM01: 'Indirect prompt injections occur when an LLM accepts input from external sources, such as websites or files'; mitigations: constrain model behavior, enforce least privilege, 'Require human approval for high-risk actions', 'Separate and clearly denote untrusted content', filter inputs and outputs; scenario #2: hidden instructions make the model insert an image linking to an attacker-controlled URL, exfiltrating the conversation. LLM06 root causes: excessive functionality, permissions and autonomy; 'Utilise human-in-the-loop control to require a human to approve high-impact actions'. LLM08: 'Implement fine-grained access controls and permission-aware vector and embedding stores'. Read through summarizing fetches of genai.owasp.org on 2026-11-11."
+    },
+    {
+      "cite": "NIST AI 100-1, Artificial Intelligence Risk Management Framework (AI RMF 1.0, January 26, 2023), and the Generative AI Profile NIST AI 600-1 (July 26, 2024)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "note": "Relevant text: MANAGE 2.4 'Mechanisms are in place and applied, and responsibilities are assigned and understood, to supersede, disengage, or deactivate AI systems that demonstrate performance or outcomes inconsistent with intended use'; MANAGE 4.3 'Incidents and errors are communicated to relevant AI actors, including affected communities'. Read in the AI 100-1 PDF text and on the NIST page on 2026-11-11; the page notes AI RMF 1.0 'is being revised'."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-11",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "The current revision (April 3, 2025; supersedes Rev. 2 of 2012). Relevant text: RS.MA-02 'Perform a preliminary review of a new incident report to verify that a cybersecurity incident has occurred, then estimate the severity of the incident and the level of urgency'; RS.MA-03 'Prioritize how quickly incident response should be performed for each incident based on its scope, likely impact, time-critical nature, and resource availability'; RS.MA-04 escalation and elevation; RS.MI-01 'Containment refers to preventing the expansion of an incident'; RS.MI-02 eradication 'to eliminate persistence mechanisms and entry points' and 'Identify all affected hosts and services'; RS.AN-07 incident data collected with integrity and provenance preserved; RS.CO-02 stakeholders notified. Read in the PDF text (nvlpubs.nist.gov) and the CSRC page on 2026-11-11."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security analyst at Halvard Logistics, a fictional freight company. Its internal assistant, AskOps, answers staff questions from the company's file libraries (retrieval-augmented generation). At 10:00 data loss prevention flags AskOps answering a contractor with salary figures and bank account numbers. Investigate, contain, keep evidence and report.",
+    "handover": [
+      "Contractors get AskOps and an API key for their project. The source files carry sensitivity labels (Public, Internal, Confidential).",
+      "Permission-aware retrieval is a supported setting that was never turned on."
+    ],
+    "howItWorks": [
+      "Each task takes analyst time: choose it, then let the work finish, which moves the clock by the minutes that task takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you declare the incident contained, you notify, write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "contractsDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "scriptDelay": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "bulkDelay": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "fixDur": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Fifteen minutes to switch retrieval to permission-aware mode, a prepared setting, is the author's figure."
+      }
+    },
+    "removeDur": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Author's figure."
+      }
+    },
+    "contractorRate": {
+      "value": 2,
+      "unit": "records/min",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Author's teaching figures for how many sensitive records a person or a script pulls a minute; not measured."
+      }
+    },
+    "scriptRate": {
+      "value": 40,
+      "unit": "records/min",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Author's figure."
+      }
+    },
+    "staffRate": {
+      "value": 0.2,
+      "unit": "records/min",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Author's figure: employees who stumble on HR chunks in ordinary answers."
+      }
+    },
+    "escalateWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Privacy escalation within 15 minutes of a confirmed exposure of personal data; author's figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "connectorAt": {
+      "type": "time",
+      "init": null
+    },
+    "exposedAt": {
+      "type": "time",
+      "init": null
+    },
+    "contractorOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "retrieval": {
+      "type": "enum",
+      "values": [
+        "open",
+        "promptOnly",
+        "removed",
+        "permissionAware"
+      ],
+      "init": "open"
+    },
+    "retrievalFixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "redactAt": {
+      "type": "time",
+      "init": null
+    },
+    "assistantOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceDestroyed": {
+      "type": "bool",
+      "init": false
+    },
+    "contractsAt": {
+      "type": "time",
+      "init": null
+    },
+    "scriptAt": {
+      "type": "time",
+      "init": null
+    },
+    "bulkAt": {
+      "type": "time",
+      "init": null
+    },
+    "allOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "leaked": {
+      "type": "number",
+      "init": 61,
+      "unit": "records",
+      "min": 0,
+      "max": 1000000
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "connector",
+        "inject",
+        "training"
+      ],
+      "init": "none"
+    },
+    "whoDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "four",
+        "one"
+      ],
+      "init": "none"
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "it",
+        "nobody"
+      ],
+      "init": "none"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "sensitiveRetrievable": {
+      "expr": "isNull(assistantOffAt) and (retrieval == \"open\" or retrieval == \"promptOnly\")"
+    },
+    "contractorActive": {
+      "expr": "isNull(contractorOffAt) and sensitiveRetrievable"
+    },
+    "attackerActive": {
+      "expr": "contractorActive"
+    },
+    "spread": {
+      "expr": "isNull(contractsAt) ? 0 : 1"
+    }
+  },
+  "processes": [
+    {
+      "id": "leaking",
+      "when": "phase == \"incident\" and sensitiveRetrievable",
+      "update": {
+        "leaked": "leaked + (contractorActive ? (isNull(scriptAt) ? contractorRate : scriptRate) : staffRate) * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "reviewLogs",
+        "reviewConnector",
+        "listExposed",
+        "suspendContractor",
+        "restrictRetrieval",
+        "redact",
+        "assistantOff",
+        "preserve",
+        "escalate",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "reviewLogs": {
+      "label": "Review the assistant's prompt and retrieval logs",
+      "group": "Investigate",
+      "available": "not busy and (isNull(logsAt))",
+      "why": "Reviewed.",
+      "effects": [
+        {
+          "set": "logsAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the prompt log and which document chunks each answer retrieved.",
+          "kind": "act"
+        },
+        {
+          "finding": "c-ventor has been asking systematically for salaries, bank details and HR files since 09:10, and three employees were shown HR chunks in answers to ordinary questions. No injection: the assistant is answering from data it should never have been able to reach for these users."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "reviewConnector": {
+      "label": "Review the retrieval connector's permissions and index scope",
+      "group": "Investigate",
+      "available": "not busy and (isNull(connectorAt))",
+      "why": "Reviewed.",
+      "effects": [
+        {
+          "set": "connectorAt",
+          "to": "t"
+        },
+        {
+          "log": "You check the indexer's service account, the libraries in the index and the retrieval settings.",
+          "kind": "act"
+        },
+        {
+          "finding": "The indexer runs as svc-askops-index with read access to every library, HR and Finance included. The files carry sensitivity labels, but the indexer ignores them, and retrieval does not check whether the asker can open a file. Least privilege and classification were lost at the integration."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "listExposed": {
+      "label": "List everyone who received sensitive chunks",
+      "group": "Investigate",
+      "available": "not busy and (isNull(exposedAt) or (not isNull(contractsAt) and timeAt(contractsAt) > timeAt(exposedAt)))",
+      "why": "Listed; nothing new.",
+      "effects": [
+        {
+          "set": "exposedAt",
+          "to": "t"
+        },
+        {
+          "log": "You query the retrieval log for every answer that used an HR or Finance chunk.",
+          "kind": "act"
+        },
+        {
+          "finding": "{isNull(contractsAt) ? \"Four people: c-ventor and three employees; 61 employees' salary or bank records were shown.\" : \"Four people, and c-ventor also pulled customer contracts and pricing.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "suspendContractor": {
+      "label": "Disable c-ventor and revoke the account's API key",
+      "group": "Contain",
+      "available": "not busy and (isNull(contractorOffAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(contractorOffAt)",
+          "then": [
+            {
+              "set": "contractorOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "c-ventor is disabled and its API key revoked; the contractor's manager is told why.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive and not sensitiveRetrievable",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "restrictRetrieval": {
+      "label": "Change what the assistant can retrieve",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "permissionAware",
+              "label": "Retrieve with the asker's own permissions and honor sensitivity labels"
+            },
+            {
+              "value": "removed",
+              "label": "Delete the HR and Finance collections from the index"
+            },
+            {
+              "value": "promptOnly",
+              "label": "Tell the model in the system prompt not to reveal salaries or bank details"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "how == \"permissionAware\"",
+              "then": [
+                {
+                  "set": "retrieval",
+                  "to": "\"permissionAware\""
+                },
+                {
+                  "if": "isNull(retrievalFixedAt)",
+                  "then": [
+                    {
+                      "set": "retrievalFixedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Retrieval now runs with the asker's own permissions and drops chunks labeled Confidential or above.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "how == \"removed\"",
+              "then": [
+                {
+                  "set": "retrieval",
+                  "to": "\"removed\""
+                },
+                {
+                  "if": "isNull(retrievalFixedAt)",
+                  "then": [
+                    {
+                      "set": "retrievalFixedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "if": "isNull(evidenceAt)",
+                  "then": [
+                    {
+                      "set": "evidenceDestroyed",
+                      "to": "true"
+                    }
+                  ]
+                },
+                {
+                  "log": "The HR and Finance collections are deleted from the index{isNull(evidenceAt) ? \"; no manifest or snapshot of what was indexed was kept\" : \"\"}.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "if": "retrieval == \"open\"",
+                  "then": [
+                    {
+                      "set": "retrieval",
+                      "to": "\"promptOnly\""
+                    }
+                  ]
+                },
+                {
+                  "log": "You add 'never reveal salaries or bank details' to the system prompt. The same chunks are still retrieved.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "not attackerActive and not sensitiveRetrievable",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "how == \"permissionAware\" ? fixDur : how == \"removed\" ? removeDur : 120"
+        }
+      ]
+    },
+    "redact": {
+      "label": "Turn on masking of bank and national ID numbers at the AI gateway",
+      "group": "Contain",
+      "available": "not busy and (isNull(redactAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(redactAt)",
+          "then": [
+            {
+              "set": "redactAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The gateway now masks bank account and national ID numbers in answers. Salaries and contract terms are not patterns it can mask.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "assistantOff": {
+      "label": "Turn AskOps off",
+      "group": "Contain",
+      "available": "not busy and (isNull(assistantOffAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(assistantOffAt)",
+          "then": [
+            {
+              "set": "assistantOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "AskOps is off for everyone.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive and not sensitiveRetrievable",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "preserve": {
+      "label": "Preserve the prompt and retrieval logs and a manifest of the index",
+      "group": "Evidence",
+      "available": "not busy and (isNull(evidenceAt) and not evidenceDestroyed)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "evidenceAt",
+          "to": "t"
+        },
+        {
+          "log": "The prompt and retrieval logs, the API key's gateway log and a manifest of every indexed document go to the case file with hashes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Escalate to the incident lead and the privacy officer",
+      "group": "Communicate",
+      "available": "not busy and (isNull(escalatedAt))",
+      "why": "Escalated.",
+      "effects": [
+        {
+          "set": "escalatedAt",
+          "to": "t"
+        },
+        {
+          "log": "You open an incident and bring in the incident lead and the privacy officer.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Declare the incident contained and write the report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident phase and start the report.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "full",
+              "label": "Privacy officer, legal, HR, the AI governance owner and the affected customers' account owners"
+            },
+            {
+              "value": "it",
+              "label": "The AI platform team only"
+            },
+            {
+              "value": "nobody",
+              "label": "No one"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"full\" ? \"privacy, legal, HR, AI governance and the account owners\" : who == \"it\" ? \"the AI platform team only\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "connector",
+                  "label": "A connector with read-all rights that ignored sensitivity labels, and retrieval that did not check the asker's permissions"
+                },
+                {
+                  "value": "inject",
+                  "label": "Prompt injection"
+                },
+                {
+                  "value": "training",
+                  "label": "The model memorized HR data in training"
+                }
+              ]
+            },
+            {
+              "id": "who",
+              "label": "People who received sensitive data",
+              "options": [
+                {
+                  "value": "four",
+                  "label": "Four: the contractor and three employees"
+                },
+                {
+                  "value": "one",
+                  "label": "One: the contractor"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "whoDoc",
+          "to": "who"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: cause {cause}, recipients {who}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "contracts",
+      "when": "t >= contractsDelay and contractorActive and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "contractsAt",
+          "to": "t"
+        },
+        {
+          "log": "DLP: c-ventor is now asking for customer contracts and pricing terms.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "script",
+      "when": "t >= scriptDelay and contractorActive and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "scriptAt",
+          "to": "t"
+        },
+        {
+          "log": "AI gateway: c-ventor's API key is sending about 40 questions a minute from 203.0.113.140.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "bulk",
+      "when": "t >= bulkDelay and contractorActive and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "bulkAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "AI gateway: the scripted questions stopped after walking every HR and Finance folder the assistant could reach. The privacy officer takes over; write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: why the assistant could leak this data, how you stopped it and why that holds, and who must be told.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "Identifies the integration, not the model: a connector with read-all rights that ignored sensitivity labels, and retrieval that did not check the asker's permissions (sensitive information disclosure through vector and embedding weaknesses); no injection was needed.",
+          "modelAnswer": "The indexer read every library with one service account and ignored the labels, and retrieval never checked whether the asker could open a file, so anyone could get HR and Finance chunks by asking."
+        },
+        {
+          "label": "Controls",
+          "criteria": "Disables the contractor and revokes the key; fixes retrieval with permission-aware access and labels or removes the sensitive collections (minimization); adds masking as a compensating control; explains why a system-prompt instruction is not access control.",
+          "modelAnswer": "I disabled c-ventor and the API key, switched retrieval to the asker's own permissions with labels honored, and turned on masking for bank and ID numbers. Telling the model not to reveal salaries changes nothing about what it retrieves."
+        },
+        {
+          "label": "Scope and notice",
+          "criteria": "Preserves logs and an index manifest before deleting; lists every recipient of sensitive chunks; notifies privacy, legal, HR, AI governance and account owners.",
+          "modelAnswer": "I kept the prompt and retrieval logs and an index manifest, listed the four people who got sensitive chunks, and told privacy, legal, HR, AI governance and the account owners."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Thirty minutes, as in the other cases; author's figure for an insider pulling data on their own schedule."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-11",
+          "note": "No new class of data pulled after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and (sensitiveRetrievable or contractorActive)",
+      "class": "harm",
+      "rationale": "Closing while the assistant still serves HR and Finance data to anyone who asks is never a safe outcome.",
+      "source": {
+        "cite": "OWASP Top 10 for LLM Applications 2025 (LLM01 Prompt Injection, LLM02 Sensitive Information Disclosure, LLM05 Improper Output Handling, LLM06 Excessive Agency, LLM08 Vector and Embedding Weaknesses)",
+        "checkedAt": "2026-11-11",
+        "url": "https://genai.owasp.org/llm-top-10/",
+        "note": "Relevant text: LLM01: 'Indirect prompt injections occur when an LLM accepts input from external sources, such as websites or files'; mitigations: constrain model behavior, enforce least privilege, 'Require human approval for high-risk actions', 'Separate and clearly denote untrusted content', filter inputs and outputs; scenario #2: hidden instructions make the model insert an image linking to an attacker-controlled URL, exfiltrating the conversation. LLM06 root causes: excessive functionality, permissions and autonomy; 'Utilise human-in-the-loop control to require a human to approve high-impact actions'. LLM08: 'Implement fine-grained access controls and permission-aware vector and embedding stores'. Read through summarizing fetches of genai.owasp.org on 2026-11-11."
+      }
+    }
+  },
+  "endings": {
+    "bulkLeak": {
+      "label": "HR and Finance walked by a script",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(bulkAt)",
+      "narrative": "The contractor's API key was still live and the index still answered from everything, so a script pulled every HR and Finance record it could reach."
+    },
+    "evidenceLost": {
+      "label": "The index deleted before it was recorded",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and evidenceDestroyed",
+      "narrative": "The HR and Finance collections were deleted with no manifest or logs kept, so whose records were exposed to whom cannot be shown, and privacy cannot notify accurately."
+    },
+    "stillLeaking": {
+      "label": "Closed with sensitive data still retrievable",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and (sensitiveRetrievable or contractorActive)",
+      "narrative": "{retrieval == \"promptOnly\" ? \"A system-prompt line does not change what is retrieved; any user can still get HR and Finance chunks.\" : \"Anyone using AskOps can still be served HR and Finance chunks.\"}"
+    },
+    "contained": {
+      "label": "Leak stopped at the data layer, service kept",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not isNull(allOffAt) and timeAt(allOffAt) <= containWindow and spread <= containSpread and isNull(assistantOffAt) and not isNull(evidenceAt) and not evidenceDestroyed and not isNull(exposedAt) and not isNull(logsAt)",
+      "narrative": "You cut off the contractor, made retrieval respect who is asking, kept the evidence and knew exactly whose data went to whom, while AskOps kept working."
+    },
+    "containedGaps": {
+      "label": "Contained, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The leak is stopped, but the assistant was switched off instead of fixed, customer contracts were pulled first, or it took too long."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "bulkLeak",
+    "evidenceLost",
+    "stillLeaking",
+    "contained",
+    "containedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "leakStopped",
+        "label": "Stopped every sensitive retrieval within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(allOffAt) and timeAt(allOffAt) <= containWindow",
+            "score": "met",
+            "why": "{timeAt(allOffAt) / 60|0dp} min in; {leaked|0dp} records served in all."
+          },
+          {
+            "when": "not isNull(allOffAt)",
+            "score": "partial",
+            "why": "{timeAt(allOffAt) / 60|0dp} min in; {leaked|0dp} records served."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Sensitive chunks are still served."
+          }
+        ]
+      },
+      {
+        "id": "dataControl",
+        "label": "Fixed it with a data control (permissions, labels, minimization), not a prompt",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "retrieval == \"permissionAware\"",
+            "score": "met",
+            "why": "Retrieval checks the asker's permissions and labels."
+          },
+          {
+            "when": "retrieval == \"removed\"",
+            "score": "met",
+            "why": "Sensitive collections removed (minimization)."
+          },
+          {
+            "when": "not isNull(assistantOffAt)",
+            "score": "partial",
+            "why": "Turned off; nothing about the integration changed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{retrieval == \"promptOnly\" ? \"A system-prompt line is not access control.\" : \"Retrieval is unchanged.\"}"
+          }
+        ]
+      },
+      {
+        "id": "scope",
+        "label": "Found who received what (prompt and retrieval logs)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(logsAt) and not isNull(exposedAt) and (isNull(contractsAt) or timeAt(exposedAt) >= timeAt(contractsAt))",
+            "score": "met",
+            "why": "Privacy has the full list."
+          },
+          {
+            "when": "not isNull(logsAt) or not isNull(exposedAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one knows who saw what."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Preserved the logs and an index manifest before deleting anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(evidenceAt) and not evidenceDestroyed",
+            "score": "met",
+            "why": "In the case file."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{evidenceDestroyed ? \"Deleted first.\" : \"Nothing was preserved.\"}"
+          }
+        ]
+      },
+      {
+        "id": "contractor",
+        "label": "Disabled the contractor and revoked the API key",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(contractorOffAt)",
+            "score": "met",
+            "why": "Done {timeAt(contractorOffAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The contractor still has access."
+          }
+        ]
+      },
+      {
+        "id": "masked",
+        "label": "Added masking at the gateway as a compensating control",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(redactAt)",
+            "score": "met",
+            "why": "Bank and ID numbers are masked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No masking."
+          }
+        ]
+      },
+      {
+        "id": "keptService",
+        "label": "Kept AskOps running",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(assistantOffAt)",
+            "score": "met",
+            "why": "Staff kept their assistant."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "AskOps was turned off."
+          }
+        ]
+      },
+      {
+        "id": "escalated",
+        "label": "Brought in privacy within 15 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(escalatedAt) and timeAt(escalatedAt) <= escalateWindow",
+            "score": "met",
+            "why": "{timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(escalatedAt)",
+            "score": "partial",
+            "why": "{timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "notifiedCrit",
+        "label": "Notified privacy, legal, HR, AI governance and the account owners",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified == \"full\"",
+            "score": "met",
+            "why": "Everyone who must act knows."
+          },
+          {
+            "when": "notified == \"it\"",
+            "score": "partial",
+            "why": "The platform team only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the recipients accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"connector\" and whoDoc == \"four\"",
+            "score": "met",
+            "why": "The record matches."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, controls and notice",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "leakedK",
+        "label": "Sensitive records served",
+        "value": "round(leaked)",
+        "format": "number",
+        "expert": "under 100"
+      },
+      {
+        "id": "minToStop",
+        "label": "Minutes until sensitive retrieval stopped",
+        "value": "isNull(allOffAt) ? -1 : timeAt(allOffAt) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "recipients",
+        "label": "Recipients of sensitive data identified",
+        "value": "isNull(exposedAt) ? 0 : 4",
+        "format": "number",
+        "expert": "4"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Bring in privacy; read the prompt and retrieval logs: systematic questions, and employees shown HR data too."
+      },
+      {
+        "at": "10-20 min",
+        "text": "Disable the contractor and the API key; preserve the logs and an index manifest."
+      },
+      {
+        "at": "20-40 min",
+        "text": "Switch retrieval to the asker's permissions with labels honored; review the connector; list every recipient; turn on masking."
+      },
+      {
+        "at": "After",
+        "text": "Notify privacy, legal, HR, AI governance and account owners; record the connector and four recipients."
+      }
+    ],
+    "debrief": {
+      "contained": {
+        "headline": "Good: fixed where the data lives",
+        "body": "The model only says what retrieval hands it. You fixed the integration's access and kept the assistant running."
+      },
+      "containedGaps": {
+        "headline": "Contained, with gaps",
+        "body": "The leak is stopped. The criteria show what cost you: the assistant switched off, contracts pulled first, or time."
+      },
+      "bulkLeak": {
+        "headline": "Walked by a script",
+        "body": "A system-prompt line, or leaving the contractor's key live, let a script ask its way through every folder the connector could read."
+      },
+      "evidenceLost": {
+        "headline": "Index deleted first",
+        "body": "Without the logs and a manifest, privacy cannot say whose records went to whom. Keep them, then delete."
+      },
+      "stillLeaking": {
+        "headline": "Closed too soon",
+        "body": "Disabling one user leaves everyone else able to retrieve the same data; a prompt line is not access control (LLM02, LLM08)."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The model leaked what retrieval gave it: a connector with read-all rights that ignored sensitivity labels, and retrieval that never checked the asker's permissions. Disable the contractor and revoke the API key, preserve the prompt and retrieval logs and an index manifest, switch retrieval to the asker's own permissions with labels honored (or remove the sensitive collections), add masking at the gateway, list every recipient, and notify privacy, legal, HR, AI governance and the account owners. A system-prompt instruction is not access control."
+  }
+}
