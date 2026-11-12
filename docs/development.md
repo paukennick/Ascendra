@@ -331,7 +331,7 @@ The README's former feature list, kept here because it names settings, files and
 
 - **Build labs** (produce an artifact, such as an IAM policy, a work breakdown structure or an SBAR handoff) and **case labs** (a fictional case that unfolds over two to four steps). Every part is scored met, partly there or not yet, with the model answer beside yours, and a finished lab counts toward mastery.
 - **Interactive parts** graded instantly with no AI cost: put steps in order, match pairs, tap the problem lines in a log or config, type a command (compared with accepted forms, never run) or give a number with a tolerance. Each has partial credit.
-- The seed authors **1,212 labs** for the visible courses.
+- The seed authors **1,263 labs** for the visible courses.
 - One study notice, accepted once at first launch, covers every lesson, question, lab, sim and the AI coach (practice material that may contain errors, not professional or clinical advice, not affiliated with any exam body, and what the AI features send to Anthropic).
 
 **Simulations (sims)**

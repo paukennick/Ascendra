@@ -296,6 +296,95 @@ const NICE_PFMT = ptGuideline("https://www.nice.org.uk/guidance/QS77/chapter/qua
 
 type ValueSources = Record<string, SourceRef[] | { none: string }>;
 
+// --- REQ-234 (2026-11-11): A+ Core 1 and 2, EPPP, DP-900 and PWCS top-ups -----
+// Every page below was read on 2026-11-11 at the URL given, unless noted.
+const R234 = "2026-11-11";
+const ref234 = (url: string) => source(url, "reference", R234);
+const guide234 = (url: string) => source(url, "clinical_guideline", R234);
+// CompTIA's own objectives documents (220-1201 and 220-1202 V15, document
+// version 4.0): the port numbers, the V15 malware removal steps.
+const APLUS_CORE1_OBJECTIVES = ref234("https://lecbyo.files.cmp.optimizely.com/download/34be017cb73211ef8985a6f347fbf652");
+const APLUS_CORE2_OBJECTIVES = ref234("https://lecbyo.files.cmp.optimizely.com/download/cefedfb2b8a511ef809306d06d323538");
+// RFC 1918 (10/8, 172.16/12, 192.168/16) and RFC 3927 (169.254/16 link-local;
+// hosts pick from 169.254.1.0-169.254.254.255).
+const RFC1918 = ref234("https://www.rfc-editor.org/rfc/rfc1918");
+const RFC3927 = ref234("https://www.rfc-editor.org/rfc/rfc3927");
+// Intel, ATX Version 3 Multi Rail Desktop Platform Power Supply Design Guide,
+// rev 2.1a (November 2023), Table 4-2: +12 V +5%/-7% (11.20-12.60 V), +5 V
+// and +3.3 V +/-5% (4.75-5.25 V, 3.14-3.47 V); PCIe 2x4 connector 150 W,
+// 12V-2x6 connector 600 W.
+const INTEL_ATX3_PSU = ref234("https://cdrdv2-public.intel.com/336521/336521_Rev2p1a.pdf");
+// Cisco Meraki channel planning: in the United States 2.4 GHz channels 1-11
+// are permitted, giving three non-overlapping channels, 1, 6 and 11.
+const MERAKI_CHANNELS = ref234("https://documentation.meraki.com/Wireless/Design_and_Configure/Architecture_and_Best_Practices/Channel_Planning_Best_Practices");
+// Microsoft: Windows 11 minimum requirements (64-bit 1 GHz 2+ cores, 4 GB,
+// 64 GB, UEFI Secure Boot capable, TPM 2.0, DirectX 12/WDDM 2.0); Windows 10
+// end of support 2025-10-14 (ESU through 2027-10-12).
+const WIN11_SPECS = ref234("https://www.microsoft.com/en-us/windows/windows-11-specifications");
+const WIN10_EOS = ref234("https://www.microsoft.com/en-us/windows/end-of-support");
+// Microsoft command references: gpupdate /force, gpresult /r, sfc /scannow.
+// (The net use page returned 404 at its usual URL; its syntax is the
+// long-standing one and is listed as not re-read.)
+const MS_GPUPDATE = ref234("https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/gpupdate");
+const MS_GPRESULT = ref234("https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/gpresult");
+const MS_SFC = ref234("https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/sfc");
+// Microsoft: share and NTFS permissions are independent and the more
+// restrictive applies to network access.
+const MS_SHARE_NTFS = ref234("https://technet.microsoft.com/library/cc753731.aspx");
+// NIST SP 800-63B-4 (August 2025), 3.1.1.2: 15 characters minimum for a
+// single-factor password, 8 when used only with MFA; no composition rules;
+// no periodic changes, change on evidence of compromise; blocklist.
+const NIST_80063B4 = ref234("https://pages.nist.gov/800-63-4/sp800-63b.html");
+// US EPA water-sector cybersecurity fact sheet (July 2024): the 3-2-1 rule
+// (three copies, two media types, one offsite), attributed there to NIST.
+const EPA_3_2_1 = ref234("https://www.epa.gov/system/files/documents/2024-07/backup-systems-necessary_0.pdf");
+// Microsoft Learn (DP-900): normalization unit; Blob access tiers (cool 30,
+// cold 90, archive 180-day minimums on general-purpose v2, prorated early
+// deletion, rehydration up to 15 hours); Fabric Real-Time Intelligence;
+// Azure Stream Analytics.
+const MS_NORMALIZATION = ref234("https://learn.microsoft.com/en-us/training/modules/explore-relational-data-offerings/3-normalization");
+const MS_BLOB_TIERS = ref234("https://learn.microsoft.com/en-us/azure/storage/blobs/access-tiers-overview");
+const MS_FABRIC_RTI = ref234("https://learn.microsoft.com/en-us/fabric/real-time-intelligence/overview");
+const MS_STREAM_ANALYTICS = ref234("https://learn.microsoft.com/en-us/azure/stream-analytics/stream-analytics-introduction");
+// Lithium carbonate capsules, FDA label on DailyMed (repackager label
+// published 2026-10-19): boxed warning; maintenance 0.8-1 mEq/L, acute
+// 0.8-1.2 mEq/L; toxic at 1.5 mEq/L and above; NSAIDs, diuretics, RAS
+// antagonists raise levels; neurological and GI signs of toxicity.
+const LITHIUM_LABEL = guide234("https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=16ebe1f9-501d-468b-a37d-f6a46f8f32d1");
+// Harvill, NCME ITEMS module "Standard Error of Measurement" (1991, DOI
+// 10.1111/j.1745-3992.1991.tb00195.x), read in NCME's PDF: SEM = SD x
+// square root of (1 - reliability); 1.96 SEM for a 95% band.
+const HARVILL_SEM = ref234("https://ncme.org/wp-content/uploads/2025/10/Module-9-Standard-Error-of-Measurement-Harvill-S-1.pdf");
+// APA guideline panel summary, PTSD in adults (Am Psychol 2019;74:596,
+// DOI 10.1037/amp0000473), abstract read on PubMed: strongly recommends
+// CBT, CPT, CT and PE; conditionally BEP, EMDR and NET.
+const APA_PTSD_GUIDELINE = guide234("https://pubmed.ncbi.nlm.nih.gov/31305099/");
+// NICE CG31 (OCD: CBT including ERP) and CG113 (GAD and panic: CBT; applied
+// relaxation as a GAD alternative).
+const NICE_CG31 = guide234("https://www.nice.org.uk/guidance/cg31/chapter/Recommendations");
+const NICE_CG113 = guide234("https://www.nice.org.uk/guidance/cg113/chapter/Recommendations");
+// APA Ethical Principles of Psychologists and Code of Conduct (2002, amended
+// 2010 and 2016): 3.05, 3.06, 4.02, 4.05, 6.05. apa.org refuses scripted
+// downloads; read through a fetch tool's summary with short quotes.
+const APA_ETHICS_CODE = ref234("https://www.apa.org/ethics/code");
+// RCW 26.44.030 (Washington): psychologists are mandated reporters; report
+// at the first opportunity and within 48 hours; (2) the adult-survivor
+// exception and its other-children-at-risk limit.
+const RCW_26_44_030 = guide234("https://app.leg.wa.gov/RCW/default.aspx?cite=26.44.030");
+// StatPearls, Mild Cognitive Impairment (NBK599514), read through a fetch
+// tool's summary: functional independence separates MCI from dementia;
+// reversible contributors (depression, medications, B12, thyroid).
+const STATPEARLS_MCI = ref234("https://www.ncbi.nlm.nih.gov/books/NBK599514/");
+// StatPearls, Fecal Incontinence (point-of-care 21655, last updated
+// 2025-12-16), read through a fetch tool's summary: internal sphincter
+// 80%-85% of resting tone (enteric), external sphincter (pudendal); passive
+// versus urge. NICE NG12 colorectal section: change in bowel habit and
+// rectal bleeding lead to testing for suspected colorectal cancer.
+const STATPEARLS_FI = ref234("https://www.statpearls.com/point-of-care/21655");
+const NICE_NG12 = guide234("https://www.nice.org.uk/guidance/ng12/chapter/Recommendations-organised-by-site-of-cancer");
+const CONCEPTS_ONLY = "Applies concepts and classifications; quotes no threshold, dose or standard value.";
+
+
 // REQ-173: ABPTS Clinical Electrophysiologic Specialist (pt-abpts-ecs.ts),
 // read 2026-11-09. AANEM bleeding-risk guidance: caution below 50,000
 // platelets (INR above about 1.5-2.0); don't routinely stop anticoagulants
@@ -631,6 +720,57 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "pwcs-stress-incontinence-program": [NICE_PFMT],
     "pwcs-prolapse-conservative-management": [NICE_NG123],
     "pwcs-trauma-informed-internal-exam": { none: NO_VALUE },
+    // REQ-234 top-up.
+    "pwcs-fecal-incontinence-sphincters": [STATPEARLS_FI, NICE_NG12],
+    "pwcs-appraise-pfmt-trial": [NICE_PFMT],
+    "pwcs-pfmt-adherence-follow-up": [NICE_PFMT],
+  },
+  // REQ-234 (2026-11-11): A+, EPPP, and the DP-900 and PWCS top-ups.
+  APLUS_CORE1: {
+    "aplus1-laptop-upgrade-parts": { none: "Compatibility comes from the fictional laptop's own service manual given in the brief; no external specification is quoted." },
+    "aplus1-field-phone-connectivity": { none: CONCEPTS_ONLY },
+    "aplus1-soho-router-setup": [RFC1918, RFC3927, APLUS_CORE1_OBJECTIVES],
+    "aplus1-cli-no-internet": [RFC3927],
+    "aplus1-psu-and-cooling": [INTEL_ATX3_PSU],
+    "aplus1-raid-by-use-case": { none: "Capacity arithmetic from each RAID level's definition on the fictional drives; no vendor value." },
+    "aplus1-vm-wont-start": { none: CONCEPTS_ONLY },
+    "aplus1-random-shutdowns-psu": [INTEL_ATX3_PSU],
+    "aplus1-degraded-raid-clicking": { none: CONCEPTS_ONLY },
+    "aplus1-wifi-drops-voip": [MERAKI_CHANNELS],
+  },
+  APLUS_CORE2: {
+    "aplus2-windows-commands": [MS_GPUPDATE, MS_GPRESULT, MS_SFC],
+    "aplus2-win10-to-win11-upgrade": [WIN11_SPECS, WIN10_EOS],
+    "aplus2-linux-desktop-commands": { none: "Standard chmod octal notation and coreutils/apt syntax; no threshold or vendor value." },
+    "aplus2-harden-front-desk-pc": [MS_SHARE_NTFS],
+    "aplus2-soho-password-and-router-policy": [NIST_80063B4],
+    "aplus2-social-engineering-week": { none: CONCEPTS_ONLY },
+    "aplus2-malware-removal-pos": [APLUS_CORE2_OBJECTIVES],
+    "aplus2-bsod-after-driver": { none: CONCEPTS_ONLY },
+    "aplus2-backup-schedule-restore": [EPA_3_2_1],
+    "aplus2-change-request-firmware": { none: CONCEPTS_ONLY },
+  },
+  EPPP: {
+    "eppp-lithium-toxicity-case": [LITHIUM_LABEL],
+    "eppp-classical-conditioning-dental-fear": { none: CONCEPTS_ONLY },
+    "eppp-operant-classify-and-plan": { none: CONCEPTS_ONLY },
+    "eppp-attribution-errors": { none: CONCEPTS_ONLY },
+    "eppp-family-systems-case": { none: CONCEPTS_ONLY },
+    "eppp-aging-vs-ncd-case": [STATPEARLS_MCI],
+    "eppp-strange-situation-classification": { none: CONCEPTS_ONLY },
+    "eppp-sem-confidence-interval": [HARVILL_SEM],
+    "eppp-base-rates-ppv": { none: "2x2 arithmetic on the fictional screen's stated sensitivity, specificity and base rates." },
+    "eppp-match-ebt": [APA_PTSD_GUIDELINE, NICE_CG31, NICE_CG113],
+    "eppp-readiness-alcohol-case": { none: CONCEPTS_ONLY },
+    "eppp-research-design-critique": { none: CONCEPTS_ONLY },
+    "eppp-ethics-rural-multiple-relationship": [APA_ETHICS_CODE],
+    "eppp-mandated-report-washington": [RCW_26_44_030, APA_ETHICS_CODE],
+  },
+  DP900: {
+    "classify-workloads-and-roles": { none: CONCEPTS_ONLY },
+    "normalize-order-spreadsheet": [MS_NORMALIZATION],
+    "blob-tiers-and-early-deletion": [MS_BLOB_TIERS],
+    "batch-vs-streaming-pipeline": [MS_FABRIC_RTI, MS_STREAM_ANALYTICS],
   },
   ABPTSSCS: {
     "scs-runner-triad-recognition": [STATPEARLS],

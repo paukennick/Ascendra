@@ -85,6 +85,33 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // REQ-234 (labs for A+ and the EPPP; DP-900 and pelvic health top-ups).
+    // The lead may fold this into the day's combined note when merging.
+    id: "2026-11-11-d",
+    date: "2026-11-11",
+    covers: ["REQ-234"],
+    title: "Hands-on labs for A+ and the EPPP",
+    items: [
+      {
+        icon: "tool",
+        headline: "Labs for CompTIA A+ and the EPPP",
+        body:
+          "CompTIA A+ Core 1 and Core 2 now have ten troubleshooting labs each, and the EPPP has fourteen, " +
+          "from reading a lithium level to walking an ethics decision.",
+      },
+      {
+        icon: "book-open",
+        headline: "More labs in two courses",
+        body: "Azure Data Fundamentals and Pelvic & Women's Health each have eight labs now, up from four and five.",
+      },
+      {
+        icon: "check-circle",
+        headline: "Matched to the current exams",
+        body: "The A+ labs follow CompTIA's current V15 objectives, and the EPPP labs cover all eight Part 1 domains.",
+      },
+    ],
+  },
+  {
     // REQ-222, REQ-223, REQ-225 and REQ-227, merged 2026-11-11 (UTC). The whole
     // note is about sims, so it is gated as one; REQ-226 rides in 2026-11-11-b.
     id: "2026-11-11-c",
