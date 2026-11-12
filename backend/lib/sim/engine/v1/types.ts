@@ -283,7 +283,9 @@ export interface Ending {
 }
 
 export interface ScreenSpec {
-  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data";
+  // REQ-231: "security-console" is the security operations console as built
+  // (the design's "security" placeholder stays unused).
+  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data" | "security-console";
   level?: number;
   bedside?: {
     tiles: {
@@ -325,7 +327,24 @@ export interface ScreenSpec {
     notes?: { id: Id; label: string; text: Template; when?: Expr; alert?: Expr }[];
     record?: { label: string; items: { label: Template; when: Expr }[] };
   };
+  // REQ-231: the security operations console (docs/sims.md 20, 20.1, 22.7),
+  // display-only like the board and the session. The alert queue lists the
+  // alerts whose `when` holds, newest `at` first (sim seconds), each with a
+  // severity, a status in words and `open` (an open alert is spoken at once,
+  // like an alarm). Events are log and telemetry lines shown while `when`
+  // holds, newest first, with the log they came from. Assets are hosts,
+  // accounts and cloud identities with a status in words and a tone
+  // (ok, watch, bad, held) the screen shows as a badge.
+  console?: {
+    alerts: { id: Id; severity: ConsoleSeverity; title: Template; detail?: Template; when: Expr; at: Expr; status: Template; open: Expr }[];
+    events: { id: Id; source: string; text: Template; when: Expr; at: Expr }[];
+    assets: { id: Id; label: string; spokenLabel: string; kind: string; status: Template; tone: Expr }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
 }
+
+export type ConsoleSeverity = "critical" | "high" | "medium" | "low";
+export type ConsoleTone = "ok" | "watch" | "bad" | "held";
 
 export type CriterionScore = "met" | "partial" | "missed";
 // REQ-190: a criterion row may also score "na" (not applicable), left out of

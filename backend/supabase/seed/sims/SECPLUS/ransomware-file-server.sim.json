@@ -1,0 +1,1484 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ransomware-file-server",
+  "title": "Incident: ransomware on the file server",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "ransom",
+          "severity": "critical",
+          "title": "Ransomware behavior on FS01: mass renames to .lkr",
+          "detail": "lkr.exe started by svc_backup over SMB from WS-ACCT07.",
+          "when": "true",
+          "at": "0",
+          "status": "{fsLive ? (isNull(triagedAt) ? \"New\" : \"Investigating\") : \"Contained\"}",
+          "open": "fsLive"
+        },
+        {
+          "id": "vss",
+          "severity": "high",
+          "title": "Shadow copies deleted on FS01",
+          "when": "true",
+          "at": "0",
+          "status": "{fsLive ? \"New\" : \"Contained\"}",
+          "open": "fsLive"
+        },
+        {
+          "id": "beacon",
+          "severity": "medium",
+          "title": "WS-ACCT07 beaconing to 198.51.100.23 every 60 seconds",
+          "when": "not isNull(authAt) or not isNull(triagedAt)",
+          "at": "isNull(triagedAt) ? timeAt(authAt) : timeAt(triagedAt)",
+          "status": "{wsIsolated ? \"Contained\" : c2Blocked ? \"Blocked at the firewall\" : \"New\"}",
+          "open": "not wsIsolated and not c2Blocked"
+        },
+        {
+          "id": "lateralA",
+          "severity": "high",
+          "title": "svc_backup logged on to BK01 from WS-ACCT07",
+          "when": "not isNull(bkReachedAt)",
+          "at": "timeAt(bkReachedAt)",
+          "status": "{bkIsolated ? \"Contained\" : \"New\"}",
+          "open": "not bkIsolated"
+        },
+        {
+          "id": "wipe",
+          "severity": "critical",
+          "title": "Backup catalog deleted on BK01",
+          "when": "not isNull(backupsGoneAt)",
+          "at": "timeAt(backupsGoneAt)",
+          "status": "Backups lost",
+          "open": "true"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "EDR",
+          "text": "02:01 lkr.exe started on FS01 by svc_backup (SMB from WS-ACCT07)",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "EDR",
+          "text": "02:02 vssadmin delete shadows /all /quiet on FS01",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e3",
+          "source": "File activity",
+          "text": "FS01 shares: {encrypted|0dp}% of files renamed to .lkr",
+          "when": "true",
+          "at": "t"
+        },
+        {
+          "id": "e4",
+          "source": "Domain controller",
+          "text": "svc_backup interactive logon on WS-ACCT07 at 01:52",
+          "when": "not isNull(authAt)",
+          "at": "timeAt(authAt)"
+        },
+        {
+          "id": "e5",
+          "source": "Firewall",
+          "text": "WS-ACCT07 to 198.51.100.23:443 every 60 s since 17:02 yesterday",
+          "when": "not isNull(authAt) or not isNull(triagedAt)",
+          "at": "isNull(triagedAt) ? timeAt(authAt) : timeAt(triagedAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Domain controller",
+          "text": "svc_backup logon to BK01 from WS-ACCT07",
+          "when": "not isNull(bkReachedAt)",
+          "at": "timeAt(bkReachedAt)"
+        },
+        {
+          "id": "e7",
+          "source": "BK01",
+          "text": "Backup catalog deleted; repository files renamed to .lkr",
+          "when": "not isNull(backupsGoneAt)",
+          "at": "timeAt(backupsGoneAt)"
+        },
+        {
+          "id": "e8",
+          "source": "EDR",
+          "text": "FS01 {fsOff ? \"powered off\" : \"network-isolated\"}",
+          "when": "not isNull(fsContainedAt)",
+          "at": "timeAt(fsContainedAt)"
+        },
+        {
+          "id": "e9",
+          "source": "Directory",
+          "text": "svc_backup disabled; password reset",
+          "when": "not isNull(acctDisabledAt)",
+          "at": "timeAt(acctDisabledAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "fs01",
+          "label": "FS01",
+          "spokenLabel": "File server FS01",
+          "kind": "File server",
+          "status": "{not isNull(rebuiltAt) ? (restored == \"none\" ? \"Rebuilt, no data yet\" : reinfected ? \"Encrypting again\" : \"Rebuilt and restored\") : fsOff ? \"Powered off\" : fsLive ? \"Encrypting\" : \"Isolated\"}; {encrypted|0dp}% encrypted",
+          "tone": "reinfected ? \"bad\" : not isNull(rebuiltAt) and restored != \"none\" ? \"ok\" : fsLive ? \"bad\" : \"held\""
+        },
+        {
+          "id": "ws",
+          "label": "WS-ACCT07",
+          "spokenLabel": "Workstation WS-ACCT07",
+          "kind": "Workstation (patient zero)",
+          "status": "{wsIsolated ? \"Isolated\" : c2Blocked ? \"Beacon blocked at the firewall\" : \"Beaconing out\"}",
+          "tone": "wsIsolated ? \"held\" : \"bad\""
+        },
+        {
+          "id": "bk01",
+          "label": "BK01",
+          "spokenLabel": "Backup server BK01",
+          "kind": "Backup server",
+          "status": "{not isNull(backupsGoneAt) ? \"Backups deleted\" : bkIsolated ? \"Isolated\" : not isNull(bkReachedAt) ? \"Attacker logged on\" : \"Last backup 23:00, healthy\"}",
+          "tone": "not isNull(backupsGoneAt) ? \"bad\" : bkIsolated ? \"held\" : not isNull(bkReachedAt) ? \"bad\" : \"ok\""
+        },
+        {
+          "id": "svc",
+          "label": "svc_backup",
+          "spokenLabel": "Account svc_backup",
+          "kind": "Service account (Domain Admins)",
+          "status": "{isNull(acctDisabledAt) ? \"Enabled; used by the attacker\" : \"Disabled, password reset\"}",
+          "tone": "isNull(acctDisabledAt) ? \"bad\" : \"held\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "encM",
+          "label": "FS01 encrypted",
+          "value": "{encrypted|0dp}%"
+        },
+        {
+          "id": "evM",
+          "label": "Case file",
+          "value": "{isNull(evidenceAt) ? \"empty\" : memLost ? \"disk image only\" : \"memory capture and disk image\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Incident response activities as SY0-701 names them: preparation, detection, analysis, containment, eradication, recovery, lessons learned; training; testing (tabletop exercise, simulation); root cause analysis; threat hunting; digital forensics (legal hold, chain of custody, acquisition, reporting, preservation, e-discovery)",
+  "secondaryObjectives": [
+    "Data sources for an investigation: log data (firewall logs, application logs, endpoint logs, OS-specific security logs, IPS/IDS logs, network logs, metadata) and other data sources (vulnerability scans, automated reports, dashboards, packet captures)"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA Security+ SY0-701 Exam Objectives, Version 5.0",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/security/v7/",
+      "note": "Relevant text: domain weights 12/22/18/28/20; 2.4 'Given a scenario, analyze indicators of malicious activity' (account lockout, concurrent session usage, impossible travel); 4.6 'Given a scenario, implement and maintain identity and access management'; 4.8 'Explain appropriate incident response activities' (preparation, detection, analysis, containment, eradication, recovery, lessons learned; digital forensics: legal hold, chain of custody, acquisition, reporting, preservation, e-discovery); 4.9 'Given a scenario, use data sources to support an investigation'. Read in a copy of the official objectives PDF (Version 5.0) hosted at laurelridgeworkforce.com, through a summarizing fetch, on 2026-11-11; the CompTIA page is the course's official source."
+    },
+    {
+      "cite": "CompTIA Security+ V8 (SY0-801): launch on or around 2026-11-17; up to 90 questions, 90 minutes, pass 750 (100-900); domains 16/24/19/27/14; Security Operations includes 'Implement incident response activities' (preparation, detection, containment, recovery, lessons learned)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/security/v8/",
+      "note": "Read through a summarizing fetch on 2026-11-11. The SY0-801 objectives document (Version 2.0) is the course's official source and was not re-read here."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+      "checkedAt": "2026-11-11",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "Relevant text: A CSF 2.0 Community Profile (April 2025; supersedes Rev. 2): RS.MI-01 'Incidents are contained'; RS.MI-02 'Incidents are eradicated'; RS.AN-03 analysis and root cause; RS.AN-07 'Incident data and metadata are collected, and their integrity and provenance are preserved'; RS.CO-02 'Internal and external stakeholders are notified of incidents'; RC.RP-03 'The integrity of backups and other restoration assets is verified before using them for restoration'. The current revision. Subcategory wording read in the PDF (nvlpubs.nist.gov) through a summarizing fetch on 2026-11-11; the publication date and the supersession read on the CSRC news page. Rev. 3 replaces the Rev. 2 four-phase life cycle with the CSF 2.0 Functions; Security+ still names the older phases."
+    },
+    {
+      "cite": "CISA, FBI, NSA and MS-ISAC, #StopRansomware Guide (May 2023), Part 2, Ransomware and Data Extortion Response Checklist",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.cisa.gov/stopransomware/ransomware-guide",
+      "note": "Relevant text: 'Determine which systems were impacted, and immediately isolate them'; 'If several systems or subnets appear impacted, take the network offline at the switch level'; 'Power down devices if you are unable to disconnect them from the network'; 'Take a system image and memory capture of a sample of affected devices'; 'Issue password resets for all affected systems'; 'Reconnect systems and restore data from offline, encrypted backups based on a prioritization of critical services'; 'Take care not to re-infect clean systems during recovery'; 'The authoring organizations do not recommend paying ransom'. Read in the copy hosted at ic3.gov (www.ic3.gov/CSA/2023/230523.pdf) through a summarizing fetch on 2026-11-11; the fetch reported the cover as version 2.0 with a May 2023 publication date, which was not confirmed on the page itself. CISA's online Ransomware Response Checklist (cisa.gov/ransomware-response-checklist) carries the same isolate, power-down-only-if-needed and image-and-memory steps."
+    },
+    {
+      "cite": "CISA, Federal Government Cybersecurity Incident and Vulnerability Response Playbooks (November 2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.cisa.gov/sites/default/files/2024-08/Federal_Government_Cybersecurity_Incident_and_Vulnerability_Response_Playbooks_508C.pdf",
+      "note": "Relevant text: containment includes 'Isolating impacted systems and network segments', 'Capturing forensic images to preserve evidence for legal use (if applicable) and further investigation', 'Blocking (and logging) of unauthorized accesses; blocking malware sources', 'Changing system admin passwords, rotating private keys, and service/application account secrets where compromise is suspected'; 'Before moving to eradication, ensure that all means of persistent access into the network have been accounted for'. Read through a summarizing fetch on 2026-11-11. Written for federal agencies; the containment, evidence and persistence steps are general practice."
+    },
+    {
+      "cite": "CrowdStrike, 2026 Global Threat Report (press release, 2026-02-24): 'The average eCrime breakout time fell to just 29 minutes in 2025', the fastest observed 27 seconds; breakout time is the time an adversary takes to move from the first compromised host to another (2025 report)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.crowdstrike.com/en-us/press-releases/2026-crowdstrike-global-threat-report/",
+      "note": "Vendor telemetry, not a standard. Used only to set the scale of the attacker's clock (tens of minutes, not hours); the scenario's own step times are the author's."
+    },
+    {
+      "cite": "IETF RFC 5737 (documentation IPv4 ranges, including 198.51.100.0/24) and RFC 2606 (the .example domain)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address and domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are the on-call security analyst for Pell & Rowe Fabrication, a fictional manufacturer with 120 staff. At 02:10 the EDR raises a critical alert: files on FS01, the shared file server, are being renamed to .lkr. Work the incident: contain it, keep the evidence, get the attacker out, recover the data, and report.",
+    "handover": [
+      "FS01 holds every share; BK01 takes a nightly backup at 23:00; a weekly copy goes to an offline vault (six days old tonight). The stated recovery point objective is 24 hours.",
+      "The EDR agent can network-isolate a host and capture memory remotely."
+    ],
+    "howItWorks": [
+      "Each task takes analyst time: choose it, then let the work finish, which moves the clock by the minutes that task takes. Encryption and the attacker keep going on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you declare the incident contained, you notify, write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "02:10",
+    "tick": "1min",
+    "maxDuration": "240min",
+    "calendar": "clock"
+  },
+  "params": {
+    "encryptedAtAlert": {
+      "value": 35,
+      "unit": "%",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "encRate": {
+      "value": 1.5,
+      "unit": "/min",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "lateralDelay": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "wipeDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "escalateWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "Escalation to the incident commander within 15 minutes of confirmed ransomware; NIST SP 800-61r3 RS.CO-02 asks that stakeholders be notified, not by when."
+      }
+    },
+    "rpoHours": {
+      "value": 24,
+      "unit": "h",
+      "source": {
+        "cite": "The fictional company's stated recovery point objective (author's scenario)",
+        "checkedAt": "2026-11-11",
+        "note": "Nightly backups meet it; the weekly offline vault copy does not."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "encrypted": {
+      "type": "number",
+      "init": "encryptedAtAlert",
+      "unit": "%",
+      "min": 0,
+      "max": 100
+    },
+    "triagedAt": {
+      "type": "time",
+      "init": null
+    },
+    "authAt": {
+      "type": "time",
+      "init": null
+    },
+    "fsContainedAt": {
+      "type": "time",
+      "init": null
+    },
+    "fsOff": {
+      "type": "bool",
+      "init": false
+    },
+    "wsIsolated": {
+      "type": "bool",
+      "init": false
+    },
+    "bkIsolated": {
+      "type": "bool",
+      "init": false
+    },
+    "acctDisabledAt": {
+      "type": "time",
+      "init": null
+    },
+    "c2Blocked": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "memLost": {
+      "type": "bool",
+      "init": false
+    },
+    "rebuiltAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceDestroyed": {
+      "type": "bool",
+      "init": false
+    },
+    "bkReachedAt": {
+      "type": "time",
+      "init": null
+    },
+    "backupsGoneAt": {
+      "type": "time",
+      "init": null
+    },
+    "fullAt": {
+      "type": "time",
+      "init": null
+    },
+    "restored": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nightlyScanned",
+        "nightlyRaw",
+        "vault"
+      ],
+      "init": "none"
+    },
+    "reinfected": {
+      "type": "bool",
+      "init": false
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "internal",
+        "pay"
+      ],
+      "init": "none"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "macro",
+        "rdp",
+        "unknown"
+      ],
+      "init": "none"
+    },
+    "scopeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "two",
+        "three"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "fsLive": {
+      "expr": "isNull(fsContainedAt) and isNull(rebuiltAt)"
+    },
+    "spread": {
+      "expr": "isNull(bkReachedAt) ? 0 : 1"
+    },
+    "accessLeft": {
+      "expr": "isNull(acctDisabledAt) or not wsIsolated or (not isNull(bkReachedAt) and not bkIsolated)"
+    }
+  },
+  "processes": [
+    {
+      "id": "encrypting",
+      "when": "phase == \"incident\" and fsLive",
+      "update": {
+        "encrypted": "encrypted + encRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "triage",
+        "reviewAuth",
+        "isolateHost",
+        "disableAccount",
+        "blockC2",
+        "captureEvidence",
+        "rebuild",
+        "restore",
+        "escalate",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "triage": {
+      "label": "Triage the EDR alert on FS01",
+      "group": "Investigate",
+      "available": "not busy and (isNull(triagedAt))",
+      "why": "Triaged.",
+      "effects": [
+        {
+          "set": "triagedAt",
+          "to": "t"
+        },
+        {
+          "log": "You open the EDR alert on FS01.",
+          "kind": "act"
+        },
+        {
+          "finding": "lkr.exe is renaming files to .lkr on every share; it was started over SMB by svc_backup from WS-ACCT07 at 02:01, after 'vssadmin delete shadows /all'. A ransom note sits in each folder. This is ransomware, and svc_backup is a Domain Admin."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "reviewAuth": {
+      "label": "Review where svc_backup has logged on",
+      "group": "Investigate",
+      "available": "not busy and (isNull(authAt) or (not isNull(bkReachedAt) and timeAt(bkReachedAt) > timeAt(authAt)))",
+      "why": "Reviewed; nothing new since.",
+      "effects": [
+        {
+          "set": "authAt",
+          "to": "t"
+        },
+        {
+          "log": "You query the domain controllers' logon events for svc_backup.",
+          "kind": "act"
+        },
+        {
+          "finding": "WS-ACCT07 at 01:52 (interactive, from a process started by a macro document opened at 16:58 yesterday), FS01 at 02:01{isNull(bkReachedAt) ? \". Nothing on BK01 yet\" : \", and BK01 since the lateral-movement alert\"}. WS-ACCT07 has beaconed to 198.51.100.23 every 60 seconds since 17:02 yesterday."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "isolateHost": {
+      "label": "Isolate a host",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "params": [
+        {
+          "id": "target",
+          "kind": "form",
+          "label": "Isolation",
+          "fields": [
+            {
+              "id": "host",
+              "label": "Host",
+              "options": [
+                {
+                  "value": "fs01",
+                  "label": "FS01 (file server)"
+                },
+                {
+                  "value": "ws",
+                  "label": "WS-ACCT07 (workstation)"
+                },
+                {
+                  "value": "bk01",
+                  "label": "BK01 (backup server)"
+                }
+              ]
+            },
+            {
+              "id": "how",
+              "label": "How",
+              "options": [
+                {
+                  "value": "edr",
+                  "label": "Network-isolate it with the EDR agent"
+                },
+                {
+                  "value": "power",
+                  "label": "Power it off"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "host == \"fs01\" and how == \"edr\"",
+              "then": [
+                {
+                  "if": "fsLive",
+                  "then": [
+                    {
+                      "set": "fsContainedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "FS01 network-isolated through the EDR agent; encryption stops; memory is intact.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "host == \"fs01\"",
+              "then": [
+                {
+                  "if": "fsLive",
+                  "then": [
+                    {
+                      "set": "fsContainedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "set": "fsOff",
+                  "to": "true"
+                },
+                {
+                  "if": "isNull(evidenceAt)",
+                  "then": [
+                    {
+                      "set": "memLost",
+                      "to": "true"
+                    }
+                  ]
+                },
+                {
+                  "log": "FS01 powered off; encryption stops; whatever was in memory is gone.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "host == \"ws\"",
+              "then": [
+                {
+                  "set": "wsIsolated",
+                  "to": "true"
+                },
+                {
+                  "log": "WS-ACCT07 {how == \"edr\" ? \"network-isolated through the EDR agent\" : \"powered off\"}; its beacon stops.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "bkIsolated",
+                  "to": "true"
+                },
+                {
+                  "log": "BK01 {how == \"edr\" ? \"network-isolated through the EDR agent\" : \"powered off\"}.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "disableAccount": {
+      "label": "Disable svc_backup and reset its password",
+      "group": "Contain",
+      "available": "not busy and (isNull(acctDisabledAt))",
+      "why": "Disabled.",
+      "effects": [
+        {
+          "set": "acctDisabledAt",
+          "to": "t"
+        },
+        {
+          "log": "svc_backup disabled and its password reset; tonight's backup job will need a new account.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "blockC2": {
+      "label": "Block 198.51.100.23 and its domain at the firewall",
+      "group": "Contain",
+      "available": "not busy and (not c2Blocked)",
+      "why": "Blocked.",
+      "effects": [
+        {
+          "set": "c2Blocked",
+          "to": "true"
+        },
+        {
+          "log": "Outbound traffic to 198.51.100.23 and update-cdn.example blocked and logged.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "captureEvidence": {
+      "label": "Capture FS01's memory and a disk image",
+      "group": "Evidence",
+      "available": "not busy and (isNull(evidenceAt) and isNull(rebuiltAt))",
+      "why": "Captured, or the disk is already wiped.",
+      "effects": [
+        {
+          "set": "evidenceAt",
+          "to": "t"
+        },
+        {
+          "log": "{fsOff ? \"FS01 is off, so only a disk image is taken\" : \"Memory captured through the EDR agent, then a disk image\"}; hashes and the chain of custody recorded.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "rebuild": {
+      "label": "Wipe and rebuild FS01",
+      "group": "Recover",
+      "available": "not busy and (isNull(rebuiltAt))",
+      "why": "Rebuilt.",
+      "effects": [
+        {
+          "set": "rebuiltAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceDestroyed",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "FS01 wiped and rebuilt from the standard build{isNull(evidenceAt) ? \", with nothing collected first\" : \"\"}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "restore": {
+      "label": "Restore FS01's data",
+      "group": "Recover",
+      "available": "not busy and (not isNull(rebuiltAt) and restored == \"none\")",
+      "why": "Rebuild FS01 first; or the data is already restored.",
+      "params": [
+        {
+          "id": "source",
+          "kind": "choice",
+          "label": "Restore from",
+          "options": [
+            {
+              "value": "nightlyScanned",
+              "label": "Last night's backup on BK01, scanned for the indicators first"
+            },
+            {
+              "value": "nightlyRaw",
+              "label": "Last night's backup on BK01, restored at once"
+            },
+            {
+              "value": "vault",
+              "label": "The weekly offline vault copy (six days old)"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "not isNull(backupsGoneAt) and source != \"vault\"",
+              "then": [
+                {
+                  "log": "BK01's backups were deleted; there is nothing to restore from it.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "accessLeft",
+              "then": [
+                {
+                  "set": "reinfected",
+                  "to": "true"
+                },
+                {
+                  "set": "restored",
+                  "to": "source"
+                },
+                {
+                  "log": "Data restored, and within minutes lkr.exe starts again: the attacker still had a way in.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "source == \"nightlyRaw\" and not isNull(bkReachedAt)",
+              "then": [
+                {
+                  "set": "reinfected",
+                  "to": "true"
+                },
+                {
+                  "set": "restored",
+                  "to": "source"
+                },
+                {
+                  "log": "Restored without a scan: the backup set the attacker touched on BK01 brings a scheduled task back with it.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "restored",
+                  "to": "source"
+                },
+                {
+                  "log": "{source == \"nightlyScanned\" ? \"Last night's 23:00 backup scanned for the indicators, then restored: clean.\" : source == \"vault\" ? \"Restored from the weekly offline vault copy: six days of work are lost.\" : \"Last night's backup restored without a scan.\"}",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Escalate to the incident commander",
+      "group": "Communicate",
+      "available": "not busy and (isNull(escalatedAt))",
+      "why": "Escalated.",
+      "effects": [
+        {
+          "set": "escalatedAt",
+          "to": "t"
+        },
+        {
+          "log": "You wake the incident commander and open the ransomware playbook.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Declare the incident contained and write the report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident phase and start the report.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify and report",
+      "group": "Report",
+      "available": "notified == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "full",
+              "label": "Tell leadership, legal and the cyber insurer; report to the FBI and CISA"
+            },
+            {
+              "value": "internal",
+              "label": "Tell leadership only"
+            },
+            {
+              "value": "pay",
+              "label": "Contact the attackers to negotiate a payment"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "{who == \"full\" ? \"Leadership, legal and the cyber insurer told; the ransomware reported to the FBI and CISA.\" : who == \"internal\" ? \"Leadership told; nothing reported outside.\" : \"You contact the attackers to negotiate a payment.\"}",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "macro",
+                  "label": "A macro document on WS-ACCT07; the attacker then used svc_backup's credentials"
+                },
+                {
+                  "value": "rdp",
+                  "label": "Remote desktop exposed on FS01"
+                },
+                {
+                  "value": "unknown",
+                  "label": "Unknown"
+                }
+              ]
+            },
+            {
+              "id": "scope",
+              "label": "Hosts the attacker reached",
+              "options": [
+                {
+                  "value": "two",
+                  "label": "WS-ACCT07 and FS01"
+                },
+                {
+                  "value": "three",
+                  "label": "WS-ACCT07, FS01 and BK01"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "scopeDoc",
+          "to": "scope"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: cause {cause}, scope {scope}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lateral",
+      "when": "phase == \"incident\" and t >= lateralDelay and isNull(acctDisabledAt) and not wsIsolated",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "bkReachedAt",
+          "to": "t"
+        },
+        {
+          "log": "Domain controller: svc_backup logged on to BK01 from WS-ACCT07.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "wipeBackups",
+      "when": "phase == \"incident\" and not isNull(bkReachedAt) and t >= timeAt(bkReachedAt) + wipeDelay and not bkIsolated",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "backupsGoneAt",
+          "to": "t"
+        },
+        {
+          "log": "BK01: backup catalog deleted and the repository is being encrypted.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "fullyEncrypted",
+      "when": "phase == \"incident\" and encrypted >= 100",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "fullAt",
+          "to": "t"
+        },
+        {
+          "log": "EDR: FS01's shares are fully encrypted.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: the order you contained, preserved, eradicated and recovered in, and why that order.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Containment",
+          "criteria": "Isolating FS01 at once stops encryption; network isolation is preferred to powering off because it keeps memory (power down only if a host cannot be disconnected, #StopRansomware Guide); the patient-zero workstation and the abused account are part of containment.",
+          "modelAnswer": "I network-isolated FS01 through the EDR agent as soon as triage confirmed ransomware, which stopped the encryption and kept memory for capture; powering off is only for a host that cannot be disconnected. I disabled svc_backup and isolated WS-ACCT07, where the attacker started."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "Memory before disk (order of volatility), a disk image before any wipe, hashes and chain of custody.",
+          "modelAnswer": "Before rebuilding I captured FS01's memory, then a disk image, recording hashes and who handled each, because memory is lost first and the wipe destroys the rest."
+        },
+        {
+          "label": "Recovery",
+          "criteria": "Eradicate before recovering (disable the account, isolate every touched host) so the clean server is not reinfected; check the backup for indicators before restoring (NIST RC.RP-03); prefer the newest clean copy that meets the RPO.",
+          "modelAnswer": "Only after the attacker's access was cut did I rebuild FS01 and restore last night's backup, scanned for the indicators first, which meets the 24-hour recovery point and does not bring the attacker back."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Set against the 29-minute average eCrime breakout time in CrowdStrike's 2026 Global Threat Report (see sources)."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-11",
+          "note": "No host newly reached after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not accessLeft and restored == \"none\"",
+      "class": "recovered",
+      "rationale": "The attacker is out and the evidence is kept, but the file server is still down with nothing restored: safe, and short of the goal of getting the business working again.",
+      "source": {
+        "cite": "CISA, FBI, NSA and MS-ISAC, #StopRansomware Guide (May 2023), Part 2, Ransomware and Data Extortion Response Checklist",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.cisa.gov/stopransomware/ransomware-guide",
+        "note": "Relevant text: 'Determine which systems were impacted, and immediately isolate them'; 'If several systems or subnets appear impacted, take the network offline at the switch level'; 'Power down devices if you are unable to disconnect them from the network'; 'Take a system image and memory capture of a sample of affected devices'; 'Issue password resets for all affected systems'; 'Reconnect systems and restore data from offline, encrypted backups based on a prioritization of critical services'; 'Take care not to re-infect clean systems during recovery'; 'The authoring organizations do not recommend paying ransom'. Read in the copy hosted at ic3.gov (www.ic3.gov/CSA/2023/230523.pdf) through a summarizing fetch on 2026-11-11; the fetch reported the cover as version 2.0 with a May 2023 publication date, which was not confirmed on the page itself. CISA's online Ransomware Response Checklist (cisa.gov/ransomware-response-checklist) carries the same isolate, power-down-only-if-needed and image-and-memory steps."
+      }
+    }
+  },
+  "endings": {
+    "backupsLost": {
+      "label": "Backups destroyed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(backupsGoneAt)",
+      "narrative": "The attacker reached BK01 and deleted the nightly backups. Only the weekly offline copy is left: six days of drawings and orders are gone, beyond the 24-hour recovery point."
+    },
+    "reinfected": {
+      "label": "Reinfected during recovery",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and reinfected",
+      "narrative": "FS01 was restored while the attacker still had a way in, and encryption started again on the clean server."
+    },
+    "evidenceLost": {
+      "label": "Evidence wiped before it was collected",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and evidenceDestroyed",
+      "narrative": "FS01 was wiped with no image or memory capture, so no one can say what the attacker took or left behind, and the insurer and the FBI have nothing to work with."
+    },
+    "stillIn": {
+      "label": "Closed with the attacker still in",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and accessLeft",
+      "narrative": "The incident was closed while {isNull(acctDisabledAt) ? \"svc_backup was still enabled\" : not wsIsolated ? \"WS-ACCT07 was still beaconing out\" : \"the attacker still had a session on BK01\"}."
+    },
+    "contained": {
+      "label": "Contained, preserved and restored clean",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not isNull(fsContainedAt) and timeAt(fsContainedAt) <= containWindow and spread <= containSpread and not isNull(evidenceAt) and not memLost and not evidenceDestroyed and restored == \"nightlyScanned\"",
+      "narrative": "Encryption stopped at FS01, the attacker never reached the backups, the evidence is in the case file, and last night's data is back after a scan."
+    },
+    "containedLate": {
+      "label": "Contained, with spread or a costly recovery",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The attacker is out, but containment came late, BK01 was reached, the evidence is partial, or the recovery cost days of work."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "backupsLost",
+    "reinfected",
+    "evidenceLost",
+    "stillIn",
+    "contained",
+    "containedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "containFast",
+        "label": "Network-isolated FS01 within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fsContainedAt) and timeAt(fsContainedAt) <= containWindow",
+            "score": "met",
+            "why": "Encryption stopped {timeAt(fsContainedAt) / 60|0dp} min after the alert, at {encrypted|0dp}%."
+          },
+          {
+            "when": "not isNull(fsContainedAt)",
+            "score": "partial",
+            "why": "Stopped {timeAt(fsContainedAt) / 60|0dp} min in, at {encrypted|0dp}%."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "FS01 was never isolated; encryption ran until the rebuild, to {encrypted|0dp}%."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Captured memory and a disk image before wiping (order of volatility)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(evidenceAt) and not memLost and not evidenceDestroyed",
+            "score": "met",
+            "why": "Memory first, then the disk, with hashes and custody recorded."
+          },
+          {
+            "when": "not isNull(evidenceAt) and not evidenceDestroyed",
+            "score": "partial",
+            "why": "Only a disk image: powering off lost the memory."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{evidenceDestroyed ? \"FS01 was wiped first.\" : \"Nothing was captured.\"}"
+          }
+        ]
+      },
+      {
+        "id": "eradicate",
+        "label": "Cut every path the attacker had (svc_backup, WS-ACCT07, BK01 if reached)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not accessLeft",
+            "score": "met",
+            "why": "svc_backup disabled and every host it touched isolated."
+          },
+          {
+            "when": "not isNull(acctDisabledAt) or wsIsolated",
+            "score": "partial",
+            "why": "Part of the attacker's access was left."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "svc_backup and WS-ACCT07 were left as they were."
+          }
+        ]
+      },
+      {
+        "id": "recoverClean",
+        "label": "Restored from a recent backup checked for indicators first (RC.RP-03)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "restored == \"nightlyScanned\" and not reinfected",
+            "score": "met",
+            "why": "Last night's data, scanned first."
+          },
+          {
+            "when": "(restored == \"vault\" or restored == \"nightlyRaw\") and not reinfected",
+            "score": "partial",
+            "why": "{restored == \"vault\" ? \"Six days of work lost to an older copy.\" : \"Restored without checking the backup first.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{reinfected ? \"The restore brought the attacker back.\" : \"Nothing was restored.\"}"
+          }
+        ]
+      },
+      {
+        "id": "blockC2",
+        "label": "Blocked the command-and-control address",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "c2Blocked",
+            "score": "met",
+            "why": "Blocked and logged."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The beacon address was never blocked."
+          }
+        ]
+      },
+      {
+        "id": "escalated",
+        "label": "Escalated to the incident commander within 15 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(escalatedAt) and timeAt(escalatedAt) <= escalateWindow",
+            "score": "met",
+            "why": "Escalated {timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(escalatedAt)",
+            "score": "partial",
+            "why": "Escalated {timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never escalated."
+          }
+        ]
+      },
+      {
+        "id": "reported",
+        "label": "Told leadership, legal and the insurer and reported to the FBI and CISA; no ransom",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified == \"full\"",
+            "score": "met",
+            "why": "Reported; no contact with the attackers."
+          },
+          {
+            "when": "notified == \"internal\"",
+            "score": "partial",
+            "why": "Kept inside the company."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{notified == \"pay\" ? \"Negotiating a payment; the agencies do not recommend paying, and it does not ensure decryption.\" : \"No one was told.\"}"
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the root cause and the hosts reached accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"macro\" and scopeDoc == (isNull(bkReachedAt) ? \"two\" : \"three\")",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written order of containment, evidence and recovery",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToContain",
+        "label": "Minutes to isolate FS01",
+        "value": "isNull(fsContainedAt) ? -1 : timeAt(fsContainedAt) / 60",
+        "format": "number",
+        "expert": "30 or less"
+      },
+      {
+        "id": "pctEncrypted",
+        "label": "FS01 encrypted (%)",
+        "value": "round(encrypted)",
+        "format": "number",
+        "expert": "as low as you can"
+      },
+      {
+        "id": "hostsReached",
+        "label": "Hosts the attacker reached",
+        "value": "2 + spread",
+        "format": "number",
+        "expert": "2"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "Triage: ransomware started by svc_backup from WS-ACCT07. Network-isolate FS01 with the EDR agent."
+      },
+      {
+        "at": "5-15 min",
+        "text": "Disable svc_backup, isolate WS-ACCT07, escalate to the incident commander."
+      },
+      {
+        "at": "15-40 min",
+        "text": "Check where svc_backup logged on (BK01 untouched); capture memory, then a disk image; block the C2 address."
+      },
+      {
+        "at": "40-80 min",
+        "text": "Rebuild FS01; restore last night's backup after scanning it; report to leadership, legal, the insurer, the FBI and CISA."
+      }
+    ],
+    "debrief": {
+      "contained": {
+        "headline": "Good: contained, preserved, restored clean",
+        "body": "Isolation stopped the encryption, the attacker never reached the backups, and you rebuilt only after the evidence was kept and every path was cut."
+      },
+      "containedLate": {
+        "headline": "Contained, at a cost",
+        "body": "The attacker is out. The criteria show what cost you: late isolation, a host reached, memory lost to a power-off, or days of data lost to an old copy."
+      },
+      "backupsLost": {
+        "headline": "Backups destroyed",
+        "body": "Attackers go for the backup server next. Cutting the account and the source workstation early, or isolating BK01 once it was reached, keeps the nightly backups."
+      },
+      "reinfected": {
+        "headline": "Reinfected",
+        "body": "Restoring before eradication, or from a backup the attacker touched without checking it, brings the attacker back (#StopRansomware: take care not to re-infect clean systems)."
+      },
+      "evidenceLost": {
+        "headline": "Evidence wiped",
+        "body": "A rebuild before an image destroys what the insurer, the FBI and your own root-cause work need. Capture memory, then disk, then rebuild."
+      },
+      "stillIn": {
+        "headline": "Closed too soon",
+        "body": "An enabled svc_backup, a beaconing WS-ACCT07 or a session on BK01 is a way back in. Account for every means of persistent access before you close (CISA)."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Confirm ransomware, then network-isolate FS01 (power off only if it cannot be disconnected), disable the abused account and isolate the patient-zero workstation, and escalate. Check where the account logged on and isolate anything it reached. Capture memory and a disk image before any wipe. Rebuild, restore the newest backup that meets the RPO after scanning it, report to leadership, legal, the insurer and the FBI and CISA, and do not pay."
+  }
+}
