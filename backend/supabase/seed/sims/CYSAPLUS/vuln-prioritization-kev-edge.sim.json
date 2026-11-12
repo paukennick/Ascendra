@@ -1,0 +1,1426 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "vuln-prioritization-kev-edge",
+  "title": "Incident: four critical findings and one emergency",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "fHr",
+          "severity": "critical",
+          "title": "Scanner: remote code execution in a library on HR-APP01 (CVSS 9.8, EPSS 0.02)",
+          "detail": "Reachable only from the internal network; no public exploit or KEV entry; patch available.",
+          "when": "true",
+          "at": "0",
+          "status": "{pHr == \"none\" ? \"Unassigned\" : pHr == \"emergency\" ? \"Emergency change\" : pHr == \"window\" ? \"Next maintenance window\" : pHr == \"accept\" ? \"Risk accepted (documented exception)\" : \"False positive\"}",
+          "open": "pHr == \"none\""
+        },
+        {
+          "id": "fLab",
+          "severity": "critical",
+          "title": "Scanner: unauthenticated code execution on LAB-07 (CVSS 10.0, EPSS 0.31)",
+          "detail": "LAB-07 is on the isolated test segment; it holds no data and has no route out.",
+          "when": "true",
+          "at": "0",
+          "status": "{pLab == \"none\" ? \"Unassigned\" : pLab == \"emergency\" ? \"Emergency change\" : pLab == \"window\" ? \"Next maintenance window\" : pLab == \"accept\" ? \"Risk accepted (documented exception)\" : \"False positive\"}",
+          "open": "pLab == \"none\""
+        },
+        {
+          "id": "fMail",
+          "severity": "critical",
+          "title": "Scanner: MAIL01 OpenSSH version banner matches a critical flaw (CVSS 9.1)",
+          "detail": "Detected by version banner only.",
+          "when": "true",
+          "at": "0",
+          "status": "{pMail == \"none\" ? \"Unassigned\" : pMail == \"emergency\" ? \"Emergency change\" : pMail == \"window\" ? \"Next maintenance window\" : pMail == \"accept\" ? \"Risk accepted (documented exception)\" : \"False positive\"}",
+          "open": "pMail == \"none\""
+        },
+        {
+          "id": "fVpn",
+          "severity": "high",
+          "title": "Scanner: authentication bypass in the VPN gateway's web portal at vpn.example.com (CVSS 8.6)",
+          "detail": "Internet-facing (203.0.113.10). Added to the CISA KEV catalog this morning; EPSS 0.94. Patch and a vendor workaround published.",
+          "when": "true",
+          "at": "0",
+          "status": "{vpnExposed ? (isNull(patchStartAt) ? \"Exposed\" : \"Exposed; patch installing\") : not isNull(validatedAt) ? \"Fixed and validated\" : \"Closed; not yet validated\"}",
+          "open": "vpnExposed"
+        },
+        {
+          "id": "probe",
+          "severity": "medium",
+          "title": "IDS: mass scanning of the VPN portal's vulnerable path from 198.51.100.0/24",
+          "when": "not isNull(probeAt)",
+          "at": "timeAt(probeAt)",
+          "status": "{vpnExposed ? \"Ongoing\" : \"Blocked by the fix\"}",
+          "open": "vpnExposed"
+        },
+        {
+          "id": "shell",
+          "severity": "critical",
+          "title": "Integrity check: unknown file in the VPN portal's cache directory",
+          "when": "not isNull(exploitAt)",
+          "at": "timeAt(exploitAt)",
+          "status": "{attackerActive ? \"Web shell active\" : \"Gateway offline\"}",
+          "open": "attackerActive"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Threat intel",
+          "text": "08:00 CISA added the VPN portal authentication bypass to KEV; exploitation reported in the wild",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "Scanner",
+          "text": "Weekly external and internal scan finished: 4 findings rated high or critical",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e3",
+          "source": "Change",
+          "text": "Emergency change: VPN gateway firmware upgrade started (about 20 min with reboot)",
+          "when": "not isNull(patchStartAt)",
+          "at": "timeAt(patchStartAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Change",
+          "text": "VPN gateway upgraded and back in service",
+          "when": "not isNull(patchDoneAt)",
+          "at": "timeAt(patchDoneAt)"
+        },
+        {
+          "id": "e5",
+          "source": "IDS",
+          "text": "Requests for the vulnerable portal path from 198.51.100.0/24",
+          "when": "not isNull(probeAt)",
+          "at": "timeAt(probeAt)"
+        },
+        {
+          "id": "e6",
+          "source": "VPN gateway",
+          "text": "POST to the portal path from 198.51.100.37 returned 200; new file in the portal cache",
+          "when": "not isNull(exploitAt)",
+          "at": "timeAt(exploitAt)"
+        },
+        {
+          "id": "e7",
+          "source": "VPN gateway",
+          "text": "Session table and cached credentials read through the web shell",
+          "when": "not isNull(impactAt)",
+          "at": "timeAt(impactAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "vpn",
+          "label": "vpn.example.com",
+          "spokenLabel": "VPN gateway vpn.example.com",
+          "kind": "Internet-facing VPN gateway (400 remote staff)",
+          "status": "{not isNull(vpnOffAt) ? \"Offline; staff on the backup gateway\" : attackerActive ? \"Compromised\" : vpnExposed ? \"Vulnerable and exposed\" : not isNull(patchDoneAt) ? \"Patched\" : \"Workaround applied; portal off\"}",
+          "tone": "attackerActive ? \"bad\" : not isNull(vpnOffAt) ? \"held\" : vpnExposed ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "hr",
+          "label": "HR-APP01",
+          "spokenLabel": "Server HR-APP01",
+          "kind": "Internal HR application",
+          "status": "{pHr == \"none\" ? \"Unassigned\" : pHr == \"emergency\" ? \"Emergency change\" : pHr == \"window\" ? \"Next maintenance window\" : pHr == \"accept\" ? \"Risk accepted (documented exception)\" : \"False positive\"}",
+          "tone": "\"watch\""
+        },
+        {
+          "id": "lab",
+          "label": "LAB-07",
+          "spokenLabel": "Server LAB-07",
+          "kind": "Isolated test server",
+          "status": "{pLab == \"none\" ? \"Unassigned\" : pLab == \"emergency\" ? \"Emergency change\" : pLab == \"window\" ? \"Next maintenance window\" : pLab == \"accept\" ? \"Risk accepted (documented exception)\" : \"False positive\"}",
+          "tone": "\"ok\""
+        },
+        {
+          "id": "mail",
+          "label": "MAIL01",
+          "spokenLabel": "Server MAIL01",
+          "kind": "Mail relay",
+          "status": "{not isNull(mailCheckedAt) ? \"Fix backported by the vendor; banner unchanged\" : \"Banner match only\"}",
+          "tone": "\"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "expM",
+          "label": "VPN exposure",
+          "value": "{vpnExposed ? \"open\" : \"closed\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Prioritization criteria: exploitability, active exploitation/threat intelligence, asset value, impact, patch/remediation availability, true/false positives, true/false negatives",
+  "secondaryObjectives": [
+    "Mitigation strategies (attack surface management, secure coding best practices, patching and configuration management, exceptions, compensating controls) and validation of remediation",
+    "Scoring methods -- Common Vulnerability Scoring System (CVSS) metrics and FIRST's Exploit Prediction Scoring System (EPSS) -- and context awareness: internal, external, isolated"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA CySA+ CS0-004 Exam Objectives, Exam Objectives Document Version 2.0 (exam launched 2026-06-23; domains 34/26/24/16)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v4/",
+      "note": "Relevant text: 1.2 'Given a scenario, analyze indicators of potential malicious activity' (host-related indicators: resource consumption, unauthorized software, anomalous activity: suspicious or rogue processes, Living Off the Land Binaries (LOLBins) and Scripts, file system changes, data exfiltration); 2.3 'Given a scenario, analyze data to prioritize and mitigate vulnerabilities' (exploitability, active exploitation/threat intelligence, asset value, impact, patch/remediation availability, true/false positives, true/false negatives; CVSS metrics, EPSS); 3.2 'Summarize the incident response process' (containment, recovery); 3.3 'Given a scenario, implement incident response techniques' (triage, establishment of a timeline, determining severity and impact, escalation; isolating affected targets, remediation and verification, release from isolation, performing restoration). Read in the official objectives PDF (the course's officialObjectivesUrl) through a summarizing fetch, and the CompTIA V4 page, on 2026-11-11. CS0-003 retires for English on 2026-12-22."
+    },
+    {
+      "cite": "CISA, Known Exploited Vulnerabilities Catalog (KEV)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.cisa.gov/known-exploited-vulnerabilities",
+      "note": "Relevant text: the catalog is 'the authoritative source of vulnerabilities that have been exploited in the wild'; CISA 'strongly recommends all organizations review and monitor the KEV catalog and prioritize remediation' of listed vulnerabilities, and include immediate action on KEV entries in their vulnerability management plan. BOD 22-01's deadlines bind federal civilian agencies only and are not used. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "FIRST, Exploit Prediction Scoring System (EPSS), and CVSS v4.0 specification",
+      "checkedAt": "2026-11-07",
+      "url": "https://www.first.org/epss/",
+      "note": "EPSS estimates the probability that a vulnerability is exploited in the wild in the next 30 days; CVSS rates severity, not likelihood. The course seed cites both (read 2026-11-07); not re-read for this case. The scores in the scenario are fictional."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-11",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "The current revision (April 3, 2025; supersedes Rev. 2 of 2012). Relevant text: RS.MA-02 'Perform a preliminary review of a new incident report to verify that a cybersecurity incident has occurred, then estimate the severity of the incident and the level of urgency'; RS.MA-03 'Prioritize how quickly incident response should be performed for each incident based on its scope, likely impact, time-critical nature, and resource availability'; RS.MA-04 escalation and elevation; RS.MI-01 'Containment refers to preventing the expansion of an incident'; RS.MI-02 eradication 'to eliminate persistence mechanisms and entry points' and 'Identify all affected hosts and services'; RS.AN-07 incident data collected with integrity and provenance preserved; RS.CO-02 stakeholders notified. Read in the PDF text (nvlpubs.nist.gov) and the CSRC page on 2026-11-11."
+    },
+    {
+      "cite": "CrowdStrike, 2026 Global Threat Report (press release, 2026-02-24): 'The average eCrime breakout time fell to just 29 minutes in 2025', the fastest observed 27 seconds",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.crowdstrike.com/en-us/press-releases/2026-crowdstrike-global-threat-report/",
+      "note": "Vendor telemetry, not a standard. Also: '42% of vulnerabilities were exploited before public disclosure'; adversaries injected malicious prompts into GenAI tools at more than 90 organizations. Used only to set the scale of the attacker's clock; the scenario's step times are the author's. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are the vulnerability analyst at Tamsin Mutual, a fictional insurer. At 08:00 the weekly scan lands with four findings rated high or critical, and the threat feed reports that one of them was added to CISA's Known Exploited Vulnerabilities catalog this morning. There is staff for one emergency change. Prioritize, reduce the exposure, check for compromise, validate and report.",
+    "handover": [
+      "Every scan score here is fictional. The VPN gateway carries every remote session; the backup gateway can carry about a third of them.",
+      "Saturday's maintenance window is the normal route for patches."
+    ],
+    "howItWorks": [
+      "Each task takes analyst time: choose it, then let the work finish, which moves the clock by the minutes that task takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you declare the incident contained, you notify, write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "08:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "probeDelay": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "exploitDelay": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "harvestDelay": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "emergencyDur": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "An emergency firmware upgrade with reboot taking about 20 minutes is the author's teaching figure, not a vendor's."
+      }
+    },
+    "planDur": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Recording a plan in the ticket takes about 2 minutes; author's figure."
+      }
+    },
+    "escalateWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Escalation to the vulnerability lead within 15 minutes of a KEV match; CISA asks for immediate action on KEV entries, not a minute count."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "enrichedAt": {
+      "type": "time",
+      "init": null
+    },
+    "pVpn": {
+      "type": "enum",
+      "values": [
+        "none",
+        "emergency",
+        "window",
+        "accept",
+        "falsePos"
+      ],
+      "init": "none"
+    },
+    "pHr": {
+      "type": "enum",
+      "values": [
+        "none",
+        "emergency",
+        "window",
+        "accept",
+        "falsePos"
+      ],
+      "init": "none"
+    },
+    "pLab": {
+      "type": "enum",
+      "values": [
+        "none",
+        "emergency",
+        "window",
+        "accept",
+        "falsePos"
+      ],
+      "init": "none"
+    },
+    "pMail": {
+      "type": "enum",
+      "values": [
+        "none",
+        "emergency",
+        "window",
+        "accept",
+        "falsePos"
+      ],
+      "init": "none"
+    },
+    "patchStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "patchDoneAt": {
+      "type": "time",
+      "init": null
+    },
+    "mitigatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "vpnOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "exposureClosedAt": {
+      "type": "time",
+      "init": null
+    },
+    "huntedAt": {
+      "type": "time",
+      "init": null
+    },
+    "mailCheckedAt": {
+      "type": "time",
+      "init": null
+    },
+    "validatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "probeAt": {
+      "type": "time",
+      "init": null
+    },
+    "exploitAt": {
+      "type": "time",
+      "init": null
+    },
+    "impactAt": {
+      "type": "time",
+      "init": null
+    },
+    "topDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "vpn",
+        "hr",
+        "lab"
+      ],
+      "init": "none"
+    },
+    "mailDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fp",
+        "real"
+      ],
+      "init": "none"
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "owner",
+        "nobody"
+      ],
+      "init": "none"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "vpnExposed": {
+      "expr": "isNull(mitigatedAt) and isNull(vpnOffAt) and isNull(patchDoneAt)"
+    },
+    "attackerActive": {
+      "expr": "not isNull(exploitAt) and isNull(vpnOffAt)"
+    },
+    "spread": {
+      "expr": "isNull(exploitAt) ? 0 : 1"
+    },
+    "prioritized": {
+      "expr": "pVpn == \"emergency\" and pHr == \"window\" and (pLab == \"accept\" or pLab == \"window\") and pMail == \"falsePos\" and not isNull(mailCheckedAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "enrich",
+        "plan",
+        "workaround",
+        "huntVpn",
+        "checkMail",
+        "rescan",
+        "offlineVpn",
+        "escalate",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "enrich": {
+      "label": "Enrich the four findings with KEV, EPSS, exposure and asset value",
+      "group": "Investigate",
+      "available": "not busy and (isNull(enrichedAt))",
+      "why": "Enriched.",
+      "effects": [
+        {
+          "set": "enrichedAt",
+          "to": "t"
+        },
+        {
+          "log": "You pull the KEV catalog, EPSS scores, network exposure and the asset register for each finding.",
+          "kind": "act"
+        },
+        {
+          "finding": "VPN gateway: internet-facing, in KEV (exploited in the wild), EPSS 0.94, carries every remote session. HR-APP01: highest CVSS but internal only, no known exploitation, EPSS 0.02. LAB-07: CVSS 10.0 but on an isolated segment with no data. MAIL01: flagged from its version banner alone."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Assign a remediation plan",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "params": [
+        {
+          "id": "p",
+          "kind": "form",
+          "label": "Plan",
+          "fields": [
+            {
+              "id": "finding",
+              "label": "Finding",
+              "options": [
+                {
+                  "value": "vpn",
+                  "label": "VPN gateway portal bypass"
+                },
+                {
+                  "value": "hr",
+                  "label": "HR-APP01 library RCE"
+                },
+                {
+                  "value": "lab",
+                  "label": "LAB-07 RCE"
+                },
+                {
+                  "value": "mail",
+                  "label": "MAIL01 OpenSSH banner"
+                }
+              ]
+            },
+            {
+              "id": "plan",
+              "label": "Plan",
+              "options": [
+                {
+                  "value": "emergency",
+                  "label": "Emergency change now"
+                },
+                {
+                  "value": "window",
+                  "label": "Next maintenance window (Saturday)"
+                },
+                {
+                  "value": "accept",
+                  "label": "Accept the risk with a documented exception"
+                },
+                {
+                  "value": "falsePos",
+                  "label": "False positive"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "finding == \"vpn\"",
+              "then": [
+                {
+                  "set": "pVpn",
+                  "to": "plan"
+                },
+                {
+                  "if": "plan == \"emergency\"",
+                  "then": [
+                    {
+                      "if": "isNull(patchStartAt)",
+                      "then": [
+                        {
+                          "set": "patchStartAt",
+                          "to": "t"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "finding == \"hr\"",
+              "then": [
+                {
+                  "set": "pHr",
+                  "to": "plan"
+                }
+              ]
+            },
+            {
+              "when": "finding == \"lab\"",
+              "then": [
+                {
+                  "set": "pLab",
+                  "to": "plan"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "pMail",
+                  "to": "plan"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "{finding == \"vpn\" ? \"VPN gateway\" : finding == \"hr\" ? \"HR-APP01\" : finding == \"lab\" ? \"LAB-07\" : \"MAIL01\"}: {plan == \"emergency\" ? \"emergency change now; you work it until it is done\" : plan == \"window\" ? \"scheduled for Saturday's maintenance window\" : plan == \"accept\" ? \"risk accepted as a documented exception with an owner and a review date\" : \"closed as a false positive\"}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "plan == \"emergency\" ? emergencyDur : planDur"
+        }
+      ]
+    },
+    "workaround": {
+      "label": "Apply the vendor's workaround on the VPN gateway (turn off the web portal)",
+      "group": "Contain",
+      "available": "not busy and (isNull(mitigatedAt))",
+      "why": "Applied.",
+      "effects": [
+        {
+          "if": "isNull(mitigatedAt)",
+          "then": [
+            {
+              "set": "mitigatedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The web portal is off; staff who used the browser portal move to the full VPN client. The vulnerable code is still installed.",
+          "kind": "act"
+        },
+        {
+          "if": "not vpnExposed",
+          "then": [
+            {
+              "if": "isNull(exposureClosedAt)",
+              "then": [
+                {
+                  "set": "exposureClosedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "huntVpn": {
+      "label": "Check the VPN gateway for signs of exploitation (vendor integrity tool and logs)",
+      "group": "Investigate",
+      "available": "not busy and (isNull(huntedAt) or (not isNull(exploitAt) and timeAt(exploitAt) > timeAt(huntedAt)))",
+      "why": "Checked; nothing new.",
+      "effects": [
+        {
+          "set": "huntedAt",
+          "to": "t"
+        },
+        {
+          "log": "You run the vendor's integrity checker and review the portal's request logs since the flaw was published.",
+          "kind": "act"
+        },
+        {
+          "finding": "{isNull(exploitAt) ? \"No unknown files and no successful requests to the vulnerable path: patching or the workaround is enough here.\" : \"A web shell in the portal cache, planted by 198.51.100.37. Patching will not remove it; the gateway is compromised.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "checkMail": {
+      "label": "Check MAIL01's package changelog for a backported fix",
+      "group": "Investigate",
+      "available": "not busy and (isNull(mailCheckedAt))",
+      "why": "Checked.",
+      "effects": [
+        {
+          "set": "mailCheckedAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the installed OpenSSH package's changelog on MAIL01.",
+          "kind": "act"
+        },
+        {
+          "finding": "The vendor backported the fix into the installed package last month; the version banner did not change. The finding is a false positive from a banner-only check."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "rescan": {
+      "label": "Rescan the VPN gateway to validate the fix",
+      "group": "Recover",
+      "available": "not busy and ((not isNull(patchDoneAt) or not isNull(mitigatedAt)) and (isNull(validatedAt) or (not isNull(patchDoneAt) and timeAt(validatedAt) < timeAt(patchDoneAt))))",
+      "why": "Validated; nothing new.",
+      "effects": [
+        {
+          "set": "validatedAt",
+          "to": "t"
+        },
+        {
+          "log": "You rerun the authenticated scan and the vendor's check against the gateway.",
+          "kind": "act"
+        },
+        {
+          "finding": "{not isNull(patchDoneAt) ? \"Fixed version confirmed; the vulnerable path no longer answers.\" : \"The workaround holds (the portal is off), but the vulnerable version is still installed.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "offlineVpn": {
+      "label": "Take the VPN gateway offline and move staff to the backup gateway",
+      "group": "Contain",
+      "available": "not busy and (isNull(vpnOffAt))",
+      "why": "Offline.",
+      "effects": [
+        {
+          "if": "isNull(vpnOffAt)",
+          "then": [
+            {
+              "set": "vpnOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The gateway is off the internet; remote staff reconnect through the smaller backup gateway, slowly.",
+          "kind": "act"
+        },
+        {
+          "if": "not vpnExposed",
+          "then": [
+            {
+              "if": "isNull(exposureClosedAt)",
+              "then": [
+                {
+                  "set": "exposureClosedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Escalate to the vulnerability management lead and the change board",
+      "group": "Communicate",
+      "available": "not busy and (isNull(escalatedAt))",
+      "why": "Escalated.",
+      "effects": [
+        {
+          "set": "escalatedAt",
+          "to": "t"
+        },
+        {
+          "log": "You raise the KEV finding to the vulnerability management lead and ask the change board for an emergency change.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the vulnerability response and write the report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the response and start the report.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "full",
+              "label": "IT leadership, the change board and the VPN owner (remote access is changing)"
+            },
+            {
+              "value": "owner",
+              "label": "The VPN owner only"
+            },
+            {
+              "value": "nobody",
+              "label": "No one"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"full\" ? \"IT leadership, the change board and the VPN owner\" : who == \"owner\" ? \"the VPN owner only\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "top",
+              "label": "Top risk this morning",
+              "options": [
+                {
+                  "value": "vpn",
+                  "label": "The VPN gateway: internet-facing and actively exploited (KEV)"
+                },
+                {
+                  "value": "hr",
+                  "label": "HR-APP01: the highest CVSS"
+                },
+                {
+                  "value": "lab",
+                  "label": "LAB-07: CVSS 10.0"
+                }
+              ]
+            },
+            {
+              "id": "mail",
+              "label": "MAIL01 finding",
+              "options": [
+                {
+                  "value": "fp",
+                  "label": "False positive: the fix is backported"
+                },
+                {
+                  "value": "real",
+                  "label": "A real critical vulnerability"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "topDoc",
+          "to": "top"
+        },
+        {
+          "set": "mailDoc",
+          "to": "mail"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: top risk {top}, MAIL01 {mail}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "patchDone",
+      "when": "not isNull(patchStartAt) and t >= timeAt(patchStartAt) + emergencyDur and phase == \"incident\"",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "patchDoneAt",
+          "to": "t"
+        },
+        {
+          "log": "Change: the VPN gateway firmware is upgraded and the gateway is back in service.",
+          "kind": "good"
+        },
+        {
+          "if": "isNull(exposureClosedAt)",
+          "then": [
+            {
+              "set": "exposureClosedAt",
+              "to": "t"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "probe",
+      "when": "t >= probeDelay and vpnExposed and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "probeAt",
+          "to": "t"
+        },
+        {
+          "log": "IDS: addresses in 198.51.100.0/24 are requesting the portal's vulnerable path across the internet range, including vpn.example.com.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "exploit",
+      "when": "t >= exploitDelay and vpnExposed and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "exploitAt",
+          "to": "t"
+        },
+        {
+          "log": "VPN gateway: a POST from 198.51.100.37 to the vulnerable path succeeded and a new file appeared in the portal cache.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "harvest",
+      "when": "t >= harvestDelay and attackerActive and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "impactAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "VPN gateway: the web shell read the session table and cached credentials of remote staff. The incident team takes over; write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: how you ranked the four findings, what you did about the top one and in what order, and how you know it is fixed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Prioritization",
+          "criteria": "Ranks the internet-facing VPN flaw first because it is actively exploited (KEV) with a high EPSS, despite a lower CVSS; places the internal HR flaw in the window, accepts or schedules the isolated lab box, and treats the banner-only MAIL01 match as a false positive only after checking the backport.",
+          "modelAnswer": "CVSS rates severity, not likelihood. The VPN flaw is in KEV, internet-facing and on our most important remote-access asset, so it was the emergency; HR-APP01 is internal with no known exploitation, LAB-07 is isolated, and MAIL01's fix was backported."
+        },
+        {
+          "label": "Mitigation",
+          "criteria": "Applies the vendor workaround (a compensating control) at once and then patches, rather than waiting for the window; or takes the gateway offline if needed.",
+          "modelAnswer": "I turned the portal off with the vendor's workaround within minutes, then ran the emergency upgrade."
+        },
+        {
+          "label": "Verification",
+          "criteria": "Checks the gateway for prior exploitation (patching does not remove a web shell) and rescans after the patch to validate.",
+          "modelAnswer": "Because it was exploited in the wild before we knew, I ran the integrity check for a web shell, and rescanned after the upgrade to confirm the fixed version."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Set against CrowdStrike's 2026 report that 42% of vulnerabilities were exploited before disclosure and its 29-minute average breakout (see sources): an exploited edge flaw is a same-morning problem."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-11",
+          "note": "No asset compromised after the KEV alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and (vpnExposed or attackerActive)",
+      "class": "harm",
+      "rationale": "Closing with an actively exploited flaw still reachable from the internet, or a web shell on the gateway, is never a safe outcome.",
+      "source": {
+        "cite": "CISA, Known Exploited Vulnerabilities Catalog (KEV)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.cisa.gov/known-exploited-vulnerabilities",
+        "note": "Relevant text: the catalog is 'the authoritative source of vulnerabilities that have been exploited in the wild'; CISA 'strongly recommends all organizations review and monitor the KEV catalog and prioritize remediation' of listed vulnerabilities, and include immediate action on KEV entries in their vulnerability management plan. BOD 22-01's deadlines bind federal civilian agencies only and are not used. Read through a summarizing fetch on 2026-11-11."
+      }
+    }
+  },
+  "endings": {
+    "breached": {
+      "label": "Remote staff credentials stolen",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(impactAt)",
+      "narrative": "The gateway was exploited while still exposed, and the web shell harvested the session table and cached credentials of remote staff."
+    },
+    "stillExposed": {
+      "label": "Closed with the gateway exposed or compromised",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and (vpnExposed or attackerActive)",
+      "narrative": "{attackerActive ? \"The response was closed with a web shell still running on the gateway.\" : \"The response was closed with an actively exploited flaw still reachable from the internet.\"}"
+    },
+    "fixed": {
+      "label": "Prioritized right, fixed and validated",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and prioritized and not isNull(exposureClosedAt) and timeAt(exposureClosedAt) <= containWindow and spread <= containSpread and not isNull(huntedAt) and not isNull(validatedAt) and not isNull(patchDoneAt) and timeAt(validatedAt) >= timeAt(patchDoneAt)",
+      "narrative": "You put the exploited, internet-facing flaw ahead of the bigger CVSS numbers, closed it before attackers reached it, checked it had not already been hit, and proved the fix."
+    },
+    "fixedLate": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The gateway is safe now, but it was exploited first, the order of work was off, or the fix was not checked."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record."
+    }
+  },
+  "endingOrder": [
+    "breached",
+    "stillExposed",
+    "fixed",
+    "fixedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "prioritizedCrit",
+        "label": "Ranked by exploitation, exposure and asset value, not CVSS alone",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "prioritized",
+            "score": "met",
+            "why": "VPN now, HR-APP01 in the window, LAB-07 accepted or scheduled, MAIL01 a checked false positive."
+          },
+          {
+            "when": "pVpn == \"emergency\"",
+            "score": "partial",
+            "why": "The VPN came first, but another plan was off (or MAIL01 was closed without checking)."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The actively exploited, internet-facing flaw was not the emergency."
+          }
+        ]
+      },
+      {
+        "id": "exposureFast",
+        "label": "Closed the VPN exposure within 30 minutes (workaround, patch or offline)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(exposureClosedAt) and timeAt(exposureClosedAt) <= containWindow",
+            "score": "met",
+            "why": "Closed {timeAt(exposureClosedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(exposureClosedAt)",
+            "score": "partial",
+            "why": "Closed {timeAt(exposureClosedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still exposed."
+          }
+        ]
+      },
+      {
+        "id": "huntedCrit",
+        "label": "Checked the gateway for exploitation, not only patched it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(huntedAt) and (isNull(exploitAt) or timeAt(huntedAt) >= timeAt(exploitAt))",
+            "score": "met",
+            "why": "The integrity check and logs were reviewed."
+          },
+          {
+            "when": "not isNull(huntedAt)",
+            "score": "partial",
+            "why": "Checked before the exploit landed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A patched gateway was assumed clean."
+          }
+        ]
+      },
+      {
+        "id": "validatedCrit",
+        "label": "Validated the remediation with a rescan after the patch",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(validatedAt) and not isNull(patchDoneAt) and timeAt(validatedAt) >= timeAt(patchDoneAt)",
+            "score": "met",
+            "why": "The fixed version was confirmed."
+          },
+          {
+            "when": "not isNull(validatedAt)",
+            "score": "partial",
+            "why": "Only the workaround was checked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No rescan."
+          }
+        ]
+      },
+      {
+        "id": "escalated",
+        "label": "Escalated the KEV match within 15 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(escalatedAt) and timeAt(escalatedAt) <= escalateWindow",
+            "score": "met",
+            "why": "Escalated {timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(escalatedAt)",
+            "score": "partial",
+            "why": "Escalated {timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never escalated."
+          }
+        ]
+      },
+      {
+        "id": "enrichedCrit",
+        "label": "Enriched every finding before assigning plans",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(enrichedAt)",
+            "score": "met",
+            "why": "KEV, EPSS, exposure and asset value were in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Plans were set on CVSS alone."
+          }
+        ]
+      },
+      {
+        "id": "notifiedCrit",
+        "label": "Told IT leadership, the change board and the VPN owner",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified == \"full\"",
+            "score": "met",
+            "why": "Everyone affected by the change knows."
+          },
+          {
+            "when": "notified == \"owner\"",
+            "score": "partial",
+            "why": "Only the VPN owner was told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one was told."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the top risk and the MAIL01 finding accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "topDoc == \"vpn\" and mailDoc == \"fp\"",
+            "score": "met",
+            "why": "The record matches."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what the data showed."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written ranking, mitigation and verification",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToClose",
+        "label": "Minutes until the VPN exposure was closed",
+        "value": "isNull(exposureClosedAt) ? -1 : timeAt(exposureClosedAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "emergencies",
+        "label": "Emergency changes spent on lower risks",
+        "value": "(pHr == \"emergency\" ? 1 : 0) + (pLab == \"emergency\" ? 1 : 0) + (pMail == \"emergency\" ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "compromised",
+        "label": "Assets compromised",
+        "value": "spread",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Enrich all four: the VPN flaw is in KEV, internet-facing, EPSS 0.94. Escalate and apply the vendor workaround."
+      },
+      {
+        "at": "10-30 min",
+        "text": "Run the emergency upgrade on the gateway."
+      },
+      {
+        "at": "30-50 min",
+        "text": "Check the gateway for a web shell, rescan to validate, check MAIL01's backport, and schedule or accept the rest."
+      },
+      {
+        "at": "After",
+        "text": "Tell IT leadership, the change board and the VPN owner; record the VPN as the top risk and MAIL01 as a false positive."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: risk, not raw scores",
+        "body": "The finding with the lowest CVSS of the four was the only one being exploited. You closed it first, checked for compromise and proved the fix."
+      },
+      "fixedLate": {
+        "headline": "Fixed, with gaps",
+        "body": "The gateway is safe now. The criteria show what cost you: a late fix, a missed check for compromise, or no validation."
+      },
+      "breached": {
+        "headline": "Exploited before it was closed",
+        "body": "Spending the emergency change on the highest CVSS left the exploited, internet-facing flaw open. KEV and exposure come first."
+      },
+      "stillExposed": {
+        "headline": "Closed while exposed",
+        "body": "A KEV flaw on an internet-facing gateway does not wait for Saturday, and a patch does not remove a web shell already planted."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Prioritize by exploitation, exposure and asset value: the VPN gateway flaw is in KEV, has a high EPSS and faces the internet, so it outranks the higher CVSS scores on an internal server and an isolated lab box. Escalate, apply the vendor workaround at once, run the emergency upgrade, check the gateway for a web shell, rescan to validate, confirm the MAIL01 banner match is a backported false positive, and schedule or formally accept the rest."
+  }
+}

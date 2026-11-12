@@ -1,0 +1,592 @@
+{
+  "slug": "ltc-insulin-hypoglycemia",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: look and swallow check, glucose 58, 15 g of juice, SBAR asking for the lunch dose review, dose held, recheck at 15 minutes, snack, objective note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "carb",
+          "params": {
+            "food": "juice"
+          },
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "sit": "low",
+            "bg": "full",
+            "asmt": "insulin",
+            "rec": "review"
+          },
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "holdLunch",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "fatQ",
+          "choice": "fat",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "rule15",
+          "choice": "evaluate",
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 9,
+          "tick": 610
+        },
+        {
+          "type": "teach",
+          "prompt": "glucagonQ",
+          "choice": "swallow",
+          "seq": 10,
+          "tick": 611
+        },
+        {
+          "type": "chapter",
+          "chapter": "treated",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 910
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 12,
+          "tick": 910
+        },
+        {
+          "type": "act",
+          "action": "snack",
+          "seq": 13,
+          "tick": 910
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 14,
+          "tick": 910
+        }
+      ],
+      "expect": {
+        "ending": "stable",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "treat": "met",
+          "rightCarb": "met",
+          "recheck": "met",
+          "reportRN": "met",
+          "data": "met",
+          "snack": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toGlucose": 10,
+          "toTreat": 0,
+          "lowest": 85
+        },
+        "stateHash": "7e1e52d9a72c477e"
+      },
+      "reasoning": {
+        "cues": "met"
+      }
+    },
+    {
+      "id": "noRecheck",
+      "title": "Quick, correct treatment, but the snack goes in at once, the glucose is never rechecked and the report sounds routine; 12:40 comes with the insulin unreviewed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "carb",
+          "params": {
+            "food": "juice"
+          },
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "sit": "confused",
+            "bg": "min",
+            "asmt": "fine",
+            "rec": "usual"
+          },
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "holdLunch",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "snack",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 8,
+          "tick": 900
+        }
+      ],
+      "expect": {
+        "ending": "time_up",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 63,
+        "criteria": {
+          "treat": "met",
+          "rightCarb": "met",
+          "recheck": "missed",
+          "reportRN": "missed",
+          "data": "met",
+          "snack": "partial",
+          "note": "met"
+        },
+        "kpis": {
+          "toGlucose": 20,
+          "toTreat": 0,
+          "lowest": 58
+        },
+        "stateHash": "ada4c189ee10e871"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "chocolateFirst",
+      "title": "Chocolate from the station before any glucose check; still low at the recheck, then juice, a snack and a clear report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "carb",
+          "params": {
+            "food": "choc"
+          },
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 900
+        },
+        {
+          "type": "chapter",
+          "chapter": "treated",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 930
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 5,
+          "tick": 930
+        },
+        {
+          "type": "act",
+          "action": "carb",
+          "params": {
+            "food": "juice"
+          },
+          "seq": 6,
+          "tick": 930
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "sit": "low",
+            "bg": "full",
+            "asmt": "insulin",
+            "rec": "review"
+          },
+          "seq": 7,
+          "tick": 930
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 8,
+          "tick": 1830
+        },
+        {
+          "type": "act",
+          "action": "snack",
+          "seq": 9,
+          "tick": 1830
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 10,
+          "tick": 1830
+        }
+      ],
+      "expect": {
+        "ending": "stableLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 63,
+        "criteria": {
+          "treat": "met",
+          "rightCarb": "missed",
+          "recheck": "met",
+          "reportRN": "met",
+          "data": "missed",
+          "snack": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "toGlucose": 930,
+          "toTreat": 0,
+          "lowest": 104
+        },
+        "stateHash": "d991e1d128f15035"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "lunchGiven",
+      "title": "Failure: treated and rechecked well, never reported, and the 11:45 lispro given with a lunch she barely eats",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "carb",
+          "params": {
+            "food": "juice"
+          },
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 4,
+          "tick": 900
+        },
+        {
+          "type": "chapter",
+          "chapter": "treated",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 6,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "giveLunch",
+          "seq": 7,
+          "tick": 2105
+        }
+      ],
+      "expect": {
+        "ending": "seizure",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "treat": "met",
+          "rightCarb": "met",
+          "recheck": "met",
+          "reportRN": "missed",
+          "data": "met",
+          "snack": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toGlucose": 20,
+          "toTreat": 0,
+          "lowest": 85
+        },
+        "stateHash": "db79893b77021455"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "lateGlucagon",
+      "title": "Arrives after she can no longer swallow: glucagon IM on her side, juice and a snack once she wakes, then a clear report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 1,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 1561
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 3,
+          "tick": 1561
+        },
+        {
+          "type": "act",
+          "action": "glucagon",
+          "seq": 4,
+          "tick": 1561
+        },
+        {
+          "type": "chapter",
+          "chapter": "treated",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 2140
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 6,
+          "tick": 2140
+        },
+        {
+          "type": "act",
+          "action": "carb",
+          "params": {
+            "food": "juice"
+          },
+          "seq": 7,
+          "tick": 2140
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "sit": "low",
+            "bg": "full",
+            "asmt": "insulin",
+            "rec": "review"
+          },
+          "seq": 8,
+          "tick": 2140
+        },
+        {
+          "type": "act",
+          "action": "holdLunch",
+          "seq": 9,
+          "tick": 2140
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 10,
+          "tick": 3040
+        },
+        {
+          "type": "act",
+          "action": "snack",
+          "seq": 11,
+          "tick": 3040
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 12,
+          "tick": 3040
+        }
+      ],
+      "expect": {
+        "ending": "stableLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "treat": "partial",
+          "rightCarb": "met",
+          "recheck": "met",
+          "reportRN": "met",
+          "data": "met",
+          "snack": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toGlucose": 1561,
+          "toTreat": 579,
+          "lowest": 158
+        },
+        "stateHash": "26fc4a68286892bc"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "aspirated",
+      "title": "Failure: a vague report, no glucose, then juice poured into her mouth after she stops swallowing",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "sit": "confused",
+            "bg": "min",
+            "asmt": "fine",
+            "rec": "usual"
+          },
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 2,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "carb",
+          "params": {
+            "food": "juice"
+          },
+          "seq": 3,
+          "tick": 1561
+        }
+      ],
+      "expect": {
+        "ending": "aspirated",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "treat": "missed",
+          "rightCarb": "missed",
+          "recheck": "missed",
+          "reportRN": "missed",
+          "data": "missed",
+          "snack": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toGlucose": -1,
+          "toTreat": -1,
+          "lowest": 0
+        },
+        "stateHash": "cb10218b93a53841"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    }
+  ]
+}

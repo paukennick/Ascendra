@@ -107,6 +107,26 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AWSSOA", "stack-update-rollback-failed"),
   entry("AWSSOA", "ec2-status-check-recovery"),
   // ---- end REQ-242 ----
+  // ---- REQ-238 (security wave 2): security-console incidents for CySA+,
+  // PenTest+, SecurityX and SecAI+, two each. Keep these entries together. ----
+  entry("CYSAPLUS", "alert-triage-lolbin-hunt"),
+  entry("CYSAPLUS", "vuln-prioritization-kev-edge"),
+  entry("PENTESTPLUS", "pentest-third-party-webshell"),
+  entry("PENTESTPLUS", "pentest-scope-boundary"),
+  entry("SECURITYX", "federation-token-forgery"),
+  entry("SECURITYX", "ot-segmentation-breach"),
+  entry("SECAIPLUS", "agent-indirect-prompt-injection"),
+  entry("SECAIPLUS", "rag-assistant-data-leak"),
+  // ---- end REQ-238 ----
+  // ---- REQ-240 (bedside wave 2, nursing): LPN/VN, ADN-RN and BSN-RN
+  // baseline bedside cases, two each. Keep these entries together. ----
+  entry("LPNVN", "ltc-pressure-injury-infection"),
+  entry("LPNVN", "ltc-insulin-hypoglycemia"),
+  entry("ADNRN", "pca-oversedation-naloxone"),
+  entry("ADNRN", "heart-failure-pulmonary-edema"),
+  entry("BSNRN", "assisted-living-norovirus-outbreak"),
+  entry("BSNRN", "charge-nurse-short-staffed-shift"),
+  // ---- end REQ-240 ----
   // ---- REQ-237: terminal and network screen, Linux+ (LINUXPLUS), Network+
   // (NETWORKPLUS) and CKA outages. Keep these entries together. ----
   entry("LINUXPLUS", "full-var-stops-database"),

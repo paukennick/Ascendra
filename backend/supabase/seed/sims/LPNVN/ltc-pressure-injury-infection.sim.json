@@ -1,0 +1,1531 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ltc-pressure-injury-infection",
+  "title": "The dressing that came off wet",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate, last measured",
+          "value": "vHr",
+          "unit": "/min",
+          "sub": "at {vAt|clock}",
+          "alarm": {
+            "high": 100
+          },
+          "announce": {
+            "bands": [
+              100,
+              110,
+              120
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              110,
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate, last measured",
+          "value": "vRr",
+          "unit": "/min",
+          "alarm": {
+            "high": 22
+          },
+          "announce": {
+            "bands": [
+              20,
+              22,
+              26
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation, last measured",
+          "value": "vSpo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature, last measured",
+          "value": "vTemp",
+          "unit": "C",
+          "announce": {
+            "bands": [
+              37.8,
+              38.3
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Fingerstick glucose",
+          "value": "gluLast",
+          "unit": "mg/dL",
+          "announce": {
+            "bands": [
+              180,
+              250
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "gluLast > 0"
+        }
+      ],
+      "infusions": "Wound measured: {not isNull(measuredAt)|yesno}. RN told: {not isNull(reportAt)|yesno}.",
+      "banner": [
+        {
+          "when": "rnHere",
+          "text": "The RN supervisor is at the bedside."
+        }
+      ]
+    }
+  },
+  "objective": "Infection, sepsis and recognizing early deterioration",
+  "secondaryObjectives": [
+    "Wound care and dressing changes",
+    "Use enhanced barrier precautions in long-term care for residents with MDROs, wounds or indwelling devices",
+    "Contribute to each step of clinical judgment -- recognize and analyze cues, prioritize hypotheses, generate solutions, take action, evaluate outcomes -- and report what needs RN judgment"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.ncsbn.org/public-files/2026_PN_Test%20Plan-F.pdf",
+      "note": "Read 2026-11-11 (primary PDF). Activity statements used: 'Perform wound care and/or dressing change'; 'Recognize and report change in client condition'; 'Perform blood glucose monitoring'; 'Apply principles of infection control'. The test plan does not name SBAR or any wound measurement method."
+    },
+    {
+      "cite": "CDC. Implementation of Personal Protective Equipment (PPE) Use in Nursing Homes to Prevent Spread of Multidrug-resistant Organisms (MDROs) (last reviewed 2024-04-02)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.cdc.gov/long-term-care-facilities/hcp/prevent-mdro/PPE.html",
+      "note": "Read 2026-11-11 (primary web page). Enhanced Barrier Precautions apply to residents with 'Wounds and/or indwelling medical devices' regardless of MDRO status; gown and gloves for high-contact care, which lists 'Wound care: any skin opening requiring a dressing'."
+    },
+    {
+      "cite": "NPIAP. Pressure Injury Stages (staging poster, September 2016)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.vumc.org/pip/sites/default/files/NPIAP-Staging-Poster.pdf",
+      "note": "Read 2026-11-11 (primary poster, VUMC copy). Stage 3: full-thickness skin loss, adipose may be visible, slough and/or eschar may be visible, undermining and tunneling may occur; fascia, muscle, tendon, ligament, cartilage or bone are not exposed."
+    },
+    {
+      "cite": "Singer M, et al. The Third International Consensus Definitions for Sepsis and Septic Shock (Sepsis-3). JAMA 2016;315(8):801-810",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.bumc.bu.edu/emergencymedicine/files/2016/04/Singer-et-al.-Third-Intnl-Consensus-Definition-Sepsis-Septic-Shock.-JAMA-2016.pdf",
+      "note": "Read 2026-11-11 (primary PDF, BUMC copy). qSOFA: respiratory rate 22/min or greater, altered mentation, systolic BP 100 mmHg or less; two or more in an adult with suspected infection flags a higher risk of poor outcomes; designed for out-of-hospital, ED and ward settings; not meeting it should not delay work-up."
+    },
+    {
+      "cite": "Ascendra LPN/VN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-11",
+      "note": "The objective and secondary objectives are the course's own titles (wound care and dressing changes, pressure injury staging, enhanced barrier precautions in long-term care, report what needs RN judgment)."
+    }
+  ],
+  "brief": {
+    "situation": "09:00 in a long-term care home. You are the LPN for the east hall; the RN supervisor covers the building. The nursing assistant stops you: Mr. Briggs in Room 31, 79, has a pressure injury over his sacrum, his dressing is soaked through and smells, and he says his bottom hurts more than usual.",
+    "handover": [
+      "Type 2 diabetes and a stroke two years ago; he spends most of the day in bed and needs two people to turn. Alert and chatty at baseline.",
+      "Wound orders: once daily, cleanse with normal saline and apply a foam dressing; turn every 2 hours. The wound care nurse rounds on Thursdays; today is Monday.",
+      "Standing orders let the LPN take vital signs, SpO2 and a fingerstick glucose. Enhanced barrier precautions are posted for every resident with a wound."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Do the wound care, collect the data you need, compare it with his record, and decide who needs to know. Some steps take a few minutes.",
+      "Partway through you are asked to write what you think is happening. The case ends at 11:00 at the latest, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1s",
+    "maxDuration": "2h",
+    "calendar": "clock"
+  },
+  "params": {
+    "sevRise": {
+      "value": 0.006,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Untreated, the wound infection spreads and he becomes septic: severity climbs from 0.45 at 09:00 to collapse (1.0) about 92 min later. FLAG: no guideline gives a time course; an authored rate. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sevFall": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Once the provider's plan is under way he slowly improves. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "collapseSev": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Severity at which he is hard to rouse and hypotensive. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "transferSev": {
+      "value": 0.7,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored line. Orders that reach the provider before he shows new confusion and a respiratory rate of 22 or more (two qSOFA signs, Sepsis-3) can be started in the home; after it, the provider sends him to the hospital. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "vitalsTime": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Vital signs and SpO2: about 3 min."
+      }
+    },
+    "rnWalk": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "RN supervisor to the room: about 10 min."
+      }
+    },
+    "providerCall": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "RN reaches the provider and gets orders: about 15 min."
+      }
+    },
+    "reportWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Authored: the RN told within 15 min of the first sign of infection (the wound uncovered or abnormal vital signs)."
+      }
+    },
+    "reviewAt": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 11:00."
+      }
+    }
+  },
+  "state": {
+    "sev": {
+      "type": "number",
+      "init": 0.45,
+      "min": 0,
+      "max": 2
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vHr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "/min"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "vRr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 80,
+      "unit": "/min"
+    },
+    "vSpo2": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100,
+      "unit": "%"
+    },
+    "vTemp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 43,
+      "unit": "C"
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "gluLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 600,
+      "unit": "mg/dL"
+    },
+    "gluAt": {
+      "type": "time",
+      "init": null
+    },
+    "mentAt": {
+      "type": "time",
+      "init": null
+    },
+    "hygieneAt": {
+      "type": "time",
+      "init": null
+    },
+    "removedAt": {
+      "type": "time",
+      "init": null
+    },
+    "noPpe": {
+      "type": "bool",
+      "init": false
+    },
+    "cleansedAt": {
+      "type": "time",
+      "init": null
+    },
+    "measuredAt": {
+      "type": "time",
+      "init": null
+    },
+    "recordAt": {
+      "type": "time",
+      "init": null
+    },
+    "cueAt": {
+      "type": "time",
+      "init": null
+    },
+    "dressedAt": {
+      "type": "time",
+      "init": null
+    },
+    "turnedAt": {
+      "type": "time",
+      "init": null
+    },
+    "reportAt": {
+      "type": "time",
+      "init": null
+    },
+    "reportEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "rnHere": {
+      "type": "bool",
+      "init": false
+    },
+    "ordersAt": {
+      "type": "time",
+      "init": null
+    },
+    "ordersSev": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "wrongDressing": {
+      "type": "bool",
+      "init": false
+    },
+    "waited": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "planOn": {
+      "expr": "not isNull(ordersAt)"
+    },
+    "hr": {
+      "expr": "round(clamp(82 + 40 * sev + 2 * sin(t / 37), 50, 180))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(140 - 45 * sev, 60, 200))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(15 + 10 * sev)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(97 - 4 * sev, 80, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round((37.0 + 2.0 * sev) * 10) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "glu": {
+      "expr": "round(130 + 200 * sev)",
+      "unit": "mg/dL",
+      "precision": 0
+    },
+    "confused": {
+      "expr": "sev >= transferSev"
+    }
+  },
+  "processes": [
+    {
+      "id": "infection",
+      "update": {
+        "sev": "max(0.1, planOn ? sev - sevFall * dt / 60 : sev + sevRise * dt / 60)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "On the hall",
+      "clock": "running",
+      "actions": [
+        "hygiene",
+        "remove",
+        "cleanse",
+        "measure",
+        "record",
+        "vitals",
+        "glucose",
+        "orient",
+        "dress",
+        "turn",
+        "report",
+        "silver",
+        "thursday",
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "hygiene": {
+      "label": "Hand hygiene, then gown and gloves (enhanced barrier precautions)",
+      "group": "Wound care",
+      "available": "isNull(hygieneAt)",
+      "why": "Already gowned and gloved.",
+      "effects": [
+        {
+          "if": "isNull(hygieneAt)",
+          "then": [
+            {
+              "set": "hygieneAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Hands cleaned; gown and gloves on for the wound care."
+        }
+      ]
+    },
+    "remove": {
+      "label": "Remove the old dressing and look",
+      "group": "Wound care",
+      "available": "isNull(removedAt)",
+      "why": "The dressing is already off.",
+      "effects": [
+        {
+          "if": "isNull(removedAt)",
+          "then": [
+            {
+              "set": "removedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(cueAt)",
+          "then": [
+            {
+              "set": "cueAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(hygieneAt)",
+          "then": [
+            {
+              "set": "noPpe",
+              "to": "true"
+            },
+            {
+              "log": "You take the dressing off bare-handed, without a gown. His wound needs gown and gloves for any dressing change.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "log": "The foam is saturated with thick yellow-green drainage and there is a strong, foul smell.",
+          "kind": "find"
+        }
+      ]
+    },
+    "cleanse": {
+      "label": "Cleanse the wound with normal saline (as ordered)",
+      "group": "Wound care",
+      "available": "not isNull(removedAt) and isNull(cleansedAt)",
+      "why": "Remove the old dressing first (or it is already cleansed).",
+      "effects": [
+        {
+          "if": "isNull(cleansedAt)",
+          "then": [
+            {
+              "set": "cleansedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "After cleansing the smell is still there. The wound bed is pale and boggy, with patches of yellow slough.",
+          "kind": "find"
+        }
+      ]
+    },
+    "measure": {
+      "label": "Measure length, width and depth; check for tunneling; look at the skin around it",
+      "group": "Collect data",
+      "available": "not isNull(removedAt)",
+      "why": "Remove the old dressing first.",
+      "effects": [
+        {
+          "if": "isNull(measuredAt)",
+          "then": [
+            {
+              "set": "measuredAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "4.6 cm long, 3.9 cm wide, 1.3 cm deep, with a 2 cm tunnel at 12 o'clock. The skin around it is red, warm and firm for about 3 cm, and he winces when you touch it.",
+          "kind": "find"
+        }
+      ]
+    },
+    "record": {
+      "label": "Compare with his wound record and baseline",
+      "group": "Collect data",
+      "effects": [
+        {
+          "if": "isNull(recordAt)",
+          "then": [
+            {
+              "set": "recordAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Wound record, last Thursday: 3.1 x 2.6 x 0.8 cm, red granulation tissue, a small amount of clear drainage, no odor, edges pink. His usual vital signs: T 36.8, HR 70s, BP 130s/70s. Usual glucose before breakfast 120-160.",
+          "kind": "find"
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Take vital signs and SpO2",
+      "group": "Collect data",
+      "available": "not vPending",
+      "why": "Already taking them.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Taking his vital signs (about 3 min)."
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Fingerstick glucose (standing order)",
+      "group": "Collect data",
+      "effects": [
+        {
+          "set": "gluLast",
+          "to": "glu"
+        },
+        {
+          "if": "isNull(gluAt)",
+          "then": [
+            {
+              "set": "gluAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Glucose {glu} mg/dL: well above his usual 120-160.",
+          "kind": "find"
+        }
+      ]
+    },
+    "orient": {
+      "label": "Ask him where he is and what day it is",
+      "group": "Collect data",
+      "effects": [
+        {
+          "if": "isNull(mentAt)",
+          "then": [
+            {
+              "set": "mentAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "confused",
+              "then": [
+                {
+                  "log": "He thinks he's at his old house and can't tell you the day: this is new confusion.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "He knows where he is and that it's Monday, though he's quieter than usual.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "dress": {
+      "label": "Apply the ordered foam dressing",
+      "group": "Wound care",
+      "available": "not isNull(cleansedAt) and isNull(dressedAt) and not wrongDressing",
+      "why": "Cleanse the wound first (or it is already dressed).",
+      "effects": [
+        {
+          "if": "isNull(dressedAt)",
+          "then": [
+            {
+              "set": "dressedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Foam dressing on, dated and initialed."
+        }
+      ]
+    },
+    "turn": {
+      "label": "Turn him off his sacrum (30-degree side tilt) with the assistant",
+      "group": "Wound care",
+      "available": "isNull(turnedAt)",
+      "why": "Already turned.",
+      "effects": [
+        {
+          "if": "isNull(turnedAt)",
+          "then": [
+            {
+              "set": "turnedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Turned to a 30-degree tilt with pillows, heels floated. Next turn due at 11:00."
+        }
+      ]
+    },
+    "report": {
+      "label": "Report to the RN supervisor (SBAR)",
+      "group": "Report",
+      "available": "isNull(reportEffAt)",
+      "why": "The RN is already coming.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "worse",
+                  "label": "Mr. Briggs in 31: his sacral wound is worse and he has signs of infection: foul green drainage, spreading redness, fever, fast heart rate"
+                },
+                {
+                  "value": "dressing",
+                  "label": "Mr. Briggs's dressing needed changing early"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "79, diabetes, stage 3 sacral injury; 3.1 x 2.6 x 0.8 cm last Thursday, now 4.6 x 3.9 x 1.3 cm with a 2 cm tunnel; his glucose is high"
+                },
+                {
+                  "value": "min",
+                  "label": "Long-term resident with a pressure injury"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "infection",
+                  "label": "I'm worried the wound is infected and it's spreading to the rest of him"
+                },
+                {
+                  "value": "healing",
+                  "label": "Some drainage is normal while it heals"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "come",
+                  "label": "Please come and assess him now and contact the provider"
+                },
+                {
+                  "value": "thursday",
+                  "label": "The wound nurse can look at it on Thursday"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(reportAt)",
+          "then": [
+            {
+              "set": "reportAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "sit == \"worse\" and asmt == \"infection\" and rec == \"come\" and isNull(reportEffAt)",
+          "then": [
+            {
+              "set": "reportEffAt",
+              "to": "t"
+            },
+            {
+              "schedule": "rnT",
+              "after": "rnWalk"
+            }
+          ],
+          "else": [
+            {
+              "log": "RN supervisor: \"Change it as ordered and let the wound nurse know on Thursday.\"",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "log": "Called the RN supervisor."
+        }
+      ]
+    },
+    "silver": {
+      "label": "Pack it with the silver dressing left over from another resident's supply",
+      "group": "Wound care",
+      "available": "not isNull(removedAt) and not wrongDressing and isNull(dressedAt)",
+      "why": "Remove the old dressing first (or it is already dressed).",
+      "effects": [
+        {
+          "set": "wrongDressing",
+          "to": "true"
+        },
+        {
+          "log": "You use another resident's silver dressing with no order for it. That is outside the wound orders and your scope; a change of treatment is the provider's decision.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "thursday": {
+      "label": "Cover it and leave it for the wound nurse on Thursday",
+      "group": "Report",
+      "effects": [
+        {
+          "add": "waited",
+          "by": "1"
+        },
+        {
+          "log": "You plan to leave a note for the wound care nurse.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "note": {
+      "label": "Document",
+      "group": "Report",
+      "available": "isNull(noteAt)",
+      "why": "Already documented.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Measurements, drainage, odor after cleansing, the skin around it, vital signs, who was told"
+            },
+            {
+              "value": "opinion",
+              "label": "'Wound healing slowly, dressing changed'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"obj\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "log": "Note: time, wound size and tunnel against last Thursday, green drainage and odor after cleansing, warm red firm skin around it, pain, vital signs, glucose, orientation, who was told and when."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Note: 'Wound healing slowly, dressing changed.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "vitalsT": {
+      "label": "vital signs",
+      "wait": {
+        "skipLabel": "the vital signs (about 3 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 3 min."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "set": "vHr",
+          "to": "hr"
+        },
+        {
+          "set": "vSbp",
+          "to": "sbp"
+        },
+        {
+          "set": "vDbp",
+          "to": "dbp"
+        },
+        {
+          "set": "vRr",
+          "to": "rr"
+        },
+        {
+          "set": "vSpo2",
+          "to": "spo2"
+        },
+        {
+          "set": "vTemp",
+          "to": "temp"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "HR {hr}, BP {sbp}/{dbp}, RR {rr}, SpO2 {spo2}%, temperature {temp}.",
+          "kind": "find"
+        },
+        {
+          "if": "hr > 100 or temp >= 37.8 or rr >= 22 or sbp <= 100",
+          "then": [
+            {
+              "if": "isNull(cueAt)",
+              "then": [
+                {
+                  "set": "cueAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "rnT": {
+      "label": "the RN supervisor",
+      "wait": {
+        "skipLabel": "the RN supervisor (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 10 min."
+      },
+      "effects": [
+        {
+          "set": "rnHere",
+          "to": "true"
+        },
+        {
+          "schedule": "ordersT",
+          "after": "providerCall"
+        },
+        {
+          "log": "RN supervisor at the bedside: looks at the wound, checks him over and calls the provider.",
+          "kind": "good"
+        }
+      ]
+    },
+    "ordersT": {
+      "label": "the provider's orders",
+      "wait": {
+        "skipLabel": "the provider's orders (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 15 min."
+      },
+      "effects": [
+        {
+          "set": "ordersAt",
+          "to": "t"
+        },
+        {
+          "set": "ordersSev",
+          "to": "sev"
+        },
+        {
+          "cases": [
+            {
+              "when": "sev < transferSev",
+              "then": [
+                {
+                  "log": "Provider (by phone to the RN): wound culture after cleansing, blood work today, start an antibiotic here, vital signs every 4 hours, and the wound care nurse to see him today.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Provider (by phone to the RN): he now has new confusion and fast breathing; send him to the emergency department for a sepsis evaluation. The RN gives the transfer report.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "endT": {
+      "label": "11:00",
+      "wait": {
+        "skipLabel": "11:00, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 11:00."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "aide",
+      "when": "t >= 2700 and isNull(reportEffAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "The assistant: \"He's mumbling and his skin is burning up. He doesn't seem like himself.\"",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "not isNull(measuredAt) and not isNull(firstVAt) or t >= 1500",
+      "question": "What cues tell you this wound is infected, what might it be leading to, and what is your part as the LPN?",
+      "parts": [
+        {
+          "label": "Cues and what they point to",
+          "criteria": "Names local signs of infection compared with last week (larger and deeper with a new tunnel, thick green drainage, odor that stays after cleansing, warm red firm skin spreading around it, more pain) and systemic signs (fever, fast heart rate, high glucose for him); names a spreading wound infection with a risk of sepsis, rather than slow healing.",
+          "modelAnswer": "The wound has grown since Thursday (3.1 x 2.6 x 0.8 to 4.6 x 3.9 x 1.3 cm with a new tunnel), the drainage is thick and green, the odor stays after cleansing, and the skin around it is warm, red, firm and tender. He also has a fever, a heart rate over 100 and a glucose well above his usual. This is a spreading wound infection that could become sepsis; new confusion or fast breathing would make that more likely."
+        },
+        {
+          "label": "The LPN's part",
+          "criteria": "Uses gown and gloves (enhanced barrier precautions), does the ordered wound care, measures and compares with the record, collects vital signs, glucose and orientation, reports at once to the RN with an SBAR that names the change and asks the RN to come and contact the provider, documents objectively; does not change the treatment, use another resident's supplies or wait for Thursday.",
+          "modelAnswer": "Gown and gloves, cleanse and dress the wound as ordered, measure it and compare with last week, take vital signs, glucose and orientation, and report now to the RN: worse wound with signs of infection and fever, please come and assess him and call the provider. Document what I measured. Choosing a different dressing or starting treatment is not mine to decide, and Thursday is too late."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and isNull(ordersAt)",
+      "class": "harm",
+      "rationale": "An infected wound with fever still unreported to anyone who can order treatment at 11:00 leaves him deteriorating untreated, so this case calls it harm.",
+      "source": {
+        "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.ncsbn.org/public-files/2026_PN_Test%20Plan-F.pdf",
+        "note": "Read 2026-11-11 (primary PDF). Activity statements used: 'Perform wound care and/or dressing change'; 'Recognize and report change in client condition'; 'Perform blood glucose monitoring'; 'Apply principles of infection control'. The test plan does not name SBAR or any wound measurement method."
+      }
+    }
+  },
+  "endings": {
+    "septic": {
+      "label": "He becomes septic on the hall",
+      "class": "harm",
+      "when": "sev >= collapseSev",
+      "terminal": true,
+      "narrative": "The assistant finds him hard to rouse, hot and mottled, BP {sbp}/{dbp}. 911 is called; he leaves for the hospital in septic shock."
+    },
+    "treatedHere": {
+      "label": "Infection caught early and treated in the home",
+      "class": "target",
+      "when": "not isNull(ordersAt) and ordersSev < transferSev and not isNull(hygieneAt) and not noPpe and not isNull(measuredAt) and not isNull(recordAt) and not isNull(reportEffAt) and not isNull(cueAt) and timeAt(reportEffAt) <= timeAt(cueAt) + reportWindow and not wrongDressing and waited == 0",
+      "terminal": true,
+      "narrative": "{timeAt(ordersAt)|clock}: the provider's orders are in and the first antibiotic dose is on its way from the pharmacy. You found the change, measured it against last week and got the RN to him before sepsis set in."
+    },
+    "treatedLate": {
+      "label": "Treated, by a slower route",
+      "class": "recovered",
+      "when": "not isNull(ordersAt)",
+      "terminal": true,
+      "narrative": "{timeAt(ordersAt)|clock}: he has orders, but the route cost time or safety: a report that sounded routine, a late report, no measurements or comparison, a dressing change without gown and gloves, or a dressing he had no order for. By the time the orders came, he may have needed the hospital."
+    },
+    "time_up": {
+      "label": "11:00 and nobody who can order treatment knows",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00: Mr. Briggs is worse, temperature {temp}, HR {hr}, and still has no assessment by the RN and no call to the provider."
+    }
+  },
+  "endingOrder": [
+    "septic",
+    "treatedHere",
+    "treatedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "precautions",
+        "label": "Hand hygiene, gown and gloves before the wound care",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(removedAt)",
+            "score": "missed",
+            "why": "The dressing was never taken off, so the wound was never seen."
+          },
+          {
+            "when": "noPpe",
+            "score": "missed",
+            "why": "The dressing came off without gown and gloves; enhanced barrier precautions apply to any wound needing a dressing."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Hands cleaned, gown and gloves on before touching the wound."
+          }
+        ]
+      },
+      {
+        "id": "woundData",
+        "label": "Measured the wound and compared it with his record",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(measuredAt)",
+            "score": "missed",
+            "why": "The wound was not measured, so the change could not be shown."
+          },
+          {
+            "when": "isNull(recordAt)",
+            "score": "missed",
+            "why": "The measurements were never compared with last week's record."
+          },
+          {
+            "when": "isNull(cleansedAt)",
+            "score": "partial",
+            "why": "Measured and compared, but the wound was not cleansed first, so the wound bed and the odor after cleansing were not seen."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Cleansed, measured with the tunnel and the skin around it, and compared with last Thursday."
+          }
+        ]
+      },
+      {
+        "id": "report",
+        "label": "Reported to the RN at once with an SBAR that landed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(reportEffAt)",
+            "score": "missed",
+            "why": "The RN was never told in a way that brought her to the room."
+          },
+          {
+            "when": "not isNull(cueAt) and timeAt(reportEffAt) <= timeAt(cueAt) + reportWindow",
+            "score": "met",
+            "why": "Reported at {timeAt(reportEffAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Reported at {timeAt(reportEffAt)|clock}, more than 15 minutes after the first sign of infection."
+          }
+        ]
+      },
+      {
+        "id": "scope",
+        "label": "Stayed within the wound orders and the LPN's scope",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "wrongDressing",
+            "score": "missed",
+            "why": "Used another resident's dressing with no order; a change of treatment is the provider's call."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Only the ordered wound care and data collection."
+          }
+        ]
+      },
+      {
+        "id": "systemic",
+        "label": "Checked for signs of spread: vital signs, glucose, orientation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(firstVAt) and not isNull(gluAt) and not isNull(mentAt)",
+            "score": "met",
+            "why": "Vital signs, glucose and orientation checked."
+          },
+          {
+            "when": "not isNull(firstVAt)",
+            "score": "partial",
+            "why": "Vital signs, but the glucose or his orientation was not checked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No vital signs were taken."
+          }
+        ]
+      },
+      {
+        "id": "care",
+        "label": "Ordered dressing and pressure off the wound",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(dressedAt) and not isNull(turnedAt)",
+            "score": "met",
+            "why": "Foam dressing on and turned off his sacrum."
+          },
+          {
+            "when": "not isNull(dressedAt) or not isNull(turnedAt)",
+            "score": "partial",
+            "why": "Dressed or turned, not both."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither the ordered dressing nor a turn off the sacrum."
+          }
+        ]
+      },
+      {
+        "id": "noWait",
+        "label": "Did not leave it for Thursday",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "waited > 0",
+            "score": "missed",
+            "why": "Planned to leave the wound for the wound nurse's round instead of reporting."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No waiting."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Objective documentation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteObjective",
+            "score": "met",
+            "why": "Measured, objective, timed note."
+          },
+          {
+            "when": "isNull(noteAt)",
+            "score": "missed",
+            "why": "Not documented."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The note gave an opinion instead of measurements."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: named a spreading wound infection and the LPN's part",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toWound",
+        "label": "09:00 to the wound uncovered",
+        "value": "isNull(removedAt) ? -1 : timeAt(removedAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "toReport",
+        "label": "First sign of infection to an effective report",
+        "value": "isNull(reportEffAt) or isNull(cueAt) ? -1 : timeAt(reportEffAt) - timeAt(cueAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "toOrders",
+        "label": "09:00 to the provider's orders",
+        "value": "isNull(ordersAt) ? -1 : timeAt(ordersAt)",
+        "format": "duration",
+        "expert": "under 40 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00",
+        "text": "Hand hygiene, gown and gloves. Take the dressing off: thick green drainage, foul smell."
+      },
+      {
+        "at": "09:01",
+        "text": "Cleanse with saline: the odor stays. Measure: 4.6 x 3.9 x 1.3 cm with a 2 cm tunnel, warm red firm skin around it. Compare: 3.1 x 2.6 x 0.8 cm last Thursday."
+      },
+      {
+        "at": "~09:02",
+        "text": "Vital signs, a fingerstick glucose, ask him where he is: fever, HR over 100, glucose well above his usual, still oriented."
+      },
+      {
+        "at": "~09:06",
+        "text": "SBAR to the RN: worse wound with signs of infection and fever, please come and assess and call the provider. Foam dressing on, turn him off the sacrum, objective note."
+      },
+      {
+        "at": "~09:31",
+        "text": "Orders: culture, blood work, an antibiotic started in the home, the wound nurse today."
+      }
+    ],
+    "debrief": {
+      "septic": {
+        "headline": "He became septic on the hall",
+        "body": "The soaked, smelly dressing was the first cue. Find when the wound was measured and compared, when his temperature and heart rate were taken, and when the RN heard it as a change."
+      },
+      "treatedHere": {
+        "headline": "Caught early, treated in the home",
+        "body": "Gown and gloves, the ordered care, measurements against last week, the signs of spread checked, and an SBAR that asked for what he needed. That is the expert path."
+      },
+      "treatedLate": {
+        "headline": "Treated, by a slower route",
+        "body": "He has orders, but check how long the report took, whether it sounded routine, whether the wound was measured and compared, whether gown and gloves went on first, and whether anything was used that he had no order for."
+      },
+      "time_up": {
+        "headline": "Nobody who could order treatment knew",
+        "body": "A wound that is bigger, draining green and smelling after cleansing in a resident with a fever is reported now, not on the wound nurse's day."
+      }
+    },
+    "modelReasoning": "A soaked, foul dressing is a cue to look carefully. With gown and gloves on (enhanced barrier precautions for any wound needing a dressing), the LPN does the ordered wound care and collects data: the wound is larger and deeper than last week with a new tunnel, the drainage is thick and green, the odor stays after cleansing, and the skin around it is warm, red, firm and tender. Fever, a fast heart rate and a high glucose say the infection is affecting the whole person; new confusion or a respiratory rate of 22 or more would make sepsis more likely. Report it at once to the RN with an SBAR that names the change and asks the RN to come and contact the provider, keep to the ordered dressing, take pressure off the wound, and document measurements, not opinions. Choosing another dressing or waiting for the wound nurse's round is outside the LPN's role and loses time."
+  },
+  "chapters": [
+    {
+      "id": "reported",
+      "label": "The RN is coming",
+      "when": "not isNull(reportEffAt)"
+    }
+  ],
+  "teaching": {
+    "ebp": {
+      "during": "vitalsT",
+      "ask": "While you take his vital signs: why gown and gloves for his dressing change when he has no known resistant organism?",
+      "choices": [
+        {
+          "id": "wound",
+          "label": "Enhanced barrier precautions cover any resident with a wound that needs a dressing"
+        },
+        {
+          "id": "smell",
+          "label": "Only because the wound smells"
+        },
+        {
+          "id": "none",
+          "label": "They aren't needed without a positive culture"
+        }
+      ],
+      "expect": "wound",
+      "explain": "CDC's enhanced barrier precautions apply to residents with wounds or indwelling devices whatever their MDRO status, and wound care is one of the high-contact activities that need a gown and gloves.",
+      "source": {
+        "cite": "CDC. Implementation of Personal Protective Equipment (PPE) Use in Nursing Homes to Prevent Spread of Multidrug-resistant Organisms (MDROs) (last reviewed 2024-04-02)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.cdc.gov/long-term-care-facilities/hcp/prevent-mdro/PPE.html",
+        "note": "Read 2026-11-11 (primary web page). Enhanced Barrier Precautions apply to residents with 'Wounds and/or indwelling medical devices' regardless of MDRO status; gown and gloves for high-contact care, which lists 'Wound care: any skin opening requiring a dressing'."
+      }
+    },
+    "qsofa": {
+      "during": "rnT",
+      "ask": "While the RN comes: which findings would make sepsis more likely?",
+      "choices": [
+        {
+          "id": "qsofa",
+          "label": "Breathing 22 or more a minute, new confusion, systolic BP 100 or less"
+        },
+        {
+          "id": "odor",
+          "label": "A stronger smell from the wound"
+        },
+        {
+          "id": "glucose",
+          "label": "A glucose over 200 on its own"
+        }
+      ],
+      "expect": "qsofa",
+      "explain": "Those are the three qSOFA signs (Sepsis-3), meant for quick bedside use outside the ICU: two or more in someone with an infection flag a higher risk. Recheck them and tell the RN if any appear.",
+      "source": {
+        "cite": "Singer M, et al. The Third International Consensus Definitions for Sepsis and Septic Shock (Sepsis-3). JAMA 2016;315(8):801-810",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.bumc.bu.edu/emergencymedicine/files/2016/04/Singer-et-al.-Third-Intnl-Consensus-Definition-Sepsis-Septic-Shock.-JAMA-2016.pdf",
+        "note": "Read 2026-11-11 (primary PDF, BUMC copy). qSOFA: respiratory rate 22/min or greater, altered mentation, systolic BP 100 mmHg or less; two or more in an adult with suspected infection flags a higher risk of poor outcomes; designed for out-of-hospital, ED and ward settings; not meeting it should not delay work-up."
+      }
+    },
+    "scopeQ": {
+      "during": "ordersT",
+      "ask": "While the RN calls the provider: which of these is yours to do?",
+      "choices": [
+        {
+          "id": "data",
+          "label": "Recheck his vital signs and orientation and document the wound measurements"
+        },
+        {
+          "id": "stage",
+          "label": "Restage the wound as stage 4 in his record"
+        },
+        {
+          "id": "abx",
+          "label": "Start an antibiotic from the emergency kit"
+        }
+      ],
+      "expect": "data",
+      "explain": "Collect and report data and do the ordered care. Changing the stage or starting a drug needs RN assessment and a provider's order; and by the NPIAP definitions this wound shows no exposed bone, tendon or muscle, so it is not stage 4.",
+      "source": {
+        "cite": "NPIAP. Pressure Injury Stages (staging poster, September 2016)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.vumc.org/pip/sites/default/files/NPIAP-Staging-Poster.pdf",
+        "note": "Read 2026-11-11 (primary poster, VUMC copy). Stage 3: full-thickness skin loss, adipose may be visible, slough and/or eschar may be visible, undermining and tunneling may occur; fascia, muscle, tendon, ligament, cartilage or bone are not exposed."
+      }
+    }
+  }
+}

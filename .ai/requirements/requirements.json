@@ -8681,6 +8681,89 @@
         "authored teaching-model numbers are flagged",
         "new documents enter expert review"
       ]
+    },
+    {
+      "id": "REQ-240",
+      "category": "content",
+      "title": "Bedside sims wave 2 (nursing): LPN/VN, ADN-RN and BSN-RN baseline sims",
+      "description": "Nick's sims wave 2 (2026-11-11): two baseline bedside sims each for LPNVN, ADNRN and BSNRN. LPNVN/ltc-pressure-injury-infection (an infected sacral pressure injury in long-term care) and ltc-insulin-hypoglycemia (hypoglycemia at insulin peak with poor intake); ADNRN/pca-oversedation-naloxone (PCA oversedation reversed with titrated naloxone, plan changed on evaluation) and heart-failure-pulmonary-edema (acute decompensated heart failure after IV saline); BSNRN/assisted-living-norovirus-outbreak (public health nurse, community diagnosis, learner-paced over 12 days) and charge-nurse-short-staffed-shift (assignment, delegation, conflict and staff development). Engine 1.2 with endingOrder; endings in all three classes, 4 critical criteria inside target, KPIs, expert path, debrief per ending, 5-6 golden paths; teaching keys in jsonb order (FAIL-1362); running cases at study pace (3x), the outbreak learner-paced. Literature read 2026-11-11 and dated on each document; authored teaching values flagged. No engine, renderer, schema or migration change.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/LPNVN/",
+        "backend/supabase/seed/sims/ADNRN/",
+        "backend/supabase/seed/sims/BSNRN/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "every objective title exists in its course catalog",
+        "golden paths end the same in written reversed and jsonb key order",
+        "the generator's deterministic gates (key order reachability server and bundle replay sources duplicate) pass on each document",
+        "running clinical sims are paced (study pace by default)"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test (storage-order and objectives tests included)",
+        "sim:cross-runtime and the engine-bundle replay",
+        "sims dbtests on a throwaway Postgres",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "the 2022 AHA/ACC/HFSA HF guideline and the ASPMN 2020 revisions were read only through summaries",
+        "authored teaching-model numbers are flagged in their source notes",
+        "two objectives (LPN hypoglycemia and ADN opioid) are the nearest titles that pass the keyword selection screen rather than the most specific titles",
+        "new document hashes enter expert review"
+      ]
+    },
+    {
+      "id": "REQ-238",
+      "category": "content",
+      "title": "Security wave 2: CySA+, PenTest+, SecurityX and SecAI+ incidents on the security console",
+      "description": "Eight baseline sims, two per course (CYSAPLUS, PENTESTPLUS, SECURITYX, SECAIPLUS), on the existing security-console screen (REQ-231, docs/sims.md 22.7) following the Security+ pattern: learner-paced turns phases with the attacker on the analyst's clock, the security outcome profile, engine 1.2 with endingOrder, endings in all three classes, 3-4 critical criteria, KPIs, an expert path, a debrief per ending and six golden paths each. Objectives are active catalog objectives meeting the generator's selection rule; sources (CompTIA exam pages and the CS0-004 objectives PDF, NIST SP 800-61r3, NIST AI RMF, OWASP LLM Top 10 2025, CISA KEV/OT/CM0073, MITRE T1606.002, PTES) read and dated 2026-11-11; every address and domain from RFC 5737/2606. No engine, renderer, schema or migration change.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/security-w2.test.ts",
+        "backend/lib/sims-security-w2.dbtest.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "eight valid console sims",
+        "two per course",
+        "each on its own catalog objective meeting isPerformanceObjective (lib/sim/security-w2.test.ts)",
+        "every learner-visible address and domain is a documentation range (lib/sim/security-w2.test.ts)",
+        "goldens cover every ending but time_up and every criterion met and missed (npm run sims:lint)",
+        "seeded idempotently and golden paths play through the routes to one attempt each (lib/sims-security-w2.dbtest.ts)",
+        "storage-order and engine-bundle replays pass (lib/sim/storage-order.test.ts; lib/sim/cross-runtime/engine-bundle.test.ts)"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run sims:lint",
+        "sim:cross-runtime print and engine-print",
+        "relevant dbtests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.11",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "PenTest+ and SecurityX catalog titles are the course's own wording; the PT0-003/CAS-005/CY0-001 objective PDFs were not re-read",
+        "author's teaching timings and scores (marked on each param)"
+      ]
     }
   ]
 }
