@@ -9105,6 +9105,50 @@
       "risk_notes": [
         "the launch-set upper bound (about 171.82 USD) is over the 110 USD cap and Console limit"
       ]
+    },
+    {
+      "id": "REQ-250",
+      "category": "defect",
+      "title": "Leave a lesson at any step without losing your place",
+      "description": "Pilot tester (2026-11-12): 'once I'm in a lesson or objective, I can't navigate back to the dashboard or check my progress ... There should be a way to leave an objective, view my overall progress, or come back to it later without losing where I left off.' The lesson header gets Save and exit (back when there is history, else replace with the course page; mobile/src/lib/lessonExit.ts) and Course progress, on the loading and error states too; every step but done says 'Your place is saved — leave any time and pick up here.' and ends with Save and exit and Home. Each exit sends the pending account save first. Leaving at Try it keeps the place (saved as the graded Solo step, FAIL-1641). GET /api/courses/:id reports lesson_saved_at per objective within the 7-day resume window; the course and Mastery rows show In progress / Place saved and Continue opens the most recent saved place (FAIL-1642). Sims and exams keep their own exits. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonExit.ts",
+        "mobile/src/lib/lessonExit.test.ts",
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/src/lib/nextStep.ts",
+        "mobile/src/types/index.ts",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/app/(app)/course/[trackId]/progress.tsx",
+        "mobile/src/lib/f5WebA11y.test.ts",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/lib/lesson-saved-place.dbtest.ts",
+        ".ai/checklists/pre-completion.md"
+      ],
+      "acceptance_criteria": [
+        "a way out on every lesson step and state with or without history",
+        "a way to the course Progress screen and Home",
+        "a line saying the place is saved",
+        "leaving at any step including Try it loses nothing",
+        "a saved place shows as in progress on the course page and Continue opens it",
+        "labels and 48 dp targets and the done screen exits unchanged"
+      ],
+      "validation_required": [
+        "mobile npm test",
+        "mobile tsc",
+        "backend npm test",
+        "lesson-saved-place dbtest",
+        "web e2e (tab-order) when a browser is available"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "browser not available in the build container: web header behavior verified by code and unit tests only",
+        "Web header behavior not checked in a browser: /opt/pw-browsers/chromium is missing in the build container, so the reproduction and mobile/e2e/tab-order.e2e.mjs were not run; verified by code, unit tests and a passing web export."
+      ]
     }
   ]
 }
