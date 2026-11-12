@@ -289,6 +289,17 @@ export function isResumable(step: string): step is ResumableStep {
   return RESUMABLE.includes(step);
 }
 
+// REQ-250 (FAIL-1641): the step a position is saved as. The optional "Try it"
+// step (REQ-096) comes after a graded Solo check but was not resumable, so
+// leaving there deleted the saved place and the lesson reopened at Guess. It
+// is saved as "solo" (the account copy's step column allows only the three
+// resumable steps, and no migration is needed): the graded Solo check comes
+// back as it was, one "Continue" away from "Try it". null means "clear".
+export function savedStepFor(step: string): ResumableStep | null {
+  if (step === "lab") return "solo";
+  return isResumable(step) ? step : null;
+}
+
 // REQ-101 (FAIL-091): resuming waited on the account copy with no limit, so
 // a bad connection left the lesson on "Picking up where you left off..."
 // until the request gave up. The device copy is used after this long; the

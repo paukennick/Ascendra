@@ -64,11 +64,20 @@ export async function GET(
       [id, userId]
     );
 
+    // REQ-250 (FAIL-1642): lesson_saved_at is when the learner's saved place in
+    // the objective's lesson was last written, or null. A place left at Teach
+    // (before any graded check, so no mastery row) read as "Not started" and
+    // the course offered "Start course". The app resumes a place only within
+    // its 7-day window (SNAPSHOT_MAX_AGE_MS, mobile/src/lib/lessonProgress.ts),
+    // so an older one is not reported. Same query: the warm budget is unchanged.
     const objectives = await query(
-      `select o.*, m.status as mastery_status, m.score_0_4 as mastery_score, m.evidence as mastery_evidence
+      `select o.*, m.status as mastery_status, m.score_0_4 as mastery_score, m.evidence as mastery_evidence,
+              lp.updated_at as lesson_saved_at
        from objectives o
        join course_units cu on cu.id = o.unit_id
        left join mastery m on m.objective_id = o.id and m.user_id = $2
+       left join lesson_progress lp on lp.objective_id = o.id and lp.user_id = $2
+                                   and lp.updated_at > now() - interval '7 days'
        where cu.track_id = $1 and ${isActive("cu")} and ${isActive("o")}
        order by cu.sort_order asc, o.sort_order asc`,
       [id, userId]

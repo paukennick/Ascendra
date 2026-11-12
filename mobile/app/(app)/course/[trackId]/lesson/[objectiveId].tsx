@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { friendlyError } from "@/lib/errorMessage";
-import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { Stack, useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { MisconceptionNote, RefresherOffer, UnderstandingActions } from "@/components/Understanding";
 import { api } from "@/api/client";
@@ -19,6 +19,7 @@ import {
   Card,
   ErrorBanner,
   H2,
+  IconButton,
   LiveAnnouncement,
   Loading,
   Muted,
@@ -43,6 +44,7 @@ import {
   OPEN_ANSWER_MAX,
   parseSnapshot,
   samePosition,
+  savedStepFor,
   settleWithin,
   shouldAdoptLateServer,
   snapshotStorageKey,
@@ -57,6 +59,9 @@ import { regenerateErrorMessage } from "@/lib/regenerateError";
 import { hasFullAi, REGENERATE_PREVIEW_NOTE } from "@/lib/aiAccess";
 import { planCourseReturn } from "@/lib/courseReturn";
 import { routePath } from "@/lib/navPlan";
+import { HOME } from "@/lib/goBack";
+import { useGoBack } from "@/lib/useGoBack";
+import { LEAVE_NOTE, courseProgressPath, homeExitMode, lessonExitFallback, showLeaveNote } from "@/lib/lessonExit";
 import {
   MISS_FRAMING,
   REVISE_NOTE,
@@ -268,6 +273,25 @@ export default function LessonFlow() {
       cancelled = true;
     };
   }, [trackId, unitId, objectiveId]);
+  // Back from the level settings: pick up a level changed there (quietly;
+  // the first load above is what the guess step waits for).
+  const levelFocusSeen = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!levelFocusSeen.current) {
+        levelFocusSeen.current = true;
+        return;
+      }
+      const q = unitId ? `?unitId=${encodeURIComponent(unitId)}` : "";
+      api
+        .get<unknown>(`/api/courses/${trackId}/level${q}`)
+        .then((res) => {
+          const next = parseLevelState(res);
+          if (next) setLevelState(next);
+        })
+        .catch(() => {});
+    }, [trackId, unitId])
+  );
   const flow = levelState ? lessonFlowFor(levelState.effective, levelState.levelFlow) : STANDARD_FLOW;
   const flowOn = !!levelState?.levelFlow;
   // REQ-252 (design 8): first-party lesson step events, fire and forget,
@@ -466,7 +490,9 @@ export default function LessonFlow() {
     const key = snapshotStorageKey(userId, objectiveId);
     const path = `/api/objectives/${objectiveId}/progress`;
     cancelPending();
-    if (!isResumable(step)) {
+    // REQ-250 (FAIL-1641): "Try it" is saved as the graded Solo step.
+    const savedStep = savedStepFor(step);
+    if (!savedStep) {
       AsyncStorage.removeItem(key).catch(() => {});
       // REQ-101 (FAIL-092): clearedAt lets the server ignore a save that was
       // sent before this delete but arrives after it.
@@ -476,10 +502,10 @@ export default function LessonFlow() {
       lastSavedStep.current = step;
       return;
     }
-    lastSavedStep.current = step;
+    lastSavedStep.current = savedStep;
     const snap: LessonSnapshot = {
       v: 2,
-      step,
+      step: savedStep,
       guess,
       guessFeedback,
       confidence,
@@ -667,16 +693,53 @@ export default function LessonFlow() {
     setStep("solo");
   }
 
-  // REQ-101 (FAIL-096): see src/lib/courseReturn.ts.
-  function backToCourse() {
+  // The stack from the bottom up to and including this screen, as paths.
+  function stackPaths(): string[] {
     const state = navigation.getState();
-    const stackPaths = (state?.routes ?? [])
+    return (state?.routes ?? [])
       .slice(0, (state?.index ?? 0) + 1)
       .map((r) => routePath(r.name, r.params as Record<string, unknown> | undefined))
       .filter((p): p is string => p !== null);
-    if (planCourseReturn(trackId, stackPaths) === "dismissTo") router.dismissTo(`/course/${trackId}`);
+  }
+
+  // REQ-101 (FAIL-096): see src/lib/courseReturn.ts.
+  function backToCourse() {
+    if (planCourseReturn(trackId, stackPaths()) === "dismissTo") router.dismissTo(`/course/${trackId}`);
     else router.push(`/course/${trackId}`);
   }
+
+  // REQ-250 (FAIL-1640): a way out on every step, whatever the history (see
+  // src/lib/lessonExit.ts). Each sends the pending account save first; the
+  // device copy is already written, and leaving also flushes on unmount.
+  const exitLesson = useGoBack(lessonExitFallback(trackId));
+  function saveAndExit() {
+    flushServerSave();
+    exitLesson();
+  }
+  function goHome() {
+    flushServerSave();
+    if (homeExitMode(stackPaths()) === "dismissTo") router.dismissTo(HOME);
+    else router.replace(HOME);
+  }
+  function openProgress() {
+    flushServerSave();
+    router.push(courseProgressPath(trackId));
+  }
+  const headerOptions = {
+    title: objectiveTitle ?? "Lesson",
+    headerLeft: () => (
+      <IconButton
+        icon="chevron-left"
+        accessibilityLabel="Save and exit"
+        accessibilityHint="Leaves the lesson. Your place is saved."
+        onPress={saveAndExit}
+        size={48}
+      />
+    ),
+    headerRight: () => (
+      <IconButton icon="bar-chart-2" accessibilityLabel="Course progress" onPress={openProgress} size={48} />
+    ),
+  };
 
   const headerTitle = objectiveTitle ?? "Lesson";
   const notYet = soloOutcome(checks.solo) === "not-yet";
@@ -707,7 +770,7 @@ export default function LessonFlow() {
   if (error) {
     return (
       <Screen>
-        <Stack.Screen options={{ title: headerTitle }} />
+        <Stack.Screen options={headerOptions} />
         <ErrorBanner message={error} onRetry={loadLesson} />
       </Screen>
     );
@@ -715,7 +778,7 @@ export default function LessonFlow() {
   if (!lesson || restoring || (!levelLoaded && step === "guess")) {
     return (
       <Screen>
-        <Stack.Screen options={{ title: headerTitle }} />
+        <Stack.Screen options={headerOptions} />
         <Loading label={lesson ? "Picking up where you left off..." : "Generating lesson (first visit only)..."} />
       </Screen>
     );
@@ -723,8 +786,10 @@ export default function LessonFlow() {
 
   return (
     <Screen scrollRef={scrollRef}>
-      <Stack.Screen options={{ title: headerTitle }} />
+      <Stack.Screen options={headerOptions} />
       <StepHeader step={step} steps={stepsFor(labPrompt)} guidedSkipped={guidedSkipped} />
+      {/* REQ-250: says the learner may leave; the header has the way out. */}
+      {showLeaveNote(step) ? <Muted style={styles.leaveNote}>{LEAVE_NOTE}</Muted> : null}
       {/* REQ-252: the learner's level for this unit (pilot courses), one tap
           to change it; New learners see the mastery ladder fill as they go. */}
       {levelState && flowOn ? (
@@ -1078,6 +1143,15 @@ export default function LessonFlow() {
           <LabCard objectiveId={objectiveId} userId={userId} />
         </Card>
       )}
+
+      {/* REQ-250: the same way out as the header, where a long step ends,
+          and Home. The done screen has its own. */}
+      {showLeaveNote(step) ? (
+        <View style={styles.leaveRow}>
+          <Button label="Save and exit" variant="link" icon="log-out" fullWidth={false} onPress={saveAndExit} />
+          <Button label="Home" variant="link" icon="home" fullWidth={false} onPress={goHome} />
+        </View>
+      ) : null}
 
       {/* REQ-093: lesson-wide report at any step, filed as a Support ticket
           (the per-question report, REQ-114, sits under each answered check). */}
@@ -1819,6 +1893,9 @@ function FormatOption({ label, selected, onPress }: { label: string; selected: b
 
 const styles = StyleSheet.create({
   cardHeadingRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  // REQ-250: the "your place is saved" line and the way out at the bottom.
+  leaveNote: { fontSize: 12, textAlign: "center" },
+  leaveRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", columnGap: spacing.md },
   // REQ-252: the level chip and the Key terms slot under the step header.
   levelRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: spacing.sm },
   // Sits apart from the plain guess/explanation text below it so it reads as
