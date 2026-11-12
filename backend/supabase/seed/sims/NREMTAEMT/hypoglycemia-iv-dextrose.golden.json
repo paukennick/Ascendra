@@ -1,0 +1,682 @@
+{
+  "slug": "hypoglycemia-iv-dextrose",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: airway first, glucose, IV, D10 10 g, recheck, another 10 g, awake, an informed conversation, transport",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "d10",
+          "choice": "safer",
+          "seq": 8,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "d10",
+          "params": {
+            "amount": "ten"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 10,
+          "tick": 330
+        },
+        {
+          "type": "chapter",
+          "chapter": "awakeCh",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 331
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 12,
+          "tick": 331
+        },
+        {
+          "type": "act",
+          "action": "d10",
+          "params": {
+            "amount": "ten"
+          },
+          "seq": 13,
+          "tick": 361
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 14,
+          "tick": 542
+        },
+        {
+          "type": "act",
+          "action": "talk",
+          "seq": 15,
+          "tick": 572
+        },
+        {
+          "type": "choose",
+          "prompt": "refusal",
+          "choice": "discuss",
+          "seq": 16,
+          "tick": 572
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 17,
+          "tick": 572
+        },
+        {
+          "type": "teach",
+          "prompt": "ride",
+          "choice": "insulin",
+          "seq": 18,
+          "tick": 572
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 19,
+          "tick": 572
+        }
+      ],
+      "expect": {
+        "ending": "awakeAtEd",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "airway": "met",
+          "glucose": "met",
+          "dextrose": "met",
+          "disposition": "met",
+          "cues": "met",
+          "overshoot": "met",
+          "report": "met"
+        },
+        "kpis": {
+          "toGlu": 30,
+          "toDex": 120,
+          "toAwake": 330,
+          "dexK": 20
+        },
+        "stateHash": "a7c5457a9366c019"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "bigBolus",
+      "title": "Airway and glucose right, but the whole 25 g at once and glucagon on top: overshoot",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "d10",
+          "choice": "safer",
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "d10",
+          "params": {
+            "amount": "all"
+          },
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "glucagon",
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 10,
+          "tick": 307
+        },
+        {
+          "type": "chapter",
+          "chapter": "awakeCh",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 307
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 12,
+          "tick": 307
+        },
+        {
+          "type": "act",
+          "action": "talk",
+          "seq": 13,
+          "tick": 637
+        },
+        {
+          "type": "choose",
+          "prompt": "refusal",
+          "choice": "discuss",
+          "seq": 14,
+          "tick": 637
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 15,
+          "tick": 637
+        },
+        {
+          "type": "teach",
+          "prompt": "ride",
+          "choice": "insulin",
+          "seq": 16,
+          "tick": 637
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 17,
+          "tick": 637
+        }
+      ],
+      "expect": {
+        "ending": "arrivedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "airway": "met",
+          "glucose": "met",
+          "dextrose": "partial",
+          "disposition": "met",
+          "cues": "met",
+          "overshoot": "missed",
+          "report": "met"
+        },
+        "kpis": {
+          "toGlu": 30,
+          "toDex": 120,
+          "toAwake": 307,
+          "dexK": 25
+        },
+        "stateHash": "42a18f808d591d51"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "naloxoneFirst",
+      "title": "Treats the beer can and gives naloxone first; glucose at 4 minutes, then D10 in steps; transported without talking it through",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 4,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 5,
+          "tick": 270
+        },
+        {
+          "type": "teach",
+          "prompt": "d10",
+          "choice": "safer",
+          "seq": 6,
+          "tick": 270
+        },
+        {
+          "type": "act",
+          "action": "d10",
+          "params": {
+            "amount": "ten"
+          },
+          "seq": 7,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 8,
+          "tick": 541
+        },
+        {
+          "type": "act",
+          "action": "d10",
+          "params": {
+            "amount": "ten"
+          },
+          "seq": 9,
+          "tick": 571
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 10,
+          "tick": 583
+        },
+        {
+          "type": "chapter",
+          "chapter": "awakeCh",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 752
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 12,
+          "tick": 752
+        },
+        {
+          "type": "teach",
+          "prompt": "ride",
+          "choice": "insulin",
+          "seq": 13,
+          "tick": 752
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 14,
+          "tick": 752
+        }
+      ],
+      "expect": {
+        "ending": "arrivedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 69,
+        "criteria": {
+          "airway": "met",
+          "glucose": "partial",
+          "dextrose": "met",
+          "disposition": "partial",
+          "cues": "missed",
+          "overshoot": "met",
+          "report": "met"
+        },
+        "kpis": {
+          "toGlu": 270,
+          "toDex": 360,
+          "toAwake": 583,
+          "dexK": 20
+        },
+        "stateHash": "63f037cbc2dcd1fc"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "released",
+      "title": "Failure: excellent treatment, then a refusal accepted with insulin still acting and nobody to stay with him",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "d10",
+          "choice": "safer",
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "d10",
+          "params": {
+            "amount": "ten"
+          },
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 9,
+          "tick": 301
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 10,
+          "tick": 330
+        },
+        {
+          "type": "chapter",
+          "chapter": "awakeCh",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 331
+        },
+        {
+          "type": "act",
+          "action": "d10",
+          "params": {
+            "amount": "ten"
+          },
+          "seq": 12,
+          "tick": 331
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 13,
+          "tick": 512
+        },
+        {
+          "type": "act",
+          "action": "talk",
+          "seq": 14,
+          "tick": 542
+        },
+        {
+          "type": "choose",
+          "prompt": "refusal",
+          "choice": "release",
+          "seq": 15,
+          "tick": 542
+        }
+      ],
+      "expect": {
+        "ending": "releasedUnsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 63,
+        "criteria": {
+          "airway": "met",
+          "glucose": "met",
+          "dextrose": "met",
+          "disposition": "missed",
+          "cues": "met",
+          "overshoot": "met",
+          "report": "missed"
+        },
+        "kpis": {
+          "toGlu": 30,
+          "toDex": 120,
+          "toAwake": 330,
+          "dexK": 20
+        },
+        "stateHash": "1692f399cb5e2233"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "oralGel",
+      "title": "Failure: no airway adjunct and oral glucose gel for a man who cannot swallow",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oralGlucose",
+          "seq": 3,
+          "tick": 30
+        }
+      ],
+      "expect": {
+        "ending": "aspiration",
+        "class": "harm",
+        "rating": "bad",
+        "score": 38,
+        "criteria": {
+          "airway": "missed",
+          "glucose": "met",
+          "dextrose": "missed",
+          "disposition": "missed",
+          "cues": "met",
+          "overshoot": "met",
+          "report": "missed"
+        },
+        "kpis": {
+          "toGlu": 30,
+          "toDex": -1,
+          "toAwake": -1,
+          "dexK": 0
+        },
+        "stateHash": "f1967df0f6b1581d"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "seizure",
+      "title": "Failure: airway and oxygen, but no glucose check while waiting for naloxone to work; he seizes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 5,
+          "tick": 200
+        },
+        {
+          "type": "teach",
+          "prompt": "d10",
+          "choice": "safer",
+          "seq": 6,
+          "tick": 200
+        }
+      ],
+      "expect": {
+        "ending": "seizure",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "airway": "met",
+          "glucose": "missed",
+          "dextrose": "missed",
+          "disposition": "missed",
+          "cues": "missed",
+          "overshoot": "met",
+          "report": "missed"
+        },
+        "kpis": {
+          "toGlu": -1,
+          "toDex": -1,
+          "toAwake": -1,
+          "dexK": 0
+        },
+        "stateHash": "dc6b487726a5c863"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

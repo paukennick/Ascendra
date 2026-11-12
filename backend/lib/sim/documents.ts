@@ -144,6 +144,18 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCMHCE", "ncmhce-suicide-safety-plan"),
   entry("NCMHCE", "ncmhce-trauma-treatment-plan"),
   // ---- end REQ-239 ----
+  // ---- REQ-241 (bedside wave 2, EMS): prehospital bedside cases for the
+  // four NREMT courses, two each, within each level's scope of practice.
+  // Keep these entries together. ----
+  entry("NREMTEMR", "unresponsive-adult-cpr-aed"),
+  entry("NREMTEMR", "thigh-bleed-tourniquet"),
+  entry("NREMTEMT", "anaphylaxis-epinephrine"),
+  entry("NREMTEMT", "stroke-scale-destination"),
+  entry("NREMTAEMT", "hypoglycemia-iv-dextrose"),
+  entry("NREMTAEMT", "hemorrhagic-shock-fluids"),
+  entry("NREMTPARAMEDIC", "inferior-stemi-cath-alert"),
+  entry("NREMTPARAMEDIC", "infant-respiratory-failure"),
+  // ---- end REQ-241 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they

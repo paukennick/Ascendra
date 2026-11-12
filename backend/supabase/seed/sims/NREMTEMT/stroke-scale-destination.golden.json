@@ -1,0 +1,616 @@
+{
+  "slug": "stroke-scale-destination",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: last known well from its source, both screens, glucose, head up, nothing by mouth, thrombectomy center, early alert",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "askLkw",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "recordLkw",
+          "params": {
+            "when": "seen"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "scale",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "severity",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mimic",
+          "choice": "mimic",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "headUp",
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "where": "far"
+          },
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "door",
+          "choice": "lkw",
+          "seq": 14,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 15,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "toThrombectomy",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "glucose": "met",
+          "lkw": "met",
+          "destination": "met",
+          "scene": "met",
+          "screens": "met",
+          "safe": "met"
+        },
+        "kpis": {
+          "sceneK": 300,
+          "lkwDoor": 3060
+        },
+        "stateHash": "1cfd62b898dc5dbf"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "nearCenter",
+      "title": "A thorough assessment with the right time, but the nearer stroke center without thrombectomy",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "askLkw",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "recordLkw",
+          "params": {
+            "when": "seen"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "scale",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "severity",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mimic",
+          "choice": "mimic",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "headUp",
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "where": "near"
+          },
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "door",
+          "choice": "lkw",
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "nearCenter",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "glucose": "met",
+          "lkw": "met",
+          "destination": "missed",
+          "scene": "met",
+          "screens": "met",
+          "safe": "met"
+        },
+        "kpis": {
+          "sceneK": 300,
+          "lkwDoor": 2160
+        },
+        "stateHash": "3ca67befebff4b28"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "foundTime",
+      "title": "Records the time he was found as last known well, skips the severity screen, still goes to the thrombectomy center",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "recordLkw",
+          "params": {
+            "when": "found"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "scale",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mimic",
+          "choice": "mimic",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "headUp",
+          "seq": 7,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "where": "far"
+          },
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "door",
+          "choice": "lkw",
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 12,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "farGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "glucose": "met",
+          "lkw": "missed",
+          "destination": "partial",
+          "scene": "met",
+          "screens": "partial",
+          "safe": "met"
+        },
+        "kpis": {
+          "sceneK": 300,
+          "lkwDoor": 3060
+        },
+        "stateHash": "43adac688b45eca1"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "longScene",
+      "title": "Everything checked, oxygen at 95%, but 20 minutes on scene and no stroke alert",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "askLkw",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "recordLkw",
+          "params": {
+            "when": "seen"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "scale",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "severity",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mimic",
+          "choice": "mimic",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "headUp",
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 11,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "where": "far"
+          },
+          "seq": 12,
+          "tick": 1020
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 13,
+          "tick": 1020
+        },
+        {
+          "type": "teach",
+          "prompt": "door",
+          "choice": "lkw",
+          "seq": 14,
+          "tick": 1020
+        }
+      ],
+      "expect": {
+        "ending": "farGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "glucose": "met",
+          "lkw": "met",
+          "destination": "met",
+          "scene": "missed",
+          "screens": "met",
+          "safe": "partial"
+        },
+        "kpis": {
+          "sceneK": 1200,
+          "lkwDoor": 3960
+        },
+        "stateHash": "83fae1f21a70d00d"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noGlucose",
+      "title": "Screen only: no glucose, no last known well, the nearer center, no alert",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "scale",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "where": "near"
+          },
+          "seq": 4,
+          "tick": 300
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 300
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 300
+        },
+        {
+          "type": "teach",
+          "prompt": "door",
+          "choice": "lkw",
+          "seq": 7,
+          "tick": 300
+        }
+      ],
+      "expect": {
+        "ending": "nearCenter",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 21,
+        "criteria": {
+          "glucose": "missed",
+          "lkw": "missed",
+          "destination": "missed",
+          "scene": "partial",
+          "screens": "partial",
+          "safe": "partial"
+        },
+        "kpis": {
+          "sceneK": 480,
+          "lkwDoor": 2340
+        },
+        "stateHash": "1ae8502b42435a2b"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "aspirin",
+      "title": "Failure: no screen, then chewable aspirin 'because it could be a clot'; he chokes and aspirates",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 3,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "aspiration",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "glucose": "missed",
+          "lkw": "missed",
+          "destination": "missed",
+          "scene": "missed",
+          "screens": "missed",
+          "safe": "missed"
+        },
+        "kpis": {
+          "sceneK": -1,
+          "lkwDoor": -1
+        },
+        "stateHash": "8cb442d0bf33ec8e"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

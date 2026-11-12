@@ -1,0 +1,751 @@
+{
+  "slug": "thigh-bleed-tourniquet",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: saw off, gloves, pressure at once, coworker holds it, tourniquet above the wound, a second, time written, paramedics, shock care, clean handoff",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "power",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ppe",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "contact",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "coworker",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tourniquet",
+          "params": {
+            "site": "above",
+            "tight": "stop"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "pulse",
+          "choice": "stop",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "second",
+          "seq": 9,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "crewWait",
+          "choice": "keep",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 11,
+          "tick": 50
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "markTime",
+          "seq": 13,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "requestAls",
+          "seq": 14,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "shockCare",
+          "seq": 15,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 16,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "report": "full"
+          },
+          "seq": 17,
+          "tick": 470
+        }
+      ],
+      "expect": {
+        "ending": "controlledHandoff",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "scene": "met",
+          "control": "met",
+          "tqRight": "met",
+          "pressureFirst": "met",
+          "shock": "met",
+          "als": "met",
+          "handoff": "met"
+        },
+        "kpis": {
+          "toPressure": 0,
+          "toControl": 50,
+          "loss": 350
+        },
+        "stateHash": "0064486a8ad4fea4"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "selfApply",
+      "title": "Lets go of the wound to apply the tourniquet alone; one tourniquet, still oozing; no paramedics; a thin report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "power",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ppe",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "contact",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tourniquet",
+          "params": {
+            "site": "above",
+            "tight": "stop"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "pulse",
+          "choice": "stop",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "markTime",
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "shockCare",
+          "seq": 8,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 9,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "crewWait",
+          "choice": "keep",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 11,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "report": "vague"
+          },
+          "seq": 12,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "controlledGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "scene": "met",
+          "control": "partial",
+          "tqRight": "partial",
+          "pressureFirst": "partial",
+          "shock": "met",
+          "als": "missed",
+          "handoff": "partial"
+        },
+        "kpis": {
+          "toPressure": 0,
+          "toControl": -1,
+          "loss": 700
+        },
+        "stateHash": "b132bde0a8f274d8"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "snugFirst",
+      "title": "Kneels by the running saw; a snug tourniquet makes it worse until it is tightened; second tourniquet, then a good handoff",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "contact",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "power",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ppe",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "coworker",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tourniquet",
+          "params": {
+            "site": "above",
+            "tight": "snug"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "pulse",
+          "choice": "stop",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tighten",
+          "seq": 8,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "second",
+          "seq": 9,
+          "tick": 70
+        },
+        {
+          "type": "teach",
+          "prompt": "crewWait",
+          "choice": "keep",
+          "seq": 10,
+          "tick": 70
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "markTime",
+          "seq": 13,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "requestAls",
+          "seq": 14,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "shockCare",
+          "seq": 15,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "report": "full"
+          },
+          "seq": 16,
+          "tick": 510
+        }
+      ],
+      "expect": {
+        "ending": "controlledGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "scene": "missed",
+          "control": "met",
+          "tqRight": "met",
+          "pressureFirst": "met",
+          "shock": "met",
+          "als": "met",
+          "handoff": "met"
+        },
+        "kpis": {
+          "toPressure": 0,
+          "toControl": 90,
+          "loss": 550
+        },
+        "stateHash": "6f571f80feff7e17"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "bandageFirst",
+      "title": "A pressure bandage first; the tourniquet only after 4 minutes, and water for his thirst",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "power",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ppe",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "contact",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bandage",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "water",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "requestAls",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "tourniquet",
+          "params": {
+            "site": "above",
+            "tight": "stop"
+          },
+          "seq": 8,
+          "tick": 240
+        },
+        {
+          "type": "teach",
+          "prompt": "pulse",
+          "choice": "stop",
+          "seq": 9,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "second",
+          "seq": 10,
+          "tick": 270
+        },
+        {
+          "type": "teach",
+          "prompt": "crewWait",
+          "choice": "keep",
+          "seq": 11,
+          "tick": 270
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 290
+        },
+        {
+          "type": "act",
+          "action": "markTime",
+          "seq": 13,
+          "tick": 290
+        },
+        {
+          "type": "act",
+          "action": "shockCare",
+          "seq": 14,
+          "tick": 290
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "report": "full"
+          },
+          "seq": 15,
+          "tick": 420
+        }
+      ],
+      "expect": {
+        "ending": "controlledGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "scene": "met",
+          "control": "missed",
+          "tqRight": "met",
+          "pressureFirst": "missed",
+          "shock": "missed",
+          "als": "met",
+          "handoff": "met"
+        },
+        "kpis": {
+          "toPressure": -1,
+          "toControl": 290,
+          "loss": 1000
+        },
+        "stateHash": "3c3ec79699490018"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "loosened",
+      "title": "Failure: a good start, then the tourniquet is loosened when he begs, and nobody tightens it again",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "power",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ppe",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "contact",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "coworker",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tourniquet",
+          "params": {
+            "site": "above",
+            "tight": "stop"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "pulse",
+          "choice": "stop",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "second",
+          "seq": 8,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "crewWait",
+          "choice": "keep",
+          "seq": 9,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 10,
+          "tick": 50
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "requestAls",
+          "seq": 12,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "shockCare",
+          "seq": 13,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "loosen",
+          "seq": 14,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "report": "full"
+          },
+          "seq": 15,
+          "tick": 470
+        }
+      ],
+      "expect": {
+        "ending": "stillBleeding",
+        "class": "harm",
+        "rating": "bad",
+        "score": 75,
+        "criteria": {
+          "scene": "met",
+          "control": "met",
+          "tqRight": "missed",
+          "pressureFirst": "met",
+          "shock": "met",
+          "als": "met",
+          "handoff": "met"
+        },
+        "kpis": {
+          "toPressure": 0,
+          "toControl": 50,
+          "loss": 1700
+        },
+        "stateHash": "171bb351dee230f7"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "wrongSite",
+      "title": "Failure: a tourniquet just above the knee, below the wound, and no direct pressure; he bleeds into class IV shock",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "power",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "contact",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tourniquet",
+          "params": {
+            "site": "knee",
+            "tight": "stop"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "pulse",
+          "choice": "stop",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "shockCare",
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "crewWait",
+          "choice": "keep",
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 19,
+        "criteria": {
+          "scene": "partial",
+          "control": "missed",
+          "tqRight": "missed",
+          "pressureFirst": "missed",
+          "shock": "met",
+          "als": "missed",
+          "handoff": "missed"
+        },
+        "kpis": {
+          "toPressure": -1,
+          "toControl": -1,
+          "loss": 2250
+        },
+        "stateHash": "82e5aadd5cfc94a3"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

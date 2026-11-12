@@ -1,0 +1,1393 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "hypoglycemia-iv-dextrose",
+  "title": "Snoring in the break room",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "monitorOn"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "monitorOn"
+        },
+        {
+          "id": "etco2",
+          "label": "EtCO2",
+          "spokenLabel": "End-tidal carbon dioxide (waveform capnography)",
+          "value": "etco2",
+          "unit": "mmHg",
+          "alarm": {
+            "high": 50
+          },
+          "announce": {
+            "bands": [
+              30,
+              45
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "monitorOn"
+        },
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Last fingerstick glucose",
+          "value": "gluLast",
+          "unit": "mg/dL",
+          "sub": "at {gluAt|clock}",
+          "alarm": {
+            "low": 60
+          },
+          "announce": {
+            "bands": [
+              60,
+              80,
+              180
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "gluLast > 0"
+        },
+        {
+          "id": "gcs",
+          "label": "GCS",
+          "spokenLabel": "Glasgow Coma Scale now",
+          "value": "gcsNow",
+          "unit": "pts",
+          "announce": {
+            "bands": [
+              9,
+              13,
+              15
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "infusions": "IV: {ivOn ? \"18 g left forearm\" : \"none\"}. Dextrose given: {dexGiven} g of D10 (infusing now: {dexLeft > 0 ? \"yes\" : \"no\"}). Glucagon: {glucagonGiven|yesno}.",
+      "banner": [
+        {
+          "when": "snoring",
+          "text": "Snoring, gurgling respirations."
+        },
+        {
+          "when": "gcsNow >= 15 and isNull(departAt)",
+          "text": "Mr. Duval is sitting up, embarrassed: \"I'm fine now.\""
+        }
+      ]
+    }
+  },
+  "objective": "Treat hypoglycemia in a patient who cannot swallow with IV dextrose or IM glucagon",
+  "secondaryObjectives": [
+    "Analyze cues to choose among competing hypotheses in a patient with altered mental status",
+    "Evaluate the response to a fluid bolus or medication and change the plan",
+    "Apply consent, refusal and capacity in the field"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. AEMT Examination Specifications (test plan)",
+      "checkedAt": "2026-11-09",
+      "url": "https://www.nremt.org/getmedia/ae90d9db-c974-49e1-a43b-f1dddd4ea365/AEMT-Test-Plan_Public_final",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-fetched for this scenario. Medical/Obstetrics/Gynecology 25-29% of items (IV dextrose or IM glucagon for a patient who cannot swallow); Clinical Judgment 31-35% (analyze cues in altered mental status, evaluate the response)."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Hypoglycemia",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Treat at 60 mg/dL or less. Conscious with a patent airway: oral glucose 25 g. Unconscious or unable to protect the airway: dextrose IV in incremental doses until mental status improves or the field maximum is reached (D10 preferred; adult maximum 25 g, 250 mL of D10); glucagon 1 mg IM/IN when IV access cannot be established. Reassess vital signs and mental status; repeat the glucose if mental status has not returned to normal. Release without transport only if all hold: repeat glucose > 80, insulin or metformin without a long-acting sulfonylurea, normal mental status, can promptly eat a meal, refuses and the clinicians agree transport is not indicated, a reliable adult will stay, no major comorbid symptoms, a clear cause. D10 is as effective and safer than stronger concentrations; avoid overshoot hyperglycemia."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Universal Care and Airway Management",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Open the airway (jaw thrust or head tilt-chin lift), airway adjuncts as needed, oxygen to SpO2 94-98%, check glucose in any altered mental status; for an opioid overdose, ventilate first and titrate naloxone to breathing."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Patient Refusals",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Capacity: alert and oriented, understands the risks, not impaired by illness, injury, drugs or alcohol; explain the risks; contact medical direction when in doubt; document."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019 (DOT HS 812 666), with Change Notices 1.0 and 2.0 (2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://ldh.la.gov/assets/oph/ems/2025/EMSEducation/National_EMS_Scope_of_Practice_Model_2019.pdf",
+      "note": "Read 2026-11-11 in a text extraction of the Louisiana copy (the extractor did not keep every table column, so placement was checked against the course's own reading of 2026-11-09 in ems-sources.ts). EMR: CPR and AED, tourniquet and wound packing, naloxone, oral airway, BVM, oxygen; no pulse oximetry, glucose monitoring, epinephrine auto-injector or transport. EMT adds pulse oximetry, glucose monitoring, epinephrine auto-injector, aspirin, oral glucose, CPAP, 12-lead acquisition (not interpretation), transport. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways and a limited list of IV and IM medications including dextrose and glucagon. Paramedic adds 12-lead interpretation, manual defibrillation, intubation and the wider formulary. No newer model was found 2026-11-11 (EMS.gov's page was unavailable; the only other 'update' found is the 2017 change notice adding tourniquets, wound packing and naloxone to EMR and EMT)."
+    }
+  ],
+  "brief": {
+    "situation": "12:40. You are the AEMT on an ambulance with an EMT partner, called to a warehouse break room. Mr. Duval, 54, about 85 kg, is slumped in a chair, sweaty and snoring; a coworker found him like this a few minutes ago.",
+    "handover": [
+      "Coworker: \"He's diabetic, insulin. He had his lunch shot at noon, then got called onto the loading dock. There's a beer can on the table, but that's from the last shift, I think.\"",
+      "Within AEMT scope: airway adjuncts and supraglottic airways, waveform capnography, IV and IO access, IV dextrose (D10 carried), IM glucagon, IV or IN naloxone, oral glucose for a patient who can swallow.",
+      "The nearest emergency department is 15 minutes away."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "His glucose keeps falling while his lunch insulin acts. IV access and each dose take time; reassess after each one.",
+      "Partway through you are asked to explain your reasoning in writing. The case ends at the hospital (or when you leave him), then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "12:40",
+    "tick": "1s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "fallRate": {
+      "value": 0.8,
+      "unit": "mg/dL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. With rapid-acting insulin near its peak and no food, glucose falls about 0.8 mg/dL per minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "seizureGlu": {
+      "value": 28,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. He seizes if glucose reaches 28 mg/dL in this case; severe hypoglycemia causes seizures, without a fixed threshold. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "riseRate": {
+      "value": 4.5,
+      "unit": "mg/dL/g",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Each gram of IV dextrose raises this 85 kg man's glucose by about 4.5 mg/dL in the minutes after it runs in. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "doseRate": {
+      "value": 0.0555,
+      "unit": "g/s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A 100 mL (10 g) D10 dose runs in about 3 minutes through an 18-gauge line."
+      }
+    },
+    "glucagonRate": {
+      "value": 0.0167,
+      "unit": "g/s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Glucagon 1 mg IM acts like about 10 g of dextrose spread over about 10 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "maxDex": {
+      "value": 25,
+      "unit": "g",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Hypoglycemia",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Treat at 60 mg/dL or less. Conscious with a patent airway: oral glucose 25 g. Unconscious or unable to protect the airway: dextrose IV in incremental doses until mental status improves or the field maximum is reached (D10 preferred; adult maximum 25 g, 250 mL of D10); glucagon 1 mg IM/IN when IV access cannot be established. Reassess vital signs and mental status; repeat the glucose if mental status has not returned to normal. Release without transport only if all hold: repeat glucose > 80, insulin or metformin without a long-acting sulfonylurea, normal mental status, can promptly eat a meal, refuses and the clinicians agree transport is not indicated, a reliable adult will stay, no major comorbid symptoms, a clear cause. D10 is as effective and safer than stronger concentrations; avoid overshoot hyperglycemia."
+      }
+    },
+    "ivTime": {
+      "value": 90,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "An 18-gauge IV in a sweaty, restless patient: about 90 s."
+      }
+    },
+    "gluTime": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A fingerstick glucose: about 30 s."
+      }
+    },
+    "loadTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Stretcher, out and loaded: about 4 min."
+      }
+    },
+    "driveTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "To the emergency department: about 15 min (authored)."
+      }
+    },
+    "gluWindow": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Glucose checked within 3 minutes of reaching him. NASEMSO says check it in any altered mental status, without a number. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "dexWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Dextrose started within 10 minutes of reaching him. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "overshoot": {
+      "value": 180,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. A glucose above 180 mg/dL after treatment counts as overshoot; NASEMSO says avoid overshoot hyperglycemia, without a number. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "glu": {
+      "type": "number",
+      "init": 34,
+      "min": 10,
+      "max": 600,
+      "unit": "mg/dL"
+    },
+    "neuro": {
+      "type": "number",
+      "init": 8,
+      "min": 3,
+      "max": 15,
+      "unit": "pts"
+    },
+    "dexLeft": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50,
+      "unit": "g"
+    },
+    "dexGiven": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50,
+      "unit": "g"
+    },
+    "glucagonLeft": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20,
+      "unit": "g"
+    },
+    "gluLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 600,
+      "unit": "mg/dL"
+    },
+    "gluMax": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 600,
+      "unit": "mg/dL"
+    },
+    "rechecks": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "airwayOpen": {
+      "type": "bool",
+      "init": false
+    },
+    "npa": {
+      "type": "bool",
+      "init": false
+    },
+    "o2On": {
+      "type": "bool",
+      "init": false
+    },
+    "monitorOn": {
+      "type": "bool",
+      "init": false
+    },
+    "ivOn": {
+      "type": "bool",
+      "init": false
+    },
+    "ivPending": {
+      "type": "bool",
+      "init": false
+    },
+    "gluPending": {
+      "type": "bool",
+      "init": false
+    },
+    "glucagonGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "naloxone": {
+      "type": "bool",
+      "init": false
+    },
+    "oralGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "bigBolus": {
+      "type": "bool",
+      "init": false
+    },
+    "released": {
+      "type": "bool",
+      "init": false
+    },
+    "agreed": {
+      "type": "bool",
+      "init": false
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "airwayAt": {
+      "type": "time",
+      "init": null
+    },
+    "gluAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstGluAt": {
+      "type": "time",
+      "init": null
+    },
+    "dex1At": {
+      "type": "time",
+      "init": null
+    },
+    "awakeAt": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "talkAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "target": {
+      "expr": "glu < 50 ? 8 : (glu < 70 ? 12 : 15)"
+    },
+    "gcsNow": {
+      "expr": "round(neuro)",
+      "unit": "pts",
+      "precision": 0
+    },
+    "snoring": {
+      "expr": "gcsNow <= 9 and not airwayOpen"
+    },
+    "hr": {
+      "expr": "round(glu < 60 ? 112 : 88)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "snoring ? 91 : (o2On ? 99 : 95)",
+      "unit": "%",
+      "precision": 0
+    },
+    "etco2": {
+      "expr": "snoring ? 48 : 38",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "canSwallow": {
+      "expr": "gcsNow >= 14"
+    }
+  },
+  "processes": [
+    {
+      "id": "glucose",
+      "update": {
+        "glu": "clamp(glu - fallRate * dt / 60 + riseRate * (min(dexLeft, doseRate * dt) + min(glucagonLeft, glucagonRate * dt)), 10, 600)",
+        "dexLeft": "max(0, dexLeft - doseRate * dt)",
+        "glucagonLeft": "max(0, glucagonLeft - glucagonRate * dt)",
+        "neuro": "neuro < target ? min(target, neuro + dt / 20) : max(target, neuro - dt / 20)",
+        "gluMax": "max(gluMax, glu)"
+      }
+    }
+  ],
+  "phases": {
+    "call": {
+      "label": "On the call",
+      "clock": "running",
+      "actions": [
+        "look",
+        "airway",
+        "oxygen",
+        "monitor",
+        "glucose",
+        "naloxone",
+        "oralGlucose",
+        "iv",
+        "d10",
+        "glucagon",
+        "talk",
+        "transport",
+        "notify"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "look": {
+      "label": "Primary assessment",
+      "group": "Assess",
+      "available": "isNull(lookAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Responds to pain with moaning, eyes open to pain (GCS 8). Snoring, gurgling. RR 12. Skin cold and drenched in sweat. Pupils midsize and reactive. No sign of injury; insulin pen in his shirt pocket.",
+          "kind": "find"
+        }
+      ]
+    },
+    "airway": {
+      "label": "Jaw thrust, suction, nasal airway",
+      "group": "Airway",
+      "available": "not airwayOpen",
+      "why": "Already open.",
+      "effects": [
+        {
+          "set": "airwayOpen",
+          "to": "true"
+        },
+        {
+          "set": "npa",
+          "to": "true"
+        },
+        {
+          "if": "isNull(airwayAt)",
+          "then": [
+            {
+              "set": "airwayAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Jaw thrust, a little saliva suctioned, a lubricated nasal airway in: quiet, clear breathing."
+        }
+      ]
+    },
+    "oxygen": {
+      "label": "Oxygen by nasal cannula",
+      "group": "Airway",
+      "available": "not o2On",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "o2On",
+          "to": "true"
+        },
+        {
+          "log": "Nasal cannula at 4 L/min."
+        }
+      ]
+    },
+    "monitor": {
+      "label": "Monitor: pulse oximetry, waveform capnography",
+      "group": "Assess",
+      "available": "not monitorOn",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "monitorOn",
+          "to": "true"
+        },
+        {
+          "log": "Pulse oximeter and nasal capnography on."
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Fingerstick glucose",
+      "group": "Assess",
+      "available": "not gluPending",
+      "why": "Already running.",
+      "effects": [
+        {
+          "set": "gluPending",
+          "to": "true"
+        },
+        {
+          "schedule": "gluT",
+          "after": "gluTime"
+        },
+        {
+          "log": "Lancet, strip, meter."
+        }
+      ]
+    },
+    "naloxone": {
+      "label": "Naloxone 0.4 mg IN, in case it's an overdose",
+      "group": "Medications",
+      "available": "not naloxone",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "naloxone",
+          "to": "true"
+        },
+        {
+          "log": "No change. His breathing rate was normal and his pupils were not pinpoint: nothing pointed to opioids.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "oralGlucose": {
+      "label": "Oral glucose gel between his cheek and gum",
+      "group": "Medications",
+      "available": "not oralGiven",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "oralGiven",
+          "to": "true"
+        },
+        {
+          "if": "not canSwallow",
+          "then": [
+            {
+              "log": "He gurgles and coughs the gel into his airway: he cannot swallow or protect his airway.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "set": "glu",
+              "to": "glu + 30"
+            },
+            {
+              "log": "He swallows the gel."
+            }
+          ]
+        }
+      ]
+    },
+    "iv": {
+      "label": "IV access, 18 gauge",
+      "group": "Medications",
+      "available": "not ivOn and not ivPending",
+      "why": "Already in or in progress.",
+      "effects": [
+        {
+          "set": "ivPending",
+          "to": "true"
+        },
+        {
+          "schedule": "ivT",
+          "after": "ivTime"
+        },
+        {
+          "log": "Tourniquet, antecubital vein, 18 gauge (about 90 s)."
+        }
+      ]
+    },
+    "d10": {
+      "label": "Dextrose 10% IV",
+      "group": "Medications",
+      "available": "ivOn and dexLeft == 0 and dexGiven < maxDex",
+      "why": "Needs an IV, a dose already running, or the 25 g field maximum reached.",
+      "params": [
+        {
+          "id": "amount",
+          "kind": "choice",
+          "label": "Dose",
+          "options": [
+            {
+              "value": "ten",
+              "label": "100 mL (10 g), then reassess"
+            },
+            {
+              "value": "all",
+              "label": "250 mL (25 g) wide open, all at once"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "dexLeft",
+          "to": "amount == \"ten\" ? min(10, maxDex - dexGiven) : maxDex - dexGiven"
+        },
+        {
+          "add": "dexGiven",
+          "by": "amount == \"ten\" ? min(10, maxDex - dexGiven) : maxDex - dexGiven"
+        },
+        {
+          "if": "amount == \"all\"",
+          "then": [
+            {
+              "set": "bigBolus",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "if": "isNull(dex1At)",
+          "then": [
+            {
+              "set": "dex1At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "D10 running: {amount == \"ten\" ? \"100 mL (10 g)\" : \"the whole 250 mL (25 g)\"}. Line checked for infiltration."
+        }
+      ]
+    },
+    "glucagon": {
+      "label": "Glucagon 1 mg IM",
+      "group": "Medications",
+      "available": "not glucagonGiven",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "glucagonGiven",
+          "to": "true"
+        },
+        {
+          "set": "glucagonLeft",
+          "to": "10"
+        },
+        {
+          "if": "isNull(dex1At)",
+          "then": [
+            {
+              "set": "dex1At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Glucagon 1 mg IM in the thigh. It acts more slowly than IV dextrose."
+        }
+      ]
+    },
+    "talk": {
+      "label": "He's awake and wants to stay: talk it through",
+      "group": "Disposition",
+      "available": "gcsNow >= 15 and isNull(talkAt) and isNull(departAt)",
+      "why": "Only once he is fully awake, before you leave.",
+      "effects": [
+        {
+          "if": "isNull(talkAt)",
+          "then": [
+            {
+              "set": "talkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "prompt": "refusal"
+        }
+      ]
+    },
+    "transport": {
+      "label": "Load and go to the emergency department",
+      "group": "Transport",
+      "available": "isNull(departAt) and not released",
+      "why": "Already on the way, or released.",
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "arriveT",
+          "after": "loadTime + driveTime"
+        },
+        {
+          "log": "Loading (about 4 min), then 15 minutes to the ED."
+        }
+      ]
+    },
+    "notify": {
+      "label": "Radio report: hypoglycemia, dextrose given, response",
+      "group": "Transport",
+      "available": "not isNull(departAt) and not notified",
+      "why": "Once you are moving.",
+      "effects": [
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "log": "Report: insulin-dependent diabetic, glucose {gluAt|clock} values, {dexGiven} g D10 given, GCS now {gcsNow}."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "gluT": {
+      "label": "the glucose",
+      "wait": {
+        "skipLabel": "the glucose reading (about 30 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 30 s."
+      },
+      "effects": [
+        {
+          "set": "gluPending",
+          "to": "false"
+        },
+        {
+          "set": "gluLast",
+          "to": "round(glu)"
+        },
+        {
+          "set": "gluAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstGluAt)",
+          "then": [
+            {
+              "set": "firstGluAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "rechecks",
+          "by": "1"
+        },
+        {
+          "log": "Glucose {round(glu)} mg/dL.",
+          "kind": "find"
+        }
+      ]
+    },
+    "ivT": {
+      "label": "the IV",
+      "wait": {
+        "skipLabel": "the IV (about 90 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 90 s."
+      },
+      "effects": [
+        {
+          "set": "ivPending",
+          "to": "false"
+        },
+        {
+          "set": "ivOn",
+          "to": "true"
+        },
+        {
+          "log": "IV in and flushing."
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival at the emergency department"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Load and drive."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the emergency department.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "prompts": {
+    "refusal": {
+      "title": "\"I'm fine, I just skipped lunch\"",
+      "context": "Mr. Duval is awake and oriented, glucose {gluLast} mg/dL. He took his rapid-acting lunch insulin at noon and has eaten nothing; he lives alone and his coworkers are going back to work. He wants to go back to his shift.",
+      "choices": [
+        {
+          "id": "discuss",
+          "label": "Check his capacity, explain that his insulin is still acting and the sugar can drop again, offer transport, and call medical control if he still refuses",
+          "effects": [
+            {
+              "set": "agreed",
+              "to": "true"
+            },
+            {
+              "log": "He listens: \"Alright, if it could happen again while I'm alone... I'll go.\"",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Release without transport needs every NASEMSO condition; here no reliable adult will stay and his insulin is still acting."
+        },
+        {
+          "id": "release",
+          "label": "He's awake and his sugar is up: have him eat a sandwich and sign a refusal",
+          "effects": [
+            {
+              "set": "released",
+              "to": "true"
+            },
+            {
+              "log": "He signs, eats half a sandwich and goes back to the dock.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Not every release condition holds: he will be alone, and his lunch insulin is still acting."
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "awake",
+      "when": "gcsNow >= 15",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(awakeAt)",
+          "then": [
+            {
+              "set": "awakeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He opens his eyes and asks what happened.",
+          "kind": "good"
+        }
+      ]
+    },
+    {
+      "id": "dropping",
+      "when": "glu < 30 and dexLeft == 0",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "He starts to twitch; his eyes flicker.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "aspirate",
+      "when": "oralGiven and gcsNow < 14",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Coarse gurgling; SpO2 falling.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(awakeAt) or t >= 600",
+      "question": "Why was this hypoglycemia and not alcohol or an overdose, and how did you decide how much dextrose to give?",
+      "parts": [
+        {
+          "label": "Analyzing the cues",
+          "criteria": "Insulin-dependent diabetic who took insulin and missed his meal, cold sweaty skin, tachycardia, normal breathing rate and pupils: hypoglycemia first; check glucose in any altered mental status; the beer can and naloxone are distractors (no opioid signs). Airway first: snoring needs a jaw thrust and an adjunct, and no oral glucose for a patient who cannot swallow.",
+          "modelAnswer": "He's an insulin user who took his lunch dose and didn't eat, and he's cold, sweaty and tachycardic with a normal breathing rate and normal pupils. That fits hypoglycemia, not opioids; the old beer can doesn't explain it. Open the airway first, check the glucose, and nothing by mouth while he can't swallow."
+        },
+        {
+          "label": "Titrating and evaluating",
+          "criteria": "D10 IV in increments (10 g), reassess mental status and glucose after each, repeat until mental status improves, up to 25 g; glucagon IM only without IV access; avoid overshoot; transport because his insulin is still acting and he will be alone.",
+          "modelAnswer": "Give D10 in 10 g steps, recheck his mental status and glucose after each, and repeat until he is awake, staying within 25 g and avoiding overshoot. If there were no IV, glucagon 1 mg IM. Once awake, he still needs transport: his insulin is still working and nobody will stay with him."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(arrivedAt) and gcsNow < 15",
+      "class": "recovered",
+      "rationale": "He reaches the hospital safely but still not fully awake: treatment was slow or too little. This case calls it recovered.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Hypoglycemia",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Treat at 60 mg/dL or less. Conscious with a patent airway: oral glucose 25 g. Unconscious or unable to protect the airway: dextrose IV in incremental doses until mental status improves or the field maximum is reached (D10 preferred; adult maximum 25 g, 250 mL of D10); glucagon 1 mg IM/IN when IV access cannot be established. Reassess vital signs and mental status; repeat the glucose if mental status has not returned to normal. Release without transport only if all hold: repeat glucose > 80, insulin or metformin without a long-acting sulfonylurea, normal mental status, can promptly eat a meal, refuses and the clinicians agree transport is not indicated, a reliable adult will stay, no major comorbid symptoms, a clear cause. D10 is as effective and safer than stronger concentrations; avoid overshoot hyperglycemia."
+      }
+    }
+  },
+  "endings": {
+    "seizure": {
+      "label": "Hypoglycemic seizure",
+      "class": "harm",
+      "terminal": true,
+      "when": "glu <= seizureGlu",
+      "narrative": "{t|clock}: he stiffens and seizes; glucose {round(glu)} mg/dL. Prolonged severe hypoglycemia injures the brain."
+    },
+    "aspiration": {
+      "label": "Aspiration",
+      "class": "harm",
+      "terminal": true,
+      "when": "oralGiven and gcsNow < 14 and t >= 60",
+      "narrative": "Oral glucose went into the airway of a man who could not swallow; he now has gurgling breath sounds and falling saturation."
+    },
+    "releasedUnsafe": {
+      "label": "Released alone with insulin still acting",
+      "class": "harm",
+      "terminal": true,
+      "when": "released",
+      "narrative": "He goes back to work alone with his lunch insulin still acting. Two hours later a coworker finds him unresponsive in the forklift cab."
+    },
+    "awakeAtEd": {
+      "label": "Awake at the hospital",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and gcsNow >= 15 and agreed and not bigBolus and not oralGiven and gluMax < overshoot and airwayOpen and not isNull(firstGluAt) and timeAt(firstGluAt) <= gluWindow and not isNull(dex1At) and timeAt(dex1At) <= dexWindow",
+      "narrative": "{timeAt(arrivedAt)|clock}: Mr. Duval walks into the ED triage area beside your stretcher, glucose {gluLast} mg/dL, after {dexGiven} g of D10 given in steps."
+    },
+    "arrivedGaps": {
+      "label": "At the hospital, by a rougher route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: he reaches the ED safely, GCS {gcsNow}, but the route had gaps: a late glucose or dextrose, an overshoot, a missed airway, or no conversation about why he needed to come."
+    },
+    "time_up": {
+      "label": "An hour",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "An hour passed."
+    }
+  },
+  "endingOrder": [
+    "seizure",
+    "aspiration",
+    "releasedUnsafe",
+    "awakeAtEd",
+    "arrivedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "airway",
+        "label": "Airway opened before anything else; nothing by mouth while he could not swallow",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "oralGiven",
+            "score": "missed",
+            "why": "Oral glucose for a man who could not swallow."
+          },
+          {
+            "when": "not isNull(airwayAt) and timeAt(airwayAt) <= 60",
+            "score": "met",
+            "why": "Jaw thrust and a nasal airway at {timeAt(airwayAt)|clock}."
+          },
+          {
+            "when": "not isNull(airwayAt)",
+            "score": "partial",
+            "why": "Airway opened only at {timeAt(airwayAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The snoring airway was never opened."
+          }
+        ]
+      },
+      {
+        "id": "glucose",
+        "label": "Glucose checked within 3 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(firstGluAt) and timeAt(firstGluAt) <= gluWindow",
+            "score": "met",
+            "why": "First glucose at {timeAt(firstGluAt)|clock}."
+          },
+          {
+            "when": "not isNull(firstGluAt)",
+            "score": "partial",
+            "why": "First glucose only at {timeAt(firstGluAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Glucose never checked."
+          }
+        ]
+      },
+      {
+        "id": "dextrose",
+        "label": "D10 IV within 10 minutes, titrated with rechecks",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(dex1At)",
+            "score": "missed",
+            "why": "No dextrose or glucagon."
+          },
+          {
+            "when": "bigBolus",
+            "score": "partial",
+            "why": "The whole 25 g at once instead of in steps."
+          },
+          {
+            "when": "dexGiven == 0",
+            "score": "partial",
+            "why": "Glucagon only, though an IV was possible: slower."
+          },
+          {
+            "when": "timeAt(dex1At) <= dexWindow and rechecks >= 2",
+            "score": "met",
+            "why": "First dose at {timeAt(dex1At)|clock}, {dexGiven} g in steps, rechecked."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Dextrose late or without a recheck."
+          }
+        ]
+      },
+      {
+        "id": "disposition",
+        "label": "Transported after an informed conversation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "released",
+            "score": "missed",
+            "why": "Released alone with insulin still acting."
+          },
+          {
+            "when": "agreed and not isNull(departAt)",
+            "score": "met",
+            "why": "Capacity checked, risks explained, he agreed to come."
+          },
+          {
+            "when": "not isNull(departAt)",
+            "score": "partial",
+            "why": "Transported without talking it through."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never left the scene."
+          }
+        ]
+      },
+      {
+        "id": "cues",
+        "label": "Followed the cues: no naloxone without opioid signs",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "naloxone",
+            "score": "missed",
+            "why": "Naloxone given with a normal breathing rate and pupils."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Treated the likely cause."
+          }
+        ]
+      },
+      {
+        "id": "overshoot",
+        "label": "Avoided overshoot",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "gluMax >= overshoot",
+            "score": "missed",
+            "why": "Glucose overshot to {round(gluMax)} mg/dL."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Peak glucose {round(gluMax)} mg/dL."
+          }
+        ]
+      },
+      {
+        "id": "report",
+        "label": "Radio report",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified",
+            "score": "met",
+            "why": "Reported."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No report."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: the cues and the titration",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toGlu",
+        "label": "Contact to first glucose",
+        "value": "isNull(firstGluAt) ? -1 : timeAt(firstGluAt)",
+        "format": "duration",
+        "expert": "under 1 min"
+      },
+      {
+        "id": "toDex",
+        "label": "Contact to first dextrose",
+        "value": "isNull(dex1At) ? -1 : timeAt(dex1At)",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toAwake",
+        "label": "Contact to GCS 15",
+        "value": "isNull(awakeAt) ? -1 : timeAt(awakeAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "dexK",
+        "label": "Dextrose given (g)",
+        "value": "dexGiven",
+        "format": "number",
+        "expert": "10-20"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "12:40",
+        "text": "GCS 8, snoring, cold and sweaty, insulin pen in his pocket. Jaw thrust, suction, nasal airway; oxygen; monitor with capnography. Glucose: 34 mg/dL."
+      },
+      {
+        "at": "12:41",
+        "text": "IV 18 gauge. Nothing by mouth. D10 100 mL (10 g)."
+      },
+      {
+        "at": "12:45",
+        "text": "Reassess: GCS rising, glucose about 60. Another 10 g. No naloxone: no opioid signs."
+      },
+      {
+        "at": "~12:49",
+        "text": "Awake, glucose about 100. He wants to stay: capacity, risks (insulin still acting, alone), offer transport; he agrees. Load, report, reassess en route."
+      }
+    ],
+    "debrief": {
+      "seizure": {
+        "headline": "He seized",
+        "body": "Glucose kept falling while his insulin acted. Look at when the glucose was checked, when the IV went in, and whether time went to naloxone or waiting."
+      },
+      "aspiration": {
+        "headline": "Glucose into the airway",
+        "body": "Oral glucose is only for a patient who can swallow and protect the airway. With GCS 8 the route is IV dextrose (or IM glucagon without an IV)."
+      },
+      "releasedUnsafe": {
+        "headline": "Released alone",
+        "body": "NASEMSO lists every condition for release after hypoglycemia; a reliable adult staying and a clear plan are among them. His lunch insulin was still acting."
+      },
+      "awakeAtEd": {
+        "headline": "Awake, safely transported",
+        "body": "Airway first, glucose fast, D10 in steps with rechecks, cues followed, and a respectful conversation about why he should come. The expert path."
+      },
+      "arrivedGaps": {
+        "headline": "Arrived, with gaps",
+        "body": "Check the airway, the time to the first glucose and dextrose, whether you titrated and rechecked, overshoot, and how the decision to transport was made."
+      },
+      "time_up": {
+        "headline": "An hour on the call",
+        "body": "An hour passed."
+      }
+    },
+    "modelReasoning": "An insulin user who took his dose and missed a meal, now cold, sweaty, tachycardic and snoring with normal pupils and breathing rate, is hypoglycemic until proven otherwise; the beer can is a distractor and there are no opioid signs. Airway first: jaw thrust, suction, a nasal airway, oxygen and capnography. Check glucose at once (34 mg/dL). He cannot swallow, so no oral glucose: IV access and D10 in 10 g steps, reassessing mental status and glucose after each, up to 25 g; glucagon 1 mg IM only if an IV cannot be placed. Avoid overshoot. Once awake he still needs transport: his insulin is still acting and he will be alone, so check capacity, explain the risk and offer transport, involving medical control if he refuses."
+  },
+  "chapters": [
+    {
+      "id": "awakeCh",
+      "label": "He is awake",
+      "when": "gcsNow >= 15"
+    }
+  ],
+  "teaching": {
+    "d10": {
+      "during": "ivT",
+      "ask": "While the IV goes in: why D10 rather than D50?",
+      "choices": [
+        {
+          "id": "safer",
+          "label": "As effective, less tissue damage if it leaks, less overshoot"
+        },
+        {
+          "id": "faster",
+          "label": "D10 works faster than D50"
+        },
+        {
+          "id": "cheap",
+          "label": "Only because it is cheaper"
+        }
+      ],
+      "expect": "safer",
+      "explain": "NASEMSO: D10 is as effective and safer; D50 can damage tissue if it extravasates and overshoots glucose.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Hypoglycemia",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Treat at 60 mg/dL or less. Conscious with a patent airway: oral glucose 25 g. Unconscious or unable to protect the airway: dextrose IV in incremental doses until mental status improves or the field maximum is reached (D10 preferred; adult maximum 25 g, 250 mL of D10); glucagon 1 mg IM/IN when IV access cannot be established. Reassess vital signs and mental status; repeat the glucose if mental status has not returned to normal. Release without transport only if all hold: repeat glucose > 80, insulin or metformin without a long-acting sulfonylurea, normal mental status, can promptly eat a meal, refuses and the clinicians agree transport is not indicated, a reliable adult will stay, no major comorbid symptoms, a clear cause. D10 is as effective and safer than stronger concentrations; avoid overshoot hyperglycemia."
+      }
+    },
+    "ride": {
+      "during": "arriveT",
+      "ask": "On the way: he's awake. Why does he still need the hospital?",
+      "choices": [
+        {
+          "id": "insulin",
+          "label": "His rapid-acting insulin is still working and he would be alone"
+        },
+        {
+          "id": "rule",
+          "label": "Every diabetic must be transported"
+        },
+        {
+          "id": "beer",
+          "label": "To test him for alcohol"
+        }
+      ],
+      "expect": "insulin",
+      "explain": "Release is reasonable only when every NASEMSO condition holds; here the insulin is still acting and nobody will stay with him.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Hypoglycemia",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Treat at 60 mg/dL or less. Conscious with a patent airway: oral glucose 25 g. Unconscious or unable to protect the airway: dextrose IV in incremental doses until mental status improves or the field maximum is reached (D10 preferred; adult maximum 25 g, 250 mL of D10); glucagon 1 mg IM/IN when IV access cannot be established. Reassess vital signs and mental status; repeat the glucose if mental status has not returned to normal. Release without transport only if all hold: repeat glucose > 80, insulin or metformin without a long-acting sulfonylurea, normal mental status, can promptly eat a meal, refuses and the clinicians agree transport is not indicated, a reliable adult will stay, no major comorbid symptoms, a clear cause. D10 is as effective and safer than stronger concentrations; avoid overshoot hyperglycemia."
+      }
+    }
+  }
+}

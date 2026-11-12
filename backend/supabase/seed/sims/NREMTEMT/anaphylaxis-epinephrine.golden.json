@@ -1,0 +1,734 @@
+{
+  "slug": "anaphylaxis-epinephrine",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: recognized at a glance, checked 0.3 mg IM thigh at once, flat, oxygen, intercept, stretcher, second dose when the pressure falls",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "checkMed",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "epinephrine",
+          "params": {
+            "dose": "adult",
+            "site": "thigh"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "dosed",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "flat",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mild",
+          "choice": "hives",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "requestAls",
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "how": "stretcher"
+          },
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "repeatQ",
+          "choice": "persist",
+          "seq": 14,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 15,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 16,
+          "tick": 919
+        },
+        {
+          "type": "act",
+          "action": "epinephrine",
+          "params": {
+            "dose": "adult",
+            "site": "thigh"
+          },
+          "seq": 17,
+          "tick": 979
+        },
+        {
+          "type": "act",
+          "action": "albuterol",
+          "seq": 18,
+          "tick": 979
+        }
+      ],
+      "expect": {
+        "ending": "stable",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "epiFirst": "met",
+          "repeat": "met",
+          "position": "met",
+          "assess": "met",
+          "rights": "met",
+          "support": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toEpi": 0,
+          "scene": 120,
+          "doses": 2
+        },
+        "stateHash": "79ea54dfae813bd5"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateEpi",
+      "title": "Watches the hives for a few minutes; the first dose comes at 6 minutes, then a good repeat",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mild",
+          "choice": "hives",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "albuterol",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "checkMed",
+          "seq": 7,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "epinephrine",
+          "params": {
+            "dose": "adult",
+            "site": "thigh"
+          },
+          "seq": 8,
+          "tick": 360
+        },
+        {
+          "type": "chapter",
+          "chapter": "dosed",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "flat",
+          "seq": 10,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 11,
+          "tick": 360
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 12,
+          "tick": 420
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "how": "stretcher"
+          },
+          "seq": 13,
+          "tick": 480
+        },
+        {
+          "type": "teach",
+          "prompt": "repeatQ",
+          "choice": "persist",
+          "seq": 14,
+          "tick": 480
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 15,
+          "tick": 480
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 16,
+          "tick": 660
+        },
+        {
+          "type": "act",
+          "action": "epinephrine",
+          "params": {
+            "dose": "adult",
+            "site": "thigh"
+          },
+          "seq": 17,
+          "tick": 720
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "epiFirst": "partial",
+          "repeat": "met",
+          "position": "partial",
+          "assess": "met",
+          "rights": "met",
+          "support": "partial",
+          "notify": "met"
+        },
+        "kpis": {
+          "toEpi": 360,
+          "scene": 480,
+          "doses": 2
+        },
+        "stateHash": "96bc814f7c536181"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "juniorArm",
+      "title": "A junior 0.15 mg auto-injector into the upper arm without a check; no repeat",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "epinephrine",
+          "params": {
+            "dose": "junior",
+            "site": "arm"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "dosed",
+          "choice": "continue",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "flat",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mild",
+          "choice": "hives",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "requestAls",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "how": "stretcher"
+          },
+          "seq": 9,
+          "tick": 180
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 10,
+          "tick": 180
+        },
+        {
+          "type": "teach",
+          "prompt": "repeatQ",
+          "choice": "persist",
+          "seq": 11,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 12,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "epiFirst": "partial",
+          "repeat": "missed",
+          "position": "met",
+          "assess": "partial",
+          "rights": "missed",
+          "support": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toEpi": 0,
+          "scene": 180,
+          "doses": 1
+        },
+        "stateHash": "015138b1afc0274b"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "walked",
+      "title": "Early correct dose, but she walks to the ambulance and nearly collapses; repeat given",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "checkMed",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "epinephrine",
+          "params": {
+            "dose": "adult",
+            "site": "thigh"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "dosed",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "how": "walk"
+          },
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "repeatQ",
+          "choice": "persist",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "flat",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "epinephrine",
+          "params": {
+            "dose": "adult",
+            "site": "thigh"
+          },
+          "seq": 11,
+          "tick": 300
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 63,
+        "criteria": {
+          "epiFirst": "met",
+          "repeat": "met",
+          "position": "missed",
+          "assess": "missed",
+          "rights": "met",
+          "support": "partial",
+          "notify": "met"
+        },
+        "kpis": {
+          "toEpi": 0,
+          "scene": 60,
+          "doses": 2
+        },
+        "stateHash": "1ec1a7feab3be927"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noRepeat",
+      "title": "Early correct dose and good care, but no second dose when her pressure falls again",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "checkMed",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "epinephrine",
+          "params": {
+            "dose": "adult",
+            "site": "thigh"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "dosed",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "flat",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mild",
+          "choice": "hives",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "requestAls",
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "how": "stretcher"
+          },
+          "seq": 10,
+          "tick": 150
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 11,
+          "tick": 150
+        },
+        {
+          "type": "teach",
+          "prompt": "repeatQ",
+          "choice": "persist",
+          "seq": 12,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 13,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 14,
+          "tick": 919
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "epiFirst": "met",
+          "repeat": "missed",
+          "position": "met",
+          "assess": "partial",
+          "rights": "met",
+          "support": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toEpi": 0,
+          "scene": 150,
+          "doses": 1
+        },
+        "stateHash": "b8e484fa9d18eb12"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noEpi",
+      "title": "Failure: treated as a mild reaction with her inhaler and watching; no epinephrine",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "albuterol",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mild",
+          "choice": "hives",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 420
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "epiFirst": "missed",
+          "repeat": "na",
+          "position": "partial",
+          "assess": "met",
+          "rights": "na",
+          "support": "missed",
+          "notify": "missed"
+        },
+        "kpis": {
+          "toEpi": -1,
+          "scene": -1,
+          "doses": 0
+        },
+        "stateHash": "02da1da7b957be2f"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,687 @@
+{
+  "slug": "inferior-stemi-cath-alert",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: 12-lead in a minute, field activation, aspirin, asks about PDE inhibitors and withholds nitrates, V4R, pads, IV, fentanyl, PCI center",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "leads",
+          "choice": "inferior",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "callStemi",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "askPde",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "rightLeads",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "pads",
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 12,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 13,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "fentanyl",
+          "seq": 14,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "where": "pci"
+          },
+          "seq": 15,
+          "tick": 360
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 16,
+          "tick": 360
+        },
+        {
+          "type": "teach",
+          "prompt": "pressure",
+          "choice": "fluid",
+          "seq": 17,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "fentanyl",
+          "seq": 18,
+          "tick": 660
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 19,
+          "tick": 660
+        }
+      ],
+      "expect": {
+        "ending": "cathLab",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "ecg10": "met",
+          "alert": "met",
+          "nitro": "met",
+          "destination": "met",
+          "aspirin": "met",
+          "safety": "met",
+          "pain": "met",
+          "scene": "met"
+        },
+        "kpis": {
+          "toEcg": 60,
+          "ecgAlert": 0,
+          "sceneK": 600,
+          "fmcK": 3780
+        },
+        "stateHash": "c8bb6ceb44bb2fa0"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "nitroRescued",
+      "title": "Nitroglycerin without asking about PDE inhibitors; the pressure crashes and saline boluses pull him back",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "leads",
+          "choice": "inferior",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "callStemi",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "pads",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "nitro",
+          "seq": 9,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 10,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 11,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 12,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 13,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "where": "pci"
+          },
+          "seq": 14,
+          "tick": 480
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 15,
+          "tick": 480
+        },
+        {
+          "type": "teach",
+          "prompt": "pressure",
+          "choice": "fluid",
+          "seq": 16,
+          "tick": 480
+        }
+      ],
+      "expect": {
+        "ending": "pciGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 72,
+        "criteria": {
+          "ecg10": "met",
+          "alert": "met",
+          "nitro": "missed",
+          "destination": "met",
+          "aspirin": "met",
+          "safety": "met",
+          "pain": "missed",
+          "scene": "met"
+        },
+        "kpis": {
+          "toEcg": 60,
+          "ecgAlert": 0,
+          "sceneK": 720,
+          "fmcK": 3900
+        },
+        "stateHash": "e620f9d8abfcafc8"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "lateEcg",
+      "title": "History and oxygen first; the 12-lead at 12 minutes; no analgesia",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "askPde",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 8,
+          "tick": 720
+        },
+        {
+          "type": "teach",
+          "prompt": "leads",
+          "choice": "inferior",
+          "seq": 9,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "callStemi",
+          "seq": 10,
+          "tick": 780
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 780
+        },
+        {
+          "type": "act",
+          "action": "pads",
+          "seq": 12,
+          "tick": 780
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "where": "pci"
+          },
+          "seq": 13,
+          "tick": 780
+        },
+        {
+          "type": "teach",
+          "prompt": "pressure",
+          "choice": "fluid",
+          "seq": 14,
+          "tick": 780
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 15,
+          "tick": 780
+        }
+      ],
+      "expect": {
+        "ending": "pciGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 67,
+        "criteria": {
+          "ecg10": "partial",
+          "alert": "met",
+          "nitro": "met",
+          "destination": "met",
+          "aspirin": "met",
+          "safety": "partial",
+          "pain": "missed",
+          "scene": "partial"
+        },
+        "kpis": {
+          "toEcg": 780,
+          "ecgAlert": 0,
+          "sceneK": 1020,
+          "fmcK": 4200
+        },
+        "stateHash": "fa01c50861f381f7"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "nonPci",
+      "title": "Everything right at the bedside, then the nearer hospital without PCI",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "leads",
+          "choice": "inferior",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "askPde",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "pads",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "fentanyl",
+          "seq": 8,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "where": "near"
+          },
+          "seq": 9,
+          "tick": 360
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 10,
+          "tick": 360
+        },
+        {
+          "type": "teach",
+          "prompt": "pressure",
+          "choice": "fluid",
+          "seq": 11,
+          "tick": 360
+        }
+      ],
+      "expect": {
+        "ending": "nonPci",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 72,
+        "criteria": {
+          "ecg10": "met",
+          "alert": "missed",
+          "nitro": "met",
+          "destination": "missed",
+          "aspirin": "met",
+          "safety": "met",
+          "pain": "met",
+          "scene": "met"
+        },
+        "kpis": {
+          "toEcg": 60,
+          "ecgAlert": -1,
+          "sceneK": 600,
+          "fmcK": 8280
+        },
+        "stateHash": "d21f0a843684405d"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noActivation",
+      "title": "A quick 12-lead read as 'probably inferior', but no transmission or activation; to the PCI center cold",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "leads",
+          "choice": "inferior",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "pads",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "fentanyl",
+          "seq": 7,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "where": "pci"
+          },
+          "seq": 8,
+          "tick": 420
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 9,
+          "tick": 420
+        },
+        {
+          "type": "teach",
+          "prompt": "pressure",
+          "choice": "fluid",
+          "seq": 10,
+          "tick": 420
+        }
+      ],
+      "expect": {
+        "ending": "pciGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 72,
+        "criteria": {
+          "ecg10": "met",
+          "alert": "missed",
+          "nitro": "partial",
+          "destination": "partial",
+          "aspirin": "met",
+          "safety": "met",
+          "pain": "met",
+          "scene": "met"
+        },
+        "kpis": {
+          "toEcg": 60,
+          "ecgAlert": -1,
+          "sceneK": 660,
+          "fmcK": 5940
+        },
+        "stateHash": "766ce6eb83613c8c"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "nitroCrash",
+      "title": "Failure: nitroglycerin for chest pain before any 12-lead, aspirin, PDE question or IV; profound hypotension and VF",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nitro",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "vf",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "ecg10": "missed",
+          "alert": "missed",
+          "nitro": "missed",
+          "destination": "missed",
+          "aspirin": "missed",
+          "safety": "missed",
+          "pain": "missed",
+          "scene": "missed"
+        },
+        "kpis": {
+          "toEcg": -1,
+          "ecgAlert": -1,
+          "sceneK": -1,
+          "fmcK": -1
+        },
+        "stateHash": "a3066bdd17832f07"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
