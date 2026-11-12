@@ -1,0 +1,656 @@
+{
+  "slug": "loan-data-bias",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: Clarify, the split and the labels first; stratified split, oversampling after the split, policy-era labels out, bias review",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "clarify",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "ciQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "splitCheck",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "labelHistory",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "resplit",
+          "params": {
+            "how": "stratified"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rebalanceData",
+          "params": {
+            "how": "after"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "dropEra",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "releaseModel",
+          "params": {
+            "how": "review"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 12,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 13,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "investigate": "met",
+          "split": "met",
+          "rebalance": "met",
+          "review": "met",
+          "era": "met",
+          "ci": "met"
+        },
+        "kpis": {
+          "dppl": 0.06,
+          "auc": 0.86,
+          "changes": 4
+        },
+        "stateHash": "d0c7e6705ff003fa"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "keepEra",
+      "title": "Fixes the split and rebalances correctly but keeps the policy-era labels; passes review just inside the limit",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "clarify",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "ciQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "splitCheck",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "resplit",
+          "params": {
+            "how": "stratified"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rebalanceData",
+          "params": {
+            "how": "after"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "releaseModel",
+          "params": {
+            "how": "review"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 10,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 11,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "investigate": "met",
+          "split": "met",
+          "rebalance": "met",
+          "review": "met",
+          "era": "missed",
+          "ci": "met"
+        },
+        "kpis": {
+          "dppl": 0.09,
+          "auc": 0.86,
+          "changes": 3
+        },
+        "stateHash": "316adfa92a6ca396"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "randomSplit",
+      "title": "Shuffles but does not stratify; review passes but the split is weaker than it should be",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "clarify",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "ciQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "splitCheck",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "labelHistory",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "resplit",
+          "params": {
+            "how": "random"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rebalanceData",
+          "params": {
+            "how": "after"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "dropEra",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "releaseModel",
+          "params": {
+            "how": "review"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 12,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 13,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "investigate": "met",
+          "split": "partial",
+          "rebalance": "met",
+          "review": "met",
+          "era": "met",
+          "ci": "met"
+        },
+        "kpis": {
+          "dppl": 0.06,
+          "auc": 0.86,
+          "changes": 4
+        },
+        "stateHash": "a7363b1d6508a7f8"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "leak",
+      "title": "Oversamples before splitting: the 0.97 AUC is inflated and review rejects it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "clarify",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "ciQ",
+          "choice": "wrong",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "splitCheck",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "resplit",
+          "params": {
+            "how": "stratified"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rebalanceData",
+          "params": {
+            "how": "before"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "releaseModel",
+          "params": {
+            "how": "review"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 10,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 11,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "investigate": "met",
+          "split": "met",
+          "rebalance": "missed",
+          "review": "met",
+          "era": "missed",
+          "ci": "missed"
+        },
+        "kpis": {
+          "dppl": 0.12,
+          "auc": 0.97,
+          "changes": 3
+        },
+        "stateHash": "a0b07c855e6664d0"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "dropAge",
+      "title": "Drops the age column on a hunch and never reads the split; the gap barely moves",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "rebalanceData",
+          "params": {
+            "how": "dropAge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "clarify",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "ciQ",
+          "choice": "right",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "releaseModel",
+          "params": {
+            "how": "review"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 8,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 9,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 29,
+        "criteria": {
+          "investigate": "missed",
+          "split": "missed",
+          "rebalance": "missed",
+          "review": "met",
+          "era": "missed",
+          "ci": "met"
+        },
+        "kpis": {
+          "dppl": 0.27,
+          "auc": 0.91,
+          "changes": 2
+        },
+        "stateHash": "79329106659b90ee"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    },
+    {
+      "id": "shipNow",
+      "title": "Failure: good data work, then ships without the bias review",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "clarify",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "ciQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "splitCheck",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "resplit",
+          "params": {
+            "how": "stratified"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rebalanceData",
+          "params": {
+            "how": "after"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "releaseModel",
+          "params": {
+            "how": "ship"
+          },
+          "seq": 6,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "unreviewed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 64,
+        "criteria": {
+          "investigate": "met",
+          "split": "met",
+          "rebalance": "met",
+          "review": "missed",
+          "era": "missed",
+          "ci": "met"
+        },
+        "kpis": {
+          "dppl": 0.09,
+          "auc": 0.86,
+          "changes": 3
+        },
+        "stateHash": "45efb579e5550423"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    }
+  ]
+}

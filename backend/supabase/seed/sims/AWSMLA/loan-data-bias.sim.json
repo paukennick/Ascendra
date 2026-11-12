@@ -1,0 +1,1113 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "loan-data-bias",
+  "title": "The loan model's lopsided training set",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "data",
+          "label": "Training data",
+          "spokenLabel": "Training data",
+          "items": [
+            {
+              "label": "Branch applications 2019-2026 and online applications 2025-2026, merged",
+              "when": "true"
+            },
+            {
+              "label": "Split: {split == \"date\" ? \"first 80% by date to train, last 20% to test, no shuffle\" : (split == \"stratified\" ? \"shuffled, stratified by age group and label\" : \"shuffled at random\")}",
+              "when": "true"
+            },
+            {
+              "label": "Rebalancing: {rebalance == \"after\" ? \"under-25 oversampled in the training split only\" : (rebalance == \"before\" ? \"under-25 oversampled before the split\" : (rebalance == \"dropAge\" ? \"age column dropped\" : \"none\"))}",
+              "when": "true"
+            },
+            {
+              "label": "2019-2021 policy-era labels excluded",
+              "when": "excludeEra"
+            }
+          ]
+        },
+        {
+          "id": "model",
+          "label": "Model",
+          "spokenLabel": "Model",
+          "items": [
+            {
+              "label": "Retrained candidate (SageMaker AI training job)",
+              "when": "changes > 0"
+            },
+            {
+              "label": "Release: {release == \"review\" ? \"with the model risk review\" : (release == \"ship\" ? \"shipped to production\" : \"not yet\")}",
+              "when": "true"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "dppl",
+          "label": "Approval gap, under 25 vs 25+ (DPPL)",
+          "value": "{dppl|2dp}"
+        },
+        {
+          "id": "auc",
+          "label": "Reported test AUC",
+          "value": "{reportedAuc|2dp}"
+        },
+        {
+          "id": "limit",
+          "label": "Policy limit for the gap",
+          "value": "{dpplTarget|2dp}"
+        }
+      ]
+    }
+  },
+  "objective": "Identifying and mitigating sources of bias: dataset splitting, shuffling, augmentation",
+  "secondaryObjectives": [
+    "Applying bias metrics across numeric, text, and image assets in multimodal data",
+    "Resolving class imbalance in numeric, text, and image datasets"
+  ],
+  "sources": [
+    {
+      "cite": "Ascendra AWSMLA course catalog (backend/supabase/seed/tracks/aws.ts), built from the exam guide",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/machine-learning-engineer-associate-02/machine-learning-engineer-associate-02.html",
+      "note": "The objective and secondary objectives are the course's own titles, from the MLA-C02 outline at the course's source URL. Not re-fetched for this scenario."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Pre-training bias metrics (SageMaker Clarify)",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/clarify-measure-data-bias.html",
+      "note": "Read 2026-11-11: lists Class Imbalance (CI), Difference in Proportions of Labels (DPL), KL, JS, LP, TVD, KS and CDD. CI 'Measures the imbalance in the number of members between different facet values', normalized range [-1,+1]; DPL 'Measures the imbalance of positive outcomes between different facet values'."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Class Imbalance (CI)",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/clarify-bias-metric-class-imbalance.html",
+      "note": "Read 2026-11-11: CI = (na - nd)/(na + nd); 'CI values near either of the extremes values of -1 or 1 are very imbalanced and are at a substantial risk of making biased predictions'; with significant imbalance 'you might want to rebalance the sample before proceeding to train models on it'. The page gives no numeric cutoff."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Difference in Proportions of Labels (DPL)",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/clarify-data-bias-metric-true-label-imbalance.html",
+      "note": "Read 2026-11-11: DPL = qa - qd, the difference in the proportion of positive observed labels between facets; near 0 is 'demographic parity'."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Post-training data and model bias metrics",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/clarify-measure-post-training-bias.html",
+      "note": "Read 2026-11-11: eleven post-training metrics; DPPL 'Measures the difference in the proportion of positive predictions between the favored facet a and the disfavored facet d'; 'human judgment is required to understand and choose which metrics are relevant' and customers 'should consult with appropriate stakeholders'."
+    },
+    {
+      "cite": "Kapoor S, Narayanan A. Leakage and the Reproducibility Crisis in ML-based Science. arXiv:2207.07048, 2022",
+      "checkedAt": "2026-11-11",
+      "url": "https://arxiv.org/pdf/2207.07048",
+      "note": "Read 2026-11-11: taxonomy item L1.2 'Pre-processing on training and test set': 'using oversampling before splitting the data into training and test sets leads to an imperfect separation'; L1.4 'Duplicates in datasets': 'the same data could exist in the training as well as test set.'"
+    }
+  ],
+  "brief": {
+    "situation": "Monday 09:00. You are the ML engineer on a credit union's small-loan approval model, trained on SageMaker AI in us-east-2 (Ohio). In a pilot the model approves applicants under 25 far less often than older applicants with similar finances, though its test AUC was 0.91. The model risk team wants a retrained candidate this week.",
+    "handover": [
+      "Training data: branch applications from 2019 to 2026 merged with the new online channel (2025-2026), about 10,000 rows. Age group is recorded for fairness testing.",
+      "The data scientist who built it has left. Notes say the split was 'the usual 80/20'.",
+      "Policy: a lending model ships only after a model risk review of its bias report, with the approval gap between age groups (DPPL) at 0.10 or less."
+    ],
+    "howItWorks": [
+      "Learner-paced: nothing moves until you act. Investigate the data, change how it is prepared, choose how to release, then run the week.",
+      "The meters show the approval gap the candidate would produce and its reported test AUC.",
+      "Before you run the week you are asked where the bias came from and how you fixed it. The debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-22T09:00",
+    "tick": "1min",
+    "maxDuration": "8d",
+    "calendar": "date"
+  },
+  "params": {
+    "dpplTarget": {
+      "value": 0.1,
+      "unit": "ratio",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The credit union's model risk policy: a lending model ships only after a model risk review of its post-training bias report, with DPPL for each reviewed facet at or below 0.10. The threshold is the institution's choice; Clarify sets none."
+      }
+    },
+    "gapBase": {
+      "value": 0.29,
+      "unit": "ratio",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Approval gap (DPPL) of a model retrained without mitigation."
+      }
+    },
+    "gapAfter": {
+      "value": 0.09,
+      "unit": "ratio",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Approval gap with a stratified split and under-25 rows oversampled in the training split only."
+      }
+    },
+    "gapAfterEra": {
+      "value": 0.06,
+      "unit": "ratio",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The same, with the 2019-2021 policy-era labels also excluded."
+      }
+    },
+    "gapBefore": {
+      "value": 0.12,
+      "unit": "ratio",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Approval gap when oversampling ran before the split; its test metrics are inflated by duplicates."
+      }
+    },
+    "gapDrop": {
+      "value": 0.27,
+      "unit": "ratio",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Approval gap with the age column dropped: credit-history length still stands in for age."
+      }
+    },
+    "dayWait": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step of the week."
+      }
+    }
+  },
+  "state": {
+    "clarifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "splitAt": {
+      "type": "time",
+      "init": null
+    },
+    "labelsAt": {
+      "type": "time",
+      "init": null
+    },
+    "split": {
+      "type": "enum",
+      "values": [
+        "date",
+        "random",
+        "stratified"
+      ],
+      "init": "date"
+    },
+    "rebalance": {
+      "type": "enum",
+      "values": [
+        "none",
+        "after",
+        "before",
+        "dropAge"
+      ],
+      "init": "none"
+    },
+    "excludeEra": {
+      "type": "bool",
+      "init": false
+    },
+    "release": {
+      "type": "enum",
+      "values": [
+        "none",
+        "review",
+        "ship"
+      ],
+      "init": "none"
+    },
+    "ciAnswer": {
+      "type": "enum",
+      "values": [
+        "none",
+        "right",
+        "wrong"
+      ],
+      "init": "none"
+    },
+    "reviewPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedBlind": {
+      "type": "bool",
+      "init": false
+    },
+    "changes": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "weekStarted": {
+      "type": "bool",
+      "init": false
+    },
+    "weekDone": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "dppl": {
+      "expr": "rebalance == \"after\" ? (excludeEra ? gapAfterEra : gapAfter) : (rebalance == \"before\" ? gapBefore : (rebalance == \"dropAge\" ? gapDrop : gapBase))",
+      "unit": "ratio",
+      "precision": 2
+    },
+    "reportedAuc": {
+      "expr": "rebalance == \"before\" ? 0.97 : (split == \"date\" ? 0.91 : 0.86)",
+      "unit": "ratio",
+      "precision": 2
+    },
+    "investigated": {
+      "expr": "not isNull(clarifyAt) and not isNull(splitAt)"
+    },
+    "investigatedFirst": {
+      "expr": "investigated and not changedBlind"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Investigate and change",
+      "clock": "turns",
+      "actions": [
+        "clarify",
+        "splitCheck",
+        "labelHistory",
+        "resplit",
+        "rebalanceData",
+        "dropEra",
+        "releaseModel",
+        "runWeek"
+      ]
+    },
+    "week": {
+      "label": "The week",
+      "clock": "turns",
+      "actions": []
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "clarify": {
+      "label": "Run a SageMaker Clarify pre-training bias report (facet: under 25)",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(clarifyAt)",
+          "then": [
+            {
+              "set": "clarifyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Facet a = 25 and over (9,200 rows), facet d = under 25 (800 rows). Class Imbalance CI = (9,200 - 800) / 10,000 = 0.84. Difference in Proportions of Labels DPL = 0.62 approved (25+) - 0.31 approved (under 25) = 0.31."
+        },
+        {
+          "log": "Clarify: under-25 applicants are 8% of the data and approved at half the rate in the labels.",
+          "kind": "find"
+        },
+        {
+          "if": "ciAnswer == \"none\"",
+          "then": [
+            {
+              "prompt": "ciQ"
+            }
+          ]
+        }
+      ]
+    },
+    "splitCheck": {
+      "label": "Read the training notebook: how the split was made",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(splitAt)",
+          "then": [
+            {
+              "set": "splitAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Rows sorted by application date; first 80% to training, last 20% to test, no shuffle. The test set is therefore all 2025-2026, and most online applicants (where under-25s are 11% of rows) are in test, not training (4% under 25)."
+        },
+        {
+          "log": "Split: by date, unshuffled; the training set has even fewer under-25 applicants than the data.",
+          "kind": "find"
+        }
+      ]
+    },
+    "labelHistory": {
+      "label": "Check where the approval labels came from",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(labelsAt)",
+          "then": [
+            {
+              "set": "labelsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "2019-2021 labels came from a manual policy that declined most applicants with under 2 years of credit history, which falls mostly on younger applicants. That policy ended in 2022."
+        },
+        {
+          "log": "Labels: the 2019-2021 decisions carry an old policy that worked against younger applicants.",
+          "kind": "find"
+        }
+      ]
+    },
+    "resplit": {
+      "label": "Re-split the data",
+      "group": "Change",
+      "available": "split != \"stratified\"",
+      "why": "Already stratified.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "How",
+          "options": [
+            {
+              "value": "stratified",
+              "label": "Shuffle, then split stratified by age group and label"
+            },
+            {
+              "value": "random",
+              "label": "Shuffle, then split at random"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "split",
+          "to": "how"
+        },
+        {
+          "log": "{split == \"stratified\" ? \"Shuffled and split 80/20, stratified by age group and label: both sets now have about 8% under-25 rows.\" : \"Shuffled and split 80/20 at random: about 8% under-25 rows in each set, with some drift run to run.\"}"
+        }
+      ]
+    },
+    "rebalanceData": {
+      "label": "Mitigate the imbalance",
+      "group": "Change",
+      "available": "rebalance == \"none\"",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Mitigation",
+          "options": [
+            {
+              "value": "after",
+              "label": "Oversample under-25 rows in the training split only, after splitting"
+            },
+            {
+              "value": "before",
+              "label": "Oversample under-25 rows in the whole file, then split"
+            },
+            {
+              "value": "dropAge",
+              "label": "Drop the age column instead"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "rebalance",
+          "to": "how"
+        },
+        {
+          "cases": [
+            {
+              "when": "rebalance == \"after\"",
+              "then": [
+                {
+                  "log": "Under-25 rows oversampled (with light augmentation) in the training split only; the test set is untouched. Training CI now about 0.10."
+                }
+              ]
+            },
+            {
+              "when": "rebalance == \"before\"",
+              "then": [
+                {
+                  "log": "Under-25 rows oversampled across the whole file, then split. Reported test AUC jumps to 0.97.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Age column dropped from the features. The model can no longer see age, but credit-history length still correlates with it.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "dropEra": {
+      "label": "Exclude the 2019-2021 policy-era labels",
+      "group": "Change",
+      "available": "not excludeEra",
+      "why": "Already excluded.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "excludeEra",
+          "to": "true"
+        },
+        {
+          "log": "2019-2021 rows excluded from training: about 2,900 rows fewer, but no longer teaching the retired policy."
+        }
+      ]
+    },
+    "releaseModel": {
+      "label": "Release the retrained model",
+      "group": "Change",
+      "available": "release == \"none\"",
+      "why": "Already decided.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Release",
+          "options": [
+            {
+              "value": "review",
+              "label": "Attach a post-training bias report and send it to model risk review first"
+            },
+            {
+              "value": "ship",
+              "label": "Ship it now: the pilot is waiting"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "release",
+          "to": "how"
+        },
+        {
+          "cases": [
+            {
+              "when": "release == \"review\"",
+              "then": [
+                {
+                  "log": "Clarify post-training bias report attached; the candidate goes to Tuesday's model risk review before any release."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "The candidate replaces the pilot model in production without a bias review.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "runWeek": {
+      "label": "Close the change window and run the week",
+      "group": "Run",
+      "available": "true",
+      "why": "Not available now.",
+      "effects": [
+        {
+          "set": "weekStarted",
+          "to": "true"
+        },
+        {
+          "reason": "plan"
+        },
+        {
+          "phase": "week"
+        },
+        {
+          "schedule": "dayT",
+          "after": "dayWait",
+          "with": {
+            "d": "1"
+          }
+        },
+        {
+          "log": "Change window closed. Candidate approval gap {dppl|2dp}, reported AUC {reportedAuc|2dp}.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "prompts": {
+    "ciQ": {
+      "title": "Reading CI",
+      "context": "What does a Class Imbalance of 0.84 tell you?",
+      "choices": [
+        {
+          "id": "right",
+          "label": "The training data holds far more 25+ applicants than under-25 ones",
+          "effects": [
+            {
+              "set": "ciAnswer",
+              "to": "\"right\""
+            }
+          ],
+          "feedback": "Right. CI compares how many members each facet has; near 1, the model sees few examples of facet d. The gap in approvals is DPL's job."
+        },
+        {
+          "id": "wrong",
+          "label": "84% of under-25 applicants are declined",
+          "effects": [
+            {
+              "set": "ciAnswer",
+              "to": "\"wrong\""
+            }
+          ],
+          "feedback": "No. CI counts members, not outcomes; the difference in approval rates is DPL (here 0.31)."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "dayT": {
+      "label": "the next day",
+      "wait": {
+        "skipLabel": "the next day"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "d": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step; the model risk review meets on Tuesday."
+      },
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "timer.with.d == 1",
+              "then": [
+                {
+                  "cases": [
+                    {
+                      "when": "release == \"review\" and rebalance == \"before\"",
+                      "then": [
+                        {
+                          "log": "Tuesday, model risk review: copies of training rows appear in the test set, so the 0.97 AUC is inflated. Candidate rejected for rework.",
+                          "kind": "bad"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "release == \"review\" and dppl <= dpplTarget",
+                      "then": [
+                        {
+                          "set": "reviewPassed",
+                          "to": "true"
+                        },
+                        {
+                          "log": "Tuesday, model risk review: honest test AUC {reportedAuc|2dp}, approval gap {dppl|2dp}, within policy. Approved for the pilot.",
+                          "kind": "good"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "release == \"review\"",
+                      "then": [
+                        {
+                          "log": "Tuesday, model risk review: approval gap {dppl|2dp}, over the 0.10 limit. Not approved.",
+                          "kind": "sys"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "Tuesday: nothing is ready for the model risk review.",
+                          "kind": "sys"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "2"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "timer.with.d == 2",
+              "then": [
+                {
+                  "if": "reviewPassed",
+                  "then": [
+                    {
+                      "log": "Wednesday: the approved candidate joins the pilot.",
+                      "kind": "good"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "Wednesday: the pilot keeps the old model and its gap.",
+                      "kind": "sys"
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "3"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Thursday: the week closes.",
+                  "kind": "sys"
+                },
+                {
+                  "set": "weekDone",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "plan": {
+      "question": "Before you run the week: where did the bias come from, what did you change in the data, and how will you show the new model is fair enough to release?",
+      "parts": [
+        {
+          "label": "Sources of bias",
+          "criteria": "Names the class imbalance (CI 0.84), the unshuffled date split that left even fewer under-25 rows in training, and the policy-era labels; uses Clarify metrics as evidence.",
+          "modelAnswer": "Under-25 applicants are 8% of the rows (CI 0.84) and approved at half the rate in the labels (DPL 0.31). The date-ordered, unshuffled split put most online, younger applicants in test, leaving 4% in training. The 2019-2021 labels carry a retired policy against short credit histories."
+        },
+        {
+          "label": "Mitigation and proof",
+          "criteria": "Shuffles and stratifies the split; oversamples or augments in the training split only, after splitting, to avoid leakage; does not rely on dropping age, since proxies remain; releases only through review with a post-training bias report (DPPL).",
+          "modelAnswer": "Shuffle and split stratified by age group and label, then oversample under-25 rows only in the training split so no copy reaches the test set. Dropping age would leave credit-history length as a proxy. Send a post-training bias report to model risk review and release only if DPPL is within 0.10."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "availabilityTarget": {
+        "value": 99.9,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Stated SLA over the month by the error-budget method."
+        }
+      },
+      "availabilityRecovered": {
+        "value": 99.85,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "A small miss."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "weekDone and dppl > dpplTarget",
+      "class": "recovered",
+      "rationale": "Nothing shipped unreviewed, but the pilot keeps a model over the fairness limit: a miss, recovered, never target.",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The credit union's model risk policy: a lending model ships only after a model risk review of its post-training bias report, with DPPL for each reviewed facet at or below 0.10. The threshold is the institution's choice; Clarify sets none."
+      }
+    }
+  },
+  "endings": {
+    "unreviewed": {
+      "label": "Shipped without the bias review",
+      "class": "harm",
+      "when": "release == \"ship\"",
+      "terminal": true,
+      "narrative": "A lending model went to production without the model risk review the policy requires; compliance pulls it and the pilot stops."
+    },
+    "fixed": {
+      "label": "Bias found, fixed and proven",
+      "class": "target",
+      "when": "weekDone and reviewPassed and investigatedFirst and split == \"stratified\" and rebalance == \"after\"",
+      "terminal": true,
+      "narrative": "Thursday: the candidate passed review with an approval gap of {dppl|2dp} and an honest test AUC of {reportedAuc|2dp}, and runs in the pilot."
+    },
+    "partly": {
+      "label": "Better, by a rougher route",
+      "class": "recovered",
+      "when": "weekDone",
+      "terminal": true,
+      "narrative": "Thursday: approval gap {dppl|2dp}, reported AUC {reportedAuc|2dp}. Something was missed: the evidence first, the split, leak-free rebalancing or the review."
+    },
+    "time_up": {
+      "label": "The week ran out",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The week ended without a decision."
+    }
+  },
+  "endingOrder": [
+    "unreviewed",
+    "fixed",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "investigate",
+        "label": "Measured the bias and read the split before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "investigatedFirst",
+            "score": "met",
+            "why": "Clarify report and the split first."
+          },
+          {
+            "when": "investigated",
+            "score": "partial",
+            "why": "Looked at the data, but after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed the data without measuring it."
+          }
+        ]
+      },
+      {
+        "id": "split",
+        "label": "Shuffled, stratified split",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "split == \"stratified\"",
+            "score": "met",
+            "why": "Shuffled and stratified by age group and label."
+          },
+          {
+            "when": "split == \"random\"",
+            "score": "partial",
+            "why": "Shuffled, but not stratified for a small facet."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still split by date without shuffling."
+          }
+        ]
+      },
+      {
+        "id": "rebalance",
+        "label": "Rebalanced without leaking into the test set",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rebalance == \"after\"",
+            "score": "met",
+            "why": "Oversampled in the training split only."
+          },
+          {
+            "when": "rebalance == \"before\"",
+            "score": "missed",
+            "why": "Oversampled before the split: copies leaked into the test set."
+          },
+          {
+            "when": "rebalance == \"dropAge\"",
+            "score": "missed",
+            "why": "Dropped age; proxies still carry it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No mitigation."
+          }
+        ]
+      },
+      {
+        "id": "review",
+        "label": "Released only through bias review",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "release == \"review\"",
+            "score": "met",
+            "why": "Post-training report to model risk review."
+          },
+          {
+            "when": "release == \"ship\"",
+            "score": "missed",
+            "why": "Shipped without review."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing sent for release."
+          }
+        ]
+      },
+      {
+        "id": "era",
+        "label": "Dealt with the policy-era labels",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "excludeEra",
+            "score": "met",
+            "why": "2019-2021 labels excluded."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still trained on a retired policy's decisions."
+          }
+        ]
+      },
+      {
+        "id": "ci",
+        "label": "Read the CI metric correctly",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "ciAnswer == \"right\"",
+            "score": "met",
+            "why": "CI counts members per facet."
+          },
+          {
+            "when": "ciAnswer == \"wrong\"",
+            "score": "missed",
+            "why": "Read CI as an outcome rate."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "Not asked."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: the sources of bias, the mitigation and the proof",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "dppl",
+        "label": "Approval gap of the candidate (DPPL)",
+        "value": "dppl",
+        "format": "number",
+        "expert": "0.06"
+      },
+      {
+        "id": "auc",
+        "label": "Reported test AUC",
+        "value": "reportedAuc",
+        "format": "number",
+        "expert": "0.86 (honest)"
+      },
+      {
+        "id": "changes",
+        "label": "Changes made",
+        "value": "changes",
+        "format": "number",
+        "expert": "4"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Monday 09:00",
+        "text": "Clarify pre-training report: CI 0.84, DPL 0.31. The notebook: an unshuffled date split. The labels: a retired policy in 2019-2021."
+      },
+      {
+        "at": "Monday 09:40",
+        "text": "Shuffle and stratify the split; oversample under-25 rows in the training split only; exclude the policy-era labels."
+      },
+      {
+        "at": "Monday 10:15",
+        "text": "Post-training bias report to model risk review. The trade-off: AUC reads 0.86 instead of 0.91, because it is now measured honestly, and the release waits a day for review."
+      }
+    ],
+    "debrief": {
+      "unreviewed": {
+        "headline": "Shipped without the bias review",
+        "body": "A lending model's fairness is a release gate, not a follow-up. Whatever the data work, shipping before the review put an unproven model in front of applicants."
+      },
+      "fixed": {
+        "headline": "Bias found, fixed and proven",
+        "body": "You measured before changing, fixed the split, rebalanced without leaking and let the review prove the result. That is the expert path."
+      },
+      "partly": {
+        "headline": "Better, by a rougher route",
+        "body": "Check whether you measured first, whether the split was shuffled and stratified, whether oversampling happened after the split, and whether the candidate went through review."
+      },
+      "time_up": {
+        "headline": "No decision",
+        "body": "The pilot keeps the biased model."
+      }
+    },
+    "modelReasoning": "Bias here has three sources: too few under-25 rows (CI 0.84), labels that reflect a retired policy (DPL 0.31), and a split that sorted by date without shuffling, which left even fewer young applicants in training. Fix the split first (shuffle, stratify by facet and label), then rebalance only the training split: oversampling before the split copies rows into the test set and inflates its scores, which is leakage. Dropping the sensitive column does not remove bias when other features stand in for it. Finally measure the trained model with post-training metrics such as DPPL and let people decide whether it is fair enough to release."
+  }
+}
