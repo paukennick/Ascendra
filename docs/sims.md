@@ -31,7 +31,8 @@ Whether a sim is paced depends on its kind, not its course:
   Save and finish later, and can resume on any device.
 - **Project-management and IT/cloud sims are learner-paced**: they move only
   when the learner acts, have none of the above, and the server refuses
-  pacing commands for them. Today TicketBurst is the only one seeded.
+  pacing commands for them. Seeded: TicketBurst and, since REQ-233, the
+  NAT gateway bill (both AWS SAA).
 - **Security incidents (REQ-231) are learner-paced too**: the attacker
   works on the sim clock, and the clock moves by the analyst time each
   task takes (22.7).
@@ -4100,3 +4101,68 @@ AWS re:Post, named in the sources but not in the scenarios), and CrowdStrike's
    test checks every catalog title fits.
 3. **The screen spec and the profile list are in the engine folder** again
    (as for the board and the session): display and lint only, no minor.
+
+### 22.9 Bedside wave 1: CCRN Pediatric, CCRN Neonatal, NCLEX-RN, NCLEX-PN and a second SAA board case (REQ-233)
+
+Nine documents on the existing bedside and board renderers and engine 1.2;
+no engine, renderer, schema or migration change. Each declares engine minor 2
+and `endingOrder`, has endings in all three outcome classes, three or four
+critical criteria inside its `target` condition, KPIs, an expert path, a
+debrief per ending, one reasoning moment, sourced teaching prompts (the
+clinical ones) and five or six golden paths built by
+`npm run sim:golden -- steps <name>` (`scripts/sim-golden/<name>.steps.ts`).
+The clinical cases run in one `running` phase, so study pace (3x) is the
+default (5.4a). None has a focused start: each patient needs action from the
+first minute.
+
+| Course / slug | Objective (exact title, abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| CCRNPEDS/pediatric-septic-shock-fluids | Manage pediatric septic shock ... | antibiotics within 1 h; reassess after every bolus; stop at overload signs; epinephrine for fluid-refractory shock | peds-sepsis |
+| CCRNPEDS/pediatric-dka-cerebral-edema | Recognize cerebral edema in DKA ... | hyperosmolar therapy within 20 min, no CT first; potassium with insulin; no insulin bolus, start at 1 h; dextrose with insulin kept running | peds-dka |
+| CCRNNEO/neonatal-rds-escalating-support | Manage non-invasive support ... | surfactant (LISA) at FiO2 > 0.30 on CPAP >= 6; SpO2 90-94% without hyperoxia; slipped prongs found | neo-rds |
+| CCRNNEO/neonatal-sepsis-hypoglycemia | Name maternal, neonatal and treatment-related risk factors for neonatal sepsis ... | IV dextrose for symptomatic hypoglycemia; ampicillin and gentamicin within 1 h; 1 mL culture first | neo-eos |
+| NCLEXRN/med-surg-deterioration-sbar | Unstable versus stable ... | the unstable client seen first; effective escalation (SBAR, rapid response, chain of command); assessment not delegated | rn-deterioration |
+| NCLEXRN/post-op-transfusion-reaction | Tell transfusion reactions apart ... | stop at the first sign; new tubing, no flush; provider and blood bank told | rn-transfusion |
+| NCLEXPN/ltc-change-in-condition | Recognizing the client whose condition requires immediate RN or provider involvement | data compared with baseline; report to the RN that lands; within PN scope | pn-change |
+| NCLEXPN/med-pass-error-caught | The rights of medication administration, applied rather than recited | card checked against the MAR; two identifiers; apical pulse and BP before holding | pn-mederror |
+| AWSSAA/nat-gateway-bill-spike | Routing that minimizes transfer cost ... | cause confirmed with data first; a NAT gateway per AZ kept; S3 gateway endpoint on every private route table | aws-nat |
+
+- **AWS SAA now has two sims** (plus the SAP band): TicketBurst (resilient
+  design) and the NAT gateway bill (cost), learner-paced on the board screen
+  (two `turns` phases; the server refuses pacing commands). Prices are the
+  US East (Ohio) NAT rates read on the AWS VPC pricing page, so the scenario
+  is set in us-east-2.
+- **Sources** carry `checkedAt` 2026-11-11 (2026-10-31 where a title was
+  relayed from the course seed, 2026-11-10 where the adult SSC 2026 summary
+  was reused). Read in primary text: the SSC Children's 2020 sheets and
+  algorithm (SCCM), ISPAD 2022 DKA (Glaser et al.), the European RDS
+  consensus 2022 (Sweet et al.), AAP 2018 EOS (Puopolo et al.), the 2026
+  NCLEX-RN and NCLEX-PN test plans, Lifeblood's suspected-reaction
+  guidance, StatPearls "Transfusion Reactions", CHEMM's PALS values, and the
+  AWS pages (VPC pricing, NAT gateway basics and pricing, gateway endpoints,
+  Cost Anomaly Detection). Read only through summaries: the SSC Children's
+  2026 update (the publisher text was not opened) and the AAP 2011 neonatal
+  hypoglycemia report (values as relayed by the UCSF pathway). Authored
+  teaching-model numbers say so; the ones standing in for a missing guideline
+  number carry `FLAG` (for example the DKA edema onset and size, the RDS
+  disease course, the transfusion slow-start rate and volume-to-harm,
+  hospital rapid-response criteria, and the PN hold parameters).
+- **Authoring findings (FAIL-1360, FAIL-1361).** In a `turns` phase every
+  action happens at the same tick until a wait is skipped, so a criterion
+  that orders actions by `timeAt` cannot tell "investigated first" from
+  "changed first"; the board case orders them with a flag set by the change
+  actions instead. And a `schedule.after` given a param is read in seconds
+  whatever the param's `unit` says: a "1440 min" day became 24 minutes. The
+  linter checks neither; the goldens (`guessFirst`, and every path's final
+  tick) pin both.
+- **Teaching key order (FAIL-1362, an instance of the open FAIL-1250).** Two
+  teaching prompts due at once are offered in the teaching map's key order,
+  which jsonb does not keep, so three goldens recorded in file order failed
+  the storage-order test. Every REQ-233 document now writes its teaching keys
+  in jsonb order (length, then bytewise); until a `teachingOrder` list exists,
+  new documents should do the same or make overlapping prompts mutually
+  exclusive.
+- **`time_up`** is a reachable harm in the pediatric DKA, pediatric sepsis
+  and neonatal sepsis cases; elsewhere every slow path ends in an earlier
+  ending first, so the linter's `time_up` warning remains, as in the
+  existing CCRN cases.

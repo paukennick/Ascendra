@@ -1,0 +1,445 @@
+{
+  "slug": "nat-gateway-bill-spike",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: Cost Explorer and flow logs first, a gateway endpoint on both route tables, both NAT gateways kept, budget alert and anomaly monitor",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "costExplorer",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "flowLogs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "endpoint",
+          "params": {
+            "rt": "both"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "backupQ",
+          "choice": "right",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "budgets",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "anomalyOn",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 10,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 11,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "investigate": "met",
+          "natPerAz": "met",
+          "endpoint": "met",
+          "visibility": "met",
+          "region": "met"
+        },
+        "kpis": {
+          "natCost": 178,
+          "avail": 100,
+          "changes": 1
+        },
+        "stateHash": "eb3836bf435d01b4"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "oneRouteTable",
+      "title": "Investigates, but the endpoint goes on the AZ a route table only and no alerting: still over budget",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "costExplorer",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "flowLogs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "endpoint",
+          "params": {
+            "rt": "a"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "backupQ",
+          "choice": "right",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 8,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 9,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 67,
+        "criteria": {
+          "investigate": "met",
+          "natPerAz": "met",
+          "endpoint": "partial",
+          "visibility": "missed",
+          "region": "met"
+        },
+        "kpis": {
+          "natCost": 1528,
+          "avail": 100,
+          "changes": 1
+        },
+        "stateHash": "4f6a23a6ccfe840a"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "guessFirst",
+      "title": "Adds the endpoint on a hunch before looking at any data, thinks it covers the backup, one alert",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "endpoint",
+          "params": {
+            "rt": "both"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "backupQ",
+          "choice": "wrong",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "costExplorer",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "flowLogs",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "budgets",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 9,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 10,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "investigate": "partial",
+          "natPerAz": "met",
+          "endpoint": "met",
+          "visibility": "partial",
+          "region": "missed"
+        },
+        "kpis": {
+          "natCost": 178,
+          "avail": 100,
+          "changes": 1
+        },
+        "stateHash": "2e509ed4b057429d"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "consolidateNat",
+      "title": "Failure: the endpoint, then deletes NAT gateway B to save $33 a month; Thursday's AZ a impairment takes checkout down",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "costExplorer",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "flowLogs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "endpoint",
+          "params": {
+            "rt": "both"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "backupQ",
+          "choice": "right",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "removeNatB",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "anomalyOn",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 10,
+          "tick": 1440
+        }
+      ],
+      "expect": {
+        "ending": "outage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "investigate": "met",
+          "natPerAz": "missed",
+          "endpoint": "met",
+          "visibility": "partial",
+          "region": "met"
+        },
+        "kpis": {
+          "natCost": 145,
+          "avail": 99.792,
+          "changes": 2
+        },
+        "stateHash": "3b2619697ca1b9e3"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "deleteAllNat",
+      "title": "Failure: reads the bill as 'NAT is expensive' and deletes both NAT gateways",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "costExplorer",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "removeNats",
+          "seq": 2,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "outage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "investigate": "missed",
+          "natPerAz": "missed",
+          "endpoint": "missed",
+          "visibility": "missed",
+          "region": "na"
+        },
+        "kpis": {
+          "natCost": 2878,
+          "avail": 99.444,
+          "changes": 1
+        },
+        "stateHash": "44de28db10627f03"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}

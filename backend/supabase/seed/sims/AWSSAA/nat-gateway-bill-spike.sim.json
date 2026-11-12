@@ -1,0 +1,1204 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "nat-gateway-bill-spike",
+  "title": "The NAT gateway bill",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "pubA",
+          "label": "Public subnet, AZ a",
+          "spokenLabel": "Public subnet in availability zone A",
+          "items": [
+            {
+              "label": "NAT gateway A",
+              "when": "natA"
+            },
+            {
+              "label": "Application Load Balancer node",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "pubB",
+          "label": "Public subnet, AZ b",
+          "spokenLabel": "Public subnet in availability zone B",
+          "items": [
+            {
+              "label": "NAT gateway B",
+              "when": "natB"
+            },
+            {
+              "label": "Application Load Balancer node",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "appA",
+          "label": "App subnet, AZ a",
+          "spokenLabel": "Application subnet in availability zone A",
+          "items": [
+            {
+              "label": "EC2 Auto Scaling group (AZ a half)",
+              "when": "true"
+            },
+            {
+              "label": "Route: S3 via gateway endpoint",
+              "when": "epA"
+            },
+            {
+              "label": "Route: internet via {natA ? \"NAT gateway A\" : (natB ? \"NAT gateway B (cross-AZ)\" : \"nothing\")}",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "appB",
+          "label": "App subnet, AZ b",
+          "spokenLabel": "Application subnet in availability zone B",
+          "items": [
+            {
+              "label": "EC2 Auto Scaling group (AZ b half)",
+              "when": "true"
+            },
+            {
+              "label": "Route: S3 via gateway endpoint",
+              "when": "epB"
+            },
+            {
+              "label": "Route: internet via {natB ? \"NAT gateway B\" : (natA ? \"NAT gateway A (cross-AZ)\" : \"nothing\")}",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "regional",
+          "label": "Regional (us-east-2)",
+          "spokenLabel": "Regional services in us-east-2",
+          "items": [
+            {
+              "label": "S3 bucket: media and logs",
+              "when": "true"
+            },
+            {
+              "label": "S3 gateway endpoint",
+              "when": "epA or epB"
+            },
+            {
+              "label": "AWS Budgets alert",
+              "when": "budgetAlert"
+            },
+            {
+              "label": "Cost Anomaly Detection monitor",
+              "when": "anomaly"
+            }
+          ]
+        },
+        {
+          "id": "west",
+          "label": "Another Region (us-west-2)",
+          "spokenLabel": "Another region, us-west-2",
+          "items": [
+            {
+              "label": "S3 bucket: nightly backup copy",
+              "when": "true"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "cost",
+          "label": "NAT cost a month (projected)",
+          "value": "{natCost|usd}"
+        },
+        {
+          "id": "budget",
+          "label": "Network budget",
+          "value": "{budget|usd}"
+        },
+        {
+          "id": "avail",
+          "label": "Checkout availability this week",
+          "value": "{avail|3dp}%"
+        }
+      ]
+    }
+  },
+  "objective": "Routing that minimizes transfer cost: VPC endpoints, VPC peering, AWS Transit Gateway, cross-AZ and cross-Region traffic",
+  "secondaryObjectives": [
+    "NAT gateway cost: one shared gateway versus one per Availability Zone",
+    "Cost visibility: AWS Cost Explorer, AWS Budgets, the AWS Cost and Usage Report, cost allocation tags, multi-account billing",
+    "Designing out single points of failure"
+  ],
+  "sources": [
+    {
+      "cite": "Ascendra AWS SAA course catalog (backend/supabase/seed/tracks/aws.ts), built from the SAA-C03 exam guide",
+      "checkedAt": "2026-11-11",
+      "note": "The objective and secondary objectives are the course's own titles. Not re-fetched for this scenario."
+    },
+    {
+      "cite": "AWS. Amazon VPC pricing (NAT gateway pricing examples)",
+      "checkedAt": "2026-11-11",
+      "url": "https://aws.amazon.com/vpc/pricing/",
+      "note": "Read 2026-11-11: the worked example for US East (Ohio) gives 'the rate is $0.045 per hour' and a data processing charge of $0.045 per GB; 'There are no data processing or hourly charges for using Gateway Type VPC endpoints'; the page suggests a gateway endpoint for S3 'To avoid the NAT Gateway Data Processing charge'. The scenario is placed in us-east-2 (Ohio) so these are the rates read. Prices change; re-check at the next review."
+    },
+    {
+      "cite": "AWS. Amazon VPC User Guide: Pricing for NAT gateways",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-pricing.html",
+      "note": "Read 2026-11-11: charged 'for each hour that your NAT gateway is available and each gigabyte of data that it processes'; if most traffic is to AWS services that support gateway or interface endpoints, 'consider creating an interface endpoint or gateway endpoint for these services'."
+    },
+    {
+      "cite": "AWS. Amazon VPC User Guide: NAT gateway basics",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-basics.html",
+      "note": "Read 2026-11-11: 'Each NAT gateway is created in a specific Availability Zone and implemented with redundancy in that zone.' 'If you have resources in multiple Availability Zones and they share one NAT gateway, and if the NAT gateway's Availability Zone is down, resources in the other Availability Zones lose internet access.' 'To improve resiliency, create a NAT gateway in each Availability Zone, and configure your routing to ensure that resources use the NAT gateway in the same Availability Zone.'"
+    },
+    {
+      "cite": "AWS. AWS PrivateLink Guide: Gateway endpoints",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html",
+      "note": "Read 2026-11-11: gateway endpoints serve Amazon S3 and DynamoDB 'without requiring an internet gateway or a NAT device'; 'There is no additional charge for using gateway endpoints'; the route is added to the route tables you select, and 'Instances in subnets that aren't associated with these route tables use the public service endpoint'; traffic to the service 'in a different Region goes to the internet gateway because prefix lists are specific to a Region'."
+    },
+    {
+      "cite": "AWS. Cost Management User Guide: AWS Cost Anomaly Detection",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/manage-ad.html",
+      "note": "Read 2026-11-11: uses machine learning models 'to detect and alert on anomalous spend patterns'; alerts by email or an Amazon SNS topic; runs 'approximately three times a day' after billing data is processed; can take up to 24 hours to detect because it uses Cost Explorer data with a delay of up to 24 hours."
+    }
+  ],
+  "brief": {
+    "situation": "Monday 09:00. You run the platform for a photo-sharing app in us-east-2 (Ohio). Finance forwards last month's bill: about $2,900 under NAT Gateway, against a network budget of $800. Nothing in the architecture changed last month, but the new image pipeline went live.",
+    "handover": [
+      "Two Availability Zones. App servers in an Auto Scaling group across private subnets in AZ a and AZ b; one NAT gateway in each public subnet; each private subnet's route table sends 0.0.0.0/0 to its own AZ's NAT gateway.",
+      "The app reads and writes images in an S3 bucket in us-east-2, copies a nightly backup to a bucket in us-west-2, and calls a card processor on the internet at checkout.",
+      "Checkout must stay up: the target is 99.9% a month."
+    ],
+    "howItWorks": [
+      "Learner-paced: nothing moves until you act. Investigate, change the network, then run the week and see the bill and the events.",
+      "Changes show on the board; the meters show the projected NAT bill and checkout availability.",
+      "Before you run the week you are asked to write what is driving the bill and what you will change. The debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T09:00",
+    "tick": "1min",
+    "maxDuration": "8d",
+    "calendar": "date"
+  },
+  "params": {
+    "natHourly": {
+      "value": 0.045,
+      "unit": "$",
+      "source": {
+        "cite": "AWS. Amazon VPC pricing (NAT gateway pricing examples)",
+        "checkedAt": "2026-11-11",
+        "url": "https://aws.amazon.com/vpc/pricing/",
+        "note": "Read 2026-11-11: the worked example for US East (Ohio) gives 'the rate is $0.045 per hour' and a data processing charge of $0.045 per GB; 'There are no data processing or hourly charges for using Gateway Type VPC endpoints'; the page suggests a gateway endpoint for S3 'To avoid the NAT Gateway Data Processing charge'. The scenario is placed in us-east-2 (Ohio) so these are the rates read. Prices change; re-check at the next review."
+      }
+    },
+    "natPerGb": {
+      "value": 0.045,
+      "unit": "$",
+      "source": {
+        "cite": "AWS. Amazon VPC pricing (NAT gateway pricing examples)",
+        "checkedAt": "2026-11-11",
+        "url": "https://aws.amazon.com/vpc/pricing/",
+        "note": "Read 2026-11-11: the worked example for US East (Ohio) gives 'the rate is $0.045 per hour' and a data processing charge of $0.045 per GB; 'There are no data processing or hourly charges for using Gateway Type VPC endpoints'; the page suggests a gateway endpoint for S3 'To avoid the NAT Gateway Data Processing charge'. The scenario is placed in us-east-2 (Ohio) so these are the rates read. Prices change; re-check at the next review."
+      }
+    },
+    "hoursPerMonth": {
+      "value": 730,
+      "unit": "h",
+      "source": {
+        "cite": "AWS pricing convention (730 hours a month)",
+        "checkedAt": "2026-11-11",
+        "note": "AWS pricing examples bill a month as 730 hours; stated from that convention, not re-read this session."
+      }
+    },
+    "s3Gb": {
+      "value": 60000,
+      "unit": "GB",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Image pipeline traffic between the app servers and the us-east-2 bucket: about 60 TB a month, split evenly between the AZs."
+      }
+    },
+    "backupGb": {
+      "value": 2000,
+      "unit": "GB",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Nightly backup copy to us-west-2: about 2 TB a month."
+      }
+    },
+    "payGb": {
+      "value": 500,
+      "unit": "GB",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Card-processor and other internet traffic: about 0.5 TB a month."
+      }
+    },
+    "budget": {
+      "value": 800,
+      "unit": "$",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Finance's network budget for NAT a month."
+      }
+    },
+    "azOutageMin": {
+      "value": 90,
+      "unit": "min",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Thursday's AZ a impairment lasts 90 minutes in this scenario."
+      }
+    },
+    "noNatMin": {
+      "value": 240,
+      "unit": "min",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "With no NAT gateway, checkout fails until on-call restores one about 4 hours later."
+      }
+    },
+    "monthMin": {
+      "value": 43200,
+      "unit": "min",
+      "source": {
+        "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+        "checkedAt": "2026-11-11",
+        "note": "Availability over a 30-day month: 99.9% leaves 43.2 minutes."
+      }
+    },
+    "dayWait": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step of the week."
+      }
+    }
+  },
+  "state": {
+    "natA": {
+      "type": "bool",
+      "init": true
+    },
+    "natB": {
+      "type": "bool",
+      "init": true
+    },
+    "epA": {
+      "type": "bool",
+      "init": false
+    },
+    "epB": {
+      "type": "bool",
+      "init": false
+    },
+    "budgetAlert": {
+      "type": "bool",
+      "init": false
+    },
+    "anomaly": {
+      "type": "bool",
+      "init": false
+    },
+    "ceAt": {
+      "type": "time",
+      "init": null
+    },
+    "flowAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedBlind": {
+      "type": "bool",
+      "init": false
+    },
+    "changes": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "removedNat": {
+      "type": "bool",
+      "init": false
+    },
+    "downMin": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "min"
+    },
+    "backupAnswer": {
+      "type": "enum",
+      "values": [
+        "none",
+        "right",
+        "wrong"
+      ],
+      "init": "none"
+    },
+    "weekStarted": {
+      "type": "bool",
+      "init": false
+    },
+    "weekDone": {
+      "type": "bool",
+      "init": false
+    },
+    "costAtStart": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "$"
+    }
+  },
+  "derived": {
+    "natCount": {
+      "expr": "(natA ? 1 : 0) + (natB ? 1 : 0)"
+    },
+    "s3ViaNat": {
+      "expr": "natCount == 0 ? 0 : s3Gb * (1 - (epA ? 0.5 : 0) - (epB ? 0.5 : 0))",
+      "unit": "GB"
+    },
+    "procGb": {
+      "expr": "natCount == 0 ? 0 : s3ViaNat + backupGb + payGb",
+      "unit": "GB"
+    },
+    "natCost": {
+      "expr": "round(natCount * natHourly * hoursPerMonth + procGb * natPerGb)",
+      "unit": "$",
+      "precision": 0
+    },
+    "avail": {
+      "expr": "round((1 - downMin / monthMin) * 100000) / 1000",
+      "unit": "%",
+      "precision": 3
+    },
+    "investigated": {
+      "expr": "not isNull(ceAt) and not isNull(flowAt)"
+    },
+    "investigatedFirst": {
+      "expr": "investigated and not changedBlind"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Investigate and change",
+      "clock": "turns",
+      "actions": [
+        "costExplorer",
+        "flowLogs",
+        "endpoint",
+        "removeNatB",
+        "removeNats",
+        "restoreNats",
+        "budgets",
+        "anomalyOn",
+        "runWeek"
+      ]
+    },
+    "week": {
+      "label": "The week",
+      "clock": "turns",
+      "actions": []
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "costExplorer": {
+      "label": "Cost Explorer: last month by usage type",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(ceAt)",
+          "then": [
+            {
+              "set": "ceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Last month, by usage type: NatGateway-Bytes about $2,810 (about 62,500 GB processed); NatGateway-Hours about $66 (two gateways). Up from about $300 the month before the image pipeline."
+        },
+        {
+          "log": "Cost Explorer: nearly all of it is NAT data processing, not the hourly charge.",
+          "kind": "find"
+        }
+      ]
+    },
+    "flowLogs": {
+      "label": "VPC Flow Logs: top destinations through the NAT gateways",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(flowAt)",
+          "then": [
+            {
+              "set": "flowAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Through the NAT gateways last month: S3 prefix list for us-east-2 about 60,000 GB (both AZs about evenly); S3 in us-west-2 about 2,000 GB (the nightly backup); the card processor and other internet hosts about 500 GB."
+        },
+        {
+          "log": "Flow logs: the image pipeline's S3 traffic is going out through the NAT gateways.",
+          "kind": "find"
+        }
+      ]
+    },
+    "endpoint": {
+      "label": "Add an S3 gateway endpoint to private route tables",
+      "group": "Change",
+      "available": "not (epA and epB)",
+      "why": "Both private route tables already route S3 through the endpoint.",
+      "params": [
+        {
+          "id": "rt",
+          "kind": "choice",
+          "label": "Route tables",
+          "options": [
+            {
+              "value": "both",
+              "label": "Both private route tables (AZ a and AZ b)"
+            },
+            {
+              "value": "a",
+              "label": "Only the AZ a private route table"
+            },
+            {
+              "value": "b",
+              "label": "Only the AZ b private route table"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "rt == \"both\"",
+              "then": [
+                {
+                  "set": "epA",
+                  "to": "true"
+                },
+                {
+                  "set": "epB",
+                  "to": "true"
+                }
+              ]
+            },
+            {
+              "when": "rt == \"a\"",
+              "then": [
+                {
+                  "set": "epA",
+                  "to": "true"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "epB",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "S3 gateway endpoint added; the route to the us-east-2 S3 prefix list is now in the {rt == \"both\" ? \"AZ a and AZ b\" : (rt == \"a\" ? \"AZ a\" : \"AZ b\")} private route table(s). Projected NAT cost {natCost|usd} a month."
+        },
+        {
+          "if": "backupAnswer == \"none\"",
+          "then": [
+            {
+              "prompt": "backupQ"
+            }
+          ]
+        }
+      ]
+    },
+    "removeNatB": {
+      "label": "Delete NAT gateway B and point AZ b at NAT gateway A",
+      "group": "Change",
+      "available": "natA and natB",
+      "why": "Not with this layout.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "natB",
+          "to": "false"
+        },
+        {
+          "set": "removedNat",
+          "to": "true"
+        },
+        {
+          "log": "NAT gateway B deleted; AZ b's private route table now sends internet traffic to NAT gateway A. Projected NAT cost {natCost|usd} a month.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "removeNats": {
+      "label": "Delete both NAT gateways (S3 now goes through the endpoint)",
+      "group": "Change",
+      "available": "natA or natB",
+      "why": "No NAT gateways left.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "natA",
+          "to": "false"
+        },
+        {
+          "set": "natB",
+          "to": "false"
+        },
+        {
+          "set": "removedNat",
+          "to": "true"
+        },
+        {
+          "log": "Both NAT gateways deleted. Private subnets have no route to the internet.",
+          "kind": "bad"
+        },
+        {
+          "if": "weekStarted",
+          "then": [],
+          "else": [
+            {
+              "add": "downMin",
+              "by": "noNatMin"
+            },
+            {
+              "log": "Within minutes checkout calls to the card processor time out, and the nightly backup will fail too. On-call restores a NAT gateway about 4 hours later.",
+              "kind": "bad"
+            },
+            {
+              "set": "natA",
+              "to": "true"
+            },
+            {
+              "set": "natB",
+              "to": "true"
+            }
+          ]
+        }
+      ]
+    },
+    "restoreNats": {
+      "label": "Put a NAT gateway back in each AZ",
+      "group": "Change",
+      "available": "not (natA and natB)",
+      "why": "Both are in place.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "natA",
+          "to": "true"
+        },
+        {
+          "set": "natB",
+          "to": "true"
+        },
+        {
+          "log": "A NAT gateway in each AZ, each private route table pointing at its own."
+        }
+      ]
+    },
+    "budgets": {
+      "label": "AWS Budgets: alert at 80% of the network budget",
+      "group": "Monitor",
+      "available": "not budgetAlert",
+      "why": "Already set.",
+      "effects": [
+        {
+          "set": "budgetAlert",
+          "to": "true"
+        },
+        {
+          "log": "Budget alert on NAT Gateway spend at 80% of $800, to the team's email and Slack topic."
+        }
+      ]
+    },
+    "anomalyOn": {
+      "label": "Turn on a Cost Anomaly Detection monitor",
+      "group": "Monitor",
+      "available": "not anomaly",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "anomaly",
+          "to": "true"
+        },
+        {
+          "log": "Cost Anomaly Detection monitor for EC2-Other (which includes NAT) with alerts to the team's SNS topic."
+        }
+      ]
+    },
+    "runWeek": {
+      "label": "Close the change window and run the week",
+      "group": "Run",
+      "available": "true",
+      "why": "Not available now.",
+      "effects": [
+        {
+          "set": "weekStarted",
+          "to": "true"
+        },
+        {
+          "set": "costAtStart",
+          "to": "natCost"
+        },
+        {
+          "reason": "plan"
+        },
+        {
+          "phase": "week"
+        },
+        {
+          "schedule": "dayT",
+          "after": "dayWait",
+          "with": {
+            "d": "1"
+          }
+        },
+        {
+          "log": "Change window closed. Projected NAT bill {natCost|usd} a month.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "prompts": {
+    "backupQ": {
+      "title": "The backup copy",
+      "context": "Does the new gateway endpoint also carry the nightly backup copy to the bucket in us-west-2?",
+      "choices": [
+        {
+          "id": "right",
+          "label": "No: a gateway endpoint serves S3 in this Region only; the backup still leaves through NAT",
+          "effects": [
+            {
+              "set": "backupAnswer",
+              "to": "\"right\""
+            }
+          ],
+          "feedback": "Right. The endpoint's prefix list is for us-east-2; cross-Region S3 traffic still goes out through the NAT gateway (about $90 a month here)."
+        },
+        {
+          "id": "wrong",
+          "label": "Yes: all S3 traffic now uses the endpoint",
+          "effects": [
+            {
+              "set": "backupAnswer",
+              "to": "\"wrong\""
+            }
+          ],
+          "feedback": "No. Gateway endpoints route only to the service in the current Region; traffic to S3 in another Region goes out the normal way, here through the NAT gateway."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "dayT": {
+      "label": "the next day",
+      "wait": {
+        "skipLabel": "the next day"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "d": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step."
+      },
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "timer.with.d == 1",
+              "then": [
+                {
+                  "log": "Tuesday: NAT data processing for the day is running at about {round(procGb / 30)} GB, {round(natCost / 30)|usd} a day.",
+                  "kind": "sys"
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "2"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "timer.with.d == 2",
+              "then": [
+                {
+                  "log": "Thursday 14:00: AWS Health reports impaired connectivity in us-east-2a for 90 minutes. The load balancer shifts traffic to AZ b.",
+                  "kind": "alarm"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "not natB and natA",
+                      "then": [
+                        {
+                          "add": "downMin",
+                          "by": "azOutageMin"
+                        },
+                        {
+                          "log": "AZ b's instances send their internet traffic through NAT gateway A in the impaired AZ: card-processor calls fail. Checkout is down for 90 minutes.",
+                          "kind": "bad"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "not natA and natB",
+                      "then": [
+                        {
+                          "add": "downMin",
+                          "by": "azOutageMin"
+                        },
+                        {
+                          "log": "Checkout fails for 90 minutes: the remaining NAT gateway's AZ is the only path, and routing is broken.",
+                          "kind": "bad"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "AZ b has its own NAT gateway: checkout keeps working on the AZ b instances.",
+                          "kind": "good"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "3"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "if": "anomaly or budgetAlert",
+                  "then": [
+                    {
+                      "log": "Sunday: the cost monitors are in place, so a spike like last month's would raise an alert within about a day.",
+                      "kind": "good"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "Sunday: no cost alert is configured; the next surprise would again arrive with the monthly bill.",
+                      "kind": "sys"
+                    }
+                  ]
+                },
+                {
+                  "set": "weekDone",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "plan": {
+      "question": "Before you run the week: what is driving the bill, what did you change, and what did you make sure not to break?",
+      "parts": [
+        {
+          "label": "The cause and the fix",
+          "criteria": "Names NAT gateway data processing (not hours) as the driver, from same-Region S3 traffic of the image pipeline; fixes it with an S3 gateway endpoint (no hourly or data charge) on every private route table; notes the cross-Region backup still goes through NAT.",
+          "modelAnswer": "Almost all of it is NAT data processing at $0.045 per GB for about 60 TB of S3 traffic to a bucket in the same Region. An S3 gateway endpoint on both private route tables takes that traffic off the NAT gateways at no charge. The backup to us-west-2 still goes through NAT, because a gateway endpoint only serves S3 in its own Region."
+        },
+        {
+          "label": "What not to break",
+          "criteria": "Keeps one NAT gateway per AZ for internet-bound traffic (the card processor) so losing one AZ does not cut the other off; does not delete the NAT gateways; adds cost visibility (Budgets alert, Cost Anomaly Detection) so the next spike is caught in a day.",
+          "modelAnswer": "Keep a NAT gateway in each AZ: the card-processor calls still need the internet, and with one shared gateway an AZ failure cuts off the other AZ. Saving $33 a month is not worth that. Add a budget alert and an anomaly monitor so a spike shows up within a day, not on the bill."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "availabilityTarget": {
+        "value": 99.9,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Stated SLA over the month by the error-budget method."
+        }
+      },
+      "availabilityRecovered": {
+        "value": 99.85,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "A small miss."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "weekDone and natCost > budget",
+      "class": "recovered",
+      "rationale": "Checkout stayed up but the bill is still over budget: a cost miss, recovered, never target.",
+      "source": {
+        "cite": "docs/sims.md 3.1 (cloud)",
+        "checkedAt": "2026-11-11",
+        "note": "As in the TicketBurst case: a cost miss is recovered or harm by the cost rule, never target."
+      }
+    }
+  },
+  "endings": {
+    "outage": {
+      "label": "Checkout outage",
+      "class": "harm",
+      "when": "avail < availabilityRecovered",
+      "terminal": true,
+      "narrative": "Checkout was down for {downMin} minutes this month: availability {avail|3dp}%, below the 99.9% target. The saving cost more than it saved."
+    },
+    "fixed": {
+      "label": "Bill fixed without breaking anything",
+      "class": "target",
+      "when": "weekDone and avail >= availabilityTarget and natCost <= budget and investigatedFirst and natA and natB and not removedNat and epA and epB",
+      "terminal": true,
+      "narrative": "Sunday: the projected NAT bill is {natCost|usd} a month, down from about $2,880, checkout rode through Thursday's AZ impairment, and a monitor now watches the spend."
+    },
+    "partly": {
+      "label": "Better, by a rougher route",
+      "class": "recovered",
+      "when": "weekDone",
+      "terminal": true,
+      "narrative": "Sunday: projected NAT bill {natCost|usd} a month, checkout availability {avail|3dp}%. Part of the fix landed, but something was missed: the cause confirmed first, both route tables, or a NAT gateway per AZ."
+    },
+    "time_up": {
+      "label": "The week ran out",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The week ended without a decision."
+    }
+  },
+  "endingOrder": [
+    "outage",
+    "fixed",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "investigate",
+        "label": "Found the cause with data before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "investigatedFirst",
+            "score": "met",
+            "why": "Cost Explorer and flow logs before the first change."
+          },
+          {
+            "when": "investigated",
+            "score": "partial",
+            "why": "The data was looked at, but after a change was already made."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed the network without confirming what was driving the bill."
+          }
+        ]
+      },
+      {
+        "id": "natPerAz",
+        "label": "Kept a NAT gateway in each AZ",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "removedNat",
+            "score": "missed",
+            "why": "A NAT gateway was deleted: {natCount} left at the end."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "One NAT gateway per AZ, each AZ routing to its own."
+          }
+        ]
+      },
+      {
+        "id": "endpoint",
+        "label": "S3 gateway endpoint on every private route table",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "epA and epB",
+            "score": "met",
+            "why": "Both private route tables route same-Region S3 through the endpoint."
+          },
+          {
+            "when": "epA or epB",
+            "score": "partial",
+            "why": "Only one route table: half the S3 traffic still pays NAT processing."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No gateway endpoint."
+          }
+        ]
+      },
+      {
+        "id": "visibility",
+        "label": "Cost alerting so the next spike is caught early",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "budgetAlert and anomaly",
+            "score": "met",
+            "why": "Budget alert and an anomaly monitor."
+          },
+          {
+            "when": "budgetAlert or anomaly",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No cost alerting."
+          }
+        ]
+      },
+      {
+        "id": "region",
+        "label": "Knew the endpoint does not cover the cross-Region backup",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "backupAnswer == \"right\"",
+            "score": "met",
+            "why": "Cross-Region S3 still goes through NAT."
+          },
+          {
+            "when": "backupAnswer == \"wrong\"",
+            "score": "missed",
+            "why": "Assumed the endpoint carries traffic to another Region."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "Not asked (no endpoint was added)."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: the cost driver, the fix and what not to break",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "natCost",
+        "label": "Projected NAT cost a month",
+        "value": "natCost",
+        "format": "usd",
+        "expert": "under $200"
+      },
+      {
+        "id": "avail",
+        "label": "Checkout availability this week (%)",
+        "value": "avail",
+        "format": "number",
+        "expert": "99.9 or more"
+      },
+      {
+        "id": "changes",
+        "label": "Network changes made",
+        "value": "changes",
+        "format": "number",
+        "expert": "1"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Monday 09:00",
+        "text": "Cost Explorer by usage type: NAT data processing, not hours. Flow logs: 60 TB of same-Region S3 traffic, 2 TB to the us-west-2 backup, 0.5 TB to the card processor."
+      },
+      {
+        "at": "Monday 09:30",
+        "text": "One change: an S3 gateway endpoint on both private route tables. The backup copy to us-west-2 still uses NAT. Keep both NAT gateways for the card-processor calls."
+      },
+      {
+        "at": "Monday 09:40",
+        "text": "A budget alert and a Cost Anomaly Detection monitor. Run the week: about $180 a month projected, and checkout survives Thursday's AZ impairment."
+      }
+    ],
+    "debrief": {
+      "outage": {
+        "headline": "Checkout outage",
+        "body": "The NAT bill was data processing, which the gateway endpoint removes for free. Deleting NAT gateways saved little and took away the internet path the card processor needs, or the AZ independence that survives an AZ failure."
+      },
+      "fixed": {
+        "headline": "Fixed without breaking anything",
+        "body": "You confirmed the cause with data, made the one change that removes it, kept a NAT gateway per AZ and added monitoring. That is the expert path."
+      },
+      "partly": {
+        "headline": "Better, by a rougher route",
+        "body": "Check whether you looked at the data before changing things, whether both route tables got the endpoint, and whether each AZ kept its own NAT gateway."
+      },
+      "time_up": {
+        "headline": "No decision",
+        "body": "The bill keeps growing while nothing changes."
+      }
+    },
+    "modelReasoning": "A NAT gateway bill is hours plus data processed. Here the hours are about $66 a month for two gateways; the rest is $0.045 per GB of data processing, nearly all from the image pipeline talking to an S3 bucket in the same Region. A gateway endpoint for S3 carries that traffic with no hourly or data charge, but only for the route tables it is associated with and only to S3 in the same Region, so it goes on both private route tables and the cross-Region backup still uses NAT. Internet-bound traffic (the card processor) still needs NAT, and one NAT gateway per AZ keeps each AZ independent: with one shared gateway an AZ failure cuts the other AZ off. Confirm the cause in Cost Explorer and flow logs before changing anything, and add a budget alert and Cost Anomaly Detection so the next spike is caught within a day."
+  }
+}
