@@ -94,6 +94,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "med-pass-error-caught"),
   entry("AWSSAA", "nat-gateway-bill-spike"),
   // ---- end REQ-233 ----
+  // ---- REQ-242 (AWS board sims, wave 2): AWS MLA, Cloud Practitioner,
+  // Developer and SysOps (CloudOps) board cases, learner-paced, set in
+  // us-east-2. Keep these entries together. ----
+  entry("AWSMLA", "fraud-model-drift"),
+  // ---- end REQ-242 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
