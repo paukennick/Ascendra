@@ -1,0 +1,936 @@
+{
+  "slug": "agent-indirect-prompt-injection",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Escalate, read the logs, close the image channel and quarantine untrusted input by 15 min, human approval for high-impact tools, preserve, search; notify everyone with a stake",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reviewLogs",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "blockEgress",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 15,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "quarantineInbound",
+          "seq": 7,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 20,
+          "seq": 8,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "restrictTools",
+          "params": {
+            "how": "hitl"
+          },
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 25,
+          "seq": 10,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 33,
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "searchKb",
+          "seq": 13,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 43,
+          "seq": 14,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 15,
+          "tick": 43
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 43
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 17,
+          "tick": 43
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "indirect",
+            "data": "sent"
+          },
+          "seq": 18,
+          "tick": 43
+        }
+      ],
+      "expect": {
+        "ending": "contained",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "exfilClosed": "met",
+          "agencyCut": "met",
+          "scope": "met",
+          "evidence": "met",
+          "quarantined": "met",
+          "keptService": "met",
+          "escalated": "met",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "leakedK": 72,
+          "minToClose": 15,
+          "sources": 1
+        },
+        "stateHash": "92b306b5742ad5de"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "promptOnly",
+      "title": "Without reading the logs, adds a line to the system prompt: the forum article is poisoned at 25 min and the agent pays out refunds at 45",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "restrictTools",
+          "params": {
+            "how": "promptOnly"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 15,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 25,
+          "seq": 6,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 35,
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 45,
+          "seq": 10,
+          "tick": 35
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 11,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "it"
+          },
+          "seq": 12,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "jailbreak",
+            "data": "none"
+          },
+          "seq": 13,
+          "tick": 45
+        }
+      ],
+      "expect": {
+        "ending": "refundFraud",
+        "class": "harm",
+        "rating": "bad",
+        "score": 15,
+        "criteria": {
+          "exfilClosed": "missed",
+          "agencyCut": "missed",
+          "scope": "missed",
+          "evidence": "missed",
+          "quarantined": "missed",
+          "keptService": "met",
+          "escalated": "missed",
+          "notifiedCrit": "partial",
+          "record": "missed"
+        },
+        "kpis": {
+          "leakedK": 177,
+          "minToClose": -1,
+          "sources": 2
+        },
+        "stateHash": "c03d9d543bd411ca"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "agentOff",
+      "title": "Turns the agent off at once, then preserves, investigates and searches: safe, but support is down",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "agentOff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "reviewLogs",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 18,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "searchKb",
+          "seq": 7,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 28,
+          "seq": 8,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 30,
+          "seq": 10,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 13,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "indirect",
+            "data": "sent"
+          },
+          "seq": 14,
+          "tick": 30
+        }
+      ],
+      "expect": {
+        "ending": "containedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 70,
+        "criteria": {
+          "exfilClosed": "met",
+          "agencyCut": "met",
+          "scope": "met",
+          "evidence": "met",
+          "quarantined": "missed",
+          "keptService": "missed",
+          "escalated": "partial",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "leakedK": 42,
+          "minToClose": 0,
+          "sources": 1
+        },
+        "stateHash": "29ca5d997676a8b6"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "purgeFirst",
+      "title": "Closes the channel and gates the tools, finds the poisoned article and deletes it before keeping any evidence",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "reviewLogs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 8,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "blockEgress",
+          "seq": 3,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 13,
+          "seq": 4,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "restrictTools",
+          "params": {
+            "how": "hitl"
+          },
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 18,
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 28,
+          "seq": 8,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 28,
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "searchKb",
+          "seq": 10,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 38,
+          "seq": 11,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "purgeKb",
+          "seq": 12,
+          "tick": 38
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 46,
+          "seq": 13,
+          "tick": 38
+        },
+        {
+          "type": "act",
+          "action": "quarantineInbound",
+          "seq": 14,
+          "tick": 46
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 51,
+          "seq": 15,
+          "tick": 46
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 16,
+          "tick": 51
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 17,
+          "tick": 51
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 18,
+          "tick": 51
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "indirect",
+            "data": "sent"
+          },
+          "seq": 19,
+          "tick": 51
+        }
+      ],
+      "expect": {
+        "ending": "evidenceLost",
+        "class": "harm",
+        "rating": "bad",
+        "score": 75,
+        "criteria": {
+          "exfilClosed": "met",
+          "agencyCut": "met",
+          "scope": "met",
+          "evidence": "missed",
+          "quarantined": "met",
+          "keptService": "met",
+          "escalated": "missed",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "leakedK": 66,
+          "minToClose": 13,
+          "sources": 2
+        },
+        "stateHash": "e7bebb6a1cb22594"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "lateQuarantine",
+      "title": "Watches until 26 min: the forum article is poisoned; then closes the channel, gates the tools, quarantines, preserves, finds and removes the article",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "reviewLogs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 8,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 18,
+          "seq": 4,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 28,
+          "seq": 6,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 28,
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "blockEgress",
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 33,
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "restrictTools",
+          "params": {
+            "how": "hitl"
+          },
+          "seq": 10,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 38,
+          "seq": 11,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "quarantineInbound",
+          "seq": 12,
+          "tick": 38
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 43,
+          "seq": 13,
+          "tick": 38
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 14,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 51,
+          "seq": 15,
+          "tick": 43
+        },
+        {
+          "type": "act",
+          "action": "searchKb",
+          "seq": 16,
+          "tick": 51
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 61,
+          "seq": 17,
+          "tick": 51
+        },
+        {
+          "type": "act",
+          "action": "purgeKb",
+          "seq": 18,
+          "tick": 61
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 69,
+          "seq": 19,
+          "tick": 61
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 20,
+          "tick": 69
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 71,
+          "seq": 21,
+          "tick": 69
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 22,
+          "tick": 71
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 23,
+          "tick": 71
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 24,
+          "tick": 71
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "indirect",
+            "data": "sent"
+          },
+          "seq": 25,
+          "tick": 71
+        }
+      ],
+      "expect": {
+        "ending": "containedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 90,
+        "criteria": {
+          "exfilClosed": "met",
+          "agencyCut": "met",
+          "scope": "met",
+          "evidence": "met",
+          "quarantined": "met",
+          "keptService": "met",
+          "escalated": "partial",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "leakedK": 126,
+          "minToClose": 33,
+          "sources": 2
+        },
+        "stateHash": "361449e432c9c9ae"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "egressOnly",
+      "title": "Blocks the image channel and preserves, but leaves the tools and the inbox as they were",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "blockEgress",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reviewLogs",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 13,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 21,
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 7,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "nobody"
+          },
+          "seq": 9,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "indirect",
+            "data": "sent"
+          },
+          "seq": 10,
+          "tick": 21
+        }
+      ],
+      "expect": {
+        "ending": "stillOpen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "exfilClosed": "met",
+          "agencyCut": "missed",
+          "scope": "partial",
+          "evidence": "met",
+          "quarantined": "missed",
+          "keptService": "met",
+          "escalated": "missed",
+          "notifiedCrit": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "leakedK": 42,
+          "minToClose": -1,
+          "sources": 1
+        },
+        "stateHash": "39fc9b49a0b786c4"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}
