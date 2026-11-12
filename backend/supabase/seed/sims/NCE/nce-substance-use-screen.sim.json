@@ -1,0 +1,1479 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "nce-substance-use-screen",
+  "title": "Session: a court-referred substance use assessment",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Curtis Bell",
+        "presentation": "{distress >= 6 ? \"Jaw tight, arms crossed, foot tapping\" : distress >= 3 ? \"Leaning back, answering briefly\" : \"Settled, elbows on his knees\"}; {rapport >= 6 ? \"he talks to you straight\" : rapport >= 3 ? \"he sizes you up between answers\" : \"he looks at the clock\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "auditNote",
+          "label": "AUDIT",
+          "text": "Total 24 of 40 (fictional): in the band the AUDIT authors read as likely alcohol dependence (15 or more).",
+          "when": "auditDone"
+        },
+        {
+          "id": "qfNote",
+          "label": "Drinking",
+          "text": "8 to 10 beers most nights, more on weekends, for about four years.",
+          "when": "qfAsked"
+        },
+        {
+          "id": "wdNote",
+          "label": "Withdrawal",
+          "text": "Morning shakes and sweats most days; last spring, two days after stopping, he 'saw bugs on the wall'.",
+          "when": "withdrawalKnown",
+          "alert": "withdrawalKnown and not medExplained"
+        },
+        {
+          "id": "otherNote",
+          "label": "Other substances",
+          "text": "Takes a friend's alprazolam 'a couple times a week' to sleep. No other drugs.",
+          "when": "otherAsked",
+          "alert": "otherAsked and not medExplained"
+        },
+        {
+          "id": "critNote",
+          "label": "DSM criteria (past 12 months)",
+          "text": "7 of 11: more than intended, failed cutting down, craving, use despite problems at home, hazardous use (driving), tolerance, withdrawal.",
+          "when": "criteriaAsked"
+        },
+        {
+          "id": "siNote",
+          "label": "Suicide screen",
+          "text": "Denies thoughts of suicide or wishing to be dead; no past attempts.",
+          "when": "siAsked"
+        }
+      ],
+      "record": {
+        "label": "Assessment so far",
+        "items": [
+          {
+            "label": "Limits of confidentiality and the court report explained",
+            "when": "not isNull(limitsAt)"
+          },
+          {
+            "label": "Written release for the court signed",
+            "when": "releaseSigned"
+          },
+          {
+            "label": "Medical withdrawal evaluation explained",
+            "when": "medExplained"
+          },
+          {
+            "label": "Recommendation: {rec}; severity: {sev}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Screen for substance use and match the client to a level of care",
+  "sources": [
+    {
+      "cite": "NBCC, NCE Content Outline (2023): Domain 2 Intake, Assessment, and Diagnosis, 12% (tasks H, M, P, S: determine level of care, select and interpret instruments, assess substance use, assess at-risk behaviors); Domain 1 F, S (limits of confidentiality, information to third parties)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.nbcc.org/assets/exam/nce_content_outline.pdf",
+      "note": "Current outline; NBCC's new blueprint takes effect 2027-07-01."
+    },
+    {
+      "cite": "AUDIT (Alcohol Use Disorders Identification Test), scoring guidance on auditscreen.org (site of the test's lead author, J. B. Saunders)",
+      "checkedAt": "2026-11-11",
+      "url": "https://auditscreen.org/about/scoring-audit/",
+      "note": "Total 1-7: low-risk consumption; 8-14: hazardous or harmful consumption; 15 or more: likely alcohol dependence (moderate-severe alcohol use disorder). The client's score is fictional."
+    },
+    {
+      "cite": "NIAAA, Alcohol Use Disorder: A Comparison Between DSM-IV and DSM-5 (updated April 2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.niaaa.nih.gov/publications/brochures-and-fact-sheets/alcohol-use-disorder-comparison-between-dsm",
+      "note": "11 criteria in the same 12-month period; mild 2-3, moderate 4-5, severe 6 or more. DSM-5, not DSM-5-TR: that the counts are unchanged in DSM-5-TR is an inference, not read in the manual."
+    },
+    {
+      "cite": "ASAM, About the ASAM Criteria (Fourth Edition, 2023)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.asam.org/asam-criteria/about-the-asam-criteria",
+      "note": "A multidimensional assessment (six dimensions) to match the level of care; the page does not list the dimension names or level numbers, so the scenario attributes none to ASAM. Withdrawal risk needing a medical evaluation before stopping is the scenario's teaching point (FLAG: not a quoted ASAM rule)."
+    },
+    {
+      "cite": "ACA Code of Ethics (2014): A.2.a informed consent; B.1.d explanation of limitations; B.2.a serious and foreseeable harm and legal requirements; B.6.g disclosure or transfer (written permission)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.counseling.org/docs/default-source/default-document-library/ethics/2014-aca-code-of-ethics.pdf",
+      "note": "The current code per counseling.org (read 2026-11-11). B.6.g: unless exceptions to confidentiality exist, counselors obtain written permission to disclose or transfer records to legitimate third parties. Federal 42 CFR Part 2 rules for substance use program records were not read and are not taught here."
+    },
+    {
+      "cite": "SAMHSA, 988 Suicide & Crisis Lifeline: 'Call or Text 988' (page modified 2025-11-13)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.samhsa.gov/mental-health/988"
+    }
+  ],
+  "brief": {
+    "situation": "Curtis Bell, 44 (a fictional client), an HVAC technician, was arrested for driving under the influence three weeks ago, his first arrest. The court has ordered a substance use assessment and a treatment recommendation from a licensed counselor before his next hearing, and sent your agency its release form. He is married with two teenagers. This is the assessment session at an outpatient counseling agency; you have 50 minutes.",
+    "handover": [
+      "Court referral: 'Assess and recommend.' Release form attached, unsigned. No prior treatment."
+    ],
+    "howItWorks": [
+      "Choose what to ask and how to respond from the action groups. Curtis answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "His rapport, distress and how much he discloses change with what you say. What he tells you depends on the trust you have built.",
+      "The hour ends at 50 minutes. After the session you record the severity and the recommendation and decide what goes to the court; then you write a short formulation."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "1min",
+    "maxDuration": "70min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-11",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-11",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-11",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 3,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "limitsAt": {
+      "type": "time",
+      "init": null
+    },
+    "releaseSigned": {
+      "type": "bool",
+      "init": false
+    },
+    "auditDone": {
+      "type": "bool",
+      "init": false
+    },
+    "qfAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "withdrawalAt": {
+      "type": "time",
+      "init": null
+    },
+    "withdrawalKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "withdrawalDenied": {
+      "type": "bool",
+      "init": false
+    },
+    "otherAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "criteriaAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "siAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "labeled": {
+      "type": "bool",
+      "init": false
+    },
+    "coldTurkey": {
+      "type": "bool",
+      "init": false
+    },
+    "medExplained": {
+      "type": "bool",
+      "init": false
+    },
+    "breach": {
+      "type": "bool",
+      "init": false
+    },
+    "reportSent": {
+      "type": "bool",
+      "init": false
+    },
+    "rec": {
+      "type": "enum",
+      "values": [
+        "none",
+        "medical",
+        "outpatient",
+        "education"
+      ],
+      "init": "none"
+    },
+    "sev": {
+      "type": "enum",
+      "values": [
+        "none",
+        "mild",
+        "moderate",
+        "severe"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "limits",
+        "release",
+        "checkIn",
+        "reflect",
+        "audit",
+        "askQF",
+        "askWithdrawal",
+        "askOther",
+        "askCriteria",
+        "askSI",
+        "label",
+        "coldTurkeyAdvice",
+        "explainMedical",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "limits": {
+      "label": "Explain confidentiality, its limits, and what the court will and won't receive",
+      "group": "Open",
+      "available": "not talking and (isNull(limitsAt))",
+      "why": "Already explained.",
+      "effects": [
+        {
+          "log": "You explain what stays private, the legal limits (serious and foreseeable harm, abuse reporting, a court order), and that the court gets only what he agrees to in writing: attendance, the assessment's conclusion and the recommendation.",
+          "kind": "act"
+        },
+        {
+          "set": "limitsAt",
+          "to": "t"
+        },
+        {
+          "add": "rapport",
+          "by": "1.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "finding": "He uncrosses his arms. \"So you're not just the judge's spy.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "release": {
+      "label": "Go over the court's release form and ask for his written consent",
+      "group": "Open",
+      "available": "not talking and (not releaseSigned)",
+      "why": "Signed.",
+      "effects": [
+        {
+          "log": "You read the release with him: who receives what, for how long, and that he can revoke it.",
+          "kind": "act"
+        },
+        {
+          "cases": [
+            {
+              "when": "not isNull(limitsAt)",
+              "then": [
+                {
+                  "set": "releaseSigned",
+                  "to": "true"
+                },
+                {
+                  "finding": "He reads it twice and signs."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "\"Sign what, exactly? Nobody's told me what this is.\" He pushes it back."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "checkIn": {
+      "label": "Open question: 'What happened, in your own words?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "He has told you.",
+      "effects": [
+        {
+          "log": "You ask an open question and give him room.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Work party. I had a few, drove home. Got pulled over a mile from my house.\" He shakes his head. \"Stupid.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Curtis exhales. \"Yeah. My wife's barely talking to me.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "audit": {
+      "label": "Give the AUDIT screen and score it with him",
+      "group": "Assess",
+      "available": "not talking and (not auditDone)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You go through the ten AUDIT questions and add up the score together.",
+          "kind": "act"
+        },
+        {
+          "set": "auditDone",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "Total 24 of 40. He stares at the sheet. \"That's high, isn't it.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "5min"
+        }
+      ]
+    },
+    "askQF": {
+      "label": "Ask how much and how often he drinks",
+      "group": "Assess",
+      "available": "not talking and (not qfAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask about a typical day and week of drinking.",
+          "kind": "act"
+        },
+        {
+          "set": "qfAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Eight, ten beers most nights after work. More Saturdays. Four years, maybe.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askWithdrawal": {
+      "label": "Ask what happens when he stops or cuts down: shakes, sweats, seeing or hearing things, seizures",
+      "group": "Assess",
+      "available": "not talking and (not withdrawalKnown)",
+      "why": "He has told you.",
+      "effects": [
+        {
+          "log": "You ask what happens in his body when he goes without a drink.",
+          "kind": "act"
+        },
+        {
+          "if": "isNull(withdrawalAt)",
+          "then": [
+            {
+              "set": "withdrawalAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "set": "withdrawalKnown",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "2"
+                },
+                {
+                  "finding": "\"Shakes in the morning, sweating. Last spring I quit for a weekend and by Sunday I saw bugs on the wall.\" Withdrawal symptoms, including a hallucination."
+                },
+                {
+                  "log": "Withdrawal history: morning shakes, sweats, a hallucination on stopping.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "withdrawalDenied",
+                  "to": "true"
+                },
+                {
+                  "finding": "\"Nothing. I can stop whenever.\" (Not yet enough trust to say more.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askOther": {
+      "label": "Ask about other drugs, including sleeping pills and other people's prescriptions",
+      "group": "Assess",
+      "available": "not talking and (not otherAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask about other drugs and medicines, his own and other people's.",
+          "kind": "act"
+        },
+        {
+          "set": "otherAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"My buddy gives me Xanax a couple times a week to sleep.\" Alprazolam, a sedative, on top of heavy drinking."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askCriteria": {
+      "label": "Go through the DSM-5-TR substance use disorder criteria for the past 12 months",
+      "group": "Assess",
+      "available": "not talking and (not criteriaAsked)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You go through the criteria for the past 12 months with him.",
+          "kind": "act"
+        },
+        {
+          "set": "criteriaAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "Seven of eleven: more than intended, tried and failed to cut down, craving, kept drinking despite fights at home, drinking and driving, tolerance, withdrawal."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "askSI": {
+      "label": "Ask directly about suicidal thoughts",
+      "group": "Assess",
+      "available": "not talking and (not siAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask directly whether he has had thoughts of killing himself or wishing he were dead.",
+          "kind": "act"
+        },
+        {
+          "set": "siAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"No. Nothing like that. I'm embarrassed, not... no.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "label": {
+      "label": "Tell him plainly: 'You're an alcoholic, and you need to admit it.'",
+      "group": "Respond",
+      "available": "not talking and (not labeled)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You tell him he is an alcoholic and needs to admit it.",
+          "kind": "act"
+        },
+        {
+          "set": "labeled",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-2.5"
+        },
+        {
+          "add": "distress",
+          "by": "2"
+        },
+        {
+          "finding": "\"Here we go.\" He sits back and crosses his arms."
+        },
+        {
+          "log": "Labeling and confrontation raise resistance; motivational interviewing works with ambivalence instead.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "coldTurkeyAdvice": {
+      "label": "Advise him to stop drinking completely this weekend",
+      "group": "Respond",
+      "available": "not talking and (not coldTurkey)",
+      "why": "Already advised.",
+      "effects": [
+        {
+          "log": "You advise him to stop drinking completely, starting this weekend.",
+          "kind": "act"
+        },
+        {
+          "set": "coldTurkey",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Cold turkey. Okay. I can do that.\""
+        },
+        {
+          "log": "With daily heavy drinking and a history of withdrawal symptoms, stopping abruptly without a medical evaluation is risky.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "explainMedical": {
+      "label": "Explain why he needs a medical withdrawal evaluation before he stops, and arrange it",
+      "group": "Plan",
+      "available": "not talking and (not medExplained)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You explain that with daily heavy drinking, withdrawal symptoms and a sedative on top, stopping should start with a medical evaluation, and arrange one through his physician or a withdrawal management program.",
+          "kind": "act"
+        },
+        {
+          "set": "medExplained",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "withdrawalKnown or otherAsked",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "1"
+                },
+                {
+                  "finding": "\"The bugs thing. Yeah. That scared me.\" He agrees to the appointment."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "He shrugs. \"If you say so.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Withdrawal risk is a medical matter: evaluation before stopping.",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "End the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the severity and the recommendation",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Recorded.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Assessment record",
+          "fields": [
+            {
+              "id": "severity",
+              "label": "Alcohol use disorder severity (DSM-5-TR)",
+              "options": [
+                {
+                  "value": "mild",
+                  "label": "Mild"
+                },
+                {
+                  "value": "moderate",
+                  "label": "Moderate"
+                },
+                {
+                  "value": "severe",
+                  "label": "Severe"
+                }
+              ]
+            },
+            {
+              "id": "plan",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "medical",
+                  "label": "Medical withdrawal evaluation and management first, then intensive outpatient treatment"
+                },
+                {
+                  "value": "outpatient",
+                  "label": "Weekly outpatient counseling"
+                },
+                {
+                  "value": "education",
+                  "label": "A DUI education class only"
+                }
+              ]
+            },
+            {
+              "id": "court",
+              "label": "What goes to the court now",
+              "options": [
+                {
+                  "value": "release",
+                  "label": "The conclusion and recommendation, as the release covers"
+                },
+                {
+                  "value": "all",
+                  "label": "The full session notes"
+                },
+                {
+                  "value": "hold",
+                  "label": "Nothing yet; ask him to sign the release first"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "sev",
+          "to": "severity"
+        },
+        {
+          "set": "rec",
+          "to": "plan"
+        },
+        {
+          "cases": [
+            {
+              "when": "court == \"release\" and releaseSigned",
+              "then": [
+                {
+                  "set": "reportSent",
+                  "to": "true"
+                },
+                {
+                  "log": "Sent under his signed release: attendance, the conclusion and the recommendation.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "court == \"hold\"",
+              "then": [
+                {
+                  "log": "Nothing sent yet: the report waits for his signed release.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "breach",
+                  "to": "true"
+                },
+                {
+                  "log": "Sent to the court beyond (or without) his written consent.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: severity {severity}, recommendation {plan}, court {court}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-11",
+        "note": "A 50-minute outpatient session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "The client stands, says this is not helping, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictAudit",
+      "when": "auditDone and phase == \"session\"",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "auditBand"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "auditBand": {
+      "title": "Predict (not scored)",
+      "context": "Curtis scored 24 on the AUDIT. What does a total in this range suggest, by the scoring guidance of the test's authors?",
+      "choices": [
+        {
+          "id": "hazardous",
+          "label": "Hazardous or harmful drinking, not dependence",
+          "effects": [
+            {
+              "log": "Prediction: hazardous drinking.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not this high. On auditscreen.org, 8-14 suggests hazardous or harmful drinking; 15 or more indicates likely dependence (moderate-severe alcohol use disorder). A screen is not a diagnosis: the criteria interview decides."
+        },
+        {
+          "id": "dependence",
+          "label": "Likely dependence (moderate-severe alcohol use disorder)",
+          "effects": [
+            {
+              "log": "Prediction: likely dependence.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. On auditscreen.org, 15 or more indicates likely dependence (moderate-severe alcohol use disorder). A screen is not a diagnosis: the criteria interview decides."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your formulation for the court-ordered assessment: the severity and how you reached it, the level of care you recommend and why, and what you may send to the court.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Severity",
+          "criteria": "States severe alcohol use disorder from 7 of 11 criteria in 12 months (6 or more is severe), supported by the AUDIT score as a screen, not as the diagnosis; notes the sedative use.",
+          "modelAnswer": "Severe alcohol use disorder: 7 of 11 criteria in the past 12 months (6 or more is severe). The AUDIT of 24 is consistent (15 or more suggests likely dependence) but is a screen; the criteria interview is the basis. He also takes a friend's alprazolam, a sedative, a few times a week."
+        },
+        {
+          "label": "Level of care and the court",
+          "criteria": "Recommends a medical withdrawal evaluation before stopping (daily heavy drinking, withdrawal symptoms including a hallucination, a sedative on top), then intensive outpatient treatment; says the court receives only what his signed release covers.",
+          "modelAnswer": "His withdrawal history and sedative use make stopping a medical question first: a withdrawal evaluation and management, then intensive outpatient treatment. The court receives what his signed release covers (attendance, conclusion, recommendation), nothing more."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-11"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Asking about withdrawal within 20 minutes leaves time to arrange a medical evaluation inside the hour (author's scenario timing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and rec == \"education\"",
+      "class": "harm",
+      "rationale": "Daily heavy drinking with withdrawal symptoms and a sedative: an education class alone leaves him to stop or continue unsupervised; waiting is not reasonable.",
+      "source": {
+        "cite": "ASAM, About the ASAM Criteria (Fourth Edition, 2023)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.asam.org/asam-criteria/about-the-asam-criteria",
+        "note": "A multidimensional assessment (six dimensions) to match the level of care; the page does not list the dimension names or level numbers, so the scenario attributes none to ASAM. Withdrawal risk needing a medical evaluation before stopping is the scenario's teaching point (FLAG: not a quoted ASAM rule)."
+      }
+    }
+  },
+  "endings": {
+    "breach": {
+      "label": "Confidentiality broken",
+      "class": "harm",
+      "when": "documented and breach",
+      "terminal": true,
+      "narrative": "The court received Curtis's assessment without his written consent: a disclosure with no legal basis, and the alliance with it."
+    },
+    "walkout": {
+      "label": "He walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Curtis left mid-assessment. He drinks daily with withdrawal symptoms, and nobody has told him why stopping on his own is risky."
+    },
+    "unsafe": {
+      "label": "Unsafe recommendation",
+      "class": "harm",
+      "when": "documented and (coldTurkey or rec != \"medical\")",
+      "terminal": true,
+      "narrative": "Curtis left without a medical withdrawal evaluation{coldTurkey ? \", told to stop drinking completely this weekend\" : \"\"}: with his withdrawal history and a sedative on top, that is a foreseeable medical risk."
+    },
+    "matched": {
+      "label": "Matched to care",
+      "class": "target",
+      "when": "documented and not walkedOut and not breach and not coldTurkey and not labeled and not isNull(limitsAt) and timeAt(limitsAt) <= 300 and releaseSigned and reportSent and auditDone and withdrawalKnown and timeAt(withdrawalAt) <= safetyWindow and otherAsked and criteriaAsked and siAsked and medExplained and rec == \"medical\" and sev == \"severe\" and rapport >= allianceTarget",
+      "terminal": true,
+      "narrative": "Curtis left with a medical withdrawal appointment, an intensive outpatient start date after it, and a clear idea of what the court will see."
+    },
+    "matchedGaps": {
+      "label": "Safe recommendation, with gaps",
+      "class": "recovered",
+      "when": "documented and rec == \"medical\" and not coldTurkey and not breach",
+      "terminal": true,
+      "narrative": "The recommendation is safe, but parts of the assessment, the consent or the report were late or missing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "breach",
+    "walkout",
+    "unsafe",
+    "matched",
+    "matchedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "withdrawalCrit",
+        "label": "Asked about withdrawal early and made it a medical step",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "coldTurkey",
+            "score": "missed",
+            "why": "Advised stopping abruptly."
+          },
+          {
+            "when": "withdrawalKnown and timeAt(withdrawalAt) <= safetyWindow and medExplained",
+            "score": "met",
+            "why": "Found the withdrawal history {timeAt(withdrawalAt) / 60} min in and arranged a medical evaluation."
+          },
+          {
+            "when": "medExplained or withdrawalKnown",
+            "score": "partial",
+            "why": "Asked late, or found it without arranging the medical step."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never established the withdrawal risk."
+          }
+        ]
+      },
+      {
+        "id": "screenCrit",
+        "label": "Screened fully: AUDIT, other substances, the criteria",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "auditDone and otherAsked and criteriaAsked",
+            "score": "met",
+            "why": "AUDIT, other substances and the 12-month criteria."
+          },
+          {
+            "when": "(auditDone ? 1 : 0) + (otherAsked ? 1 : 0) + (criteriaAsked ? 1 : 0) >= 2",
+            "score": "partial",
+            "why": "Two of the three."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The screen was incomplete."
+          }
+        ]
+      },
+      {
+        "id": "consentCrit",
+        "label": "Limits explained early; written release before anything went to the court",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "breach",
+            "score": "missed",
+            "why": "Sent to the court without written consent."
+          },
+          {
+            "when": "not isNull(limitsAt) and timeAt(limitsAt) <= 300 and releaseSigned and reportSent",
+            "score": "met",
+            "why": "Explained in the first five minutes; sent under his signed release."
+          },
+          {
+            "when": "not isNull(limitsAt) and releaseSigned",
+            "score": "partial",
+            "why": "Consent in place, but late or the report not sent."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Limits or the release not covered."
+          }
+        ]
+      },
+      {
+        "id": "recCrit",
+        "label": "Severity and level of care",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rec == \"medical\" and sev == \"severe\"",
+            "score": "met",
+            "why": "Severe; medical withdrawal evaluation, then intensive outpatient."
+          },
+          {
+            "when": "rec == \"medical\"",
+            "score": "partial",
+            "why": "The right level of care, but severity {sev}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Recommendation {rec}, severity {sev}."
+          }
+        ]
+      },
+      {
+        "id": "miCrit",
+        "label": "No labeling or confrontation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "labeled",
+            "score": "missed",
+            "why": "Labeled and confronted him."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Worked with him, not against him."
+          }
+        ]
+      },
+      {
+        "id": "siCrit",
+        "label": "Screened for suicide risk",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "siAsked",
+            "score": "met",
+            "why": "Asked directly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not asked."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToWithdrawal",
+        "label": "Minutes to the withdrawal question",
+        "value": "isNull(withdrawalAt) ? -1 : timeAt(withdrawalAt) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "Explain confidentiality, its limits and what the court will receive; go over the release and get his written consent."
+      },
+      {
+        "at": "5-20 min",
+        "text": "An open question and a reflection; then the AUDIT, quantity and frequency, and what happens when he stops."
+      },
+      {
+        "at": "20-40 min",
+        "text": "Other substances (the borrowed alprazolam), the 12-month criteria, a direct suicide question; explain and arrange a medical withdrawal evaluation."
+      },
+      {
+        "at": "After",
+        "text": "Record severe alcohol use disorder and the recommendation; send the court only what the release covers."
+      }
+    ],
+    "debrief": {
+      "matched": {
+        "headline": "Good: matched to safe care",
+        "body": "You built enough trust to hear the withdrawal history, screened fully, made stopping a medical step, and kept the court report inside his consent."
+      },
+      "matchedGaps": {
+        "headline": "Safe, with gaps",
+        "body": "The recommendation is safe; the criteria below show what was late or missing."
+      },
+      "unsafe": {
+        "headline": "An unsafe recommendation",
+        "body": "Daily heavy drinking with withdrawal symptoms and a sedative calls for a medical evaluation before stopping. Advice to quit cold, or weekly counseling alone, leaves that risk to chance."
+      },
+      "breach": {
+        "headline": "Confidentiality broken",
+        "body": "A court referral does not by itself authorize disclosure: the release covers what goes to the court, signed before anything is sent (ACA B.6.g)."
+      },
+      "walkout": {
+        "headline": "The alliance broke",
+        "body": "Labeling and confrontation raise resistance. Explaining the limits, reflecting and asking openly keep a mandated client talking."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A mandated client needs the limits of confidentiality and a written release first. Trust then opens up the withdrawal history, which, with daily heavy drinking and a borrowed sedative, makes stopping a medical question. The AUDIT screens; the 12-month criteria decide severity (7 of 11 is severe). The level of care is a medical withdrawal evaluation, then intensive outpatient treatment, and the court gets only what the release covers."
+  }
+}

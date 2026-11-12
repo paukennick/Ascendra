@@ -1,0 +1,906 @@
+{
+  "slug": "nce-substance-use-screen",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Limits and the release first, a check-in and reflection, AUDIT, the withdrawal question at minute 17, other drugs, the criteria, a suicide screen, a medical withdrawal evaluation",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "limits",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "release",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "checkIn",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 8,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "reflect",
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 10,
+          "seq": 8,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "audit",
+          "seq": 9,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "auditBand",
+          "choice": "dependence",
+          "seq": 10,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 15,
+          "seq": 11,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "askQF",
+          "seq": 12,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 17,
+          "seq": 13,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "askWithdrawal",
+          "seq": 14,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 7,
+          "to": 19,
+          "seq": 15,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "askOther",
+          "seq": 16,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 8,
+          "to": 21,
+          "seq": 17,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "askCriteria",
+          "seq": 18,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 9,
+          "to": 25,
+          "seq": 19,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "askSI",
+          "seq": 20,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 10,
+          "to": 27,
+          "seq": 21,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "explainMedical",
+          "seq": 22,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 11,
+          "to": 30,
+          "seq": 23,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 24,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "formulation",
+          "answered": true,
+          "seq": 25,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "severity": "severe",
+            "plan": "medical",
+            "court": "release"
+          },
+          "seq": 26,
+          "tick": 30
+        }
+      ],
+      "expect": {
+        "ending": "matched",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "withdrawalCrit": "met",
+          "screenCrit": "met",
+          "consentCrit": "met",
+          "recCrit": "met",
+          "miCrit": "met",
+          "siCrit": "met",
+          "alliance": "met"
+        },
+        "kpis": {
+          "minToWithdrawal": 17,
+          "rapportEnd": 8,
+          "minutes": 30
+        },
+        "stateHash": "a19ded0be3602207"
+      },
+      "reasoning": {
+        "formulation": "met"
+      }
+    },
+    {
+      "id": "lateWithdrawal",
+      "title": "The screen first and the withdrawal question at minute 22; limits and the release only at the end; moderate, medical",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "checkIn",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reflect",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "audit",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "choose",
+          "prompt": "auditBand",
+          "choice": "hazardous",
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 10,
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "askQF",
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 12,
+          "seq": 9,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "askCriteria",
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 16,
+          "seq": 11,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "askOther",
+          "seq": 12,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 18,
+          "seq": 13,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "reflect",
+          "seq": 14,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 7,
+          "to": 20,
+          "seq": 15,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "askSI",
+          "seq": 16,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 8,
+          "to": 22,
+          "seq": 17,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "askWithdrawal",
+          "seq": 18,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 9,
+          "to": 24,
+          "seq": 19,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "explainMedical",
+          "seq": 20,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 10,
+          "to": 27,
+          "seq": 21,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "limits",
+          "seq": 22,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 11,
+          "to": 30,
+          "seq": 23,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "release",
+          "seq": 24,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 12,
+          "to": 32,
+          "seq": 25,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 26,
+          "tick": 32
+        },
+        {
+          "type": "reason",
+          "moment": "formulation",
+          "answered": true,
+          "seq": 27,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "severity": "moderate",
+            "plan": "medical",
+            "court": "release"
+          },
+          "seq": 28,
+          "tick": 32
+        }
+      ],
+      "expect": {
+        "ending": "matchedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "withdrawalCrit": "partial",
+          "screenCrit": "met",
+          "consentCrit": "partial",
+          "recCrit": "partial",
+          "miCrit": "met",
+          "siCrit": "met",
+          "alliance": "met"
+        },
+        "kpis": {
+          "minToWithdrawal": 22,
+          "rapportEnd": 9,
+          "minutes": 32
+        },
+        "stateHash": "458212c4ac7f0f6e"
+      },
+      "reasoning": {
+        "formulation": "partial"
+      }
+    },
+    {
+      "id": "coldTurkey",
+      "title": "Limits and release, a short screen, then 'stop completely this weekend'; moderate, weekly outpatient",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "limits",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "release",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "checkIn",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 8,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "audit",
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "choose",
+          "prompt": "auditBand",
+          "choice": "dependence",
+          "seq": 8,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 13,
+          "seq": 9,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "askQF",
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 15,
+          "seq": 11,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "coldTurkeyAdvice",
+          "seq": 12,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 16,
+          "seq": 13,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 14,
+          "tick": 16
+        },
+        {
+          "type": "reason",
+          "moment": "formulation",
+          "answered": true,
+          "seq": 15,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "severity": "moderate",
+            "plan": "outpatient",
+            "court": "release"
+          },
+          "seq": 16,
+          "tick": 16
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 38,
+        "criteria": {
+          "withdrawalCrit": "missed",
+          "screenCrit": "missed",
+          "consentCrit": "met",
+          "recCrit": "missed",
+          "miCrit": "met",
+          "siCrit": "missed",
+          "alliance": "met"
+        },
+        "kpis": {
+          "minToWithdrawal": -1,
+          "rapportEnd": 6,
+          "minutes": 16
+        },
+        "stateHash": "c2cd909e194af844"
+      },
+      "reasoning": {
+        "formulation": "missed"
+      }
+    },
+    {
+      "id": "noRelease",
+      "title": "A good assessment and a safe recommendation, but the report goes to the court with no release signed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "checkIn",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "audit",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "choose",
+          "prompt": "auditBand",
+          "choice": "dependence",
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 8,
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "askWithdrawal",
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 10,
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "askOther",
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 12,
+          "seq": 9,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "askCriteria",
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 16,
+          "seq": 11,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "explainMedical",
+          "seq": 12,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 19,
+          "seq": 13,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 14,
+          "tick": 19
+        },
+        {
+          "type": "reason",
+          "moment": "formulation",
+          "answered": true,
+          "seq": 15,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "severity": "severe",
+            "plan": "medical",
+            "court": "release"
+          },
+          "seq": 16,
+          "tick": 19
+        }
+      ],
+      "expect": {
+        "ending": "breach",
+        "class": "harm",
+        "rating": "bad",
+        "score": 63,
+        "criteria": {
+          "withdrawalCrit": "met",
+          "screenCrit": "met",
+          "consentCrit": "missed",
+          "recCrit": "met",
+          "miCrit": "met",
+          "siCrit": "missed",
+          "alliance": "partial"
+        },
+        "kpis": {
+          "minToWithdrawal": 8,
+          "rapportEnd": 5,
+          "minutes": 19
+        },
+        "stateHash": "e7083b6c8eca3062"
+      },
+      "reasoning": {
+        "formulation": "partial"
+      }
+    },
+    {
+      "id": "classOnly",
+      "title": "Limits, a suicide screen, a label, then a DUI education class only",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "limits",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "release",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "checkIn",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 8,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "askSI",
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 10,
+          "seq": 8,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "label",
+          "seq": 9,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 11,
+          "seq": 10,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 11,
+          "tick": 11
+        },
+        {
+          "type": "reason",
+          "moment": "formulation",
+          "answered": true,
+          "seq": 12,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "severity": "mild",
+            "plan": "education",
+            "court": "release"
+          },
+          "seq": 13,
+          "tick": 11
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 31,
+        "criteria": {
+          "withdrawalCrit": "missed",
+          "screenCrit": "missed",
+          "consentCrit": "met",
+          "recCrit": "missed",
+          "miCrit": "missed",
+          "siCrit": "met",
+          "alliance": "partial"
+        },
+        "kpis": {
+          "minToWithdrawal": -1,
+          "rapportEnd": 3,
+          "minutes": 11
+        },
+        "stateHash": "b5f51d403372d01c"
+      },
+      "reasoning": {
+        "formulation": "missed"
+      }
+    },
+    {
+      "id": "rupture",
+      "title": "A label in the first minute: he walks out",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "label",
+          "seq": 1,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "walkout",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "withdrawalCrit": "missed",
+          "screenCrit": "missed",
+          "consentCrit": "missed",
+          "recCrit": "missed",
+          "miCrit": "missed",
+          "siCrit": "missed",
+          "alliance": "missed"
+        },
+        "kpis": {
+          "minToWithdrawal": -1,
+          "rapportEnd": 1,
+          "minutes": 0
+        },
+        "stateHash": "919aa9a2d94b30bc"
+      },
+      "reasoning": {
+        "formulation": "missed"
+      }
+    }
+  ]
+}

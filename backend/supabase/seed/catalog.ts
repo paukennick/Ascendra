@@ -33,6 +33,7 @@ import { CNCF_ECOSYSTEM_TRACKS } from "./tracks/cncf-ecosystem";
 import { REDHAT_TRACKS } from "./tracks/redhat-openshift";
 import { EMS_TRACKS } from "./tracks/ems";
 import { EPPP_TRACKS } from "./tracks/eppp";
+import { NBCC_TRACKS } from "./tracks/nbcc";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -72,6 +73,8 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...EMS_TRACKS,
   // REQ-224: mental health licensure, EPPP first (migration 077 category).
   ...EPPP_TRACKS,
+  // REQ-239: NBCC counseling licensure, NCE and NCMHCE (same category).
+  ...NBCC_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the
