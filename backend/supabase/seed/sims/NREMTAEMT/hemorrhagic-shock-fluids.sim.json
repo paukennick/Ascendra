@@ -1,0 +1,1384 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "hemorrhagic-shock-fluids",
+  "title": "Motorcycle into the guardrail",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate on the monitor",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120,
+              140
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "monitorOn"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last cycled",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "sub": "at {vAt|clock}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80,
+              70
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 94
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "monitorOn"
+        },
+        {
+          "id": "fluid",
+          "label": "Fluid in",
+          "spokenLabel": "Crystalloid infused so far",
+          "value": "fluidShown",
+          "unit": "mL",
+          "alarm": {
+            "high": 2000
+          },
+          "announce": {
+            "bands": [
+              1000,
+              2000
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "ivOn"
+        }
+      ],
+      "infusions": "Forearm: {tqOn ? \"tourniquet on\" : \"bleeding\"}. IV: {ivOn ? (wideOpen ? \"normal saline running wide open\" : (bolusLeft > 0 ? \"500 mL bolus running\" : \"saline at a keep-open rate\")) : \"none\"}. Warmed: {warm|yesno}. {isNull(departAt) ? \"On scene\" : (isNull(arrivedAt) ? \"En route\" : \"Arrived\")}.",
+      "banner": [
+        {
+          "when": "isNull(departAt)",
+          "text": "Highway shoulder. The motorcycle lies in the ditch; he is on his back on the gravel, helmet off."
+        }
+      ]
+    }
+  },
+  "objective": "Resuscitate hemorrhagic shock with hemorrhage control and IV fluids to a target blood pressure",
+  "secondaryObjectives": [
+    "Apply the field triage guideline to choose a destination for an injured patient",
+    "Evaluate the response to a fluid bolus or medication and change the plan"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. AEMT Examination Specifications (test plan)",
+      "checkedAt": "2026-11-09",
+      "url": "https://www.nremt.org/getmedia/ae90d9db-c974-49e1-a43b-f1dddd4ea365/AEMT-Test-Plan_Public_final",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-fetched for this scenario. Trauma 7-11% of items (hemorrhage control, IV fluids to a target blood pressure, field triage destination); Clinical Judgment 31-35% (evaluate the response to a fluid bolus)."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): General Trauma Management",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Adults: no IV fluids if SBP > 90 and HR < 120; if SBP < 90 or HR > 120, blood products if available, otherwise consider 500 mL boluses repeated for persistent shock, reassessing SBP after each; target SBP 90 mmHg (a palpable radial pulse or alert mental status); contact online medical direction after 2 L; avoid and treat hypothermia; minimize scene time (goal under 10 minutes) and transport rapidly to the highest level of care for major hemorrhage or hemodynamic instability."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Extremity Trauma/External Hemorrhage Management",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Direct pressure, then a commercial tourniquet 2-3 inches proximal to the wound, not over a joint, tightened until bleeding stops and the distal pulse is gone; mark the time."
+    },
+    {
+      "cite": "American College of Surgeons Committee on Trauma, with NAEMSP and partners. National Guideline for the Field Triage of Injured Patients (2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.facs.org/media/2zdltley/field-triage-handout-vfinal-revise.pdf",
+      "note": "Read 2026-11-11 in ACS's handout (primary): red criteria include active bleeding requiring a tourniquet or wound packing with continuous pressure, SBP < 90 or HR > SBP at age 10-64, motor GCS < 6, RR < 10 or > 29, room-air SpO2 < 90%; any red criterion: the highest-level trauma center available in the regional system; yellow (mechanism such as rider separated from a vehicle with significant impact): a trauma center, not necessarily the highest level."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019 (DOT HS 812 666), with Change Notices 1.0 and 2.0 (2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://ldh.la.gov/assets/oph/ems/2025/EMSEducation/National_EMS_Scope_of_Practice_Model_2019.pdf",
+      "note": "Read 2026-11-11 in a text extraction of the Louisiana copy (the extractor did not keep every table column, so placement was checked against the course's own reading of 2026-11-09 in ems-sources.ts). EMR: CPR and AED, tourniquet and wound packing, naloxone, oral airway, BVM, oxygen; no pulse oximetry, glucose monitoring, epinephrine auto-injector or transport. EMT adds pulse oximetry, glucose monitoring, epinephrine auto-injector, aspirin, oral glucose, CPAP, 12-lead acquisition (not interpretation), transport. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways and a limited list of IV and IM medications including dextrose and glucagon. Paramedic adds 12-lead interpretation, manual defibrillation, intubation and the wider formulary. No newer model was found 2026-11-11 (EMS.gov's page was unavailable; the only other 'update' found is the 2017 change notice adding tourniquets, wound packing and naloxone to EMR and EMT)."
+    },
+    {
+      "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage and adult blood volume about 7% of body weight",
+      "checkedAt": "2026-11-10",
+      "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+      "note": "FLAG: not re-read for this scenario; relayed from the CCRN bleeding case (2026-11-10, through OpenAnesthesia). Used only for the blood volume and the shape of the shock model."
+    }
+  ],
+  "brief": {
+    "situation": "16:05. You are the AEMT on an ambulance with an EMT partner at a highway crash: a 28-year-old motorcyclist, about 75 kg, came off at highway speed and hit the guardrail. Bystanders took his helmet off. Fire has made the scene safe.",
+    "handover": [
+      "St. Anne's Community Hospital (no trauma surgeon on site) is 8 minutes away; Regional Medical Center, a Level I trauma center, is 22 minutes away.",
+      "Within AEMT scope: IV and IO access, non-medicated IV fluids, tourniquets, oxygen, monitoring. No blood products or tranexamic acid on your unit.",
+      "Your partner can do one task at a time: hold pressure, take vital signs, or drive."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Scene time and the drive run on the clock; he keeps bleeding inside until a surgeon stops it. Fluids help his pressure but can make the bleeding worse.",
+      "Partway through you are asked to explain your decisions in writing. The case ends at the hospital, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "16:05",
+    "tick": "1s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "lostStart": {
+      "value": 1300,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 1.3 L already lost (a quarter of his blood volume) when you reach him. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "armRate": {
+      "value": 120,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. A deep forearm laceration with a spurting radial artery bleeding about 120 mL/min. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "internalBase": {
+      "value": 25,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. A splenic injury bleeding about 25 mL/min at an SBP of 90, faster at higher pressure. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "dilutionGain": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Each 2 L of crystalloid dilutes clotting enough to raise the internal bleeding rate by half. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "fluidShare": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Half of an infused crystalloid volume stays in the circulation over the minutes of a transport. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bolusRate": {
+      "value": 100,
+      "unit": "mL/min",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A 500 mL bolus through an 18-gauge line with a pressure bag: about 5 minutes."
+      }
+    },
+    "ivTime": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "An 18-gauge IV in a shocked patient: about 2 min (in a moving ambulance too)."
+      }
+    },
+    "tqTime": {
+      "value": 20,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A forearm tourniquet: about 20 s."
+      }
+    },
+    "vitalsTime": {
+      "value": 45,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A cuff cycle: about 45 s."
+      }
+    },
+    "loadTime": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Scoop stretcher, onto the cot and loaded: about 3 min."
+      }
+    },
+    "nearDrive": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "St. Anne's is 8 min away (authored)."
+      }
+    },
+    "farDrive": {
+      "value": 1320,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The Level I trauma center is 22 min away (authored)."
+      }
+    },
+    "sbpTarget": {
+      "value": 90,
+      "unit": "mmHg",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): General Trauma Management",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Adults: no IV fluids if SBP > 90 and HR < 120; if SBP < 90 or HR > 120, blood products if available, otherwise consider 500 mL boluses repeated for persistent shock, reassessing SBP after each; target SBP 90 mmHg (a palpable radial pulse or alert mental status); contact online medical direction after 2 L; avoid and treat hypothermia; minimize scene time (goal under 10 minutes) and transport rapidly to the highest level of care for major hemorrhage or hemodynamic instability."
+      }
+    },
+    "sbpHigh": {
+      "value": 110,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. A peak SBP above 110 mmHg counts as over-resuscitation for this case. NASEMSO targets 90 mmHg (110 for head injury, which he does not have). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "maxFluid": {
+      "value": 2000,
+      "unit": "mL",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): General Trauma Management",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Adults: no IV fluids if SBP > 90 and HR < 120; if SBP < 90 or HR > 120, blood products if available, otherwise consider 500 mL boluses repeated for persistent shock, reassessing SBP after each; target SBP 90 mmHg (a palpable radial pulse or alert mental status); contact online medical direction after 2 L; avoid and treat hypothermia; minimize scene time (goal under 10 minutes) and transport rapidly to the highest level of care for major hemorrhage or hemodynamic instability."
+      }
+    },
+    "sceneLimit": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): General Trauma Management",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Adults: no IV fluids if SBP > 90 and HR < 120; if SBP < 90 or HR > 120, blood products if available, otherwise consider 500 mL boluses repeated for persistent shock, reassessing SBP after each; target SBP 90 mmHg (a palpable radial pulse or alert mental status); contact online medical direction after 2 L; avoid and treat hypothermia; minimize scene time (goal under 10 minutes) and transport rapidly to the highest level of care for major hemorrhage or hemodynamic instability."
+      }
+    },
+    "arrestSbp": {
+      "value": 50,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. He loses his pulse when SBP falls below about 50 mmHg in this model. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "arrivalFloor": {
+      "value": 80,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Arriving with SBP of 80 mmHg or more counts as a resuscitation that held him. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "lost": {
+      "type": "number",
+      "init": "lostStart",
+      "min": 0,
+      "max": 6000,
+      "unit": "mL"
+    },
+    "fluidIn": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5000,
+      "unit": "mL"
+    },
+    "bolusLeft": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000,
+      "unit": "mL"
+    },
+    "boluses": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "sbpMax": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "tqOn": {
+      "type": "bool",
+      "init": false
+    },
+    "tqPending": {
+      "type": "bool",
+      "init": false
+    },
+    "monitorOn": {
+      "type": "bool",
+      "init": false
+    },
+    "ivOn": {
+      "type": "bool",
+      "init": false
+    },
+    "ivPending": {
+      "type": "bool",
+      "init": false
+    },
+    "wideOpen": {
+      "type": "bool",
+      "init": false
+    },
+    "warm": {
+      "type": "bool",
+      "init": false
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "o2On": {
+      "type": "bool",
+      "init": false
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "medControl": {
+      "type": "bool",
+      "init": false
+    },
+    "reassessedAll": {
+      "type": "bool",
+      "init": false
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "unreassessed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "dest": {
+      "type": "enum",
+      "values": [
+        "none",
+        "near",
+        "far"
+      ],
+      "init": "none"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "tqAt": {
+      "type": "time",
+      "init": null
+    },
+    "ivAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstFluidAt": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "deficit": {
+      "expr": "lost - fluidShare * fluidIn",
+      "unit": "mL"
+    },
+    "sbp": {
+      "expr": "round(clamp(130 - 0.05 * (deficit - 400), 30, 140))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.62)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(80 + 0.04 * (deficit - 400), 70, 160))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "o2On ? 98 : 94",
+      "unit": "%",
+      "precision": 0
+    },
+    "internalRate": {
+      "expr": "internalBase * clamp(sbp / sbpTarget, 0.3, 1.6) * (1 + dilutionGain * fluidIn / 2000)",
+      "unit": "mL/min"
+    },
+    "infuseRate": {
+      "expr": "ivOn and (wideOpen or bolusLeft > 0) ? bolusRate : 0",
+      "unit": "mL/min"
+    },
+    "fluidShown": {
+      "expr": "round(fluidIn / 50) * 50",
+      "unit": "mL",
+      "precision": 0
+    },
+    "radial": {
+      "expr": "sbp >= sbpTarget - 10"
+    },
+    "sceneTime": {
+      "expr": "isNull(departAt) ? t : timeAt(departAt) + loadTime"
+    }
+  },
+  "processes": [
+    {
+      "id": "bleed",
+      "when": "isNull(arrivedAt)",
+      "update": {
+        "lost": "lost + (internalRate + (tqOn ? 0 : armRate)) * dt / 60",
+        "fluidIn": "fluidIn + infuseRate * dt / 60",
+        "bolusLeft": "max(0, bolusLeft - (wideOpen ? 0 : infuseRate * dt / 60))",
+        "sbpMax": "max(sbpMax, ivOn ? sbp : 0)"
+      }
+    }
+  ],
+  "phases": {
+    "call": {
+      "label": "On the call",
+      "clock": "running",
+      "actions": [
+        "look",
+        "tourniquet",
+        "oxygen",
+        "monitor",
+        "vitals",
+        "warm",
+        "iv",
+        "bolus",
+        "wideOpen",
+        "slow",
+        "medControl",
+        "transport",
+        "notify"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "look": {
+      "label": "Primary survey: bleeding, airway, breathing, circulation",
+      "group": "Assess",
+      "available": "isNull(lookAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Bright red blood spurting from a deep gash on the left forearm. Talking, anxious, GCS 14. Breathing 24, clear and equal. Radial pulse weak and fast; skin pale, cool and clammy. Bruising across the left upper abdomen, tender and guarding; pelvis stable; no other deformity.",
+          "kind": "find"
+        }
+      ]
+    },
+    "tourniquet": {
+      "label": "Tourniquet on the upper arm, 2-3 inches above the wound",
+      "group": "Bleeding",
+      "available": "not tqOn and not tqPending",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "tqPending",
+          "to": "true"
+        },
+        {
+          "schedule": "tqT",
+          "after": "tqTime"
+        },
+        {
+          "log": "Commercial tourniquet on the upper arm, 2-3 inches above the wound, tightening."
+        }
+      ]
+    },
+    "oxygen": {
+      "label": "Oxygen",
+      "group": "Support",
+      "available": "not o2On",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "o2On",
+          "to": "true"
+        },
+        {
+          "log": "Non-rebreather mask."
+        }
+      ]
+    },
+    "monitor": {
+      "label": "Monitor: ECG, SpO2, cuff",
+      "group": "Assess",
+      "available": "not monitorOn",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "monitorOn",
+          "to": "true"
+        },
+        {
+          "log": "Monitor on."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Cycle the blood pressure and check the radial pulse",
+      "group": "Assess",
+      "available": "not vPending",
+      "why": "Already cycling.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "set": "monitorOn",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Cuff cycling."
+        }
+      ]
+    },
+    "warm": {
+      "label": "Cut off wet clothing, blankets, heat on in the ambulance",
+      "group": "Support",
+      "available": "not warm",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "warm",
+          "to": "true"
+        },
+        {
+          "log": "Wet leathers cut away; blankets; heater on."
+        }
+      ]
+    },
+    "iv": {
+      "label": "IV access, 18 gauge",
+      "group": "Fluids",
+      "available": "not ivOn and not ivPending",
+      "why": "In or in progress.",
+      "effects": [
+        {
+          "set": "ivPending",
+          "to": "true"
+        },
+        {
+          "schedule": "ivT",
+          "after": "ivTime"
+        },
+        {
+          "log": "Starting an 18-gauge IV in the right arm (about 2 min)."
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Normal saline 500 mL bolus, then reassess",
+      "group": "Fluids",
+      "available": "ivOn and bolusLeft == 0 and not wideOpen and fluidIn < maxFluid",
+      "why": "Needs an IV and no bolus running, or 2 L reached.",
+      "effects": [
+        {
+          "set": "bolusLeft",
+          "to": "500"
+        },
+        {
+          "add": "boluses",
+          "by": "1"
+        },
+        {
+          "add": "unreassessed",
+          "by": "1"
+        },
+        {
+          "if": "isNull(firstFluidAt)",
+          "then": [
+            {
+              "set": "firstFluidAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "500 mL saline on the pressure bag."
+        }
+      ]
+    },
+    "wideOpen": {
+      "label": "Run the saline wide open and keep it running",
+      "group": "Fluids",
+      "available": "ivOn and not wideOpen",
+      "why": "Needs an IV, or already wide open.",
+      "effects": [
+        {
+          "set": "wideOpen",
+          "to": "true"
+        },
+        {
+          "if": "isNull(firstFluidAt)",
+          "then": [
+            {
+              "set": "firstFluidAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Bag squeezed, roller clamp wide open."
+        }
+      ]
+    },
+    "slow": {
+      "label": "Slow the saline to a keep-open rate",
+      "group": "Fluids",
+      "available": "wideOpen or bolusLeft > 0",
+      "why": "Nothing running fast.",
+      "effects": [
+        {
+          "set": "wideOpen",
+          "to": "false"
+        },
+        {
+          "set": "bolusLeft",
+          "to": "0"
+        },
+        {
+          "log": "Saline slowed to keep the vein open."
+        }
+      ]
+    },
+    "medControl": {
+      "label": "Call online medical direction about further fluid",
+      "group": "Fluids",
+      "available": "not medControl and fluidIn >= 1500",
+      "why": "Only once he has had about 1.5-2 L.",
+      "effects": [
+        {
+          "set": "medControl",
+          "to": "true"
+        },
+        {
+          "log": "Medical direction: \"Keep him at a radial pulse, no more than one more bolus, get him to the trauma surgeons.\"",
+          "kind": "sys"
+        }
+      ]
+    },
+    "transport": {
+      "label": "Load and go",
+      "group": "Transport",
+      "available": "isNull(departAt)",
+      "why": "Already on the way.",
+      "params": [
+        {
+          "id": "where",
+          "kind": "choice",
+          "label": "Destination",
+          "options": [
+            {
+              "value": "far",
+              "label": "Regional Medical Center, Level I trauma center, 22 min"
+            },
+            {
+              "value": "near",
+              "label": "St. Anne's Community Hospital, 8 min"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "dest",
+          "to": "where"
+        },
+        {
+          "schedule": "arriveT",
+          "after": "loadTime + (where == \"far\" ? farDrive : nearDrive)"
+        },
+        {
+          "log": "Loading (about 3 min), then to {where == \"far\" ? \"the trauma center\" : \"St. Anne's\"}."
+        }
+      ]
+    },
+    "notify": {
+      "label": "Trauma alert to the receiving hospital",
+      "group": "Transport",
+      "available": "not isNull(departAt) and not notified",
+      "why": "Once you are moving.",
+      "effects": [
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "log": "Trauma alert: motorcycle versus guardrail, arm tourniquet at {timeAt(tqAt)|clock}, left upper abdominal injury, BP {vSbp}/{vDbp}, fluids so far, ETA."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "tqT": {
+      "label": "the tourniquet",
+      "wait": {
+        "skipLabel": "the tourniquet (about 20 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 20 s."
+      },
+      "effects": [
+        {
+          "set": "tqPending",
+          "to": "false"
+        },
+        {
+          "set": "tqOn",
+          "to": "true"
+        },
+        {
+          "if": "isNull(tqAt)",
+          "then": [
+            {
+              "set": "tqAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Arm bleeding stopped; time written on the tourniquet.",
+          "kind": "good"
+        }
+      ]
+    },
+    "ivT": {
+      "label": "the IV",
+      "wait": {
+        "skipLabel": "the IV (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 2 min."
+      },
+      "effects": [
+        {
+          "set": "ivPending",
+          "to": "false"
+        },
+        {
+          "set": "ivOn",
+          "to": "true"
+        },
+        {
+          "if": "isNull(ivAt)",
+          "then": [
+            {
+              "set": "ivAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "IV in, saline connected at a keep-open rate."
+        }
+      ]
+    },
+    "vitalsT": {
+      "label": "the blood pressure",
+      "wait": {
+        "skipLabel": "the cuff reading (about 45 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 45 s."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "vSbp",
+          "to": "sbp"
+        },
+        {
+          "set": "vDbp",
+          "to": "dbp"
+        },
+        {
+          "set": "unreassessed",
+          "to": "0"
+        },
+        {
+          "log": "BP {sbp}/{dbp}, HR {hr}; radial pulse {radial ? \"present\" : \"absent\"}.",
+          "kind": "find"
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival at the hospital"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Load and drive."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the hospital.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "bolusDone",
+      "when": "boluses > 0 and bolusLeft == 0 and not wideOpen",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Bolus in. Time to reassess.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "twoLitres",
+      "when": "fluidIn >= maxFluid",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Two liters of saline in.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "fading",
+      "when": "sbp < 70",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "He is confused and grey; no radial pulse.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(departAt) or t >= 480",
+      "question": "How much fluid did you give and to what end point, and why that destination?",
+      "parts": [
+        {
+          "label": "Fluids to a target",
+          "criteria": "Stop the bleeding you can (the arm tourniquet) first; IV en route rather than delaying on scene; 500 mL boluses, reassessing BP and radial pulse after each, to SBP about 90 or a radial pulse and alert mentation, not to a normal BP; no wide-open running; medical direction after 2 L; keep him warm. Raising the pressure and diluting clotting factors increases internal bleeding.",
+          "modelAnswer": "Tourniquet on the arm first. IV on the way, then 500 mL boluses, rechecking the blood pressure and radial pulse after each, aiming for a systolic around 90 or a radial pulse and a clear head, not a normal pressure. Never wide open; call medical direction near 2 L; keep him warm. More pressure and more saline make the spleen bleed faster."
+        },
+        {
+          "label": "Destination",
+          "criteria": "SBP < 90 and HR > SBP are red field-triage criteria (and the tourniquet is one too): the highest-level trauma center, even though it is further; scene time under 10 minutes; trauma alert.",
+          "modelAnswer": "SBP under 90 with a heart rate above it, and an arm needing a tourniquet, are red criteria: the Level I center, 22 minutes, because he needs a surgeon to stop the bleeding inside. Off the scene within 10 minutes, with a trauma alert."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(arrivedAt) and dest == \"near\"",
+      "class": "recovered",
+      "rationale": "He arrives alive at a hospital that cannot stop internal bleeding; a transfer to the trauma center follows. This case calls it recovered.",
+      "source": {
+        "cite": "American College of Surgeons Committee on Trauma, with NAEMSP and partners. National Guideline for the Field Triage of Injured Patients (2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.facs.org/media/2zdltley/field-triage-handout-vfinal-revise.pdf",
+        "note": "Read 2026-11-11 in ACS's handout (primary): red criteria include active bleeding requiring a tourniquet or wound packing with continuous pressure, SBP < 90 or HR > SBP at age 10-64, motor GCS < 6, RR < 10 or > 29, room-air SpO2 < 90%; any red criterion: the highest-level trauma center available in the regional system; yellow (mechanism such as rider separated from a vehicle with significant impact): a trauma center, not necessarily the highest level."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Traumatic arrest",
+      "class": "harm",
+      "terminal": true,
+      "when": "sbp < arrestSbp",
+      "narrative": "{t|clock}: no pulse. He has lost about {round(lost / 100) * 100} mL of blood; traumatic arrest from hemorrhage is rarely survivable."
+    },
+    "traumaCenter": {
+      "label": "To the trauma surgeons with a pulse",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and dest == \"far\" and sbp >= arrivalFloor and sbpMax <= sbpHigh and fluidIn <= maxFluid and not wideOpen and sceneTime <= sceneLimit and not isNull(tqAt) and timeAt(tqAt) <= 90",
+      "narrative": "{timeAt(arrivedAt)|clock}: the trauma team takes him to the CT scanner and then theatre; BP {sbp}/{dbp} with {fluidShown} mL of saline."
+    },
+    "traumaGaps": {
+      "label": "At the trauma center, by a harder route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and dest == \"far\"",
+      "narrative": "{timeAt(arrivedAt)|clock}: he reaches the trauma center, BP {sbp}/{dbp}, after {fluidShown} mL of saline. The route cost blood: scene time, the arm bleed, or fluids beyond the target."
+    },
+    "community": {
+      "label": "At a hospital that cannot stop the bleeding",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and dest == \"near\"",
+      "narrative": "{timeAt(arrivedAt)|clock}: St. Anne's confirms a splenic injury and calls for transfer to the trauma center; the surgeon is at least an hour away."
+    },
+    "time_up": {
+      "label": "An hour",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "An hour passed."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "traumaCenter",
+    "traumaGaps",
+    "community"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "bleedFirst",
+        "label": "Arm bleeding stopped first, within 90 s",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(tqAt)",
+            "score": "missed",
+            "why": "The arm kept spurting."
+          },
+          {
+            "when": "timeAt(tqAt) <= 90 and (isNull(ivAt) or timeAt(tqAt) <= timeAt(ivAt))",
+            "score": "met",
+            "why": "Tourniquet at {timeAt(tqAt)|clock}, before anything else."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Tourniquet only at {timeAt(tqAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "scene",
+        "label": "Off the scene within 10 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(departAt)",
+            "score": "missed",
+            "why": "Never left."
+          },
+          {
+            "when": "sceneTime <= sceneLimit",
+            "score": "met",
+            "why": "Scene time {sceneTime|duration}."
+          },
+          {
+            "when": "sceneTime <= sceneLimit * 1.5",
+            "score": "partial",
+            "why": "Scene time {sceneTime|duration}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Scene time {sceneTime|duration}."
+          }
+        ]
+      },
+      {
+        "id": "fluids",
+        "label": "Boluses to a target (SBP about 90, radial pulse), within 2 L",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "wideOpen or fluidIn > maxFluid + 100",
+            "score": "missed",
+            "why": "Fluid run wide open or past 2 L: {fluidShown} mL."
+          },
+          {
+            "when": "sbpMax > sbpHigh",
+            "score": "missed",
+            "why": "Pushed his pressure to {sbpMax}: over-resuscitation."
+          },
+          {
+            "when": "boluses == 0",
+            "score": "missed",
+            "why": "No fluid for an SBP below 90."
+          },
+          {
+            "when": "unreassessed > 0",
+            "score": "partial",
+            "why": "Boluses given without rechecking the pressure after the last."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "{boluses} boluses ({fluidShown} mL), peak SBP {sbpMax}."
+          }
+        ]
+      },
+      {
+        "id": "destination",
+        "label": "Highest-level trauma center for red criteria",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dest == \"far\"",
+            "score": "met",
+            "why": "The Level I trauma center."
+          },
+          {
+            "when": "dest == \"near\"",
+            "score": "missed",
+            "why": "St. Anne's has no trauma surgeon; SBP < 90 and a tourniquet are red criteria."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No destination chosen."
+          }
+        ]
+      },
+      {
+        "id": "warmth",
+        "label": "Prevented hypothermia",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "warm",
+            "score": "met",
+            "why": "Wet clothing off, blankets, heat."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left cold and wet."
+          }
+        ]
+      },
+      {
+        "id": "alert",
+        "label": "Trauma alert sent",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified",
+            "score": "met",
+            "why": "Alert sent."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No alert."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: fluid end point and destination",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toTq",
+        "label": "Contact to tourniquet",
+        "value": "isNull(tqAt) ? -1 : timeAt(tqAt)",
+        "format": "duration",
+        "expert": "under 30 s"
+      },
+      {
+        "id": "sceneK",
+        "label": "Scene time",
+        "value": "isNull(departAt) ? -1 : sceneTime",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "fluidK",
+        "label": "Saline given (mL)",
+        "value": "fluidShown",
+        "format": "number",
+        "expert": "500-1500"
+      },
+      {
+        "id": "sbpK",
+        "label": "Peak SBP on fluids (mmHg)",
+        "value": "sbpMax",
+        "format": "number",
+        "expert": "about 90-100"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "16:05",
+        "text": "Spurting forearm: tourniquet at once. Primary survey: talking, tachypneic, weak fast radial pulse, cool and clammy, tender bruised left upper abdomen: hemorrhagic shock, likely spleen."
+      },
+      {
+        "at": "16:06",
+        "text": "Oxygen, monitor, BP 85/53 with HR above it: red criteria. Wet clothing off, blankets. Load for the Level I center."
+      },
+      {
+        "at": "16:09",
+        "text": "Wheels rolling; trauma alert. IV en route; 500 mL bolus, recheck: SBP about 90, radial pulse back. Slow to keep-open."
+      },
+      {
+        "at": "~16:20",
+        "text": "Pressure drifting below 90: another 500 mL, recheck. Call medical direction if approaching 2 L. Never wide open."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "He arrested from blood loss",
+        "body": "Two things kill him here: the arm bleed you can stop and the spleen you cannot. Look at the tourniquet time, the scene time, and whether fluid was given at all or so much it drove the bleeding."
+      },
+      "traumaCenter": {
+        "headline": "To the surgeons with a pulse",
+        "body": "Tourniquet first, a short scene, the right center, and saline in measured boluses to a radial pulse. That is the expert path."
+      },
+      "traumaGaps": {
+        "headline": "Right place, harder route",
+        "body": "He made it to the trauma center. Check the scene time, the tourniquet, and whether the fluid followed a target or a feeling."
+      },
+      "community": {
+        "headline": "The wrong hospital for a bleeding spleen",
+        "body": "SBP below 90 with a heart rate above it and a tourniquet are red field-triage criteria: the highest-level trauma center, even 14 minutes further."
+      },
+      "time_up": {
+        "headline": "No hospital",
+        "body": "An hour passed."
+      }
+    },
+    "modelReasoning": "Stop the bleeding you can first: a tourniquet above the spurting forearm wound. The bruised, tender left upper abdomen with a fast weak pulse, cool clammy skin and SBP in the 80s is hemorrhagic shock from bleeding you cannot stop, so he needs a surgeon. SBP below 90 with a heart rate above it, and a tourniquet, are red field-triage criteria: the highest-level trauma center, with scene time under 10 minutes and a trauma alert. Start the IV en route. Give 500 mL boluses and reassess after each, targeting SBP about 90 or a radial pulse and alert mentation, not a normal pressure; never run wide open; involve medical direction after 2 L. Prevent hypothermia."
+  },
+  "chapters": [
+    {
+      "id": "rolling",
+      "label": "On the road",
+      "when": "not isNull(departAt)"
+    }
+  ],
+  "teaching": {
+    "target": {
+      "during": "ivT",
+      "ask": "While the IV goes in: what is your fluid end point for him?",
+      "choices": [
+        {
+          "id": "radial",
+          "label": "SBP about 90, a radial pulse, alert"
+        },
+        {
+          "id": "normal",
+          "label": "A normal blood pressure, about 120"
+        },
+        {
+          "id": "liters",
+          "label": "Two liters as fast as possible"
+        }
+      ],
+      "expect": "radial",
+      "explain": "NASEMSO: 500 mL boluses to a target SBP of 90 (a palpable radial pulse or alert mental status), reassessing after each; medical direction after 2 L.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): General Trauma Management",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Adults: no IV fluids if SBP > 90 and HR < 120; if SBP < 90 or HR > 120, blood products if available, otherwise consider 500 mL boluses repeated for persistent shock, reassessing SBP after each; target SBP 90 mmHg (a palpable radial pulse or alert mental status); contact online medical direction after 2 L; avoid and treat hypothermia; minimize scene time (goal under 10 minutes) and transport rapidly to the highest level of care for major hemorrhage or hemodynamic instability."
+      }
+    },
+    "whyFar": {
+      "during": "arriveT",
+      "ask": "On the way: why the trauma center 22 minutes away instead of the hospital 8 minutes away?",
+      "choices": [
+        {
+          "id": "red",
+          "label": "Red criteria: he needs a surgeon to stop internal bleeding"
+        },
+        {
+          "id": "beds",
+          "label": "It has more beds"
+        },
+        {
+          "id": "policy",
+          "label": "All motorcycle crashes go there"
+        }
+      ],
+      "expect": "red",
+      "explain": "Field triage 2021: SBP < 90 or HR > SBP (age 10-64) and active bleeding needing a tourniquet are red criteria: the highest-level trauma center in the system.",
+      "source": {
+        "cite": "American College of Surgeons Committee on Trauma, with NAEMSP and partners. National Guideline for the Field Triage of Injured Patients (2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.facs.org/media/2zdltley/field-triage-handout-vfinal-revise.pdf",
+        "note": "Read 2026-11-11 in ACS's handout (primary): red criteria include active bleeding requiring a tourniquet or wound packing with continuous pressure, SBP < 90 or HR > SBP at age 10-64, motor GCS < 6, RR < 10 or > 29, room-air SpO2 < 90%; any red criterion: the highest-level trauma center available in the regional system; yellow (mechanism such as rider separated from a vehicle with significant impact): a trauma center, not necessarily the highest level."
+      }
+    }
+  }
+}
