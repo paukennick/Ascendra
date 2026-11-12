@@ -94,6 +94,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "med-pass-error-caught"),
   entry("AWSSAA", "nat-gateway-bill-spike"),
   // ---- end REQ-233 ----
+  // ---- REQ-241 (bedside wave 2, EMS): prehospital bedside cases for the
+  // four NREMT courses, two each, within each level's scope of practice.
+  // Keep these entries together. ----
+  entry("NREMTEMR", "unresponsive-adult-cpr-aed"),
+  // ---- end REQ-241 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they

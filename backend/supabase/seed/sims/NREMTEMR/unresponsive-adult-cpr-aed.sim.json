@@ -1,0 +1,1761 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "unresponsive-adult-cpr-aed",
+  "title": "Collapse at the gym",
+  "screen": {
+    "type": "bedside",
+    "level": 1,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "pulse",
+          "label": "Pulse",
+          "spokenLabel": "Carotid pulse at your last check",
+          "value": "lastPulse",
+          "unit": "/min",
+          "sub": "checked at {checkAt|clock}",
+          "announce": {
+            "bands": [
+              1,
+              60
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "not isNull(checkAt)"
+        },
+        {
+          "id": "shocks",
+          "label": "Shocks",
+          "spokenLabel": "Shocks delivered by the AED",
+          "value": "shocks",
+          "unit": "shocks",
+          "announce": {
+            "bands": [
+              1,
+              2,
+              3
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "aedReady"
+        },
+        {
+          "id": "ccf",
+          "label": "Hands-on",
+          "spokenLabel": "Share of time with compressions since you started CPR (your CPR feedback device)",
+          "value": "ccfPct",
+          "unit": "%",
+          "alarm": {
+            "low": 60
+          },
+          "announce": {
+            "bands": [
+              80,
+              60
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(cprAt)"
+        },
+        {
+          "id": "since",
+          "label": "Since collapse",
+          "spokenLabel": "Minutes since he collapsed",
+          "value": "sinceMin",
+          "unit": "min",
+          "announce": {
+            "bands": [
+              4,
+              6,
+              8
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "infusions": "Compressions: {cprOn|yesno} ({compressor}). BVM 30:2: {ventOn|yesno}. AED pads on: {aedReady|yesno}.",
+      "banner": [
+        {
+          "when": "shockReady",
+          "text": "AED: \"Shock advised. Stand clear. Press the flashing button.\""
+        },
+        {
+          "when": "analyzing",
+          "text": "AED: \"Analyzing heart rhythm. Do not touch the patient.\""
+        },
+        {
+          "when": "analyzeDue and not analyzing and not shockReady",
+          "text": "AED: \"Stop CPR. Analyzing soon: stand clear.\""
+        },
+        {
+          "when": "not isNull(roscFoundAt)",
+          "text": "He has a pulse. He is not yet breathing normally."
+        },
+        {
+          "when": "crewHere",
+          "text": "{crewName} is at his side."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize cardiac arrest and perform high-quality CPR with an AED",
+  "secondaryObjectives": [
+    "Decide which resources to request early -- a transporting ambulance, ALS, fire, law enforcement, hazmat -- and say why",
+    "Hand over care to the transporting crew with a concise report"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. EMR Examination Specifications (test plan)",
+      "checkedAt": "2026-11-09",
+      "url": "https://nremt.org/getmedia/4657d30a-a955-43af-aa8f-a92388f0d9f4/EMR-Test-Plan_Public",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-fetched for this scenario. Primary Assessment 37-41% of items (recognize cardiac arrest, CPR with an AED); Patient Treatment and Transport 20-24% (hand over to the transporting crew)."
+    },
+    {
+      "cite": "Kleinman ME, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+      "checkedAt": "2026-11-11",
+      "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+      "note": "Read 2026-11-11 on cpr.heart.org (primary text): rate 100-120/min; depth at least 2 in (5 cm), not more than 6 cm; full recoil; pre- and post-shock pauses as short as possible; compression fraction at least 60% may be reasonable; 30:2 before an advanced airway; pulse check no more than 10 s; CPR until an AED is applied; resume compressions immediately after a shock; switch compressors about every 2 min."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Cardiac Arrest (VF/VT/Asystole/PEA)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). High-quality compressions with minimal interruptions, AED as soon as available, compressions resumed right after a shock, rhythm checks every 2 minutes, BVM with an oral airway; the EMR's AED analyzes and advises."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019 (DOT HS 812 666), with Change Notices 1.0 and 2.0 (2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://ldh.la.gov/assets/oph/ems/2025/EMSEducation/National_EMS_Scope_of_Practice_Model_2019.pdf",
+      "note": "Read 2026-11-11 in a text extraction of the Louisiana copy (the extractor did not keep every table column, so placement was checked against the course's own reading of 2026-11-09 in ems-sources.ts). EMR: CPR and AED, tourniquet and wound packing, naloxone, oral airway, BVM, oxygen; no pulse oximetry, glucose monitoring, epinephrine auto-injector or transport. EMT adds pulse oximetry, glucose monitoring, epinephrine auto-injector, aspirin, oral glucose, CPAP, 12-lead acquisition (not interpretation), transport. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways and a limited list of IV and IM medications including dextrose and glucagon. Paramedic adds 12-lead interpretation, manual defibrillation, intubation and the wider formulary. No newer model was found 2026-11-11 (EMS.gov's page was unavailable; the only other 'update' found is the 2017 change notice adding tourniquets, wound packing and naloxone to EMR and EMT)."
+    },
+    {
+      "cite": "American Heart Association. Mission: Lifeline EMS Recognition Criteria, 2027 awards (2026 data)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.heart.org/-/media/Files/Professional/Quality-Improvement/Mission-Lifeline/2027/ML-EMS-Recognition-Criteria-2027.pdf",
+      "note": "Read 2026-11-11 (primary PDF): 12-lead ECG within 10 minutes for suspected heart attack; STEMI pre-arrival notification within 10 minutes of the STEMI-positive ECG; EMS first medical contact to PCI within 90 minutes (or to thrombolytics within 60 minutes); stroke measures: LKW documented, glucose evaluated, stroke screen documented, pre-arrival notification (no scene-time threshold); OHCA: call to first compression within 420 seconds."
+    }
+  ],
+  "brief": {
+    "situation": "07:42. You and your partner are EMRs on a fire engine, first on scene at a gym. A 58-year-old man collapsed on a treadmill about 90 seconds before you walked in; staff called 911 and stood back. He lies on his back on the floor.",
+    "handover": [
+      "Dispatch sent a basic (BLS) ambulance, about 9 minutes out. Paramedics (ALS) come only if you ask for them.",
+      "Your partner carries the AED and the airway bag (oral airways, BVM). A staff member will help if you give clear jobs.",
+      "As an EMR you do not transport and do not interpret rhythms: the AED decides whether to shock."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Compressions run while 'Compressions: yes' shows. Checks, analysis and shocks need hands off the chest; every second off counts.",
+      "Partway through you are asked to explain your decisions in writing. The case ends when the ambulance crew takes over, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "07:42",
+    "tick": "1s",
+    "maxDuration": "15min",
+    "calendar": "clock"
+  },
+  "params": {
+    "noFlowLoss": {
+      "value": 0.0028,
+      "unit": "/s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Viability lost per second with no blood flow: from 1.0 to 0 in about 6 minutes, the familiar 'brain damage begins at 4-6 minutes' teaching. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "cprLoss": {
+      "value": 0.00055,
+      "unit": "/s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Viability lost per second during good compressions: about a fifth of the no-flow rate. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "tiredLoss": {
+      "value": 0.0011,
+      "unit": "/s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Viability lost per second once one compressor has gone past about 2.5 minutes without a switch: quality falls (AHA advises switching about every 2 min). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "shockThreshold": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. A shock converts VF to an organized rhythm when viability is at least 0.5. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "asystoleAt": {
+      "value": 0.3,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Below this viability VF degenerates to asystole. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "pulseLag": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. A palpable pulse appears about 30 s after a converting shock, so an immediate pulse check finds none. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "stintLimit": {
+      "value": 150,
+      "unit": "s",
+      "source": {
+        "cite": "Kleinman ME, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+        "checkedAt": "2026-11-11",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+        "note": "Switch compressors about every 2 min (COR 2a); 150 s allows the switch at the AED's 2-minute analysis."
+      }
+    },
+    "checkTime": {
+      "value": 8,
+      "unit": "s",
+      "source": {
+        "cite": "Kleinman ME, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+        "checkedAt": "2026-11-11",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+        "note": "Pulse and breathing check for no more than 10 s."
+      }
+    },
+    "padsTime": {
+      "value": 20,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Turning the AED on and placing pads on a bare, dry chest while compressions continue: about 20 s."
+      }
+    },
+    "analyzeTime": {
+      "value": 6,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "An AED's rhythm analysis and charge: about 6 s with hands off."
+      }
+    },
+    "cycleTime": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Cardiac Arrest (VF/VT/Asystole/PEA)",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). High-quality compressions with minimal interruptions, AED as soon as available, compressions resumed right after a shock, rhythm checks every 2 minutes, BVM with an oral airway; the EMR's AED analyzes and advises."
+      }
+    },
+    "alsEta": {
+      "value": 360,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "ALS intercept about 6 min from the request (authored)."
+      }
+    },
+    "blsEta": {
+      "value": 540,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The dispatched BLS ambulance arrives about 9 min after you (authored)."
+      }
+    },
+    "handoffGrace": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The arriving crew takes over within 2 min whether or not you report."
+      }
+    },
+    "shockWindow": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. First shock within 3 min of reaching him. The guidelines say 'as soon as an AED is available', without a number; Mission: Lifeline's call-to-first-compression goal is 7 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "startWindow": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Compressions within 30 s of reaching him: a 10-second check plus scene entry. AHA gives the 10-second check, not a start time. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ccfFloor": {
+      "value": 0.6,
+      "source": {
+        "cite": "Kleinman ME, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+        "checkedAt": "2026-11-11",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+        "note": "A chest compression fraction of at least 60% may be reasonable (COR 2b)."
+      }
+    },
+    "resumeLimit": {
+      "value": 10,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Compressions back on within 10 s of a shock. AHA says resume immediately; 10 s allows for hands back on the chest. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "viab": {
+      "type": "number",
+      "init": 0.75,
+      "min": 0,
+      "max": 1
+    },
+    "rhythm": {
+      "type": "enum",
+      "values": [
+        "vf",
+        "organized",
+        "asystole"
+      ],
+      "init": "vf"
+    },
+    "cprOn": {
+      "type": "bool",
+      "init": false
+    },
+    "ventOn": {
+      "type": "bool",
+      "init": false
+    },
+    "aedReady": {
+      "type": "bool",
+      "init": false
+    },
+    "analyzing": {
+      "type": "bool",
+      "init": false
+    },
+    "analyzeDue": {
+      "type": "bool",
+      "init": false
+    },
+    "shockReady": {
+      "type": "bool",
+      "init": false
+    },
+    "checking": {
+      "type": "bool",
+      "init": false
+    },
+    "gaspTrap": {
+      "type": "bool",
+      "init": false
+    },
+    "longStint": {
+      "type": "bool",
+      "init": false
+    },
+    "handoffFull": {
+      "type": "bool",
+      "init": false
+    },
+    "postCare": {
+      "type": "bool",
+      "init": false
+    },
+    "padsPending": {
+      "type": "bool",
+      "init": false
+    },
+    "compressor": {
+      "type": "enum",
+      "values": [
+        "nobody",
+        "you",
+        "your partner"
+      ],
+      "init": "nobody"
+    },
+    "lastPulse": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "/min"
+    },
+    "shocks": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20,
+      "unit": "shocks"
+    },
+    "cprTotal": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3600,
+      "unit": "s"
+    },
+    "offTotal": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3600,
+      "unit": "s"
+    },
+    "stint": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3600,
+      "unit": "s"
+    },
+    "resumeGapMax": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3600,
+      "unit": "s"
+    },
+    "sceneAt": {
+      "type": "time",
+      "init": null
+    },
+    "respAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstCheckAt": {
+      "type": "time",
+      "init": null
+    },
+    "cprAt": {
+      "type": "time",
+      "init": null
+    },
+    "padsAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstShockAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastShockAt": {
+      "type": "time",
+      "init": null
+    },
+    "convertedAt": {
+      "type": "time",
+      "init": null
+    },
+    "roscFoundAt": {
+      "type": "time",
+      "init": null
+    },
+    "alsAt": {
+      "type": "time",
+      "init": null
+    },
+    "crewAt": {
+      "type": "time",
+      "init": null
+    },
+    "handoffAt": {
+      "type": "time",
+      "init": null
+    },
+    "ventAt": {
+      "type": "time",
+      "init": null
+    },
+    "crewName": {
+      "type": "enum",
+      "values": [
+        "Nobody",
+        "The BLS crew",
+        "The paramedic crew"
+      ],
+      "init": "Nobody"
+    },
+    "resumedSinceShock": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "arrestBelieved": {
+      "expr": "isNull(roscFoundAt)"
+    },
+    "inArrest": {
+      "expr": "rhythm != \"organized\""
+    },
+    "crewHere": {
+      "expr": "not isNull(crewAt)"
+    },
+    "busy": {
+      "expr": "checking or analyzing"
+    },
+    "palpable": {
+      "expr": "rhythm == \"organized\" and not isNull(convertedAt) and t >= timeAt(convertedAt) + pulseLag"
+    },
+    "ccf": {
+      "expr": "cprTotal + offTotal > 0 ? cprTotal / (cprTotal + offTotal) : 0"
+    },
+    "ccfPct": {
+      "expr": "round(ccf * 100)",
+      "unit": "%",
+      "precision": 0
+    },
+    "sinceMin": {
+      "expr": "round((t + 90) / 6) / 10",
+      "unit": "min",
+      "precision": 1
+    }
+  },
+  "processes": [
+    {
+      "id": "flow",
+      "when": "inArrest",
+      "update": {
+        "viab": "max(0, viab - (cprOn ? (longStint ? tiredLoss : cprLoss) : noFlowLoss) * dt)"
+      }
+    },
+    {
+      "id": "fraction",
+      "when": "arrestBelieved and not isNull(cprAt)",
+      "update": {
+        "cprTotal": "cprTotal + (cprOn ? dt : 0)",
+        "offTotal": "offTotal + (cprOn ? 0 : dt)"
+      }
+    },
+    {
+      "id": "fatigue",
+      "when": "cprOn",
+      "update": {
+        "stint": "stint + dt"
+      }
+    }
+  ],
+  "phases": {
+    "scene": {
+      "label": "On scene",
+      "clock": "running",
+      "actions": [
+        "scene",
+        "tapShout",
+        "check",
+        "startCpr",
+        "recovery",
+        "requestAls",
+        "aedOn",
+        "analyze",
+        "shock",
+        "bvm",
+        "swap",
+        "postRosc",
+        "handoff"
+      ]
+    }
+  },
+  "initialPhase": "scene",
+  "actions": {
+    "scene": {
+      "label": "Size up the scene: safe to enter, gloves on",
+      "group": "Assess",
+      "available": "isNull(sceneAt)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(sceneAt)",
+          "then": [
+            {
+              "set": "sceneAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Treadmill stopped, floor dry, nothing live near him. Gloves on."
+        }
+      ]
+    },
+    "tapShout": {
+      "label": "Tap his shoulders and shout",
+      "group": "Assess",
+      "available": "isNull(respAt)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(respAt)",
+          "then": [
+            {
+              "set": "respAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "No response. Every 10 seconds or so he makes a snoring gasp.",
+          "kind": "find"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check breathing and carotid pulse together (no more than 10 s)",
+      "group": "Assess",
+      "available": "not busy",
+      "why": "Hands are busy with the AED analysis or a check already.",
+      "effects": [
+        {
+          "set": "checking",
+          "to": "true"
+        },
+        {
+          "if": "cprOn",
+          "then": [
+            {
+              "set": "cprOn",
+              "to": "false"
+            },
+            {
+              "log": "Compressions stopped for the check.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "schedule": "checkT",
+          "after": "checkTime"
+        },
+        {
+          "log": "Hand on the carotid, eyes on the chest."
+        }
+      ]
+    },
+    "startCpr": {
+      "label": "Start or resume compressions",
+      "group": "CPR",
+      "available": "not cprOn and not busy and arrestBelieved",
+      "why": "Compressions are already running, hands are off for analysis or a check, or he has a pulse.",
+      "effects": [
+        {
+          "if": "isNull(cprAt)",
+          "then": [
+            {
+              "set": "cprAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not isNull(lastShockAt) and not resumedSinceShock",
+          "then": [
+            {
+              "set": "resumeGapMax",
+              "to": "max(resumeGapMax, t - timeAt(lastShockAt))"
+            },
+            {
+              "set": "resumedSinceShock",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "set": "cprOn",
+          "to": "true"
+        },
+        {
+          "if": "compressor == \"nobody\"",
+          "then": [
+            {
+              "set": "compressor",
+              "to": "\"you\""
+            }
+          ]
+        },
+        {
+          "log": "Compressions: center of the chest, at least 2 inches, 100-120 a minute, full recoil."
+        }
+      ]
+    },
+    "recovery": {
+      "label": "He is gasping: roll him into the recovery position and watch",
+      "group": "CPR",
+      "available": "isNull(cprAt) and not gaspTrap",
+      "why": "Only before CPR has started.",
+      "effects": [
+        {
+          "set": "gaspTrap",
+          "to": "true"
+        },
+        {
+          "log": "You roll him onto his side. The gasps come further apart; his face is grey. Occasional gasps are agonal breathing, not breathing.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "requestAls": {
+      "label": "Radio dispatch: confirmed cardiac arrest, send paramedics (ALS)",
+      "group": "Call",
+      "available": "isNull(alsAt)",
+      "why": "Already requested.",
+      "effects": [
+        {
+          "if": "isNull(alsAt)",
+          "then": [
+            {
+              "set": "alsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "alsT",
+          "after": "alsEta"
+        },
+        {
+          "log": "Dispatch: \"Copy, cardiac arrest. Medic 12 responding, about 6 minutes.\"",
+          "kind": "sys"
+        }
+      ]
+    },
+    "aedOn": {
+      "label": "Partner: AED on, pads on his bare chest",
+      "group": "AED",
+      "available": "not aedReady and not padsPending",
+      "why": "The AED is on already.",
+      "effects": [
+        {
+          "set": "padsPending",
+          "to": "true"
+        },
+        {
+          "if": "isNull(padsAt)",
+          "then": [
+            {
+              "set": "padsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "padsT",
+          "after": "padsTime"
+        },
+        {
+          "log": "Your partner cuts the shirt, dries the chest and places the pads (about 20 s). Compressions can continue."
+        }
+      ]
+    },
+    "analyze": {
+      "label": "Stop compressions and stand clear for the AED's analysis",
+      "group": "AED",
+      "available": "aedReady and not busy and not shockReady and arrestBelieved",
+      "why": "The pads are not on yet, a shock is already advised, you are mid-check, or he has a pulse.",
+      "effects": [
+        {
+          "set": "cprOn",
+          "to": "false"
+        },
+        {
+          "set": "analyzeDue",
+          "to": "false"
+        },
+        {
+          "set": "analyzing",
+          "to": "true"
+        },
+        {
+          "schedule": "analyzeT",
+          "after": "analyzeTime"
+        },
+        {
+          "log": "\"Everybody clear!\" Hands off for the analysis."
+        }
+      ]
+    },
+    "shock": {
+      "label": "\"Clear!\" Look, then press shock",
+      "group": "AED",
+      "available": "shockReady",
+      "why": "The AED has not advised a shock.",
+      "effects": [
+        {
+          "set": "shockReady",
+          "to": "false"
+        },
+        {
+          "add": "shocks",
+          "by": "1"
+        },
+        {
+          "if": "isNull(firstShockAt)",
+          "then": [
+            {
+              "set": "firstShockAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastShockAt",
+          "to": "t"
+        },
+        {
+          "set": "resumedSinceShock",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "rhythm == \"vf\" and viab >= shockThreshold",
+              "then": [
+                {
+                  "set": "rhythm",
+                  "to": "\"organized\""
+                },
+                {
+                  "set": "convertedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "schedule": "cycleT",
+          "after": "cycleTime"
+        },
+        {
+          "log": "Shock delivered. AED: \"Begin CPR.\""
+        }
+      ]
+    },
+    "bvm": {
+      "label": "Partner: oral airway, BVM, 2 breaths after every 30 compressions",
+      "group": "CPR",
+      "available": "not ventOn and not isNull(cprAt) and isNull(roscFoundAt)",
+      "why": "Start compressions first, or he already has a pulse.",
+      "effects": [
+        {
+          "set": "ventOn",
+          "to": "true"
+        },
+        {
+          "if": "isNull(ventAt)",
+          "then": [
+            {
+              "set": "ventAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Oral airway sized and in, BVM with oxygen; each breath just enough to see the chest rise."
+        }
+      ]
+    },
+    "swap": {
+      "label": "Switch compressors with your partner (under 5 s)",
+      "group": "CPR",
+      "available": "cprOn",
+      "why": "Only while compressions are running.",
+      "effects": [
+        {
+          "set": "stint",
+          "to": "0"
+        },
+        {
+          "set": "longStint",
+          "to": "false"
+        },
+        {
+          "set": "compressor",
+          "to": "compressor == \"you\" ? \"your partner\" : \"you\""
+        },
+        {
+          "log": "Switch on the count; the new compressor starts at once."
+        }
+      ]
+    },
+    "postRosc": {
+      "label": "He has a pulse: keep the airway open, a breath every 6 s, recheck the pulse every 2 min",
+      "group": "CPR",
+      "available": "not isNull(roscFoundAt) and not postCare",
+      "why": "Only once a pulse has been found.",
+      "effects": [
+        {
+          "set": "postCare",
+          "to": "true"
+        },
+        {
+          "set": "ventOn",
+          "to": "true"
+        },
+        {
+          "log": "Head tilt-chin lift, a breath every 6 seconds, AED left on, pulse rechecked every 2 minutes."
+        }
+      ]
+    },
+    "handoff": {
+      "label": "Hand over to the arriving crew",
+      "group": "Call",
+      "available": "crewHere and isNull(handoffAt)",
+      "why": "No crew has arrived yet.",
+      "params": [
+        {
+          "id": "report",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "full",
+              "label": "Collapse about 07:40 with no bystander CPR, when CPR started, how many shocks and when, when the pulse came back, what he needs now"
+            },
+            {
+              "value": "vague",
+              "label": "\"He went down, we've been doing CPR, the AED shocked him a bit.\""
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(handoffAt)",
+          "then": [
+            {
+              "set": "handoffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "handoffFull",
+          "to": "report == \"full\""
+        },
+        {
+          "log": "You hand over."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "checkT": {
+      "label": "the check",
+      "wait": {
+        "skipLabel": "the end of the check (8 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Kleinman ME, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+        "checkedAt": "2026-11-11",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+        "note": "No more than 10 s."
+      },
+      "effects": [
+        {
+          "set": "checking",
+          "to": "false"
+        },
+        {
+          "if": "isNull(firstCheckAt)",
+          "then": [
+            {
+              "set": "firstCheckAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "checkAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "palpable",
+              "then": [
+                {
+                  "set": "lastPulse",
+                  "to": "88"
+                },
+                {
+                  "if": "isNull(roscFoundAt)",
+                  "then": [
+                    {
+                      "set": "roscFoundAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "set": "cprOn",
+                  "to": "false"
+                },
+                {
+                  "log": "A carotid pulse, about 88. No normal breathing yet.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "lastPulse",
+                  "to": "0"
+                },
+                {
+                  "log": "No pulse. Only an occasional gasp: no normal breathing.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "padsT": {
+      "label": "the pads",
+      "wait": {
+        "skipLabel": "pads on (about 20 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 20 s."
+      },
+      "effects": [
+        {
+          "set": "padsPending",
+          "to": "false"
+        },
+        {
+          "set": "aedReady",
+          "to": "true"
+        },
+        {
+          "set": "analyzeDue",
+          "to": "true"
+        },
+        {
+          "log": "AED: \"Stop CPR. Do not touch the patient. Analyzing...\" (it needs hands off)",
+          "kind": "alarm"
+        }
+      ]
+    },
+    "analyzeT": {
+      "label": "the analysis",
+      "wait": {
+        "skipLabel": "the end of the analysis (about 6 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 6 s."
+      },
+      "effects": [
+        {
+          "set": "analyzing",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "rhythm == \"vf\"",
+              "then": [
+                {
+                  "set": "shockReady",
+                  "to": "true"
+                },
+                {
+                  "log": "AED: \"Shock advised. Charging. Stand clear.\"",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "schedule": "cycleT",
+                  "after": "cycleTime"
+                },
+                {
+                  "log": "AED: \"No shock advised. If needed, begin CPR.\"",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "cycleT": {
+      "label": "the AED's next analysis",
+      "wait": {
+        "skipLabel": "the AED's 2-minute analysis"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Cardiac Arrest (VF/VT/Asystole/PEA)",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). High-quality compressions with minimal interruptions, AED as soon as available, compressions resumed right after a shock, rhythm checks every 2 minutes, BVM with an oral airway; the EMR's AED analyzes and advises."
+      },
+      "effects": [
+        {
+          "set": "analyzeDue",
+          "to": "true"
+        },
+        {
+          "log": "AED: \"Stop CPR. Analyzing soon. Stand clear.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    "alsT": {
+      "label": "the paramedics",
+      "wait": {
+        "skipLabel": "the paramedics (about 6 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 6 min."
+      },
+      "effects": [
+        {
+          "if": "isNull(crewAt)",
+          "then": [
+            {
+              "set": "crewAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "crewName",
+          "to": "\"The paramedic crew\""
+        },
+        {
+          "log": "Medic 12's paramedics walk in with the monitor.",
+          "kind": "good"
+        }
+      ]
+    },
+    "blsT": {
+      "label": "the BLS ambulance",
+      "wait": {
+        "skipLabel": "the BLS ambulance (about 9 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 9 min."
+      },
+      "effects": [
+        {
+          "if": "isNull(crewAt)",
+          "then": [
+            {
+              "set": "crewName",
+              "to": "\"The BLS crew\""
+            }
+          ]
+        },
+        {
+          "if": "isNull(crewAt)",
+          "then": [
+            {
+              "set": "crewAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The BLS ambulance crew arrives with the stretcher.",
+          "kind": "good"
+        }
+      ]
+    },
+    "graceT": {
+      "label": "the crew taking over",
+      "wait": {
+        "skipLabel": "the crew taking over"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Within 2 min."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "blsT",
+          "after": "blsEta"
+        }
+      ]
+    },
+    {
+      "id": "tired",
+      "when": "cprOn and stint > stintLimit",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "longStint",
+          "to": "true"
+        },
+        {
+          "log": "The compressions are getting shallow: {compressor} has been compressing for over 2 minutes.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "crew",
+      "when": "crewHere",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "schedule": "graceT",
+          "after": "handoffGrace"
+        },
+        {
+          "log": "{crewName} is here and ready for your report.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "fade",
+      "when": "rhythm == \"vf\" and viab < asystoleAt",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "rhythm",
+          "to": "\"asystole\""
+        },
+        {
+          "log": "The fibrillation has faded to a flat line.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "gasp",
+      "when": "gaspTrap and t >= 45 and isNull(cprAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "He has stopped gasping altogether.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(roscFoundAt) or t >= 240",
+      "question": "He was gasping when you arrived. What told you to start compressions, and why go straight back to compressions after a shock instead of checking for a pulse?",
+      "parts": [
+        {
+          "label": "Recognizing the arrest",
+          "criteria": "Unresponsive with no normal breathing (occasional gasps are agonal breathing, not breathing) and no definite pulse within a 10-second check means cardiac arrest: start compressions at once.",
+          "modelAnswer": "He did not respond, and the occasional snoring gasp is agonal breathing, a sign of cardiac arrest, not breathing. With no definite pulse in a check of 10 seconds or less, start compressions right away."
+        },
+        {
+          "label": "After the shock",
+          "criteria": "Resume compressions immediately after a shock; a pulse, if one returns, is usually not palpable at once, and the AED reanalyzes after 2 minutes. Keep every pause short to keep the compression fraction high.",
+          "modelAnswer": "Right after a shock the heart rarely pumps well enough to feel a pulse, so a pulse check just adds hands-off time. Resume compressions immediately and let the AED reanalyze at 2 minutes; check for a pulse when it advises no shock."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "crewHere and shocks == 0",
+      "class": "harm",
+      "rationale": "A shockable arrest handed over without a single shock lost the one treatment an EMR's AED offers; this case calls it harm.",
+      "source": {
+        "cite": "Kleinman ME, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+        "checkedAt": "2026-11-11",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+        "note": "Read 2026-11-11 on cpr.heart.org (primary text): rate 100-120/min; depth at least 2 in (5 cm), not more than 6 cm; full recoil; pre- and post-shock pauses as short as possible; compression fraction at least 60% may be reasonable; 30:2 before an advanced airway; pulse check no more than 10 s; CPR until an AED is applied; resume compressions immediately after a shock; switch compressors about every 2 min."
+      }
+    }
+  },
+  "endings": {
+    "asystole": {
+      "label": "Flat line before help arrived",
+      "class": "harm",
+      "when": "rhythm == \"asystole\"",
+      "terminal": true,
+      "narrative": "{t|clock}: the AED now advises no shock and there is no pulse: the fibrillation has died away to asystole. The chance he survives is now very small."
+    },
+    "noShock": {
+      "label": "The crew arrives to a VF arrest never shocked",
+      "class": "harm",
+      "when": "crewHere and shocks == 0 and inArrest and (not isNull(handoffAt) or t >= timeAt(crewAt) + handoffGrace)",
+      "terminal": true,
+      "narrative": "{crewName} attaches their own defibrillator and finds ventricular fibrillation that has gone {sinceMin} minutes without a shock."
+    },
+    "roscHandoff": {
+      "label": "Pulse back; clean handoff",
+      "class": "target",
+      "terminal": true,
+      "when": "crewHere and not isNull(roscFoundAt) and not isNull(handoffAt) and handoffFull and not gaspTrap and timeAt(cprAt) <= startWindow and timeAt(firstShockAt) <= shockWindow and ccf >= ccfFloor and resumeGapMax <= resumeLimit",
+      "narrative": "{timeAt(handoffAt)|clock}: {crewName} takes over a man with a pulse, an AED that shocked him once at {timeAt(firstShockAt)|clock}, and a clear report."
+    },
+    "roscGaps": {
+      "label": "Pulse back, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "crewHere and not isNull(roscFoundAt) and (not isNull(handoffAt) or t >= timeAt(crewAt) + handoffGrace)",
+      "narrative": "{crewName} takes over a man with a pulse, but the route there had gaps: a late start, a late shock, long pauses or a thin report."
+    },
+    "cprHandoff": {
+      "label": "Handed over still in arrest",
+      "class": "recovered",
+      "terminal": true,
+      "when": "crewHere and (not isNull(handoffAt) or t >= timeAt(crewAt) + handoffGrace)",
+      "narrative": "{crewName} takes over a resuscitation still under way. He has been shocked, but the first shock came late or the pauses were long."
+    },
+    "time_up": {
+      "label": "15 minutes on scene",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Fifteen minutes and no handover."
+    }
+  },
+  "endingOrder": [
+    "asystole",
+    "noShock",
+    "roscHandoff",
+    "roscGaps",
+    "cprHandoff"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "recognize",
+        "label": "Recognized the arrest and started compressions within 30 s",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "gaspTrap",
+            "score": "missed",
+            "why": "Treated agonal gasps as breathing and put him in the recovery position."
+          },
+          {
+            "when": "isNull(cprAt)",
+            "score": "missed",
+            "why": "Compressions never started."
+          },
+          {
+            "when": "not isNull(firstCheckAt) and timeAt(firstCheckAt) <= timeAt(cprAt) and timeAt(cprAt) <= startWindow",
+            "score": "met",
+            "why": "A 10-second check, then compressions at {timeAt(cprAt)|clock}."
+          },
+          {
+            "when": "timeAt(cprAt) <= startWindow * 2",
+            "score": "partial",
+            "why": "Compressions began at {timeAt(cprAt)|clock}, or without the breathing and pulse check."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Compressions began late, at {timeAt(cprAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "aed",
+        "label": "AED on and first shock within 3 min of reaching him",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(firstShockAt)",
+            "score": "missed",
+            "why": "No shock was ever delivered."
+          },
+          {
+            "when": "timeAt(firstShockAt) <= shockWindow",
+            "score": "met",
+            "why": "First shock at {timeAt(firstShockAt)|clock}."
+          },
+          {
+            "when": "timeAt(firstShockAt) <= shockWindow * 2",
+            "score": "partial",
+            "why": "First shock at {timeAt(firstShockAt)|clock}: later than it could have been."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "First shock at {timeAt(firstShockAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "quality",
+        "label": "Hands-off time kept short: compression fraction at least 60%, compressions back within 10 s of every shock",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(cprAt)",
+            "score": "missed",
+            "why": "No compressions."
+          },
+          {
+            "when": "ccf >= ccfFloor and resumeGapMax <= resumeLimit",
+            "score": "met",
+            "why": "Compression fraction {ccfPct}%; longest gap after a shock {resumeGapMax} s."
+          },
+          {
+            "when": "ccf >= ccfFloor or resumeGapMax <= resumeLimit",
+            "score": "partial",
+            "why": "Compression fraction {ccfPct}%; longest gap after a shock {resumeGapMax} s."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Compression fraction {ccfPct}%; longest gap after a shock {resumeGapMax} s."
+          }
+        ]
+      },
+      {
+        "id": "swap",
+        "label": "Switched compressors before fatigue set in",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(cprAt)",
+            "score": "missed",
+            "why": "No compressions."
+          },
+          {
+            "when": "stint > stintLimit or longStint",
+            "score": "missed",
+            "why": "One compressor went past 2.5 minutes without a switch."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Compressors switched in time."
+          }
+        ]
+      },
+      {
+        "id": "airway",
+        "label": "Oral airway and BVM, 30:2",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(ventAt)",
+            "score": "met",
+            "why": "BVM from {timeAt(ventAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Compressions only, no ventilation."
+          }
+        ]
+      },
+      {
+        "id": "als",
+        "label": "Asked for paramedics early",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(alsAt) and timeAt(alsAt) <= 60",
+            "score": "met",
+            "why": "ALS requested at {timeAt(alsAt)|clock}."
+          },
+          {
+            "when": "not isNull(alsAt)",
+            "score": "partial",
+            "why": "ALS requested at {timeAt(alsAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Paramedics were never requested."
+          }
+        ]
+      },
+      {
+        "id": "handoff",
+        "label": "Concise, complete handoff",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "handoffFull",
+            "score": "met",
+            "why": "Times, shocks, pulse found and what he needs now."
+          },
+          {
+            "when": "not isNull(handoffAt)",
+            "score": "partial",
+            "why": "The report left out times and shocks."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No report: the crew had to piece it together."
+          }
+        ]
+      },
+      {
+        "id": "post",
+        "label": "Supported him once the pulse was back",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(roscFoundAt)",
+            "score": "na",
+            "why": "No pulse was found."
+          },
+          {
+            "when": "postCare",
+            "score": "met",
+            "why": "Airway, a breath every 6 s, pulse rechecks."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing done after the pulse returned."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: agonal gasps and the post-shock pause",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCpr",
+        "label": "Arrival to first compression",
+        "value": "isNull(cprAt) ? -1 : timeAt(cprAt)",
+        "format": "duration",
+        "expert": "under 20 s"
+      },
+      {
+        "id": "toShock",
+        "label": "Arrival to first shock",
+        "value": "isNull(firstShockAt) ? -1 : timeAt(firstShockAt)",
+        "format": "duration",
+        "expert": "under 1 min"
+      },
+      {
+        "id": "ccfK",
+        "label": "Compression fraction (%)",
+        "value": "ccfPct",
+        "format": "number",
+        "expert": "over 80"
+      },
+      {
+        "id": "gapK",
+        "label": "Longest shock-to-compression gap",
+        "value": "resumeGapMax",
+        "format": "duration",
+        "expert": "under 5 s"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "07:42",
+        "text": "Scene safe, gloves. Tap and shout: no response, occasional gasps. Radio: confirmed arrest, send ALS."
+      },
+      {
+        "at": "07:42:05",
+        "text": "Breathing and pulse check, under 10 s: no pulse, gasps only. Compressions at once; partner puts the AED pads on while you compress."
+      },
+      {
+        "at": "07:42:40",
+        "text": "Clear for the analysis, shock, and back on the chest immediately. Partner: oral airway and BVM, 30:2."
+      },
+      {
+        "at": "07:44:40",
+        "text": "Switch compressors at the 2-minute analysis. No shock advised: pulse check finds a pulse. Breath every 6 s; recheck every 2 min."
+      },
+      {
+        "at": "~07:48",
+        "text": "Hand over to the paramedics: times, one shock, pulse found, what he needs now."
+      }
+    ],
+    "debrief": {
+      "asystole": {
+        "headline": "VF faded to a flat line",
+        "body": "Fibrillation lasts only minutes without blood flow. Look at when compressions began (gasps are not breathing), when the AED went on, and how long hands were off the chest."
+      },
+      "noShock": {
+        "headline": "No shock before the crew arrived",
+        "body": "An EMR's most powerful tool is the AED. Pads go on while compressions continue, as soon as it is at hand; then clear, shock, and straight back to compressions."
+      },
+      "roscHandoff": {
+        "headline": "Pulse back, clean handoff",
+        "body": "Fast recognition, compressions within seconds, an early shock, short pauses and a complete report. That is the chain of survival as an EMR runs it."
+      },
+      "roscGaps": {
+        "headline": "Pulse back, with gaps",
+        "body": "He has a pulse, but check your timeline: the start of compressions, the first shock, pauses after shocks and the report."
+      },
+      "cprHandoff": {
+        "headline": "Handed over still in arrest",
+        "body": "The shock came too late or the pauses were too long for it to work. Every minute without flow costs viability; compress early, pad early, and keep pauses short."
+      },
+      "time_up": {
+        "headline": "No handover",
+        "body": "Fifteen minutes passed without a handover."
+      }
+    },
+    "modelReasoning": "Unresponsive with only occasional gasps is cardiac arrest until proven otherwise: agonal breathing is not breathing. Check breathing and pulse together in 10 seconds or less, start high-quality compressions (100-120/min, at least 2 inches, full recoil), and get the AED on while compressions continue. Clear for analysis, shock when advised, and resume compressions immediately: a pulse is rarely palpable right after a shock and the AED reanalyzes after 2 minutes. Switch compressors about every 2 minutes, ventilate 30:2 with an oral airway and BVM, ask for paramedics early, and hand over with times, shocks and current status."
+  },
+  "chapters": [
+    {
+      "id": "shocked",
+      "label": "First shock delivered",
+      "when": "shocks >= 1"
+    }
+  ],
+  "teaching": {
+    "depth": {
+      "during": "cycleT",
+      "ask": "During this 2-minute cycle: what does high-quality compression look like?",
+      "choices": [
+        {
+          "id": "aha",
+          "label": "100-120 a minute, at least 2 inches, full recoil, no leaning"
+        },
+        {
+          "id": "fast",
+          "label": "As fast as possible, about 1 inch"
+        },
+        {
+          "id": "slow",
+          "label": "60 a minute, 3 inches deep"
+        }
+      ],
+      "expect": "aha",
+      "explain": "AHA 2025: 100-120 per minute, at least 2 inches (5 cm) but not more than 6 cm, full recoil between compressions.",
+      "source": {
+        "cite": "Kleinman ME, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+        "checkedAt": "2026-11-11",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+        "note": "Read 2026-11-11 on cpr.heart.org (primary text): rate 100-120/min; depth at least 2 in (5 cm), not more than 6 cm; full recoil; pre- and post-shock pauses as short as possible; compression fraction at least 60% may be reasonable; 30:2 before an advanced airway; pulse check no more than 10 s; CPR until an AED is applied; resume compressions immediately after a shock; switch compressors about every 2 min."
+      }
+    },
+    "gasps": {
+      "during": "padsT",
+      "ask": "While the pads go on: those snoring gasps he made when you arrived. What were they?",
+      "choices": [
+        {
+          "id": "agonal",
+          "label": "Agonal breathing: a sign of cardiac arrest"
+        },
+        {
+          "id": "snore",
+          "label": "Snoring: his airway just needed opening"
+        },
+        {
+          "id": "ok",
+          "label": "Breathing: he did not need CPR"
+        }
+      ],
+      "expect": "agonal",
+      "explain": "Occasional gasps in an unresponsive person are agonal breathing, part of cardiac arrest. Treat them as no breathing: compressions and the AED.",
+      "source": {
+        "cite": "Kleinman ME, et al. Part 7: Adult Basic Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S448-S478. doi:10.1161/CIR.0000000000001369",
+        "checkedAt": "2026-11-11",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support",
+        "note": "Read 2026-11-11 on cpr.heart.org (primary text): rate 100-120/min; depth at least 2 in (5 cm), not more than 6 cm; full recoil; pre- and post-shock pauses as short as possible; compression fraction at least 60% may be reasonable; 30:2 before an advanced airway; pulse check no more than 10 s; CPR until an AED is applied; resume compressions immediately after a shock; switch compressors about every 2 min."
+      }
+    },
+    "handover": {
+      "during": "alsT",
+      "ask": "While the paramedics come: what will they most need from you first?",
+      "choices": [
+        {
+          "id": "times",
+          "label": "Collapse time, CPR start, shocks and times, current pulse"
+        },
+        {
+          "id": "history",
+          "label": "His full medical history from the gym staff"
+        },
+        {
+          "id": "nothing",
+          "label": "Nothing: they will see for themselves"
+        }
+      ],
+      "expect": "times",
+      "explain": "The arrest timeline and the shocks drive their next decisions (rhythm, drugs, time since collapse). History comes after.",
+      "source": {
+        "cite": "National Registry of EMTs. EMR Examination Specifications (test plan)",
+        "checkedAt": "2026-11-09",
+        "url": "https://nremt.org/getmedia/4657d30a-a955-43af-aa8f-a92388f0d9f4/EMR-Test-Plan_Public",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-fetched for this scenario. Primary Assessment 37-41% of items (recognize cardiac arrest, CPR with an AED); Patient Treatment and Transport 20-24% (hand over to the transporting crew)."
+      }
+    }
+  }
+}
