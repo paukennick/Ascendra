@@ -77,7 +77,7 @@ describe("terminal outages: Linux+, Network+, CKA", () => {
   test("each case is on its own course objective, which meets the generator's selection rule", () => {
     for (const c of COURSES) {
       const track = CATALOG_TRACKS.find((t) => t.code === c)!;
-      const titles = new Set(activeUnits(track).flatMap((u) => u.objectives.map((o) => (typeof o === "string" ? o : o.title))));
+      const titles = new Set(activeUnits(track).flatMap((u) => u.objectives));
       const objs = TERMINAL.filter((e) => e.course === c).map((e) => loadDocument(e).objective);
       assert.equal(new Set(objs).size, objs.length, c);
       for (const o of objs) {
