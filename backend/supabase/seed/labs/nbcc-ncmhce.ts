@@ -210,6 +210,11 @@ export const NCMHCE_LABS: SeedLabSet = {
                 pairs: [0, 1, 2, 3],
               }
             ),
+            part(
+              "Is the picture complete?",
+              "States what is still needed for the diagnosis: a second arousal symptom (sleep, irritability, concentration) and the duration (two months, so more than one month), and that the symptoms cause distress or impairment (driving, her marriage).",
+              "Clusters B, C and D are met (nightmares; avoiding driving and news; self-blame and detachment). Cluster E needs two symptoms, so ask about sleep, irritability or concentration besides the startle. Duration is now two months, more than the one month PTSD requires, and the avoidance and distance from her husband show impairment."
+            ),
           ],
         },
         {
@@ -300,6 +305,11 @@ export const NCMHCE_LABS: SeedLabSet = {
                 "End counseling at week 12",
               ]
             ),
+            part(
+              "Why end as planned",
+              "Explains that ending at week 12 respects her choice and that the improvement (16 to 10, back to climbing) supports it, while the maintenance plan and booster session protect the gains; notes she can return.",
+              "The measure has fallen from 16 to 10 and she is climbing again, so her goals are largely met and ending when she chose respects her autonomy (and her budget). The maintenance plan and a booster session protect the gains, and she knows she can come back if worry builds again, for example as her mother's treatment goes on."
+            ),
           ],
         },
       ],
@@ -345,6 +355,11 @@ export const NCMHCE_LABS: SeedLabSet = {
                 correct: [0, 1, 2, 3, 5],
               }
             ),
+            part(
+              "Her warning signs, in her words",
+              "Writes two or three early warning signs specific to Ruth (for example withdrawing from volunteering, sleeping badly, losing interest in her husband's care group) and what she will do for each.",
+              "If she stops going to volunteering, or finds herself sleeping badly for a week, she calls her friend from the caregivers' group and books a check-in; if she feels hopeless or has thoughts of not wanting to live, she calls the practice or 988. If caring for her husband becomes too much, she asks the group about respite care."
+            ),
           ],
         },
       ],
@@ -374,6 +389,11 @@ export const NCMHCE_LABS: SeedLabSet = {
                 "Identify who can support him and what he needs today",
                 "Agree concrete next steps and a follow-up time",
               ]
+            ),
+            part(
+              "What you say first",
+              "Writes a calm opening that names what the counselor sees, offers safety and slows things down (for example sitting with him, a breathing or grounding prompt), without problem-solving yet.",
+              "'Kevin, I'm glad you came here. You're safe in this room. Let's sit down together and slow your breathing for a moment, in through your nose, and out slowly. Then tell me what happened, at whatever pace you can.'"
             ),
           ],
         },
@@ -463,6 +483,11 @@ export const NCMHCE_LABS: SeedLabSet = {
                 ],
                 correct: [0, 1, 2],
               }
+            ),
+            part(
+              "What you say to Sam",
+              "Writes a response that validates the discrimination as real and part of the low mood, invites Sam to say more, and offers to look at support together, without making Sam educate the counselor.",
+              "'Being called names at work and having no one in town to turn to sounds exhausting and lonely, and it makes sense that your mood has dropped. I want to understand what that's been like, and I'd also like us to find some people and places where you can be yourself. I'll do my own homework too, so you don't have to teach me.'"
             ),
           ],
         },

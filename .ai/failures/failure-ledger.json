@@ -15982,6 +15982,53 @@
       "prevention_rules": [],
       "prevention_notes": "docs/sims.md 22.12 finding 2: put every after-session decision into the action that satisfies the ending (or gate the ending on it). The goldens' builder fails on a dead command, and every NBCC golden path ends with the documenting action.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1481",
+      "date": "2026-11-11",
+      "title": "Duplicate-check pin: the EPPP and NCMHCE suicide sessions share C-SSRS and safety-plan moves (score 0.329 over the 0.30 pin)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim/generator/generator.test.ts 'seeded documents on different cases sit well below the threshold': highest seeded pair 0.329 (EPPP/suicide-risk-safety-plan vs NCMHCE/ncmhce-suicide-safety-plan: decisions 0.64, story 0.01)",
+      "how_detected": "backend npm test",
+      "root_cause": "The test pinned every seeded pair below DUPLICATE_THRESHOLD - 0.2. Two suicide-risk sessions in different courses legitimately share the same protocol moves (C-SSRS questions, Stanley-Brown steps), which the decisions measure counts, while their stories are unrelated. The duplicate gate itself only compares sims on the same objective, so it never compares these two.",
+      "requirement": "REQ-239",
+      "affected": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "fix_summary": "The pin is DUPLICATE_THRESHOLD - 0.15 with the reason in a comment; DUPLICATE_THRESHOLD (0.5) is unchanged.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts::duplicate check"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.12 names the pair; a sim on the same objective that reuses the moves and the story is still a duplicate.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1482",
+      "date": "2026-11-11",
+      "title": "Five NBCC lab steps were graded by an interactive part alone",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/lab-interactive.test.ts 'clinical and fitness labs keep a written part in every step': NCE/nce-values-countertransference step 2 (and NCMHCE steps in five labs with only a match, order or select part)",
+      "how_detected": "backend npm test",
+      "root_cause": "The labs were authored against lib/labs-nbcc.test.ts and labs.test.ts; the rule that every clinical lab step keeps a written part lives in lib/lab-interactive.test.ts, which I did not run before committing the lab sets.",
+      "requirement": "REQ-239",
+      "affected": [
+        "backend/supabase/seed/labs/nbcc-nce.ts",
+        "backend/supabase/seed/labs/nbcc-ncmhce.ts"
+      ],
+      "fix_summary": "Each of those steps now has a written part beside the interactive one (what the attributes did; whether the PTSD picture is complete; why end as planned; warning signs in her words; the first words in a crisis; what to say to Sam).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lab-interactive.test.ts::clinical and fitness labs keep a written part in every step (no quiz replaces clinical reasoning)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the whole backend npm test, not only the set's own test file, before committing a lab set; docs/labs.md authoring step 7 already says so.",
+      "recurrence_of": ""
     }
   ]
 }

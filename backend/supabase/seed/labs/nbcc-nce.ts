@@ -453,6 +453,11 @@ export const NCE_LABS: SeedLabSet = {
                 correct: [0, 1, 3, 4],
               }
             ),
+            part(
+              "What each did for Mei",
+              "Explains, briefly, how the attributes helped Mei: self-awareness kept Jordan's history out of her decision; a nonjudgmental stance and positive regard let her explore without defending herself; empathic attunement kept the focus on her experience.",
+              "Because Jordan noticed his own reaction, his history stopped steering the questions. A nonjudgmental stance and positive regard meant Mei did not have to defend her decision, so she could explore her doubts and her hopes honestly. Empathic attunement kept the session following what she felt, which is why she felt understood rather than judged."
+            ),
           ],
         },
       ],
