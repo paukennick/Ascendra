@@ -119,6 +119,40 @@ export function runnable(v: VersionNeeds, caps: SimCaps | null): boolean {
   return engineOk && rendererOk;
 }
 
+// A sim version as servedVersion reads it.
+export interface VersionRow {
+  id: string;
+  version: number;
+  engine_major: number;
+  engine_minor: number;
+  renderer_level: number;
+  client_hash: string;
+  review_status: "needs_expert_review" | "approved" | "rejected";
+}
+
+// Which version new runs get (lib/sims.ts servedVersion, docs/sims.md 6),
+// chosen from a sim's servable versions already read (newest first). REQ-249: the course list's sim_count reads every listed
+// track's versions in one query and asks this the same question, so the
+// count and the start route can never disagree about what is served.
+export function pickServedVersion(
+  rows: VersionRow[],
+  sim: { head_version_id: string | null; screen_type: string },
+  caps: SimCaps | null,
+  env: Record<string, string | undefined> = process.env
+): { version: VersionRow; runnable: boolean } | null {
+  const head = (sim.head_version_id && rows.find((r) => r.id === sim.head_version_id)) || null;
+  const approved = rows.filter((r) => r.review_status === "approved");
+  let first: VersionRow | null = null;
+  if (head && head.review_status === "approved") first = head;
+  else if (approved.length) first = approved[0];
+  else if (head && head.review_status !== "rejected" && serveUnreviewed(env)) first = head;
+  if (!first) return null;
+  const can = (v: VersionRow) => runnable({ ...v, screen_type: sim.screen_type }, caps);
+  if (can(first)) return { version: first, runnable: true };
+  const fallback = approved.find(can);
+  return fallback ? { version: fallback, runnable: true } : { version: first, runnable: false };
+}
+
 // ---- commands from the app ----
 
 const ID = /^[a-z][a-zA-Z0-9_]{0,47}$/;
