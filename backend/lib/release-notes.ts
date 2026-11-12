@@ -85,6 +85,53 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // Wave 2 (2026-11-12 UTC): REQ-237 terminal screen, REQ-238 security,
+    // REQ-239 NCE/NCMHCE, REQ-240 nursing, REQ-241 EMS, REQ-242 AWS. Gated
+    // whole on sims: four of its five items are sims (FAIL-1271 rule).
+    id: "2026-11-12-b",
+    date: "2026-11-12",
+    covers: ["REQ-237", "REQ-238", "REQ-239", "REQ-240", "REQ-241", "REQ-242"],
+    requires: "sims",
+    title: "Outages, incidents and two counseling courses",
+    items: [
+      {
+        icon: "tool",
+        headline: "Fix the outage at a terminal",
+        body:
+          "Linux+, Network+ and CKA get a new terminal and network map. Run commands to find out why /var is full, " +
+          "a VLAN went missing or a pod keeps crashing, while the outage clock runs.",
+      },
+      {
+        icon: "shield",
+        headline: "Incidents for advanced security exams",
+        body:
+          "CySA+, PenTest+, SecurityX and SecAI+ each get two incidents on the security console. " +
+          "The attacker keeps moving while you work.",
+      },
+      {
+        icon: "book-open",
+        headline: "Prep for the NCE and NCMHCE",
+        body:
+          "Two new counseling courses built on NBCC's current outlines, with 12 labs each and five client " +
+          "sessions, from a first intake to a substance use assessment. For learners 18 and over.",
+      },
+      {
+        icon: "zap",
+        headline: "More cases for nursing and EMS",
+        body:
+          "Six bedside cases for LPN, ADN and BSN nurses, and eight for EMS from EMR to paramedic, " +
+          "with scene time and transport on the clock.",
+      },
+      {
+        icon: "trending-up",
+        headline: "Nine more AWS scenarios",
+        body:
+          "Machine Learning Engineer, Cloud Practitioner, Developer and CloudOps get new board cases, from a " +
+          "fraud model that went quiet to an access key leaked on GitHub, worked at your own pace.",
+      },
+    ],
+  },
+  {
     // Wave 1 (2026-11-12 UTC): REQ-231 security console, REQ-232 treatment
     // session, REQ-233 nine more sims, REQ-235 batch H sources. Gated whole on
     // sims: three of its four items are sims (FAIL-1271 rule).
