@@ -101,6 +101,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTEMR", "thigh-bleed-tourniquet"),
   entry("NREMTEMT", "anaphylaxis-epinephrine"),
   entry("NREMTEMT", "stroke-scale-destination"),
+  entry("NREMTAEMT", "hypoglycemia-iv-dextrose"),
   // ---- end REQ-241 ----
 ];
 
