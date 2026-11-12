@@ -100,6 +100,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("LINUXPLUS", "selinux-denies-moved-site"),
   entry("NETWORKPLUS", "vlan-missing-from-trunk"),
   entry("NETWORKPLUS", "branch-dns-route-typo"),
+  entry("CKA", "crashloop-bad-configmap"),
+  entry("CKA", "node-notready-swap-drain"),
   // ---- end REQ-237 ----
 ];
 
