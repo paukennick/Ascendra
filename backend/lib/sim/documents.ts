@@ -97,6 +97,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // ---- REQ-238 (security wave 2): security-console incidents for CySA+,
   // PenTest+, SecurityX and SecAI+, two each. Keep these entries together. ----
   entry("CYSAPLUS", "alert-triage-lolbin-hunt"),
+  entry("CYSAPLUS", "vuln-prioritization-kev-edge"),
   // ---- end REQ-238 ----
 ];
 
