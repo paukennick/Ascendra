@@ -8307,44 +8307,48 @@
       ]
     },
     {
-      "id": "REQ-235",
-      "category": "content",
-      "title": "Batch H wave 1: make holds rare -- dated sources and outline statements for the launch courses, pregen retry, owner hold-rate view, G5 follow-ups",
-      "description": "Nick asked to make holds rare (2026-11-11); production holds were driven by thin source material. For DPT, PTPREREQ, CCRNADULT, AWSSAA, AWSMLA, SECPLUS and CNA every taught unit names dated sources; the exam courses carry their official outline statements (headings only where copyrighted; 42 CFR text in full) and key values read 2026-11-11, given to the lesson writer and the fact-checker alike (lib/current-facts.ts). Pre-generation retries a held half once, steered, live (pregen_retry) inside --max-usd, and reports the counts. Settings > Access shows the owner generated vs held per course and kind for 7 and 30 days with the top reasons (counts only). G5 follow-ups: Security+ BCDR moved to 3.4/5.2 (retired in place in Security Operations, BIA lab to 5.2); PTA labs header reworded; CNA choking, sepsis and stroke BP values re-read (sepsis cultures 'ideally before'). No migration.",
+      "id": "REQ-230",
+      "category": "feature",
+      "title": "Sims: sims:generate, the sim generator (gated drafts to register by hand, cost per draft)",
+      "description": "Nick approved the sim library plan 2026-11-11 (engine-order fix done in 1.2; learner-paced client sessions; measure the first 20 generated sims, then a separate monthly sim budget; breadth before variants). npm run sims:generate takes a course code, a sub-objective (exact objective title), a screen type (bedside, board, session) and an optional seed idea; builds the prompt from the course's own sources and the screen's authoring rules in docs/sims.md 12.1; asks the model for a document plus golden paths as move scripts; runs every gate (reply and writer confidence, schema, identity, golden paths, lint with the key-order rule, key-order replay, reachability by the bounded path search, server/checkpoint/client and engine-bundle replay, sourced and dated numbers with a course source cited, duplicate check) and then an independent fact check that must agree. A failing draft is retried once with the reasons, then held with them, never registered; a passing draft is written as files ready to register in lib/sim/documents.ts, never auto-registered. A selection helper lists sub-objectives meeting the selection rule (two of: time matters, cues, consequential choices, competing priorities) with the recorded reason, ranked by exam weight. Each draft's tokens and USD (writer attempts, retries, fact checks) go in a JSON report and a costs.jsonl ledger with --cost-summary. Only ANTHROPIC_PREGEN_API_KEY; with none it refuses to call the API. All tests use a mocked model; no real sims were generated.",
       "priority": "high",
       "status": "completed",
       "minimum_access_scope": [
-        "backend/supabase/seed/",
-        "backend/lib/",
-        "backend/app/api/access/",
-        "mobile/src/",
-        "mobile/app/(app)/settings/",
-        "docs/operations-runbook.md",
-        "CHANGELOG.md"
+        "backend/lib/sim/generator",
+        "backend/scripts/sims-generate.ts",
+        "backend/package.json",
+        "backend/.gitignore",
+        "backend/.env.example",
+        "docs/sims.md",
+        "docs/operations-runbook.md"
       ],
       "acceptance_criteria": [
-        "every launch-course unit has a dated source (lib/content-batch-h.test.ts)",
-        "writer and checker get the same outline statements",
-        "a held pregen half is retried once steered and counted (lib/pregen.dbtest.ts)",
-        "hold-rate view is owner only and counts only (lib/hold-rates.dbtest.ts; lib/account-access.dbtest.ts)",
-        "Security+ BCDR retired in place and taught in 3.4/5.2"
+        "sims:generate with course objective screen and optional idea",
+        "prompt from course sources and docs/sims.md 12.1 rules",
+        "schema lint key-order path-search golden-replay on server engine and engine bundle and sources gates",
+        "fact-check call must agree",
+        "one steered retry then held with reasons never registered",
+        "passing draft written as files ready to register not auto-registered",
+        "selection helper with recorded reason ranked by exam weight",
+        "tokens and USD per draft in a JSON report and ledger",
+        "ANTHROPIC_PREGEN_API_KEY only and refuses without it",
+        "duplicate check with an explained similarity measure",
+        "mocked end to end: valid / lint-fail-then-pass / fact-check held"
       ],
       "validation_required": [
-        "npm test",
-        "npm run test:db",
-        "mobile npm test",
-        "mobile tsc",
+        "backend npm test",
+        "lib/sim/generator/generator.test.ts",
+        "npm run sims:generate estimate and keyless --run",
         "omni gate"
       ],
       "documentation_required": [
-        "CHANGELOG.md",
-        "docs/operations-runbook.md"
+        "docs/sims.md 12 12.1 12.2",
+        "docs/operations-runbook.md Generating sims"
       ],
       "risk_notes": [
-        "Outline statements are headings only for copyrighted outlines (AWS; CompTIA) per the repo's paraphrase rule; CNA uses public-domain 42 CFR text in full. Decision for Nick if he wants fuller outline text.",
-        "The AIS 2026 values were confirmed through a summary (UIC Drug Information Group) and AHA's Top Things page; the full guideline refused automated access. The hyperglycemic-crises values were read through the CCJM 2025 summary.",
-        "CCRN cardiovascular key values are carried from the 2026-10-31 audit (not re-read in this batch).",
-        "Hold rates from seeds only are not measurable; production numbers are the lead's to read."
+        "selection is a keyword screen of the title and over-includes; a person confirms",
+        "no live API run yet: request shapes and real cost unverified until the key exists",
+        "generated sims seed as source authored until the seed is taught origin generated"
       ]
     },
     {
@@ -8474,6 +8478,47 @@
         "authored teaching-model numbers are flagged in their source notes",
         "AWS prices are the Ohio rates read 2026-11-11 and change over time",
         "new document hashes enter expert review"
+      ]
+    },
+    {
+      "id": "REQ-235",
+      "category": "content",
+      "title": "Batch H wave 1: make holds rare -- dated sources and outline statements for the launch courses, pregen retry, owner hold-rate view, G5 follow-ups",
+      "description": "Nick asked to make holds rare (2026-11-11); production holds were driven by thin source material. For DPT, PTPREREQ, CCRNADULT, AWSSAA, AWSMLA, SECPLUS and CNA every taught unit names dated sources; the exam courses carry their official outline statements (headings only where copyrighted; 42 CFR text in full) and key values read 2026-11-11, given to the lesson writer and the fact-checker alike (lib/current-facts.ts). Pre-generation retries a held half once, steered, live (pregen_retry) inside --max-usd, and reports the counts. Settings > Access shows the owner generated vs held per course and kind for 7 and 30 days with the top reasons (counts only). G5 follow-ups: Security+ BCDR moved to 3.4/5.2 (retired in place in Security Operations, BIA lab to 5.2); PTA labs header reworded; CNA choking, sepsis and stroke BP values re-read (sepsis cultures 'ideally before'). No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/",
+        "backend/lib/",
+        "backend/app/api/access/",
+        "mobile/src/",
+        "mobile/app/(app)/settings/",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every launch-course unit has a dated source (lib/content-batch-h.test.ts)",
+        "writer and checker get the same outline statements",
+        "a held pregen half is retried once steered and counted (lib/pregen.dbtest.ts)",
+        "hold-rate view is owner only and counts only (lib/hold-rates.dbtest.ts; lib/account-access.dbtest.ts)",
+        "Security+ BCDR retired in place and taught in 3.4/5.2"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db",
+        "mobile npm test",
+        "mobile tsc",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/operations-runbook.md"
+      ],
+      "risk_notes": [
+        "Outline statements are headings only for copyrighted outlines (AWS; CompTIA) per the repo's paraphrase rule; CNA uses public-domain 42 CFR text in full. Decision for Nick if he wants fuller outline text.",
+        "The AIS 2026 values were confirmed through a summary (UIC Drug Information Group) and AHA's Top Things page; the full guideline refused automated access. The hyperglycemic-crises values were read through the CCJM 2025 summary.",
+        "CCRN cardiovascular key values are carried from the 2026-10-31 audit (not re-read in this batch).",
+        "Hold rates from seeds only are not measurable; production numbers are the lead's to read."
       ]
     }
   ]

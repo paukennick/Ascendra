@@ -65,7 +65,7 @@ engine and the practice-lab acknowledgement).
 9. Scoring, debrief and mastery
 10. Grading the written-reasoning moments
 11. Tiers, the switch, disclaimers and review
-12. Authoring, seeding and (later) generation
+12. Authoring, seeding and generation (the generator, REQ-230)
 13. Accessibility
 14. Performance and cost per run
 15. Security
@@ -2736,7 +2736,7 @@ mechanism exists so that review can happen whenever Nick chooses:
   review here, with the evidence (runs, Good/Mediocre/Bad over time, flag
   count) in the packet.
 
-## 12. Authoring, seeding and (later) generation
+## 12. Authoring, seeding and generation
 
 **Files.** `backend/supabase/seed/sims/<course-code>/<slug>.sim.json`, one
 scenario per file, with its golden paths beside it in
@@ -2768,19 +2768,239 @@ row in place (4.5). The safety family is derived from the
 objective's course, never read from the file. Removing a file retires the sim
 (`retired_at`); runs and attempts stay.
 
-**Generator (later phase).** `npm run sims:generate`, dry-run by default,
-in the labs generator's shape: for a chosen objective and screen type, a
-large model writes a document from the screen type's template and the
-objective, then the pipeline **fails closed** through: schema and semantic
-validation, the linter, an **automatic path search** (a bounded
-breadth-first search over the action space at decision ticks, which must
-find the expert path's ending, every outcome class, and no `target`
-ending with a critical criterion missed, and must show no dominant
-shortcut; the same search runs in the linter for authored scenarios, with
-a smaller bound), golden path generation from the search,
-then an independent fast-model fact check of numbers and safety. Stored
-`source 'generated'`, `needs_expert_review`. Never run live until the
-authored set has shown which scenario shapes work.
+**Generator.** Built in REQ-230; the design is 12.2 and the per-screen
+authoring rules the generator hands the model are 12.1. The original plan
+(a model writes a document, the pipeline fails closed through schema, lint,
+a path search, golden paths and an independent fact check; stored as
+generated, `needs_expert_review`; never run live until the authored set has
+shown which shapes work) stands. What changed in the build: the model writes
+the golden paths as move scripts and the engine fills their expectations,
+the checker is the writer's model (REQ-187), and a passing draft is written
+as files for a person to register, never registered by the script.
+
+### 12.1 Generator authoring rules by screen (REQ-230)
+
+`npm run sims:generate` reads the blocks between the `generator-rules`
+markers below and puts them, word for word, in the writer's prompt: the
+rules for every screen, then the requested screen's. Edit them here; the
+test `lib/sim/generator/generator.test.ts` fails if a screen's block goes
+missing.
+
+<!-- generator-rules:all -->
+- One scenario per document, built for exactly the objective title given
+  (`objective`), for the screen type given (`screen.type`).
+- `schemaVersion` 1, `engine` `{ "major": 1, "minor": 2 }`. Every ending
+  that has a `when` is listed once in `endingOrder`, in the order it should
+  win; `time_up` is never listed.
+- Endings: at least one terminal ending of each outcome class (`target`,
+  `recovered`, `harm`), each with a `when`, a label and a narrative; a
+  `time_up` ending as the hard stop. `outcome.noProgress` says how safe but
+  stalled is classed, with a rationale of a sentence and a source.
+- Scoring: criteria with at least one critical criterion, each with rows
+  ending in a `true` row; one reasoning moment (`reasoning`) and a matching
+  `scoring.reasoningCriteria` entry; KPIs; an expert path; a debrief per
+  terminal ending; `modelReasoning`.
+- Numbers: every numeric param, every timer, every outcome threshold and the
+  no-progress rule carries a `source` with `cite`, an ISO `checkedAt` (the
+  day the source was read; never in the future) and a `url` or a `note`
+  saying where in the source the number is. `sources` lists the exam outline
+  by the course's own URL and every reference used. Never invent a number;
+  when a source gives a range, use it and say so in the note.
+- The people are fictional. Never address the learner's own patients or
+  clients ("your patient"). US English. Plain words in everything the
+  learner reads.
+- Golden paths, as move scripts: at least the expert path, one slow but
+  safe path and two failure paths; together at least one `good`, one
+  `mediocre` and one `bad` rating, every terminal ending but `time_up`
+  reached, and every criterion both met and missed by some path. Moves are
+  `act` (action id and params), `choose` (a choice on the open decision
+  card), `answer` (submit the open reasoning moment), `skip` (to the
+  earliest wait, or a named timer's), `wait` (seconds of real time in a
+  running phase), and for a paced clinical case `pace`, `begin` (the
+  focused start, first move only), `teach` and `chapter`. Each path states
+  the ending, class and rating it reaches; the engine checks it.
+<!-- /generator-rules:all -->
+
+<!-- generator-rules:bedside -->
+- Bedside monitor (`screen.bedside`, level 3): tiles for the vitals that
+  carry the case, each with `spokenLabel`, `unit`, alarm limits where the
+  monitor would alarm, and `announce.bands` at the values that change what
+  a nurse does. Hidden tiles (`hiddenUntil`) for results that come back
+  later (labs, imaging).
+- Physiology moves whether or not the learner acts: a `running` phase with
+  processes that worsen the patient untreated and respond to the right
+  treatment with sourced delays. Profile `clinical`; its thresholds may be
+  tightened, never loosened (9.2).
+- Pacing (5.4a): a clinical case may declare a focused start, chapters and
+  teaching prompts during named waits; each needs a source.
+- Actions are what the nurse or clinician in the exam's scope would do,
+  grouped as the exam groups them (assess, intervene, call, document);
+  results that take time come back by timer, with the wait labelled.
+<!-- /generator-rules:bedside -->
+
+<!-- generator-rules:board -->
+- Board (`screen.board`): zones listing what is placed or running, with
+  `spokenLabel`, and meters for the numbers the learner is judged on (cost,
+  availability, schedule). Profile `cloud`, `project` or another fitting
+  general profile, with its default thresholds or tighter.
+- The learner builds or changes a design (catalog entries placed in slots,
+  settings chosen in forms), starts it, and the scenario plays events
+  against it by timer (load spikes, failures, a finance review). Each event
+  and each limit or price is sourced and dated; cloud prices and service
+  limits are re-checked every six months.
+- Competing priorities are the point: cost against availability, speed
+  against risk. The expert path names the trade-off it makes.
+<!-- /generator-rules:board -->
+
+<!-- generator-rules:session -->
+- Client session (`screen.session`, 22.5): the client's name and a
+  presentation template, gauges for the client's states (for example
+  rapport, distress, disclosure) with words for each band, notes that appear
+  as the learner learns things (an alert note for risk), and the record.
+- Learner-paced: the session phase is `turns`, not `running`. Each exchange
+  shows the client's answer at once and schedules the conversation wait,
+  which moves the session clock by the minutes that kind of exchange takes.
+  The hour ends at 50 minutes and moves to an after-session phase for the
+  written formulation and documentation. No focused start, chapters or
+  teaching prompts; one unscored prediction may be a decision card.
+- Profile `clinical-session`, defaults `allianceTarget` 6,
+  `allianceRecovered` 3, `safetyWindow` 1200 s or tighter. Harm is a client
+  left at foreseeable risk, a required protective step not taken, or
+  confidentiality broken without a legal basis; cite the ethics code,
+  statute or guideline that makes it so.
+<!-- /generator-rules:session -->
+
+### 12.2 The generator as built (REQ-230)
+
+Nick approved the sim library plan on 2026-11-11: the engine-order fix first
+(done in engine 1.2, 22.6), learner-paced client sessions, measure the first
+20 generated sims and then set a separate monthly sim budget, and breadth
+before variants.
+
+**Commands** (backend; nothing is sent without `--run`):
+
+```
+npm run sims:generate -- --select --course CCRNADULT
+npm run sims:generate -- --course CCRNADULT --objective "<exact title>" --screen bedside [--idea "<seed scenario idea>"]
+npm run sims:generate -- --course CCRNADULT --objective "<exact title>" --screen bedside --run [--max-usd 3]
+npm run sims:generate -- --cost-summary
+```
+
+Without `--run` it builds the prompt, prints its size and an upper-bound
+cost, and writes the prompt to the output folder so a person can read it.
+With `--run` it needs `ANTHROPIC_PREGEN_API_KEY` (the pre-generation
+workspace's key, docs/operations-runbook.md); with no key it refuses before
+any call and says so. It never falls back to the app's key.
+
+**Selection.** `--select` lists the course's active sub-objectives that meet
+the selection rule (at least two of: time matters, cues to read, choices
+with consequences, competing priorities), each with the words that matched
+as the recorded reason, ranked by the unit's exam weight; objectives that
+already have a sim go last (breadth before variants). It is a keyword screen
+over the objective's title (`lib/sim/generator/selection.ts`), a shortlist
+for a person, not a judgement. Generating for an objective that does not
+qualify needs `--allow-unselected`, and the report records it.
+
+**The prompt** is built from the course's own sources (the exam outline URL
+and the unit's dated sources with the values the course uses, from the
+seeded catalog), the 12.1 rules for the screen, one seeded document of the
+same screen as the shape to follow, and the seed idea if given. The writer
+returns `{ confidence, uncertainClaims, document, goldenPaths }`.
+
+**Gates**, in order, each failing closed with a reason
+(`lib/sim/generator/gates.ts`):
+
+1. the reply is one JSON object of that shape, and the writer did not rate
+   its own confidence low (REQ-216);
+2. the zod scenario schema;
+3. identity: the requested screen and exact objective title, a slug no
+   seeded sim or earlier draft uses, the current engine minor (2), so
+   `endingOrder` is required;
+4. golden paths: each move script drives the server engine, every move is
+   accepted, and the path ends at the ending, class and rating the model
+   said; the expectations (score, criteria, KPIs, state hash) are then the
+   engine's own result;
+5. lint: `checkDocument` in full, as `npm run sims:lint` runs it
+   (semantics, content rules, golden replays, ending order, the key-order
+   rule), with today's date for source ages; its path search is left to
+   gate 7 so it runs once;
+6. key order: every golden path ends the same with the document's keys as
+   written, reversed and in jsonb order (the storage-order test; like it,
+   the reversal leaves the `teaching` map alone, FAIL-1250, FAIL-1300);
+7. reachability: the bounded path search (`--search-nodes`, default 4000 as
+   in `sims:lint`); every terminal ending but `time_up` is reached by a
+   golden path or by the search, and no searched path reaches a `target`
+   ending with a critical criterion missed; the report says which endings
+   the bounded search found on its own;
+8. replay: each golden path replayed as the sync route replays it
+   (straight, resumed from a mid-run checkpoint, and as the client
+   document) reaches the engine's state hash, and the engine bundle (engine
+   major 1 transpiled to the one script Hermes and the browsers run) prints
+   the same result;
+9. sources: every number in params, timers, thresholds and the no-progress
+   rule has a cite, an ISO `checkedAt` not in the future and a url or note,
+   and the document cites at least one of the course's own sources by URL.
+   This is stricter than the linter on purpose (several authored documents
+   would fail it, mostly a missing url or note);
+10. duplicate: not too close to a sim on the same objective (below);
+11. fact check: a separate call, the writer's model (REQ-187), answers
+    agree, disagree or unsure for claims taken from the document by code:
+    every sourced number, each terminal ending's class, the no-progress rule
+    and the expert path. Any disagreement fails the gate; unsure answers are
+    logged; a claim with no answer, or a failed call, means the check did
+    not run: the call is tried once more, and if it still fails the draft
+    is held as "check did not run", not as wrong.
+
+The fact check is only paid for when gates 1-10 pass.
+
+**Retry and hold.** A draft that fails any gate is written once more, with
+the failure reasons in the prompt. If the second draft fails too, both
+drafts and their reasons go to `held/`; nothing held is ever registered.
+A run that would pass `--max-usd` (default $3, an upper bound per call from
+the prompt size and the output limit) stops before the call and holds what
+it has with that reason.
+
+**A passing draft** is written to `ready/<COURSE>/<slug>.sim.json` and
+`<slug>.golden.json` (status `draft`) in the output folder (default
+`backend/sim-drafts/`, git-ignored), with `<slug>.register.md`: the two
+`mv` lines into `backend/supabase/seed/sims/<COURSE>/`, the
+`entry("<COURSE>", "<slug>")` line for `ALL_DOCUMENTS` in
+`lib/sim/documents.ts`, and the checks to run. The script never edits
+`documents.ts`. Registered, it seeds like an authored sim as
+`needs_expert_review` (open question for Nick: mark it `source 'generated'`,
+which the table allows; the seed writes `'authored'` today).
+
+**Duplicate check** (`lib/sim/generator/similarity.ts`). Two Jaccard indexes
+(shared divided by either): the story (three-word runs of the title,
+situation and handover) and the decisions (content words of the action and
+ending labels). The similarity is the story index, or the mean of the two
+when that is higher; at 0.5 or above the draft is a duplicate of that sim.
+Shared decisions alone never make a duplicate: a variant (the same skill on
+a different patient or system) shares its decisions by design, as adult and
+pediatric septic shock do (decisions 0.43, story 0.05; FAIL-1302). It is
+compared with every seeded sim and every earlier ready draft on the same
+objective. Across the seeded documents the highest pair on different cases
+is 0.24 (adult and pediatric septic shock); a band over its base is 1.0.
+
+**Cost.** Each call's input, output and cache tokens and its price
+(`lib/ai-pricing.ts`) go into the draft's report,
+`reports/<time>-<COURSE>-<slug>.json`, split by writer attempt and fact
+check, with the retries counted; one line per draft is appended to
+`reports/costs.jsonl`. `--cost-summary` reads that ledger and prints the
+drafts, how many were ready, the mean, median and highest cost per draft,
+and the cost per ready sim (all spend divided by ready drafts, which is the
+per-sim number for the monthly budget after the first 20).
+
+**Tests** (`lib/sim/generator/generator.test.ts`) use a mocked model only.
+The mocked writer returns the seeded EPPP suicide-risk session re-aimed at
+another EPPP objective (fast to replay), with its golden paths turned back
+into move scripts: (a) a valid draft that passes every gate and the fact
+check, (b) a draft with no `endingOrder` that fails lint and passes on the
+steered retry, (c) a draft whose fact check disagrees twice and is held.
+Also: the Whipple bleed's paths as moves (a running case with a focused
+start and pacing) reproduce its golden hashes, the duplicate check, the
+selection rule, the missing key, the budget stop, a failed fact-check call,
+the writer's low confidence, the key-order gate and the rule blocks above.
 
 ## 13. Accessibility
 
