@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet, matchPart } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart, numericPart, selectPart } from "./types";
 import { source } from "../sources";
 
 // REQ-156: Microsoft Certified: Azure Data Fundamentals (DP-900).
@@ -18,6 +18,18 @@ import { source } from "../sources";
 // was executed against PostgreSQL 16 locally on 2026-11-07 (no SQL Server was
 // available in that session); it is also valid Transact-SQL. Every lab is
 // needs_expert_review until a data professional checks it.
+//
+// REQ-234 (2026-11-11): topped up to 2 / 2 / 2 / 2 = 8 labs, one more per
+// unit (workloads and roles; normalization; Blob access tiers; batch versus
+// streaming), above the hybrid plan's 1 / 1 / 1 / 1 on purpose: the plan's
+// performance-verb heuristic finds almost nothing to do in a "describe"
+// outline, which left the course with four labs. The override and its
+// rule (at least the plan, at most three a unit) are LAB_PLAN_TOP_UPS in
+// scripts/generate-labs-lib.ts. Values read on learn.microsoft.com on
+// 2026-11-11: the study guide (unchanged, skills measured as of July 21,
+// 2026), the normalization unit of "Explore fundamental relational data
+// concepts", Blob access tiers (30 / 90 / 180-day minimums, rehydration up
+// to 15 hours), Fabric Real-Time Intelligence and Azure Stream Analytics.
 
 export const DP900_LABS: SeedLabSet = {
   trackCode: "DP900",
@@ -160,6 +172,167 @@ export const DP900_LABS: SeedLabSet = {
               "A visual to avoid",
               "Names one mismatch and why, for example a pie chart for the 24-month trend (parts of a whole cannot show change over time), a pie chart for eight categories with long names, or a table for the trend.",
               "Avoid a pie chart for the monthly trend: pie and donut charts show how parts relate to a whole and only work with a small number of categories; 24 months as slices show no trend at all. Likewise a pie chart for eight long-named categories would be hard to read, where the bar chart is not."
+            ),
+          ],
+        },
+      ],
+    },
+    // ======================================================================
+    // REQ-234 top-up (2026-11-11): one more lab per unit, 2 / 2 / 2 / 2 = 8.
+    // ======================================================================
+    // Unit 1: Core Data Concepts (+1)
+    {
+      slug: "classify-workloads-and-roles",
+      objective: "Features of transactional workloads",
+      kind: "build",
+      title: "Sort data workloads and the roles that own them",
+      brief:
+        "Juniper Outdoor, a fictional retailer, lists five data activities. (1) The checkout system records each sale, updating stock and the customer's order in one step that must either fully succeed or fully fail. (2) A nightly process loads the day's sales into a warehouse where analysts compare five years of seasonal trends. (3) The mobile app lets a customer change a delivery address while an order is being packed. (4) A dashboard shows regional revenue by quarter. (5) Store managers query 'total sales by product category last year'. Three people work on these systems: Alex keeps the order database secure, backed up and performing well; Bea builds the pipelines that move and clean data into the warehouse; Chen builds the reports and dashboards the business reads.",
+      safetyNote: GENERAL_SAFETY,
+      steps: [
+        {
+          text: "",
+          ask: "Classify each activity, explain the features that decide it, and match each person to their role.",
+          parts: [
+            selectPart(
+              "The transactional activities",
+              "Selects (1) checkout and (3) the address change, and nothing else: (2), (4) and (5) are analytical.",
+              "(1) Checkout and (3) the address change are transactional (OLTP): many small reads and writes of current data that must be consistent. (2) The warehouse load, (4) the quarterly dashboard and (5) the category totals are analytical: large reads that aggregate historical data.",
+              {
+                display: "list",
+                lines: ["(1) Checkout records a sale", "(2) Nightly load for five-year trends", "(3) Customer changes a delivery address", "(4) Regional revenue dashboard", "(5) Total sales by category last year"],
+                correct: [0, 2],
+              }
+            ),
+            part(
+              "Deciding features",
+              "Describes transactional workloads as many small, fast inserts and updates of current data with ACID transactions (atomicity, consistency, isolation, durability) on a normalized schema, and analytical workloads as read-heavy queries aggregating large volumes of historical data, usually loaded in batches into a schema optimized for reading.",
+              "Transactional: high volumes of small inserts, updates and lookups on current data, each wrapped in a transaction that is atomic, consistent, isolated and durable (ACID), so the checkout either records the sale and updates stock together or does neither. Schemas are normalized to avoid duplicated data. Analytical: mostly reads that scan and aggregate large amounts of historical data, loaded periodically (for example nightly) into a warehouse or lakehouse designed for fast reading and summarizing."
+            ),
+            matchPart(
+              "Roles",
+              "Alex database administrator, Bea data engineer, Chen data analyst. All three right is met; two is partly there.",
+              "Alex is the database administrator (availability, security, backup and performance of the database). Bea is the data engineer (pipelines that ingest, clean and transform data). Chen is the data analyst (models, reports and visualizations that turn data into insight).",
+              {
+                leftHeading: "Person",
+                rightHeading: "Role",
+                left: ["Alex: security, backups, performance of the order database", "Bea: pipelines into the warehouse", "Chen: reports and dashboards"],
+                right: ["Database administrator", "Data engineer", "Data analyst", "Data scientist"],
+                pairs: [0, 1, 2],
+              }
+            ),
+          ],
+        },
+      ],
+    },
+    // Unit 2: Relational Data on Azure (+1)
+    {
+      slug: "normalize-order-spreadsheet",
+      objective: "Normalization and why it's used",
+      kind: "build",
+      title: "Normalize a sales spreadsheet into related tables",
+      brief:
+        "Fennel Lane Books, a fictional bookshop, tracks sales in one spreadsheet with the columns OrderNo, OrderDate, CustomerName, CustomerEmail, CustomerAddress, ISBN, BookTitle, UnitPrice, Qty. One order with three books takes three rows, each repeating the order date and the customer's name, email and address. When a customer moved, someone updated her address on some rows but not others, and the shop could not tell which address was right. Deleting the only order that contained a rarely sold book also deleted the only record of that book's title and price.",
+      safetyNote: GENERAL_SAFETY,
+      steps: [
+        {
+          text: "",
+          ask: "Explain what went wrong, design the normalized tables with their keys, and say what the change costs.",
+          parts: [
+            part(
+              "What went wrong",
+              "Explains that repeating customer and book details on every row causes duplication and anomalies: the update anomaly (the address changed on some rows only) and the deletion anomaly (deleting an order lost the book's details), and that normalization minimizes duplication and enforces integrity.",
+              "Customer and book facts are repeated on every row. That duplication caused an update anomaly (one address changed in some rows and not others, so the data contradicts itself) and a deletion anomaly (removing an order removed the only record of a book). Normalization separates each entity into its own table so each fact is stored once, which minimizes duplication and enforces data integrity."
+            ),
+            part(
+              "Normalized design",
+              "Designs separate tables, each with a primary key, linked by foreign keys: Customers (CustomerId PK, name, email, address), Books (ISBN PK, title, unit price), Orders (OrderNo PK, OrderDate, CustomerId FK), OrderLines (OrderNo FK, ISBN FK, Qty, with a composite key OrderNo+ISBN or its own key), possibly with the price at time of sale on the order line.",
+              "Customers(CustomerId PK, CustomerName, CustomerEmail, CustomerAddress). Books(ISBN PK, BookTitle, UnitPrice). Orders(OrderNo PK, OrderDate, CustomerId FK -> Customers). OrderLines(OrderNo FK -> Orders, ISBN FK -> Books, Qty, primary key (OrderNo, ISBN)). Each entity is its own table, each attribute its own column, each row identified by a primary key, and related rows linked with foreign keys. Many designs also copy the UnitPrice into OrderLines as the price charged, so later price changes do not rewrite history."
+            ),
+            part(
+              "The cost",
+              "Notes that reading a whole order now needs joins across tables, which is normal for transactional systems, and that analytical stores often denormalize deliberately for faster reads.",
+              "Reconstructing an order now needs joins (Orders to Customers, OrderLines to Books). That is the usual trade for transactional systems: correct, single-copy data at the cost of joins. Analytical models often denormalize on purpose (for example a star schema) because they are read far more than they are updated."
+            ),
+          ],
+        },
+      ],
+    },
+    // Unit 3: Non-Relational Data on Azure (+1)
+    {
+      slug: "blob-tiers-and-early-deletion",
+      objective: "Features of Azure Blob storage",
+      kind: "build",
+      title: "Choose Blob Storage access tiers and work out an early-deletion charge",
+      brief:
+        "Hollowell Games, a fictional studio, stores four kinds of data in an Azure general-purpose v2 storage account. (1) Game patch files that players download constantly for the first two weeks after release. (2) Last month's crash dumps, read occasionally by engineers investigating bugs; they keep them about two months. (3) Quarterly marketing videos that are rarely viewed but must open instantly when someone asks, kept about a year. (4) Build archives the studio must keep for seven years for legal reasons and almost never reads; a request can wait a day. Last quarter someone moved a large build archive to the archive tier and then deleted it 60 days later.",
+      safetyNote: GENERAL_SAFETY,
+      steps: [
+        {
+          text: "",
+          ask: "Choose a tier for each kind of data, work out the early-deletion charge, and explain what reading archived data involves.",
+          parts: [
+            matchPart(
+              "Access tier for each",
+              "(1) hot, (2) cool, (3) cold, (4) archive. All four right is met; two or three is partly there.",
+              "(1) Hot: frequently accessed, highest storage but lowest access cost. (2) Cool: infrequent access, stored at least 30 days. (3) Cold: rarely accessed but still needs fast (online) retrieval, stored at least 90 days. (4) Archive: rarely accessed, latency of hours acceptable, stored at least 180 days, lowest storage cost.",
+              {
+                leftHeading: "Data",
+                rightHeading: "Tier",
+                left: ["(1) New patch files, downloaded constantly", "(2) Crash dumps, read occasionally, kept two months", "(3) Marketing videos, rare but instant, kept a year", "(4) Seven-year build archives, a day's wait is fine"],
+                right: ["Hot", "Cool", "Cold", "Archive"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            numericPart(
+              "Days of early-deletion charge",
+              "120 days (the archive tier's 180-day minimum minus the 60 days stored) is met; within 20 is partly there.",
+              "The archive tier expects data to stay at least 180 days; deleting after 60 days is charged as if stored for the remaining 180 - 60 = 120 days (prorated at the archive storage price).",
+              { answer: 120, tolerance: 0, partialTolerance: 20, unit: "days" }
+            ),
+            part(
+              "Reading archived data",
+              "Explains that archive is an offline tier: a blob cannot be read until it is rehydrated to an online tier (hot, cool or cold), which can take up to 15 hours depending on priority, or it can be copied to an online tier; and recommends a lifecycle management policy to move patch files and crash dumps to cooler tiers automatically.",
+              "Archived blobs are offline: they cannot be read or modified until rehydrated to hot, cool or cold (by changing the tier or copying the blob), which can take up to 15 hours depending on the rehydration priority. That fits the seven-year archives, where a day's wait is acceptable, and is why marketing videos needing instant access belong in cold, not archive. Use lifecycle management rules to move patch files to cool after their two busy weeks and to delete crash dumps after about two months."
+            ),
+          ],
+        },
+      ],
+    },
+    // Unit 4: Analytics Workload on Azure (+1)
+    {
+      slug: "batch-vs-streaming-pipeline",
+      objective: "The difference between batch and streaming data",
+      kind: "case",
+      title: "Decide batch or streaming for a delivery company's data",
+      brief:
+        "Swiftline Couriers, a fictional delivery company, has 800 vans that each send a GPS position and engine temperature every 10 seconds, and a sales database that records invoices during the day. Managers want (1) a live map of van positions and an alert within a minute if any engine overheats, and (2) a monthly report of revenue by region and customer, with trends over three years.",
+      safetyNote: GENERAL_SAFETY,
+      steps: [
+        {
+          text: "The operations manager asks for one design that covers both requests.",
+          ask: "For each requirement, choose batch or streaming processing and explain the differences that decide it.",
+          parts: [
+            part(
+              "Requirement (1)",
+              "Chooses streaming: data is processed continuously as each event arrives, in small units with low latency (seconds), usually over time windows, which a live map and a one-minute alert require.",
+              "Streaming. The van readings are an unbounded flow of small events, and the business needs results within seconds: each reading is processed as it arrives, often aggregated over a short time window (for example the average engine temperature over the last 30 seconds), and an alert fires immediately. Waiting for a nightly batch would make both the map and the alert useless."
+            ),
+            part(
+              "Requirement (2)",
+              "Chooses batch: data is collected over a period and processed together on a schedule (for example nightly or monthly), handling large volumes and complex queries over historical data where latency of hours is acceptable.",
+              "Batch. Invoices are collected through the day and loaded on a schedule (for example nightly) into an analytical store, where large, complex queries over three years of history run. Latency of hours is fine for a monthly report, and processing the whole period together is efficient and simple."
+            ),
+          ],
+        },
+        {
+          text: "The team wants to keep the van readings too, so analysts can later study which routes cause engines to overheat over a full year.",
+          ask: "How does the design handle both the live alerts and the yearly analysis, and which Microsoft services could play each part?",
+          parts: [
+            part(
+              "Combined design and services",
+              "Sends the same stream both to real-time processing (alerts, live map) and to storage for later batch analysis, and names fitting services: Microsoft Fabric Real-Time Intelligence (eventstreams to ingest, an eventhouse queried with KQL, Activator for alerts) or Azure Stream Analytics (with Event Hubs or IoT Hub input), with Power BI for the live map and the stored history in a data lake, lakehouse or warehouse for the yearly analysis.",
+              "Ingest the van events once and use them twice. Real time: Microsoft Fabric Real-Time Intelligence, where an eventstream ingests the readings, an eventhouse stores and queries them (KQL), and Activator raises the overheating alert; or Azure Stream Analytics reading from Event Hubs or IoT Hub with a temporal SQL query, sending results to Power BI for the live map. History: also land every reading in a data lake or lakehouse (or keep it in the eventhouse, available in OneLake), so analysts can join a year of readings with route data in a batch analysis."
             ),
           ],
         },
