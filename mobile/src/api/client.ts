@@ -183,6 +183,7 @@ const MODEL_ROUTES: readonly RegExp[] = [
   /^\/api\/coach\/quiz(?:$|\?)/, // REQ-110: first ask of an objective writes its question
   /^\/api\/labs\/[^/?]+\/submit(?:$|\?)/, // REQ-123: a lab step is graded
   /^\/api\/sims\/runs\/[^/?]+\/reasoning(?:$|\?)/, // REQ-190: a sim's written reasoning is graded
+  /^\/api\/objectives\/[^/?]+\/primer(?:$|\?)/, // REQ-253: first use writes and fact-checks the Key terms
 ];
 
 export function requestTimeoutMs(path: string, override?: number): number {

@@ -12,6 +12,7 @@ import type { GradeResult, LessonContent, MasteryStatus, NextObjective } from "@
 import { masteryAdvice, SOLO_HINT_NOTE, SOLO_OPEN_NOTE } from "@/lib/masteryAdvice";
 import { ReportProblem } from "@/components/ReportProblem";
 import { ReportLessonProblem } from "@/components/ReportLessonProblem";
+import { KeyTermsButton } from "@/components/KeyTerms";
 import {
   Badge,
   Body,
@@ -598,6 +599,8 @@ export default function LessonFlow() {
     <Screen scrollRef={scrollRef}>
       <Stack.Screen options={{ title: headerTitle }} />
       <StepHeader step={step} steps={stepsFor(labPrompt)} guidedSkipped={guidedSkipped} />
+      {/* REQ-253: Key terms, a constant reference at every step. */}
+      <KeyTermsButton objectiveId={objectiveId} />
 
       {step === "guess" && (
         <GuessStep
