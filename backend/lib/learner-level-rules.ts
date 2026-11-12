@@ -1,0 +1,166 @@
+// REQ-252 (levels phase 1A): the pure rules behind learner levels, so they
+// run under `tsx --test` with no database. lib/learner-level.ts does the
+// reads and writes; the app mirrors the wording in
+// mobile/src/lib/learnerLevel.ts.
+//
+// Design: "Teaching learners at every level" (2026-11-12), with Nick's
+// decisions of that day:
+//   - three levels, a dial behind the scenes, shown as plain names
+//     (New, Some background, Experienced) the learner can see and change;
+//   - per course, with optional per-unit overrides (a unit reads its own
+//     level and falls back to the course's);
+//   - level changes are AUTOMATIC as mastery is gained, each with a short
+//     notice and an undo -- never silent;
+//   - ONE mastery bar for everyone: a level changes the path, never the
+//     solo check or the mastery rule.
+
+export const LEVELS = ["new", "some", "experienced"] as const;
+export type Level = (typeof LEVELS)[number];
+
+// The per-course goal question (approved by Nick 2026-11-10). The wording is
+// the app's (mobile/src/lib/learnerLevel.ts GOAL_CHOICES).
+export const COURSE_GOALS = ["work", "current", "program", "career_change", "interest"] as const;
+export type CourseGoal = (typeof COURSE_GOALS)[number];
+
+// The account intake's experience answer (REQ-169, lib/intake.ts).
+export type AccountExperience = "new" | "some" | "experienced" | "retake";
+
+export function isLevel(v: unknown): v is Level {
+  return typeof v === "string" && (LEVELS as readonly string[]).includes(v);
+}
+export function isCourseGoal(v: unknown): v is CourseGoal {
+  return typeof v === "string" && (COURSE_GOALS as readonly string[]).includes(v);
+}
+
+// Design section 3, "How the level is set", step 1:
+//   getting into the field / changing careers, or out of interest -> New
+//   in a program or studying for the exam now                     -> Some background
+//   uses this at work, or staying current                          -> Experienced
+export const GOAL_LEVEL: Record<CourseGoal, Level> = {
+  work: "experienced",
+  current: "experienced",
+  program: "some",
+  career_change: "new",
+  interest: "new",
+};
+
+// "Retaking" is Experienced plus an exam date, not a fourth level (design 3).
+export const EXPERIENCE_LEVEL: Record<AccountExperience, Level> = {
+  new: "new",
+  some: "some",
+  experienced: "experienced",
+  retake: "experienced",
+};
+
+// With neither answer, today's lesson: Some background.
+export const DEFAULT_LEVEL: Level = "some";
+
+export type SuggestionReason = "experience" | "goal" | "none";
+
+// The starting suggestion. The experience answer wins when the two disagree
+// ("a career changer who says Some experience is Some background").
+export function suggestedLevel(
+  goal: CourseGoal | null,
+  experience: AccountExperience | null
+): { level: Level; reason: SuggestionReason } {
+  if (experience && EXPERIENCE_LEVEL[experience]) return { level: EXPERIENCE_LEVEL[experience], reason: "experience" };
+  if (goal && GOAL_LEVEL[goal]) return { level: GOAL_LEVEL[goal], reason: "goal" };
+  return { level: DEFAULT_LEVEL, reason: "none" };
+}
+
+// The level a lesson in this unit uses: the unit's override, else the
+// course's, else the suggestion.
+export function effectiveLevel(unitLevel: Level | null, courseLevel: Level | null, suggestion: Level): Level {
+  return unitLevel ?? courseLevel ?? suggestion;
+}
+
+// ---------------------------------------------------------------------------
+// Moving up from mastery evidence (design 3, "Evidence from answers").
+//
+// Over the learner's most recent LEVEL_UP_WINDOW objectives in a unit, the
+// FIRST solo answer on each (the lesson's solo check, kind 'lesson', stage
+// 'solo', not voided): when at least LEVEL_UP_MIN_FIRST_TRY_CORRECT of them
+// were correct without a hint, the unit moves up one level. Only answers
+// given after the unit's last level change count, so an undo (or the
+// learner's own change) is never overridden by the evidence it already saw.
+// Moving down is the learner's choice; nothing moves down on its own.
+// ---------------------------------------------------------------------------
+export const LEVEL_UP_WINDOW = 5;
+export const LEVEL_UP_MIN_FIRST_TRY_CORRECT = 4;
+
+export interface FirstTry {
+  verdict: string;
+  assisted: boolean;
+}
+
+export function firstTryStrong(t: FirstTry): boolean {
+  return t.verdict === "correct" && !t.assisted;
+}
+
+// `recent` is newest first; only the first LEVEL_UP_WINDOW are read, and a
+// window that is not yet full never moves anyone.
+export function meetsLevelUp(recent: FirstTry[]): boolean {
+  const window = recent.slice(0, LEVEL_UP_WINDOW);
+  if (window.length < LEVEL_UP_WINDOW) return false;
+  return window.filter(firstTryStrong).length >= LEVEL_UP_MIN_FIRST_TRY_CORRECT;
+}
+
+export function levelAbove(level: Level): Level | null {
+  if (level === "new") return "some";
+  if (level === "some") return "experienced";
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Measurement (design 8, phase 1): the lesson events the app may post, and
+// the only detail each may carry. Never answer text; the detail is built here
+// from a fixed list of keys and values, whatever the request held.
+// ---------------------------------------------------------------------------
+export const LESSON_EVENTS = [
+  "guess_shown",
+  "guess_answered",
+  "guess_skipped",
+  "teach_card_viewed",
+  "guided_skipped",
+  "lesson_step_reached",
+  // For the primers builder's "Key terms" button (REQ-252 / migration 079):
+  // opened, and closed with the seconds it stayed open.
+  "key_terms_opened",
+  "key_terms_closed",
+] as const;
+export type LessonEvent = (typeof LESSON_EVENTS)[number];
+
+export function isLessonEvent(v: unknown): v is LessonEvent {
+  return typeof v === "string" && (LESSON_EVENTS as readonly string[]).includes(v);
+}
+
+const GUESS_KINDS = ["option", "no_idea", "typed"] as const;
+const STEPS = ["guess", "teach", "fade", "solo", "lab", "done"] as const;
+export const MAX_EVENT_SECONDS = 3600;
+export const MAX_EVENT_CARD = 9;
+
+export interface LessonEventDetail {
+  level?: Level;
+  flow?: boolean;
+  kind?: (typeof GUESS_KINDS)[number];
+  seconds?: number;
+  card?: number;
+  step?: (typeof STEPS)[number];
+}
+
+const intIn = (v: unknown, min: number, max: number) =>
+  typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, Math.round(v))) : undefined;
+
+export function lessonEventDetail(raw: unknown): LessonEventDetail {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const d: LessonEventDetail = {};
+  if (isLevel(r.level)) d.level = r.level;
+  if (typeof r.flow === "boolean") d.flow = r.flow;
+  if (typeof r.kind === "string" && (GUESS_KINDS as readonly string[]).includes(r.kind)) d.kind = r.kind as LessonEventDetail["kind"];
+  const seconds = intIn(r.seconds, 0, MAX_EVENT_SECONDS);
+  if (seconds !== undefined) d.seconds = seconds;
+  const card = intIn(r.card, 0, MAX_EVENT_CARD);
+  if (card !== undefined) d.card = card;
+  if (typeof r.step === "string" && (STEPS as readonly string[]).includes(r.step)) d.step = r.step as LessonEventDetail["step"];
+  return d;
+}
