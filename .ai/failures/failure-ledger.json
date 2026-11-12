@@ -16424,6 +16424,106 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-1560",
+      "date": "2026-11-11",
+      "title": "MSCS units cited no sources",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "No MSCS unit had sources, so the lesson writer and the fact-checker got no dated references or key values for the course and it could not be verified",
+      "how_detected": "REQ-245 verification review",
+      "root_cause": "MSCS predates REQ-195/REQ-235 unit sources; it was carried as a self-defined syllabus and never given references",
+      "requirement": "REQ-245",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "MSCS_UNIT_SOURCES: dated sources per unit (CS2023 knowledge units plus standard texts) with key values, read 2026-11-11",
+      "fix_commits": [
+        "5506b13"
+      ],
+      "regression_tests": [
+        "backend/lib/academic-verification.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "academic-verification.test.ts requires every taught unit of the three courses to name dated https sources, and every MSCS unit title to have an entry",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1561",
+      "date": "2026-11-11",
+      "title": "MSCS TLS objective implied TLS encrypts with public keys",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Objective 'Symmetric vs asymmetric encryption, and why both exist together (e.g. TLS)' invites the outdated lesson that TLS encrypts a session key with the server's public key",
+      "how_detected": "REQ-245 verification against RFC 9846",
+      "root_cause": "Written from TLS 1.2-era RSA key transport; TLS 1.3 (RFC 8446, now RFC 9846 of July 2026) removed static RSA and uses public-key cryptography only for ephemeral key agreement and signatures",
+      "requirement": "REQ-245",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Objective reworded in place (re-seed invalidates its generated lessons); RFC 9846 key values added to the unit",
+      "fix_commits": [
+        "5506b13"
+      ],
+      "regression_tests": [
+        "backend/lib/academic-verification.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Key values on the unit reach the writer and fact-checker; the test pins the wording and the RFC 9846 source",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1562",
+      "date": "2026-11-11",
+      "title": "CMPCBS multivariable unit taught power series in several variables",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Multivariable Calculus objective 'Integration and power series in several variables' is not in the unit's source (OpenStax Calculus Volume 3) nor a standard multivariable topic",
+      "how_detected": "REQ-245 verification against the Calculus Volume 3 table of contents",
+      "root_cause": "Carried over from the school catalog description REQ-195 reframed; the objective was never checked against the textbook it is taught from",
+      "requirement": "REQ-245",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Reworded in place to multiple integration (Calculus Volume 3 chapter 5)",
+      "fix_commits": [
+        "5506b13"
+      ],
+      "regression_tests": [
+        "backend/lib/academic-verification.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Test pins the objective and forbids power series in the unit",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1563",
+      "date": "2026-11-11",
+      "title": "CMPCBS units cited references that did not cover their objectives",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Several taught units' only reference lacked some of their objectives: Discrete Mathematics (Boolean algebra, matrices, algorithms not in Levin), Intro to CS (networking, IP, privacy, computer crime), Statistics (calculus-based probability), Numerical Methods (linear systems, error), Modeling (modeling process, simulation), Information Systems (technical writing), Information Security (attacker tactics)",
+      "how_detected": "REQ-245 verification against each reference's table of contents",
+      "root_cause": "REQ-195 picked one open text per course by title, without comparing its table of contents with each objective",
+      "requirement": "REQ-245",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Added CS2023, Applied Discrete Structures, Grinstead and Snell, Fundamentals of Numerical Computation, SIAM modeling handbook, Technical Writing Essentials, MITRE ATT&CK v20.1 and Microsoft's C++ reference, each read 2026-11-11",
+      "fix_commits": [
+        "5506b13"
+      ],
+      "regression_tests": [
+        "backend/lib/academic-verification.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Test requires each gap's covering reference; future course reviews compare every objective with the cited table of contents",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-1540",
       "date": "2026-11-11",
       "title": "DP-300 stuck at Review due after its review-date line was deleted",

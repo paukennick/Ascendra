@@ -8871,6 +8871,54 @@
       ]
     },
     {
+      "id": "REQ-245",
+      "category": "content",
+      "title": "Verify MSCS, CMPCBS and PTPREREQ against current sources",
+      "description": "The three academic_foundational courses showed Unverified (no source_verified_at). Each unit's objectives and key facts were checked against current sources read 2026-11-11 (CS2023, standard texts' tables of contents, RFC 9846, NIST, NN/g, W3C, APTA, ACAPT, OpenStax), defects fixed, dated sources recorded, then sourceVerifiedAt 2026-11-11 and contentReviewDueAt 2027-11-11 set, following the DPT/BSN/MSHI pattern. No migration.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/tracks/pt-prereq.ts",
+        "backend/lib/"
+      ],
+      "acceptance_criteria": [
+        "view_content_freshness shows MSCS CMPCBS and PTPREREQ as current after seeding",
+        "every taught unit names dated https sources",
+        "defects found have ledger entries and regression tests"
+      ],
+      "validation_required": [
+        "npm test",
+        "throwaway Postgres migrate and seed",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-243",
+      "category": "ux",
+      "title": "Settings: one Notifications section for every notification channel",
+      "description": "Nick, 2026-11-11: \"Study notifications email, sms and other notifications types should be under a notifications block.\" Settings gains a Notifications section holding Study reminders and Email; the Study section keeps Study profile. A future channel (SMS, push) is added as a row there. Source-checked by mobile/src/lib/settingsSections.test.ts.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/(app)/settings.tsx",
+        "mobile/src/lib/settingsSections.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Settings shows a Notifications section containing Study reminders and Email",
+        "The Study section holds only Study profile"
+      ],
+      "validation_required": [
+        "mobile npm test (settingsSections.test.ts)"
+      ],
+      "documentation_required": [],
+      "risk_notes": []
+    },
+    {
       "id": "REQ-244",
       "category": "content",
       "title": "Verify the Python, JavaScript, DP-300 and GCP DevOps courses against current sources",
@@ -8903,27 +8951,6 @@
         "GCPDEVOPS had the same deleted review line (2026-11-23) and will show Review due from that day",
         "GCPDEVOPS resolved in this branch (FAIL-1541, FAIL-1542); the earlier GCPDEVOPS risk note is superseded"
       ]
-    },
-    {
-      "id": "REQ-243",
-      "category": "ux",
-      "title": "Settings: one Notifications section for every notification channel",
-      "description": "Nick, 2026-11-11: \"Study notifications email, sms and other notifications types should be under a notifications block.\" Settings gains a Notifications section holding Study reminders and Email; the Study section keeps Study profile. A future channel (SMS, push) is added as a row there. Source-checked by mobile/src/lib/settingsSections.test.ts.",
-      "priority": "medium",
-      "status": "completed",
-      "minimum_access_scope": [
-        "mobile/app/(app)/settings.tsx",
-        "mobile/src/lib/settingsSections.test.ts"
-      ],
-      "acceptance_criteria": [
-        "Settings shows a Notifications section containing Study reminders and Email",
-        "The Study section holds only Study profile"
-      ],
-      "validation_required": [
-        "mobile npm test (settingsSections.test.ts)"
-      ],
-      "documentation_required": [],
-      "risk_notes": []
     }
   ]
 }
