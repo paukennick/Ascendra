@@ -17,7 +17,7 @@ import { PROFILE_THRESHOLDS } from "./engine/v1/validate.ts";
 import type { Run } from "./engine/v1/engine.ts";
 import { clientDocument } from "./content-hash.ts";
 import { DEFAULT_RENDERERS, pacingEligible, parseCaps, renderersOn, runnable } from "./server-run.ts";
-import { safetyFamilyOf, secondsUnitProblems } from "./lint.ts";
+import { backslashEscapeProblems, safetyFamilyOf, secondsUnitProblems } from "./lint.ts";
 import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
 import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 
@@ -156,6 +156,16 @@ describe("terminal bindings (screen.terminal)", () => {
     d.params.syncMin = { value: 45, unit: "min", source: d.params.syncDelay.source };
     d.screen.terminal!.lines[3].at = "syncMin";
     assert.ok(secondsUnitProblems(d).some((p) => p.path === "screen.terminal.lines[3].at"));
+  });
+
+  test("a backslash escape in a document string is a lint error (FAIL-1440); no seeded document has one", () => {
+    const d = clone(base);
+    d.actions.df.effects.push({ output: '{freeMb > 0 ? "a\\nb" : ""}' });
+    d.screen.terminal!.lines[0].text = "C:\\> fine, a backslash before >";
+    const p = backslashEscapeProblems(d);
+    assert.equal(p.length, 1);
+    assert.match(p[0].path, /^actions\.df\.effects/);
+    for (const e of ALL_DOCUMENTS) assert.deepEqual(backslashEscapeProblems(loadDocument(e)), [], `${e.course}/${e.slug}`);
   });
 
   test("the infrastructure profile has defaults and refuses a looser threshold", () => {

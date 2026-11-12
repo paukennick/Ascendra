@@ -2421,7 +2421,8 @@ direction):
 | Clinical session (REQ-225) | the session's safety or diagnostic task done within its window (`safetyWindow`, default 20 min from the cue), rapport >= 6/10 at the close (`allianceTarget`) | done late, partly, or at a cost to the alliance or the client's autonomy (an over-restrictive referral, a disclosure made on a guess) | a client left at foreseeable risk, a required protective step not taken, confidentiality broken beyond what the law allows, a diagnosis that misses a required rule-out, or a walk-out after a rupture |
 | Security (REQ-231, 22.7) | contained within `containWindow` (default 60 min; the Security+ cases use 30) of the first alert, no asset newly compromised after it (`containSpread` 0), evidence preserved before anything is purged, wiped or terminated | contained, but late, after spread to another asset, with partial evidence (a disk image without memory), or with a costly recovery (an older backup past the RPO) | the attacker's impact reached (payment fraud, backups destroyed, data copied out), evidence destroyed before collection, a reinfection during recovery, or the incident closed with an attacker path still open |
 | Physical therapy (REQ-232) | the session's goal reached with every stopping rule respected (activity eased within `stopWindow`, default 2 min, of a rule being crossed; SpO2 floor `spo2Floor`, default 88%) and any red flag escalated within `escalateWindow` (default 15 min) | the goal partly reached, a stopping rule acted on late, or a red flag escalated by a slower route (the patient told to call) or after it became an emergency | a fall, syncope, an embolism, rapid response, or a red flag left unescalated |
-| Infrastructure, data | defined with their renderers (20) | | |
+| Infrastructure (REQ-237, 22.10) | the service restored within `restoreWindow` (default 60 min; the cases use 30 or 45) of the first report, with no fault the fix introduced (`newFaults` 0) and the case's evidence step done first | restored late, by a guess, unsaved, or with a side effect (a weakened server, a fix that will not survive a reboot) | the outage spread to the authored secondary service, or a destructive command (data or WAL deleted, a config erased by a reload, a node wiped, a disruption budget bypassed) |
+| Data | defined with its renderer (20) | | |
 
 Two readings are written down so they are not re-decided per scenario.
 The cloud "missed by ≤ 10%" is read as the example Nick gave: 99.85%
@@ -4490,3 +4491,134 @@ first minute.
   and neonatal sepsis cases; elsewhere every slow path ends in an earlier
   ending first, so the linter's `time_up` warning remains, as in the
   existing CCRN cases.
+
+### 22.10 The terminal and network screen and the first Linux+, Network+ and CKA outages (REQ-237)
+
+The design's terminal renderer (20.1, decision R3) as built: `screen.type:
+"terminal"`, `terminal@1`, behind `SIMS_RENDERERS` and on by default
+(`bedside,board,session,security-console,treatment-session,terminal`). It is
+still an authored fault tree, never an emulator, and it does not use the
+typed `command` param (4.1): **the command set is bounded.** Each command is
+one of the phase's actions; its label is the command line (`df -h /var`,
+`ACC-SW2# show interfaces trunk`, `kubectl drain w3`) and its arguments are
+`choice` params whose option labels are the literal arguments. Nothing the
+learner types reaches the engine as text.
+
+**The renderer** (`TerminalPanel`, `mobile/src/sim/TerminalPanel.tsx`; view
+model `terminalView`, `terminalCommands`, `matchCommand`, `suggestCommands`,
+`commandProblem`, `terminalAlarmTexts`, `terminalErrors`, `terminalNews`,
+`terminalSentence` in `src/sim/runtime/terminalView.ts`). Three blocks in
+reading order and web keyboard order:
+
+- **Map**: `nodes` (hosts, switches, cluster nodes, services, a deadline)
+  and `links` between two of them, each with a status in words and a tone
+  (`up`, `degraded`, `down`, `out` read as "up", "degraded", "down", "out of
+  service"); meters under them.
+- **Terminal**: the transcript, oldest first, at most 40 entries: every
+  command's `output` effects at the tick it ran (the run's `outputs`, which
+  the screen no longer shows as separate cards) merged with `lines` that
+  appear on their own while `when` holds at `at` (sim seconds). At the same
+  minute a line comes before command output (FAIL-1441). `error` marks a
+  line the screen reader must hear at once.
+- **Command line**: the prompt (a template), a text field and Run, and up to
+  six suggestions (prefix matches first, then contains; available first).
+  A typed line runs only when it is exactly one command of the set (case and
+  spacing ignored, never a partial or fuzzy match); a command whose action
+  needs a form (the write-up) is sent to the action list; anything else is
+  answered on screen ("not available in this lab", or the action's `why`)
+  and sends nothing. The same commands stay in the action list (ActionBar)
+  for picking.
+
+**Accessibility**, equal to the console: every node, link, meter and
+transcript entry is one accessible element whose label says its state in
+words (tone is a word plus a color); every element is at least 48 dp; a
+node or link that goes down is an alarm (spoken at once, and again as
+cleared); a new error line goes through the announcer's new `urgent` input,
+spoken at once, never rate-limited, even while typing; new output and a tone
+change other than down are polite news, at most one sentence per 10 s, a
+burst summarized ("2 new output blocks. Newest: ..."); a refused typed line
+is spoken at once. "Read the terminal" speaks the prompt, every node, the
+links not up, the meters, the latest error and the latest output. JavaScript
+only, so it ships over the air; an app without `terminal@1` is not offered
+these sims and is told to update (5.10).
+
+**Bindings** (`screen.terminal` in `engine/v1/types.ts`, the zod schema and
+`validate.ts` `terminalCheck`): `prompt` (template), `lines` (`text`,
+`when`, `at` a number, optional `error` bool), `nodes` (`label`,
+`spokenLabel`, `kind`, `status`, `tone` an enum expression over the four
+tones), `links` (`from` and `to` must be node ids and differ, `label`,
+`status`, `tone`), `meters`. Ids are unique across lines, nodes, links and
+meters. A line's `at` is checked by the seconds-unit lint (22.9). Display and
+lint only: stepping, the corpus and every existing hash are unchanged, and
+there is no engine minor.
+
+**Pacing: learner-paced, as on the board and the console.** Every phase is
+`turns`; each command costs the operator minutes through one `work` wait
+("Let the command finish": a `df` 1, `du` 3, a console walk 15, a reboot 6
+to 10), and the outage's next step (a job that needs the database, a
+deadline, memory pressure) is a trigger on the same clock that stops the
+skip early (`interruptsSkip`). The general family is not pace-eligible, so
+the server refuses pace commands.
+
+**Outcome profile `infrastructure`** (9.2, drafts in 20.1 now defaults):
+`restoreWindow` 3600 s (restored within 60 minutes of the first report) and
+`newFaults` 0 (faults the fix itself introduced). Target: restored in the
+window with no new fault and the case's evidence step done first;
+recovered: late, guessed, unsaved or with a side effect; harm: the outage
+spread to the authored secondary service, or a destructive command (WAL
+deleted, SELinux set to be disabled, a reload without saving, a node wiped,
+a budget bypassed). Each case tightens `restoreWindow` (30 or 45 minutes).
+
+**Cases** (golden paths by `npm run sim:golden -- steps <name>`, shared
+driver `scripts/sim-golden/terminal-helpers.ts`):
+
+| Course / slug | Objective (catalog title) | Critical criteria | Steps name |
+|---|---|---|---|
+| LINUXPLUS/full-var-stops-database | Diagnosing storage issues: full disks, inode exhaustion, failing drives | found the process holding the deleted log (lsof +L1) before freeing space; freed space without deleting WAL, data or logs; database back within 30 min | linux-full-var |
+| LINUXPLUS/selinux-denies-moved-site | Managing users, groups, and permissions at the system level | proved SELinux (ausearch, ls -Z) before changing anything; kept SELinux enforcing and the permissions tight; restorecon within 30 min | linux-selinux |
+| NETWORKPLUS/vlan-missing-from-trunk | Diagnosing network service issues: switching, routing, and address pool exhaustion | found VLAN 20 missing on the uplink trunk before changing it; `allowed vlan add` (a bare list drops voice and management); fixed within 30 min | net-trunk |
+| NETWORKPLUS/branch-dns-route-typo | Applying a consistent troubleshooting methodology from problem identification through documentation | questioned users and checked what changed first; stated and tested the theory; restored within 45 min; no new fault | net-dns |
+| CKA/crashloop-bad-configmap | Troubleshoot application failures from Pod status: Pending, CrashLoopBackOff, ... | `kubectl logs --previous` before changing anything; fixed the ConfigMap rather than relying on `rollout undo`; old pods kept serving; complete within 30 min | cka-crashloop |
+| CKA/node-notready-swap-drain | Troubleshoot clusters and nodes: a NotReady node, ... | kubelet journal first; swap fix that survives a reboot; w3 drained through eviction with capacity back; w2 Ready within 30 min | cka-node |
+
+Each case has one written-reasoning moment, endings in all three classes,
+`endingOrder` (harm first), KPIs, an expert path, a debrief per ending and
+six golden paths (Good, Mediocre, Bad; every ending but `time_up` and every
+criterion met and missed, checked by `lib/sim/terminal.test.ts`). Every
+objective is a catalog objective that meets the selection rule
+(`isPerformanceObjective`).
+
+**Sources** carry `checkedAt` 2026-11-11 and say how each was read. Read in
+primary text: unlink(2) (man-pages 6.19), RFC 3927, PostgreSQL 18 (27.6.2
+Disk Full Failure, 28.5 WAL configuration) and the CKA Curriculum v1.37 PDF.
+Read through summarizing fetches: df(1), lsof(8) (the column list was not
+reached), journald.conf(5), restorecon(8), setenforce(8), Red Hat's RHEL 9
+SELinux troubleshooting and modes chapters, CompTIA's Linux+ and Network+
+pages and the N10-009 comparison flyer, Pearson's N10-009 cert guide (only
+methodology steps 1-4 were visible), the Cisco `switchport trunk` and `ip
+route` references, RFC 1812 2.2.5.2, Microsoft's ipconfig and nslookup
+pages, and the Kubernetes pages (Pod lifecycle, ConfigMaps, Deployments,
+kubectl logs and drain, Nodes, Taints and Tolerations, Safely Drain a Node,
+Installing kubeadm). Not reached: the CompTIA objectives PDFs (XK0-006,
+N10-009). Command output layouts are authored renderings in each tool's
+style; the facts they carry are the sources'. Authored values that stand in
+for a missing source carry `FLAG`: equal-distance static defaults sharing
+traffic, and whether a crash-looping container picks up a fixed ConfigMap
+value without a restart (not modeled; the documented restart is required).
+
+**Findings** (20: recorded, not worked around):
+
+1. **The design's terminal (typed `command` patterns) was not used.** The
+   task asked for no free shell, so commands are actions; the `command`
+   param stays for a later typed-pattern console. A decision for Nick if a
+   free-text-matching terminal is still wanted.
+2. **A backslash escape in a document string (FAIL-1440).** The expression
+   parser drops a backslash and keeps the next character, so `\n` in a slot
+   renders the letter n. New lint error `backslashEscapeProblems`
+   (lib/sim/lint.ts, run by `sims:lint` and the generator's lint gate); no
+   seeded document had one.
+3. **A gated command's reason (FAIL-1442).** An action's `why` is what the
+   command line says when a command will not run, so a gate with two causes
+   (busy, or the device unreachable) names both.
+4. **The infrastructure thresholds were drafts** with an empty profile; they
+   are now defaults (display and lint only, no engine minor).

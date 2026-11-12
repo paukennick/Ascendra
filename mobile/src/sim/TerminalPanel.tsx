@@ -9,7 +9,7 @@ import type { TerminalTone } from "./engine/v1/types.ts";
 // REQ-237 (docs/sims.md 13, 20, 22.10): the terminal and network screen.
 // Three blocks in reading order (and web keyboard order): the map (nodes and
 // links, each with a status in words and a tone shown as a word plus a
-// colour, never colour alone), the transcript (command output and lines that
+// color, never color alone), the transcript (command output and lines that
 // appear on their own, oldest first, monospace), and the command line. The
 // command line is a bounded command set, not a shell: a typed line runs only
 // when it is exactly one of the phase's commands, picked suggestions run the
@@ -17,11 +17,11 @@ import type { TerminalTone } from "./engine/v1/types.ts";
 // same commands stay in the action list (ActionBar) for picking. Every
 // element is at least 48 dp (MIN_TOUCH). "Read the terminal" speaks it all.
 
-const TONE_COLOUR: Record<TerminalTone, string> = { up: colors.good, degraded: colors.warn, down: colors.bad, out: colors.accent };
+const TONE_COLOR: Record<TerminalTone, string> = { up: colors.good, degraded: colors.warn, down: colors.bad, out: colors.accent };
 const MONO = { bg: "#0B0C10", text: "#E6E8EF", dim: "#A6A9B6", err: "#F08A8A" };
 
 function Pill({ tone }: { tone: TerminalTone }) {
-  const c = TONE_COLOUR[tone];
+  const c = TONE_COLOR[tone];
   return (
     <View style={{ borderWidth: 1, borderColor: c, borderRadius: radius.sm, paddingHorizontal: 6, paddingVertical: 1, alignSelf: "flex-start" }}>
       <Muted style={{ fontSize: 12, color: c, fontWeight: "700" }}>{TERMINAL_TONE_WORDS[tone]}</Muted>
@@ -76,7 +76,7 @@ export function TerminalPanel({
               key={n.id}
               accessible
               accessibilityLabel={n.a11y}
-              style={{ flexGrow: 1, flexBasis: "45%", minWidth: 150, minHeight: MIN_TOUCH, borderWidth: n.tone === "down" ? 2 : 1, borderColor: n.tone === "up" ? colors.borderLight : TONE_COLOUR[n.tone], borderRadius: radius.sm, padding: spacing.sm, gap: 2 }}
+              style={{ flexGrow: 1, flexBasis: "45%", minWidth: 150, minHeight: MIN_TOUCH, borderWidth: n.tone === "down" ? 2 : 1, borderColor: n.tone === "up" ? colors.borderLight : TONE_COLOR[n.tone], borderRadius: radius.sm, padding: spacing.sm, gap: 2 }}
             >
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: spacing.xs }}>
                 <Muted style={{ fontSize: 12 }}>{n.kind}</Muted>

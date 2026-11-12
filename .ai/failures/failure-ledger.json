@@ -15957,6 +15957,78 @@
       "prevention_rules": [],
       "prevention_notes": "A course objective that names an outline's steps is retitled in place by position, never moved or appended, so learner rows stay (REQ-102, FAIL-893).",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1440",
+      "date": "2026-11-11",
+      "title": "A backslash escape in a sim document string renders as a letter, not a line break",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "While authoring the terminal sims, output templates written with \\n inside a template slot's string literal would have rendered the letter n where a line break was meant (and a visible backslash outside a slot).",
+      "how_detected": "review",
+      "root_cause": "The expression parser keeps the character after a backslash and drops the backslash; templates have no backslash escapes at all. Nothing checked for them, and JSON written from a generator easily double-escapes a line break.",
+      "requirement": "REQ-237",
+      "affected": [
+        "backend/lib/sim/lint.ts",
+        "backend/supabase/seed/sims"
+      ],
+      "fix_summary": "New lint rule backslashEscapeProblems (sims:lint and the generator lint gate through checkDocument) errors on a backslash before n, r, t, a quote or a backslash in any document string; the sims use real line breaks.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/terminal.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "backend/lib/sim/lint.ts"
+      ],
+      "prevention_notes": "docs/sims.md 22.10 finding 2",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1441",
+      "date": "2026-11-11",
+      "title": "Terminal transcript put a command's output before a line that appeared at the same minute",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "terminal.test.ts: Read the terminal said the latest output was the 09:00 shopd error line, though df had just run at 09:00.",
+      "how_detected": "test",
+      "root_cause": "The first transcript sort broke ties at the same sim time by putting every command output before every timed line; a line that appears on its own happens as the minute begins, so a command run in that minute prints after it.",
+      "requirement": "REQ-237",
+      "affected": [
+        "mobile/src/sim/runtime/terminalView.ts"
+      ],
+      "fix_summary": "Ties order the timed lines first (authored order), then command output in print order.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/sim/terminal.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.10 (transcript order)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1442",
+      "date": "2026-11-11",
+      "title": "A command refused because its device was unreachable said to wait for the running command",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "terminal.test.ts: after the bare allowed-vlan list dropped the management VLAN, the command line answered 'Wait for the running command to finish' for ACC-SW2 commands.",
+      "how_detected": "test",
+      "root_cause": "The builder gave every gated command the generic busy reason; the console-only state needed its own why, since the screen shows the action's why to say why a command will not run.",
+      "requirement": "REQ-237",
+      "affected": [
+        "backend/supabase/seed/sims/NETWORKPLUS/vlan-missing-from-trunk.sim.json"
+      ],
+      "fix_summary": "Every ACC-SW2 command carries a why that names both reasons (the management VLAN is off the uplink, or a command is running).",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/sim/terminal.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.10 finding 3",
+      "recurrence_of": ""
     }
   ]
 }

@@ -169,6 +169,26 @@ export function secondsUnitProblems(doc: ScenarioDoc): Problem[] {
   });
 }
 
+// REQ-237 (FAIL-1440): a backslash escape in a document string. Inside an
+// expression's string literal (a template slot, a condition) the parser keeps
+// the character after a backslash and drops the backslash, so "\\n" renders
+// as the letter n, not a line break; outside a slot it renders as a visible
+// backslash. Neither is ever what an author means: write a real line break
+// (the JSON escape \n is one) instead.
+export function backslashEscapeProblems(doc: ScenarioDoc): Problem[] {
+  const out: Problem[] = [];
+  const walk = (x: unknown, path: string): void => {
+    if (typeof x === "string") {
+      if (/\\[nrt"\\]/.test(x)) out.push({ level: "error", path, message: "contains a backslash escape (\\n, \\t, \\\"); the expression language drops the backslash and keeps the letter, so write a real line break or the character itself (FAIL-1440)" });
+      return;
+    }
+    if (Array.isArray(x)) return x.forEach((v, i) => walk(v, `${path}[${i}]`));
+    if (x && typeof x === "object") for (const [k, v] of Object.entries(x as Record<string, unknown>)) walk(v, path ? `${path}.${k}` : k);
+  };
+  walk(doc, "");
+  return out;
+}
+
 // `full` false = schema only (sims:validate); true adds the semantic and
 // content layers, golden replays and the path search (sims:lint).
 export function checkDocument(entry: DocumentEntry, opts: { full: boolean; now?: string; searchNodes?: number }): DocumentReport {
@@ -198,6 +218,7 @@ export function checkDocument(entry: DocumentEntry, opts: { full: boolean; now?:
     problems.push(...lintScenario(doc, { now: opts.now, safetyFamily: safetyFamilyOf(doc), golden, goldenResults, searchNodes: opts.searchNodes ?? 4000 }));
     problems.push(...endingOrderProblems(doc, golden));
     problems.push(...secondsUnitProblems(doc));
+    problems.push(...backslashEscapeProblems(doc));
   }
   return { entry, doc, golden, problems, goldenResults };
 }
