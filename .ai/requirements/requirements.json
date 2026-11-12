@@ -8307,43 +8307,48 @@
       ]
     },
     {
-      "id": "REQ-231",
-      "category": "feature",
-      "title": "Sims: security operations console screen type and the first three Security+ incidents",
-      "description": "A security operations console renderer (screen type security-console) behind SIMS_RENDERERS and on by default: alert queue, log and event lines and assets with status that update over sim time, containment actions as scenario action groups, accessibility equal to the bedside, board and session screens, JavaScript only, older apps told to update. Outcome profile security with default thresholds. Three Security+ incidents (a phished account, ransomware on a file server, a leaked cloud key with a new administrator) on SY0-701 objectives in SECPLUS and, as V8 bands, the matching SY0-801 objectives in SECPLUSV8. Learner-paced: the attacker works on the sim clock, which moves by the analyst time each task takes.",
+      "id": "REQ-233",
+      "category": "content",
+      "title": "Bedside sims wave 1: CCRN Pediatric, CCRN Neonatal, NCLEX-RN, NCLEX-PN, and a second AWS SAA board sim",
+      "description": "Nick's sims wave 1 (2026-11-11): baseline sims for four courses on the existing bedside screen, two each, plus a second AWS SAA board sim in a domain other than TicketBurst's. CCRNPEDS/pediatric-septic-shock-fluids and pediatric-dka-cerebral-edema; CCRNNEO/neonatal-rds-escalating-support and neonatal-sepsis-hypoglycemia; NCLEXRN/med-surg-deterioration-sbar and post-op-transfusion-reaction; NCLEXPN/ltc-change-in-condition and med-pass-error-caught; AWSSAA/nat-gateway-bill-spike (cost). Engine 1.2 with endingOrder; endings in all three classes, 3-4 critical criteria inside target, KPIs, expert path, debrief per ending, 5-6 golden paths; clinical sims at study pace (3x). Literature checked and dated on each document; authored teaching values flagged. No engine, renderer or schema change; no migration.",
       "priority": "high",
       "status": "completed",
       "minimum_access_scope": [
-        "backend/lib/sim",
-        "backend/supabase/seed/sims/SECPLUS",
-        "backend/supabase/seed/sims/SECPLUSV8",
-        "backend/scripts/sim-golden",
-        "mobile/src/sim",
-        "mobile/app/(app)/course/[trackId]/sim",
-        "docs/sims.md"
+        "backend/supabase/seed/sims/CCRNPEDS/",
+        "backend/supabase/seed/sims/CCRNNEO/",
+        "backend/supabase/seed/sims/NCLEXRN/",
+        "backend/supabase/seed/sims/NCLEXPN/",
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.sim.json",
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
       ],
       "acceptance_criteria": [
-        "security-console renderer behind SIMS_RENDERERS with security-console@1 capability",
-        "accessibility to the bedside board and session standard",
-        "three Security+ incidents with endings in all three classes and golden paths Good Mediocre Bad",
-        "V8 bands on the matching SY0-801 objectives",
-        "no engine stepping change"
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "every objective title exists in its course catalog",
+        "golden paths end the same in written reversed and jsonb key order",
+        "clinical sims are paced (study pace by default)"
       ],
       "validation_required": [
-        "backend npm test",
         "npm run sims:lint",
-        "cross-runtime fixture and engine bundle",
-        "sims DB tests",
-        "mobile tsc and npm test",
+        "backend npm test (storage-order and objectives tests included)",
+        "sim:cross-runtime and the engine-bundle replay",
+        "sims dbtests on a throwaway Postgres",
+        "mobile npm test",
         "omni gate"
       ],
       "documentation_required": [
-        "docs/sims.md 22.7",
-        "CHANGELOG"
+        "docs/sims.md",
+        "CHANGELOG.md"
       ],
       "risk_notes": [
-        "Sources read through a summarizing fetch; vendor guidance (Microsoft Learn",
-        "AWS re:Post) used for account and cloud steps; two V8 objective titles do not match the generator selection rule word list"
+        "SSC Children's 2026 and AAP 2011 hypoglycemia read only through summaries",
+        "authored teaching-model numbers are flagged in their source notes",
+        "AWS prices are the Ohio rates read 2026-11-11 and change over time",
+        "new document hashes enter expert review"
       ]
     },
     {
@@ -8388,6 +8393,46 @@
         "APA Ethics Code and two StatPearls chapters were read through a fetch tool's summary (apa.org and NCBI refuse scripted downloads)",
         "Course objective for A+ malware removal still summarizes the older seven-step list; V15 lists ten steps",
         "The net use command page was not re-read (404 at its usual URL)"
+      ]
+    },
+    {
+      "id": "REQ-231",
+      "category": "feature",
+      "title": "Sims: security operations console screen type and the first three Security+ incidents",
+      "description": "A security operations console renderer (screen type security-console) behind SIMS_RENDERERS and on by default: alert queue, log and event lines and assets with status that update over sim time, containment actions as scenario action groups, accessibility equal to the bedside, board and session screens, JavaScript only, older apps told to update. Outcome profile security with default thresholds. Three Security+ incidents (a phished account, ransomware on a file server, a leaked cloud key with a new administrator) on SY0-701 objectives in SECPLUS and, as V8 bands, the matching SY0-801 objectives in SECPLUSV8. Learner-paced: the attacker works on the sim clock, which moves by the analyst time each task takes.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/SECPLUS",
+        "backend/supabase/seed/sims/SECPLUSV8",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "security-console renderer behind SIMS_RENDERERS with security-console@1 capability",
+        "accessibility to the bedside board and session standard",
+        "three Security+ incidents with endings in all three classes and golden paths Good Mediocre Bad",
+        "V8 bands on the matching SY0-801 objectives",
+        "no engine stepping change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle",
+        "sims DB tests",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.7",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "Sources read through a summarizing fetch; vendor guidance (Microsoft Learn",
+        "AWS re:Post) used for account and cloud steps; two V8 objective titles do not match the generator selection rule word list"
       ]
     }
   ]

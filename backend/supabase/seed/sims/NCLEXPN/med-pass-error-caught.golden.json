@@ -1,0 +1,605 @@
+{
+  "slug": "med-pass-error-caught",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: cards against the MAR, two identifiers, apical pulse and BP, symptoms asked, two held and two given, RN, pharmacy, incident report in the system",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "identify",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "allergies",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "apical",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "bp",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "fullMinute",
+          "choice": "irreg",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "found",
+          "answered": true,
+          "seq": 8,
+          "tick": 70
+        },
+        {
+          "type": "chapter",
+          "chapter": "dataIn",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "ask",
+          "seq": 10,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "holdDig",
+          "seq": 11,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "holdMeto",
+          "seq": 12,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "giveFuro",
+          "seq": 13,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "giveK",
+          "seq": 14,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "seq": 15,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "pharmacy",
+          "seq": 16,
+          "tick": 70
+        },
+        {
+          "type": "teach",
+          "prompt": "incidentQ",
+          "choice": "system",
+          "seq": 17,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "incident",
+          "params": {
+            "where": "system"
+          },
+          "seq": 18,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "seq": 19,
+          "tick": 70
+        }
+      ],
+      "expect": {
+        "ending": "caught",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "rightDrugDose": "met",
+          "rightPerson": "met",
+          "holdParams": "met",
+          "report": "met",
+          "incident": "met",
+          "pharmacy": "met",
+          "others": "met",
+          "toxicity": "met"
+        },
+        "kpis": {
+          "apical": 56,
+          "held": 2,
+          "given": 2
+        },
+        "stateHash": "f6403a8672f45246"
+      },
+      "reasoning": {
+        "found": "met"
+      }
+    },
+    {
+      "id": "chartedIncident",
+      "title": "Everything held and reported, but no pharmacy call and the incident written into the chart",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "identify",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "apical",
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "bp",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "fullMinute",
+          "choice": "irreg",
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "found",
+          "answered": true,
+          "seq": 6,
+          "tick": 90
+        },
+        {
+          "type": "chapter",
+          "chapter": "dataIn",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "holdDig",
+          "seq": 8,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "holdMeto",
+          "seq": 9,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "giveFuro",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "incident",
+          "params": {
+            "where": "chart"
+          },
+          "seq": 12,
+          "tick": 90
+        }
+      ],
+      "expect": {
+        "ending": "caughtGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 61,
+        "criteria": {
+          "rightDrugDose": "met",
+          "rightPerson": "met",
+          "holdParams": "met",
+          "report": "met",
+          "incident": "partial",
+          "pharmacy": "missed",
+          "others": "partial",
+          "toxicity": "missed"
+        },
+        "kpis": {
+          "apical": 56,
+          "held": 2,
+          "given": 1
+        },
+        "stateHash": "6fc54168e613f107"
+      },
+      "reasoning": {
+        "found": "partial"
+      }
+    },
+    {
+      "id": "silentHold",
+      "title": "Catches the card and holds both, but tells no one and files nothing",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "identify",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "apical",
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "bp",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "fullMinute",
+          "choice": "irreg",
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "found",
+          "answered": true,
+          "seq": 6,
+          "tick": 90
+        },
+        {
+          "type": "chapter",
+          "chapter": "dataIn",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "holdDig",
+          "seq": 8,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "holdMeto",
+          "seq": 9,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "giveFuro",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "giveK",
+          "seq": 11,
+          "tick": 90
+        }
+      ],
+      "expect": {
+        "ending": "caughtGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "rightDrugDose": "met",
+          "rightPerson": "met",
+          "holdParams": "met",
+          "report": "missed",
+          "incident": "missed",
+          "pharmacy": "missed",
+          "others": "met",
+          "toxicity": "missed"
+        },
+        "kpis": {
+          "apical": 56,
+          "held": 2,
+          "given": 2
+        },
+        "stateHash": "deec4dcca3f8653b"
+      },
+      "reasoning": {
+        "found": "partial"
+      }
+    },
+    {
+      "id": "holdEverything",
+      "title": "Catches everything and reports, but holds all four medications, including the two that were safe",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "identify",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "apical",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "bp",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "fullMinute",
+          "choice": "irreg",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "found",
+          "answered": true,
+          "seq": 6,
+          "tick": 80
+        },
+        {
+          "type": "chapter",
+          "chapter": "dataIn",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "ask",
+          "seq": 8,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "holdDig",
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "holdMeto",
+          "seq": 10,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "pharmacy",
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "incident",
+          "params": {
+            "where": "system"
+          },
+          "seq": 13,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "caught",
+        "class": "target",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "rightDrugDose": "met",
+          "rightPerson": "met",
+          "holdParams": "met",
+          "report": "met",
+          "incident": "met",
+          "pharmacy": "met",
+          "others": "missed",
+          "toxicity": "met"
+        },
+        "kpis": {
+          "apical": 56,
+          "held": 2,
+          "given": 0
+        },
+        "stateHash": "5620ffb379ba7ae1"
+      },
+      "reasoning": {
+        "found": "partial"
+      }
+    },
+    {
+      "id": "radialAndGive",
+      "title": "Failure: a 15-second radial pulse, no card check, everything given",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "identify",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "radial",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "giveDig",
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "giveMeto",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "giveFuro",
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "giveK",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "found",
+          "answered": true,
+          "seq": 7,
+          "tick": 900
+        }
+      ],
+      "expect": {
+        "ending": "bradycardia",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "rightDrugDose": "missed",
+          "rightPerson": "met",
+          "holdParams": "missed",
+          "report": "missed",
+          "incident": "missed",
+          "pharmacy": "missed",
+          "others": "met",
+          "toxicity": "missed"
+        },
+        "kpis": {
+          "apical": 0,
+          "held": 0,
+          "given": 4
+        },
+        "stateHash": "c1976b0c9f53fb42"
+      },
+      "reasoning": {
+        "found": "missed"
+      }
+    },
+    {
+      "id": "wrongRobert",
+      "title": "Failure: calls 'Robert?' at the door and gives the furosemide to the man who answers",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "roomCall",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "giveFuro",
+          "seq": 2,
+          "tick": 30
+        }
+      ],
+      "expect": {
+        "ending": "wrongResident",
+        "class": "harm",
+        "rating": "bad",
+        "score": 11,
+        "criteria": {
+          "rightDrugDose": "missed",
+          "rightPerson": "missed",
+          "holdParams": "partial",
+          "report": "missed",
+          "incident": "missed",
+          "pharmacy": "missed",
+          "others": "partial",
+          "toxicity": "missed"
+        },
+        "kpis": {
+          "apical": 0,
+          "held": 0,
+          "given": 1
+        },
+        "stateHash": "d6f087af2b1c6a9d"
+      },
+      "reasoning": {
+        "found": "missed"
+      }
+    }
+  ]
+}
