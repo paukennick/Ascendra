@@ -1,0 +1,952 @@
+{
+  "slug": "pediatric-septic-shock-fluids",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: glucose, culture, lactate, 20 mL/kg, early SBAR, antibiotics at 5 min, reassess after each bolus, stop at 40 mL/kg more, peripheral epinephrine on its own line",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "lactate",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "20"
+          },
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "shock",
+            "bg": "full",
+            "asmt": "septic",
+            "rec": "come"
+          },
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "lateSign",
+          "choice": "no",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "stopSign",
+          "choice": "liver",
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "peripheralEpi",
+          "choice": "peripheral",
+          "seq": 10,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "dextrose",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "line",
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 13,
+          "tick": 260
+        },
+        {
+          "type": "chapter",
+          "chapter": "firstBolusIn",
+          "choice": "continue",
+          "seq": 14,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 15,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "20"
+          },
+          "seq": 16,
+          "tick": 920
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 17,
+          "tick": 921
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 18,
+          "tick": 1820
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 19,
+          "tick": 1820
+        },
+        {
+          "type": "chapter",
+          "chapter": "epiRunning",
+          "choice": "continue",
+          "seq": 20,
+          "tick": 2120
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 21,
+          "tick": 2120
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 22,
+          "tick": 3320
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "down"
+          },
+          "seq": 23,
+          "tick": 6320
+        }
+      ],
+      "expect": {
+        "ending": "stabilized",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "antibiotic": "met",
+          "reassess": "met",
+          "stopAtOverload": "met",
+          "vasoactive": "met",
+          "escalate": "met",
+          "cultures": "met",
+          "lactate": "met",
+          "glucose": "met",
+          "secondLine": "met"
+        },
+        "kpis": {
+          "toAbx": 260,
+          "fluidKg": 50,
+          "blind": 0,
+          "toEpi": 1820,
+          "shockMin": 37,
+          "lastLactate": 4.7
+        },
+        "stateHash": "15639736c02e8294"
+      },
+      "reasoning": {
+        "whatNow": "met"
+      }
+    },
+    {
+      "id": "slowSafe",
+      "title": "Slow but safe: 10 mL/kg boluses, one started without a check, the call at 25 min, antibiotics at 40 min, epinephrine late through the only IV",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "10"
+          },
+          "seq": 2,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "stopSign",
+          "choice": "liver",
+          "seq": 3,
+          "tick": 120
+        },
+        {
+          "type": "chapter",
+          "chapter": "firstBolusIn",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "10"
+          },
+          "seq": 5,
+          "tick": 720
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 6,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 7,
+          "tick": 1320
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 8,
+          "tick": 1320
+        },
+        {
+          "type": "act",
+          "action": "lactate",
+          "seq": 9,
+          "tick": 1320
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "10"
+          },
+          "seq": 10,
+          "tick": 1320
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "shock",
+            "bg": "full",
+            "asmt": "septic",
+            "rec": "come"
+          },
+          "seq": 11,
+          "tick": 1500
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 7,
+          "to": 1620,
+          "seq": 12,
+          "tick": 1500
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 13,
+          "tick": 1920
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "10"
+          },
+          "seq": 14,
+          "tick": 1920
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 15,
+          "tick": 1920
+        },
+        {
+          "type": "skip",
+          "timer": "culturesT",
+          "instance": 10,
+          "to": 2160,
+          "seq": 16,
+          "tick": 1920
+        },
+        {
+          "type": "act",
+          "action": "dextrose",
+          "seq": 17,
+          "tick": 2100
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 18,
+          "tick": 2400
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 19,
+          "tick": 2520
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 20,
+          "tick": 4800
+        },
+        {
+          "type": "chapter",
+          "chapter": "epiRunning",
+          "choice": "continue",
+          "seq": 21,
+          "tick": 5100
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 22,
+          "tick": 5100
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 23,
+          "tick": 5400
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 24,
+          "tick": 5700
+        }
+      ],
+      "expect": {
+        "ending": "stabilizedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 65,
+        "criteria": {
+          "antibiotic": "met",
+          "reassess": "partial",
+          "stopAtOverload": "met",
+          "vasoactive": "missed",
+          "escalate": "partial",
+          "cultures": "met",
+          "lactate": "partial",
+          "glucose": "met",
+          "secondLine": "partial"
+        },
+        "kpis": {
+          "toAbx": 2400,
+          "fluidKg": 50,
+          "blind": 1,
+          "toEpi": 4800,
+          "shockMin": 103,
+          "lastLactate": 4.8
+        },
+        "stateHash": "58b4ad201e021cf9"
+      },
+      "reasoning": {
+        "whatNow": "partial"
+      }
+    },
+    {
+      "id": "blindFlood",
+      "title": "Antibiotics and the call on time, but 20 mL/kg boluses back to back without reassessing: pulmonary edema and a breathing tube",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "20"
+          },
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "shock",
+            "bg": "full",
+            "asmt": "septic",
+            "rec": "come"
+          },
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "culturesT",
+          "instance": 2,
+          "to": 260,
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 5,
+          "tick": 140
+        },
+        {
+          "type": "teach",
+          "prompt": "stopSign",
+          "choice": "liver",
+          "seq": 6,
+          "tick": 140
+        },
+        {
+          "type": "chapter",
+          "chapter": "firstBolusIn",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "20"
+          },
+          "seq": 8,
+          "tick": 920
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 9,
+          "tick": 921
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "20"
+          },
+          "seq": 10,
+          "tick": 1820
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "20"
+          },
+          "seq": 11,
+          "tick": 2720
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 12,
+          "tick": 3200
+        },
+        {
+          "type": "chapter",
+          "chapter": "epiRunning",
+          "choice": "continue",
+          "seq": 13,
+          "tick": 3500
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 14,
+          "tick": 3500
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 15,
+          "tick": 3800
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 16,
+          "tick": 4100
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "down"
+          },
+          "seq": 17,
+          "tick": 4400
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 18,
+          "tick": 4700
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "down"
+          },
+          "seq": 19,
+          "tick": 5000
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 20,
+          "tick": 5300
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "down"
+          },
+          "seq": 21,
+          "tick": 5600
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 22,
+          "tick": 5900
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "down"
+          },
+          "seq": 23,
+          "tick": 6200
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "up"
+          },
+          "seq": 24,
+          "tick": 6500
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "down"
+          },
+          "seq": 25,
+          "tick": 6800
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "params": {
+            "step": "down"
+          },
+          "seq": 26,
+          "tick": 7100
+        }
+      ],
+      "expect": {
+        "ending": "time_up",
+        "class": "harm",
+        "rating": "bad",
+        "score": 45,
+        "criteria": {
+          "antibiotic": "met",
+          "reassess": "missed",
+          "stopAtOverload": "missed",
+          "vasoactive": "met",
+          "escalate": "met",
+          "cultures": "partial",
+          "lactate": "missed",
+          "glucose": "missed",
+          "secondLine": "partial"
+        },
+        "kpis": {
+          "toAbx": 140,
+          "fluidKg": 81,
+          "blind": 3,
+          "toEpi": 3200,
+          "shockMin": 104,
+          "lastLactate": 0
+        },
+        "stateHash": "10591bd73aeb53d3"
+      },
+      "reasoning": {
+        "whatNow": "partial"
+      }
+    },
+    {
+      "id": "fluidsOnly",
+      "title": "Antibiotics on time, boluses reassessed and stopped at the liver edge, but no vasoactive: still in shock at the review",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "lactate",
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "20"
+          },
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "shock",
+            "bg": "full",
+            "asmt": "septic",
+            "rec": "come"
+          },
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "culturesT",
+          "instance": 3,
+          "to": 270,
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 7,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "dextrose",
+          "seq": 8,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "line",
+          "seq": 9,
+          "tick": 90
+        },
+        {
+          "type": "teach",
+          "prompt": "stopSign",
+          "choice": "liver",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "teach",
+          "prompt": "peripheralEpi",
+          "choice": "peripheral",
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "chapter",
+          "chapter": "firstBolusIn",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 930
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 13,
+          "tick": 930
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "20"
+          },
+          "seq": 14,
+          "tick": 930
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 15,
+          "tick": 931
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 16,
+          "tick": 1830
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "10"
+          },
+          "seq": 17,
+          "tick": 1830
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 18,
+          "tick": 2430
+        }
+      ],
+      "expect": {
+        "ending": "time_up",
+        "class": "harm",
+        "rating": "bad",
+        "score": 80,
+        "criteria": {
+          "antibiotic": "met",
+          "reassess": "met",
+          "stopAtOverload": "met",
+          "vasoactive": "missed",
+          "escalate": "met",
+          "cultures": "partial",
+          "lactate": "met",
+          "glucose": "met",
+          "secondLine": "met"
+        },
+        "kpis": {
+          "toAbx": 90,
+          "fluidKg": 60,
+          "blind": 0,
+          "toEpi": -1,
+          "shockMin": 120,
+          "lastLactate": 4.7
+        },
+        "stateHash": "91d0f7e214a90c63"
+      },
+      "reasoning": {
+        "whatNow": "partial"
+      }
+    },
+    {
+      "id": "noAntibiotic",
+      "title": "Failure: fluid only, a routine call, no culture, no antibiotics, no glucose or lactate",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "20"
+          },
+          "seq": 1,
+          "tick": 300
+        },
+        {
+          "type": "teach",
+          "prompt": "stopSign",
+          "choice": "liver",
+          "seq": 2,
+          "tick": 300
+        },
+        {
+          "type": "reason",
+          "moment": "whatNow",
+          "answered": true,
+          "seq": 3,
+          "tick": 1200
+        },
+        {
+          "type": "chapter",
+          "chapter": "firstBolusIn",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 5,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "fever",
+            "bg": "min",
+            "asmt": "dry",
+            "rec": "more"
+          },
+          "seq": 6,
+          "tick": 1800
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 3,
+          "to": 1920,
+          "seq": 7,
+          "tick": 1800
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "params": {
+            "size": "10"
+          },
+          "seq": 8,
+          "tick": 1920
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 20,
+        "criteria": {
+          "antibiotic": "missed",
+          "reassess": "met",
+          "stopAtOverload": "met",
+          "vasoactive": "missed",
+          "escalate": "missed",
+          "cultures": "missed",
+          "lactate": "missed",
+          "glucose": "missed",
+          "secondLine": "missed"
+        },
+        "kpis": {
+          "toAbx": -1,
+          "fluidKg": 40,
+          "blind": 0,
+          "toEpi": -1,
+          "shockMin": 115,
+          "lastLactate": 0
+        },
+        "stateHash": "61ea462486734ab1"
+      },
+      "reasoning": {
+        "whatNow": "missed"
+      }
+    }
+  ]
+}

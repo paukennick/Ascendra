@@ -1,0 +1,2302 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pediatric-septic-shock-fluids",
+  "title": "Pediatric septic shock: how much fluid",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 70,
+            "high": 160
+          },
+          "announce": {
+            "bands": [
+              140,
+              160,
+              180
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "nibp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 78
+          },
+          "announce": {
+            "bands": [
+              90,
+              78,
+              65
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "crt",
+          "label": "Cap refill",
+          "spokenLabel": "Capillary refill time",
+          "value": "crt",
+          "unit": "s",
+          "alarm": {
+            "high": 2
+          },
+          "announce": {
+            "bands": [
+              2,
+              3,
+              4
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 40
+          },
+          "announce": {
+            "bands": [
+              34,
+              40,
+              50
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              90,
+              85
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature",
+          "value": "temp",
+          "unit": "C",
+          "announce": {
+            "bands": [
+              38.5,
+              39.5
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "uo",
+          "label": "Urine",
+          "spokenLabel": "Urine output",
+          "value": "uo",
+          "unit": "mL/h",
+          "announce": {
+            "bands": [
+              16,
+              8
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "lac",
+          "label": "Lactate",
+          "spokenLabel": "Last lactate result",
+          "value": "lacLast",
+          "unit": "mmol/L",
+          "announce": {
+            "bands": [
+              2,
+              4
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "lacLast > 0"
+        },
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Last glucose result",
+          "value": "gluLast",
+          "unit": "mg/dL",
+          "announce": {
+            "bands": [
+              70,
+              60,
+              45
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "gluLast > 0"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Balanced crystalloid given {round(totalKg)} mL/kg ({round(totalKg * weight)} mL); epinephrine step {epiStep}",
+      "banner": [
+        {
+          "when": "intubated",
+          "text": "Intubated for pulmonary edema after fluid overload."
+        }
+      ]
+    }
+  },
+  "objective": "Manage pediatric septic shock: antibiotics ideally within the first hour, fluid boluses reassessed after each, and epinephrine or norepinephrine (neither preferred first line), which may be started through a peripheral line rather than waiting for central access",
+  "secondaryObjectives": [
+    "Give fluid boluses to children repeatedly while reassessing perfusion and urine output, and stop at signs of fluid overload",
+    "Judge a child's vital signs (heart rate, breathing rate, blood pressure) against norms for age, remembering that hypotension is a late sign of shock in children",
+    "Watch dehydrated or acutely ill children for hypo- or hypernatremia and hypoglycemia"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Pediatric test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-pediatric",
+      "note": "The objective and its secondary objectives are the course's own titles (backend/supabase/seed/tracks/ccrn-peds-neo.ts, read there from the handbook 2026-10-31). Not re-fetched for this scenario."
+    },
+    {
+      "cite": "Surviving Sepsis Campaign Children's Guidelines (Weiss SL, Peters MJ, et al. Intensive Care Med 2020;46(Suppl 1):10-67; Pediatr Crit Care Med 2020;21(2):e52-e106), SCCM microlearning sheets 'Fluid Therapy' and 'Vasoactive Medications'",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.sccm.org/sccm/media/ssc/SSC-Childrens-Guidelines-Microlearning-Fluid-Therapy.pdf",
+      "note": "Read 2026-11-11 in SCCM's own guideline sheets: 'up to 40-60mL/kg in bolus fluid (10-20mL/kg per bolus) over the first hour' with intensive care available (Rec 17), titrated to clinical markers of cardiac output and stopped if 'signs of fluid overload develop'; overload named as 'clinical signs of pulmonary edema or new or worsening hepatomegaly'; reassessment markers 'heart rate, blood pressure, capillary refill time, level of consciousness, and urine output'; balanced crystalloids suggested over 0.9% saline (Rec 21). Vasoactive sheet: epinephrine rather than dopamine (Rec 28); no first-line choice between epinephrine and norepinephrine (Rec 30); no recommendation on peripheral initiation (Rec 31)."
+    },
+    {
+      "cite": "SCCM. Surviving Sepsis Campaign: Initial Resuscitation Algorithm for Children (2020)",
+      "checkedAt": "2026-11-11",
+      "url": "https://sccm.org/getmedia/cde6bdbd-cd1f-4ca9-a394-0673bdaba71b/Initial-Resuscitation-Algorithm-for-Children.pdf",
+      "note": "Read 2026-11-11: bundle 'within 1 hour of initial recognition of septic shock'; obtain IV/IO access, blood culture, empiric broad-spectrum antibiotics, measure lactate, fluid bolus(es) if shock is present, vasoactive agents if shock persists; 10-20 mL/kg boluses until shock resolves or signs of fluid overload develop; 'Consider epinephrine/norepinephrine ... if shock persists after 40-60 mL/kg'; 'Avoid hypoglycemia'."
+    },
+    {
+      "cite": "Weiss SL, Peters MJ, Oczkowski SJW, et al. Surviving Sepsis Campaign International Guidelines for the Management of Sepsis and Septic Shock in Children 2026. Intensive Care Med, published online 2026-03-23, doi:10.1007/s00134-026-08360-2",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-the-management-of-sepsis-and-septic-shock-in",
+      "note": "Supersedes 2020 where they differ. Read only through secondary summaries on 2026-11-11 (Pulmonology Advisor via HCN, 2026-06-03; vikkypaedia substack 'sixty one statements'): antimicrobials within 1 h in suspected septic shock (strong), within 3 h after rapid evaluation in probable sepsis without shock; up to 40-60 mL/kg over the first hour with ICU backup, continuously reassessed; balanced crystalloid suggested; peripheral venous access for vasoactives rather than waiting for central access; measure lactate in all children with probable sepsis (strong). The primary text was not opened; confirm wording at the next review."
+    },
+    {
+      "cite": "US HHS CHEMM. Pediatric Basic and Advanced Life Support (AHA PALS values)",
+      "checkedAt": "2026-11-11",
+      "url": "https://chemm.hhs.gov/pals.htm",
+      "note": "Read 2026-11-11: hypotension at 1-10 years is systolic below 70 + (2 x age in years) mmHg, so below 78 at age 4; heart rate 60-140 awake at 2-10 years; preschool respiratory rate 22-34."
+    }
+  ],
+  "brief": {
+    "situation": "Handover at 14:00 in the pediatric ICU. Bed 6, a 4-year-old girl, 16 kg, two days of fever and vomiting, sent up from the ED. The ED placed one 22-gauge IV and gave 10 mL/kg of lactated Ringer's. Antibiotics are ordered and on the unit, not yet given; no blood culture was sent. A septic shock order set is active.",
+    "handover": [
+      "Temperature 39.4, HR 167, BP 84/48, RR 34, SpO2 96% on room air.",
+      "Cool hands and feet, capillary refill about 4 seconds, sleepy but rousable. Little urine since morning.",
+      "The ED did not check a glucose or a lactate."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Boluses are ordered by size (10 or 20 mL/kg) and take minutes to run in. Reassess the child between boluses: the screen will not tell you when fluid stops helping.",
+      "Labs take minutes, the provider calls back, and the epinephrine takes minutes to work.",
+      "Partway through you are asked to write what you think is happening. The case ends at the attending's review two hours in, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "1s",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "weight": {
+      "value": 16,
+      "unit": "kg"
+    },
+    "need": {
+      "value": 50,
+      "unit": "mL/kg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Total fluid this child can use before more fluid only congests her: 50 mL/kg including the ED's 10, inside the guideline's 40-60 mL/kg first-hour range. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "leakRate": {
+      "value": 6,
+      "unit": "mL/kg/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Capillary leak: intravascular fluid lost per hour at a severity of 1, so part of each bolus leaves the vessels within the hour. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sevRise": {
+      "value": 0.006,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Untreated, the shock deepens until she arrests about 100 minutes after handover. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sevFall": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Once the antibiotic acts, the shock eases slowly. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "abxLag": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The first antibiotic dose changes the trajectory about an hour after it is given. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "rate10": {
+      "value": 960,
+      "unit": "mL/h",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "10 mL/kg (160 mL) over 10 min by push-pull or pump."
+      }
+    },
+    "rate20": {
+      "value": 1280,
+      "unit": "mL/h",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "20 mL/kg (320 mL) over 15 min by push-pull or pump."
+      }
+    },
+    "epiTau": {
+      "value": 3,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Epinephrine effect builds with a time constant of about 3 minutes after each change. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "epiPerStep": {
+      "value": 10,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Systolic rise per titration step of epinephrine. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lacTau": {
+      "value": 40,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Lactate moves toward its current production level with this time constant. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lacTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Blood gas analyzer on the unit: lactate in about 10 min."
+      }
+    },
+    "gluTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Point-of-care glucose: about 1 min."
+      }
+    },
+    "cultureTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "One pediatric blood culture from the new IV: about 4 min."
+      }
+    },
+    "callback": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "PICU attending callback about 2 min."
+      }
+    },
+    "teamWalk": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Attending at the bedside about 8 min after the callback."
+      }
+    },
+    "lineTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A second peripheral IV: about 5 min."
+      }
+    },
+    "hypoSbp": {
+      "value": 78,
+      "unit": "mmHg",
+      "source": {
+        "cite": "US HHS CHEMM. Pediatric Basic and Advanced Life Support (AHA PALS values)",
+        "checkedAt": "2026-11-11",
+        "url": "https://chemm.hhs.gov/pals.htm",
+        "note": "Read 2026-11-11: hypotension at 1-10 years is systolic below 70 + (2 x age in years) mmHg, so below 78 at age 4; heart rate 60-140 awake at 2-10 years; preschool respiratory rate 22-34."
+      }
+    },
+    "arrestSbp": {
+      "value": 50,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Systolic pressure at which this child arrests. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "gluFall": {
+      "value": 0.4,
+      "unit": "mg/dL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Without dextrose, a septic, fasting preschooler's glucose drifts down about 4 mg/dL every 10 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reasonAt": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The written question opens once 20 mL/kg more has gone in, or at 20 min. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "abxLate": {
+      "value": 10800,
+      "unit": "s",
+      "source": {
+        "cite": "Weiss SL, Peters MJ, Oczkowski SJW, et al. Surviving Sepsis Campaign International Guidelines for the Management of Sepsis and Septic Shock in Children 2026. Intensive Care Med, published online 2026-03-23, doi:10.1007/s00134-026-08360-2",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-the-management-of-sepsis-and-septic-shock-in",
+        "note": "Supersedes 2020 where they differ. Read only through secondary summaries on 2026-11-11 (Pulmonology Advisor via HCN, 2026-06-03; vikkypaedia substack 'sixty one statements'): antimicrobials within 1 h in suspected septic shock (strong), within 3 h after rapid evaluation in probable sepsis without shock; up to 40-60 mL/kg over the first hour with ICU backup, continuously reassessed; balanced crystalloid suggested; peripheral venous access for vasoactives rather than waiting for central access; measure lactate in all children with probable sepsis (strong). The primary text was not opened; confirm wording at the next review. 3 h: the outer bound for probable sepsis without shock; used only to separate a late dose (partial) from a much later one (missed)."
+      }
+    },
+    "vasoWindow": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Authored window: epinephrine within 30 min of shock that persists after 40 mL/kg more fluid (or of the first overload sign). The guidelines set no minute count; the 2020 algorithm says consider a vasoactive if shock persists after 40-60 mL/kg, and the 2026 update (as relayed) makes no recommendation for or against starting before 40 mL/kg. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lacWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Weiss SL, Peters MJ, Oczkowski SJW, et al. Surviving Sepsis Campaign International Guidelines for the Management of Sepsis and Septic Shock in Children 2026. Intensive Care Med, published online 2026-03-23, doi:10.1007/s00134-026-08360-2",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-the-management-of-sepsis-and-septic-shock-in",
+        "note": "Supersedes 2020 where they differ. Read only through secondary summaries on 2026-11-11 (Pulmonology Advisor via HCN, 2026-06-03; vikkypaedia substack 'sixty one statements'): antimicrobials within 1 h in suspected septic shock (strong), within 3 h after rapid evaluation in probable sepsis without shock; up to 40-60 mL/kg over the first hour with ICU backup, continuously reassessed; balanced crystalloid suggested; peripheral venous access for vasoactives rather than waiting for central access; measure lactate in all children with probable sepsis (strong). The primary text was not opened; confirm wording at the next review. Authored: the first lactate within 15 min of handover; the 2026 update (as relayed) makes measuring lactate a strong recommendation."
+      }
+    },
+    "reviewAt": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The attending's two-hour review of the resuscitation, when the case ends."
+      }
+    }
+  },
+  "state": {
+    "sev": {
+      "type": "number",
+      "init": 0.42,
+      "min": 0.1,
+      "max": 2
+    },
+    "fill": {
+      "type": "number",
+      "init": 10,
+      "min": -40,
+      "max": 200,
+      "unit": "mL/kg"
+    },
+    "totalKg": {
+      "type": "number",
+      "init": 10,
+      "min": 0,
+      "max": 300,
+      "unit": "mL/kg"
+    },
+    "excess": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mL/kg"
+    },
+    "rateMlh": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5000,
+      "unit": "mL/h"
+    },
+    "running": {
+      "type": "bool",
+      "init": false
+    },
+    "nBolus": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 40
+    },
+    "checked": {
+      "type": "bool",
+      "init": true
+    },
+    "nBlind": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 40
+    },
+    "overGiven": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 40
+    },
+    "checks": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200
+    },
+    "liverSeenAt": {
+      "type": "time",
+      "init": null
+    },
+    "epiStep": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "epiEff": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "firstEpiAt": {
+      "type": "time",
+      "init": null
+    },
+    "refAt": {
+      "type": "time",
+      "init": null
+    },
+    "orderVaso": {
+      "type": "bool",
+      "init": false
+    },
+    "line2": {
+      "type": "bool",
+      "init": false
+    },
+    "linePending": {
+      "type": "bool",
+      "init": false
+    },
+    "lactate": {
+      "type": "number",
+      "init": 4.7,
+      "min": 0.5,
+      "max": 20,
+      "unit": "mmol/L"
+    },
+    "lacLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20,
+      "unit": "mmol/L"
+    },
+    "lacPending": {
+      "type": "bool",
+      "init": false
+    },
+    "lacFirstAt": {
+      "type": "time",
+      "init": null
+    },
+    "glucose": {
+      "type": "number",
+      "init": 56,
+      "min": 10,
+      "max": 400,
+      "unit": "mg/dL"
+    },
+    "gluLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 400,
+      "unit": "mg/dL"
+    },
+    "gluAt": {
+      "type": "time",
+      "init": null
+    },
+    "dexAt": {
+      "type": "time",
+      "init": null
+    },
+    "culturesStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "culturesAt": {
+      "type": "time",
+      "init": null
+    },
+    "abxAt": {
+      "type": "time",
+      "init": null
+    },
+    "abxBeforeCultures": {
+      "type": "bool",
+      "init": false
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "pendingCall": {
+      "type": "bool",
+      "init": false
+    },
+    "teamHere": {
+      "type": "bool",
+      "init": false
+    },
+    "shockSecs": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "intubated": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "history": {
+    "sbpH": {
+      "of": "sbp",
+      "every": "30s",
+      "keep": "10min"
+    }
+  },
+  "derived": {
+    "abxOn": {
+      "expr": "not isNull(abxAt) and t >= timeAt(abxAt) + abxLag"
+    },
+    "deficit": {
+      "expr": "max(0, need - fill)",
+      "unit": "mL/kg",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(112 - 0.45 * deficit - 60 * max(0, sev - 0.25) + epiPerStep * epiEff + 1.5 * sin(t / 37), 30, 140))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.57)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round(dbp + (sbp - dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(130 + 0.8 * deficit + 40 * max(0, sev - 0.3) + 8 * epiEff + 2 * sin(t / 23), 60, 220))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "crtRaw": {
+      "expr": "1.5 + 0.06 * deficit + 3.5 * max(0, sev - 0.25) - 0.6 * epiEff + 0.08 * max(0, excess - 10)",
+      "unit": "s"
+    },
+    "crt": {
+      "expr": "clamp(round(crtRaw * 2) / 2, 1, 8)",
+      "unit": "s",
+      "precision": 1
+    },
+    "liver": {
+      "expr": "round(clamp(1 + 0.25 * excess, 1, 8))",
+      "unit": "cm",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "intubated ? 24 : round(clamp(28 + 10 * sev + 0.6 * max(0, excess - 5), 20, 70))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "intubated ? 97 : round(clamp(97 - 0.5 * max(0, excess - 10), 70, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round((38.6 + 1.6 * sev) * 10) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "uo": {
+      "expr": "round(clamp(weight * (1.4 - 0.03 * deficit - max(0, sev - 0.5)), 0, 40))",
+      "unit": "mL/h",
+      "precision": 0
+    },
+    "shock": {
+      "expr": "crt > 2 or sbp < hypoSbp"
+    },
+    "lacStar": {
+      "expr": "1 + 0.08 * deficit + 4 * max(0, sev - 0.3) + 0.3 * max(0, crt - 2)",
+      "unit": "mmol/L"
+    }
+  },
+  "processes": [
+    {
+      "id": "sepsis",
+      "update": {
+        "sev": "abxOn ? sev - sevFall * dt / 60 : sev + sevRise * dt / 60"
+      }
+    },
+    {
+      "id": "fluid",
+      "update": {
+        "fill": "fill + (rateMlh / weight) * dt / 3600 - leakRate * sev * dt / 3600",
+        "totalKg": "totalKg + (rateMlh / weight) * dt / 3600",
+        "excess": "excess + (fill >= need ? (rateMlh / weight) * dt / 3600 : 0)"
+      }
+    },
+    {
+      "id": "drips",
+      "update": {
+        "epiEff": "epiEff + (epiStep - epiEff) * (1 - exp(-dt / (epiTau * 60)))"
+      }
+    },
+    {
+      "id": "lactic",
+      "update": {
+        "lactate": "lactate + (lacStar - lactate) * (1 - exp(-dt / (lacTau * 60)))"
+      }
+    },
+    {
+      "id": "sugar",
+      "update": {
+        "glucose": "isNull(dexAt) ? glucose - gluFall * dt / 60 : glucose + (110 - glucose) * (1 - exp(-dt / 600))"
+      }
+    },
+    {
+      "id": "clocks",
+      "update": {
+        "shockSecs": "shockSecs + (shock ? dt : 0)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the bedside",
+      "clock": "running",
+      "actions": [
+        "look",
+        "check",
+        "glucose",
+        "dextrose",
+        "lactate",
+        "cultures",
+        "abx",
+        "bolus",
+        "line",
+        "epi",
+        "call"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Look at the child",
+      "group": "Assess",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "not shock",
+              "then": [
+                {
+                  "log": "Pink and warm to the elbows and knees, capillary refill {crt|1dp} s. Awake, crying for her mother. Breathing easier.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "crt <= 3",
+              "then": [
+                {
+                  "log": "Cool hands and feet, capillary refill {crt|1dp} s, mottled knees. Sleepy, rouses to voice. Breathing fast.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Grey and mottled to the thighs, capillary refill {crt|1dp} s, weak thready pulses. Hard to rouse.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "excess >= 15 and not intubated",
+          "then": [
+            {
+              "log": "Fine crackles at both bases and working harder to breathe.",
+              "kind": "find"
+            }
+          ]
+        }
+      ]
+    },
+    "check": {
+      "label": "Reassess perfusion and look for fluid overload",
+      "group": "Assess",
+      "effects": [
+        {
+          "add": "checks",
+          "by": "1"
+        },
+        {
+          "if": "not running",
+          "then": [
+            {
+              "set": "checked",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "HR {hr}, BP {sbp}/{dbp}, capillary refill {crt|1dp} s, urine {uo} mL/h. Liver edge {liver} cm below the right costal margin.",
+          "kind": "find"
+        },
+        {
+          "cases": [
+            {
+              "when": "excess >= 15",
+              "then": [
+                {
+                  "log": "Liver edge has grown and there are fine crackles at both bases: she is fluid overloaded. More fluid will not help.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "excess >= 5",
+              "then": [
+                {
+                  "log": "The liver edge is lower than at the last check, no crackles yet: new hepatomegaly, a sign of fluid overload.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "deficit > 0 and shock",
+              "then": [
+                {
+                  "log": "Still cool and tachycardic with no liver enlargement or crackles: she may still respond to fluid.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "shock",
+              "then": [
+                {
+                  "log": "No hepatomegaly or crackles, but the perfusion has stopped improving with fluid.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Perfusion is back: warm, capillary refill 2 s or less, passing urine.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "excess >= 5",
+          "then": [
+            {
+              "if": "isNull(liverSeenAt)",
+              "then": [
+                {
+                  "set": "liverSeenAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "running",
+          "then": [
+            {
+              "log": "A bolus is still running; reassess again when it finishes.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Point-of-care glucose",
+      "group": "Labs",
+      "available": "isNull(gluAt)",
+      "why": "Glucose already checked.",
+      "effects": [
+        {
+          "schedule": "gluT",
+          "after": "gluTime",
+          "with": {
+            "v": "round(glucose)"
+          }
+        },
+        {
+          "log": "Fingerstick glucose (about 1 min)."
+        }
+      ]
+    },
+    "dextrose": {
+      "label": "Give dextrose per the order set",
+      "group": "Orders",
+      "available": "gluLast > 0 and gluLast < 70 and isNull(dexAt)",
+      "why": "Needs a low glucose result first (or already given).",
+      "effects": [
+        {
+          "set": "dexAt",
+          "to": "t"
+        },
+        {
+          "log": "Dextrose given per the order set's low-glucose protocol, and dextrose added to her maintenance fluid."
+        }
+      ]
+    },
+    "lactate": {
+      "label": "Draw a lactate (blood gas)",
+      "group": "Labs",
+      "available": "not lacPending",
+      "why": "A lactate is already running.",
+      "effects": [
+        {
+          "set": "lacPending",
+          "to": "true"
+        },
+        {
+          "if": "isNull(lacFirstAt)",
+          "then": [
+            {
+              "set": "lacFirstAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "lacResultT",
+          "after": "lacTime",
+          "with": {
+            "v": "round(lactate * 10) / 10"
+          }
+        },
+        {
+          "log": "Venous blood gas with lactate sent to the unit analyzer (about 10 min)."
+        }
+      ]
+    },
+    "cultures": {
+      "label": "Draw a blood culture",
+      "group": "Labs",
+      "available": "isNull(culturesStartAt)",
+      "why": "Culture already drawn.",
+      "effects": [
+        {
+          "set": "culturesStartAt",
+          "to": "t"
+        },
+        {
+          "schedule": "culturesT",
+          "after": "cultureTime"
+        },
+        {
+          "log": "Drawing a pediatric blood culture (about 4 min)."
+        }
+      ]
+    },
+    "abx": {
+      "label": "Give the first antibiotic doses",
+      "group": "Orders",
+      "available": "isNull(abxAt)",
+      "why": "The first doses are already in.",
+      "effects": [
+        {
+          "set": "abxAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(culturesAt)",
+          "then": [
+            {
+              "set": "abxBeforeCultures",
+              "to": "true"
+            },
+            {
+              "log": "Antibiotics hung before a blood culture was drawn: a later culture may grow nothing.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "log": "First doses of the ordered broad-spectrum antibiotics running in."
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Fluid bolus (balanced crystalloid)",
+      "group": "Orders",
+      "available": "not running and not intubated",
+      "why": "A bolus is already running.",
+      "params": [
+        {
+          "id": "size",
+          "kind": "choice",
+          "label": "Bolus size",
+          "options": [
+            {
+              "value": "10",
+              "label": "10 mL/kg over 10 min"
+            },
+            {
+              "value": "20",
+              "label": "20 mL/kg over 15 min"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "nBolus > 0 and not checked",
+          "then": [
+            {
+              "add": "nBlind",
+              "by": "1"
+            },
+            {
+              "log": "Bolus started without reassessing after the last one.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "if": "excess >= 5",
+          "then": [
+            {
+              "add": "overGiven",
+              "by": "1"
+            }
+          ]
+        },
+        {
+          "set": "checked",
+          "to": "false"
+        },
+        {
+          "set": "running",
+          "to": "true"
+        },
+        {
+          "add": "nBolus",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "size == \"10\"",
+              "then": [
+                {
+                  "set": "rateMlh",
+                  "to": "rate10"
+                },
+                {
+                  "schedule": "bolusDone",
+                  "after": "600",
+                  "with": {
+                    "kg": "10"
+                  }
+                },
+                {
+                  "log": "10 mL/kg (160 mL) lactated Ringer's over 10 min. Total after it: {round(totalKg + 10)} mL/kg."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "rateMlh",
+                  "to": "rate20"
+                },
+                {
+                  "schedule": "bolusDone",
+                  "after": "900",
+                  "with": {
+                    "kg": "20"
+                  }
+                },
+                {
+                  "log": "20 mL/kg (320 mL) lactated Ringer's over 15 min. Total after it: {round(totalKg + 20)} mL/kg."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "line": {
+      "label": "Place a second peripheral IV",
+      "group": "Orders",
+      "available": "not line2 and not linePending",
+      "why": "A second IV is in or being placed.",
+      "effects": [
+        {
+          "set": "linePending",
+          "to": "true"
+        },
+        {
+          "schedule": "lineT",
+          "after": "lineTime"
+        },
+        {
+          "log": "Placing a second IV (about 5 min)."
+        }
+      ]
+    },
+    "epi": {
+      "label": "Epinephrine infusion",
+      "group": "Drips",
+      "available": "orderVaso",
+      "why": "Needs an order: call the attending.",
+      "params": [
+        {
+          "id": "step",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "up",
+              "label": "Start, or up one titration step"
+            },
+            {
+              "value": "down",
+              "label": "Down one step"
+            },
+            {
+              "value": "off",
+              "label": "Turn off"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "step == \"up\"",
+              "then": [
+                {
+                  "set": "epiStep",
+                  "to": "min(4, epiStep + 1)"
+                }
+              ]
+            },
+            {
+              "when": "step == \"down\"",
+              "then": [
+                {
+                  "set": "epiStep",
+                  "to": "max(0, epiStep - 1)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "epiStep",
+                  "to": "0"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "epiStep > 0",
+          "then": [
+            {
+              "if": "isNull(firstEpiAt)",
+              "then": [
+                {
+                  "set": "firstEpiAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "schedule": "dripCheck",
+          "after": "300"
+        },
+        {
+          "cases": [
+            {
+              "when": "epiStep == 0",
+              "then": [
+                {
+                  "log": "Epinephrine off. The effect wears off over several minutes."
+                }
+              ]
+            },
+            {
+              "when": "line2",
+              "then": [
+                {
+                  "log": "Epinephrine at step {epiStep} on its own peripheral IV. Watch the site; reassess in 5 min."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Epinephrine at step {epiStep} through the only IV: any bolus pushed through that line will push epinephrine too. A second IV is needed.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the PICU attending (SBAR)",
+      "group": "Escalate",
+      "available": "not pendingCall",
+      "why": "Paged; waiting for the callback.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "shock",
+                  "label": "Cool, mottled, capillary refill 4 s, HR 167: I think she is in septic shock"
+                },
+                {
+                  "value": "fever",
+                  "label": "Still febrile"
+                },
+                {
+                  "value": "soft",
+                  "label": "Her pressure looks okay"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "4 y, 16 kg, fever and vomiting, 10 mL/kg in the ED, antibiotics and cultures status, fluid given so far"
+                },
+                {
+                  "value": "min",
+                  "label": "Admitted from the ED"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "septic",
+                  "label": "Septic shock; I am giving boluses and reassessing for overload"
+                },
+                {
+                  "value": "dry",
+                  "label": "Probably just dehydrated"
+                },
+                {
+                  "value": "unsure",
+                  "label": "Not sure"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "come",
+                  "label": "Please come now: I need a vasoactive order if she stays in shock"
+                },
+                {
+                  "value": "tylenol",
+                  "label": "Can I give something for the fever?"
+                },
+                {
+                  "value": "more",
+                  "label": "Can I keep pushing fluid until she looks better?"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pendingCall",
+          "to": "true"
+        },
+        {
+          "if": "(sit == \"shock\" or asmt == \"septic\" or rec == \"come\") and isNull(callEffAt)",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "callbackT",
+          "after": "callback",
+          "with": {
+            "effective": "sit == \"shock\" or asmt == \"septic\" or rec == \"come\""
+          }
+        },
+        {
+          "log": "Paged the attending. Callback in about 2 min."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "gluT": {
+      "label": "the glucose result",
+      "wait": {
+        "skipLabel": "the glucose (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "v": {
+          "type": "number",
+          "unit": "mg/dL"
+        }
+      },
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Point-of-care glucose: about 1 min."
+      },
+      "effects": [
+        {
+          "set": "gluAt",
+          "to": "t"
+        },
+        {
+          "set": "gluLast",
+          "to": "timer.with.v"
+        },
+        {
+          "cases": [
+            {
+              "when": "timer.with.v < 70",
+              "then": [
+                {
+                  "log": "Glucose {timer.with.v} mg/dL: low. Septic children use glucose fast; treat it per the order set.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Glucose {timer.with.v} mg/dL.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "lacResultT": {
+      "label": "the lactate result",
+      "wait": {
+        "skipLabel": "the lactate result (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "v": {
+          "type": "number",
+          "unit": "mmol/L"
+        }
+      },
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Blood gas analyzer on the unit: lactate in about 10 min."
+      },
+      "effects": [
+        {
+          "set": "lacPending",
+          "to": "false"
+        },
+        {
+          "set": "lacLast",
+          "to": "timer.with.v"
+        },
+        {
+          "cases": [
+            {
+              "when": "timer.with.v >= 4",
+              "then": [
+                {
+                  "log": "Lactate {timer.with.v|1dp} mmol/L: high, poor tissue perfusion.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "timer.with.v > 2",
+              "then": [
+                {
+                  "log": "Lactate {timer.with.v|1dp} mmol/L: still above 2.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Lactate {timer.with.v|1dp} mmol/L: 2 or below.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "culturesT": {
+      "label": "blood culture drawn",
+      "wait": {
+        "skipLabel": "the blood culture (about 4 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "One pediatric blood culture: about 4 min."
+      },
+      "effects": [
+        {
+          "set": "culturesAt",
+          "to": "t"
+        },
+        {
+          "log": "Blood culture drawn and sent.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "bolusDone": {
+      "label": "bolus finished",
+      "wait": {
+        "skipLabel": "the bolus to finish"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "kg": {
+          "type": "number",
+          "unit": "mL/kg"
+        }
+      },
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "10 mL/kg over 10 min, 20 mL/kg over 15 min."
+      },
+      "effects": [
+        {
+          "set": "rateMlh",
+          "to": "0"
+        },
+        {
+          "set": "running",
+          "to": "false"
+        },
+        {
+          "log": "{timer.with.kg} mL/kg bolus in. Total {round(totalKg)} mL/kg. Reassess before deciding on the next one.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "lineT": {
+      "label": "the second IV",
+      "wait": {
+        "skipLabel": "the second IV (about 5 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A second peripheral IV: about 5 min."
+      },
+      "effects": [
+        {
+          "set": "line2",
+          "to": "true"
+        },
+        {
+          "set": "linePending",
+          "to": "false"
+        },
+        {
+          "log": "Second peripheral IV in.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "dripCheck": {
+      "label": "epinephrine reassessment (5 min)",
+      "wait": {
+        "skipLabel": "the 5-minute epinephrine reassessment"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Reassess 5 min after each epinephrine change, as the time constant (about 3 min) has mostly run. Simplified teaching model written for exam practice; not a validated physiological model."
+      },
+      "effects": [
+        {
+          "log": "5 min on this step: BP {sbp}/{dbp}, capillary refill {crt|1dp} s, HR {hr}.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "callbackT": {
+      "label": "the attending's callback",
+      "wait": {
+        "skipLabel": "the attending's callback (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "effective": {
+          "type": "bool"
+        }
+      },
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "PICU attending callback about 2 min."
+      },
+      "effects": [
+        {
+          "set": "pendingCall",
+          "to": "false"
+        },
+        {
+          "if": "timer.with.effective",
+          "then": [
+            {
+              "if": "not orderVaso",
+              "then": [
+                {
+                  "set": "orderVaso",
+                  "to": "true"
+                },
+                {
+                  "schedule": "teamT",
+                  "after": "teamWalk"
+                }
+              ]
+            },
+            {
+              "log": "Attending: \"Agree, septic shock. Antibiotics now if they're not in. Keep giving 10 to 20 mL/kg boluses and reassess after each; stop if the liver grows or she gets crackles. If she's still in shock after about 40 more, start epinephrine through a peripheral IV, don't wait for a central line. I'm coming.\"",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Attending (phone): \"Keep going with fluids and call me if she's worse.\"",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "teamT": {
+      "label": "the attending arriving",
+      "wait": {
+        "skipLabel": "the attending (about 8 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Attending at the bedside about 8 min after the callback."
+      },
+      "effects": [
+        {
+          "set": "teamHere",
+          "to": "true"
+        },
+        {
+          "log": "PICU attending at the bedside, reviewing the fluid, the perfusion and the drip.",
+          "kind": "good"
+        }
+      ]
+    },
+    "reviewT": {
+      "label": "the two-hour review",
+      "wait": {
+        "skipLabel": "the attending's two-hour review",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The two-hour review, when the case ends."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "reviewT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "hypo",
+      "when": "sbp < hypoSbp",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: systolic below 78, hypotension for her age. In children this is a late sign.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "glow",
+      "when": "glucose < 45",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Glucose now very low: she is harder to rouse.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "refractory",
+      "when": "isNull(refAt) and shock and (totalKg >= 50 or excess >= 5)",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "refAt",
+          "to": "t"
+        },
+        {
+          "log": "Still in shock after 40 mL/kg more fluid (or with signs of overload): fluid alone is not enough.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "spo2Low",
+      "when": "spo2 < 92",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: SpO2 below 92.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "intubate",
+      "when": "not intubated and spo2 < 88",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "intubated",
+          "to": "true"
+        },
+        {
+          "set": "rateMlh",
+          "to": "0"
+        },
+        {
+          "set": "running",
+          "to": "false"
+        },
+        {
+          "log": "Pulmonary edema after {round(totalKg)} mL/kg of fluid. Intubated and ventilated.",
+          "kind": "bad"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "whatNow": {
+      "trigger": "totalKg >= 30 or t >= reasonAt",
+      "question": "What do you think is happening, and how will you decide whether to give the next bolus?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "Names septic shock (compensated, then decompensating) in a child, citing at least two of: tachycardia, capillary refill over 2 s with cool mottled skin, sleepiness, little urine, high lactate; notes that a normal blood pressure does not rule out shock in a child.",
+          "modelAnswer": "Septic shock: tachycardia, cool mottled skin with a capillary refill of 4 seconds, sleepiness, little urine and a high lactate. Her blood pressure was still normal at handover, but in children hypotension is a late sign."
+        },
+        {
+          "label": "The next bolus",
+          "criteria": "Reassesses after every bolus (heart rate, capillary refill, mental state, urine output, blood pressure) and checks for overload (new or growing liver edge, crackles) before the next; gives 10-20 mL/kg boluses up to about 40-60 mL/kg; stops fluid at overload and asks for epinephrine or norepinephrine if shock persists; antibiotics within the hour.",
+          "modelAnswer": "Antibiotics now. Then 10 to 20 mL/kg at a time, and after each one look again: heart rate, capillary refill, how awake she is, urine, blood pressure, and the liver edge and the lungs. If perfusion improves and there is no liver growth or crackles, another bolus; if the liver grows or crackles appear, stop. If she is still in shock after about 40 mL/kg more, call for epinephrine through a peripheral IV."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {
+      "abxWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Weiss SL, Peters MJ, Oczkowski SJW, et al. Surviving Sepsis Campaign International Guidelines for the Management of Sepsis and Septic Shock in Children 2026. Intensive Care Med, published online 2026-03-23, doi:10.1007/s00134-026-08360-2",
+          "checkedAt": "2026-11-11",
+          "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-the-management-of-sepsis-and-septic-shock-in",
+          "note": "Supersedes 2020 where they differ. Read only through secondary summaries on 2026-11-11 (Pulmonology Advisor via HCN, 2026-06-03; vikkypaedia substack 'sixty one statements'): antimicrobials within 1 h in suspected septic shock (strong), within 3 h after rapid evaluation in probable sepsis without shock; up to 40-60 mL/kg over the first hour with ICU backup, continuously reassessed; balanced crystalloid suggested; peripheral venous access for vasoactives rather than waiting for central access; measure lactate in all children with probable sepsis (strong). The primary text was not opened; confirm wording at the next review. Septic shock: antimicrobials within 1 h (strong, as relayed); the 2020 algorithm also sets the bundle within 1 h of recognizing septic shock."
+        }
+      },
+      "escWindow": {
+        "value": 900,
+        "source": {
+          "cite": "PICU unit practice (authored estimate)",
+          "checkedAt": "2026-11-11",
+          "note": "Escalate within 15 min of handover of a child in shock."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "t >= reviewAt and shock",
+      "class": "harm",
+      "rationale": "A child still in shock two hours in is having ongoing organ hypoperfusion, not a safe holding pattern, so this case calls it harm.",
+      "source": {
+        "cite": "SCCM. Surviving Sepsis Campaign: Initial Resuscitation Algorithm for Children (2020)",
+        "checkedAt": "2026-11-11",
+        "url": "https://sccm.org/getmedia/cde6bdbd-cd1f-4ca9-a394-0673bdaba71b/Initial-Resuscitation-Algorithm-for-Children.pdf",
+        "note": "Read 2026-11-11: bundle 'within 1 hour of initial recognition of septic shock'; obtain IV/IO access, blood culture, empiric broad-spectrum antibiotics, measure lactate, fluid bolus(es) if shock is present, vasoactive agents if shock persists; 10-20 mL/kg boluses until shock resolves or signs of fluid overload develop; 'Consider epinephrine/norepinephrine ... if shock persists after 40-60 mL/kg'; 'Avoid hypoglycemia'. The class choice is the author's, per docs/sims.md 9.2."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Cardiac arrest from septic shock",
+      "class": "harm",
+      "when": "sbp <= arrestSbp",
+      "terminal": true,
+      "narrative": "The pressure fell until her heart slowed and stopped. The code team is called. In children, falling blood pressure comes late, and arrest follows quickly."
+    },
+    "stabilized": {
+      "label": "Stabilized: septic shock treated on time",
+      "class": "target",
+      "when": "t >= reviewAt and not shock and not intubated and not isNull(abxAt) and timeAt(abxAt) <= abxWindow and nBlind <= 1 and overGiven == 0 and not isNull(callEffAt) and timeAt(callEffAt) <= escWindow and (isNull(refAt) or (not isNull(firstEpiAt) and timeAt(firstEpiAt) <= timeAt(refAt) + vasoWindow))",
+      "terminal": true,
+      "narrative": "Two hours in she is warm, capillary refill {crt|1dp} s, passing urine, BP {sbp}/{dbp} on epinephrine step {epiStep}. The antibiotics went in early, every bolus was reassessed and the fluid stopped before it congested her."
+    },
+    "stabilizedLate": {
+      "label": "Stabilized, by a slower route",
+      "class": "recovered",
+      "when": "t >= reviewAt and not shock",
+      "terminal": true,
+      "narrative": "She is perfused at the two-hour review, but the route cost something: a late antibiotic or call, boluses without reassessment, fluid given into a congested liver, a late vasoactive, or a breathing tube."
+    },
+    "time_up": {
+      "label": "Still in shock at the review",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Two hours in she is still cool and mottled with a slow capillary refill. Her organs have been underperfused the whole time."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "stabilized",
+    "stabilizedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "antibiotic",
+        "label": "Antibiotics within 1 hour",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(abxAt)",
+            "score": "missed",
+            "why": "No antibiotic was given."
+          },
+          {
+            "when": "timeAt(abxAt) <= abxWindow",
+            "score": "met",
+            "why": "Given at {timeAt(abxAt)|clock}, {timeAt(abxAt)|duration} after handover."
+          },
+          {
+            "when": "timeAt(abxAt) <= abxLate",
+            "score": "partial",
+            "why": "Given at {timeAt(abxAt)|clock}: later than the hour septic shock calls for."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Given more than 3 hours in."
+          }
+        ]
+      },
+      {
+        "id": "reassess",
+        "label": "Reassessed perfusion after every bolus",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "nBolus == 0",
+            "score": "missed",
+            "why": "No bolus was given to a child in shock."
+          },
+          {
+            "when": "nBlind == 0",
+            "score": "met",
+            "why": "Every bolus after the first followed a reassessment ({checks} checks)."
+          },
+          {
+            "when": "nBlind == 1",
+            "score": "partial",
+            "why": "One bolus was started without reassessing after the last."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{nBlind} boluses were started without reassessing after the last."
+          }
+        ]
+      },
+      {
+        "id": "stopAtOverload",
+        "label": "Stopped fluid at signs of overload",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "overGiven == 0",
+            "score": "met",
+            "why": "No bolus was given into new hepatomegaly or crackles ({round(totalKg)} mL/kg in total)."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{overGiven} bolus(es) given after the liver had grown: {round(totalKg)} mL/kg in total."
+          }
+        ]
+      },
+      {
+        "id": "vasoactive",
+        "label": "Epinephrine for fluid-refractory shock, without waiting for central access",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(refAt) and shockSecs >= 3600",
+            "score": "missed",
+            "why": "Shock lasted {round(shockSecs / 60)} minutes: the fluid was never completed and no vasoactive was started."
+          },
+          {
+            "when": "isNull(refAt)",
+            "score": "na",
+            "why": "Shock resolved before a vasoactive was needed."
+          },
+          {
+            "when": "isNull(firstEpiAt)",
+            "score": "missed",
+            "why": "Shock persisted after fluid and no vasoactive was started."
+          },
+          {
+            "when": "timeAt(firstEpiAt) <= timeAt(refAt) + vasoWindow",
+            "score": "met",
+            "why": "Epinephrine started at {timeAt(firstEpiAt)|clock}."
+          },
+          {
+            "when": "timeAt(firstEpiAt) <= timeAt(refAt) + 3600",
+            "score": "partial",
+            "why": "Epinephrine started at {timeAt(firstEpiAt)|clock}, more than 30 minutes after fluid stopped working."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Epinephrine started more than an hour after fluid stopped working."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Called the attending early with a clear SBAR",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(callEffAt) and not isNull(callAt)",
+            "score": "missed",
+            "why": "The call sounded routine, so it ended with phone advice."
+          },
+          {
+            "when": "isNull(callEffAt)",
+            "score": "missed",
+            "why": "The attending was never called."
+          },
+          {
+            "when": "timeAt(callEffAt) <= escWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callEffAt)|clock}, naming septic shock."
+          },
+          {
+            "when": "timeAt(callEffAt) <= 2700",
+            "score": "partial",
+            "why": "Called at {timeAt(callEffAt)|clock}, more than 15 minutes in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Called at {timeAt(callEffAt)|clock}, more than 45 minutes in."
+          }
+        ]
+      },
+      {
+        "id": "cultures",
+        "label": "Blood culture before the antibiotics",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(culturesStartAt)",
+            "score": "missed",
+            "why": "No blood culture was drawn."
+          },
+          {
+            "when": "abxBeforeCultures",
+            "score": "partial",
+            "why": "A culture was drawn, but after the antibiotics."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Culture drawn before the antibiotics."
+          }
+        ]
+      },
+      {
+        "id": "lactate",
+        "label": "Measured the lactate early",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(lacFirstAt)",
+            "score": "missed",
+            "why": "No lactate was drawn."
+          },
+          {
+            "when": "timeAt(lacFirstAt) <= lacWindow",
+            "score": "met",
+            "why": "Lactate drawn at {timeAt(lacFirstAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Lactate drawn at {timeAt(lacFirstAt)|clock}, more than 15 minutes in."
+          }
+        ]
+      },
+      {
+        "id": "glucose",
+        "label": "Checked and treated the glucose",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(gluAt)",
+            "score": "missed",
+            "why": "Glucose was never checked; it was low."
+          },
+          {
+            "when": "isNull(dexAt)",
+            "score": "partial",
+            "why": "Low glucose found but not treated."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Low glucose found and treated at {timeAt(dexAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "secondLine",
+        "label": "Second IV for the vasoactive",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(firstEpiAt) and line2",
+            "score": "met",
+            "why": "A second IV was placed."
+          },
+          {
+            "when": "isNull(firstEpiAt)",
+            "score": "missed",
+            "why": "No second IV; fluid and any drip would share one line."
+          },
+          {
+            "when": "line2",
+            "score": "met",
+            "why": "Epinephrine had its own line."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Epinephrine ran through the only IV."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "whatNow",
+        "label": "Written reasoning: named septic shock and how to decide on each bolus",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toAbx",
+        "label": "Handover to antibiotics",
+        "value": "isNull(abxAt) ? -1 : timeAt(abxAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "fluidKg",
+        "label": "Total fluid (mL/kg, with the ED's 10)",
+        "value": "round(totalKg)",
+        "format": "number",
+        "expert": "about 50"
+      },
+      {
+        "id": "blind",
+        "label": "Boluses without a reassessment",
+        "value": "nBlind",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "toEpi",
+        "label": "Handover to epinephrine",
+        "value": "isNull(firstEpiAt) ? -1 : timeAt(firstEpiAt)",
+        "format": "duration",
+        "expert": "about 30 min"
+      },
+      {
+        "id": "shockMin",
+        "label": "Minutes in shock",
+        "value": "round(shockSecs / 60)",
+        "format": "number",
+        "expert": "under 70"
+      },
+      {
+        "id": "lastLactate",
+        "label": "Last lactate result (mmol/L)",
+        "value": "lacLast",
+        "format": "number",
+        "expert": "falling"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00-14:02",
+        "text": "Look: compensated septic shock (HR 167, capillary refill 4 s, sleepy) with a normal BP, which in a child is a late sign. Glucose, culture, lactate."
+      },
+      {
+        "at": "14:02",
+        "text": "First 20 mL/kg bolus. Call the attending: septic shock, ask them to come and for a vasoactive order if she stays in shock."
+      },
+      {
+        "at": "~14:05",
+        "text": "Culture drawn: antibiotics in at once. Low glucose: dextrose per the order set. Second IV."
+      },
+      {
+        "at": "14:17",
+        "text": "Bolus in: reassess HR, capillary refill, mental state, urine, BP, liver edge and lungs. Still in shock, no overload: second 20 mL/kg."
+      },
+      {
+        "at": "~14:33",
+        "text": "Reassess: still in shock after 40 mL/kg more. Stop fluid; start epinephrine on its own peripheral IV and titrate every 5 min to perfusion."
+      },
+      {
+        "at": "16:00",
+        "text": "Warm, capillary refill 2 s or less, passing urine at the review."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "Cardiac arrest from septic shock",
+        "body": "Look at the first hour: when the antibiotics went in, when the attending was called, and how long she stayed in shock with nothing to hold the pressure."
+      },
+      "stabilized": {
+        "headline": "Stabilized: septic shock treated on time",
+        "body": "Antibiotics in the first hour, boluses of 10-20 mL/kg each followed by a reassessment, fluid stopped before overload, and epinephrine through a peripheral line when fluid stopped helping. That is the expert path."
+      },
+      "stabilizedLate": {
+        "headline": "Stabilized, by a slower route",
+        "body": "She made it, but check the antibiotic time, the call, the boluses started without a reassessment, fluid given after the liver grew, and when the epinephrine started."
+      },
+      "time_up": {
+        "headline": "Still in shock at the review",
+        "body": "The perfusion never came back. The usual causes are a late antibiotic, fluid continued after it stopped helping, or no vasoactive."
+      }
+    },
+    "modelReasoning": "This is septic shock in a 4-year-old: tachycardia, cool mottled skin with a slow capillary refill, sleepiness, little urine and a high lactate, while the blood pressure is still normal for age. Antibiotics are time-critical (within an hour in septic shock) with a culture first only if it causes no delay. Fluid is given in 10-20 mL/kg boluses up to about 40-60 mL/kg in the first hour where intensive care is available, and every bolus is followed by a reassessment of heart rate, capillary refill, mental state, urine output and blood pressure, plus the liver edge and the lungs: new or growing hepatomegaly or crackles mean stop. Shock that persists after that needs epinephrine or norepinephrine, which the 2026 update (as relayed) supports starting peripherally rather than waiting for central access. Check and treat the glucose."
+  },
+  "chapters": [
+    {
+      "id": "firstBolusIn",
+      "label": "First bolus in",
+      "when": "nBolus >= 1 and not running"
+    },
+    {
+      "id": "epiRunning",
+      "label": "Epinephrine running",
+      "when": "epiStep > 0"
+    }
+  ],
+  "teaching": {
+    "lateSign": {
+      "during": "gluT",
+      "ask": "Her blood pressure is 84/48. Does a normal blood pressure for her age mean she is not in shock?",
+      "choices": [
+        {
+          "id": "no",
+          "label": "No: hypotension is a late sign in children"
+        },
+        {
+          "id": "yes",
+          "label": "Yes: shock means low blood pressure"
+        }
+      ],
+      "expect": "no",
+      "explain": "No. Children hold their blood pressure by vasoconstriction and tachycardia until late; the cool skin, slow capillary refill, sleepiness and low urine say shock now. Hypotension at age 4 is a systolic below 78.",
+      "source": {
+        "cite": "US HHS CHEMM. Pediatric Basic and Advanced Life Support (AHA PALS values)",
+        "checkedAt": "2026-11-11",
+        "url": "https://chemm.hhs.gov/pals.htm",
+        "note": "Read 2026-11-11: hypotension at 1-10 years is systolic below 70 + (2 x age in years) mmHg, so below 78 at age 4; heart rate 60-140 awake at 2-10 years; preschool respiratory rate 22-34."
+      }
+    },
+    "stopSign": {
+      "during": "bolusDone",
+      "ask": "While this bolus runs: which finding at the next check would make you stop giving fluid?",
+      "choices": [
+        {
+          "id": "liver",
+          "label": "The liver edge is lower than before, or new crackles"
+        },
+        {
+          "id": "hr",
+          "label": "The heart rate is still 150"
+        },
+        {
+          "id": "crt",
+          "label": "Capillary refill is still 3 seconds"
+        }
+      ],
+      "expect": "liver",
+      "explain": "New or worsening hepatomegaly or crackles mean she is not using more fluid; stop and move to a vasoactive. A fast heart rate and slow capillary refill without overload are reasons to consider another bolus, not to stop.",
+      "source": {
+        "cite": "Surviving Sepsis Campaign Children's Guidelines (Weiss SL, Peters MJ, et al. Intensive Care Med 2020;46(Suppl 1):10-67; Pediatr Crit Care Med 2020;21(2):e52-e106), SCCM microlearning sheets 'Fluid Therapy' and 'Vasoactive Medications'",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.sccm.org/sccm/media/ssc/SSC-Childrens-Guidelines-Microlearning-Fluid-Therapy.pdf",
+        "note": "Read 2026-11-11 in SCCM's own guideline sheets: 'up to 40-60mL/kg in bolus fluid (10-20mL/kg per bolus) over the first hour' with intensive care available (Rec 17), titrated to clinical markers of cardiac output and stopped if 'signs of fluid overload develop'; overload named as 'clinical signs of pulmonary edema or new or worsening hepatomegaly'; reassessment markers 'heart rate, blood pressure, capillary refill time, level of consciousness, and urine output'; balanced crystalloids suggested over 0.9% saline (Rec 21). Vasoactive sheet: epinephrine rather than dopamine (Rec 28); no first-line choice between epinephrine and norepinephrine (Rec 30); no recommendation on peripheral initiation (Rec 31). The overload signs are quoted from the Fluid Therapy sheet."
+      }
+    },
+    "peripheralEpi": {
+      "during": "callbackT",
+      "ask": "If she is still in shock after 40 mL/kg more and has no central line, what will you ask for?",
+      "choices": [
+        {
+          "id": "peripheral",
+          "label": "Epinephrine through a peripheral IV now"
+        },
+        {
+          "id": "central",
+          "label": "Wait for a central line first"
+        },
+        {
+          "id": "fluid",
+          "label": "Another 40 mL/kg of fluid"
+        }
+      ],
+      "expect": "peripheral",
+      "explain": "Start it peripherally. The 2020 panel made no recommendation on peripheral starts; the 2026 update, as relayed by secondary summaries, recommends peripheral access for vasoactives rather than waiting for central access. Use its own line and watch the site.",
+      "source": {
+        "cite": "Weiss SL, Peters MJ, Oczkowski SJW, et al. Surviving Sepsis Campaign International Guidelines for the Management of Sepsis and Septic Shock in Children 2026. Intensive Care Med, published online 2026-03-23, doi:10.1007/s00134-026-08360-2",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-the-management-of-sepsis-and-septic-shock-in",
+        "note": "Supersedes 2020 where they differ. Read only through secondary summaries on 2026-11-11 (Pulmonology Advisor via HCN, 2026-06-03; vikkypaedia substack 'sixty one statements'): antimicrobials within 1 h in suspected septic shock (strong), within 3 h after rapid evaluation in probable sepsis without shock; up to 40-60 mL/kg over the first hour with ICU backup, continuously reassessed; balanced crystalloid suggested; peripheral venous access for vasoactives rather than waiting for central access; measure lactate in all children with probable sepsis (strong). The primary text was not opened; confirm wording at the next review. FLAG: the 2026 wording was read only through summaries."
+      }
+    }
+  }
+}

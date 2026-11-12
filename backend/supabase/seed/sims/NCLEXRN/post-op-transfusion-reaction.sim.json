@@ -1,0 +1,1569 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "post-op-transfusion-reaction",
+  "title": "A transfusion reaction after surgery",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "not isNull(baseAt)"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "not isNull(baseAt)"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              22,
+              26
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(baseAt)"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "not isNull(baseAt)"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature",
+          "value": "temp",
+          "unit": "C",
+          "announce": {
+            "bands": [
+              37.5,
+              38,
+              39
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(baseAt)"
+        },
+        {
+          "id": "vol",
+          "label": "Unit",
+          "spokenLabel": "Red cells transfused",
+          "value": "round(vInf)",
+          "unit": "mL",
+          "sub": "Running: {running|yesno}, {rate} mL/min",
+          "announce": {
+            "bands": [
+              20,
+              50,
+              100
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "infusions": "Red cells running: {running|yesno}, {round(vInf)} mL in. Saline to keep the vein open: {kvo|yesno}."
+    }
+  },
+  "objective": "Tell transfusion reactions apart: febrile nonhemolytic is most common, allergic reactions are often mild, acute hemolytic reactions come from ABO mismatch, and circulatory overload from excess volume",
+  "secondaryObjectives": [
+    "Before a transfusion, verify the order, check for any premedication and relevant labs, ask about past reactions, and confirm a working IV with blood tubing and normal saline ready",
+    "Collect only one unit of blood from the bank at a time, and verify client identity, order, consent, blood type and compatibility at the bedside before starting"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_RN_Test Plan_English-F.pdf",
+      "note": "Read 2026-11-11 (primary PDF): Pharmacological and Parenteral Therapies 9-15% of items, including 'Administer blood products and evaluate client response'. The test plan does not list transfusion-reaction steps."
+    },
+    {
+      "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-11",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Australian Red Cross Lifeblood. Management of suspected reactions (clinical practice guidance)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.lifeblood.com.au/health-professionals/clinical-practice/adverse-events/management-of-suspected-reactions",
+      "note": "Read 2026-11-11: 'Stop the transfusion immediately and activate emergency procedures if required'; check ABC and vital signs; 'Maintain intravenous (IV) access (do not flush the existing line and use a new IV line if required)'; 'Repeat all clerical and identity checks'; 'Notify your Medical Officer and Transfusion Service Provider'; send fresh blood and urine samples with the used pack and IV line if asked; document and report; dyspnea or hypotension reactions 'Within 15 minutes of starting transfusion but may be later'; for suspected acute hemolysis maintain blood pressure and urine output."
+    },
+    {
+      "cite": "Transfusion Reactions. StatPearls (updated 2023-08-08), StatPearls Publishing",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.statpearls.com/point-of-care/30465",
+      "note": "Read 2026-11-11: fever and chills 'can also be the first sign of a more serious acute hemolytic reaction'; hypotension and red urine (hemoglobinuria) point to a more serious reaction; complications include DIC and renal failure; when a reaction is suspected 'the transfusion should be immediately stopped' with the line kept open with 0.9% saline; vital signs 'typically recorded at 15-minute intervals'."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 on an orthopedic unit. Room 8, Mrs. Hughes, 74, day 1 after a hip replacement. Hemoglobin 7.0 this morning, dizzy when she stood. One unit of red cells is ordered over 2 hours. The unit has just arrived from the blood bank.",
+    "handover": [
+      "No previous transfusions, no known reactions. Consent for blood was signed before surgery.",
+      "One 20-gauge IV in the left forearm, saline-locked.",
+      "Policy: two licensed staff check the client and the unit at the bedside; baseline vital signs before starting; stay with the client and run it slowly for the first 15 minutes; vital signs at 15 minutes."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Prepare and start the transfusion, then watch her. Some steps take a few minutes.",
+      "Partway through you are asked to write what you think is happening. The case ends at 11:15, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1s",
+    "maxDuration": "75min",
+    "calendar": "clock"
+  },
+  "params": {
+    "slowRate": {
+      "value": 2,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Hospital transfusion policy (authored for this scenario)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Slow start for the first 15 minutes: 2 mL/min. Local policies differ; this is a typical authored value, not a figure from the sources above."
+      }
+    },
+    "fullRate": {
+      "value": 4,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Hospital transfusion policy (authored for this scenario)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: The rest of the unit over about 2 hours: about 4 mL/min (a 300 mL unit). Local policies differ; this is a typical authored value, not a figure from the sources above."
+      }
+    },
+    "onsetMl": {
+      "value": 15,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: This ABO-incompatible unit causes symptoms after about 15 mL. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmMl": {
+      "value": 60,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: About 60 mL of incompatible red cells produces shock and DIC in this client. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lineMl": {
+      "value": 15,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Red cells still in the blood tubing that a flush would push into her. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "stopWindow": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Australian Red Cross Lifeblood. Management of suspected reactions (clinical practice guidance)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.lifeblood.com.au/health-professionals/clinical-practice/adverse-events/management-of-suspected-reactions",
+        "note": "Read 2026-11-11: 'Stop the transfusion immediately and activate emergency procedures if required'; check ABC and vital signs; 'Maintain intravenous (IV) access (do not flush the existing line and use a new IV line if required)'; 'Repeat all clerical and identity checks'; 'Notify your Medical Officer and Transfusion Service Provider'; send fresh blood and urine samples with the used pack and IV line if asked; document and report; dyspnea or hypotension reactions 'Within 15 minutes of starting transfusion but may be later'; for suspected acute hemolysis maintain blood pressure and urine output."
+      }
+    },
+    "notifyWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Orthopedic unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Authored: provider and blood bank told within 15 min of the first sign."
+      }
+    },
+    "checkTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Orthopedic unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Two-person bedside check: about 5 min."
+      }
+    },
+    "vitalsTime": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Orthopedic unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A full set of vital signs: about 2 min."
+      }
+    },
+    "callback": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Orthopedic unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Provider callback about 3 min."
+      }
+    },
+    "awayTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Orthopedic unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A call light down the hall: about 10 min away."
+      }
+    },
+    "reviewAt": {
+      "value": 4500,
+      "unit": "s",
+      "source": {
+        "cite": "Orthopedic unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 11:15."
+      }
+    }
+  },
+  "state": {
+    "orderAt": {
+      "type": "time",
+      "init": null
+    },
+    "baseAt": {
+      "type": "time",
+      "init": null
+    },
+    "ivAt": {
+      "type": "time",
+      "init": null
+    },
+    "nsAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkPending": {
+      "type": "bool",
+      "init": false
+    },
+    "startAt": {
+      "type": "time",
+      "init": null
+    },
+    "startSlow": {
+      "type": "bool",
+      "init": false
+    },
+    "running": {
+      "type": "bool",
+      "init": false
+    },
+    "rate": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10,
+      "unit": "mL/min"
+    },
+    "vInf": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 400,
+      "unit": "mL"
+    },
+    "vInc": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 400,
+      "unit": "mL"
+    },
+    "away": {
+      "type": "bool",
+      "init": false
+    },
+    "awayAt": {
+      "type": "time",
+      "init": null
+    },
+    "onsetAt": {
+      "type": "time",
+      "init": null
+    },
+    "stopAt": {
+      "type": "time",
+      "init": null
+    },
+    "restarted": {
+      "type": "bool",
+      "init": false
+    },
+    "flushed": {
+      "type": "bool",
+      "init": false
+    },
+    "kvo": {
+      "type": "bool",
+      "init": false
+    },
+    "newLine": {
+      "type": "bool",
+      "init": false
+    },
+    "wrongTx": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "vit15At": {
+      "type": "time",
+      "init": null
+    },
+    "providerAt": {
+      "type": "time",
+      "init": null
+    },
+    "bankAt": {
+      "type": "time",
+      "init": null
+    },
+    "pendingCall": {
+      "type": "bool",
+      "init": false
+    },
+    "labelsAt": {
+      "type": "time",
+      "init": null
+    },
+    "samplesAt": {
+      "type": "time",
+      "init": null
+    },
+    "urineAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "h": {
+      "expr": "vInc / harmMl"
+    },
+    "hr": {
+      "expr": "round(clamp(84 + 45 * h + 2 * sin(t / 31), 50, 180))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(126 - 55 * h, 50, 200))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(16 + 10 * h)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(97 - 5 * h, 80, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round((36.9 + (isNull(onsetAt) ? 0 : min(1.6, 0.6 + 1.5 * h))) * 10) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "reacting": {
+      "expr": "not isNull(onsetAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "flow",
+      "update": {
+        "vInf": "vInf + (running ? rate * dt / 60 : 0)",
+        "vInc": "vInc + (running ? rate * dt / 60 : 0)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the bedside",
+      "clock": "running",
+      "actions": [
+        "verify",
+        "baseline",
+        "ivCheck",
+        "prime",
+        "bedside",
+        "start",
+        "stay",
+        "leave",
+        "vitals",
+        "stop",
+        "slow",
+        "acetaminophen",
+        "antihistamine",
+        "flush",
+        "newLine",
+        "restart",
+        "callProvider",
+        "callBank",
+        "labels",
+        "samples",
+        "urine"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "verify": {
+      "label": "Verify the order, consent and the indication",
+      "group": "Before",
+      "available": "isNull(startAt)",
+      "why": "Already started.",
+      "effects": [
+        {
+          "if": "isNull(orderAt)",
+          "then": [
+            {
+              "set": "orderAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Order for 1 unit of red cells over 2 hours; hemoglobin 7.0 and symptomatic; consent signed; no premedication ordered; no previous reactions.",
+          "kind": "find"
+        }
+      ]
+    },
+    "baseline": {
+      "label": "Baseline vital signs",
+      "group": "Before",
+      "available": "isNull(startAt)",
+      "why": "Already started.",
+      "effects": [
+        {
+          "if": "isNull(baseAt)",
+          "then": [
+            {
+              "set": "baseAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Baseline: HR {hr}, BP {sbp}/{dbp}, RR {rr}, SpO2 {spo2}%, temperature {temp}.",
+          "kind": "find"
+        }
+      ]
+    },
+    "ivCheck": {
+      "label": "Check the IV site and flush the saline lock",
+      "group": "Before",
+      "available": "isNull(startAt)",
+      "why": "Already started.",
+      "effects": [
+        {
+          "if": "isNull(ivAt)",
+          "then": [
+            {
+              "set": "ivAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "20-gauge IV patent, no redness or swelling, flushes easily.",
+          "kind": "find"
+        }
+      ]
+    },
+    "prime": {
+      "label": "Prime blood tubing with 0.9% saline on the Y-set",
+      "group": "Before",
+      "available": "isNull(startAt)",
+      "why": "Already started.",
+      "effects": [
+        {
+          "if": "isNull(nsAt)",
+          "then": [
+            {
+              "set": "nsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Y-type blood set with a filter, primed with 0.9% saline."
+        }
+      ]
+    },
+    "bedside": {
+      "label": "Two-person bedside check of client and unit",
+      "group": "Before",
+      "available": "isNull(startAt) and isNull(checkAt) and not checkPending",
+      "why": "Already done or under way.",
+      "effects": [
+        {
+          "set": "checkPending",
+          "to": "true"
+        },
+        {
+          "schedule": "checkT",
+          "after": "checkTime"
+        },
+        {
+          "log": "Checking with a second nurse: wristband, name and date of birth asked, unit number, ABO and Rh on the tag and the record, expiry, the bag (about 5 min)."
+        }
+      ]
+    },
+    "start": {
+      "label": "Start the transfusion",
+      "group": "Transfuse",
+      "available": "isNull(startAt)",
+      "why": "Already started.",
+      "params": [
+        {
+          "id": "speed",
+          "kind": "choice",
+          "label": "Rate",
+          "options": [
+            {
+              "value": "slow",
+              "label": "Slowly for the first 15 minutes"
+            },
+            {
+              "value": "full",
+              "label": "At the full rate from the start"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "startAt",
+          "to": "t"
+        },
+        {
+          "set": "running",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "speed == \"slow\"",
+              "then": [
+                {
+                  "set": "rate",
+                  "to": "slowRate"
+                },
+                {
+                  "set": "startSlow",
+                  "to": "true"
+                },
+                {
+                  "log": "Red cells running at {slowRate} mL/min for the first 15 minutes."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "rate",
+                  "to": "fullRate"
+                },
+                {
+                  "log": "Red cells running at {fullRate} mL/min."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "schedule": "v15T",
+          "after": "900"
+        }
+      ]
+    },
+    "stay": {
+      "label": "Stay with her and watch",
+      "group": "Transfuse",
+      "available": "not isNull(startAt) and not away",
+      "why": "Not started, or you are away.",
+      "effects": [
+        {
+          "log": "You stay at the bedside, watching her face and breathing and asking how she feels.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "leave": {
+      "label": "Answer a call light down the hall",
+      "group": "Transfuse",
+      "available": "not isNull(startAt) and not away and isNull(onsetAt)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "away",
+          "to": "true"
+        },
+        {
+          "set": "awayAt",
+          "to": "t"
+        },
+        {
+          "schedule": "backT",
+          "after": "awayTime"
+        },
+        {
+          "log": "You leave to answer another call light (about 10 min).",
+          "kind": "sys"
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Take vital signs",
+      "group": "Assess",
+      "available": "not away",
+      "why": "You are away.",
+      "effects": [
+        {
+          "log": "HR {hr}, BP {sbp}/{dbp}, RR {rr}, SpO2 {spo2}%, temperature {temp}.",
+          "kind": "find"
+        },
+        {
+          "if": "not isNull(startAt) and t >= timeAt(startAt) + 600",
+          "then": [
+            {
+              "if": "isNull(vit15At)",
+              "then": [
+                {
+                  "set": "vit15At",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "stop": {
+      "label": "Stop the transfusion: clamp and disconnect the blood tubing at the hub",
+      "group": "Reaction",
+      "available": "running and not away",
+      "why": "Not running, or you are away.",
+      "effects": [
+        {
+          "set": "running",
+          "to": "false"
+        },
+        {
+          "if": "isNull(stopAt)",
+          "then": [
+            {
+              "set": "stopAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Transfusion clamped and the blood tubing disconnected at the hub. {round(vInf)} mL in.",
+          "kind": "good"
+        }
+      ]
+    },
+    "slow": {
+      "label": "Slow the transfusion and keep watching",
+      "group": "Reaction",
+      "available": "running and not isNull(onsetAt)",
+      "why": "Not running.",
+      "effects": [
+        {
+          "add": "wrongTx",
+          "by": "1"
+        },
+        {
+          "set": "rate",
+          "to": "1"
+        },
+        {
+          "log": "Slowed to 1 mL/min. Red cells still running.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "acetaminophen": {
+      "label": "Give acetaminophen for the fever and continue",
+      "group": "Reaction",
+      "available": "not isNull(onsetAt)",
+      "why": "Nothing to treat.",
+      "effects": [
+        {
+          "add": "wrongTx",
+          "by": "1"
+        },
+        {
+          "log": "Acetaminophen given; the transfusion carries on.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "antihistamine": {
+      "label": "Give diphenhydramine and continue",
+      "group": "Reaction",
+      "available": "not isNull(onsetAt)",
+      "why": "Nothing to treat.",
+      "effects": [
+        {
+          "add": "wrongTx",
+          "by": "1"
+        },
+        {
+          "log": "Diphenhydramine given; the transfusion carries on.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "flush": {
+      "label": "Flush the existing line with saline",
+      "group": "Reaction",
+      "available": "not isNull(startAt) and not newLine",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "flushed",
+          "to": "true"
+        },
+        {
+          "add": "vInc",
+          "by": "lineMl"
+        },
+        {
+          "add": "vInf",
+          "by": "lineMl"
+        },
+        {
+          "log": "Flushed through the blood tubing: the red cells left in it went into her.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "newLine": {
+      "label": "New tubing: 0.9% saline to keep the vein open",
+      "group": "Reaction",
+      "available": "not isNull(stopAt) and not newLine",
+      "why": "Stop the transfusion first (or already done).",
+      "effects": [
+        {
+          "set": "newLine",
+          "to": "true"
+        },
+        {
+          "set": "kvo",
+          "to": "true"
+        },
+        {
+          "log": "New IV tubing on the cannula; 0.9% saline running slowly to keep the vein open.",
+          "kind": "good"
+        }
+      ]
+    },
+    "restart": {
+      "label": "Restart the unit now she has settled",
+      "group": "Reaction",
+      "available": "not isNull(stopAt) and not running",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "restarted",
+          "to": "true"
+        },
+        {
+          "set": "running",
+          "to": "true"
+        },
+        {
+          "set": "rate",
+          "to": "fullRate"
+        },
+        {
+          "log": "Transfusion restarted.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "callProvider": {
+      "label": "Call the provider (SBAR)",
+      "group": "Reaction",
+      "available": "not pendingCall and isNull(providerAt) and not isNull(onsetAt)",
+      "why": "Already called, or nothing to report yet.",
+      "effects": [
+        {
+          "if": "isNull(providerAt)",
+          "then": [
+            {
+              "set": "providerAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pendingCall",
+          "to": "true"
+        },
+        {
+          "schedule": "callbackT",
+          "after": "callback"
+        },
+        {
+          "log": "Paged the provider: chills, back pain, fever and a falling BP 10 minutes into a red cell transfusion, now stopped."
+        }
+      ]
+    },
+    "callBank": {
+      "label": "Notify the blood bank",
+      "group": "Reaction",
+      "available": "isNull(bankAt) and not isNull(onsetAt)",
+      "why": "Already notified, or nothing to report.",
+      "effects": [
+        {
+          "if": "isNull(bankAt)",
+          "then": [
+            {
+              "set": "bankAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Blood bank notified of a suspected acute reaction: they ask for the bag and tubing, a blood sample and a urine sample."
+        }
+      ]
+    },
+    "labels": {
+      "label": "Recheck the wristband against the bag and tag",
+      "group": "Reaction",
+      "available": "not isNull(onsetAt)",
+      "why": "Nothing to recheck yet.",
+      "effects": [
+        {
+          "if": "isNull(labelsAt)",
+          "then": [
+            {
+              "set": "labelsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Wristband, tag and bag still match the record: if this is hemolysis, the error happened before the unit reached the bedside, likely the crossmatch sample.",
+          "kind": "find"
+        }
+      ]
+    },
+    "samples": {
+      "label": "Send blood and urine samples with the bag and tubing",
+      "group": "Reaction",
+      "available": "not isNull(stopAt) and isNull(samplesAt)",
+      "why": "Stop it first (or already sent).",
+      "effects": [
+        {
+          "if": "isNull(samplesAt)",
+          "then": [
+            {
+              "set": "samplesAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Blood sample, first urine and the bag with its tubing sent to the blood bank."
+        }
+      ]
+    },
+    "urine": {
+      "label": "Monitor urine output and color",
+      "group": "Reaction",
+      "available": "not isNull(onsetAt)",
+      "why": "Nothing to monitor yet.",
+      "effects": [
+        {
+          "if": "isNull(urineAt)",
+          "then": [
+            {
+              "set": "urineAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Urine dark red-brown: hemoglobinuria. Hourly output measured.",
+          "kind": "find"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "checkT": {
+      "label": "the bedside check",
+      "wait": {
+        "skipLabel": "the bedside check (about 5 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Orthopedic unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 5 min."
+      },
+      "effects": [
+        {
+          "set": "checkPending",
+          "to": "false"
+        },
+        {
+          "set": "checkAt",
+          "to": "t"
+        },
+        {
+          "log": "Bedside check complete: wristband, tag, record and bag all match. Group A Rh positive unit for a client recorded as A positive.",
+          "kind": "find"
+        }
+      ]
+    },
+    "v15T": {
+      "label": "the 15-minute check",
+      "wait": {
+        "skipLabel": "the 15-minute check",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Transfusion Reactions. StatPearls (updated 2023-08-08), StatPearls Publishing",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.statpearls.com/point-of-care/30465",
+        "note": "Read 2026-11-11: fever and chills 'can also be the first sign of a more serious acute hemolytic reaction'; hypotension and red urine (hemoglobinuria) point to a more serious reaction; complications include DIC and renal failure; when a reaction is suspected 'the transfusion should be immediately stopped' with the line kept open with 0.9% saline; vital signs 'typically recorded at 15-minute intervals'."
+      },
+      "effects": [
+        {
+          "if": "running and rate == slowRate",
+          "then": [
+            {
+              "set": "rate",
+              "to": "fullRate"
+            },
+            {
+              "log": "15 minutes: rate increased to {fullRate} mL/min.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "backT": {
+      "label": "back from the call light",
+      "wait": {
+        "skipLabel": "your return (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Orthopedic unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 10 min."
+      },
+      "effects": [
+        {
+          "set": "away",
+          "to": "false"
+        },
+        {
+          "log": "Back in Room 8.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "callbackT": {
+      "label": "the provider's callback",
+      "wait": {
+        "skipLabel": "the provider's callback (about 3 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Orthopedic unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 3 min."
+      },
+      "effects": [
+        {
+          "set": "pendingCall",
+          "to": "false"
+        },
+        {
+          "log": "Provider: \"Possible acute hemolytic reaction. Keep it stopped, saline to keep her pressure and urine up, labs for hemolysis and DIC, and I'm coming.\"",
+          "kind": "good"
+        }
+      ]
+    },
+    "endT": {
+      "label": "11:15",
+      "wait": {
+        "skipLabel": "11:15, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Orthopedic unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 11:15."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "onset",
+      "when": "vInc >= onsetMl and isNull(onsetAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "onsetAt",
+          "to": "t"
+        },
+        {
+          "if": "away",
+          "then": [
+            {
+              "log": "(While you were away, she began shivering.)",
+              "kind": "sys"
+            }
+          ],
+          "else": [
+            {
+              "log": "She says she feels cold and suddenly anxious; she is shivering and holding her lower back.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "worse",
+      "when": "vInc >= onsetMl + 15",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "\"Something is wrong.\" Flushed, rigors, back pain worse, BP {sbp}/{dbp}.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "callLight",
+      "when": "away and not isNull(onsetAt) and t >= timeAt(onsetAt) + 180",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "away",
+          "to": "false"
+        },
+        {
+          "log": "Her call light: you go straight back to Room 8.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "lowBp",
+      "when": "sbp < 90",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: systolic below 90.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "which": {
+      "trigger": "not isNull(stopAt) or (not isNull(onsetAt) and t >= timeAt(onsetAt) + 300)",
+      "question": "Which kind of transfusion reaction is this most likely to be, how do you tell it from the others, and what do you do now?",
+      "parts": [
+        {
+          "label": "Which reaction",
+          "criteria": "Names an acute hemolytic reaction (ABO incompatibility) from chills and fever with back pain, anxiety, falling BP, rising HR and dark urine within minutes of starting; contrasts it with febrile nonhemolytic (fever and chills without hypotension or hemolysis), allergic (hives, itch) and circulatory overload (dyspnea, crackles, high BP).",
+          "modelAnswer": "An acute hemolytic reaction: chills, fever, sudden anxiety and back pain minutes in, with the pressure falling, the heart rate rising and dark urine. A febrile nonhemolytic reaction gives fever and chills without hypotension or hemolysis; an allergic one gives hives and itch; overload gives breathlessness, crackles and a high BP."
+        },
+        {
+          "label": "What now",
+          "criteria": "Stops the transfusion at once and disconnects the blood tubing without flushing it; keeps IV access with new tubing and 0.9% saline; vital signs; notifies the provider and the blood bank; rechecks identity and labels; sends blood and urine samples with the bag and tubing; monitors urine output; never restarts the unit.",
+          "modelAnswer": "Stop it now and disconnect the blood tubing at the hub without flushing; new tubing with saline to keep the vein open; vital signs; call the provider and the blood bank; recheck the band and the tag; send blood and urine with the bag and tubing; watch the urine output and color. The unit is not restarted."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and running",
+      "class": "harm",
+      "rationale": "A transfusion still running at 11:15 after a reaction is ongoing exposure to incompatible blood, so this case calls it harm.",
+      "source": {
+        "cite": "Australian Red Cross Lifeblood. Management of suspected reactions (clinical practice guidance)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.lifeblood.com.au/health-professionals/clinical-practice/adverse-events/management-of-suspected-reactions",
+        "note": "Read 2026-11-11: 'Stop the transfusion immediately and activate emergency procedures if required'; check ABC and vital signs; 'Maintain intravenous (IV) access (do not flush the existing line and use a new IV line if required)'; 'Repeat all clerical and identity checks'; 'Notify your Medical Officer and Transfusion Service Provider'; send fresh blood and urine samples with the used pack and IV line if asked; document and report; dyspnea or hypotension reactions 'Within 15 minutes of starting transfusion but may be later'; for suspected acute hemolysis maintain blood pressure and urine output."
+      }
+    }
+  },
+  "endings": {
+    "shock": {
+      "label": "Shock and DIC from hemolysis",
+      "class": "harm",
+      "when": "h >= 1",
+      "terminal": true,
+      "narrative": "About {round(vInc)} mL of incompatible red cells: she is hypotensive, oozing from the IV site and the wound, her urine is dark brown. A rapid response is called; the hemolysis has triggered shock and DIC."
+    },
+    "stopped": {
+      "label": "Reaction caught in minutes",
+      "class": "target",
+      "when": "t >= reviewAt and not running and not isNull(stopAt) and timeAt(stopAt) <= timeAt(onsetAt) + stopWindow and newLine and not flushed and not restarted and not isNull(providerAt) and not isNull(bankAt) and timeAt(providerAt) <= timeAt(onsetAt) + notifyWindow and timeAt(bankAt) <= timeAt(onsetAt) + notifyWindow and not isNull(samplesAt) and h < 1",
+      "terminal": true,
+      "narrative": "11:15: about {round(vInc)} mL went in before you stopped it. She is warm and settling, BP {sbp}/{dbp}, saline running, the provider at the bedside, the bag and samples with the blood bank."
+    },
+    "stoppedLate": {
+      "label": "Reaction stopped, by a slower route",
+      "class": "recovered",
+      "when": "t >= reviewAt and not running",
+      "terminal": true,
+      "narrative": "11:15: the transfusion is stopped and she is being treated, but {round(vInc)} mL of incompatible blood went in, or a step was missed: a late stop, a flush through the blood line, a restart, or a late call."
+    },
+    "time_up": {
+      "label": "Still running at 11:15",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:15 and the unit is still running into a client with a reaction."
+    }
+  },
+  "endingOrder": [
+    "shock",
+    "stopped",
+    "stoppedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "stopFast",
+        "label": "Stopped it at the first sign",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(onsetAt)",
+            "score": "na",
+            "why": "No reaction occurred."
+          },
+          {
+            "when": "isNull(stopAt)",
+            "score": "missed",
+            "why": "The transfusion was never stopped."
+          },
+          {
+            "when": "not isNull(stopAt) and timeAt(stopAt) <= timeAt(onsetAt) + stopWindow",
+            "score": "met",
+            "why": "Stopped {timeAt(stopAt) - timeAt(onsetAt)|duration} after the first sign, at {round(vInc)} mL."
+          },
+          {
+            "when": "timeAt(stopAt) <= timeAt(onsetAt) + 600",
+            "score": "partial",
+            "why": "Stopped {timeAt(stopAt) - timeAt(onsetAt)|duration} after the first sign."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Stopped more than 10 minutes after the first sign."
+          }
+        ]
+      },
+      {
+        "id": "access",
+        "label": "Kept IV access without flushing the blood line",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "flushed",
+            "score": "missed",
+            "why": "The blood tubing was flushed: the red cells in it went into her."
+          },
+          {
+            "when": "newLine",
+            "score": "met",
+            "why": "New tubing with saline to keep the vein open."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "IV access was not kept open with new tubing."
+          }
+        ]
+      },
+      {
+        "id": "notify",
+        "label": "Told the provider and the blood bank",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(providerAt) or isNull(bankAt)",
+            "score": "missed",
+            "why": "{isNull(providerAt) ? \"The provider\" : \"The blood bank\"} was not told."
+          },
+          {
+            "when": "not isNull(providerAt) and not isNull(bankAt) and timeAt(providerAt) <= timeAt(onsetAt) + notifyWindow and timeAt(bankAt) <= timeAt(onsetAt) + notifyWindow",
+            "score": "met",
+            "why": "Both told within 15 minutes."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Both told, but later than 15 minutes."
+          }
+        ]
+      },
+      {
+        "id": "noRestart",
+        "label": "Did not treat it as a minor reaction and carry on",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "restarted",
+            "score": "missed",
+            "why": "The unit was restarted."
+          },
+          {
+            "when": "wrongTx > 0",
+            "score": "partial",
+            "why": "Slowed or medicated while the unit kept running ({wrongTx} time(s))."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Nothing given to let the transfusion continue."
+          }
+        ]
+      },
+      {
+        "id": "precheck",
+        "label": "Pre-transfusion checks",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(orderAt) and not isNull(baseAt) and not isNull(ivAt) and not isNull(nsAt) and not isNull(checkAt)",
+            "score": "met",
+            "why": "Order and consent, baseline vital signs, IV, saline-primed blood set and a two-person bedside check."
+          },
+          {
+            "when": "not isNull(checkAt) and not isNull(baseAt)",
+            "score": "partial",
+            "why": "Bedside check and baseline done; something else was skipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Started without the bedside check or the baseline vital signs."
+          }
+        ]
+      },
+      {
+        "id": "watch",
+        "label": "Started slowly and stayed for the first 15 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(awayAt) and timeAt(awayAt) < timeAt(startAt) + 900",
+            "score": "missed",
+            "why": "You left the room in the first 15 minutes."
+          },
+          {
+            "when": "not isNull(startAt) and startSlow",
+            "score": "met",
+            "why": "Started slowly and stayed."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Stayed, but started at the full rate."
+          }
+        ]
+      },
+      {
+        "id": "samples",
+        "label": "Samples, bag and tubing to the blood bank; urine watched",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(samplesAt) and not isNull(urineAt) and not isNull(labelsAt)",
+            "score": "met",
+            "why": "Identity rechecked, samples and bag sent, urine watched."
+          },
+          {
+            "when": "not isNull(samplesAt)",
+            "score": "partial",
+            "why": "Samples sent; the identity recheck or urine monitoring was missed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No samples or bag sent for the investigation."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "which",
+        "label": "Written reasoning: named an acute hemolytic reaction and the steps",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toStop",
+        "label": "First sign to stop",
+        "value": "isNull(stopAt) or isNull(onsetAt) ? -1 : timeAt(stopAt) - timeAt(onsetAt)",
+        "format": "duration",
+        "expert": "under 1 min"
+      },
+      {
+        "id": "incompatible",
+        "label": "Red cells given (mL)",
+        "value": "round(vInc)",
+        "format": "number",
+        "expert": "under 25"
+      },
+      {
+        "id": "finalSbp",
+        "label": "Systolic at 11:15",
+        "value": "sbp",
+        "format": "number",
+        "expert": "110 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Verify order and consent, baseline vital signs, IV patent, saline-primed blood set, two-person bedside check."
+      },
+      {
+        "at": "~10:06",
+        "text": "Start slowly and stay at the bedside."
+      },
+      {
+        "at": "~10:14",
+        "text": "Chills, anxiety, back pain: stop at once, disconnect at the hub, new tubing with saline. Vital signs."
+      },
+      {
+        "at": "~10:15",
+        "text": "Call the provider and the blood bank; recheck the band and tag; send blood, urine, bag and tubing; watch the urine. Never restart."
+      }
+    ],
+    "debrief": {
+      "shock": {
+        "headline": "Shock and DIC",
+        "body": "The amount of incompatible blood decides how bad hemolysis gets. Find the first sign in the log and when the unit was stopped, and whether a flush pushed the line's contents in."
+      },
+      "stopped": {
+        "headline": "Caught in minutes",
+        "body": "Prepared properly, started slowly and stayed, stopped at the first sign without flushing the line, and the right people told. That is the expert path."
+      },
+      "stoppedLate": {
+        "headline": "Stopped, by a slower route",
+        "body": "She is being treated, but check when it was stopped, what was tried first, whether the line was flushed or the unit restarted, and when the provider and blood bank heard."
+      },
+      "time_up": {
+        "headline": "Still running",
+        "body": "Any new symptom during a transfusion means stop first and work out the cause after."
+      }
+    },
+    "modelReasoning": "Chills, fever, sudden anxiety and back pain within minutes of starting red cells, with a falling blood pressure, rising heart rate and dark urine, is an acute hemolytic reaction from ABO incompatibility until proven otherwise. Febrile nonhemolytic reactions are the most common but do not cause hypotension or hemolysis; allergic reactions bring hives and itch; circulatory overload brings dyspnea, crackles and a high blood pressure. For any suspected reaction: stop the transfusion at once, disconnect the blood tubing without flushing it, keep IV access with new tubing and 0.9% saline, check vital signs, notify the provider and the blood bank, recheck the identity checks, send blood and urine samples with the bag and tubing, and watch the urine output. The unit is never restarted. Starting slowly and staying for the first 15 minutes is what makes an early stop possible."
+  },
+  "chapters": [
+    {
+      "id": "running",
+      "label": "Transfusion running",
+      "when": "running"
+    },
+    {
+      "id": "stoppedCh",
+      "label": "Transfusion stopped",
+      "when": "not isNull(stopAt)"
+    }
+  ],
+  "teaching": {
+    "noFlush": {
+      "during": "callbackT",
+      "ask": "While the provider calls back: why disconnect the blood tubing instead of flushing it?",
+      "choices": [
+        {
+          "id": "contents",
+          "label": "A flush pushes the red cells left in the tubing into her"
+        },
+        {
+          "id": "clot",
+          "label": "It might clot"
+        },
+        {
+          "id": "same",
+          "label": "There is no difference"
+        }
+      ],
+      "expect": "contents",
+      "explain": "The tubing still holds red cells from the incompatible unit; flushing pushes them in. Keep access with new tubing and saline instead.",
+      "source": {
+        "cite": "Australian Red Cross Lifeblood. Management of suspected reactions (clinical practice guidance)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.lifeblood.com.au/health-professionals/clinical-practice/adverse-events/management-of-suspected-reactions",
+        "note": "Read 2026-11-11: 'Stop the transfusion immediately and activate emergency procedures if required'; check ABC and vital signs; 'Maintain intravenous (IV) access (do not flush the existing line and use a new IV line if required)'; 'Repeat all clerical and identity checks'; 'Notify your Medical Officer and Transfusion Service Provider'; send fresh blood and urine samples with the used pack and IV line if asked; document and report; dyspnea or hypotension reactions 'Within 15 minutes of starting transfusion but may be later'; for suspected acute hemolysis maintain blood pressure and urine output."
+      }
+    },
+    "whyCheck": {
+      "during": "checkT",
+      "ask": "During the bedside check: what is the most common cause of an ABO-incompatible transfusion?",
+      "choices": [
+        {
+          "id": "id",
+          "label": "Misidentification of the client or the sample"
+        },
+        {
+          "id": "lab",
+          "label": "A wrong group printed by the lab analyzer"
+        },
+        {
+          "id": "bag",
+          "label": "A leaking bag"
+        }
+      ],
+      "expect": "id",
+      "explain": "Identification errors, at the bedside or when the crossmatch sample was drawn. That is why two people check the band against the tag and record, and why a check that passes cannot rule out a sample drawn from the wrong client.",
+      "source": {
+        "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+        "checkedAt": "2026-11-11",
+        "note": "The objective and secondary objectives are the course's own titles."
+      }
+    },
+    "whenReact": {
+      "during": "v15T",
+      "ask": "While it runs: when do the severe acute reactions usually show?",
+      "choices": [
+        {
+          "id": "early",
+          "label": "In the first 15 minutes or so"
+        },
+        {
+          "id": "end",
+          "label": "Near the end of the unit"
+        },
+        {
+          "id": "next",
+          "label": "The next day"
+        }
+      ],
+      "expect": "early",
+      "explain": "Early: severe reactions often start within the first 15 minutes, which is why the first 15 minutes are run slowly with the nurse present. Delayed reactions can come days later.",
+      "source": {
+        "cite": "Australian Red Cross Lifeblood. Management of suspected reactions (clinical practice guidance)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.lifeblood.com.au/health-professionals/clinical-practice/adverse-events/management-of-suspected-reactions",
+        "note": "Read 2026-11-11: 'Stop the transfusion immediately and activate emergency procedures if required'; check ABC and vital signs; 'Maintain intravenous (IV) access (do not flush the existing line and use a new IV line if required)'; 'Repeat all clerical and identity checks'; 'Notify your Medical Officer and Transfusion Service Provider'; send fresh blood and urine samples with the used pack and IV line if asked; document and report; dyspnea or hypotension reactions 'Within 15 minutes of starting transfusion but may be later'; for suspected acute hemolysis maintain blood pressure and urine output."
+      }
+    }
+  }
+}

@@ -1,0 +1,1672 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "neonatal-rds-escalating-support",
+  "title": "Preterm RDS: escalating support on CPAP",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 100,
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              120,
+              100
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 89,
+            "high": 95
+          },
+          "trend": {
+            "history": "spo2H",
+            "window": "5min",
+            "threshold": 3
+          },
+          "announce": {
+            "bands": [
+              95,
+              90,
+              85,
+              80
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "fio2",
+          "label": "FiO2",
+          "spokenLabel": "Inspired oxygen",
+          "value": "fio2pct",
+          "unit": "%",
+          "announce": {
+            "bands": [
+              30,
+              40,
+              60
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "cpap",
+          "label": "CPAP",
+          "spokenLabel": "CPAP pressure set",
+          "value": "cpap",
+          "unit": "cmH2O",
+          "announce": {
+            "bands": [
+              6,
+              7,
+              8
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 70
+          },
+          "announce": {
+            "bands": [
+              60,
+              70,
+              80
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Axillary temperature",
+          "value": "temp",
+          "unit": "C",
+          "announce": {
+            "bands": [
+              36.5,
+              37.5
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "gas",
+          "label": "pCO2",
+          "spokenLabel": "Last blood gas carbon dioxide",
+          "value": "pco2Last",
+          "unit": "mmHg",
+          "sub": "pH {phLast|2dp}",
+          "announce": {
+            "bands": [
+              55,
+              65
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "pco2Last > 0"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "CPAP {cpap} cmH2O, FiO2 {fio2|2dp}",
+      "banner": [
+        {
+          "when": "intubated",
+          "text": "Intubated and ventilated."
+        },
+        {
+          "when": "not isNull(surfAt)",
+          "text": "Surfactant given by LISA at {timeAt(surfAt)|clock}."
+        }
+      ]
+    }
+  },
+  "objective": "Manage non-invasive support (CPAP, NIPPV, high-flow nasal cannula), conventional and high-frequency ventilation, and therapeutic gases, and prevent complications of respiratory support",
+  "secondaryObjectives": [
+    "Recognize respiratory distress syndrome from surfactant deficiency -- tachypnea, grunting, flaring, retractions, cyanosis -- and expect it to worsen over the first days before improving",
+    "Explain how antenatal corticosteroids, exogenous surfactant, CPAP and caffeine change the course of RDS, and assist with surfactant given through the endotracheal tube",
+    "Support retinopathy of prematurity screening for at-risk infants and keep oxygen saturation within ordered targets, because excess oxygen contributes to ROP"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Neonatal test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-neonatal",
+      "note": "The objective and its secondary objectives are the course's own titles (backend/supabase/seed/tracks/ccrn-peds-neo.ts, read there from the handbook 2026-10-31). Not re-fetched for this scenario."
+    },
+    {
+      "cite": "Sweet DG, Carnielli VP, Greisen G, et al. European Consensus Guidelines on the Management of Respiratory Distress Syndrome: 2022 Update. Neonatology 2023;120(1):3-23. doi:10.1159/000528914",
+      "checkedAt": "2026-11-11",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10064400/",
+      "note": "Primary text read 2026-11-11 (PMC full text): CPAP 'with a starting pressure of about 6-8 cm H2O' (A2); 'treat worsening babies with RDS when FiO2 > 0.30 on CPAP pressure >=6 cm H2O or if lung ultrasound suggests surfactant need' (B2); poractant alfa 200 mg/kg initial rescue dose (A1); 'LISA is the preferred method of surfactant administration for spontaneously breathing babies on CPAP' (A1); in oxygen 'the saturation target should be between 90 and 94%' (B2) with alarm limits 89% and 95% (D2); core temperature 36.5-37.5 C; a second dose if there is ongoing evidence of RDS."
+    }
+  ],
+  "brief": {
+    "situation": "Handover at 09:00 in the NICU. A boy born at 30 weeks, 1,400 g, now one hour old. His mother had one dose of antenatal steroids before a fast labor. He was started on CPAP 6 cmH2O in the delivery room. Admission temperature 36.7. Ordered oxygen saturation target 90-94%.",
+    "handover": [
+      "On CPAP 6 by nasal prongs, FiO2 0.30, SpO2 92%, HR 158, RR 68.",
+      "Grunting, nasal flaring and subcostal retractions since birth. Chest X-ray: ground-glass lungs with air bronchograms.",
+      "The unit protocol lets the nurse set CPAP between 5 and 8 cmH2O and titrate FiO2 to the saturation target. Surfactant needs the neonatologist."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Change the oxygen and the CPAP pressure in small steps, then watch the saturation. The 15-minute checks are waits you can skip to.",
+      "Look at the baby and the equipment as well as the numbers.",
+      "Partway through you are asked to write what you think is happening. The case ends at the four-hour review, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1s",
+    "maxDuration": "4h",
+    "calendar": "clock"
+  },
+  "params": {
+    "rdsRise": {
+      "value": 0.125,
+      "unit": "/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Untreated surfactant deficiency worsens over the first hours (the guideline: RDS worsens before it improves). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "surfFall": {
+      "value": 1.2,
+      "unit": "/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Surfactant halves the disease within about 30 minutes of the dose. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "needPerRds": {
+      "value": 0.45,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Extra inspired oxygen needed per unit of disease on CPAP 6. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "cpapGain": {
+      "value": 0.08,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Each cmH2O of CPAP above 6 lowers the oxygen need by 8% (recruitment); below 6 it raises it. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "spo2Slope": {
+      "value": 60,
+      "unit": "%",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "SpO2 change per 1.0 of FiO2 above or below what the lungs need. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "surfTrigger": {
+      "value": 0.3,
+      "source": {
+        "cite": "Sweet DG, Carnielli VP, Greisen G, et al. European Consensus Guidelines on the Management of Respiratory Distress Syndrome: 2022 Update. Neonatology 2023;120(1):3-23. doi:10.1159/000528914",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10064400/",
+        "note": "Treat worsening RDS when FiO2 > 0.30 on CPAP of at least 6 cmH2O (B2)."
+      }
+    },
+    "surfWindow": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Authored: surfactant given within 45 min of first needing FiO2 above 0.30 on CPAP 6 or more. The guideline sets no minute count. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "prepTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Neonatologist at the bedside, poractant warmed and the LISA catheter set up: about 20 min from the order."
+      }
+    },
+    "gasTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Capillary gas: about 15 min."
+      }
+    },
+    "callback": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Neonatologist callback about 3 min."
+      }
+    },
+    "slipAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The prongs work loose 50 min into the case (09:50). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "intubateCo2": {
+      "value": 65,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: pCO2 at which the team intubates this baby for CPAP failure. The guideline gives no single number for this. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "hiTarget": {
+      "value": 94,
+      "unit": "%",
+      "source": {
+        "cite": "Sweet DG, Carnielli VP, Greisen G, et al. European Consensus Guidelines on the Management of Respiratory Distress Syndrome: 2022 Update. Neonatology 2023;120(1):3-23. doi:10.1159/000528914",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10064400/",
+        "note": "Primary text read 2026-11-11 (PMC full text): CPAP 'with a starting pressure of about 6-8 cm H2O' (A2); 'treat worsening babies with RDS when FiO2 > 0.30 on CPAP pressure >=6 cm H2O or if lung ultrasound suggests surfactant need' (B2); poractant alfa 200 mg/kg initial rescue dose (A1); 'LISA is the preferred method of surfactant administration for spontaneously breathing babies on CPAP' (A1); in oxygen 'the saturation target should be between 90 and 94%' (B2) with alarm limits 89% and 95% (D2); core temperature 36.5-37.5 C; a second dose if there is ongoing evidence of RDS."
+      }
+    },
+    "loTarget": {
+      "value": 90,
+      "unit": "%",
+      "source": {
+        "cite": "Sweet DG, Carnielli VP, Greisen G, et al. European Consensus Guidelines on the Management of Respiratory Distress Syndrome: 2022 Update. Neonatology 2023;120(1):3-23. doi:10.1159/000528914",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10064400/",
+        "note": "Primary text read 2026-11-11 (PMC full text): CPAP 'with a starting pressure of about 6-8 cm H2O' (A2); 'treat worsening babies with RDS when FiO2 > 0.30 on CPAP pressure >=6 cm H2O or if lung ultrasound suggests surfactant need' (B2); poractant alfa 200 mg/kg initial rescue dose (A1); 'LISA is the preferred method of surfactant administration for spontaneously breathing babies on CPAP' (A1); in oxygen 'the saturation target should be between 90 and 94%' (B2) with alarm limits 89% and 95% (D2); core temperature 36.5-37.5 C; a second dose if there is ongoing evidence of RDS."
+      }
+    },
+    "hyperLimit": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Authored: no more than 20 minutes in total above 95% on extra oxygen counts as keeping to the target. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "fixWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Authored: displaced prongs found and fixed within 10 minutes of the saturation falling."
+      }
+    },
+    "reasonAt": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The written question opens at the first FiO2 above 0.30, or at 30 min. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reviewAt": {
+      "value": 14400,
+      "unit": "s",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The four-hour review, when the case ends."
+      }
+    }
+  },
+  "state": {
+    "rds": {
+      "type": "number",
+      "init": 0.2,
+      "min": 0,
+      "max": 1.5
+    },
+    "fio2": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0.21,
+      "max": 1.0
+    },
+    "cpap": {
+      "type": "number",
+      "init": 6,
+      "min": 4,
+      "max": 8,
+      "unit": "cmH2O"
+    },
+    "slipped": {
+      "type": "bool",
+      "init": false
+    },
+    "slipFixAt": {
+      "type": "time",
+      "init": null
+    },
+    "surfOrdered": {
+      "type": "bool",
+      "init": false
+    },
+    "surfPending": {
+      "type": "bool",
+      "init": false
+    },
+    "surfAt": {
+      "type": "time",
+      "init": null
+    },
+    "needAt": {
+      "type": "time",
+      "init": null
+    },
+    "intubated": {
+      "type": "bool",
+      "init": false
+    },
+    "pco2": {
+      "type": "number",
+      "init": 48,
+      "min": 30,
+      "max": 100,
+      "unit": "mmHg"
+    },
+    "pco2Last": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100,
+      "unit": "mmHg"
+    },
+    "phLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 8
+    },
+    "gasPending": {
+      "type": "bool",
+      "init": false
+    },
+    "gasN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 40
+    },
+    "hyperSecs": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "hypoxSecs": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "lowSecs": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "checks": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 300
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "cpapUpAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "pendingCall": {
+      "type": "bool",
+      "init": false
+    },
+    "blindUps": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    }
+  },
+  "history": {
+    "spo2H": {
+      "of": "spo2",
+      "every": "30s",
+      "keep": "10min"
+    }
+  },
+  "derived": {
+    "cpapEff": {
+      "expr": "slipped ? 2 : cpap",
+      "unit": "cmH2O"
+    },
+    "need": {
+      "expr": "intubated ? 0.30 : clamp(0.21 + needPerRds * rds * (1 - cpapGain * (cpapEff - 6)), 0.21, 1.2)"
+    },
+    "spo2": {
+      "expr": "round(clamp(92 + spo2Slope * (fio2 - need) + 0.8 * sin(t / 47), 55, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "fio2pct": {
+      "expr": "round(fio2 * 100)",
+      "unit": "%",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(150 + 0.4 * max(0, rds - 0.3) * 40 - 3 * max(0, 80 - spo2) + 3 * sin(t / 29), 60, 200))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "intubated ? 45 : round(clamp(55 + 40 * rds + (slipped ? 10 : 0), 30, 110))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "36.8",
+      "unit": "C",
+      "precision": 1
+    },
+    "ph": {
+      "expr": "round((7.40 - 0.008 * (pco2 - 40)) * 100) / 100",
+      "precision": 2
+    },
+    "pco2Star": {
+      "expr": "intubated ? 45 : 45 + 60 * max(0, rds - 0.3) + (slipped ? 8 : 0)",
+      "unit": "mmHg"
+    }
+  },
+  "processes": [
+    {
+      "id": "disease",
+      "update": {
+        "rds": "max(0.05, rds + (isNull(surfAt) or t >= timeAt(surfAt) + 2700 ? rdsRise * 0.5 * (isNull(surfAt) ? 2 : 0.3) : -surfFall * rds) * dt / 3600)"
+      }
+    },
+    {
+      "id": "gas",
+      "update": {
+        "pco2": "pco2 + (pco2Star - pco2) * (1 - exp(-dt / 900))"
+      }
+    },
+    {
+      "id": "clocks",
+      "update": {
+        "hyperSecs": "hyperSecs + (spo2 > 95 and fio2 > 0.21 ? dt : 0)",
+        "hypoxSecs": "spo2 < 80 ? hypoxSecs + dt : 0",
+        "lowSecs": "lowSecs + (spo2 < loTarget ? dt : 0)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the incubator",
+      "clock": "running",
+      "actions": [
+        "look",
+        "interface",
+        "oxygen",
+        "pressure",
+        "gas",
+        "call",
+        "surfactant"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Assess the baby (work of breathing, color, tone)",
+      "group": "Assess",
+      "effects": [
+        {
+          "add": "checks",
+          "by": "1"
+        },
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "intubated",
+              "then": [
+                {
+                  "log": "Ventilated, chest moving well, pink. SpO2 {spo2}%.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "rds < 0.25",
+              "then": [
+                {
+                  "log": "Comfortable now: mild retractions, no grunting, pink, good tone. SpO2 {spo2}% in FiO2 {fio2|2dp}.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "rds < 0.5",
+              "then": [
+                {
+                  "log": "Grunting, nasal flaring, subcostal and intercostal retractions, RR {rr}. SpO2 {spo2}% in FiO2 {fio2|2dp}.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Marked retractions with a see-saw pattern, loud grunting, RR {rr}, dusky when handled. SpO2 {spo2}% in FiO2 {fio2|2dp}.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "slipped",
+          "then": [
+            {
+              "log": "The CPAP is bubbling but his mouth is open and the chest rise looks less than before.",
+              "kind": "find"
+            }
+          ]
+        }
+      ]
+    },
+    "interface": {
+      "label": "Check the CPAP prongs, seal and nares",
+      "group": "Assess",
+      "available": "not intubated",
+      "why": "He is intubated.",
+      "effects": [
+        {
+          "add": "checks",
+          "by": "1"
+        },
+        {
+          "if": "slipped",
+          "then": [
+            {
+              "set": "slipped",
+              "to": "false"
+            },
+            {
+              "set": "slipFixAt",
+              "to": "t"
+            },
+            {
+              "log": "The prongs had slipped out of his nostrils and his mouth was open. Prongs repositioned, chin strap on, nares suctioned. The pressure reaches him again.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Prongs seated, good seal, no nasal trauma, nares clear. Circuit bubbling at {cpap} cmH2O.",
+              "kind": "find"
+            }
+          ]
+        }
+      ]
+    },
+    "oxygen": {
+      "label": "Titrate FiO2",
+      "group": "Support",
+      "params": [
+        {
+          "id": "step",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "up5",
+              "label": "Up 0.05"
+            },
+            {
+              "value": "up10",
+              "label": "Up 0.10"
+            },
+            {
+              "value": "down5",
+              "label": "Down 0.05"
+            },
+            {
+              "value": "down10",
+              "label": "Down 0.10"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "(step == \"up5\" or step == \"up10\") and slipped",
+          "then": [
+            {
+              "add": "blindUps",
+              "by": "1"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "step == \"up5\"",
+              "then": [
+                {
+                  "set": "fio2",
+                  "to": "min(1, fio2 + 0.05)"
+                }
+              ]
+            },
+            {
+              "when": "step == \"up10\"",
+              "then": [
+                {
+                  "set": "fio2",
+                  "to": "min(1, fio2 + 0.10)"
+                }
+              ]
+            },
+            {
+              "when": "step == \"down5\"",
+              "then": [
+                {
+                  "set": "fio2",
+                  "to": "max(0.21, fio2 - 0.05)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "fio2",
+                  "to": "max(0.21, fio2 - 0.10)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "FiO2 now {fio2|2dp}."
+        },
+        {
+          "schedule": "obsT",
+          "after": "300"
+        }
+      ]
+    },
+    "pressure": {
+      "label": "Set the CPAP pressure (protocol 5-8)",
+      "group": "Support",
+      "available": "not intubated",
+      "why": "He is intubated.",
+      "params": [
+        {
+          "id": "cm",
+          "kind": "choice",
+          "label": "Pressure",
+          "options": [
+            {
+              "value": "5",
+              "label": "5 cmH2O"
+            },
+            {
+              "value": "6",
+              "label": "6 cmH2O"
+            },
+            {
+              "value": "7",
+              "label": "7 cmH2O"
+            },
+            {
+              "value": "8",
+              "label": "8 cmH2O"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "cpap",
+          "to": "num(cm)"
+        },
+        {
+          "if": "num(cm) > 6",
+          "then": [
+            {
+              "if": "isNull(cpapUpAt)",
+              "then": [
+                {
+                  "set": "cpapUpAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "CPAP set to {num(cm)} cmH2O."
+        },
+        {
+          "schedule": "obsT",
+          "after": "300"
+        }
+      ]
+    },
+    "gas": {
+      "label": "Capillary blood gas",
+      "group": "Labs",
+      "available": "not gasPending",
+      "why": "A gas is already running.",
+      "effects": [
+        {
+          "set": "gasPending",
+          "to": "true"
+        },
+        {
+          "add": "gasN",
+          "by": "1"
+        },
+        {
+          "schedule": "gasT",
+          "after": "gasTime",
+          "with": {
+            "c": "round(pco2)",
+            "p": "ph"
+          }
+        },
+        {
+          "log": "Capillary gas sent (about 15 min)."
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the neonatologist (SBAR)",
+      "group": "Escalate",
+      "available": "not pendingCall",
+      "why": "Paged; waiting for the callback.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "rds",
+                  "label": "Worsening RDS: FiO2 now above 0.30 on CPAP 6 or more, grunting and retracting"
+                },
+                {
+                  "value": "sat",
+                  "label": "His sats keep dipping"
+                },
+                {
+                  "value": "fine",
+                  "label": "Just an update"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "30 weeks, 1,400 g, one dose of antenatal steroids, CPAP since delivery, X-ray RDS"
+                },
+                {
+                  "value": "min",
+                  "label": "Preterm on CPAP"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "surf",
+                  "label": "He meets the surfactant threshold: please come for LISA"
+                },
+                {
+                  "value": "intubate",
+                  "label": "Should we intubate him?"
+                },
+                {
+                  "value": "watch",
+                  "label": "I'll keep turning up the oxygen"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pendingCall",
+          "to": "true"
+        },
+        {
+          "if": "sit == \"rds\" and rec == \"surf\" and isNull(callEffAt)",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "callbackT",
+          "after": "callback",
+          "with": {
+            "effective": "sit == \"rds\" and rec == \"surf\""
+          }
+        },
+        {
+          "log": "Paged the neonatologist. Callback in about 3 min."
+        }
+      ]
+    },
+    "surfactant": {
+      "label": "Assist with surfactant by LISA (poractant 200 mg/kg)",
+      "group": "Support",
+      "available": "surfOrdered and isNull(surfAt) and not surfPending and not intubated",
+      "why": "Needs the neonatologist's order (or it is already given or under way).",
+      "effects": [
+        {
+          "set": "surfPending",
+          "to": "true"
+        },
+        {
+          "schedule": "surfT",
+          "after": "prepTime"
+        },
+        {
+          "log": "Neonatologist on the way; poractant 200 mg/kg (280 mg) warming and the LISA catheter set up (about 20 min)."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "obsT": {
+      "label": "the 5-minute recheck",
+      "wait": {
+        "skipLabel": "the 5-minute recheck after a change"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Recheck the saturation 5 minutes after a support change."
+      },
+      "effects": [
+        {
+          "log": "5 min on these settings: SpO2 {spo2}%, FiO2 {fio2|2dp}, CPAP {cpap}.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "q15": {
+      "label": "the 15-minute check",
+      "wait": {
+        "skipLabel": "the next 15-minute check",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Vital signs every 15 minutes while support is changing."
+      },
+      "effects": [
+        {
+          "log": "15-minute check: SpO2 {spo2}%, HR {hr}, RR {rr}.",
+          "kind": "sys"
+        },
+        {
+          "schedule": "q15",
+          "after": "900"
+        }
+      ]
+    },
+    "gasT": {
+      "label": "the blood gas",
+      "wait": {
+        "skipLabel": "the blood gas (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "c": {
+          "type": "number",
+          "unit": "mmHg"
+        },
+        "p": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Capillary gas: about 15 min."
+      },
+      "effects": [
+        {
+          "set": "gasPending",
+          "to": "false"
+        },
+        {
+          "set": "pco2Last",
+          "to": "timer.with.c"
+        },
+        {
+          "set": "phLast",
+          "to": "timer.with.p"
+        },
+        {
+          "log": "Capillary gas: pH {timer.with.p|2dp}, pCO2 {timer.with.c} mmHg.",
+          "kind": "find"
+        }
+      ]
+    },
+    "callbackT": {
+      "label": "the neonatologist's callback",
+      "wait": {
+        "skipLabel": "the neonatologist's callback (about 3 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "effective": {
+          "type": "bool"
+        }
+      },
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Neonatologist callback about 3 min."
+      },
+      "effects": [
+        {
+          "set": "pendingCall",
+          "to": "false"
+        },
+        {
+          "if": "timer.with.effective",
+          "then": [
+            {
+              "set": "surfOrdered",
+              "to": "true"
+            },
+            {
+              "log": "Neonatologist: \"Agree, he meets the threshold. Poractant 200 mg/kg by LISA; set it up and I'm coming. Keep CPAP at least 6, sats 90 to 94.\"",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Neonatologist: \"Titrate to the target and call me if he needs more than 40 percent.\"",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "surfT": {
+      "label": "surfactant set-up",
+      "wait": {
+        "skipLabel": "the surfactant set-up (about 20 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 20 min from the order to the dose."
+      },
+      "effects": [
+        {
+          "set": "surfPending",
+          "to": "false"
+        },
+        {
+          "set": "surfAt",
+          "to": "t"
+        },
+        {
+          "log": "Poractant 200 mg/kg given through a thin catheter by LISA while he breathes on CPAP. He tolerated it with one brief desaturation.",
+          "kind": "good"
+        }
+      ]
+    },
+    "reviewT": {
+      "label": "the four-hour review",
+      "wait": {
+        "skipLabel": "the four-hour review",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "NICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The four-hour review, when the case ends."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "reviewT",
+          "after": "reviewAt"
+        },
+        {
+          "schedule": "q15",
+          "after": "900"
+        }
+      ]
+    },
+    {
+      "id": "slip",
+      "when": "t >= slipAt and not intubated",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "slipped",
+          "to": "true"
+        }
+      ]
+    },
+    {
+      "id": "needSurf",
+      "when": "fio2 > surfTrigger and cpap >= 6 and not intubated and isNull(surfAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "needAt",
+          "to": "t"
+        },
+        {
+          "log": "FiO2 above 0.30 on CPAP {cpap}: the surfactant threshold.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "satLow",
+      "when": "spo2 < 89",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: SpO2 below 89.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "satHigh",
+      "when": "spo2 > 95 and fio2 > 0.21",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: SpO2 above 95 on extra oxygen.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "satVeryLow",
+      "when": "spo2 < 80",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: SpO2 below 80, heart rate dropping.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "intubate",
+      "when": "not intubated and pco2 >= intubateCo2",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "intubated",
+          "to": "true"
+        },
+        {
+          "set": "slipped",
+          "to": "false"
+        },
+        {
+          "log": "CPAP failure: pCO2 {round(pco2)}, apneic spells. The neonatologist intubates him and gives surfactant through the tube.",
+          "kind": "bad"
+        },
+        {
+          "if": "isNull(surfAt)",
+          "then": [
+            {
+              "set": "surfAt",
+              "to": "t"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "whatNow": {
+      "trigger": "not isNull(needAt) or t >= reasonAt",
+      "question": "What is happening to this baby's lungs, and what do you do next and why?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "Names respiratory distress syndrome from surfactant deficiency in a 30-week infant, worsening as expected in the first hours, citing grunting, flaring, retractions, a rising oxygen need and the X-ray; may note the incomplete antenatal steroids.",
+          "modelAnswer": "RDS from surfactant deficiency: 30 weeks with only one steroid dose, grunting, flaring and retractions, a ground-glass X-ray, and an oxygen need that keeps rising, as RDS does over the first hours."
+        },
+        {
+          "label": "Next steps",
+          "criteria": "Keeps CPAP at 6-8 cmH2O (raising it within protocol), checks the interface, titrates FiO2 to SpO2 90-94% and avoids hyperoxia, and escalates for surfactant (LISA preferred) because FiO2 is above 0.30 on CPAP of at least 6; plans a blood gas.",
+          "modelAnswer": "Check the prongs and seal, raise CPAP toward 7-8, titrate oxygen to 90-94% and no higher, and call the neonatologist now: FiO2 above 0.30 on CPAP 6 or more is the threshold for surfactant, preferably by LISA so he stays on CPAP. Send a gas."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {
+      "escWindow": {
+        "value": 900,
+        "source": {
+          "cite": "NICU unit practice (authored estimate)",
+          "checkedAt": "2026-11-11",
+          "note": "Neonatologist called within 15 min of the surfactant threshold."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "t >= reviewAt and need >= 0.45",
+      "class": "harm",
+      "rationale": "A preterm baby still needing about half oxygen at four hours with no surfactant is untreated RDS heading for ventilation, so this case calls it harm.",
+      "source": {
+        "cite": "Sweet DG, Carnielli VP, Greisen G, et al. European Consensus Guidelines on the Management of Respiratory Distress Syndrome: 2022 Update. Neonatology 2023;120(1):3-23. doi:10.1159/000528914",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10064400/",
+        "note": "Surfactant at FiO2 > 0.30 on CPAP >= 6 (B2). The class choice is the author's, per docs/sims.md 9.2."
+      }
+    }
+  },
+  "endings": {
+    "collapse": {
+      "label": "Hypoxic collapse",
+      "class": "harm",
+      "when": "hypoxSecs >= 180",
+      "terminal": true,
+      "narrative": "Three minutes below 80% and his heart rate falls under 100, then 60. The team starts positive-pressure ventilation and intubates him in an emergency."
+    },
+    "stable": {
+      "label": "Stable on CPAP after surfactant",
+      "class": "target",
+      "when": "t >= reviewAt and need < 0.45 and not isNull(surfAt) and not intubated and (isNull(needAt) or timeAt(surfAt) <= timeAt(needAt) + surfWindow) and hyperSecs <= hyperLimit and not isNull(slipFixAt) and timeAt(slipFixAt) <= slipAt + fixWindow",
+      "terminal": true,
+      "narrative": "Four hours in he is on CPAP {cpap}, FiO2 {fio2|2dp}, saturating {spo2}%, breathing easier. Surfactant came by LISA soon after the threshold, the slipped prongs were found fast, and the oxygen was weaned as his lungs opened."
+    },
+    "stableLate": {
+      "label": "Stable, by a harder route",
+      "class": "recovered",
+      "when": "t >= reviewAt and need < 0.45",
+      "terminal": true,
+      "narrative": "He is settled at four hours, but the route cost something: late surfactant, a breathing tube, a long time above the saturation target, or slipped prongs left too long."
+    },
+    "time_up": {
+      "label": "Still in high oxygen at four hours",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Four hours in he still needs FiO2 {fio2|2dp} and is working hard to breathe. Without surfactant his RDS keeps worsening."
+    }
+  },
+  "endingOrder": [
+    "collapse",
+    "stable",
+    "stableLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "surfactant",
+        "label": "Surfactant at the threshold, by LISA on CPAP",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(surfAt)",
+            "score": "missed",
+            "why": "No surfactant was given."
+          },
+          {
+            "when": "intubated",
+            "score": "missed",
+            "why": "He failed CPAP and was intubated before surfactant could prevent it."
+          },
+          {
+            "when": "isNull(needAt) or timeAt(surfAt) <= timeAt(needAt) + surfWindow",
+            "score": "met",
+            "why": "Surfactant by LISA at {timeAt(surfAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Surfactant at {timeAt(surfAt)|clock}, {timeAt(surfAt) - timeAt(needAt)|duration} after the threshold."
+          }
+        ]
+      },
+      {
+        "id": "targets",
+        "label": "Kept saturation in 90-94% without hyperoxia",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "hyperSecs <= hyperLimit and lowSecs <= 2400",
+            "score": "met",
+            "why": "{round(hyperSecs / 60)} min above 95% on oxygen, {round(lowSecs / 60)} min below 90%."
+          },
+          {
+            "when": "hyperSecs <= 2 * hyperLimit",
+            "score": "partial",
+            "why": "{round(hyperSecs / 60)} min above 95% on oxygen, {round(lowSecs / 60)} min below 90%."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{round(hyperSecs / 60)} min above 95% on extra oxygen: excess oxygen contributes to retinopathy of prematurity."
+          }
+        ]
+      },
+      {
+        "id": "interface",
+        "label": "Found the slipped prongs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(slipFixAt)",
+            "score": "missed",
+            "why": "The prongs slipped at {slipAt|clock} and were never repositioned."
+          },
+          {
+            "when": "timeAt(slipFixAt) <= slipAt + fixWindow",
+            "score": "met",
+            "why": "Prongs repositioned at {timeAt(slipFixAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Prongs repositioned at {timeAt(slipFixAt)|clock}, {timeAt(slipFixAt) - slipAt|duration} after they slipped."
+          }
+        ]
+      },
+      {
+        "id": "pressure",
+        "label": "CPAP kept at 6 or more, raised within protocol",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "cpap < 6 and not intubated",
+            "score": "missed",
+            "why": "CPAP was left below 6 cmH2O."
+          },
+          {
+            "when": "not isNull(cpapUpAt)",
+            "score": "met",
+            "why": "CPAP raised to {cpap} at {timeAt(cpapUpAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "CPAP kept at 6; protocol allows up to 8 as the oxygen need rises."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Called the neonatologist at the threshold",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(callEffAt)",
+            "score": "missed",
+            "why": "The neonatologist was not asked for surfactant."
+          },
+          {
+            "when": "isNull(needAt) or timeAt(callEffAt) <= timeAt(needAt) + escWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callEffAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Called at {timeAt(callEffAt)|clock}, more than 15 minutes after the threshold."
+          }
+        ]
+      },
+      {
+        "id": "noBlindOxygen",
+        "label": "Checked the equipment before turning up oxygen",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "blindUps == 0",
+            "score": "met",
+            "why": "No oxygen increases while the prongs were out."
+          },
+          {
+            "when": "blindUps <= 2",
+            "score": "partial",
+            "why": "{blindUps} oxygen increases while the prongs were out."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{blindUps} oxygen increases while the prongs were out: the oxygen hid the cause."
+          }
+        ]
+      },
+      {
+        "id": "gas",
+        "label": "Checked a blood gas",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "gasN >= 1",
+            "score": "met",
+            "why": "{gasN} gas(es)."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No blood gas."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "whatNow",
+        "label": "Written reasoning: named RDS and the surfactant threshold",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toSurf",
+        "label": "Threshold to surfactant",
+        "value": "isNull(surfAt) or isNull(needAt) ? -1 : timeAt(surfAt) - timeAt(needAt)",
+        "format": "duration",
+        "expert": "under 30 min"
+      },
+      {
+        "id": "hyper",
+        "label": "Minutes above 95% on oxygen",
+        "value": "round(hyperSecs / 60)",
+        "format": "number",
+        "expert": "under 20"
+      },
+      {
+        "id": "low",
+        "label": "Minutes below 90%",
+        "value": "round(lowSecs / 60)",
+        "format": "number",
+        "expert": "under 40"
+      },
+      {
+        "id": "toFix",
+        "label": "Prongs slipped to fixed",
+        "value": "isNull(slipFixAt) ? -1 : timeAt(slipFixAt) - slipAt",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "finalFio2",
+        "label": "FiO2 at four hours",
+        "value": "fio2",
+        "format": "number",
+        "expert": "under 0.30"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00",
+        "text": "Assess: grunting, flaring, retractions; RDS. Check the prongs. Raise CPAP to 7 within protocol."
+      },
+      {
+        "at": "~09:10",
+        "text": "FiO2 creeps above 0.30 on CPAP 6 or more: call the neonatologist for surfactant by LISA. Send a gas."
+      },
+      {
+        "at": "~09:35",
+        "text": "Surfactant given by LISA. Over the next 30 minutes the oxygen need falls fast: wean FiO2 in small steps to keep 90-94%."
+      },
+      {
+        "at": "09:50",
+        "text": "Saturation drops: look before turning up the oxygen. The prongs have slipped: reposition, chin strap, suction."
+      },
+      {
+        "at": "13:00",
+        "text": "On CPAP in low oxygen at the review."
+      }
+    ],
+    "debrief": {
+      "collapse": {
+        "headline": "Hypoxic collapse",
+        "body": "Find when the saturation first fell and what was done: a slipped interface, a threshold missed, or oxygen not turned up while help was called."
+      },
+      "stable": {
+        "headline": "Stable on CPAP after surfactant",
+        "body": "CPAP held at 6-8, surfactant by LISA at the threshold, the interface checked before more oxygen, and the oxygen weaned to 90-94% as the lungs opened. That is the expert path."
+      },
+      "stableLate": {
+        "headline": "Stable, by a harder route",
+        "body": "He is settled, but check when surfactant came, whether he needed a tube, how long he sat above 95% on oxygen, and how long the prongs were out."
+      },
+      "time_up": {
+        "headline": "Untreated RDS",
+        "body": "The oxygen need kept rising. FiO2 above 0.30 on CPAP of at least 6 is the threshold to ask for surfactant."
+      }
+    },
+    "modelReasoning": "Respiratory distress syndrome from surfactant deficiency in a 30-week infant with incomplete antenatal steroids: grunting, flaring, retractions and a rising oxygen need in the first hours, with a ground-glass X-ray. Support with CPAP at about 6-8 cmH2O and titrate oxygen to a saturation of 90-94%, avoiding hyperoxia because excess oxygen contributes to retinopathy of prematurity. When FiO2 exceeds 0.30 on CPAP of at least 6, ask for surfactant; LISA is the preferred route for a spontaneously breathing baby on CPAP, at 200 mg/kg of poractant for rescue. After surfactant the oxygen need falls within minutes, so wean promptly. A sudden desaturation calls for a look at the baby and the interface before more oxygen."
+  },
+  "chapters": [
+    {
+      "id": "threshold",
+      "label": "Surfactant threshold reached",
+      "when": "not isNull(needAt)"
+    },
+    {
+      "id": "afterSurf",
+      "label": "After surfactant",
+      "when": "not isNull(surfAt)"
+    }
+  ],
+  "teaching": {
+    "lisa": {
+      "during": "gasT",
+      "ask": "If he needs surfactant, how will it most likely be given while he breathes on CPAP?",
+      "choices": [
+        {
+          "id": "lisa",
+          "label": "A thin catheter (LISA), staying on CPAP"
+        },
+        {
+          "id": "tube",
+          "label": "Intubate, give it, and ventilate for a day"
+        },
+        {
+          "id": "neb",
+          "label": "Nebulized through the CPAP"
+        }
+      ],
+      "expect": "lisa",
+      "explain": "LISA: a thin catheter placed in the trachea while he breathes on CPAP, so he avoids mechanical ventilation.",
+      "source": {
+        "cite": "Sweet DG, Carnielli VP, Greisen G, et al. European Consensus Guidelines on the Management of Respiratory Distress Syndrome: 2022 Update. Neonatology 2023;120(1):3-23. doi:10.1159/000528914",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10064400/",
+        "note": "Quoted: 'LISA is the preferred method of surfactant administration for spontaneously breathing babies on CPAP' (A1)."
+      }
+    },
+    "target": {
+      "during": "callbackT",
+      "ask": "What saturation range are you titrating to for this 30-week baby in oxygen?",
+      "choices": [
+        {
+          "id": "t9094",
+          "label": "90-94%"
+        },
+        {
+          "id": "t95",
+          "label": "95% or more"
+        },
+        {
+          "id": "t8590",
+          "label": "85-90%"
+        }
+      ],
+      "expect": "t9094",
+      "explain": "90-94%, with alarms at 89% and 95%. Higher saturations on extra oxygen add retinopathy risk; lower ones add mortality risk.",
+      "source": {
+        "cite": "Sweet DG, Carnielli VP, Greisen G, et al. European Consensus Guidelines on the Management of Respiratory Distress Syndrome: 2022 Update. Neonatology 2023;120(1):3-23. doi:10.1159/000528914",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10064400/",
+        "note": "Quoted: 'the saturation target should be between 90 and 94%' (B2); alarm limits 89% and 95% (D2)."
+      }
+    },
+    "afterSurf": {
+      "during": "surfT",
+      "ask": "While surfactant is set up: what will his oxygen need do in the 30 minutes after the dose?",
+      "choices": [
+        {
+          "id": "fall",
+          "label": "Fall quickly: be ready to wean"
+        },
+        {
+          "id": "same",
+          "label": "Stay about the same for hours"
+        },
+        {
+          "id": "rise",
+          "label": "Rise at first"
+        }
+      ],
+      "expect": "fall",
+      "explain": "It falls quickly as the alveoli stay open. Wean FiO2 in small steps to keep 90-94%; leaving it high pushes saturations above 95% on extra oxygen, which contributes to retinopathy of prematurity.",
+      "source": {
+        "cite": "Sweet DG, Carnielli VP, Greisen G, et al. European Consensus Guidelines on the Management of Respiratory Distress Syndrome: 2022 Update. Neonatology 2023;120(1):3-23. doi:10.1159/000528914",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10064400/",
+        "note": "FLAG: the guideline gives the 90-94% target and the threshold; the speed of the fall after the dose is this scenario's teaching model."
+      }
+    }
+  }
+}
