@@ -1,0 +1,1529 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "phish-to-account-takeover",
+  "title": "Incident: a phished account in accounts payable",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "travel",
+          "severity": "high",
+          "title": "Impossible travel: jpike signed in from Tacoma and from an overseas hosting provider 20 minutes apart",
+          "detail": "08:38 Tacoma, WA (managed laptop); 08:58 203.0.113.45, MFA push approved.",
+          "when": "true",
+          "at": "0",
+          "status": "{not acctOpen ? \"Contained\" : isNull(signinsAt) ? \"New\" : \"Investigating\"}",
+          "open": "acctOpen"
+        },
+        {
+          "id": "reported",
+          "severity": "medium",
+          "title": "Two users reported an 'Invoice 4471 overdue' email as phishing",
+          "when": "true",
+          "at": "0",
+          "status": "{domainBlocked and not isNull(purgedAt) ? \"Closed: blocked and purged\" : isNull(mailSearchedAt) ? \"New\" : \"Investigating\"}",
+          "open": "not (domainBlocked and not isNull(purgedAt))"
+        },
+        {
+          "id": "rule",
+          "severity": "medium",
+          "title": "New inbox rule forwarding to an outside address (jpike)",
+          "when": "not isNull(ruleAt)",
+          "at": "timeAt(ruleAt)",
+          "status": "{persistRemoved ? \"Removed\" : \"New\"}",
+          "open": "not persistRemoved"
+        },
+        {
+          "id": "mfa",
+          "severity": "high",
+          "title": "New authenticator registered for jpike from 203.0.113.45",
+          "when": "not isNull(mfaAt)",
+          "at": "timeAt(mfaAt)",
+          "status": "{persistRemoved ? \"Removed\" : \"New\"}",
+          "open": "not persistRemoved"
+        },
+        {
+          "id": "second",
+          "severity": "high",
+          "title": "mreyes signed in from 203.0.113.45",
+          "when": "not isNull(secondAt)",
+          "at": "timeAt(secondAt)",
+          "status": "{secondContained ? \"Contained\" : \"New\"}",
+          "open": "not secondContained"
+        },
+        {
+          "id": "internal",
+          "severity": "high",
+          "title": "Internal phishing burst from jpike to 38 coworkers",
+          "when": "not isNull(internalAt)",
+          "at": "timeAt(internalAt)",
+          "status": "{not isNull(purgedAt) and timeAt(purgedAt) > timeAt(internalAt) ? \"Purged\" : \"New\"}",
+          "open": "isNull(purgedAt) or timeAt(purgedAt) < timeAt(internalAt)"
+        },
+        {
+          "id": "fraudA",
+          "severity": "critical",
+          "title": "Bank-detail change sent to a customer from jpike's mailbox",
+          "when": "not isNull(impactAt)",
+          "at": "timeAt(impactAt)",
+          "status": "Handed to finance",
+          "open": "true"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Mail gateway",
+          "text": "08:31 'Invoice 4471 overdue' from billing@larkspur-invoices.example delivered to 12 mailboxes",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "Sign-in log",
+          "text": "08:38 jpike success, Tacoma WA, JPIKE-LT",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e3",
+          "source": "Sign-in log",
+          "text": "08:58 jpike success from 203.0.113.45 (hosting provider), MFA push approved",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e4",
+          "source": "Sign-in log",
+          "text": "Session from 203.0.113.45 still active; client: unknown browser",
+          "when": "not isNull(signinsAt)",
+          "at": "timeAt(signinsAt)"
+        },
+        {
+          "id": "e5",
+          "source": "Web proxy",
+          "text": "08:36 jpike opened hxxps://larkspur-invoices.example/login (credential page)",
+          "when": "not isNull(mailSearchedAt)",
+          "at": "timeAt(mailSearchedAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Web proxy",
+          "text": "mreyes opened the same login page and posted a form",
+          "when": "not isNull(secondAt)",
+          "at": "timeAt(secondAt)"
+        },
+        {
+          "id": "e7",
+          "source": "Mailbox audit",
+          "text": "New-InboxRule on jpike: 'invoice' or 'payment' forwarded to ap-desk@freemail.example, marked read",
+          "when": "not isNull(ruleAt)",
+          "at": "timeAt(ruleAt)"
+        },
+        {
+          "id": "e8",
+          "source": "Directory audit",
+          "text": "Authenticator app registered for jpike from 203.0.113.45",
+          "when": "not isNull(mfaAt)",
+          "at": "timeAt(mfaAt)"
+        },
+        {
+          "id": "e9",
+          "source": "Mail gateway",
+          "text": "jpike sent 'Updated remittance details' to 38 internal recipients",
+          "when": "not isNull(internalAt)",
+          "at": "timeAt(internalAt)"
+        },
+        {
+          "id": "e10",
+          "source": "Mail gateway",
+          "text": "jpike sent new bank details for invoice 4471 to a customer",
+          "when": "not isNull(impactAt)",
+          "at": "timeAt(impactAt)"
+        },
+        {
+          "id": "e11",
+          "source": "Directory audit",
+          "text": "jpike disabled; all sessions revoked",
+          "when": "not acctOpen",
+          "at": "timeAt(acctContainedAt)"
+        },
+        {
+          "id": "e12",
+          "source": "Mail gateway",
+          "text": "12 copies of 'Invoice 4471 overdue' purged",
+          "when": "not isNull(purgedAt)",
+          "at": "timeAt(purgedAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "jpike",
+          "label": "jpike",
+          "spokenLabel": "Account jpike",
+          "kind": "User account (accounts payable)",
+          "status": "{not acctOpen ? \"Disabled, sessions revoked\" : pwReset ? \"Password reset; attacker session still active\" : \"Attacker session active from 203.0.113.45\"}",
+          "tone": "not acctOpen ? (persistLeft ? \"watch\" : \"held\") : \"bad\""
+        },
+        {
+          "id": "mreyes",
+          "label": "mreyes",
+          "spokenLabel": "Account mreyes",
+          "kind": "User account (accounts payable lead)",
+          "status": "{secondContained ? \"Disabled, sessions revoked\" : not isNull(secondAt) ? \"Signed in from 203.0.113.45\" : \"Received the phishing email\"}",
+          "tone": "secondContained ? \"held\" : not isNull(secondAt) ? \"bad\" : (domainBlocked or not isNull(purgedAt) ? \"ok\" : \"watch\")"
+        },
+        {
+          "id": "laptop",
+          "label": "JPIKE-LT",
+          "spokenLabel": "Laptop JPIKE-LT",
+          "kind": "Workstation",
+          "status": "{reimaged ? \"Reimaged\" : not isNull(evidenceAt) ? \"Triage collection taken\" : \"In use; nothing collected\"}",
+          "tone": "reimaged ? \"ok\" : \"watch\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "stageM",
+          "label": "Attacker",
+          "value": "{stage == \"access\" ? \"signed in to one mailbox\" : stage == \"persist\" ? \"building persistence\" : stage == \"spread\" ? \"phishing coworkers from inside\" : \"payment fraud sent\"}"
+        },
+        {
+          "id": "evidenceM",
+          "label": "Case file",
+          "value": "{isNull(evidenceAt) ? \"empty\" : msgCopyLost ? \"logs and laptop triage; no copy of the message\" : \"logs, the message with headers, laptop triage\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Application, cryptographic, and password attacks and their indicators: injection, buffer overflow, replay, privilege escalation, forgery, directory traversal; downgrade, collision, and birthday attacks; password spraying and brute force; indicators such as account lockout, concurrent session usage, blocked content, impossible travel, resource consumption, resource inaccessibility, out-of-cycle logging, published/documented compromise, and missing logs",
+  "secondaryObjectives": [
+    "Data sources for an investigation: log data (firewall logs, application logs, endpoint logs, OS-specific security logs, IPS/IDS logs, network logs, metadata) and other data sources (vulnerability scans, automated reports, dashboards, packet captures)",
+    "Incident response activities as SY0-701 names them: preparation, detection, analysis, containment, eradication, recovery, lessons learned; training; testing (tabletop exercise, simulation); root cause analysis; threat hunting; digital forensics (legal hold, chain of custody, acquisition, reporting, preservation, e-discovery)"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA Security+ SY0-701 Exam Objectives, Version 5.0",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/security/v7/",
+      "note": "Relevant text: domain weights 12/22/18/28/20; 2.4 'Given a scenario, analyze indicators of malicious activity' (account lockout, concurrent session usage, impossible travel); 4.6 'Given a scenario, implement and maintain identity and access management'; 4.8 'Explain appropriate incident response activities' (preparation, detection, analysis, containment, eradication, recovery, lessons learned; digital forensics: legal hold, chain of custody, acquisition, reporting, preservation, e-discovery); 4.9 'Given a scenario, use data sources to support an investigation'. Read in a copy of the official objectives PDF (Version 5.0) hosted at laurelridgeworkforce.com, through a summarizing fetch, on 2026-11-11; the CompTIA page is the course's official source."
+    },
+    {
+      "cite": "CompTIA Security+ V8 (SY0-801): launch on or around 2026-11-17; up to 90 questions, 90 minutes, pass 750 (100-900); domains 16/24/19/27/14; Security Operations includes 'Implement incident response activities' (preparation, detection, containment, recovery, lessons learned)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/security/v8/",
+      "note": "Read through a summarizing fetch on 2026-11-11. The SY0-801 objectives document (Version 2.0) is the course's official source and was not re-read here."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+      "checkedAt": "2026-11-11",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "Relevant text: A CSF 2.0 Community Profile (April 2025; supersedes Rev. 2): RS.MI-01 'Incidents are contained'; RS.MI-02 'Incidents are eradicated'; RS.AN-03 analysis and root cause; RS.AN-07 'Incident data and metadata are collected, and their integrity and provenance are preserved'; RS.CO-02 'Internal and external stakeholders are notified of incidents'; RC.RP-03 'The integrity of backups and other restoration assets is verified before using them for restoration'. The current revision. Subcategory wording read in the PDF (nvlpubs.nist.gov) through a summarizing fetch on 2026-11-11; the publication date and the supersession read on the CSRC news page. Rev. 3 replaces the Rev. 2 four-phase life cycle with the CSF 2.0 Functions; Security+ still names the older phases."
+    },
+    {
+      "cite": "CISA, Federal Government Cybersecurity Incident and Vulnerability Response Playbooks (November 2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.cisa.gov/sites/default/files/2024-08/Federal_Government_Cybersecurity_Incident_and_Vulnerability_Response_Playbooks_508C.pdf",
+      "note": "Relevant text: containment includes 'Isolating impacted systems and network segments', 'Capturing forensic images to preserve evidence for legal use (if applicable) and further investigation', 'Blocking (and logging) of unauthorized accesses; blocking malware sources', 'Changing system admin passwords, rotating private keys, and service/application account secrets where compromise is suspected'; 'Before moving to eradication, ensure that all means of persistent access into the network have been accounted for'. Read through a summarizing fetch on 2026-11-11. Written for federal agencies; the containment, evidence and persistence steps are general practice."
+    },
+    {
+      "cite": "Microsoft Learn, 'Responding to a compromised email account' (updated 2026-07-17)",
+      "checkedAt": "2026-11-11",
+      "url": "https://learn.microsoft.com/en-us/defender-office-365/responding-to-a-compromised-email-account",
+      "note": "Relevant text: symptoms include inbox rules that forward mail to unknown addresses and recently added external forwarding; 'Disabling the compromised account is preferred and highly recommended until you complete the investigation'; 'If you can't disable the account, the next best step is to reset the password'; 'Revoking active sessions immediately invalidates any active access using the stolen credentials'; review and remove unrecognized MFA methods, consented apps, admin roles, mail forwarders and inbox rules; review the audit logs from the onset of the suspicious activity. Vendor guidance for one mail platform, used for the account steps; the scenario names no product. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "CrowdStrike, 2026 Global Threat Report (press release, 2026-02-24): 'The average eCrime breakout time fell to just 29 minutes in 2025', the fastest observed 27 seconds; breakout time is the time an adversary takes to move from the first compromised host to another (2025 report)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.crowdstrike.com/en-us/press-releases/2026-crowdstrike-global-threat-report/",
+      "note": "Vendor telemetry, not a standard. Used only to set the scale of the attacker's clock (tens of minutes, not hours); the scenario's own step times are the author's."
+    },
+    {
+      "cite": "IETF RFC 5737 (documentation IPv4 ranges, including 203.0.113.0/24) and RFC 2606 (the .example domain)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address and domain in the scenario is reserved for documentation, so none points at a real system."
+    }
+  ],
+  "brief": {
+    "situation": "You are the analyst on shift in the security operations center (SOC) at Larkspur Supply, a fictional distributor with 200 staff. At 09:00 the SIEM raises an impossible-travel alert on jpike, an accounts payable clerk, and two coworkers have reported an 'Invoice overdue' email. Work the incident: investigate, contain, preserve evidence, and report.",
+    "handover": [
+      "Mail and sign-in logs, the mail gateway, the web proxy and the directory are all in the console. Audit logs are kept for 90 days.",
+      "The incident response plan says: contain confirmed account takeovers at once, preserve evidence before purging or wiping, escalate to the incident lead."
+    ],
+    "howItWorks": [
+      "Each task takes analyst time: choose it, then let the work finish, which moves the clock by the minutes that task takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen. Pick an account, an indicator or a host in each action's options.",
+      "When you declare the incident contained, you notify, write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "ruleDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "mfaDelay": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "secondClickDelay": {
+      "value": 2100,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "internalDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "fraudDelay": {
+      "value": 4500,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "escalateWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "Escalation to the incident lead within 15 minutes of a confirmed account takeover; NIST SP 800-61r3 RS.CO-02 asks that stakeholders be notified, not by when."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "stage": {
+      "type": "enum",
+      "values": [
+        "access",
+        "persist",
+        "spread",
+        "impact"
+      ],
+      "init": "access"
+    },
+    "signinsAt": {
+      "type": "time",
+      "init": null
+    },
+    "mailSearchedAt": {
+      "type": "time",
+      "init": null
+    },
+    "mailboxAt": {
+      "type": "time",
+      "init": null
+    },
+    "acctContainedAt": {
+      "type": "time",
+      "init": null
+    },
+    "pwReset": {
+      "type": "bool",
+      "init": false
+    },
+    "ruleAt": {
+      "type": "time",
+      "init": null
+    },
+    "mfaAt": {
+      "type": "time",
+      "init": null
+    },
+    "internalAt": {
+      "type": "time",
+      "init": null
+    },
+    "secondAt": {
+      "type": "time",
+      "init": null
+    },
+    "secondContained": {
+      "type": "bool",
+      "init": false
+    },
+    "impactAt": {
+      "type": "time",
+      "init": null
+    },
+    "persistRemoved": {
+      "type": "bool",
+      "init": false
+    },
+    "domainBlocked": {
+      "type": "bool",
+      "init": false
+    },
+    "ipBlocked": {
+      "type": "bool",
+      "init": false
+    },
+    "purgedAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "msgCopyLost": {
+      "type": "bool",
+      "init": false
+    },
+    "reimaged": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceDestroyed": {
+      "type": "bool",
+      "init": false
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "none",
+        "lead",
+        "users",
+        "nobody"
+      ],
+      "init": "none"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "phishMfa",
+        "spray",
+        "malware"
+      ],
+      "init": "none"
+    },
+    "scopeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "one",
+        "two"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "acctOpen": {
+      "expr": "isNull(acctContainedAt)"
+    },
+    "spread": {
+      "expr": "isNull(secondAt) ? 0 : 1"
+    },
+    "persistLeft": {
+      "expr": "(not isNull(ruleAt) or not isNull(mfaAt)) and not persistRemoved"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "reviewSignins",
+        "searchMail",
+        "reviewMailbox",
+        "containAccount",
+        "removePersistence",
+        "blockIndicator",
+        "purgeMessage",
+        "preserveEvidence",
+        "reimageLaptop",
+        "escalate",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "reviewSignins": {
+      "label": "Review jpike's sign-in log",
+      "group": "Investigate",
+      "available": "not busy and (isNull(signinsAt))",
+      "why": "Reviewed; the findings are in the log.",
+      "effects": [
+        {
+          "set": "signinsAt",
+          "to": "t"
+        },
+        {
+          "log": "You pull jpike's sign-ins for the last 24 hours.",
+          "kind": "act"
+        },
+        {
+          "finding": "Two successful sign-ins 20 minutes apart: Tacoma on the managed laptop, then 203.0.113.45, a hosting provider overseas, with an MFA push approved. That session is still active. Impossible travel: the account is compromised."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "searchMail": {
+      "label": "Search all mailboxes for the reported message",
+      "group": "Investigate",
+      "available": "not busy and (isNull(mailSearchedAt))",
+      "why": "Searched.",
+      "effects": [
+        {
+          "set": "mailSearchedAt",
+          "to": "t"
+        },
+        {
+          "log": "You search the mail logs for 'Invoice 4471 overdue' and the sending domain.",
+          "kind": "act"
+        },
+        {
+          "finding": "12 copies delivered at 08:31 from billing@larkspur-invoices.example. The web proxy shows jpike opened the link at 08:36{isNull(secondAt) ? \"; no one else has opened it yet\" : \" and mreyes opened it too\"}."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "reviewMailbox": {
+      "label": "Review jpike's mailbox rules, forwarding and MFA methods",
+      "group": "Investigate",
+      "available": "not busy and (isNull(mailboxAt) or (not isNull(ruleAt) and timeAt(ruleAt) > timeAt(mailboxAt)) or (not isNull(mfaAt) and timeAt(mfaAt) > timeAt(mailboxAt)))",
+      "why": "Reviewed; nothing new since.",
+      "effects": [
+        {
+          "set": "mailboxAt",
+          "to": "t"
+        },
+        {
+          "log": "You list jpike's inbox rules, forwarding settings and registered sign-in methods.",
+          "kind": "act"
+        },
+        {
+          "finding": "{not isNull(ruleAt) ? \"An inbox rule forwards invoice and payment mail outside and marks it read. \" : \"No unknown inbox rules or forwarding. \"}{not isNull(mfaAt) ? \"An authenticator app you do not recognize was added from 203.0.113.45.\" : \"Only his own phone is registered.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "containAccount": {
+      "label": "Contain an account",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "params": [
+        {
+          "id": "target",
+          "kind": "form",
+          "label": "Containment",
+          "fields": [
+            {
+              "id": "who",
+              "label": "Account",
+              "options": [
+                {
+                  "value": "jpike",
+                  "label": "jpike (accounts payable)"
+                },
+                {
+                  "value": "mreyes",
+                  "label": "mreyes (accounts payable lead)"
+                }
+              ]
+            },
+            {
+              "id": "how",
+              "label": "Action",
+              "options": [
+                {
+                  "value": "disable",
+                  "label": "Disable the account and revoke every session"
+                },
+                {
+                  "value": "reset",
+                  "label": "Reset the password only"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "who == \"jpike\" and how == \"disable\"",
+              "then": [
+                {
+                  "if": "acctOpen",
+                  "then": [
+                    {
+                      "set": "acctContainedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "jpike disabled and every session revoked; the new password goes to him by phone, not email.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "who == \"jpike\"",
+              "then": [
+                {
+                  "set": "pwReset",
+                  "to": "true"
+                },
+                {
+                  "log": "jpike's password reset. The session from 203.0.113.45 is still signed in.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "not isNull(secondAt) and how == \"disable\"",
+              "then": [
+                {
+                  "set": "secondContained",
+                  "to": "true"
+                },
+                {
+                  "log": "mreyes disabled and every session revoked.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "not isNull(secondAt)",
+              "then": [
+                {
+                  "log": "mreyes's password reset. The session from 203.0.113.45 is still signed in.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "mreyes shows no suspicious sign-in; you leave the account as it is.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "removePersistence": {
+      "label": "Remove the inbox rule and the unknown authenticator",
+      "group": "Contain",
+      "available": "not busy and (not isNull(mailboxAt) and (not isNull(ruleAt) or not isNull(mfaAt)) and not persistRemoved)",
+      "why": "Review the mailbox first; nothing to remove.",
+      "effects": [
+        {
+          "set": "persistRemoved",
+          "to": "true"
+        },
+        {
+          "log": "You remove the forwarding rule and the authenticator app the attacker added.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "blockIndicator": {
+      "label": "Block an indicator",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Indicator",
+          "options": [
+            {
+              "value": "domain",
+              "label": "The sending domain and the phishing URL (mail gateway and web proxy)"
+            },
+            {
+              "value": "ip",
+              "label": "The attacker's sign-in IP address only"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "what == \"domain\"",
+          "then": [
+            {
+              "set": "domainBlocked",
+              "to": "true"
+            },
+            {
+              "log": "larkspur-invoices.example and its login URL blocked at the mail gateway and the web proxy.",
+              "kind": "act"
+            }
+          ],
+          "else": [
+            {
+              "set": "ipBlocked",
+              "to": "true"
+            },
+            {
+              "log": "203.0.113.45 blocked for sign-ins. The phishing link still works.",
+              "kind": "act"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "purgeMessage": {
+      "label": "Purge the message from every mailbox",
+      "group": "Contain",
+      "available": "not busy and (isNull(purgedAt))",
+      "why": "Purged.",
+      "effects": [
+        {
+          "set": "purgedAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "msgCopyLost",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "12 copies purged{isNull(evidenceAt) ? \", with no copy kept for the case file\" : \"\"}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "preserveEvidence": {
+      "label": "Preserve evidence to the case file",
+      "group": "Evidence",
+      "available": "not busy and (isNull(evidenceAt))",
+      "why": "Preserved.",
+      "effects": [
+        {
+          "set": "evidenceAt",
+          "to": "t"
+        },
+        {
+          "log": "You export the sign-in and mailbox audit logs, {isNull(purgedAt) ? \"save the message with full headers, \" : \"\"}take a triage collection from JPIKE-LT, and record hashes and who handled each item.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "reimageLaptop": {
+      "label": "Reimage JPIKE-LT",
+      "group": "Recover",
+      "available": "not busy and (not reimaged)",
+      "why": "Reimaged.",
+      "effects": [
+        {
+          "set": "reimaged",
+          "to": "true"
+        },
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceDestroyed",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "JPIKE-LT wiped and reimaged{isNull(evidenceAt) ? \" before anything was collected from it\" : \"\"}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Escalate to the incident response lead",
+      "group": "Communicate",
+      "available": "not busy and (isNull(escalatedAt))",
+      "why": "Escalated.",
+      "effects": [
+        {
+          "set": "escalatedAt",
+          "to": "t"
+        },
+        {
+          "log": "You open an incident and page the incident response lead with what you know.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Declare the incident contained and write the report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident phase and start the report.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "lead",
+              "label": "Incident lead, management, legal, and finance (watch for payment-change requests)"
+            },
+            {
+              "value": "users",
+              "label": "Only the affected users"
+            },
+            {
+              "value": "nobody",
+              "label": "No one outside the SOC"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"lead\" ? \"incident lead, management, legal and finance\" : who == \"users\" ? \"the affected users only\" : \"no one outside the SOC\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "phishMfa",
+                  "label": "Credential phishing; the user approved an MFA push he did not start"
+                },
+                {
+                  "value": "spray",
+                  "label": "Password spraying against the account"
+                },
+                {
+                  "value": "malware",
+                  "label": "Malware on the laptop stole the password"
+                }
+              ]
+            },
+            {
+              "id": "scope",
+              "label": "Accounts compromised",
+              "options": [
+                {
+                  "value": "one",
+                  "label": "One (jpike)"
+                },
+                {
+                  "value": "two",
+                  "label": "Two (jpike and mreyes)"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "scopeDoc",
+          "to": "scope"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: cause {cause}, scope {scope}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "ruleMade",
+      "when": "t >= ruleDelay and phase == \"incident\" and acctOpen",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "ruleAt",
+          "to": "t"
+        },
+        {
+          "set": "stage",
+          "to": "\"persist\""
+        },
+        {
+          "log": "Mailbox audit: a new inbox rule on jpike forwards mail about invoices and payments to an outside address.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "mfaAdded",
+      "when": "t >= mfaDelay and phase == \"incident\" and acctOpen",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "mfaAt",
+          "to": "t"
+        },
+        {
+          "set": "stage",
+          "to": "\"persist\""
+        },
+        {
+          "log": "Directory audit: a new authenticator app was registered for jpike from 203.0.113.45.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "secondClick",
+      "when": "phase == \"incident\" and t >= secondClickDelay and not domainBlocked and isNull(purgedAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "secondAt",
+          "to": "t"
+        },
+        {
+          "log": "Sign-in log: mreyes signed in from 203.0.113.45, the same address as the jpike session.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "internalPhish",
+      "when": "t >= internalDelay and phase == \"incident\" and acctOpen",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "internalAt",
+          "to": "t"
+        },
+        {
+          "set": "stage",
+          "to": "\"spread\""
+        },
+        {
+          "log": "Mail gateway: jpike's mailbox sent 'Updated remittance details' to 38 coworkers.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "when": "t >= fraudDelay and phase == \"incident\" and acctOpen",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "impactAt",
+          "to": "t"
+        },
+        {
+          "set": "stage",
+          "to": "\"impact\""
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Mail gateway: jpike's mailbox sent a customer's accounts payable team new bank details for invoice 4471. Finance takes the incident over; write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: what showed this was an account takeover, why you contained it the way you did, and what evidence you kept and why.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Indicators",
+          "criteria": "Names the indicators: impossible travel (two sign-ins 20 minutes apart from Tacoma and an overseas hosting provider), an MFA push the user did not start, and the reported phishing email with a credential page; links them to SY0-701 2.4 indicators.",
+          "modelAnswer": "Two successful sign-ins 20 minutes apart from Tacoma and a hosting provider overseas is impossible travel; the second came with an MFA push jpike approved without starting a sign-in, and he had opened a credential page from the reported invoice email. Together they show stolen credentials used by someone else."
+        },
+        {
+          "label": "Containment choice",
+          "criteria": "Explains why disabling the account and revoking sessions comes before a password reset alone (a reset leaves the attacker's session signed in), and why persistence (inbox rules, added MFA methods) and other recipients must be checked before closing.",
+          "modelAnswer": "A reset alone leaves the stolen session working, so I disabled the account and revoked every session first. Then I checked the mailbox for forwarding rules and added sign-in methods, searched every mailbox for the message, blocked the domain and purged it, so the attacker had no way back in."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "Says what was preserved (sign-in and mailbox audit logs, the message with headers, a triage collection from the laptop), that it was done before purging or wiping, and that handling was recorded (chain of custody).",
+          "modelAnswer": "Before purging or wiping anything I exported the sign-in and mailbox audit logs, saved the message with full headers, took a triage collection from the laptop, and recorded hashes and who handled each item, so the chain of custody holds."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Set against the 29-minute average eCrime breakout time in CrowdStrike's 2026 Global Threat Report (see sources); an account takeover moves from one mailbox to others on that scale."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-11",
+          "note": "No account newly compromised after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and acctOpen",
+      "class": "harm",
+      "rationale": "Closing without disabling the account leaves the attacker in a finance mailbox, which is how payment fraud follows a phished account; it is never a safe outcome.",
+      "source": {
+        "cite": "Microsoft Learn, 'Responding to a compromised email account' (updated 2026-07-17)",
+        "checkedAt": "2026-11-11",
+        "url": "https://learn.microsoft.com/en-us/defender-office-365/responding-to-a-compromised-email-account",
+        "note": "Relevant text: symptoms include inbox rules that forward mail to unknown addresses and recently added external forwarding; 'Disabling the compromised account is preferred and highly recommended until you complete the investigation'; 'If you can't disable the account, the next best step is to reset the password'; 'Revoking active sessions immediately invalidates any active access using the stolen credentials'; review and remove unrecognized MFA methods, consented apps, admin roles, mail forwarders and inbox rules; review the audit logs from the onset of the suspicious activity. Vendor guidance for one mail platform, used for the account steps; the scenario names no product. Read through a summarizing fetch on 2026-11-11."
+      }
+    }
+  },
+  "endings": {
+    "fraud": {
+      "label": "Payment fraud sent from the account",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(impactAt)",
+      "narrative": "The attacker still held jpike's mailbox 75 minutes in and sent a customer new bank details. Finance is now chasing a payment that may already be gone."
+    },
+    "evidenceLost": {
+      "label": "Evidence wiped before it was collected",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and evidenceDestroyed",
+      "narrative": "JPIKE-LT was reimaged before anyone collected from it, so no one can say whether the phishing page also dropped malware."
+    },
+    "stillIn": {
+      "label": "Closed with the attacker still in",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and (acctOpen or (not isNull(secondAt) and not secondContained) or persistLeft)",
+      "narrative": "The incident was closed while {acctOpen ? \"jpike's session\" : not isNull(secondAt) and not secondContained ? \"mreyes's account\" : \"a forwarding rule or an authenticator the attacker added\"} still gave the attacker a way back in."
+    },
+    "contained": {
+      "label": "Contained fast, scoped and preserved",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not acctOpen and timeAt(acctContainedAt) <= containWindow and spread <= containSpread and not isNull(evidenceAt) and not evidenceDestroyed and not msgCopyLost and not isNull(mailSearchedAt) and not isNull(mailboxAt) and (isNull(secondAt) or secondContained) and not persistLeft",
+      "narrative": "jpike's account was shut within minutes, nothing else was compromised, and the case file holds the logs, the message and the laptop collection."
+    },
+    "containedLate": {
+      "label": "Contained, late or with spread",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The attacker is out, but containment came late, a second account fell, or part of the evidence is missing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "fraud",
+    "evidenceLost",
+    "stillIn",
+    "contained",
+    "containedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "containFast",
+        "label": "Disabled the account and revoked its sessions within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not acctOpen and timeAt(acctContainedAt) <= containWindow",
+            "score": "met",
+            "why": "Contained {timeAt(acctContainedAt) / 60|0dp} min after the first alert."
+          },
+          {
+            "when": "not acctOpen",
+            "score": "partial",
+            "why": "Contained, but {timeAt(acctContainedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "pwReset",
+            "score": "missed",
+            "why": "A password reset alone left the attacker's session signed in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The account was never contained."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Preserved logs, the message and the laptop collection before anything was purged or wiped",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(evidenceAt) and not evidenceDestroyed and not msgCopyLost",
+            "score": "met",
+            "why": "Collected first, with hashes and handling recorded."
+          },
+          {
+            "when": "not isNull(evidenceAt) and not evidenceDestroyed",
+            "score": "partial",
+            "why": "Collected after the messages were purged, so no copy of the phishing email was kept."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{evidenceDestroyed ? \"The laptop was wiped before collection.\" : \"Nothing was preserved.\"}"
+          }
+        ]
+      },
+      {
+        "id": "scope",
+        "label": "Found every compromised account and removed the attacker's persistence",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(mailSearchedAt) and not isNull(mailboxAt) and (isNull(secondAt) or secondContained) and not persistLeft",
+            "score": "met",
+            "why": "Searched every mailbox, checked rules and MFA methods{isNull(secondAt) ? \"\" : \", and contained mreyes\"}."
+          },
+          {
+            "when": "not isNull(mailSearchedAt) or not isNull(mailboxAt)",
+            "score": "partial",
+            "why": "Part of the scoping was done; {isNull(mailSearchedAt) ? \"the other recipients were never checked\" : \"the account's rules, forwarding or MFA methods were left as found\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one checked who else clicked or what the attacker left behind."
+          }
+        ]
+      },
+      {
+        "id": "blockSpread",
+        "label": "Blocked the phishing domain and URL and purged the message",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "domainBlocked and not isNull(purgedAt)",
+            "score": "met",
+            "why": "Blocked and purged."
+          },
+          {
+            "when": "domainBlocked or not isNull(purgedAt) or ipBlocked",
+            "score": "partial",
+            "why": "{ipBlocked and not domainBlocked ? \"Blocking one IP address left the link working.\" : \"Only one of the two was done.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The message stayed in 11 other mailboxes with a working link."
+          }
+        ]
+      },
+      {
+        "id": "escalated",
+        "label": "Escalated to the incident lead within 15 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(escalatedAt) and timeAt(escalatedAt) <= escalateWindow",
+            "score": "met",
+            "why": "Escalated {timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(escalatedAt)",
+            "score": "partial",
+            "why": "Escalated {timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never escalated."
+          }
+        ]
+      },
+      {
+        "id": "notifiedCrit",
+        "label": "Notified the incident lead, management, legal and finance (RS.CO-02)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified == \"lead\"",
+            "score": "met",
+            "why": "Finance knew to distrust payment-change requests."
+          },
+          {
+            "when": "notified == \"users\"",
+            "score": "partial",
+            "why": "Only the users were told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one outside the SOC was told."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the root cause and the scope accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"phishMfa\" and scopeDoc == (isNull(secondAt) ? \"one\" : \"two\")",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written indicators, containment choice and evidence",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToContain",
+        "label": "Minutes to contain jpike",
+        "value": "acctOpen ? -1 : timeAt(acctContainedAt) / 60",
+        "format": "number",
+        "expert": "30 or less"
+      },
+      {
+        "id": "accounts",
+        "label": "Accounts compromised",
+        "value": "1 + spread",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "minToEvidence",
+        "label": "Minutes to evidence preserved",
+        "value": "isNull(evidenceAt) ? -1 : timeAt(evidenceAt) / 60",
+        "format": "number",
+        "expert": "before any purge or wipe"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Read the sign-in log: impossible travel and an approved push mean takeover. Disable jpike and revoke sessions; escalate."
+      },
+      {
+        "at": "10-20 min",
+        "text": "Search every mailbox for the message and block the domain and URL before anyone else clicks."
+      },
+      {
+        "at": "20-35 min",
+        "text": "Preserve the logs, the message with headers and a laptop triage collection; then purge the message."
+      },
+      {
+        "at": "35-45 min",
+        "text": "Check jpike's rules, forwarding and sign-in methods; close and notify the incident lead, management, legal and finance."
+      }
+    ],
+    "debrief": {
+      "contained": {
+        "headline": "Good: contained, scoped and preserved",
+        "body": "You shut the session before the attacker could build persistence or spread, checked who else was exposed, and kept the evidence before cleaning up."
+      },
+      "containedLate": {
+        "headline": "Contained, with gaps",
+        "body": "The attacker is out. The criteria show what came late: containment past 30 minutes, a second account, or evidence purged before it was kept."
+      },
+      "fraud": {
+        "headline": "Payment fraud",
+        "body": "A password reset alone, or no containment, left the attacker's session in the mailbox. Disable the account and revoke sessions first; a reset does not end a stolen session."
+      },
+      "evidenceLost": {
+        "headline": "Evidence wiped",
+        "body": "Reimaging before collecting removes the only proof of what ran on the laptop. Preserve first (RS.AN-07), then recover."
+      },
+      "stillIn": {
+        "headline": "Closed too soon",
+        "body": "An open session, a second compromised account or an attacker's forwarding rule or authenticator is a way back in. Account for every means of persistent access before eradication (CISA)."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Impossible travel plus an MFA push the user did not start is account takeover. Disable the account and revoke its sessions at once (a reset leaves the session alive), escalate, find every recipient and block the domain and URL, preserve logs, the message and a laptop collection before purging or wiping, remove the attacker's inbox rule and authenticator, then notify the incident lead, management, legal and finance and record the root cause and scope."
+  }
+}

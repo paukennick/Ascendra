@@ -10,6 +10,7 @@ export const SIM_RENDERERS = [
   { type: "bedside", level: 3 },
   { type: "board", level: 3 },
   { type: "session", level: 1 },
+  { type: "security-console", level: 1 }, // REQ-231 (screen.console bindings)
 ] as const;
 
 export const SIM_CAPS_HEADER = "x-sim-caps";

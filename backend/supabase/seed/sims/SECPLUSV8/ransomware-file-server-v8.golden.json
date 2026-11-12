@@ -1,0 +1,1248 @@
+{
+  "slug": "ransomware-file-server-v8",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Triage, isolate FS01 at 5 min, disable svc_backup, isolate WS-ACCT07, escalate, scope, memory then disk, block C2, rebuild, restore last night's scanned backup; report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triage",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "fs01",
+            "how": "edr"
+          },
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "disableAccount",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "ws",
+            "how": "edr"
+          },
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 12,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 14,
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "reviewAuth",
+          "seq": 11,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 19,
+          "seq": 12,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "captureEvidence",
+          "seq": 13,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 34,
+          "seq": 14,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "blockC2",
+          "seq": 15,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 37,
+          "seq": 16,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 17,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 57,
+          "seq": 18,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "source": "nightlyScanned"
+          },
+          "seq": 19,
+          "tick": 57
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 77,
+          "seq": 20,
+          "tick": 57
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 21,
+          "tick": 77
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 22,
+          "tick": 77
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 23,
+          "tick": 77
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "macro",
+            "scope": "two"
+          },
+          "seq": 24,
+          "tick": 77
+        }
+      ],
+      "expect": {
+        "ending": "contained",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "containFast": "met",
+          "evidence": "met",
+          "eradicate": "met",
+          "recoverClean": "met",
+          "blockC2": "met",
+          "escalated": "met",
+          "reported": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 5,
+          "pctEncrypted": 43,
+          "hostsReached": 2
+        },
+        "stateHash": "25b6274f23815e56"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "slowSpread",
+      "title": "Investigates for 22 minutes: svc_backup reaches BK01; BK01 isolated in time, everything else done well",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triage",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reviewAuth",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "fs01",
+            "how": "edr"
+          },
+          "seq": 10,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 24,
+          "seq": 11,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "bk01",
+            "how": "edr"
+          },
+          "seq": 12,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 26,
+          "seq": 13,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "disableAccount",
+          "seq": 14,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 29,
+          "seq": 15,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "ws",
+            "how": "edr"
+          },
+          "seq": 16,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 31,
+          "seq": 17,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "captureEvidence",
+          "seq": 18,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 46,
+          "seq": 19,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "blockC2",
+          "seq": 20,
+          "tick": 46
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 49,
+          "seq": 21,
+          "tick": 46
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 22,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 69,
+          "seq": 23,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "source": "nightlyScanned"
+          },
+          "seq": 24,
+          "tick": 69
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 89,
+          "seq": 25,
+          "tick": 69
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 26,
+          "tick": 89
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 27,
+          "tick": 89
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 28,
+          "tick": 89
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "macro",
+            "scope": "three"
+          },
+          "seq": 29,
+          "tick": 89
+        }
+      ],
+      "expect": {
+        "ending": "containedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 94,
+        "criteria": {
+          "containFast": "met",
+          "evidence": "met",
+          "eradicate": "met",
+          "recoverClean": "met",
+          "blockC2": "met",
+          "escalated": "met",
+          "reported": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 22,
+          "pctEncrypted": 68,
+          "hostsReached": 3
+        },
+        "stateHash": "6bee38b456f944ac"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "backupsWiped",
+      "title": "Never isolates FS01; cuts svc_backup at 40 min, after the backups on BK01 are gone; restores the six-day-old vault copy",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triage",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 15,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 25,
+          "seq": 6,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 25,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 35,
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 10,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 45,
+          "seq": 11,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 45,
+          "seq": 12,
+          "tick": 44
+        },
+        {
+          "type": "act",
+          "action": "disableAccount",
+          "seq": 13,
+          "tick": 45
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 48,
+          "seq": 14,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "ws",
+            "how": "edr"
+          },
+          "seq": 15,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 50,
+          "seq": 16,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "bk01",
+            "how": "edr"
+          },
+          "seq": 17,
+          "tick": 50
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 52,
+          "seq": 18,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "captureEvidence",
+          "seq": 19,
+          "tick": 52
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 67,
+          "seq": 20,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 21,
+          "tick": 67
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 87,
+          "seq": 22,
+          "tick": 67
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "source": "vault"
+          },
+          "seq": 23,
+          "tick": 87
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 107,
+          "seq": 24,
+          "tick": 87
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 25,
+          "tick": 107
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 26,
+          "tick": 107
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "internal"
+          },
+          "seq": 27,
+          "tick": 107
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "macro",
+            "scope": "three"
+          },
+          "seq": 28,
+          "tick": 107
+        }
+      ],
+      "expect": {
+        "ending": "backupsLost",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "containFast": "missed",
+          "evidence": "met",
+          "eradicate": "met",
+          "recoverClean": "partial",
+          "blockC2": "missed",
+          "escalated": "missed",
+          "reported": "partial",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": -1,
+          "pctEncrypted": 100,
+          "hostsReached": 3
+        },
+        "stateHash": "65d38aac7d81ebf9"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "powerOffRebuild",
+      "title": "Powers FS01 off and rebuilds it at once with nothing collected",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triage",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "fs01",
+            "how": "power"
+          },
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "disableAccount",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "ws",
+            "how": "edr"
+          },
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 12,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 14,
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 11,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 34,
+          "seq": 12,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "source": "nightlyScanned"
+          },
+          "seq": 13,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 54,
+          "seq": 14,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 15,
+          "tick": 54
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 54
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 17,
+          "tick": 54
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "macro",
+            "scope": "two"
+          },
+          "seq": 18,
+          "tick": 54
+        }
+      ],
+      "expect": {
+        "ending": "evidenceLost",
+        "class": "harm",
+        "rating": "bad",
+        "score": 72,
+        "criteria": {
+          "containFast": "met",
+          "evidence": "missed",
+          "eradicate": "met",
+          "recoverClean": "met",
+          "blockC2": "missed",
+          "escalated": "met",
+          "reported": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 5,
+          "pctEncrypted": 43,
+          "hostsReached": 2
+        },
+        "stateHash": "97b99eb76b2e4bd4"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "restoreEarly",
+      "title": "Isolates FS01, keeps evidence and isolates BK01 once reached, then rebuilds and restores with svc_backup and WS-ACCT07 untouched: encryption starts again",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triage",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "fs01",
+            "how": "edr"
+          },
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "captureEvidence",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 24,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 24,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "bk01",
+            "how": "edr"
+          },
+          "seq": 10,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 26,
+          "seq": 11,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 12,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 46,
+          "seq": 13,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "source": "nightlyScanned"
+          },
+          "seq": 14,
+          "tick": 46
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 66,
+          "seq": 15,
+          "tick": 46
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 16,
+          "tick": 66
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 17,
+          "tick": 66
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 18,
+          "tick": 66
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "macro",
+            "scope": "three"
+          },
+          "seq": 19,
+          "tick": 66
+        }
+      ],
+      "expect": {
+        "ending": "reinfected",
+        "class": "harm",
+        "rating": "bad",
+        "score": 61,
+        "criteria": {
+          "containFast": "met",
+          "evidence": "met",
+          "eradicate": "missed",
+          "recoverClean": "missed",
+          "blockC2": "missed",
+          "escalated": "met",
+          "reported": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 5,
+          "pctEncrypted": 43,
+          "hostsReached": 3
+        },
+        "stateHash": "234930221c2082fe"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "quietVault",
+      "title": "Fast and clean containment, but no C2 block or escalation, the vault copy restored, a payment negotiated and a wrong record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triage",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "fs01",
+            "how": "edr"
+          },
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "disableAccount",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "isolateHost",
+          "params": {
+            "host": "ws",
+            "how": "edr"
+          },
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 12,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "captureEvidence",
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 27,
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 11,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 47,
+          "seq": 12,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "source": "vault"
+          },
+          "seq": 13,
+          "tick": 47
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 67,
+          "seq": 14,
+          "tick": 47
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 15,
+          "tick": 67
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 67
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "pay"
+          },
+          "seq": 17,
+          "tick": 67
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "rdp",
+            "scope": "two"
+          },
+          "seq": 18,
+          "tick": 67
+        }
+      ],
+      "expect": {
+        "ending": "containedLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 39,
+        "criteria": {
+          "containFast": "met",
+          "evidence": "met",
+          "eradicate": "met",
+          "recoverClean": "partial",
+          "blockC2": "missed",
+          "escalated": "missed",
+          "reported": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToContain": 5,
+          "pctEncrypted": 43,
+          "hostsReached": 2
+        },
+        "stateHash": "f5dbf04c77482a79"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

@@ -57,12 +57,13 @@ Every course runs the same loop. You learn a topic, practice it with help, prove
 
 **Hands-on labs.** Build labs ask you to produce something real, such as an IAM policy, a work breakdown structure or an SBAR handoff. Case labs walk a fictional case through two to four steps. Every part is scored met, partly there or not yet, with the model answer beside yours. Some parts are graded on the spot: put steps in order, match pairs, tap the problem lines in a log or config, type a command, or give a number within a tolerance. There are 1,263 labs across the catalog.
 
-**Simulations.** Some courses have sims: a scenario that runs on a clock, reacts to what you do, and ends with a score for the outcome and your process plus a debrief. Today there are sims in five courses:
+**Simulations.** Some courses have sims: a scenario that runs on a clock, reacts to what you do, and ends with a score for the outcome and your process plus a debrief. Today there are sims in seven courses:
 
 - **CCRN (Adult):** five bedside cases on a patient monitor, including tamponade after heart surgery, sepsis, diabetic ketoacidosis, stroke and bleeding after surgery
 - **Certified Nursing Assistant:** a resident who chokes at lunch and a resident found on the floor
 - **EPPP:** three sessions where you lead a fictional client through a suicide risk assessment, a duty-to-protect decision and a diagnostic intake
 - **AWS Solutions Architect Associate, and Professional:** TicketBurst launch day on a design board, with a harder version in the Professional course
+- **CompTIA Security+ (SY0-701 and V8):** three incidents on a security operations console: a phished account, ransomware on a file server and a leaked cloud key
 
 Clinical sims that run on a live clock start near the moment things change and play at study pace by default, with exam-speed realism one tap away. When nothing is happening you can skip to the next change, and you can save a case at a chapter break and finish it on another device. IT and cloud sims move only when you act.
 

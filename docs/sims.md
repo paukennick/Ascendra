@@ -33,6 +33,9 @@ Whether a sim is paced depends on its kind, not its course:
   when the learner acts, have none of the above, and the server refuses
   pacing commands for them. Seeded: TicketBurst and, since REQ-233, the
   NAT gateway bill (both AWS SAA).
+- **Security incidents (REQ-231) are learner-paced too**: the attacker
+  works on the sim clock, and the clock moves by the analyst time each
+  task takes (22.7).
 
 The rule is `pacingEligible` in `backend/lib/sim/server-run.ts`: a running
 phase and a clinical or fitness outcome profile. No PT or fitness running
@@ -73,7 +76,8 @@ engine and the practice-lab acknowledgement).
 20. Sims for every subject family
 21. Review resolution
 22. Phase 1b as built (REQ-190), pacing (REQ-209), more CCRN cases (REQ-222),
-    CNA cases (REQ-223) and the client session (REQ-225)
+    CNA cases (REQ-223), the client session (REQ-225) and the security
+    console (REQ-231)
 
 ---
 
@@ -2414,7 +2418,8 @@ direction):
 | Project | CPI ≥ 0.95 and SPI ≥ 0.95 at close, every compliance item met, every stakeholder ≥ 60/100 | CPI or SPI 0.85-0.95, or one stakeholder 40-59 | a compliance gate failed, CPI or SPI < 0.85, or team attrition ≥ 2 |
 | Fitness | no adverse event, screening done correctly, primary goal met (for example knee pain reduced ≥ 50%), adherence ≥ 80% | safe, goal partly met (pain reduced 25-49%) or adherence 60-79% | an adverse event, a required referral skipped, injury, or drop-out |
 | Clinical session (REQ-225) | the session's safety or diagnostic task done within its window (`safetyWindow`, default 20 min from the cue), rapport >= 6/10 at the close (`allianceTarget`) | done late, partly, or at a cost to the alliance or the client's autonomy (an over-restrictive referral, a disclosure made on a guess) | a client left at foreseeable risk, a required protective step not taken, confidentiality broken beyond what the law allows, a diagnosis that misses a required rule-out, or a walk-out after a rupture |
-| Security, infrastructure, data | defined with their renderers (20) | | |
+| Security (REQ-231, 22.7) | contained within `containWindow` (default 60 min; the Security+ cases use 30) of the first alert, no asset newly compromised after it (`containSpread` 0), evidence preserved before anything is purged, wiped or terminated | contained, but late, after spread to another asset, with partial evidence (a disk image without memory), or with a costly recovery (an older backup past the RPO) | the attacker's impact reached (payment fraud, backups destroyed, data copied out), evidence destroyed before collection, a reinfection during recovery, or the incident closed with an attacker path still open |
+| Infrastructure, data | defined with their renderers (20) | | |
 
 Two readings are written down so they are not re-decided per scenario.
 The cloud "missed by ≤ 10%" is read as the example Nick gave: 99.85%
@@ -2652,7 +2657,8 @@ device while sims are off (5.9).
 `SIMS_RENDERERS`: a comma-separated allowlist of screen types that are on
 (default `bedside,board` since REQ-190, because the first flagship is the
 TicketBurst board, 19.4 item 1; `bedside,board,session` since REQ-225, so
-testers see the client session). A renderer can be launched, or pulled after a bad
+testers see the client session; `bedside,board,session,security-console`
+since REQ-231). A renderer can be launched, or pulled after a bad
 scenario, without touching the others. A sim whose screen type is not
 listed behaves as if `SIMS_ENABLED` were off for that sim.
 
@@ -3368,7 +3374,7 @@ cover the whole catalog (95 courses):
 | **Project dashboard** | Project management: PMP, CAPM, PgMP, PfMP, PMI-ACP, PMI-RMP, PMI-SP, PMI-PBA, PMO-CP, PMI-CP, CPMAI, Project+ | Run a project week by week: change requests, risks, team and stakeholder events, earned value; delayed consequences |
 | **Client trainer** | Fitness: NASM, ACE, ACSM, NCCPT, NSCA-CPT, NSCA-CSCS | Screen, assess movement, program by phase, coach through weeks; adherence, pain and progress respond |
 | **Treatment session** | Physical therapy: NPTE-PT, NPTE-PTA, DPT, the ten ABPTS specialties | Examine, choose tests and measures, treat and progress a patient across visits; vitals and red flags during exercise |
-| **Security operations console** | Security: Security+, CySA+, PenTest+, SecurityX, SecAI+ | Triage alerts and logs during a live incident, contain, eradicate, recover, report; the attacker progresses on a clock |
+| **Security operations console** (REQ-231, 22.7) | Security: Security+ (SY0-701 and V8) now; CySA+, PenTest+, SecurityX, SecAI+ later | Triage alerts and logs during a live incident, contain, eradicate, recover, report; the attacker progresses on a clock |
 | **Terminal and network** | Infrastructure: Tech+, Network+, Linux+, Server+, AutoOps+ | Diagnose and fix a broken network or server through a simulated shell (an authored fault tree, not an emulator) and topology; outages spread while you work |
 | **Client session** (REQ-225, 22.5) | Mental health: EPPP, then NCE, NCMHCE and ASWB | Conduct a session with a client: ask, respond, intervene and document; rapport, distress, disclosure and risk move with each choice and with time |
 | **Data and code console** | Data, AI and development: Data+, DataAI, AI-901, DP-300, DP-900, Python, JavaScript, MS Health Informatics (data quality and EHR rollout cases), MSCS | Guided: pick the query or fix, inspect authored result tables, reason in writing about a dataset or a failing program under a deadline; no learner code or SQL is ever run |
@@ -3973,7 +3979,130 @@ Nick approved the engine approach on 2026-11-10. What changed:
   test leaves that one map out of its reversal. A `teachingOrder` list would
   be the same kind of minor.
 
-### 22.7 Bedside wave 1: CCRN Pediatric, CCRN Neonatal, NCLEX-RN, NCLEX-PN and a second SAA board case (REQ-233)
+### 22.7 The security operations console and the Security+ incidents (REQ-231)
+
+Security+ is a launch course, so its sims come first on the seventh renderer
+of 20. The screen is `screen.type: "security-console"`, `security-console@1`,
+behind `SIMS_RENDERERS` and on by default
+(`bedside,board,session,security-console`). The design's placeholder type
+`security` stays unused.
+
+**The renderer** (`ConsolePanel`, `mobile/src/sim/ConsolePanel.tsx`; view
+model `consoleView`/`consoleNews`/`consoleAlarmTexts`/`consoleSentence` in
+`src/sim/runtime/consoleView.ts`). Three blocks in reading order:
+
+- **Alert queue**: the alerts whose `when` holds, open ones first, then
+  newest first by `at` (sim seconds), then by severity. Each shows a
+  severity word and color, the time, a status in words and an optional
+  detail.
+- **Assets**: hosts, accounts and cloud identities, each with a kind, a
+  status in words and a tone (`ok`, `watch`, `bad`, `held`) read as
+  "normal", "under watch", "compromised", "contained". Meters (the
+  attacker's stage, the case file, encryption or spend) sit under them.
+- **Logs and events**: the lines whose `when` holds, newest first, at most
+  40, each with the log it came from (sign-in log, EDR, audit trail).
+
+Containment and investigation are the scenario's action groups (Investigate,
+Contain, Evidence, Recover, Communicate, Wait, Close; after the incident,
+Report), drawn by the shared `ActionBar`: isolate a host, disable an account,
+block an indicator, preserve evidence, escalate and notify are actions with
+`choice` or `form` params, so the panel holds no rule.
+
+**Accessibility**, equal to the bedside, board and session: every alert,
+asset, meter and log line is one accessible element whose label says its
+state in words (severity and tone are a word plus a color, never color
+alone); every element is at least 48 dp; "Read the console" speaks the open
+alerts, every asset in words, the meters and the newest line. An open alert is
+spoken at once, like a monitor alarm ("High severity: ..."), and again as
+cleared when it closes; an asset's tone changing, a closed alert's new status
+and new log lines are polite news through the announcer (at most one polite
+sentence per 10 s), with a burst of lines summarized as one sentence ("3 new
+log lines. Newest: ..."). Keyboard order on web is the order on screen
+(queue, assets, logs, then the actions). JavaScript only, so it ships over the
+air; an app without `security-console@1` is not offered these sims and is told
+to update (5.10).
+
+**Bindings** (`screen.console` in `engine/v1/types.ts`, the zod schema and
+`validate.ts` `consoleCheck`): `alerts` (`severity` one of critical, high,
+medium, low; `title`, `detail`, `status` templates; `when` and `open` bools;
+`at` a number), `events` (`source`, `text`, `when`, `at`), `assets`
+(`label`, `spokenLabel`, `kind`, `status`, `tone` an enum expression over the
+four tones), `meters`. Ids are unique across the three lists. Display and lint
+only: stepping, the corpus and every existing hash are unchanged, and there is
+no engine minor (an older app is held back by the renderer, as for the
+session).
+
+**Pacing: learner-paced, with the attacker on the analyst's clock.** An
+incident does evolve on its own clock, unlike a talk session, so the question
+was study pace (3x) versus real time. Neither: a running phase at 1x would
+score how fast someone reads log lines and race screen-reader users, and 3x
+only shortens that; the clinical pacing rule (`pacingEligible`) is for bodies
+that change on their own, and Security+ is a general-family course where the
+server refuses pace commands anyway. What Security+ tests is the order and
+choice of analyst actions (contain before eradicating, preserve before
+wiping, scope before closing), so the incident phase is `turns`: each task
+costs the analyst minutes it would take (a sign-in review 5, isolating a host
+2, a memory capture and disk image 15, a rebuild 20) through one `work` wait
+("Let the work finish"), and the attacker's steps are triggers on the same
+sim clock. Investigating for 20 minutes before containing lets the attacker
+build persistence or move laterally exactly as waiting 20 real minutes would,
+without timing the learner's reading. A "Keep watching the console (10 min)"
+action lets time pass on purpose. An attacker step stops the skip early
+(`interruptsSkip`) so the new alert is seen at the minute it happens. With no
+running phase, the focused start, the skip offer, 5.4d teaching prompts and
+chapters do not apply. The attacker's step times are the author's, set against
+CrowdStrike's 2026 average eCrime breakout time of 29 minutes, which also
+sets the cases' tightened `containWindow` of 30 minutes.
+
+**Outcome profile `security`** (9.2): defaults `containWindow` 3600 s and
+`containSpread` 0; `noProgress` per case.
+
+**Cases** (`backend/supabase/seed/sims/SECPLUS/`, each also a V8 band in
+`SECPLUSV8/` that changes only `objective` and `secondaryObjectives`, so
+SY0-801 learners get the same incident on the V8 objective):
+
+| Slug | SY0-701 objective | SY0-801 objective (band) | Core of the case |
+|---|---|---|---|
+| `phish-to-account-takeover` | Application, cryptographic, and password attacks and their indicators (2.4) | Given authentication logs, identify credential attacks | Impossible travel and an approved MFA push: disable and revoke (a reset alone leaves the session), find the second recipient, block the domain, keep the message and logs before purging, remove the inbox rule and the added authenticator; else payment fraud at 75 min |
+| `ransomware-file-server` | Incident response activities as SY0-701 names them (4.8) | Containment (quarantine/isolation), negotiation, and eradication/recovery | Network-isolate FS01 (power off only if it cannot be disconnected), disable the abused service account and isolate patient zero before it reaches the backup server, memory then disk before the rebuild, restore last night's backup after a scan, report to the FBI and CISA, do not pay |
+| `cloud-iam-backdoor` | Identity and access management: provisioning/de-provisioning user accounts... (4.6) | Given a scenario, manage the account life cycle | A pipeline key leaked to a public repository made an administrator: deactivate the key, quarantine every identity it made (an IP block does not contain it), snapshot before terminating the miners, then eradicate and move the pipeline to a short-lived role; else customer data copied out at 55 min |
+
+The three SY0-701 objectives meet the generator's selection rule
+(`isPerformanceObjective`, a performance verb in the title); two of the V8
+titles ("Given ... identify ...", "Containment ...") do not match that
+rule's word list although they are the matching V8 objectives, so the bands
+follow the topic, not the rule (a decision for Nick).
+
+Each case has one written-reasoning moment, endings in all three classes and
+an `endingOrder` (harm endings first), three or four critical criteria, KPIs,
+an expert path, a debrief per ending, and six golden paths (Good, Mediocre,
+Bad; every ending but `time_up` and every criterion both met and missed),
+built by `npm run sim:golden -- steps secplus-phish|secplus-ransomware|secplus-cloud`
+and the `-v8` variants. Sources are on each document with `checkedAt`
+2026-11-11: NIST SP 800-61 Rev. 3 (April 2025, the current revision; it
+replaces the Rev. 2 life cycle with the CSF 2.0 Functions, while Security+
+still names the older phases), the CISA incident response playbooks (2021),
+the #StopRansomware Guide (2023), the CompTIA SY0-701 objectives (v5.0) and
+V8 page, vendor guidance for the account and cloud steps (Microsoft Learn,
+AWS re:Post, named in the sources but not in the scenarios), and CrowdStrike's
+2026 Global Threat Report. Every address and domain is a documentation range
+(RFC 5737, RFC 2606).
+
+**Findings** (20: recorded, not worked around):
+
+1. **The capabilities header dropped a hyphenated screen type
+   (FAIL-1320).** `parseCaps` accepted `[a-z]{1,20}`, so
+   `security-console@1` was silently ignored and the server would have told
+   every app to update. It now accepts a lower-case letter followed by up to
+   39 letters or hyphens (the `screen_type` column is 40).
+2. **The document schema could not name 17 catalog objectives
+   (FAIL-1321).** `objective` was capped at 400 characters; SECPLUS titles
+   run to 586 and a sim is registered by exact title. The cap is now 1000; a
+   test checks every catalog title fits.
+3. **The screen spec and the profile list are in the engine folder** again
+   (as for the board and the session): display and lint only, no minor.
+
+### 22.9 Bedside wave 1: CCRN Pediatric, CCRN Neonatal, NCLEX-RN, NCLEX-PN and a second SAA board case (REQ-233)
 
 Nine documents on the existing bedside and board renderers and engine 1.2;
 no engine, renderer, schema or migration change. Each declares engine minor 2
