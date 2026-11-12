@@ -128,6 +128,29 @@ const COUNT_ASK = /\b(?:which|what|name|list|choose|select|identify|pick|give)\s
 // ("only"), rejecting a correct answer.
 const words = (s: string) => new Set((s.toLowerCase().match(/[a-z]+(?:-[a-z]+)*/g) ?? []));
 
+// REQ-248 (FAIL-1601): a cue word written with a capital in the middle of an
+// option is part of a proper name -- "Enable Always Encrypted on the column"
+// (SQL Server's feature, a DP-300 objective), "the All Users group" -- not an
+// absolute claim. Only Title case counts (an ALL-CAPS "NEVER" is emphasis and
+// is still a cue), and only after the first word and not right after a
+// sentence break (". Always ..." starts a sentence). An option that STARTS
+// with such a name is still flagged: the lint cannot tell it from an
+// ordinary sentence start, and the retry steer is cheap.
+const TITLE_WORD = /\b[A-Z][a-z]+\b/g;
+export function cueWords(option: string): Set<string> {
+  let kept = option;
+  for (const m of option.matchAll(TITLE_WORD)) {
+    const w = m[0].toLowerCase();
+    if (!(ABSOLUTE_WORDS as readonly string[]).includes(w)) continue;
+    const before = option.slice(0, m.index).trimEnd();
+    if (!before || /[.!?:;"“(\[]$/.test(before)) continue;
+    // a hyphenated compound ("Always-On") is already one word
+    if (option[m.index! + m[0].length] === "-" || option[m.index! - 1] === "-") continue;
+    kept = kept.slice(0, m.index) + " ".repeat(m[0].length) + kept.slice(m.index! + m[0].length);
+  }
+  return words(kept);
+}
+
 // How many things an option lists: comma, semicolon, slash or "and" separated.
 export function listedCount(option: string): number {
   return option
@@ -157,7 +180,7 @@ export function distractorProblems(label: string, stem: unknown, choices: unknow
   const stemText = typeof stem === "string" ? stem : "";
   const stemWords = words(stemText);
   opts.forEach((o, i) => {
-    const w = words(o);
+    const w = cueWords(o);
     // REQ-216 (M6): a cue word gives a wrong answer away; the RIGHT answer may
     // say "only" or "all" when the fact does ("Only the owner can ..."), so the
     // key is not held to it.

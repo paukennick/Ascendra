@@ -573,6 +573,22 @@ batches because the practice questions are written from the teaching text:
    held and its first learner visit makes it through the full pipeline. Both
    collects print the retry counts (retried, saved after the retry, held again,
    not retried for budget), and the summary carries them.
+5. REQ-248: the distractor lint (an absolute cue word in a wrong option, a
+   right answer much longer than the others, "asks for N but option lists M")
+   is a **style finding**, as in the app (`generateValid`, REQ-216 M6), not a
+   failure. A practice draft whose only problems are style findings gets the
+   app's one steered retry (live, `pregen_retry`, inside `max_usd`, steered
+   with the findings); a retry with style findings only is saved, as the app
+   serves it, with the app's log line "lesson served with style findings after
+   one retry" (as kinds, no option text). A retry with a hard problem (an
+   empty or duplicate option, a key out of range, not English, an explanation
+   naming an option by position) fails, and a style retry the cap cannot cover
+   is not made: either way the lesson stays missing and is made on first
+   visit. A hard problem in the first draft fails at once, as before. Collect
+   prints the style-retry counts and the style findings by kind
+   (`styleFindingKinds`); `problemKinds` is the problems of lessons that failed.
+   Before REQ-248 any style finding failed the lesson outright (the
+   2026-11-12 trial: 21 of 25 practice halves, FAIL-1600).
 
 Left out always: retired objectives and units, hidden courses (`hidden_at`
 passed), private courses, authored lessons, and any objective that already has
@@ -580,9 +596,14 @@ a lesson row of any kind.
 
 **The money.** `max_usd` is checked against an **upper bound**, not a guess:
 every request priced at its full `max_tokens` with the Batches discount, plus
-the fact-check at its full `max_tokens` (thinking included). At the 2026-11-09
+the fact-check at its full `max_tokens` (thinking included), plus (REQ-248) one
+live steered retry of the practice half at the full live price, so every
+lesson in the batch can have its retry inside the cap. At the 2026-11-09
 prices (Sonnet 5.5, $2 in / $10 out per million tokens; batches $1 / $5) that is
-about **$0.118 a lesson, so about 84 lessons per $10** of cap. The real cost is
+about **$0.195 a lesson (it was $0.119 before the retry was reserved), so about
+51 lessons per $10** of cap. Every live call (a retry, a fact-check) is also
+checked against the cap at its worst case before it is made, so `max_usd` is a
+ceiling on the whole run, not only on the plan. The real cost is
 expected to be well under that (collect prints the actual figure), so a run
 usually leaves cap unspent; run estimate again afterwards for what is left.
 `--tracks` is a **priority order**: a track is filled before the next, a unit at
@@ -616,23 +637,35 @@ workflow stops at once, naming the secret, if `PROD_DATABASE_URL` or
 **(b) Estimate.** Actions -> Pre-generate lessons -> Run workflow, mode
 `estimate`. `tracks` defaults to the launch set in priority order:
 `DPT,PTPREREQ,CCRNADULT,AWSSAA,AWSMLA,SECPLUS,CNA`; `max_usd` 110. On the
-batch-10 seed this is 845 lessons and an upper bound of $100.23 (DPT 110,
-PTPREREQ 95, CCRNADULT 271, AWSSAA 99, AWSMLA 107, SECPLUS 36, CNA 127), so the
-whole set fits with $9.77 to spare. Read the log:
+2026-11-12 seed (REQ-248, the retry reserved) a fresh database has 886 lessons
+for these tracks and an upper bound of $172.79 (DPT 110, PTPREREQ 95,
+CCRNADULT 271, AWSSAA 99, AWSMLA 107, SECPLUS 77, CNA 127); the 881 production
+still lacks are about $171.82. **$110 no longer covers the whole set**: it
+covers 551 lessons by the bound (fresh seed): the cutoff falls in AWSSAA, at
+"Design Cost-Optimized Architectures", leaving AWSMLA, SECPLUS and CNA out. Raise
+`max_usd` and the Console workspace limit together, or let the cutoff stand and
+run again with what is left (the actual cost is expected to be far below the
+bound). Read the log:
 lessons and upper-bound cost per track and the line "Cut off at ...". Change
 the order or drop courses until the cutoff is where you want it. No model call,
 no write.
 
 **(b2) Trial first.** Before the full run, spend a few dollars to prove the
-whole path on real API responses (the request shapes are untested against the
-live API). Run `submit` with the same `tracks`, **`limit` 25 and `max_usd` 5**
-(25 lessons are about $3 at the upper bound), then collect both stages as in
-(d). Check the counts and the Console usage page (e). Then run **estimate
-again**: the 25 saved lessons drop out, and the new total and cutoff are what
-the full submit will use. Only then run (c) without `limit`.
+whole path on real API responses. Run `submit` with the same `tracks`,
+**`limit` 25 and `max_usd` 6** (25 lessons are about $4.90 at the upper bound),
+then collect both stages as in (d). Check the counts and the Console usage page
+(e): **most of the 25 (90% or more) should be saved**. If they are not, read the
+"Content-check problems" and "Style findings" lines, fix the cause, and run
+another trial; do not go on. The 2026-11-12 trial saved 4 of 25 (FAIL-1600).
+Then run **estimate again**: the saved lessons drop out, and the new total and
+cutoff are what the full submit will use. Only then run (c) without `limit`.
 
 **(c) Submit.** Mode `submit`, the agreed `tracks` (priority order) and
-`max_usd` (110), no `limit`. The log prints the intro batch id (`msgbatch_...`). Most batches
+`max_usd`, no `limit`, and tick **`confirm_full_run`** (REQ-248): a submit with
+`limit` blank is refused without it, by the workflow before anything is
+installed and by the script (`--confirm-full-run`). It is a deliberate "the
+trial passed" step, not a check the script can make: the trial's counts live in
+its workflow artifact, not in the database. The log prints the intro batch id (`msgbatch_...`). Most batches
 finish within an hour.
 
 **(d) Collect, until it ends.** Mode `collect`, `batch_id` = the intro batch id,

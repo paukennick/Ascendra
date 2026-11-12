@@ -20,6 +20,8 @@
 //   --summary <file>   write a counts-only JSON summary (the workflow's artifact)
 //   --limit N          at most N objectives
 //   --allow-concurrent skip the "a batch is already running" refusal
+//   --confirm-full-run a submit without --limit (a full run); refused without
+//                      it, so a trial (--limit 25) comes first (REQ-248)
 //
 // --tracks is a priority order: lessons are made track by track in the order
 // given, unit by unit, and the cap (--max-usd, an UPPER BOUND on the cost)
