@@ -1,0 +1,1299 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "crashloop-bad-configmap",
+  "title": "Outage: orders-api in CrashLoopBackOff after a config change",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "admin@cka-lab:~$",
+      "lines": [
+        {
+          "id": "alert",
+          "text": "10:00 alert: orders-api rollout not progressing; new pods in CrashLoopBackOff",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "allDown",
+          "text": "checkout: every call to orders-api fails (no ready endpoints)",
+          "when": "not isNull(checkoutDownAt)",
+          "at": "timeAt(checkoutDownAt)",
+          "error": "true"
+        },
+        {
+          "id": "saleLine",
+          "text": "10:40 flash sale: checkout error rate 18% with 3 of 4 orders-api pods",
+          "when": "not isNull(saleFailedAt)",
+          "at": "timeAt(saleFailedAt)",
+          "error": "true"
+        },
+        {
+          "id": "doneLine",
+          "text": "deployment \"orders-api\" successfully rolled out",
+          "when": "not isNull(rolloutDoneAt)",
+          "at": "timeAt(rolloutDoneAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "checkout",
+          "label": "checkout",
+          "spokenLabel": "the checkout service",
+          "kind": "Deployment (calls orders-api)",
+          "status": "{not isNull(checkoutDownAt) and isNull(rolloutDoneAt) ? \"Failing every order\" : not isNull(rolloutDoneAt) ? \"Healthy\" : \"Degraded: some orders slow\"}",
+          "tone": "not isNull(checkoutDownAt) and isNull(rolloutDoneAt) ? \"down\" : not isNull(rolloutDoneAt) ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "svc",
+          "label": "Service orders-api",
+          "spokenLabel": "the orders-api Service",
+          "kind": "ClusterIP, port 8080",
+          "status": "{readyPods|0dp} ready endpoints",
+          "tone": "readyPods == 0 ? \"down\" : readyPods < 4 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "deploy",
+          "label": "Deployment orders-api",
+          "spokenLabel": "the orders-api Deployment",
+          "kind": "4 replicas, rolling update",
+          "status": "{not isNull(rolloutDoneAt) ? \"4/4 ready, rollout complete\" : cmValue == \"port80\" ? \"New pods Running but not Ready\" : \"Rollout stuck: new pods in CrashLoopBackOff\"}",
+          "tone": "not isNull(rolloutDoneAt) ? \"up\" : readyPods == 0 ? \"down\" : \"degraded\""
+        },
+        {
+          "id": "cm",
+          "label": "ConfigMap orders-config",
+          "spokenLabel": "the orders-config ConfigMap",
+          "kind": "Environment for orders-api",
+          "status": "LISTEN_PORT={cmValue == \"good\" ? \"8080\" : cmValue == \"port80\" ? \"80\" : \"8O80 (letter O)\"}",
+          "tone": "cmValue == \"good\" ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "calls",
+          "from": "checkout",
+          "to": "svc",
+          "label": "checkout calls orders-api",
+          "status": "{readyPods|0dp} of 4 backends",
+          "tone": "readyPods == 0 ? \"down\" : readyPods < 4 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "selects",
+          "from": "svc",
+          "to": "deploy",
+          "label": "Service selects app=orders-api",
+          "status": "{readyPods|0dp} ready",
+          "tone": "readyPods == 0 ? \"down\" : readyPods < 4 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "env",
+          "from": "deploy",
+          "to": "cm",
+          "label": "envFrom orders-config",
+          "status": "Read when a container starts",
+          "tone": "cmValue == \"good\" ? \"up\" : \"down\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "readyM",
+          "label": "Ready pods",
+          "value": "{readyPods|0dp} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshoot application failures from Pod status: Pending, CrashLoopBackOff, ImagePullBackOff, CreateContainerConfigError and OOMKilled, using describe, events and exec",
+  "secondaryObjectives": [
+    "Use ConfigMaps and Secrets to configure applications as environment variables, envFrom and mounted volumes, and know when a change reaches a running Pod",
+    "Manage and evaluate container output streams with kubectl logs for the previous container, multi-container Pods, all Pods of a selector, and following and tailing output",
+    "Understand application deployments and perform rolling updates and rollbacks with kubectl rollout status, history and undo, and tune maxSurge and maxUnavailable"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF, Certified Kubernetes Administrator (CKA) Exam Curriculum v1.37 (cncf/curriculum, commit 0a8cc08)",
+      "checkedAt": "2026-11-11",
+      "url": "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKA_Curriculum_v1.37.pdf",
+      "note": "Relevant text: 30% Troubleshooting: 'Troubleshoot clusters and nodes', 'Troubleshoot cluster components', 'Monitor cluster and application resource usage', 'Manage and evaluate container output streams', 'Troubleshoot services and networking'; 15% Workloads and Scheduling: 'Understand application deployments and how to perform rolling update and rollbacks', 'Use ConfigMaps and Secrets to configure applications'; 25% Cluster Architecture, Installation and Configuration: 'Manage the lifecycle of Kubernetes clusters', 'Prepare underlying infrastructure for installing a Kubernetes cluster'. Read in primary text (the PDF, extracted) on 2026-11-11. The course objective titles are the course seed's elaborations of these (2026-11-07)."
+    },
+    {
+      "cite": "Kubernetes documentation (v1.37), Pod Lifecycle: container restarts and CrashLoopBackOff",
+      "checkedAt": "2026-11-11",
+      "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+      "note": "Relevant text: 'After containers in a Pod exit, the kubelet restarts them with an exponential backoff delay (10s, 20s, 40s, …), that is capped at 300 seconds (5 minutes).' 'CrashLoopBackOff state: This indicates that the backoff delay mechanism is currently in effect for a given container that is in a crash loop, failing and restarting repeatedly.' Steps: check logs, 'Use kubectl describe pod <name-of-pod> to see events', 'Ensure that the Pod configuration, including environment variables and mounted volumes, is correct'. restartPolicy 'The default value is Always.' Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "Kubernetes documentation (v1.37), ConfigMaps",
+      "checkedAt": "2026-11-11",
+      "url": "https://kubernetes.io/docs/concepts/configuration/configmap/",
+      "note": "Relevant text: 'ConfigMaps consumed as environment variables are not updated automatically and require a pod restart.' Read through a summarizing fetch on 2026-11-11. Whether a crash-looping container picks up a corrected value on its own next restart is not modeled (FLAG): the scenario asks for the documented pod restart."
+    },
+    {
+      "cite": "Kubernetes documentation (v1.37), Deployments",
+      "checkedAt": "2026-11-11",
+      "url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/",
+      "note": "Relevant text: 'when you roll back to an earlier revision, only the Deployment's Pod template part is rolled back'; 'kubectl rollout undo deployment/nginx-deployment'; 'A Deployment's rollout is triggered if and only if the Deployment's Pod template (that is, .spec.template) is changed'; maxUnavailable and maxSurge default to 25% ('at least 75% of the desired number of Pods are up', 'at most 125%'); progressDeadlineSeconds 'defaults to 600'. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "Kubernetes documentation, kubectl logs reference",
+      "checkedAt": "2026-11-11",
+      "url": "https://kubernetes.io/docs/reference/kubectl/generated/kubectl_logs/",
+      "note": "Relevant text: '-p, --previous: If true, print the logs for the previous instance of the container in a pod if it exists.' Example 'kubectl logs -p -c ruby web-1'. Read through a summarizing fetch on 2026-11-11. The application's own log line and the kubectl output layouts in the scenario are authored renderings."
+    }
+  ],
+  "brief": {
+    "situation": "You are the cluster administrator at Fernhill Books (fictional). At 09:55 a teammate edited the ConfigMap orders-config and ran kubectl rollout restart on the orders-api Deployment (4 replicas, default rolling update) in namespace shop to pick it up. At 10:00 the rollout is stuck: new pods are in CrashLoopBackOff, three old pods still serve. A flash sale starts at 10:40 and needs all four. Find the cause and finish the rollout without taking checkout down.",
+    "handover": [
+      "orders-api reads its settings from orders-config through envFrom. The Service orders-api targets port 8080.",
+      "The teammate is in a meeting until 11:00."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, device or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "saleDelay": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-237)",
+        "checkedAt": "2026-11-11",
+        "note": "How many operator minutes each command or change takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. The flash sale starts at 10:40, 40 minutes after the alert."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "getPodsAt": {
+      "type": "time",
+      "init": null
+    },
+    "describeAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsPrevAt": {
+      "type": "time",
+      "init": null
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "cmAt": {
+      "type": "time",
+      "init": null
+    },
+    "svcAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "undoneAt": {
+      "type": "time",
+      "init": null
+    },
+    "cmValue": {
+      "type": "enum",
+      "values": [
+        "broken",
+        "good",
+        "port80"
+      ],
+      "init": "broken"
+    },
+    "cmFixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "restarts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "rolloutDoneAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkoutDownAt": {
+      "type": "time",
+      "init": null
+    },
+    "saleFailedAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "faultsAdded": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "configTypo",
+        "image",
+        "memory"
+      ],
+      "init": "none"
+    },
+    "lessonDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "validate",
+        "undo",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "readyPods": {
+      "expr": "not isNull(rolloutDoneAt) ? 4 : not isNull(checkoutDownAt) ? 0 : 3"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "getPods",
+        "describe",
+        "logsPrev",
+        "rolloutStatus",
+        "getCm",
+        "getSvc",
+        "editCm",
+        "rolloutRestart",
+        "rolloutUndo",
+        "deletePods",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "getPods": {
+      "label": "kubectl get pods -n shop",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "getPodsAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "not isNull(rolloutDoneAt)",
+              "then": [
+                {
+                  "output": "admin@cka-lab:~$ kubectl get pods -n shop\nNAME                          READY   STATUS    RESTARTS   AGE\norders-api-5c8d7f9b6-2hxwq    1/1     Running   0          1m\norders-api-5c8d7f9b6-9pkzd    1/1     Running   0          1m\norders-api-5c8d7f9b6-fq6tn    1/1     Running   0          1m\norders-api-5c8d7f9b6-wl4rc    1/1     Running   0          1m"
+                }
+              ]
+            },
+            {
+              "when": "not isNull(checkoutDownAt)",
+              "then": [
+                {
+                  "output": "admin@cka-lab:~$ kubectl get pods -n shop\nNAME                          READY   STATUS             RESTARTS     AGE\norders-api-6b7f9c8d5-4kq2m    0/1     CrashLoopBackOff   3 (30s ago)  2m\norders-api-6b7f9c8d5-h7v9x    0/1     CrashLoopBackOff   3 (25s ago)  2m\norders-api-6b7f9c8d5-n2b8s    0/1     CrashLoopBackOff   3 (31s ago)  2m\norders-api-7d9c5b4f8-xk2lp    0/1     CrashLoopBackOff   3 (28s ago)  2m"
+                }
+              ]
+            },
+            {
+              "when": "cmValue == \"port80\" and restarts > 0",
+              "then": [
+                {
+                  "output": "admin@cka-lab:~$ kubectl get pods -n shop\nNAME                          READY   STATUS    RESTARTS   AGE\norders-api-6b7f9c8d5-4kq2m    1/1     Running   0          3d\norders-api-6b7f9c8d5-h7v9x    1/1     Running   0          3d\norders-api-6b7f9c8d5-n2b8s    1/1     Running   0          3d\norders-api-84f6d7c9b-tz5mr    0/1     Running   0          2m\norders-api-84f6d7c9b-vq7hd    0/1     Running   0          2m"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "admin@cka-lab:~$ kubectl get pods -n shop\nNAME                          READY   STATUS             RESTARTS      AGE\norders-api-6b7f9c8d5-4kq2m    1/1     Running            0             3d\norders-api-6b7f9c8d5-h7v9x    1/1     Running            0             3d\norders-api-6b7f9c8d5-n2b8s    1/1     Running            0             3d\norders-api-7d9c5b4f8-p8w4n    0/1     CrashLoopBackOff   5 (90s ago)   6m\norders-api-7d9c5b4f8-xk2lp    0/1     CrashLoopBackOff   5 (70s ago)   6m"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "describe": {
+      "label": "kubectl describe pod orders-api-7d9c5b4f8-xk2lp -n shop",
+      "group": "Look",
+      "available": "not busy and (isNull(rolloutDoneAt))",
+      "why": "The crashing pods are gone; the rollout finished.",
+      "effects": [
+        {
+          "set": "describeAt",
+          "to": "t"
+        },
+        {
+          "output": "admin@cka-lab:~$ kubectl describe pod orders-api-7d9c5b4f8-xk2lp -n shop\n    State:          Waiting\n      Reason:       CrashLoopBackOff\n    Last State:     Terminated\n      Reason:       Error\n      Exit Code:    1\n    Environment Variables from:\n      orders-config  ConfigMap  Optional: false\nEvents:\n  Warning  BackOff  kubelet  Back-off restarting failed container orders-api in pod orders-api-7d9c5b4f8-xk2lp"
+        },
+        {
+          "finding": "The container starts and exits with code 1: the application itself quits. Its own output from the last run will say why."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "logsPrev": {
+      "label": "kubectl logs orders-api-7d9c5b4f8-xk2lp --previous -n shop",
+      "group": "Look",
+      "available": "not busy and (isNull(rolloutDoneAt) and cmValue == \"broken\")",
+      "why": "That pod no longer exists.",
+      "effects": [
+        {
+          "set": "logsPrevAt",
+          "to": "t"
+        },
+        {
+          "output": "admin@cka-lab:~$ kubectl logs orders-api-7d9c5b4f8-xk2lp --previous -n shop\nlevel=info msg=\"orders-api 3.4.1 starting\"\nlevel=fatal msg=\"config: LISTEN_PORT 8O80 is not a valid port number\""
+        },
+        {
+          "finding": "LISTEN_PORT is 8O80, with a letter O: the ConfigMap edit has a typo."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rolloutStatus": {
+      "label": "kubectl rollout status deployment/orders-api -n shop --timeout=60s",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "statusAt",
+          "to": "t"
+        },
+        {
+          "if": "not isNull(rolloutDoneAt)",
+          "then": [
+            {
+              "output": "admin@cka-lab:~$ kubectl rollout status deployment/orders-api -n shop --timeout=60s\ndeployment \"orders-api\" successfully rolled out"
+            }
+          ],
+          "else": [
+            {
+              "output": "admin@cka-lab:~$ kubectl rollout status deployment/orders-api -n shop --timeout=60s\nWaiting for deployment \"orders-api\" rollout to finish: 2 out of 4 new replicas have been updated...\nerror: timed out waiting for the condition"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "getCm": {
+      "label": "kubectl get configmap orders-config -o yaml -n shop",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "cmAt",
+          "to": "t"
+        },
+        {
+          "output": "admin@cka-lab:~$ kubectl get configmap orders-config -o yaml -n shop\napiVersion: v1\nkind: ConfigMap\ndata:\n  DB_HOST: orders-db.shop.svc\n  LISTEN_PORT: \"{cmValue == \"good\" ? \"8080\" : cmValue == \"port80\" ? \"80\" : \"8O80\"}\"\nmetadata:\n  name: orders-config\n  namespace: shop"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "getSvc": {
+      "label": "kubectl get service orders-api -o wide -n shop",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "svcAt",
+          "to": "t"
+        },
+        {
+          "output": "admin@cka-lab:~$ kubectl get service orders-api -o wide -n shop\nNAME         TYPE        CLUSTER-IP     PORT(S)    SELECTOR\norders-api   ClusterIP   10.96.41.207   8080/TCP   app=orders-api"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "editCm": {
+      "label": "kubectl edit configmap orders-config -n shop: LISTEN_PORT",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "params": [
+        {
+          "id": "port",
+          "kind": "choice",
+          "label": "New value",
+          "options": [
+            {
+              "value": "p8080",
+              "label": "8080"
+            },
+            {
+              "value": "p80",
+              "label": "80"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "port == \"p8080\"",
+          "then": [
+            {
+              "set": "cmValue",
+              "to": "\"good\""
+            },
+            {
+              "if": "isNull(cmFixedAt)",
+              "then": [
+                {
+                  "set": "cmFixedAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "output": "admin@cka-lab:~$ kubectl edit configmap orders-config -n shop  (LISTEN_PORT: \"8080\")\nconfigmap/orders-config edited"
+            },
+            {
+              "log": "orders-config now has LISTEN_PORT=8080. Running pods keep the environment they started with.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "if": "cmValue != \"port80\"",
+              "then": [
+                {
+                  "add": "faultsAdded",
+                  "by": "1"
+                }
+              ]
+            },
+            {
+              "set": "cmValue",
+              "to": "\"port80\""
+            },
+            {
+              "output": "admin@cka-lab:~$ kubectl edit configmap orders-config -n shop  (LISTEN_PORT: \"80\")\nconfigmap/orders-config edited"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "rolloutRestart": {
+      "label": "kubectl rollout restart deployment/orders-api -n shop",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "restarts",
+          "by": "1"
+        },
+        {
+          "output": "admin@cka-lab:~$ kubectl rollout restart deployment/orders-api -n shop\ndeployment.apps/orders-api restarted"
+        },
+        {
+          "cases": [
+            {
+              "when": "cmValue == \"good\"",
+              "then": [
+                {
+                  "if": "isNull(rolloutDoneAt)",
+                  "then": [
+                    {
+                      "set": "rolloutDoneAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "New pods start with LISTEN_PORT=8080, pass their readiness checks and replace the old ones one by one.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "cmValue == \"port80\"",
+              "then": [
+                {
+                  "log": "New pods start and listen on 80; the readiness probe on 8080 fails, so they never become Ready and the rollout stalls again.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "A new set of pods starts with the same bad value and crashes like the last.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "rolloutUndo": {
+      "label": "kubectl rollout undo deployment/orders-api -n shop",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(undoneAt)",
+          "then": [
+            {
+              "set": "undoneAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "admin@cka-lab:~$ kubectl rollout undo deployment/orders-api -n shop\ndeployment.apps/orders-api rolled back"
+        },
+        {
+          "if": "cmValue == \"good\"",
+          "then": [
+            {
+              "if": "isNull(rolloutDoneAt)",
+              "then": [
+                {
+                  "set": "rolloutDoneAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "log": "Rolled back to the previous Pod template, but the ConfigMap is not part of it: the replacement pod reads the same bad value and crashes.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "deletePods": {
+      "label": "kubectl delete pods -l app=orders-api -n shop",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "admin@cka-lab:~$ kubectl delete pods -l app=orders-api -n shop\npod \"orders-api-6b7f9c8d5-4kq2m\" deleted\npod \"orders-api-6b7f9c8d5-h7v9x\" deleted\npod \"orders-api-6b7f9c8d5-n2b8s\" deleted\n(and the new pods)"
+        },
+        {
+          "if": "cmValue == \"good\"",
+          "then": [
+            {
+              "add": "faultsAdded",
+              "by": "1"
+            },
+            {
+              "if": "isNull(rolloutDoneAt)",
+              "then": [
+                {
+                  "set": "rolloutDoneAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "Every pod was deleted at once: checkout failed for about a minute until the replacements, with the fixed value, became Ready.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "if": "isNull(checkoutDownAt)",
+              "then": [
+                {
+                  "set": "checkoutDownAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "Every pod was deleted; every replacement read the bad ConfigMap and crashed. orders-api has no ready pods and checkout is down.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "kubectl run tmp --rm -i --restart=Never --image=busybox:1.36 -n shop -- wget -qO- http://orders-api:8080/healthz",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "admin@cka-lab:~$ kubectl run tmp --rm -i --restart=Never --image=busybox:1.36 -n shop -- wget -qO- http://orders-api:8080/healthz\n{readyPods > 0 ? \"ok\" : \"wget: can't connect to remote host (10.96.41.207): Connection refused\"}\npod \"tmp\" deleted"
+        },
+        {
+          "if": "not isNull(rolloutDoneAt) and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 600",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "admin@cka-lab:~$ sleep 600"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "configTypo",
+                  "label": "A typo in orders-config (LISTEN_PORT 8O80) made the new pods exit at start"
+                },
+                {
+                  "value": "image",
+                  "label": "A bad container image"
+                },
+                {
+                  "value": "memory",
+                  "label": "The pods ran out of memory"
+                }
+              ]
+            },
+            {
+              "id": "lesson",
+              "label": "Lesson learned",
+              "options": [
+                {
+                  "value": "validate",
+                  "label": "Validate config changes and roll them out as a new versioned ConfigMap with the Deployment"
+                },
+                {
+                  "value": "undo",
+                  "label": "Use kubectl rollout undo next time"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing to change"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "lessonDoc",
+          "to": "lesson"
+        },
+        {
+          "log": "Recorded: cause {cause}, lesson {lesson}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-237)",
+        "checkedAt": "2026-11-11",
+        "note": "How many operator minutes each command or change takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "sale",
+      "when": "t >= saleDelay and phase == \"incident\" and isNull(rolloutDoneAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "saleFailedAt",
+          "to": "t"
+        },
+        {
+          "log": "10:40: the flash sale started without all four orders-api pods; checkout errors climbed.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: what CrashLoopBackOff told you, how you found the cause, and why your fix worked where a rollback would not.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Reading the status",
+          "criteria": "Explains CrashLoopBackOff as the kubelet backing off restarts of a container that keeps exiting (exit code 1 here), and that the logs of the previous instance say why.",
+          "modelAnswer": "CrashLoopBackOff means the container keeps exiting and the kubelet is waiting longer between restarts. describe showed exit code 1, so the app quit on its own; kubectl logs --previous showed it rejecting LISTEN_PORT 8O80."
+        },
+        {
+          "label": "Why not undo",
+          "criteria": "States that rollout undo reverts only the Pod template, not the ConfigMap, so it cannot fix a bad value read through envFrom.",
+          "modelAnswer": "rollout undo only restores the previous Pod template; the ConfigMap is a separate object, so the old template still reads the bad value."
+        },
+        {
+          "label": "Fix and verify",
+          "criteria": "Corrects the ConfigMap to 8080 (the Service's target port), restarts the rollout so pods pick up the environment, keeps old pods serving, and verifies the endpoint; proposes validating or versioning config changes.",
+          "modelAnswer": "I set LISTEN_PORT to 8080, matching the Service, and ran rollout restart, since env from a ConfigMap is read only when a container starts. The rolling update kept three pods serving until the new ones were Ready; wget to the Service answered ok. Next time, roll config out as a new versioned ConfigMap with the Deployment."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Done with time to spare before the 10:40 flash sale; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-11",
+          "note": "No second fault: a wrong port, or every pod deleted at once."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(rolloutDoneAt)",
+      "class": "harm",
+      "rationale": "Closing with the rollout stuck leaves checkout on three pods and the next restart one pod nearer an outage; it is never a safe outcome.",
+      "source": {
+        "cite": "Kubernetes documentation (v1.37), Deployments",
+        "checkedAt": "2026-11-11",
+        "url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/",
+        "note": "Relevant text: 'when you roll back to an earlier revision, only the Deployment's Pod template part is rolled back'; 'kubectl rollout undo deployment/nginx-deployment'; 'A Deployment's rollout is triggered if and only if the Deployment's Pod template (that is, .spec.template) is changed'; maxUnavailable and maxSurge default to 25% ('at least 75% of the desired number of Pods are up', 'at most 125%'); progressDeadlineSeconds 'defaults to 600'. Read through a summarizing fetch on 2026-11-11."
+      }
+    }
+  },
+  "endings": {
+    "checkoutDown": {
+      "label": "Every pod deleted: checkout down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(checkoutDownAt)",
+      "narrative": "Deleting every orders-api pod while the ConfigMap was still wrong left no ready pods, and checkout failed every order."
+    },
+    "saleFailed": {
+      "label": "The flash sale ran short",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(saleFailedAt)",
+      "narrative": "The rollout was still stuck at 10:40, so the flash sale ran on three pods and checkout errors climbed."
+    },
+    "stillBroken": {
+      "label": "Closed with the rollout stuck",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and isNull(rolloutDoneAt)",
+      "narrative": "The outage was closed while the new pods still crashed."
+    },
+    "fixed": {
+      "label": "Fixed at the ConfigMap",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not isNull(rolloutDoneAt) and timeAt(rolloutDoneAt) <= restoreWindow and faultsAdded <= newFaults and isNull(undoneAt) and not isNull(logsPrevAt) and timeAt(logsPrevAt) <= timeAt(firstChangeAt) and not isNull(verifiedAt)",
+      "narrative": "The previous container's log named the typo, the ConfigMap was corrected, a rolling restart picked it up with old pods serving throughout, and the Service answers."
+    },
+    "fixedGaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "orders-api is healthy, but the fix was late, guessed, took a detour through undo or a wrong port, or dropped every pod at once."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "checkoutDown",
+    "saleFailed",
+    "stillBroken",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "readPrevious",
+        "label": "Read the previous container's logs before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(logsPrevAt) and (isNull(firstChangeAt) or timeAt(logsPrevAt) <= timeAt(firstChangeAt))",
+            "score": "met",
+            "why": "kubectl logs --previous named LISTEN_PORT first."
+          },
+          {
+            "when": "not isNull(logsPrevAt)",
+            "score": "partial",
+            "why": "The log was read only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The crashing container's own output was never read."
+          }
+        ]
+      },
+      {
+        "id": "fixedConfig",
+        "label": "Fixed the ConfigMap rather than relying on rollout undo",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(rolloutDoneAt) and isNull(undoneAt)",
+            "score": "met",
+            "why": "The value was corrected and a restart picked it up."
+          },
+          {
+            "when": "not isNull(rolloutDoneAt)",
+            "score": "partial",
+            "why": "An undo came first, which cannot change a ConfigMap."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The rollout never finished."
+          }
+        ]
+      },
+      {
+        "id": "keptServing",
+        "label": "Kept old pods serving: no pod-wide delete, no wrong port",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(checkoutDownAt) and faultsAdded == 0",
+            "score": "met",
+            "why": "Checkout never lost orders-api."
+          },
+          {
+            "when": "isNull(checkoutDownAt)",
+            "score": "partial",
+            "why": "A wrong port or a delete-all cost time or a minute of errors."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Every pod was deleted while the value was still wrong."
+          }
+        ]
+      },
+      {
+        "id": "fixedFast",
+        "label": "Rollout complete within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(rolloutDoneAt) and timeAt(rolloutDoneAt) <= restoreWindow",
+            "score": "met",
+            "why": "Complete {timeAt(rolloutDoneAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(rolloutDoneAt)",
+            "score": "partial",
+            "why": "Complete, but {timeAt(rolloutDoneAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never completed."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Verified the Service answers from inside the cluster",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "/healthz answered ok."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked the Service."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and a lesson accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"configTypo\" and lessonDoc == \"validate\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"configTypo\"",
+            "score": "partial",
+            "why": "The cause is right; the lesson is not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written status reading, undo and fix",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToFix",
+        "label": "Minutes until the rollout completed",
+        "value": "isNull(rolloutDoneAt) ? -1 : timeAt(rolloutDoneAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "restartsK",
+        "label": "Rollout restarts",
+        "value": "restarts",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "faultsK",
+        "label": "Faults the fix introduced",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-3 min",
+        "text": "kubectl get pods: two new pods in CrashLoopBackOff, three old ones serving. describe: exit code 1, envFrom orders-config."
+      },
+      {
+        "at": "3-6 min",
+        "text": "kubectl logs --previous: LISTEN_PORT 8O80 is not a valid port. The ConfigMap has the typo; the Service targets 8080."
+      },
+      {
+        "at": "6-12 min",
+        "text": "Edit LISTEN_PORT to 8080, rollout restart, watch the rollout complete, wget the Service from a client pod."
+      },
+      {
+        "at": "After",
+        "text": "Record the ConfigMap typo; roll config out as a new versioned ConfigMap with the Deployment next time."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: fixed at the ConfigMap",
+        "body": "You read the crashing container's own last words, fixed the value it rejected, and let the rolling update replace pods while the old ones kept serving."
+      },
+      "fixedGaps": {
+        "headline": "Fixed, with gaps",
+        "body": "orders-api is healthy. The criteria show the detour: an undo, a wrong port, a delete-all or a late start."
+      },
+      "checkoutDown": {
+        "headline": "Checkout down",
+        "body": "Deleting pods does not change what they read. While the ConfigMap is wrong, every replacement crashes; the old pods were the only ones serving."
+      },
+      "saleFailed": {
+        "headline": "The sale ran short",
+        "body": "kubectl logs --previous names the bad value in a minute. The fix was one edit and one restart."
+      },
+      "stillBroken": {
+        "headline": "Closed too soon",
+        "body": "rollout undo restores the Pod template, not the ConfigMap; the new pods still crashed."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "CrashLoopBackOff with exit code 1 means the application quits at start. kubectl logs --previous shows it rejecting LISTEN_PORT 8O80 from orders-config. rollout undo would restore only the Pod template, which reads the same ConfigMap. Set LISTEN_PORT to 8080 (the Service's target port), run rollout restart because env from a ConfigMap is read only at container start, let the rolling update replace pods with the old ones serving, and verify through the Service."
+  }
+}

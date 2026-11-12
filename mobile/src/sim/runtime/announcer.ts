@@ -5,6 +5,9 @@
 // Nothing polite is spoken while a text field has focus. REQ-225: `news`
 // carries polite sentences the screen derives itself (a client session's
 // rapport or distress moving into another band), queued like log news.
+// REQ-237: `urgent` carries sentences spoken at once, never rate-limited and
+// spoken even while typing (a terminal error line), like an alarm that has no
+// cleared state.
 
 export const POLITE_EVERY_MS = 10_000;
 
@@ -26,7 +29,7 @@ export function newAnnouncer(): AnnouncerState {
 
 export function announce(
   s: AnnouncerState,
-  input: { alarms: string[]; log: { kind: string; text: string }[]; nowMs: number; typing: boolean; news?: string[] }
+  input: { alarms: string[]; log: { kind: string; text: string }[]; nowMs: number; typing: boolean; news?: string[]; urgent?: string[] }
 ): { state: AnnouncerState; out: Announcement[] } {
   const out: Announcement[] = [];
   const entered = input.alarms.filter((a) => !s.alarms.includes(a));
@@ -36,6 +39,7 @@ export function announce(
   const fresh = input.log.slice(s.seenLog).filter((l) => l.kind === "good" || l.kind === "bad" || l.kind === "find" || l.kind === "skip" || l.kind === "alarm");
   const queued = [...s.queued, ...fresh.filter((l) => l.kind !== "alarm").map((l) => l.text), ...(input.news ?? [])];
   for (const l of fresh) if (l.kind === "alarm") out.push({ text: l.text, assertive: true });
+  for (const u of input.urgent ?? []) out.push({ text: u, assertive: true });
   let lastPoliteMs = s.lastPoliteMs;
   let rest = queued;
   if (queued.length && !input.typing && input.nowMs - s.lastPoliteMs >= POLITE_EVERY_MS) {

@@ -683,6 +683,29 @@ walk the test plan's six steps. Doses follow the NASEMSO Model Guidelines
 v3.0 and the AHA 2025 adult ALS guideline (read 2026-11-09). All 24 are
 `needs_expert_review`.
 
+### NBCC counseling exams: NCE and NCMHCE (REQ-239)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| NCE | 12 (5 build, 7 case) | 2/2/3/1/3/1 | [NCE content outline (2023)](https://www.nbcc.org/assets/exam/nce_content_outline.pdf) (read 2026-11-11) |
+| NCMHCE | 12 (2 build, 10 case) | 2/2/2/2/2/2 | [NCMHCE content outline (revised 2025-10-08)](https://www.nbcc.org/assets/exam/ncmhce_content_outline.pdf) (read 2026-11-11) |
+
+Files `seed/labs/nbcc-nce.ts` and `nbcc-ncmhce.ts`, checked by
+`lib/labs-nbcc.test.ts` (hybrid density unit by unit, one lab per objective,
+the clinical safety note, fictional people, a value source or a reason on
+every lab). The NCMHCE outline gives Areas of Clinical Focus no item-level
+weight (it is assessed through the cases), so its weights are 15/25/0/15/30/15;
+`apportion()` treats any zero weight as "weights unknown" and splits the six
+extra labs evenly, which is why every NCMHCE unit has two. A weighted split
+over the five nonzero domains would give 2/2/1/2/3/2 instead (a decision for
+Nick, not changed here). The NCMHCE case labs take the exam's shape: the
+brief is the intake summary and later steps are counseling sessions. Values
+(ACA Code of Ethics 2014, the VA PTSD criteria page, SAMHSA 988, the ASAM
+Criteria page) are in `value-sources.ts`, read 2026-11-11. NBCC's new
+blueprints take effect 2027-07-01, so both outlines are rechecked by
+2027-04-01. All 24 are `needs_expert_review` until a licensed professional
+counselor approves them.
+
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as

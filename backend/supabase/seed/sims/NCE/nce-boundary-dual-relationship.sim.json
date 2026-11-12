@@ -1,0 +1,1293 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "nce-boundary-dual-relationship",
+  "title": "Session: a friend request, a wedding invitation and a small town",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Kelsey Arnett",
+        "presentation": "{distress >= 6 ? \"Twisting the invitation in her hands\" : distress >= 3 ? \"Bright but a little nervous\" : \"Relaxed, smiling\"}; {rapport >= 6 ? \"she talks easily\" : rapport >= 3 ? \"she watches your face for a reaction\" : \"she has gone quiet and formal\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "friendNote",
+          "label": "Friend request",
+          "text": "From Kelsey on your personal social media, sent last night. Not yet answered.",
+          "when": "not friendRaised and not friendAccepted",
+          "alert": "not friendRaised and not friendAccepted"
+        },
+        {
+          "id": "friendDone",
+          "label": "Friend request",
+          "text": "Declined; you explained why and she said it made sense.",
+          "when": "friendRaised"
+        },
+        {
+          "id": "friendBad",
+          "label": "Friend request",
+          "text": "Accepted: you are now connected on personal social media.",
+          "when": "friendAccepted",
+          "alert": "friendAccepted"
+        },
+        {
+          "id": "inviteNote",
+          "label": "Wedding",
+          "text": "{inviteExplored ? \"She would like you there because her mother won't be; you helped her 'get here'.\" : \"Invitation to her wedding in six weeks; not yet explored.\"} {inviteAnswer == \"deferred\" ? \"You said you would think it through and decide with her next week.\" : inviteAnswer == \"attendNow\" ? \"You said yes on the spot.\" : inviteAnswer == \"declineCold\" ? \"You declined flatly.\" : \"\"}",
+          "when": "true"
+        },
+        {
+          "id": "coachNote",
+          "label": "Soccer",
+          "text": "{overlapPlan ? \"Agreed: she decides whether to say hello; you won't mention counseling there; you'll check in after the first game.\" : overlapAsked ? \"She worried it would be weird and didn't want to give it up. No plan yet.\" : \"She is the new coach of your daughter's under-10 team.\"}",
+          "when": "true"
+        }
+      ],
+      "record": {
+        "label": "Session note so far",
+        "items": [
+          {
+            "label": "Friend request addressed in session",
+            "when": "friendRaised"
+          },
+          {
+            "label": "Invitation explored",
+            "when": "inviteExplored"
+          },
+          {
+            "label": "Plan for meeting outside counseling agreed with her consent",
+            "when": "overlapPlan"
+          },
+          {
+            "label": "Consulted: {consulted ? \"yes\" : \"not yet\"}; wedding decision: {wedding}",
+            "when": "phase == \"note\""
+          },
+          {
+            "label": "Documented: rationale {rationaleDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Manage boundaries and multiple relationships under the ACA Code of Ethics",
+  "sources": [
+    {
+      "cite": "NBCC, NCE Content Outline (2023): Domain 1 Professional Practice and Ethics, 12% (tasks C, D, P, V: practice legal and ethical counseling, clarify counselor-client roles, monitor the relationship, seek supervision/consultation)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.nbcc.org/assets/exam/nce_content_outline.pdf",
+      "note": "Current outline; NBCC's new blueprint takes effect 2027-07-01."
+    },
+    {
+      "cite": "ACA Code of Ethics (2014): A.5.e personal virtual relationships with current clients; A.6.a previous relationships; A.6.b extending counseling boundaries; A.6.c documenting boundary extensions; A.11.a-b and A.12 referral, values and abandonment; H.6.a separate personal and professional online presence",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.counseling.org/docs/default-source/default-document-library/ethics/2014-aca-code-of-ethics.pdf",
+      "note": "The current code: counseling.org (read 2026-11-11) says the 2014 Code remains current until the Board adopts a revision. A.5.e prohibits a personal virtual relationship with a current client; A.6.b names attending a client's wedding as a boundary extension to weigh, with precautions (informed consent, consultation, supervision, documentation); A.6.c asks that the rationale, benefit and anticipated consequences be documented before the interaction when feasible."
+    }
+  ],
+  "brief": {
+    "situation": "You are a licensed professional counselor in a town of about 4,000, where the nearest other counselor is 50 miles away. Kelsey Arnett, 31 (a fictional client), a dental hygienist, has seen you for ten sessions for anxiety and is doing well. Last night she sent a friend request to your personal social media account. As today's session starts she hands you an invitation to her wedding in six weeks, and mentions she has just been named coach of the under-10 soccer team your daughter plays on. You have 50 minutes.",
+    "handover": [
+      "Session 11. Treatment plan: generalized anxiety, CBT; worry down, sleep better. No risk concerns at any session."
+    ],
+    "howItWorks": [
+      "Choose what to ask and how to respond from the action groups. Kelsey answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "Kelsey's rapport, distress and how much she is disclosing change with what you say, and are shown in words.",
+      "The hour ends at 50 minutes. After the session you can consult, decide about the wedding, and document; then you write a short rationale."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "70min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-11",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-11",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-11",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 4,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "friendRaised": {
+      "type": "bool",
+      "init": false
+    },
+    "friendAt": {
+      "type": "time",
+      "init": null
+    },
+    "friendAccepted": {
+      "type": "bool",
+      "init": false
+    },
+    "inviteExplored": {
+      "type": "bool",
+      "init": false
+    },
+    "inviteAnswer": {
+      "type": "enum",
+      "values": [
+        "none",
+        "attendNow",
+        "declineCold",
+        "deferred"
+      ],
+      "init": "none"
+    },
+    "overlapAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "overlapPlan": {
+      "type": "bool",
+      "init": false
+    },
+    "transferred": {
+      "type": "bool",
+      "init": false
+    },
+    "consulted": {
+      "type": "bool",
+      "init": false
+    },
+    "wedding": {
+      "type": "enum",
+      "values": [
+        "none",
+        "ceremony",
+        "decline",
+        "reception"
+      ],
+      "init": "none"
+    },
+    "rationaleDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "brief",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "raiseFriend",
+        "acceptFriend",
+        "exploreInvite",
+        "answerInvite",
+        "exploreCoach",
+        "planOverlap",
+        "transferOut",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "consult",
+        "decideWedding",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "Open-ended check-in: 'How have things been since last week?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "You have checked in.",
+      "effects": [
+        {
+          "log": "You ask an open question and give her room.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Honestly? Good. The worry log helps. Wedding planning is chaos, but good chaos.\" She laughs."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Kelsey nods. \"Yeah. It's a lot of good things at once.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "raiseFriend": {
+      "label": "Raise the friend request: you don't connect with clients on personal social media, and why",
+      "group": "Address",
+      "available": "not talking and (not friendRaised and not friendAccepted)",
+      "why": "Already handled.",
+      "effects": [
+        {
+          "log": "You tell her you saw the request, that you don't connect with clients on personal social media, and that it protects her privacy and keeps the hour hers.",
+          "kind": "act"
+        },
+        {
+          "set": "friendRaised",
+          "to": "true"
+        },
+        {
+          "set": "friendAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"Oh. That makes sense. I didn't even think about it, everyone here is friends with everyone.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "add": "distress",
+                  "by": "1"
+                },
+                {
+                  "finding": "She flushes. \"Sorry. Forget it.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Declined and explained (ACA A.5.e).",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "acceptFriend": {
+      "label": "Say you accepted the request: it's a small town anyway",
+      "group": "Address",
+      "available": "not talking and (not friendRaised and not friendAccepted)",
+      "why": "Already handled.",
+      "effects": [
+        {
+          "log": "You tell her you accepted; everyone knows everyone here anyway.",
+          "kind": "act"
+        },
+        {
+          "set": "friendAccepted",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "finding": "She beams. \"Great! Now you'll see the wedding photos.\""
+        },
+        {
+          "log": "A personal virtual relationship with a current client is prohibited (ACA A.5.e).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "exploreInvite": {
+      "label": "Ask what it would mean to her if you came",
+      "group": "Explore",
+      "available": "not talking and (not inviteExplored)",
+      "why": "You have explored it.",
+      "effects": [
+        {
+          "log": "You thank her and ask what it would mean to her to have you there.",
+          "kind": "act"
+        },
+        {
+          "set": "inviteExplored",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "Her eyes fill. \"My mom won't be there. You helped me get here. I'd just like you to see it.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "answerInvite": {
+      "label": "Answer the invitation",
+      "group": "Address",
+      "available": "not talking and (inviteAnswer == \"none\")",
+      "why": "You have answered.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "reply == \"yes\"",
+              "then": [
+                {
+                  "set": "inviteAnswer",
+                  "to": "\"attendNow\""
+                },
+                {
+                  "add": "rapport",
+                  "by": "1"
+                },
+                {
+                  "finding": "\"Really? Oh, that's wonderful.\""
+                },
+                {
+                  "log": "Saying yes on the spot skips weighing it, consulting and documenting first (ACA A.6.b-c).",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "reply == \"no\"",
+              "then": [
+                {
+                  "set": "inviteAnswer",
+                  "to": "\"declineCold\""
+                },
+                {
+                  "add": "rapport",
+                  "by": "-2"
+                },
+                {
+                  "add": "distress",
+                  "by": "1.5"
+                },
+                {
+                  "finding": "\"Oh. Right. Of course.\" She puts the invitation back in her bag."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "inviteAnswer",
+                  "to": "\"deferred\""
+                },
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"That's fair. I'd rather you thought about it than just said yes.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ],
+      "params": [
+        {
+          "id": "reply",
+          "kind": "choice",
+          "label": "Your answer",
+          "options": [
+            {
+              "value": "yes",
+              "label": "'Yes, I'd love to come.'"
+            },
+            {
+              "value": "no",
+              "label": "'Counselors never go to client events.'"
+            },
+            {
+              "value": "defer",
+              "label": "'I'm touched. Let me think it through with a colleague, and we'll decide together next week.'"
+            }
+          ]
+        }
+      ]
+    },
+    "exploreCoach": {
+      "label": "Ask how she feels about seeing you at your daughter's games",
+      "group": "Explore",
+      "available": "not talking and (not overlapAsked)",
+      "why": "You have asked.",
+      "effects": [
+        {
+          "log": "You name the overlap and ask how she feels about seeing you at the field.",
+          "kind": "act"
+        },
+        {
+          "set": "overlapAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"I wondered if it'd be weird. I didn't want to give it up, though. I played as a kid.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "planOverlap": {
+      "label": "Agree together how you'll handle meeting at the field",
+      "group": "Address",
+      "available": "not talking and (overlapAsked and not overlapPlan)",
+      "why": "Ask how she feels about it first (or the plan is agreed).",
+      "effects": [
+        {
+          "log": "You agree: she decides whether to say hello; you won't mention counseling there; what she tells you at the field isn't session material unless she brings it; you'll check in after the first game.",
+          "kind": "act"
+        },
+        {
+          "set": "overlapPlan",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Okay. That actually makes me less nervous.\""
+        },
+        {
+          "log": "A plan for an unavoidable overlap, with her consent (ACA A.6.a).",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "transferOut": {
+      "label": "Tell her the overlap means she should see another counselor",
+      "group": "Address",
+      "available": "not talking and (not transferred)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You tell her that because of the soccer overlap she should transfer to another counselor.",
+          "kind": "act"
+        },
+        {
+          "set": "transferred",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-3"
+        },
+        {
+          "add": "distress",
+          "by": "2"
+        },
+        {
+          "finding": "\"The next counselor is fifty miles away. I just started feeling better.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "End the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "consult": {
+      "label": "Consult a colleague about the invitation and the overlap",
+      "group": "After the session",
+      "available": "not consulted",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "consulted",
+          "to": "true"
+        },
+        {
+          "log": "You consult a colleague: attending only the ceremony, briefly, with Kelsey's agreement and a plan, or declining warmly, are both defensible; either way, write the rationale first.",
+          "kind": "act"
+        }
+      ]
+    },
+    "decideWedding": {
+      "label": "Decide about the wedding",
+      "group": "After the session",
+      "available": "wedding == \"none\"",
+      "why": "Decided.",
+      "params": [
+        {
+          "id": "plan",
+          "kind": "choice",
+          "label": "Decision",
+          "options": [
+            {
+              "value": "ceremony",
+              "label": "Attend the ceremony only, briefly, as agreed with her next week"
+            },
+            {
+              "value": "decline",
+              "label": "Decline warmly next week and explore what it means to her"
+            },
+            {
+              "value": "reception",
+              "label": "Go to the ceremony and the reception and celebrate with her"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "wedding",
+          "to": "plan"
+        },
+        {
+          "log": "Decision: {plan}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the boundary decisions",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "rationale",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "The friend request and response; the overlap plan with her consent; the wedding decision with its rationale, benefits and risks, and the consultation, written before the event"
+                },
+                {
+                  "value": "brief",
+                  "label": "A line that she invited you"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing; it's not clinical"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "rationaleDoc",
+          "to": "rationale"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: {rationale}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-11",
+        "note": "A 50-minute outpatient session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "The client stands, says this is not helping, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictCode",
+      "when": "inviteExplored and phase == \"session\"",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "whichProhibited"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "whichProhibited": {
+      "title": "Predict (not scored)",
+      "context": "Two requests from Kelsey: the friend request and the wedding invitation. Under the ACA Code of Ethics (2014), which is prohibited outright and which is weighed?",
+      "choices": [
+        {
+          "id": "friend",
+          "label": "The friend request is prohibited; the wedding is weighed",
+          "effects": [
+            {
+              "log": "Prediction: the friend request is prohibited.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. A.5.e prohibits a personal virtual relationship with a current client; A.6.b names attending a client's wedding as a boundary extension to weigh, with consent, consultation and documentation."
+        },
+        {
+          "id": "both",
+          "label": "Both are prohibited",
+          "effects": [
+            {
+              "log": "Prediction: both are prohibited.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not quite. A.5.e prohibits the personal virtual relationship, but A.6.b treats attending a wedding as a boundary extension the counselor may weigh, with precautions and documentation (A.6.c)."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your rationale for how you handled Kelsey's three boundary questions: the friend request, the soccer overlap and the wedding invitation, naming the ACA standards and what you did.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Prohibited versus weighed",
+          "criteria": "Separates the prohibited (a personal virtual relationship with a current client, A.5.e) from what is weighed (an unavoidable overlap in a small community, A.6.a; attending a ceremony, A.6.b), and explains why a flat refusal or a transfer can harm the client too.",
+          "modelAnswer": "Accepting the friend request would be a personal virtual relationship with a current client, which A.5.e prohibits, so it was declined and explained. The soccer overlap is unavoidable in a small town; A.6.a asks for precautions (consent, consultation, documentation) rather than ending counseling, and transferring her 50 miles away would cost her a working alliance. The wedding is a boundary extension under A.6.b: it can be right or wrong depending on its meaning and risks."
+        },
+        {
+          "label": "Precautions taken",
+          "criteria": "Names the precautions: explored the invitation's meaning, deferred the decision, consulted a colleague, agreed an overlap plan with her consent, and documented the rationale, benefit and risks before the event (A.6.c).",
+          "modelAnswer": "I explored what the invitation means to her, deferred the answer so I could consult, agreed with her how we handle meeting at the field, and wrote the rationale, expected benefit and risks before the wedding, as A.6.c asks, with the consultation noted."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-11"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-11",
+          "note": "The friend request is waiting from the first minute; addressing it within 20 minutes leaves time for the invitation and the overlap (author's scenario timing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not friendRaised and not friendAccepted and not overlapPlan",
+      "class": "recovered",
+      "rationale": "Nothing harmful was done, but the friend request and the soccer overlap were left to chance; no immediate risk to the client, so recovered, not harm.",
+      "source": {
+        "cite": "ACA Code of Ethics (2014): A.5.e personal virtual relationships with current clients; A.6.a previous relationships; A.6.b extending counseling boundaries; A.6.c documenting boundary extensions; A.11.a-b and A.12 referral, values and abandonment; H.6.a separate personal and professional online presence",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.counseling.org/docs/default-source/default-document-library/ethics/2014-aca-code-of-ethics.pdf",
+        "note": "The current code: counseling.org (read 2026-11-11) says the 2014 Code remains current until the Board adopts a revision. A.5.e prohibits a personal virtual relationship with a current client; A.6.b names attending a client's wedding as a boundary extension to weigh, with precautions (informed consent, consultation, supervision, documentation); A.6.c asks that the rationale, benefit and anticipated consequences be documented before the interaction when feasible."
+      }
+    }
+  },
+  "endings": {
+    "personal": {
+      "label": "A personal relationship",
+      "class": "harm",
+      "when": "documented and friendAccepted",
+      "terminal": true,
+      "narrative": "You are connected with a current client on personal social media: the boundary A.5.e draws is crossed, and what she posts and sees now follows the counseling into her life."
+    },
+    "walkout": {
+      "label": "She walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Kelsey left mid-session feeling rejected, with her anxiety work unfinished and the counselor nearest after you 50 miles away."
+    },
+    "transferredEnd": {
+      "label": "Transferred out",
+      "class": "recovered",
+      "when": "documented and not walkedOut and not friendAccepted and transferred",
+      "terminal": true,
+      "narrative": "Kelsey agreed to transfer. The boundary is safe, but she lost a working alliance and now drives 50 miles to start again; an unavoidable overlap called for precautions, not an ending."
+    },
+    "held": {
+      "label": "Boundaries held, alliance kept",
+      "class": "target",
+      "when": "documented and not walkedOut and not friendAccepted and not transferred and friendRaised and timeAt(friendAt) <= safetyWindow and inviteExplored and inviteAnswer == \"deferred\" and overlapAsked and overlapPlan and consulted and (wedding == \"ceremony\" or wedding == \"decline\") and rationaleDoc == \"full\" and rapport >= allianceTarget",
+      "terminal": true,
+      "narrative": "Kelsey understood why you won't connect online, has a plan for the soccer field she chose herself, and knows you will decide about the wedding with her after thinking it through."
+    },
+    "heldGaps": {
+      "label": "Boundaries held, with gaps",
+      "class": "recovered",
+      "when": "documented and not walkedOut and not friendAccepted and not transferred",
+      "terminal": true,
+      "narrative": "Nothing crossed a line, but parts of the work were late, missing or not written down first."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "personal",
+    "walkout",
+    "transferredEnd",
+    "held",
+    "heldGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "friendCrit",
+        "label": "The friend request declined and explained (A.5.e)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "friendAccepted",
+            "score": "missed",
+            "why": "Accepted a current client's friend request."
+          },
+          {
+            "when": "friendRaised and timeAt(friendAt) <= safetyWindow",
+            "score": "met",
+            "why": "Raised it {timeAt(friendAt) / 60} min in and explained why."
+          },
+          {
+            "when": "friendRaised",
+            "score": "partial",
+            "why": "Raised it, but only {timeAt(friendAt) / 60} min in."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Never raised: ignoring it leaves her guessing."
+          }
+        ]
+      },
+      {
+        "id": "overlapCrit",
+        "label": "A plan for the soccer overlap, with her consent (A.6.a)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "overlapPlan",
+            "score": "met",
+            "why": "Explored it and agreed a plan she chose."
+          },
+          {
+            "when": "overlapAsked",
+            "score": "partial",
+            "why": "Named it but agreed no plan."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The overlap was never discussed."
+          }
+        ]
+      },
+      {
+        "id": "extensionCrit",
+        "label": "The invitation weighed: explored, deferred, consulted, decided (A.6.b)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "inviteExplored and inviteAnswer == \"deferred\" and consulted and (wedding == \"ceremony\" or wedding == \"decline\")",
+            "score": "met",
+            "why": "Explored, deferred, consulted and decided ({wedding})."
+          },
+          {
+            "when": "inviteAnswer == \"attendNow\" or inviteAnswer == \"declineCold\" or wedding == \"reception\"",
+            "score": "missed",
+            "why": "Decided without weighing it ({inviteAnswer}, {wedding})."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Some of explore, defer, consult and decide."
+          }
+        ]
+      },
+      {
+        "id": "documentCrit",
+        "label": "Rationale documented before the event (A.6.c)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rationaleDoc == \"full\"",
+            "score": "met",
+            "why": "Rationale, benefit, risks and the consultation written down."
+          },
+          {
+            "when": "rationaleDoc == \"brief\"",
+            "score": "partial",
+            "why": "A line, not a rationale."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      },
+      {
+        "id": "noTransfer",
+        "label": "Kept her in care",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "transferred",
+            "score": "missed",
+            "why": "Transferred her because of an overlap that precautions could manage."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Kept counseling going."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written rationale",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToFriend",
+        "label": "Minutes to raising the friend request",
+        "value": "isNull(friendAt) ? -1 : timeAt(friendAt) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Check in, then raise the friend request: decline it and explain why, warmly."
+      },
+      {
+        "at": "10-25 min",
+        "text": "Explore what the invitation means to her and defer the answer to consult; name the soccer overlap and ask how she feels."
+      },
+      {
+        "at": "25-40 min",
+        "text": "Agree a plan for the field that she chooses; return to her anxiety goals."
+      },
+      {
+        "at": "After",
+        "text": "Consult, decide (the ceremony only, or a warm no), and document the rationale before the wedding."
+      }
+    ],
+    "debrief": {
+      "held": {
+        "headline": "Good: boundaries held, alliance kept",
+        "body": "You separated the prohibited (the friend request) from what is weighed (the overlap and the wedding), took precautions, and kept her in care."
+      },
+      "heldGaps": {
+        "headline": "Held, with gaps",
+        "body": "No line was crossed, but the criteria below show what was late, missing or not documented."
+      },
+      "transferredEnd": {
+        "headline": "Safe, at a cost",
+        "body": "An unavoidable overlap in a small town calls for precautions (A.6.a), not a transfer 50 miles away that costs her a working alliance."
+      },
+      "personal": {
+        "headline": "A line crossed",
+        "body": "A.5.e prohibits a personal virtual relationship with a current client. Small towns make overlaps unavoidable; social media connections are not one of them."
+      },
+      "walkout": {
+        "headline": "The alliance broke",
+        "body": "A flat refusal or an abrupt transfer can feel like rejection. Explaining the reason and exploring the meaning keep the boundary and the relationship."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Sort the requests first: a friend request from a current client is prohibited (A.5.e) and is declined with an explanation; a soccer overlap in a small town is unavoidable and is managed with consent, consultation and documentation (A.6.a); a wedding invitation is a boundary extension to weigh (A.6.b), so explore its meaning, defer, consult, decide, and write the rationale before the event (A.6.c)."
+  }
+}

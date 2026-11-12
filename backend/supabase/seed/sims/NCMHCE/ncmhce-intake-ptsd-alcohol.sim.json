@@ -1,0 +1,1517 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ncmhce-intake-ptsd-alcohol",
+  "title": "Case: 'panic attacks' and wine to sleep",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Hannah Price",
+        "presentation": "{distress >= 7 ? \"Breathing fast, gripping the chair arms\" : distress >= 4 ? \"Sitting near the door, scanning the room\" : \"Calmer, shoulders down\"}; {rapport >= 6 ? \"she speaks openly\" : rapport >= 3 ? \"she answers carefully\" : \"she has gone quiet\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "attacks",
+          "label": "Attacks",
+          "text": "Pounding heart, shaking, can't breathe: in parking garages and when someone walks up behind her at night.",
+          "when": "attacksAsked"
+        },
+        {
+          "id": "trauma",
+          "label": "Trauma",
+          "text": "Four months ago a man grabbed her in the parking garage at work; she got away. Told only her sister.",
+          "when": "traumaKnown"
+        },
+        {
+          "id": "intr",
+          "label": "Intrusion",
+          "text": "Nightmares three or four nights a week; the garage 'flashes in' at work.",
+          "when": "intrusionAsked"
+        },
+        {
+          "id": "avoid",
+          "label": "Avoidance",
+          "text": "Parks on the street, switched off the late shift, avoids talking or thinking about it.",
+          "when": "avoidanceAsked"
+        },
+        {
+          "id": "mood",
+          "label": "Cognition and mood",
+          "text": "'I should have parked closer'; feels detached from her boyfriend; little enjoyment.",
+          "when": "moodAsked"
+        },
+        {
+          "id": "arousal",
+          "label": "Arousal",
+          "text": "Jumpy, checks the locks several times a night, sleeps four hours, snaps at coworkers.",
+          "when": "arousalAsked"
+        },
+        {
+          "id": "alc",
+          "label": "Alcohol",
+          "text": "Three or four glasses of wine most nights to fall asleep, since the assault.{audAsked ? \" Past 12 months: more than intended, tried and failed to cut down, needs more to sleep (3 of 11 criteria).\" : \"\"}",
+          "when": "alcoholAsked"
+        },
+        {
+          "id": "med",
+          "label": "Medical",
+          "text": "Her physician's exam and thyroid tests were normal; one coffee a day; no medicines or other drugs.",
+          "when": "medicalReviewed"
+        },
+        {
+          "id": "si",
+          "label": "Suicide screen",
+          "text": "Denies thoughts of suicide or of being better off dead; no past attempts.",
+          "when": "siAsked"
+        }
+      ],
+      "record": {
+        "label": "Intake so far",
+        "items": [
+          {
+            "label": "Limits of confidentiality explained",
+            "when": "not isNull(limitsAt)"
+          },
+          {
+            "label": "PTSD symptom clusters asked: {(intrusionAsked ? 1 : 0) + (avoidanceAsked ? 1 : 0) + (moodAsked ? 1 : 0) + (arousalAsked ? 1 : 0)} of 4",
+            "when": "traumaKnown"
+          },
+          {
+            "label": "Diagnosis: {dx}; next step: {next}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Conduct an intake and reach a DSM-5-TR diagnosis in a counseling case",
+  "sources": [
+    {
+      "cite": "NBCC, NCMHCE Content Outline (revised 2025-10-08): Domain 2 Intake, Assessment, and Diagnosis, 25% (tasks A, B, E, G, O, P, S: biopsychosocial and diagnostic interviews, determine diagnosis, co-occurring diagnoses, assess for trauma, assess substance use, at-risk behaviors); case format: an intake summary and two counseling sessions",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.nbcc.org/assets/exam/ncmhce_content_outline.pdf",
+      "note": "Current outline; NBCC's new blueprint takes effect 2027-07-01."
+    },
+    {
+      "cite": "VA National Center for PTSD, PTSD and DSM-5 (updated 2026-09-28)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.ptsd.va.gov/professional/treat/essentials/dsm5_ptsd.asp",
+      "note": "PTSD: at least 1 intrusion, 1 avoidance, 2 negative alterations in cognition and mood, and 2 arousal and reactivity symptoms, lasting more than one month; 'The diagnostic criteria remained unchanged in DSM-5-TR (2022).'"
+    },
+    {
+      "cite": "NIAAA, Alcohol Use Disorder: A Comparison Between DSM-IV and DSM-5 (updated April 2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.niaaa.nih.gov/publications/brochures-and-fact-sheets/alcohol-use-disorder-comparison-between-dsm",
+      "note": "11 criteria in the same 12-month period; mild 2-3, moderate 4-5, severe 6 or more. DSM-5, not DSM-5-TR: that the counts are unchanged in DSM-5-TR is an inference."
+    },
+    {
+      "cite": "American Psychiatric Association, DSM-5-TR (2022), current edition per psychiatry.org",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.psychiatry.org/Patients-Families/What-is-the-DSM",
+      "note": "The manual itself was not read; no criteria text is reproduced."
+    },
+    {
+      "cite": "ACA Code of Ethics (2014): A.2.a informed consent; E.5.a proper diagnosis; E.5.b cultural sensitivity in diagnosis",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.counseling.org/docs/default-source/default-document-library/ethics/2014-aca-code-of-ethics.pdf",
+      "note": "The current code per counseling.org (read 2026-11-11)."
+    }
+  ],
+  "brief": {
+    "situation": "As an NCMHCE case opens, here is the intake summary. Hannah Price, 29 (a fictional client), a veterinary technician, is referred by her physician for 'panic attacks' and insomnia over the past four months. Her physician's exam and thyroid tests were normal. The referral notes she 'drinks wine to sleep'. She lives with her boyfriend. You are a licensed clinical mental health counselor at a community clinic; this is her first session. You have 50 minutes.",
+    "handover": [
+      "Referral: 'Panic attacks, insomnia x 4 months. Labs normal. Please assess and treat.'"
+    ],
+    "howItWorks": [
+      "Choose what to ask and how to respond from the action groups. Hannah answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "Her rapport, distress and how much she discloses change with what you say. What she tells you depends on the trust you have built.",
+      "The hour ends at 50 minutes. After the session you record the diagnosis and the next step, then write a short formulation."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1min",
+    "maxDuration": "70min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-11",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-11",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-11",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 3,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "limitsAt": {
+      "type": "time",
+      "init": null
+    },
+    "attacksAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "traumaAt": {
+      "type": "time",
+      "init": null
+    },
+    "traumaKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "traumaDenied": {
+      "type": "bool",
+      "init": false
+    },
+    "pushedDetail": {
+      "type": "bool",
+      "init": false
+    },
+    "intrusionAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "avoidanceAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "moodAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "arousalAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "alcoholAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "audAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "siAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "medicalReviewed": {
+      "type": "bool",
+      "init": false
+    },
+    "panicLabeled": {
+      "type": "bool",
+      "init": false
+    },
+    "lectured": {
+      "type": "bool",
+      "init": false
+    },
+    "dx": {
+      "type": "enum",
+      "values": [
+        "none",
+        "ptsdAud",
+        "ptsd",
+        "panic",
+        "gad",
+        "defer"
+      ],
+      "init": "none"
+    },
+    "next": {
+      "type": "enum",
+      "values": [
+        "none",
+        "integrated",
+        "panicCbt",
+        "alcoholFirst"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "limits",
+        "checkIn",
+        "reflect",
+        "askAttacks",
+        "askTrauma",
+        "pushDetail",
+        "askIntrusion",
+        "askAvoidance",
+        "askMood",
+        "askArousal",
+        "askAlcohol",
+        "askAud",
+        "askSI",
+        "reviewMedical",
+        "labelPanic",
+        "lecture",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "limits": {
+      "label": "Explain confidentiality, its limits and how the intake works",
+      "group": "Open",
+      "available": "not talking and (isNull(limitsAt))",
+      "why": "Already explained.",
+      "effects": [
+        {
+          "log": "You explain what stays private and when the law requires you to act, and that she can choose what to talk about and when.",
+          "kind": "act"
+        },
+        {
+          "set": "limitsAt",
+          "to": "t"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "finding": "She nods. \"Okay. Thanks for saying I can choose.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "checkIn": {
+      "label": "Open question: 'What would you like me to understand about what's been happening?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "She has told you.",
+      "effects": [
+        {
+          "log": "You ask an open question and give her room.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"These attacks. My heart pounds, I can't breathe. And I can't sleep. My doctor says my body's fine.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Hannah's shoulders drop a little. \"Yeah. Exactly. Like I'm always waiting for something.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askAttacks": {
+      "label": "Ask when the attacks happen and what comes just before them",
+      "group": "Assess",
+      "available": "not talking and (not attacksAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask where she is and what is happening just before an attack.",
+          "kind": "act"
+        },
+        {
+          "set": "attacksAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Parking garages, mostly. Or if someone walks up behind me at night.\" She looks at the door."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askTrauma": {
+      "label": "Ask gently whether something happened that still affects her, and let her choose how much to say",
+      "group": "Assess",
+      "available": "not talking and (not traumaKnown)",
+      "why": "She has told you.",
+      "effects": [
+        {
+          "log": "You ask gently whether something happened that still stays with her, saying she can share as much or as little as she wants.",
+          "kind": "act"
+        },
+        {
+          "if": "isNull(traumaAt)",
+          "then": [
+            {
+              "set": "traumaAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "set": "traumaKnown",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "3"
+                },
+                {
+                  "add": "distress",
+                  "by": "1"
+                },
+                {
+                  "finding": "A long pause. \"Four months ago a man grabbed me in the garage at work. I got away. I've only told my sister.\""
+                },
+                {
+                  "log": "Disclosed: an assault four months ago.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "traumaDenied",
+                  "to": "true"
+                },
+                {
+                  "add": "distress",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"No. Nothing like that.\" She looks away. (Not yet enough trust to say more.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "pushDetail": {
+      "label": "Ask her to walk you through the assault in full detail now",
+      "group": "Respond",
+      "available": "not talking and (traumaKnown and not pushedDetail)",
+      "why": "Already asked.",
+      "effects": [
+        {
+          "log": "You ask her to describe the assault step by step, in full detail.",
+          "kind": "act"
+        },
+        {
+          "set": "pushedDetail",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "distress",
+          "by": "3"
+        },
+        {
+          "finding": "Her breathing speeds up; she grips the chair. \"I can't. Not now.\""
+        },
+        {
+          "log": "Pressing for a detailed account at intake can overwhelm and retraumatize; detail belongs in planned trauma-focused therapy, at her pace.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askIntrusion": {
+      "label": "Ask about nightmares, flashbacks and unwanted memories",
+      "group": "Ask about trauma",
+      "available": "not talking and (traumaKnown and not intrusionAsked)",
+      "why": "Ask about what happened first (or asked).",
+      "effects": [
+        {
+          "log": "You ask about nightmares, flashbacks and memories that come uninvited.",
+          "kind": "act"
+        },
+        {
+          "set": "intrusionAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Nightmares three or four nights a week. At work the garage just flashes in.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askAvoidance": {
+      "label": "Ask what she avoids now",
+      "group": "Ask about trauma",
+      "available": "not talking and (traumaKnown and not avoidanceAsked)",
+      "why": "Ask about what happened first (or asked).",
+      "effects": [
+        {
+          "log": "You ask what she now avoids, places, people or thoughts.",
+          "kind": "act"
+        },
+        {
+          "set": "avoidanceAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"I park on the street. I switched off the late shift. I try not to think about it at all.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askMood": {
+      "label": "Ask how she sees herself and others now, and about her mood",
+      "group": "Ask about trauma",
+      "available": "not talking and (traumaKnown and not moodAsked)",
+      "why": "Ask about what happened first (or asked).",
+      "effects": [
+        {
+          "log": "You ask how it has changed the way she sees herself and others, and her mood.",
+          "kind": "act"
+        },
+        {
+          "set": "moodAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"I should have parked closer. I feel far away from Sam. Nothing's fun.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askArousal": {
+      "label": "Ask about startle, watchfulness, sleep and irritability",
+      "group": "Ask about trauma",
+      "available": "not talking and (traumaKnown and not arousalAsked)",
+      "why": "Ask about what happened first (or asked).",
+      "effects": [
+        {
+          "log": "You ask about feeling on edge, startling, sleep and irritability.",
+          "kind": "act"
+        },
+        {
+          "set": "arousalAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"I jump at everything. I check the locks five times. Four hours of sleep. I snap at everyone at work.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askAlcohol": {
+      "label": "Ask about alcohol and other drugs",
+      "group": "Assess",
+      "available": "not talking and (not alcoholAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask about alcohol and other drugs.",
+          "kind": "act"
+        },
+        {
+          "set": "alcoholAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Three, four glasses of wine most nights. It's the only way I sleep. Since... since then.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askAud": {
+      "label": "Go through the alcohol use disorder criteria for the past 12 months",
+      "group": "Assess",
+      "available": "not talking and (alcoholAsked and not audAsked)",
+      "why": "Ask about alcohol first (or done).",
+      "effects": [
+        {
+          "log": "You go through the criteria for the past 12 months with her.",
+          "kind": "act"
+        },
+        {
+          "set": "audAsked",
+          "to": "true"
+        },
+        {
+          "finding": "Three of eleven: drinks more than she meant to, tried and failed to cut down, needs more to get to sleep. No other criteria."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askSI": {
+      "label": "Ask directly about suicidal thoughts",
+      "group": "Assess",
+      "available": "not talking and (not siAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask directly about thoughts of suicide or of being better off dead.",
+          "kind": "act"
+        },
+        {
+          "set": "siAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"No. I'm scared, not... no. Never.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "reviewMedical": {
+      "label": "Review medical causes: her physician's findings, caffeine, medicines, other drugs",
+      "group": "Assess",
+      "available": "not talking and (not medicalReviewed)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You review her physician's findings, caffeine, medicines and other drugs.",
+          "kind": "act"
+        },
+        {
+          "set": "medicalReviewed",
+          "to": "true"
+        },
+        {
+          "finding": "Exam and thyroid tests normal; one coffee a day; no medicines or other drugs."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "labelPanic": {
+      "label": "Tell her these sound like panic attacks and teach slow breathing",
+      "group": "Respond",
+      "available": "not talking and (not panicLabeled)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You tell her these sound like panic attacks and teach slow breathing.",
+          "kind": "act"
+        },
+        {
+          "set": "panicLabeled",
+          "to": "true"
+        },
+        {
+          "finding": "She practices. \"Okay. I'll try it in the garage.\""
+        },
+        {
+          "log": "Naming panic before asking what the attacks are tied to closes the question early.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "lecture": {
+      "label": "Tell her the drinking is the real problem and she has to stop",
+      "group": "Respond",
+      "available": "not talking and (alcoholAsked and not lectured)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You tell her the nightly wine is the real problem and she has to stop.",
+          "kind": "act"
+        },
+        {
+          "set": "lectured",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1.5"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"So it's my fault.\" She folds her arms."
+        },
+        {
+          "log": "A lecture lands as blame; the drinking began as a way to sleep after the assault.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "End the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the diagnosis and the next step",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Recorded.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Diagnostic record",
+          "fields": [
+            {
+              "id": "diagnosis",
+              "label": "DSM-5-TR diagnosis",
+              "options": [
+                {
+                  "value": "ptsdAud",
+                  "label": "Posttraumatic stress disorder; alcohol use disorder, mild"
+                },
+                {
+                  "value": "ptsd",
+                  "label": "Posttraumatic stress disorder"
+                },
+                {
+                  "value": "panic",
+                  "label": "Panic disorder"
+                },
+                {
+                  "value": "gad",
+                  "label": "Generalized anxiety disorder"
+                },
+                {
+                  "value": "defer",
+                  "label": "Deferred: more information needed"
+                }
+              ]
+            },
+            {
+              "id": "plan",
+              "label": "Next step",
+              "options": [
+                {
+                  "value": "integrated",
+                  "label": "Trauma-focused therapy with the drinking addressed in the same plan, coordinated with her physician"
+                },
+                {
+                  "value": "panicCbt",
+                  "label": "CBT for panic"
+                },
+                {
+                  "value": "alcoholFirst",
+                  "label": "Alcohol treatment first; trauma work once she stops drinking"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "dx",
+          "to": "diagnosis"
+        },
+        {
+          "set": "next",
+          "to": "plan"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: {diagnosis}, next step {plan}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-11",
+        "note": "A 50-minute outpatient session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "The client stands, says this is not helping, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictCue",
+      "when": "attacksAsked and traumaKnown and phase == \"session\"",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "cued"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "cued": {
+      "title": "Predict (not scored)",
+      "context": "Hannah's 'panic attacks' come in parking garages and when someone approaches from behind, since an assault in a garage four months ago. What do attacks tied to trauma reminders point to?",
+      "choices": [
+        {
+          "id": "panic",
+          "label": "Panic disorder",
+          "effects": [
+            {
+              "log": "Prediction: panic disorder.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Look again. Panic disorder centers on attacks that come unexpectedly. Attacks set off by reminders of a trauma fit PTSD: intense distress or physical reactions to reminders are intrusion symptoms, and feeling on guard is arousal (VA National Center for PTSD)."
+        },
+        {
+          "id": "ptsd",
+          "label": "PTSD symptoms: reactions to trauma reminders",
+          "effects": [
+            {
+              "log": "Prediction: PTSD symptoms.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. Strong physical reactions to reminders are intrusion symptoms and the watchfulness is arousal; check all four clusters and the duration (more than one month) before diagnosing (VA National Center for PTSD)."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your diagnostic formulation for Hannah: the diagnosis and the evidence for it, what you ruled out and why, and the next step.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Diagnosis and evidence",
+          "criteria": "Diagnoses PTSD (an assault four months ago; intrusion, avoidance, negative cognition and mood, and arousal symptoms meeting the cluster counts, for more than a month) and a co-occurring mild alcohol use disorder (3 of 11 criteria in 12 months).",
+          "modelAnswer": "PTSD: assaulted four months ago; nightmares and flashbacks (intrusion), parking on the street and avoiding the memory (avoidance), self-blame, detachment and little enjoyment (cognition and mood), startle, checking locks, poor sleep and irritability (arousal); more than one month. Co-occurring alcohol use disorder, mild: 3 of 11 criteria in 12 months, drinking to sleep since the assault."
+        },
+        {
+          "label": "Rule-outs and next step",
+          "criteria": "Explains why panic disorder does not fit (the attacks are cued by trauma reminders), notes the medical review (normal exam and thyroid, little caffeine, no medicines) and the negative suicide screen, and recommends trauma-focused therapy with the drinking addressed in the same plan.",
+          "modelAnswer": "Not panic disorder: her attacks are set off by reminders of the assault. Medical causes reviewed (normal exam and thyroid tests, one coffee, no medicines); suicide screen negative. Next: trauma-focused therapy with the drinking addressed in the same plan (sleep without wine is a goal), coordinated with her physician."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-11"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-11",
+          "note": "The referral's 'attacks' and insomnia are present from the first minute; asking about trauma within 20 minutes leaves time for the clusters, the drinking and the screens (author's scenario timing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and siAsked and dx == \"defer\"",
+      "class": "recovered",
+      "rationale": "Deferring the diagnosis after a full intake is safe for a week or two but leaves her untreated; not dangerous on its own, so recovered.",
+      "source": {
+        "cite": "VA National Center for PTSD, PTSD and DSM-5 (updated 2026-09-28)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.ptsd.va.gov/professional/treat/essentials/dsm5_ptsd.asp",
+        "note": "PTSD: at least 1 intrusion, 1 avoidance, 2 negative alterations in cognition and mood, and 2 arousal and reactivity symptoms, lasting more than one month; 'The diagnostic criteria remained unchanged in DSM-5-TR (2022).'"
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "She walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Hannah left mid-intake, overwhelmed, drinking nightly to sleep and with no plan."
+    },
+    "missedTrauma": {
+      "label": "Trauma missed",
+      "class": "harm",
+      "when": "documented and (dx == \"panic\" or dx == \"gad\")",
+      "terminal": true,
+      "narrative": "Hannah's assault was {traumaKnown ? \"heard but not\" : \"never\"} built into the diagnosis: treating 'panic' or worry leaves the PTSD and the drinking to sleep untouched."
+    },
+    "noScreen": {
+      "label": "No suicide screen",
+      "class": "harm",
+      "when": "documented and not siAsked",
+      "terminal": true,
+      "narrative": "Hannah left without being asked about suicidal thoughts, in an intake with trauma, poor sleep and nightly drinking."
+    },
+    "accurate": {
+      "label": "An accurate diagnosis",
+      "class": "target",
+      "when": "documented and not walkedOut and not pushedDetail and not isNull(limitsAt) and traumaKnown and timeAt(traumaAt) <= safetyWindow and intrusionAsked and avoidanceAsked and moodAsked and arousalAsked and audAsked and siAsked and medicalReviewed and dx == \"ptsdAud\" and next == \"integrated\" and rapport >= allianceTarget",
+      "terminal": true,
+      "narrative": "Hannah left understanding why her 'attacks' happen, with a diagnosis of PTSD and a mild alcohol use disorder and a plan that treats both."
+    },
+    "partialDx": {
+      "label": "Partly right",
+      "class": "recovered",
+      "when": "documented and (dx == \"ptsdAud\" or dx == \"ptsd\" or dx == \"defer\")",
+      "terminal": true,
+      "narrative": "The trauma is in the picture, but part of the diagnosis, the screens or the plan was missing or late."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "missedTrauma",
+    "noScreen",
+    "accurate",
+    "partialDx"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "traumaCrit",
+        "label": "Asked about trauma early and gently, without pressing for detail",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "pushedDetail",
+            "score": "missed",
+            "why": "Pressed for a detailed account at intake."
+          },
+          {
+            "when": "traumaKnown and timeAt(traumaAt) <= safetyWindow",
+            "score": "met",
+            "why": "Asked gently {timeAt(traumaAt) / 60} min in and heard it."
+          },
+          {
+            "when": "traumaKnown",
+            "score": "partial",
+            "why": "Heard it, but only {timeAt(traumaAt) / 60} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The trauma was never found."
+          }
+        ]
+      },
+      {
+        "id": "clusterCrit",
+        "label": "Asked about all four PTSD symptom clusters",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "intrusionAsked and avoidanceAsked and moodAsked and arousalAsked",
+            "score": "met",
+            "why": "Intrusion, avoidance, cognition and mood, arousal."
+          },
+          {
+            "when": "(intrusionAsked ? 1 : 0) + (avoidanceAsked ? 1 : 0) + (moodAsked ? 1 : 0) + (arousalAsked ? 1 : 0) >= 2",
+            "score": "partial",
+            "why": "Some of the four clusters."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The clusters were not assessed."
+          }
+        ]
+      },
+      {
+        "id": "coCrit",
+        "label": "Assessed and diagnosed the co-occurring alcohol use",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "audAsked and dx == \"ptsdAud\"",
+            "score": "met",
+            "why": "3 of 11 criteria: mild alcohol use disorder, diagnosed alongside PTSD."
+          },
+          {
+            "when": "alcoholAsked",
+            "score": "partial",
+            "why": "Asked about drinking but did not diagnose it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Drinking not assessed."
+          }
+        ]
+      },
+      {
+        "id": "siCrit",
+        "label": "Screened for suicide risk",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "siAsked",
+            "score": "met",
+            "why": "Asked directly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not asked."
+          }
+        ]
+      },
+      {
+        "id": "dxCrit",
+        "label": "The diagnosis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dx == \"ptsdAud\"",
+            "score": "met",
+            "why": "PTSD with mild alcohol use disorder."
+          },
+          {
+            "when": "dx == \"ptsd\" or dx == \"defer\"",
+            "score": "partial",
+            "why": "{dx}: incomplete."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{dx}."
+          }
+        ]
+      },
+      {
+        "id": "medCrit",
+        "label": "Reviewed medical and substance causes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "medicalReviewed",
+            "score": "met",
+            "why": "Exam, thyroid, caffeine, medicines."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reviewed."
+          }
+        ]
+      },
+      {
+        "id": "nextCrit",
+        "label": "Next step treats both",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "next == \"integrated\"",
+            "score": "met",
+            "why": "Trauma-focused therapy with the drinking in the same plan."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{next}."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToTrauma",
+        "label": "Minutes to the trauma question",
+        "value": "isNull(traumaAt) ? -1 : timeAt(traumaAt) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "clusters",
+        "label": "PTSD clusters asked",
+        "value": "(intrusionAsked ? 1 : 0) + (avoidanceAsked ? 1 : 0) + (moodAsked ? 1 : 0) + (arousalAsked ? 1 : 0)",
+        "format": "number",
+        "expert": "4"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Explain confidentiality and her choices, an open question, a reflection; ask when the attacks happen."
+      },
+      {
+        "at": "10-20 min",
+        "text": "Ask gently about something that still affects her; let her choose how much to say."
+      },
+      {
+        "at": "20-40 min",
+        "text": "The four PTSD clusters; drinking and the 12-month criteria; a direct suicide question; the medical review."
+      },
+      {
+        "at": "After",
+        "text": "Record PTSD with mild alcohol use disorder; trauma-focused therapy with the drinking in the same plan."
+      }
+    ],
+    "debrief": {
+      "accurate": {
+        "headline": "Good: an accurate diagnosis",
+        "body": "You built trust before asking about trauma, checked every cluster, found the co-occurring drinking, ruled out the alternatives and screened for risk."
+      },
+      "partialDx": {
+        "headline": "Partly right",
+        "body": "The trauma is in the picture; the criteria below show what else the diagnosis or plan needed."
+      },
+      "missedTrauma": {
+        "headline": "The trauma was missed",
+        "body": "'Panic attacks' tied to parking garages are a clue. Asking what comes before an attack, then gently about trauma, changes the diagnosis and the treatment."
+      },
+      "noScreen": {
+        "headline": "No suicide screen",
+        "body": "Every intake asks directly about suicidal thoughts, more so with trauma, insomnia and nightly drinking."
+      },
+      "walkout": {
+        "headline": "The alliance broke",
+        "body": "Pressing for the details of an assault at intake can overwhelm a client. Let her set the pace; the detail belongs to planned trauma-focused therapy."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The referral says 'panic', but the attacks are cued: ask what comes before them, then gently about trauma once trust is there. Four clusters for more than a month make PTSD; drinking to sleep with 3 of 11 criteria is a co-occurring mild alcohol use disorder. Rule out medical causes and screen for suicide, then plan trauma-focused therapy that addresses the drinking in the same plan."
+  }
+}

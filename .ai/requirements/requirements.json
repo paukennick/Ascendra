@@ -8765,6 +8765,110 @@
         "two objectives (LPN hypoglycemia and ADN opioid) are the nearest titles that pass the keyword selection screen rather than the most specific titles",
         "new document hashes enter expert review"
       ]
+    },
+    {
+      "id": "REQ-239",
+      "category": "content",
+      "title": "NCE and NCMHCE courses (NBCC counseling licensure), their labs and five client-session sims",
+      "description": "Wave 2 (lead's brief, built the way the EPPP was: REQ-224 course and 18+ gate, REQ-225 client sessions, REQ-234 labs, REQ-235 outline statements). Prep for the NCE and Prep for the NCMHCE under Mental Health > counseling-licensure (migration 077), so the 18+ confirmation and study notice apply through the category with no code change. Units are NBCC's six domains at the current outlines' weights (NCE 2023: 12/12/29/9/30/8; NCMHCE revised 2025-10-08: 15/25/0/15/30/15, Areas of Clinical Focus assessed through the cases), each with objectives in our own words, a gate, dated sources, NBCC's lettered task headings as outline statements and the format key values; the NCMHCE case-study format (11 cases, one unscored; intake summary plus two sessions; 9-15 four-option items per case; 100 scored; 255 minutes) and the NCE form (200 items, 160 scored, 255-minute session) read 2026-11-11; Washington WAC 246-809-240; review due 2027-04-01 before NBCC's 2027-07-01 blueprint change. 12 labs each by the hybrid plan, sourced in value-sources.ts. Five client sessions (NCE 2, NCMHCE 3) registered by exact objective title, with goldens. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/nbcc.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/nbcc-nce.ts",
+        "backend/supabase/seed/labs/nbcc-ncmhce.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/supabase/seed/sims/NCE",
+        "backend/supabase/seed/sims/NCMHCE",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden",
+        "backend/lib/nbcc-course.test.ts",
+        "backend/lib/labs-nbcc.test.ts",
+        "backend/lib/sim/nbcc-session.test.ts",
+        "backend/lib/nbcc-mental-health.dbtest.ts",
+        "docs/sims.md",
+        "docs/labs.md",
+        "README.md",
+        "docs/development.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "NCE units are NBCC's six domains at 12/12/29/9/30/8 and NCMHCE at 15/25/0/15/30/15 with outline headings and dated sources on every unit",
+        "the NCMHCE case-study format is described from NBCC's outline",
+        "both courses are in counseling-licensure and refused without the 18+ confirmation",
+        "12 labs each following the hybrid plan with a value source or reason on every lab",
+        "five client sessions (NCE 2 and NCMHCE 3) with endings in all three classes and 3-4 critical criteria and 5-6 golden paths and endingOrder registered to exact objective titles",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle replay under Node",
+        "migrations and seed twice on throwaway Postgres",
+        "npm run test:db as owner and as app_runtime",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.12",
+        "docs/labs.md",
+        "README.md",
+        "docs/development.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "NBCC's new blueprints take effect 2027-07-01 (different domains; NCE 170 three-option items; NCMHCE 10 cases; scaled 100-500 with 360 passing): a successor version must be built before then",
+        "Outline task headings are carried verbatim as outline statements (short headings; NBCC copyright) while objectives are paraphrased; Nick's decision if headings should be paraphrased too",
+        "NCMHCE Areas of Clinical Focus has weight 0 so readiness and mock exams leave it out and the hybrid lab plan splits evenly (a weighted split would be 2/2/1/2/3/2)",
+        "ACA Code of Ethics revision pending adoption (recheck by 2027-02-01)",
+        "DSM-5-TR not read; SUD severity counts read on NIAAA's DSM-5 page; Stanley-Brown SPRC summary and APA PTSD guideline abstract not re-read in this batch",
+        "All labs and sims need review by a licensed professional counselor",
+        "The sims list for a mental health course names its sims without the 18+ confirmation (starting one is gated)"
+      ]
+    },
+    {
+      "id": "REQ-237",
+      "category": "feature",
+      "title": "Sims: terminal and network screen type and the first Linux+, Network+ and CKA outages",
+      "description": "A terminal and network renderer (screen type terminal) behind SIMS_RENDERERS and on by default: a command line over a bounded command set (no free shell; commands are the phase's actions with arguments chosen from lists), the output each command prints over sim time with log lines that appear on their own, and a map of hosts, devices or cluster nodes and the links between them with a status in words. Outcome profile infrastructure gets its defaults. Two outages each for Linux+ (LINUXPLUS), Network+ (NETWORKPLUS) and CKA on catalog objectives that meet the selection rule. Learner-paced: each command costs operator minutes.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/LINUXPLUS",
+        "backend/supabase/seed/sims/NETWORKPLUS",
+        "backend/supabase/seed/sims/CKA",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "terminal renderer behind SIMS_RENDERERS with terminal@1 capability",
+        "accessibility to the console standard: output polite and rate-limited and errors spoken at once and Read the terminal and 48 dp and web keyboard order",
+        "six outages with endings in all three classes and 3-4 critical criteria and 5-6 golden paths and endingOrder",
+        "learner-paced",
+        "no engine stepping change and no engine minor"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle",
+        "sims DB tests",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.10",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "Command output layouts (IOS show output; kubectl tables; journal lines; httpd AH00035) are authored renderings in the tools' style; the facts they carry are sourced",
+        "The CompTIA objectives PDFs were not reachable; the certification pages and the N10-009 comparison flyer were read through summaries",
+        "Whether a crash-looping container picks up a fixed ConfigMap value on its own next restart is not modeled (FLAG)"
+      ]
     }
   ]
 }

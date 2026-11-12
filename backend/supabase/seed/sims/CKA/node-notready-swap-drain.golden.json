@@ -1,0 +1,1007 @@
+{
+  "slug": "node-notready-swap-drain",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Ready Unknown, kubelet journal says swap, swapoff and fstab, kubelet restart; drain w3 within budget, reboot, uncordon",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "getNodes",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "describeW2",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "kubeletStatus",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "kubeletJournal",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "swapShow",
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 6,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "swapOffA",
+          "seq": 11,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 7,
+          "seq": 12,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "fstabFix",
+          "seq": 13,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 8,
+          "seq": 14,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "restartKubelet",
+          "seq": 15,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 10,
+          "seq": 16,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "getNodes",
+          "seq": 17,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 11,
+          "seq": 18,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "drainW3",
+          "params": {
+            "flags": "safe"
+          },
+          "seq": 19,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 15,
+          "seq": 20,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "rebootW3",
+          "seq": 21,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 21,
+          "seq": 22,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "uncordonW3",
+          "seq": 23,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 22,
+          "seq": 24,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "getNodes",
+          "seq": 25,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 23,
+          "seq": 26,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 27,
+          "tick": 23
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 28,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "swap"
+          },
+          "seq": 29,
+          "tick": 23
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "journalFirst": "met",
+          "persistent": "met",
+          "safeDrain": "met",
+          "w2Fast": "met",
+          "backInService": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToReady": 8,
+          "faultsK": 0
+        },
+        "stateHash": "c2fcab2aa9d6b97f"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "notPersistedBypass",
+      "title": "swapoff only (fstab untouched), then drains w3 with --disable-eviction; w3 left cordoned",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "getNodes",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "kubeletJournal",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "swapOffA",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "restartKubelet",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 5,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "drainW3",
+          "params": {
+            "flags": "bypass"
+          },
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 9,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "rebootW3",
+          "seq": 11,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 15,
+          "seq": 12,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 13,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "swap"
+          },
+          "seq": 15,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "journalFirst": "met",
+          "persistent": "partial",
+          "safeDrain": "partial",
+          "w2Fast": "met",
+          "backInService": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minToReady": 3,
+          "faultsK": 1
+        },
+        "stateHash": "deb896c3f0cf9260"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "drainFirst",
+      "title": "Starts w3's patch first: the drain blocks on the budget, and rebooting w3 anyway breaks payments",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "getNodes",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "drainW3",
+          "params": {
+            "flags": "safe"
+          },
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "rebootW3",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "kubeletJournal",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 12,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "swapOffA",
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 13,
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "fstabFix",
+          "seq": 11,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 14,
+          "seq": 12,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "restartKubelet",
+          "seq": 13,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 16,
+          "seq": 14,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "uncordonW3",
+          "seq": 15,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 17,
+          "seq": 16,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 17,
+          "tick": 17
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "swap"
+          },
+          "seq": 19,
+          "tick": 17
+        }
+      ],
+      "expect": {
+        "ending": "paymentsDown",
+        "class": "harm",
+        "rating": "bad",
+        "score": 71,
+        "criteria": {
+          "journalFirst": "met",
+          "persistent": "met",
+          "safeDrain": "missed",
+          "w2Fast": "met",
+          "backInService": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToReady": 14,
+          "faultsK": 0
+        },
+        "stateHash": "3acaa94b8b452f7e"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "reset",
+      "title": "Runs kubeadm reset on w2 to 'start fresh'",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "getNodes",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "describeW2",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "kubeadmReset",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "restartKubelet",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 8,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 9,
+          "tick": 8
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "certs"
+          },
+          "seq": 11,
+          "tick": 8
+        }
+      ],
+      "expect": {
+        "ending": "nodeWiped",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "journalFirst": "missed",
+          "persistent": "missed",
+          "safeDrain": "missed",
+          "w2Fast": "missed",
+          "backInService": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToReady": -1,
+          "faultsK": 0
+        },
+        "stateHash": "c80bcb3bbacdbf3b"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "slowPressure",
+      "title": "Describes w2, then waits on the patch vendor: w1 hits memory pressure; then fixes swap and does w3 properly",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "getNodes",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "describeW2",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 23,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 33,
+          "seq": 10,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 43,
+          "seq": 12,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 53,
+          "seq": 14,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 53,
+          "seq": 15,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "kubeletJournal",
+          "seq": 16,
+          "tick": 53
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 54,
+          "seq": 17,
+          "tick": 53
+        },
+        {
+          "type": "act",
+          "action": "swapOffA",
+          "seq": 18,
+          "tick": 54
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 55,
+          "seq": 19,
+          "tick": 54
+        },
+        {
+          "type": "act",
+          "action": "fstabFix",
+          "seq": 20,
+          "tick": 55
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 56,
+          "seq": 21,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "restartKubelet",
+          "seq": 22,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 58,
+          "seq": 23,
+          "tick": 56
+        },
+        {
+          "type": "act",
+          "action": "drainW3",
+          "params": {
+            "flags": "safe"
+          },
+          "seq": 24,
+          "tick": 58
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 62,
+          "seq": 25,
+          "tick": 58
+        },
+        {
+          "type": "act",
+          "action": "rebootW3",
+          "seq": 26,
+          "tick": 62
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 68,
+          "seq": 27,
+          "tick": 62
+        },
+        {
+          "type": "act",
+          "action": "uncordonW3",
+          "seq": 28,
+          "tick": 68
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 69,
+          "seq": 29,
+          "tick": 68
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 30,
+          "tick": 69
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 31,
+          "tick": 69
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "swap"
+          },
+          "seq": 32,
+          "tick": 69
+        }
+      ],
+      "expect": {
+        "ending": "pressureSpread",
+        "class": "harm",
+        "rating": "bad",
+        "score": 86,
+        "criteria": {
+          "journalFirst": "met",
+          "persistent": "met",
+          "safeDrain": "met",
+          "w2Fast": "partial",
+          "backInService": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToReady": 56,
+          "faultsK": 0
+        },
+        "stateHash": "fc7f8b860acd8b07"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "closeEarly",
+      "title": "Restarts the kubelet blind (it exits again), tries a drain without --delete-emptydir-data and closes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "getNodes",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "restartKubelet",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "drainW3",
+          "params": {
+            "flags": "local"
+          },
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "runtime"
+          },
+          "seq": 9,
+          "tick": 7
+        }
+      ],
+      "expect": {
+        "ending": "stillNotReady",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "journalFirst": "missed",
+          "persistent": "missed",
+          "safeDrain": "missed",
+          "w2Fast": "missed",
+          "backInService": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToReady": -1,
+          "faultsK": 0
+        },
+        "stateHash": "32bb880443b575d8"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

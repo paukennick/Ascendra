@@ -1,0 +1,1183 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "selinux-denies-moved-site",
+  "title": "Outage: the docs site answers 403 after a move",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@web02:~#",
+      "lines": [
+        {
+          "id": "err403",
+          "text": "09:51 httpd: 403 Forbidden for GET /docs/ (every request since the move)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "launchErr",
+          "text": "10:45 mailer: release email sent to 40,000 customers; its links to /docs answer 403",
+          "when": "not isNull(launchFailedAt)",
+          "at": "timeAt(launchFailedAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok200",
+          "text": "httpd: GET /docs/ 200",
+          "when": "not isNull(siteUpAt)",
+          "at": "timeAt(siteUpAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "httpd",
+          "label": "httpd",
+          "spokenLabel": "the Apache web server",
+          "kind": "Web server (web02)",
+          "status": "{siteUp ? \"Serving /docs\" : \"Running; /docs answers 403\"}",
+          "tone": "siteUp ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "docs",
+          "label": "/var/www/html/docs",
+          "spokenLabel": "the docs content",
+          "kind": "Site files (moved in with mv at 09:50)",
+          "status": "{isNull(relabeledAt) ? \"SELinux type user_home_t\" : \"SELinux type httpd_sys_content_t\"}{worldWritable ? \"; world-writable (777)\" : \"\"}",
+          "tone": "not isNull(relabeledAt) ? (worldWritable ? \"degraded\" : \"up\") : \"down\""
+        },
+        {
+          "id": "selinux",
+          "label": "SELinux",
+          "spokenLabel": "SELinux",
+          "kind": "Mandatory access control",
+          "status": "{disabledForGood ? \"Set to be disabled at the next boot (selinux=0)\" : permissive ? \"Permissive: denials logged, not enforced\" : \"Enforcing\"}",
+          "tone": "disabledForGood or permissive ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "email",
+          "label": "Release email 10:45",
+          "spokenLabel": "the 10:45 release email",
+          "kind": "Scheduled send",
+          "status": "{not isNull(launchFailedAt) ? \"Sent with links that answer 403\" : siteUp ? \"Will link to a working site\" : \"Goes out at 10:45 with links to /docs\"}",
+          "tone": "not isNull(launchFailedAt) ? \"down\" : siteUp ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "read",
+          "from": "httpd",
+          "to": "docs",
+          "label": "httpd reads the site files",
+          "status": "{siteUp ? \"Allowed\" : \"Denied by SELinux (httpd_t may not read user_home_t)\"}",
+          "tone": "siteUp ? \"up\" : \"down\""
+        },
+        {
+          "id": "links",
+          "from": "email",
+          "to": "httpd",
+          "label": "Email links to /docs",
+          "status": "{siteUp ? \"Working\" : \"403\"}",
+          "tone": "siteUp ? \"up\" : \"degraded\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "modeM",
+          "label": "SELinux mode",
+          "value": "{permissive ? \"Permissive\" : \"Enforcing\"}{disabledForGood ? \" (disabled from the next boot)\" : \"\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Managing users, groups, and permissions at the system level",
+  "secondaryObjectives": [
+    "SELinux/AppArmor mandatory access control concepts",
+    "File permissions and ownership: rwx, chmod, chown, umask",
+    "Reading and interpreting system logs for root-cause analysis"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA Linux+ (V8), exam XK0-006: domains System Management 23%, Troubleshooting 22%, Services and User Management 20%, Security 18%, Automation, Orchestration, and Scripting 17%; launched 2025-07-15",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/linux/",
+      "note": "Relevant text: Troubleshooting, 'Hardware/storage: Diagnose boot, mount, and repair issues'; 'Fix SELinux, permission, and vulnerability issues'. Read on CompTIA's certification page through a summarizing fetch on 2026-11-11; the XK0-006 objectives PDF was not opened. The course objective titles are the course seed's (2026-11-07)."
+    },
+    {
+      "cite": "Red Hat Enterprise Linux 9, Using SELinux, chapter 'Troubleshooting problems related to SELinux'",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/using_selinux/troubleshooting-problems-related-to-selinux_using-selinux",
+      "note": "Relevant text: 'the /var/log/audit/audit.log file is the first place to check for more information about a denial'; '# ausearch -m AVC,USER_AVC,SELINUX_ERR,USER_SELINUX_ERR -ts recent'; a raw denial reads 'type=AVC msg=audit(...): avc:  denied  { write } for ...'; 'in most cases, SELinux denials are signs of misconfiguration'; troubleshooting 'should start with a check if there is a labeling problem'; 'Using the mv command to move files from your home directory may result in files being labeled with the user_home_t type. This type should not exist outside of home directories'; files moved into /var/www/html/ with user_home_t were fixed with restorecon -v to httpd_sys_content_t. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "Red Hat Enterprise Linux 9, Using SELinux, chapter 'Changing SELinux states and modes'",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/using_selinux/changing-selinux-states-and-modes_using-selinux",
+      "note": "Relevant text: 'Do not disable SELinux except in specific scenarios'; for production debugging use permissive mode temporarily; disabled means the system 'does not enforce the SELinux policy and does not log Access Vector Cache (AVC) messages'; 'Do not use the selinux=0 parameter in a production environment'; 'SELinux automatically relabels file systems when changing from the disabled state to permissive or enforcing mode'. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "restorecon(8) manual page (SELinux project, dated 10 June 2016; man7.org rendering 2026-09-09)",
+      "checkedAt": "2026-11-11",
+      "url": "https://man7.org/linux/man-pages/man8/restorecon.8.html",
+      "note": "Relevant text: 'This program is primarily used to set the security context (extended attributes) on one or more files'; -R 'change files and directories file labels recursively (descend directories)'; -v 'show changes in file labels'; 'restorecon by default does not operate recursively on directories'. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "setenforce(8) manual page (man7.org)",
+      "checkedAt": "2026-11-11",
+      "url": "https://man7.org/linux/man-pages/man8/setenforce.8.html",
+      "note": "Relevant text: 'Use Enforcing or 1 to put SELinux in enforcing mode. Use Permissive or 0 to put SELinux in permissive mode.' Read through a summarizing fetch on 2026-11-11. The httpd error_log line in the scenario (AH00035) is an authored rendering, not read from Apache's documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You administer web02, a RHEL-family web server with SELinux enforcing at Fernhill Books (fictional). At 09:50 a developer moved the new documentation site from /home/deploy/site into /var/www/html/docs with mv. Since then https://fernhill.example/docs/ answers 403 Forbidden. At 10:45 the release email goes to 40,000 customers with links to the docs. Find out why the web server cannot read the files and fix it without weakening the server.",
+    "handover": [
+      "httpd serves /var/www/html. The rest of the site still works.",
+      "The developer says 'the permissions are fine, I checked with ls -l'."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, device or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "launchDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-237)",
+        "checkedAt": "2026-11-11",
+        "note": "How many operator minutes each command or change takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. The release email goes out at 10:45, 45 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "curlAt": {
+      "type": "time",
+      "init": null
+    },
+    "errLogAt": {
+      "type": "time",
+      "init": null
+    },
+    "lsAt": {
+      "type": "time",
+      "init": null
+    },
+    "lsZAt": {
+      "type": "time",
+      "init": null
+    },
+    "avcAt": {
+      "type": "time",
+      "init": null
+    },
+    "modeAt": {
+      "type": "time",
+      "init": null
+    },
+    "relabeledAt": {
+      "type": "time",
+      "init": null
+    },
+    "siteUpAt": {
+      "type": "time",
+      "init": null
+    },
+    "worldWritable": {
+      "type": "bool",
+      "init": false
+    },
+    "chmodEver": {
+      "type": "bool",
+      "init": false
+    },
+    "permissive": {
+      "type": "bool",
+      "init": false
+    },
+    "permissiveEver": {
+      "type": "bool",
+      "init": false
+    },
+    "disabledForGood": {
+      "type": "bool",
+      "init": false
+    },
+    "httpdRestarts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "launchFailedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "label",
+        "mode",
+        "owner"
+      ],
+      "init": "none"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "restorecon",
+        "permissive",
+        "chmod"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "siteUp": {
+      "expr": "not isNull(relabeledAt) or permissive"
+    },
+    "faultsAdded": {
+      "expr": "(worldWritable ? 1 : 0) + (permissive ? 1 : 0) + (disabledForGood ? 1 : 0)"
+    },
+    "evidenceFirst": {
+      "expr": "(not isNull(avcAt) or not isNull(lsZAt)) and (isNull(relabeledAt) or min(isNull(avcAt) ? 99999 : timeAt(avcAt), isNull(lsZAt) ? 99999 : timeAt(lsZAt)) <= timeAt(relabeledAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "curl",
+        "errLog",
+        "lsl",
+        "lsZ",
+        "avc",
+        "getenforce",
+        "restorecon",
+        "chmod777",
+        "chmodBack",
+        "setenforce0",
+        "setenforce1",
+        "disableSelinux",
+        "restartHttpd",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "curl": {
+      "label": "curl -sI http://localhost/docs/",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(curlAt)",
+          "then": [
+            {
+              "set": "curlAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@web02:~# curl -sI http://localhost/docs/\n{siteUp ? \"HTTP/1.1 200 OK\" : \"HTTP/1.1 403 Forbidden\"}"
+        },
+        {
+          "if": "siteUp and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "errLog": {
+      "label": "tail -n 3 /var/log/httpd/error_log",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "errLogAt",
+          "to": "t"
+        },
+        {
+          "output": "root@web02:~# tail -n 3 /var/log/httpd/error_log\n[core:error] [pid 2311] (13)Permission denied: [client 192.0.2.40:51522] AH00035: access to /docs/index.html denied (filesystem path '/var/www/html/docs/index.html') because search permissions are missing on a component of the path"
+        },
+        {
+          "finding": "httpd gets 'Permission denied' from the kernel. That can be ordinary permissions or SELinux; the log line alone does not say which."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "lsl": {
+      "label": "ls -l /var/www/html/docs",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "lsAt",
+          "to": "t"
+        },
+        {
+          "output": "root@web02:~# ls -l /var/www/html/docs\n{worldWritable ? \"-rwxrwxrwx.\" : \"-rw-r--r--.\"} 1 deploy deploy 18211 Nov 11 09:48 index.html\n{worldWritable ? \"drwxrwxrwx.\" : \"drwxr-xr-x.\"} 2 deploy deploy    96 Nov 11 09:48 guide\n(41 more files)"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "lsZ": {
+      "label": "ls -Z /var/www/html/docs",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "lsZAt",
+          "to": "t"
+        },
+        {
+          "output": "root@web02:~# ls -Z /var/www/html/docs\nunconfined_u:object_r:{isNull(relabeledAt) ? \"user_home_t\" : \"httpd_sys_content_t\"}:s0 index.html\nunconfined_u:object_r:{isNull(relabeledAt) ? \"user_home_t\" : \"httpd_sys_content_t\"}:s0 guide"
+        },
+        {
+          "if": "isNull(relabeledAt)",
+          "then": [
+            {
+              "finding": "The moved files kept the home-directory type user_home_t; the rest of /var/www/html is httpd_sys_content_t."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "avc": {
+      "label": "ausearch -m AVC -ts recent",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "avcAt",
+          "to": "t"
+        },
+        {
+          "if": "not isNull(relabeledAt)",
+          "then": [
+            {
+              "output": "root@web02:~# ausearch -m AVC -ts recent\n<no matches>"
+            }
+          ],
+          "else": [
+            {
+              "output": "root@web02:~# ausearch -m AVC -ts recent\n----\ntime->Tue Nov 11 09:51:02 2026\ntype=AVC msg=audit(1762855810.204:412): avc:  denied  {{ getattr }} for  pid=2311 comm=\"httpd\" path=\"/var/www/html/docs/index.html\" dev=\"vda3\" ino=50331847 scontext=system_u:system_r:httpd_t:s0 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=0{permissive ? \" (and newer ones with permissive=1)\" : \"\"}"
+            },
+            {
+              "finding": "SELinux denied httpd_t reading a file of type user_home_t: a labeling problem, not a permissions one."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "getenforce": {
+      "label": "getenforce",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "modeAt",
+          "to": "t"
+        },
+        {
+          "output": "root@web02:~# getenforce\n{permissive ? \"Permissive\" : \"Enforcing\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restorecon": {
+      "label": "restorecon -Rv /var/www/html/docs",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(relabeledAt)",
+          "then": [
+            {
+              "set": "relabeledAt",
+              "to": "t"
+            },
+            {
+              "if": "isNull(siteUpAt)",
+              "then": [
+                {
+                  "set": "siteUpAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "output": "root@web02:~# restorecon -Rv /var/www/html/docs\nRelabeled /var/www/html/docs from unconfined_u:object_r:user_home_t:s0 to unconfined_u:object_r:httpd_sys_content_t:s0\nRelabeled /var/www/html/docs/index.html from unconfined_u:object_r:user_home_t:s0 to unconfined_u:object_r:httpd_sys_content_t:s0\n(and 42 more)"
+            },
+            {
+              "log": "The docs files now carry the web content type, httpd_sys_content_t.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "output": "root@web02:~# restorecon -Rv /var/www/html/docs"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "chmod777": {
+      "label": "chmod -R 777 /var/www/html/docs",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "worldWritable",
+          "to": "true"
+        },
+        {
+          "set": "chmodEver",
+          "to": "true"
+        },
+        {
+          "output": "root@web02:~# chmod -R 777 /var/www/html/docs"
+        },
+        {
+          "log": "Every docs file is now writable by every user and service on the server.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "chmodBack": {
+      "label": "chmod -R u=rwX,go=rX /var/www/html/docs",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "worldWritable",
+          "to": "false"
+        },
+        {
+          "output": "root@web02:~# chmod -R u=rwX,go=rX /var/www/html/docs"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "setenforce0": {
+      "label": "setenforce 0",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "permissive",
+          "to": "true"
+        },
+        {
+          "set": "permissiveEver",
+          "to": "true"
+        },
+        {
+          "if": "isNull(siteUpAt)",
+          "then": [
+            {
+              "set": "siteUpAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@web02:~# setenforce 0"
+        },
+        {
+          "log": "SELinux is permissive for the whole server: nothing it would deny is stopped now, only logged.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "setenforce1": {
+      "label": "setenforce 1",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "permissive",
+          "to": "false"
+        },
+        {
+          "output": "root@web02:~# setenforce 1"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "disableSelinux": {
+      "label": "grubby --update-kernel ALL --args selinux=0",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "disabledForGood",
+          "to": "true"
+        },
+        {
+          "output": "root@web02:~# grubby --update-kernel ALL --args selinux=0"
+        },
+        {
+          "log": "SELinux is set to be disabled from the next boot, on a production server.",
+          "kind": "alarm"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "restartHttpd": {
+      "label": "systemctl restart httpd",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "add": "httpdRestarts",
+          "by": "1"
+        },
+        {
+          "output": "root@web02:~# systemctl restart httpd"
+        },
+        {
+          "log": "httpd restarted; the files' labels are unchanged.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 600",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@web02:~# sleep 600"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "label",
+                  "label": "mv kept the home-directory SELinux type (user_home_t) on the moved files"
+                },
+                {
+                  "value": "mode",
+                  "label": "Wrong file permissions"
+                },
+                {
+                  "value": "owner",
+                  "label": "The files are owned by deploy, not apache"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Fix",
+              "options": [
+                {
+                  "value": "restorecon",
+                  "label": "Restored the default labels with restorecon"
+                },
+                {
+                  "value": "permissive",
+                  "label": "Set SELinux to permissive"
+                },
+                {
+                  "value": "chmod",
+                  "label": "Opened the permissions"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "log": "Recorded: cause {cause}, fix {fix}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-237)",
+        "checkedAt": "2026-11-11",
+        "note": "How many operator minutes each command or change takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "launch",
+      "when": "t >= launchDelay and phase == \"incident\" and not siteUp",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "launchFailedAt",
+          "to": "t"
+        },
+        {
+          "log": "10:45: the release email went to 40,000 customers; every link to the docs answers 403.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: why the site answered 403 when ls -l looked fine, how you proved it, and why your fix is the right one.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "Names the SELinux type: mv kept user_home_t from the home directory, which httpd_t may not read; ordinary permissions were fine.",
+          "modelAnswer": "mv keeps a file's SELinux label, so the moved files stayed user_home_t. httpd runs as httpd_t, which policy does not let read home-directory content, so the kernel denied it although rw-r--r-- allowed reading."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "Uses the audit log (ausearch -m AVC) or ls -Z before changing anything; does not infer SELinux from the 403 alone.",
+          "modelAnswer": "ausearch showed an AVC denial for httpd_t on index.html with tcontext user_home_t, and ls -Z showed the moved files with that type."
+        },
+        {
+          "label": "Fix",
+          "criteria": "Restores the default label with restorecon -R (the path's default is httpd_sys_content_t); keeps SELinux enforcing and the permissions as they were; explains why setenforce 0 or chmod 777 is not a fix.",
+          "modelAnswer": "restorecon -Rv set the files to the path's default type, httpd_sys_content_t, with SELinux still enforcing. Permissive mode would switch protection off for every service, and 777 would let anything on the box rewrite the site while still being denied."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Fixed with time to spare before the 10:45 release email; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-11",
+          "note": "No weakening left behind: world-writable files, permissive mode or SELinux set to be disabled."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not siteUp",
+      "class": "harm",
+      "rationale": "Closing while the docs still answer 403 leaves customers on broken links; it is never a safe outcome.",
+      "source": {
+        "cite": "Red Hat Enterprise Linux 9, Using SELinux, chapter 'Troubleshooting problems related to SELinux'",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/using_selinux/troubleshooting-problems-related-to-selinux_using-selinux",
+        "note": "Relevant text: 'the /var/log/audit/audit.log file is the first place to check for more information about a denial'; '# ausearch -m AVC,USER_AVC,SELINUX_ERR,USER_SELINUX_ERR -ts recent'; a raw denial reads 'type=AVC msg=audit(...): avc:  denied  { write } for ...'; 'in most cases, SELinux denials are signs of misconfiguration'; troubleshooting 'should start with a check if there is a labeling problem'; 'Using the mv command to move files from your home directory may result in files being labeled with the user_home_t type. This type should not exist outside of home directories'; files moved into /var/www/html/ with user_home_t were fixed with restorecon -v to httpd_sys_content_t. Read through a summarizing fetch on 2026-11-11."
+      }
+    }
+  },
+  "endings": {
+    "selinuxOff": {
+      "label": "SELinux disabled on a production server",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and disabledForGood",
+      "narrative": "The server will boot with SELinux disabled: no policy enforced and no denials logged for any service on it."
+    },
+    "launchBroken": {
+      "label": "The release email linked to a broken site",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(launchFailedAt)",
+      "narrative": "The docs still answered 403 at 10:45, so 40,000 customers got links that did not work."
+    },
+    "stillBroken": {
+      "label": "Closed with the site still failing",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not siteUp",
+      "narrative": "The outage was closed while /docs still answered 403."
+    },
+    "fixed": {
+      "label": "Fixed at the label",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not isNull(relabeledAt) and timeAt(relabeledAt) <= restoreWindow and faultsAdded <= newFaults and not chmodEver and not permissiveEver and evidenceFirst and not isNull(verifiedAt)",
+      "narrative": "The moved files carry the right type, SELinux stayed enforcing, the permissions never changed, and the site answers 200."
+    },
+    "fixedGaps": {
+      "label": "Working, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The docs work, but the fix was late, guessed, unverified, or weakened the server on the way."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "selinuxOff",
+    "launchBroken",
+    "stillBroken",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Proved it was SELinux (audit log or ls -Z) before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceFirst and not chmodEver and not permissiveEver",
+            "score": "met",
+            "why": "The denial or the label was read first."
+          },
+          {
+            "when": "not isNull(avcAt) or not isNull(lsZAt)",
+            "score": "partial",
+            "why": "The evidence was read only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither the audit log nor the labels were read."
+          }
+        ]
+      },
+      {
+        "id": "noWeakening",
+        "label": "Kept SELinux enforcing and the permissions tight",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "disabledForGood",
+            "score": "missed",
+            "why": "SELinux is set to be disabled."
+          },
+          {
+            "when": "faultsAdded > 0",
+            "score": "missed",
+            "why": "Left {worldWritable ? \"the files world-writable\" : \"SELinux permissive\"} at close."
+          },
+          {
+            "when": "chmodEver or permissiveEver",
+            "score": "partial",
+            "why": "Weakened the server on the way, then undid it."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Nothing was weakened."
+          }
+        ]
+      },
+      {
+        "id": "fixedFast",
+        "label": "Restored the default label within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(relabeledAt) and timeAt(relabeledAt) <= restoreWindow",
+            "score": "met",
+            "why": "Relabeled {timeAt(relabeledAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(relabeledAt)",
+            "score": "partial",
+            "why": "Relabeled, but {timeAt(relabeledAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The files still carry the home-directory type."
+          }
+        ]
+      },
+      {
+        "id": "noRestarts",
+        "label": "No restarts that could not help",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "httpdRestarts == 0",
+            "score": "met",
+            "why": "No blind restarts."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "httpd was restarted; labels do not change on a restart."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Verified with a request after the fix",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "/docs answered 200."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked the site answers."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the fix accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"label\" and fixDoc == \"restorecon\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"label\"",
+            "score": "partial",
+            "why": "The cause is right; the fix recorded is not the one that should stand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, evidence and fix",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToFix",
+        "label": "Minutes until the docs worked",
+        "value": "isNull(siteUpAt) ? -1 : timeAt(siteUpAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "faultsK",
+        "label": "Weakenings left at close",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "restartsK",
+        "label": "httpd restarts",
+        "value": "httpdRestarts",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-3 min",
+        "text": "Confirm the 403 and read the error log: 'Permission denied' from the kernel."
+      },
+      {
+        "at": "3-6 min",
+        "text": "ls -l is fine; ls -Z shows user_home_t; ausearch -m AVC shows httpd_t denied reading user_home_t."
+      },
+      {
+        "at": "6-10 min",
+        "text": "restorecon -Rv /var/www/html/docs, then curl /docs/ for a 200, SELinux still enforcing."
+      },
+      {
+        "at": "After",
+        "text": "Record mv keeping the home-directory label as the cause; suggest cp, or restorecon in the deploy script."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: fixed at the label",
+        "body": "You read the denial before touching anything and restored the path's default type, so the site works with SELinux still enforcing."
+      },
+      "fixedGaps": {
+        "headline": "Working, with gaps",
+        "body": "The docs answer 200. The criteria show what it cost: time, a guess before the evidence, or protection switched off on the way."
+      },
+      "selinuxOff": {
+        "headline": "SELinux disabled",
+        "body": "Red Hat's guidance is not to disable SELinux; a denial is usually a label problem. Read the AVC and fix the label."
+      },
+      "launchBroken": {
+        "headline": "The email went out to a broken site",
+        "body": "The 403 had been explained by the audit log since 09:51. ausearch -m AVC or ls -Z points at the label in minutes."
+      },
+      "stillBroken": {
+        "headline": "Closed too soon",
+        "body": "/docs still answered 403. Fix, then confirm with a request before you close."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A 403 right after an mv into the web root, with ordinary permissions that allow reading, points at SELinux labels: mv keeps user_home_t, which httpd_t may not read. Confirm with ausearch -m AVC (or ls -Z), run restorecon -Rv on the moved directory to restore the default httpd_sys_content_t, keep SELinux enforcing and the permissions unchanged, and verify with a request."
+  }
+}

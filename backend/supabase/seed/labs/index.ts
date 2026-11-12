@@ -122,9 +122,12 @@ import { NREMTEMR_LABS } from "./ems-emr";
 import { NREMTPARAMEDIC_LABS } from "./ems-paramedic";
 import { NREMTAEMT_LABS } from "./ems-aemt";
 // REQ-234: CompTIA A+ Core 1 and Core 2, and the EPPP.
+// REQ-239: the NCE and the NCMHCE.
 import { APLUS_CORE1_LABS } from "./comptia-aplus-core1";
 import { APLUS_CORE2_LABS } from "./comptia-aplus-core2";
 import { EPPP_LABS } from "./eppp";
+import { NCE_LABS } from "./nbcc-nce";
+import { NCMHCE_LABS } from "./nbcc-ncmhce";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -249,4 +252,7 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   APLUS_CORE1_LABS,
   APLUS_CORE2_LABS,
   EPPP_LABS,
+  // REQ-239: NBCC counseling exams.
+  NCE_LABS,
+  NCMHCE_LABS,
 ].map(withValueSources);

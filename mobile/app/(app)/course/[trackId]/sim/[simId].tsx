@@ -14,6 +14,8 @@ import { announce, newAnnouncer } from "@/sim/runtime/announcer.ts";
 import { useSimRun } from "@/sim/useSimRun";
 import { ConsolePanel } from "@/sim/ConsolePanel";
 import { consoleAlarmTexts, consoleNews, consoleSentence, type ConsoleView } from "@/sim/runtime/consoleView.ts";
+import { TerminalPanel } from "@/sim/TerminalPanel";
+import { terminalAlarmTexts, terminalCommands, terminalErrors, terminalNews, terminalSentence, type TerminalView } from "@/sim/runtime/terminalView.ts";
 import { ReportProblem } from "@/components/ReportProblem";
 import { localHash } from "@/sim/runtime/session.ts";
 import { ActionBar, ChapterCard, DebriefView, EventLog, LaunchCard, PaceControl, PromptCard, ReasoningCard, SessionPanel, SkipOffer, TeachingCard, TopologyPanel, TreatmentPanel, VitalsPanel, WaitsRow, sessionSentence, treatmentSentence } from "@/sim/SimPanels";
@@ -29,6 +31,8 @@ import { LoadError } from "@/components/LoadError";
 // server's debrief. REQ-225: a client session shows the client
 // (SessionPanel) where the vitals or the architecture would be. REQ-232: a
 // PT treatment session shows the patient (TreatmentPanel) above the vitals.
+// REQ-237: a terminal screen shows the map, the transcript and the command
+// line (TerminalPanel); its output is the transcript, not separate cards.
 // Content is served under the one study notice (REQ-165): the server refuses
 // a clinical sim until it is accepted, and its message is shown as is.
 
@@ -61,6 +65,8 @@ export default function SimScreen() {
   const lastConsole = useRef<ConsoleView | null>(null);
   // REQ-232: the treatment session as last announced, likewise.
   const lastTreatment = useRef<TreatmentView | null>(null);
+  // REQ-237: the terminal as last announced, likewise.
+  const lastTerminal = useRef<TerminalView | null>(null);
   // REQ-209: the launch card's pick; the scenario's default pace until changed.
   const [pick, setPick] = useState<LaunchChoice | null>(null);
 
@@ -83,11 +89,13 @@ export default function SimScreen() {
   // Screen-reader announcements: alarms at once, news at most every 10 s.
   useEffect(() => {
     if (!view || !s) return;
-    const news = [...sessionNews(lastSession.current, view.session), ...consoleNews(lastConsole.current, view.console), ...treatmentNews(lastTreatment.current, view.treatment)];
+    const news = [...sessionNews(lastSession.current, view.session), ...consoleNews(lastConsole.current, view.console), ...treatmentNews(lastTreatment.current, view.treatment), ...terminalNews(lastTerminal.current, view.terminal)];
+    const urgent = terminalErrors(lastTerminal.current, view.terminal);
+    lastTerminal.current = view.terminal;
     lastSession.current = view.session;
     lastConsole.current = view.console;
     lastTreatment.current = view.treatment;
-    const r = announce(announcer.current, { alarms: [...alarmTexts(view.tiles), ...sessionAlarmTexts(view.session), ...consoleAlarmTexts(view.console), ...treatmentAlarmTexts(view.treatment)], log: s.run.log, nowMs: Date.now(), typing: !!view.reasoning, news });
+    const r = announce(announcer.current, { alarms: [...alarmTexts(view.tiles), ...sessionAlarmTexts(view.session), ...consoleAlarmTexts(view.console), ...treatmentAlarmTexts(view.treatment), ...terminalAlarmTexts(view.terminal)], log: s.run.log, nowMs: Date.now(), typing: !!view.reasoning, news, urgent });
     announcer.current = r.state;
     for (const a of r.out) AccessibilityInfo.announceForAccessibility(a.text);
   });
@@ -210,6 +218,13 @@ export default function SimScreen() {
           {view.infusions ? <Muted>{view.infusions}</Muted> : null}
           <TopologyPanel zones={view.board.zones} meters={view.board.meters} />
           <ConsolePanel v={view.console} onRead={() => view.console && AccessibilityInfo.announceForAccessibility(consoleSentence(view.console))} />
+          <TerminalPanel
+            v={view.terminal}
+            commands={view.terminal ? terminalCommands(view.groups.flatMap((g) => g.actions)) : []}
+            onCommand={sim.command}
+            disabled={!running || view.blocked || launching || !!chapter || (view.mode === "running" && sim.paused)}
+            onRead={() => view.terminal && AccessibilityInfo.announceForAccessibility(terminalSentence(view.terminal))}
+          />
 
           {view.prompt ? <PromptCard prompt={view.prompt} onChoose={(c) => sim.command({ type: "choose", prompt: view.prompt!.id, choice: c })} /> : null}
           {view.reasoning ? (
@@ -225,10 +240,10 @@ export default function SimScreen() {
 
           {sim.calm && running && !sim.paused && !chapter ? <SkipOffer offer={sim.calm} disabled={!running} onSkip={() => void sim.skipTo(sim.calm!.wait, { calm: true })} /> : null}
           {teach || feedback ? <TeachingCard offer={teach} feedback={feedback} onAnswer={(c) => sim.answerTeach(teach!.id, c)} onDismiss={sim.dismissTeach} /> : null}
-          <WaitsRow run={s.run} waits={view.waits} turns={turns} plain={!!view.session || !!view.console} disabled={!running || (!turns && sim.paused) || !!chapter} onSkip={(w) => void sim.skipTo(w)} />
+          <WaitsRow run={s.run} waits={view.waits} turns={turns} plain={!!view.session || !!view.console || !!view.terminal} disabled={!running || (!turns && sim.paused) || !!chapter} onSkip={(w) => void sim.skipTo(w)} />
           {view.mode === "running" && sim.paused && !view.blocked ? <Muted>Run the clock to act. Pause any time; pausing is never scored.</Muted> : null}
           <ActionBar run={s.run} groups={view.groups} onCommand={sim.command} disabled={!running || view.blocked || launching || !!chapter || (view.mode === "running" && sim.paused)} />
-          {view.outputs.map((o) => <Card key={o.key}><Body>{o.text}</Body></Card>)}
+          {view.terminal ? null : view.outputs.map((o) => <Card key={o.key}><Body>{o.text}</Body></Card>)}
           <EventLog log={view.log} finding={view.finding} />
           {sim.status === "finishing" ? <Loading label="Confirming the ending with the server..." /> : null}
           {!view.ended ? <Button label="End the run" variant="link" size="sm" fullWidth={false} accessibilityLabel="End the run early. Nothing is recorded for mastery." onPress={() => {

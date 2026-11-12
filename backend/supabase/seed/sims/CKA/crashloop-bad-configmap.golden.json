@@ -1,0 +1,935 @@
+{
+  "slug": "crashloop-bad-configmap",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "get pods, describe (exit 1, envFrom), logs --previous names LISTEN_PORT 8O80, ConfigMap and Service read, set 8080, rollout restart, verify",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "getPods",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "describe",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "logsPrev",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "getCm",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "getSvc",
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 6,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "editCm",
+          "params": {
+            "port": "p8080"
+          },
+          "seq": 11,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 8,
+          "seq": 12,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "rolloutRestart",
+          "seq": 13,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "rolloutStatus",
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 12,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 17,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 13,
+          "seq": 18,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 19,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 20,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "configTypo",
+            "lesson": "validate"
+          },
+          "seq": 21,
+          "tick": 13
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "readPrevious": "met",
+          "fixedConfig": "met",
+          "keptServing": "met",
+          "fixedFast": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 8,
+          "restartsK": 1,
+          "faultsK": 0
+        },
+        "stateHash": "87af22ef205143bd"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "undoFirst",
+      "title": "Rolls back first (the ConfigMap stays wrong), then reads the log, fixes the value and restarts",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "getPods",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rolloutUndo",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "getPods",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "logsPrev",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "editCm",
+          "params": {
+            "port": "p8080"
+          },
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 7,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "rolloutRestart",
+          "seq": 11,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 10,
+          "seq": 12,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 13,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "configTypo",
+            "lesson": "undo"
+          },
+          "seq": 17,
+          "tick": 11
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "readPrevious": "partial",
+          "fixedConfig": "partial",
+          "keptServing": "met",
+          "fixedFast": "met",
+          "verified": "met",
+          "record": "partial"
+        },
+        "kpis": {
+          "minToFix": 7,
+          "restartsK": 1,
+          "faultsK": 0
+        },
+        "stateHash": "760b6906aad854e4"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "wrongPort",
+      "title": "Reads the log, sets port 80 (pods never Ready), checks the Service, corrects to 8080",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "getPods",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "logsPrev",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "editCm",
+          "params": {
+            "port": "p80"
+          },
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "rolloutRestart",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 7,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "getPods",
+          "seq": 9,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 8,
+          "seq": 10,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "getSvc",
+          "seq": 11,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 9,
+          "seq": 12,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "editCm",
+          "params": {
+            "port": "p8080"
+          },
+          "seq": 13,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "rolloutRestart",
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 14,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 17,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 15,
+          "seq": 18,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 19,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 20,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "configTypo",
+            "lesson": "validate"
+          },
+          "seq": 21,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "readPrevious": "met",
+          "fixedConfig": "met",
+          "keptServing": "partial",
+          "fixedFast": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 11,
+          "restartsK": 2,
+          "faultsK": 1
+        },
+        "stateHash": "245d041cbb9a1aa4"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "deleteAll",
+      "title": "Deletes every orders-api pod to 'refresh' them while the value is still wrong: no ready pods",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "getPods",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deletePods",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "getPods",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "image",
+            "lesson": "nothing"
+          },
+          "seq": 11,
+          "tick": 5
+        }
+      ],
+      "expect": {
+        "ending": "checkoutDown",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "readPrevious": "missed",
+          "fixedConfig": "missed",
+          "keptServing": "missed",
+          "fixedFast": "missed",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToFix": -1,
+          "restartsK": 0,
+          "faultsK": 0
+        },
+        "stateHash": "2b0e6019ecc0d178"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "slowSale",
+      "title": "Describes a pod and waits for the teammate: the 10:40 sale starts short, then fixes it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "getPods",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "describe",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 23,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 33,
+          "seq": 10,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 43,
+          "seq": 12,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 43,
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "logsPrev",
+          "seq": 14,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 44,
+          "seq": 15,
+          "tick": 43
+        },
+        {
+          "type": "act",
+          "action": "editCm",
+          "params": {
+            "port": "p8080"
+          },
+          "seq": 16,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 46,
+          "seq": 17,
+          "tick": 44
+        },
+        {
+          "type": "act",
+          "action": "rolloutRestart",
+          "seq": 18,
+          "tick": 46
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 49,
+          "seq": 19,
+          "tick": 46
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 20,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 50,
+          "seq": 21,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 22,
+          "tick": 50
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 23,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "configTypo",
+            "lesson": "validate"
+          },
+          "seq": 24,
+          "tick": 50
+        }
+      ],
+      "expect": {
+        "ending": "saleFailed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 86,
+        "criteria": {
+          "readPrevious": "met",
+          "fixedConfig": "met",
+          "keptServing": "met",
+          "fixedFast": "partial",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 46,
+          "restartsK": 1,
+          "faultsK": 0
+        },
+        "stateHash": "8a6a6efb997725fe"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "closeAfterUndo",
+      "title": "Runs rollout undo, sees 'rolled back' and closes with the new pod still crashing",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "getPods",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rolloutUndo",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "rolloutStatus",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "configTypo",
+            "lesson": "undo"
+          },
+          "seq": 9,
+          "tick": 4
+        }
+      ],
+      "expect": {
+        "ending": "stillBroken",
+        "class": "harm",
+        "rating": "bad",
+        "score": 21,
+        "criteria": {
+          "readPrevious": "missed",
+          "fixedConfig": "missed",
+          "keptServing": "met",
+          "fixedFast": "missed",
+          "verified": "missed",
+          "record": "partial"
+        },
+        "kpis": {
+          "minToFix": -1,
+          "restartsK": 0,
+          "faultsK": 0
+        },
+        "stateHash": "de5a4774ac7e378a"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

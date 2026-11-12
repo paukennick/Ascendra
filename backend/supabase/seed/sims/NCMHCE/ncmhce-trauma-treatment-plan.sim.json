@@ -1,0 +1,1750 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ncmhce-trauma-treatment-plan",
+  "title": "Case: a trauma-informed plan for a firefighter, and its first revision",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Andre Washington",
+        "presentation": "{distress >= 7 ? \"Jaw clenched, staring at the floor, knee bouncing\" : distress >= 4 ? \"Upright and guarded, arms folded\" : \"Leaning back, more at ease\"}; {rapport >= 6 ? \"he talks to you directly\" : rapport >= 3 ? \"he answers, then waits\" : \"he checks his watch\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "dx",
+          "label": "From the intake",
+          "text": "PTSD after a call eight months ago in which a child died; nightmares, avoids the street where it happened, irritable, sleeps four or five hours.",
+          "when": "true"
+        },
+        {
+          "id": "choice",
+          "label": "Therapy",
+          "text": "{therapy == \"cpt\" ? \"He chose cognitive processing therapy: 'I'd rather work on the thoughts first.'\" : therapy == \"pe\" ? \"You assigned prolonged exposure.\" : \"Not yet chosen.\"}",
+          "when": "therapy != \"none\""
+        },
+        {
+          "id": "goals",
+          "label": "Goals",
+          "text": "{goalsBy == \"his\" ? \"In his words: sleep through most nights; back to full duty without dread; enjoy his kids' games again.\" : \"Set by you: symptom-free in eight weeks; no avoidance.\"}",
+          "when": "goalsBy != \"none\""
+        },
+        {
+          "id": "peer",
+          "label": "Supports",
+          "text": "The department has a peer support team; his wife knows 'some of it'.",
+          "when": "peerAsked"
+        },
+        {
+          "id": "s2",
+          "label": "Since last session",
+          "text": "The anniversary of the call was last week; nightmares worse; skipped the worksheets; snapping at his wife.",
+          "when": "s2Opened"
+        },
+        {
+          "id": "drink",
+          "label": "Drinking",
+          "text": "{risk2 ? \"Five or six beers a night to sleep since the anniversary (two some nights before). No thoughts of suicide.\" : risk1 ? \"Two beers some nights. No thoughts of suicide.\" : \"\"}",
+          "when": "risk1 or risk2",
+          "alert": "s2Opened and not risk2"
+        },
+        {
+          "id": "measure",
+          "label": "PTSD checklist",
+          "text": "{baseline ? \"Slightly worse than three weeks ago.\" : \"No baseline to compare with.\"}",
+          "when": "measureReviewed"
+        }
+      ],
+      "record": {
+        "label": "Plan so far",
+        "items": [
+          {
+            "label": "Trauma-informed steps: {psychoEd ? \"explained\" : \"not explained\"}, {grounding ? \"grounding taught\" : \"no grounding skill\"}, {choiceOffered ? \"his choice of therapy\" : \"no choice offered\"}",
+            "when": "psychoEd or grounding or choiceOffered"
+          },
+          {
+            "label": "Progress measure agreed",
+            "when": "baseline"
+          },
+          {
+            "label": "Revision: {revision}",
+            "when": "revision != \"none\""
+          },
+          {
+            "label": "Physician contacted with his consent",
+            "when": "coordinated"
+          },
+          {
+            "label": "Documented: approach {approachDoc}, risk {riskDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Build a trauma-informed treatment plan with the client",
+  "sources": [
+    {
+      "cite": "NBCC, NCMHCE Content Outline (revised 2025-10-08): Domain 4 Treatment Planning, 15% (tasks A, B, C, D, L, M: collaborative goals, goals consistent with the diagnosis, barriers, strengths, review and revise the plan, review progress with the client); Domain 2 task O (assess for trauma); Domain 5 task S (facilitate trust and safety); case format: an intake summary and two counseling sessions",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.nbcc.org/assets/exam/ncmhce_content_outline.pdf",
+      "note": "Current outline; NBCC's new blueprint takes effect 2027-07-01. This case follows the exam's shape: the brief is the intake summary, then two sessions three weeks apart."
+    },
+    {
+      "cite": "SAMHSA, Trauma-Informed Approaches and Programs (page last updated 2026-02-08)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.samhsa.gov/mental-health/trauma-violence/trauma-informed-approaches-programs",
+      "note": "The page lists five principles: safety; peer support; trustworthiness and transparency; collaboration and mutuality; empowerment, voice and choice. SAMHSA's 2014 concept paper (SMA14-4884) could not be opened (403) and is not quoted."
+    },
+    {
+      "cite": "APA Clinical Practice Guideline for the Treatment of PTSD in adults, guideline panel summary (Am Psychol 2019;74:596)",
+      "checkedAt": "2026-11-11",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/31305099/",
+      "note": "Abstract read on PubMed for the EPPP labs (2026-11-11), not re-read here: strongly recommends CBT, cognitive processing therapy, cognitive therapy and prolonged exposure; conditionally brief eclectic psychotherapy, EMDR and narrative exposure therapy."
+    },
+    {
+      "cite": "VA National Center for PTSD, PTSD and DSM-5 (updated 2026-09-28)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.ptsd.va.gov/professional/treat/essentials/dsm5_ptsd.asp",
+      "note": "PTSD symptom clusters and duration (more than one month); unchanged in DSM-5-TR."
+    },
+    {
+      "cite": "ACA Code of Ethics (2014): A.1.c counseling plans (devised jointly, regularly reviewed and revised, respecting the client's freedom of choice); A.2.a informed consent",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.counseling.org/docs/default-source/default-document-library/ethics/2014-aca-code-of-ethics.pdf",
+      "note": "The current code per counseling.org (read 2026-11-11)."
+    },
+    {
+      "cite": "SAMHSA, 988 Suicide & Crisis Lifeline: 'Call or Text 988' (page modified 2025-11-13)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.samhsa.gov/mental-health/988"
+    }
+  ],
+  "brief": {
+    "situation": "As an NCMHCE case opens, here is the intake summary. Andre Washington, 41 (a fictional client), a firefighter-paramedic, was assessed by you a week ago and diagnosed with PTSD after a call eight months ago in which a child died: nightmares, avoiding the street where it happened, irritability, four or five hours of sleep. He is on light duty, married with two children, and came at his captain's urging. No suicidal thoughts at intake. As on the exam, the case then follows two counseling sessions: today you build the treatment plan with him; the second session, three weeks later, revisits it. Each session is 50 minutes.",
+    "handover": [
+      "Intake: PTSD. Drinks 'a couple of beers some nights'. Department has a peer support team. No prior counseling."
+    ],
+    "howItWorks": [
+      "Choose what to ask and how to respond from the action groups. Andre answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "His rapport, distress and how much he discloses change with what you say. End the first session to move to the second, three weeks later; each hour also ends at 50 minutes.",
+      "After the second session you document the plan and risk, then write a short formulation."
+    ]
+  },
+  "clock": {
+    "start": "08:00",
+    "tick": "1min",
+    "maxDuration": "130min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-11",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-11",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-11",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 3,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "s2At": {
+      "type": "time",
+      "init": null
+    },
+    "s2Opened": {
+      "type": "bool",
+      "init": false
+    },
+    "psychoEd": {
+      "type": "bool",
+      "init": false
+    },
+    "grounding": {
+      "type": "bool",
+      "init": false
+    },
+    "choiceOffered": {
+      "type": "bool",
+      "init": false
+    },
+    "imposed": {
+      "type": "bool",
+      "init": false
+    },
+    "therapy": {
+      "type": "enum",
+      "values": [
+        "none",
+        "cpt",
+        "pe"
+      ],
+      "init": "none"
+    },
+    "pushed": {
+      "type": "bool",
+      "init": false
+    },
+    "goalsBy": {
+      "type": "enum",
+      "values": [
+        "none",
+        "his",
+        "mine"
+      ],
+      "init": "none"
+    },
+    "peerAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "risk1": {
+      "type": "bool",
+      "init": false
+    },
+    "baseline": {
+      "type": "bool",
+      "init": false
+    },
+    "risk2": {
+      "type": "bool",
+      "init": false
+    },
+    "risk2At": {
+      "type": "time",
+      "init": null
+    },
+    "measureReviewed": {
+      "type": "bool",
+      "init": false
+    },
+    "blamed": {
+      "type": "bool",
+      "init": false
+    },
+    "revision": {
+      "type": "enum",
+      "values": [
+        "none",
+        "adapt",
+        "push",
+        "pause"
+      ],
+      "init": "none"
+    },
+    "coordinated": {
+      "type": "bool",
+      "init": false
+    },
+    "approachDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tf",
+        "support"
+      ],
+      "init": "none"
+    },
+    "riskDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "assessed",
+        "unrecorded"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "(phase == \"session1\" or phase == \"session2\") and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "(phase == \"session1\" or phase == \"session2\") and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session1": {
+      "label": "Session 1: building the plan",
+      "clock": "turns",
+      "actions": [
+        "checkIn1",
+        "reflect",
+        "psychoEducate",
+        "groundingSkill",
+        "offerChoice",
+        "assignTherapy",
+        "pushDetail",
+        "setGoals",
+        "askPeer",
+        "askRisk1",
+        "agreeMeasure",
+        "endSession1"
+      ]
+    },
+    "session2": {
+      "label": "Session 2: three weeks later",
+      "clock": "turns",
+      "actions": [
+        "checkIn2",
+        "reflect",
+        "askRisk2",
+        "reviewMeasure",
+        "blameHomework",
+        "revisePlan",
+        "coordinate",
+        "endSession2"
+      ]
+    },
+    "note": {
+      "label": "After the sessions",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session1",
+  "actions": {
+    "checkIn1": {
+      "label": "Open: 'How has the week since the intake been?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "He has told you.",
+      "effects": [
+        {
+          "log": "You ask an open question and give him room.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Same. Bad nights. My captain wants me back on the truck, and I want to be. I just don't know how.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 6)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 3 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Andre nods once. \"Yeah. That's about right.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "psychoEducate": {
+      "label": "Explain PTSD and how trauma-focused therapy works: what it asks of him, and that he sets the pace",
+      "group": "Plan",
+      "available": "not talking and (not psychoEd)",
+      "why": "Explained.",
+      "effects": [
+        {
+          "log": "You explain how PTSD keeps the alarm going after the danger has passed, what trauma-focused therapy involves, that it can feel harder before it helps, and that he sets the pace.",
+          "kind": "act"
+        },
+        {
+          "set": "psychoEd",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"So I'm not losing it. Okay. Nobody's explained it like that.\""
+        },
+        {
+          "log": "Transparency: he knows what he is agreeing to.",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "groundingSkill": {
+      "label": "Teach a grounding skill for flashbacks and nightmares",
+      "group": "Plan",
+      "available": "not talking and (not grounding)",
+      "why": "Taught.",
+      "effects": [
+        {
+          "log": "You teach a grounding skill (naming what he can see, hear and feel, feet on the floor) and practice it with him.",
+          "kind": "act"
+        },
+        {
+          "set": "grounding",
+          "to": "true"
+        },
+        {
+          "add": "distress",
+          "by": "-1"
+        },
+        {
+          "finding": "He tries it twice. \"That's... actually something I can do at 3 a.m.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "offerChoice": {
+      "label": "Describe the recommended trauma-focused therapies (CPT, PE, EMDR) and ask which fits him",
+      "group": "Plan",
+      "available": "not talking and (psychoEd and not choiceOffered and not imposed)",
+      "why": "Explain how trauma-focused therapy works first (or a therapy is chosen).",
+      "effects": [
+        {
+          "log": "You describe cognitive processing therapy, prolonged exposure and EMDR, what each asks of him, and ask which fits.",
+          "kind": "act"
+        },
+        {
+          "set": "choiceOffered",
+          "to": "true"
+        },
+        {
+          "set": "therapy",
+          "to": "\"cpt\""
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"The thinking one. I keep telling myself I should have got there faster. I'd rather work on that first.\" He chooses cognitive processing therapy."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "assignTherapy": {
+      "label": "Tell him prolonged exposure works best and you'll start it next week",
+      "group": "Plan",
+      "available": "not talking and (not choiceOffered and not imposed)",
+      "why": "A therapy is already chosen.",
+      "effects": [
+        {
+          "log": "You tell him prolonged exposure is the most effective and you will start it next week.",
+          "kind": "act"
+        },
+        {
+          "set": "imposed",
+          "to": "true"
+        },
+        {
+          "set": "therapy",
+          "to": "\"pe\""
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "finding": "\"If you say so.\" He looks at the door."
+        },
+        {
+          "log": "Deciding for him skips collaboration and choice, two of the trauma-informed principles.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "pushDetail": {
+      "label": "Ask him to describe the call in full detail now",
+      "group": "Respond",
+      "available": "not talking and (not pushed)",
+      "why": "Already asked.",
+      "effects": [
+        {
+          "log": "You ask him to tell you everything that happened on the call, in detail, now.",
+          "kind": "act"
+        },
+        {
+          "set": "pushed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "distress",
+          "by": "3"
+        },
+        {
+          "finding": "His face goes gray. \"No. Not today.\" His hands are shaking."
+        },
+        {
+          "log": "Pressing for the trauma story before safety and a plan are in place can overwhelm him; detail belongs inside the therapy he chooses, at his pace.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "setGoals": {
+      "label": "Write the treatment goals",
+      "group": "Plan",
+      "available": "not talking and (goalsBy == \"none\")",
+      "why": "Goals are set.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "who == \"his\"",
+              "then": [
+                {
+                  "set": "goalsBy",
+                  "to": "\"his\""
+                },
+                {
+                  "add": "rapport",
+                  "by": "1"
+                },
+                {
+                  "finding": "In his words: sleep through most nights; back to full duty without dread; enjoy his kids' games again. Each gets a measurable step."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "goalsBy",
+                  "to": "\"mine\""
+                },
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "You write: symptom-free in eight weeks; no avoidance. He signs it without comment."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ],
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Whose goals",
+          "options": [
+            {
+              "value": "his",
+              "label": "Ask what he wants to be different and write the goals in his words"
+            },
+            {
+              "value": "mine",
+              "label": "Write the clinical goals yourself: symptom-free in eight weeks, no avoidance"
+            }
+          ]
+        }
+      ]
+    },
+    "askPeer": {
+      "label": "Ask about the department's peer support team and who at home knows",
+      "group": "Ask",
+      "available": "not talking and (not peerAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask who he can lean on: the department's peer support team, his wife, friends.",
+          "kind": "act"
+        },
+        {
+          "set": "peerAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"We've got a peer team. Mike's on it, he's been through stuff. My wife knows some of it.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askRisk1": {
+      "label": "Ask directly about suicidal thoughts and drinking",
+      "group": "Ask about risk",
+      "available": "not talking and (not risk1)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask directly about thoughts of suicide and how much he is drinking.",
+          "kind": "act"
+        },
+        {
+          "set": "risk1",
+          "to": "true"
+        },
+        {
+          "finding": "\"No. Never that. Couple of beers some nights to get to sleep.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "agreeMeasure": {
+      "label": "Agree to repeat the PTSD checklist every two weeks to track change",
+      "group": "Plan",
+      "available": "not talking and (not baseline)",
+      "why": "Agreed.",
+      "effects": [
+        {
+          "log": "You agree he will fill in the same PTSD checklist every two weeks so you can both see change.",
+          "kind": "act"
+        },
+        {
+          "set": "baseline",
+          "to": "true"
+        },
+        {
+          "finding": "\"Fine by me. I like numbers.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endSession1": {
+      "label": "End session 1 (three weeks pass)",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "log": "You close the first session.",
+          "kind": "act"
+        },
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "s2At",
+          "to": "t"
+        },
+        {
+          "add": "distress",
+          "by": "2"
+        },
+        {
+          "add": "rapport",
+          "by": "-0.5"
+        },
+        {
+          "log": "Three weeks later: session 2. Andre arrives late, unshaven, and sits heavily.",
+          "kind": "find"
+        },
+        {
+          "phase": "session2"
+        }
+      ]
+    },
+    "checkIn2": {
+      "label": "Open: 'What's been happening since we last met?'",
+      "group": "Open",
+      "available": "not talking and (not s2Opened)",
+      "why": "He has told you.",
+      "effects": [
+        {
+          "log": "You ask an open question about the three weeks.",
+          "kind": "act"
+        },
+        {
+          "set": "s2Opened",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"The anniversary was last week. Nightmares every night since. I didn't do the worksheets. I keep snapping at Lisa.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askRisk2": {
+      "label": "Ask directly about suicidal thoughts and drinking now",
+      "group": "Ask about risk",
+      "available": "not talking and (not risk2)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask directly about thoughts of suicide and about drinking since the anniversary.",
+          "kind": "act"
+        },
+        {
+          "set": "risk2",
+          "to": "true"
+        },
+        {
+          "set": "risk2At",
+          "to": "t"
+        },
+        {
+          "finding": "\"No thoughts like that. Drinking's up. Five, six beers to get to sleep.\""
+        },
+        {
+          "log": "Reassessed: no suicidal thoughts; drinking up since the anniversary.",
+          "kind": "find"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "reviewMeasure": {
+      "label": "Repeat the PTSD checklist and review it with him",
+      "group": "Plan",
+      "available": "not talking and (not measureReviewed)",
+      "why": "Reviewed.",
+      "effects": [
+        {
+          "log": "He fills in the checklist and you look at it together.",
+          "kind": "act"
+        },
+        {
+          "set": "measureReviewed",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "baseline",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "A little worse than three weeks ago. \"Figures. The anniversary.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "No baseline to compare it with."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "blameHomework": {
+      "label": "Tell him the plan only works if he does the worksheets",
+      "group": "Respond",
+      "available": "not talking and (not blamed)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You tell him the plan only works if he does the worksheets.",
+          "kind": "act"
+        },
+        {
+          "set": "blamed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1.5"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"Yeah. I know. I'm failing at this too.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "revisePlan": {
+      "label": "Revise the plan",
+      "group": "Plan",
+      "available": "not talking and (revision == \"none\")",
+      "why": "Revised.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "how == \"adapt\"",
+              "then": [
+                {
+                  "set": "revision",
+                  "to": "\"adapt\""
+                },
+                {
+                  "add": "rapport",
+                  "by": "1"
+                },
+                {
+                  "add": "distress",
+                  "by": "-1"
+                },
+                {
+                  "finding": "Together: the worksheets done in session for now, a slower pace through the anniversary, a goal to cut back to two beers with a sleep plan, and Lisa invited for one session, with his consent."
+                },
+                {
+                  "log": "Revised with him, from what changed.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "how == \"push\"",
+              "then": [
+                {
+                  "set": "revision",
+                  "to": "\"push\""
+                },
+                {
+                  "add": "rapport",
+                  "by": "-1"
+                },
+                {
+                  "finding": "You keep the plan and double the worksheets. He nods without looking up."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "revision",
+                  "to": "\"pause\""
+                },
+                {
+                  "add": "distress",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "You set the trauma work aside for now and agree to talk about whatever comes up."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ],
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "How",
+          "options": [
+            {
+              "value": "adapt",
+              "label": "Revise it together: worksheets in session, a slower pace, a drinking goal, his wife invited with his consent"
+            },
+            {
+              "value": "push",
+              "label": "Keep the plan as written and double the worksheets"
+            },
+            {
+              "value": "pause",
+              "label": "Stop the trauma work for now; supportive talk only"
+            }
+          ]
+        }
+      ]
+    },
+    "coordinate": {
+      "label": "With his consent, contact his physician about sleep and the drinking",
+      "group": "Plan",
+      "available": "not talking and (not coordinated)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "With his consent, you arrange to contact his physician about sleep and the rise in drinking.",
+          "kind": "act"
+        },
+        {
+          "set": "coordinated",
+          "to": "true"
+        },
+        {
+          "finding": "\"Yeah. Dr. Ames. She's good.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endSession2": {
+      "label": "End session 2",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the plan and the risk",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Treatment plan record",
+          "fields": [
+            {
+              "id": "approach",
+              "label": "Approach",
+              "options": [
+                {
+                  "value": "tf",
+                  "label": "The trauma-focused therapy he chose, paced and revised, with goals in his words and a drinking goal"
+                },
+                {
+                  "value": "support",
+                  "label": "Supportive counseling only for now"
+                }
+              ]
+            },
+            {
+              "id": "risk",
+              "label": "Risk",
+              "options": [
+                {
+                  "value": "assessed",
+                  "label": "No suicidal thoughts at either session; drinking up since the anniversary; reassess every session"
+                },
+                {
+                  "value": "unrecorded",
+                  "label": "Not recorded"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "approachDoc",
+          "to": "approach"
+        },
+        {
+          "set": "riskDoc",
+          "to": "risk"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: approach {approach}, risk {risk}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-11",
+        "note": "A 50-minute outpatient session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp1",
+      "when": "t >= sessionEnd and phase == \"session1\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "The 50-minute hour is up.",
+          "kind": "alarm"
+        },
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "s2At",
+          "to": "t"
+        },
+        {
+          "add": "distress",
+          "by": "2"
+        },
+        {
+          "add": "rapport",
+          "by": "-0.5"
+        },
+        {
+          "log": "Three weeks later: session 2. Andre arrives late, unshaven, and sits heavily.",
+          "kind": "find"
+        },
+        {
+          "phase": "session2"
+        }
+      ]
+    },
+    {
+      "id": "hourUp2",
+      "when": "phase == \"session2\" and not isNull(s2At) and since(s2At) >= sessionEnd",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and (phase == \"session1\" or phase == \"session2\")",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "The client stands, says this is not helping, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictChoice",
+      "when": "choiceOffered",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "whichPrinciple"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "whichPrinciple": {
+      "title": "Predict (not scored)",
+      "context": "You described the therapies and Andre chose one. Which of SAMHSA's trauma-informed principles is that?",
+      "choices": [
+        {
+          "id": "choice",
+          "label": "Empowerment, voice and choice",
+          "effects": [
+            {
+              "log": "Prediction: empowerment, voice and choice.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. SAMHSA lists safety; peer support; trustworthiness and transparency; collaboration and mutuality; and empowerment, voice and choice. Explaining the options was transparency; letting him choose is voice and choice."
+        },
+        {
+          "id": "peer",
+          "label": "Peer support",
+          "effects": [
+            {
+              "log": "Prediction: peer support.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not this one. Peer support is the department's peer team. Explaining the options was transparency; letting him choose is empowerment, voice and choice (SAMHSA's principles)."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your treatment-planning rationale for Andre: how the plan you built is trauma-informed, and how and why you revised it at the second session.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "A trauma-informed plan",
+          "criteria": "Names the principles in action: safety first (grounding, no forced retelling), transparency (explaining PTSD and the therapies), collaboration and choice (he chose CPT; goals in his words), peer support (the department's team), and a recommended trauma-focused therapy with a measure to track it.",
+          "modelAnswer": "Safety came first: a grounding skill and no pressure to tell the story before he is ready. Transparency: I explained PTSD and what each trauma-focused therapy asks. Collaboration and choice: he chose cognitive processing therapy, a strongly recommended treatment, and the goals are his own (sleep, full duty, his kids' games). Peer support: the department's team. A PTSD checklist every two weeks tracks change."
+        },
+        {
+          "label": "The revision",
+          "criteria": "Explains the revision from the second session's data (anniversary, worse checklist, missed worksheets, more drinking): reassessed risk, adapted the pace and format with him rather than blaming or abandoning trauma work, added a drinking goal, involved his wife with consent and his physician; plans to keep reassessing.",
+          "modelAnswer": "The anniversary brought worse nightmares, a slightly worse checklist, missed worksheets and heavier drinking. I asked directly about suicide (none) and drinking (up), then revised with him: worksheets in session, a slower pace, a goal to cut back with a sleep plan, his wife for one session and his physician, with his consent. Not blame, and not dropping the trauma work: adapting it (ACA A.1.c asks for plans reviewed and revised with the client)."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-11"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Asking about suicide and drinking within the first 20 minutes of session 2, after news of a worse stretch, leaves time to revise the plan (author's scenario timing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and (revision == \"pause\" or approachDoc == \"support\")",
+      "class": "recovered",
+      "rationale": "Supportive talk alone is safe in the short term but sets aside the trauma-focused therapy he chose; no immediate danger, so recovered.",
+      "source": {
+        "cite": "APA Clinical Practice Guideline for the Treatment of PTSD in adults, guideline panel summary (Am Psychol 2019;74:596)",
+        "checkedAt": "2026-11-11",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/31305099/",
+        "note": "Abstract read on PubMed for the EPPP labs (2026-11-11), not re-read here: strongly recommends CBT, cognitive processing therapy, cognitive therapy and prolonged exposure; conditionally brief eclectic psychotherapy, EMDR and narrative exposure therapy."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "He walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Andre left mid-session and did not book again. His captain called a week later to ask whether he was still coming."
+    },
+    "noReassess": {
+      "label": "Risk not reassessed",
+      "class": "harm",
+      "when": "documented and not risk2",
+      "terminal": true,
+      "narrative": "After the anniversary Andre's nightmares and drinking got worse, and nobody asked him about suicide or how much he was drinking: a client left at foreseeable risk."
+    },
+    "planned": {
+      "label": "A plan he owns, revised with him",
+      "class": "target",
+      "when": "documented and not walkedOut and psychoEd and grounding and choiceOffered and not imposed and not pushed and goalsBy == \"his\" and peerAsked and risk1 and baseline and risk2 and timeAt(risk2At) - timeAt(s2At) <= safetyWindow and measureReviewed and revision == \"adapt\" and coordinated and approachDoc == \"tf\" and riskDoc == \"assessed\" and rapport >= allianceTarget",
+      "terminal": true,
+      "narrative": "Andre has a therapy he chose, goals in his own words, a grounding skill for 3 a.m., his peer team and his wife in the loop, and a plan that bent through the anniversary instead of breaking."
+    },
+    "supportOnly": {
+      "label": "Safe, trauma work set aside",
+      "class": "recovered",
+      "when": "documented and (revision == \"pause\" or approachDoc == \"support\")",
+      "terminal": true,
+      "narrative": "Andre is safe and still coming, but the trauma-focused therapy he chose is on hold with no plan to return to it."
+    },
+    "planGaps": {
+      "label": "A plan, with gaps",
+      "class": "recovered",
+      "when": "documented and not walkedOut",
+      "terminal": true,
+      "narrative": "Andre has a plan, but parts of it were set for him, missing or not revised with him."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "noReassess",
+    "planned",
+    "supportOnly",
+    "planGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "collabCrit",
+        "label": "Collaboration and choice: his therapy, his goals",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "choiceOffered and goalsBy == \"his\"",
+            "score": "met",
+            "why": "He chose the therapy; the goals are in his words."
+          },
+          {
+            "when": "choiceOffered or goalsBy == \"his\"",
+            "score": "partial",
+            "why": "One of the two was his."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The plan was set for him."
+          }
+        ]
+      },
+      {
+        "id": "safetyCrit",
+        "label": "Safety first: grounding, no forced retelling",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "pushed",
+            "score": "missed",
+            "why": "Pressed for the trauma story before safety and a plan were in place."
+          },
+          {
+            "when": "grounding",
+            "score": "met",
+            "why": "A grounding skill taught; the story left to the therapy."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "No forced retelling, but no grounding skill either."
+          }
+        ]
+      },
+      {
+        "id": "reassessCrit",
+        "label": "Risk asked at both sessions, early in the second",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "risk1 and risk2 and timeAt(risk2At) - timeAt(s2At) <= safetyWindow",
+            "score": "met",
+            "why": "Asked at both; {(timeAt(risk2At) - timeAt(s2At)) / 60} min into session 2."
+          },
+          {
+            "when": "risk2",
+            "score": "partial",
+            "why": "Asked at session 2{risk1 ? \", late\" : \" only\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reassessed after a worse stretch."
+          }
+        ]
+      },
+      {
+        "id": "reviseCrit",
+        "label": "Revised the plan with him from the evidence",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "revision == \"adapt\" and measureReviewed",
+            "score": "met",
+            "why": "Reviewed the checklist and revised together."
+          },
+          {
+            "when": "revision == \"adapt\"",
+            "score": "partial",
+            "why": "Revised, without the measure."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Revision: {revision}."
+          }
+        ]
+      },
+      {
+        "id": "transparencyCrit",
+        "label": "Transparency: PTSD and the therapies explained",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "psychoEd",
+            "score": "met",
+            "why": "Explained."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not explained."
+          }
+        ]
+      },
+      {
+        "id": "peerCrit",
+        "label": "Peer support and supports at home",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "peerAsked",
+            "score": "met",
+            "why": "The peer team and his wife."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Supports not explored."
+          }
+        ]
+      },
+      {
+        "id": "coordCrit",
+        "label": "Coordinated with his physician, with consent",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "coordinated",
+            "score": "met",
+            "why": "Arranged."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not arranged."
+          }
+        ]
+      },
+      {
+        "id": "noBlame",
+        "label": "No blame for the missed worksheets",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "blamed",
+            "score": "missed",
+            "why": "Blamed him for the worksheets."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Treated the missed work as information."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written rationale",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToRisk2",
+        "label": "Minutes into session 2 to the risk question",
+        "value": "isNull(risk2At) ? -1 : (timeAt(risk2At) - timeAt(s2At)) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Total session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "100 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Session 1, 0-15 min",
+        "text": "Check in; explain PTSD and how trauma-focused therapy works; teach a grounding skill."
+      },
+      {
+        "at": "Session 1, 15-35 min",
+        "text": "Describe CPT, PE and EMDR and let him choose; goals in his words; the peer team and home; suicide and drinking; agree the checklist."
+      },
+      {
+        "at": "Session 2, 0-20 min",
+        "text": "Check in (the anniversary); ask directly about suicide and drinking; repeat the checklist."
+      },
+      {
+        "at": "Session 2, 20-40 min",
+        "text": "Revise together: worksheets in session, slower pace, a drinking goal, his wife invited; contact his physician with consent."
+      },
+      {
+        "at": "After",
+        "text": "Document the trauma-focused plan and the risk assessment."
+      }
+    ],
+    "debrief": {
+      "planned": {
+        "headline": "Good: a plan he owns, revised with him",
+        "body": "Safety, transparency, choice, collaboration and peer support were in the plan from the first session, and you reassessed and adapted it when the anniversary hit."
+      },
+      "planGaps": {
+        "headline": "A plan, with gaps",
+        "body": "The criteria below show which parts were set for him, missing or not revised with him."
+      },
+      "supportOnly": {
+        "headline": "Safe, trauma work set aside",
+        "body": "Supportive talk kept him coming, but the therapy he chose is on hold. A worse stretch usually calls for adapting the trauma work, not stopping it."
+      },
+      "noReassess": {
+        "headline": "Risk not reassessed",
+        "body": "Worse nightmares and heavier drinking after an anniversary are the moment to ask directly about suicide and substance use again."
+      },
+      "walkout": {
+        "headline": "The alliance broke",
+        "body": "Pressing for the trauma story, deciding for him or blaming him for missed work pushes a client with PTSD away. Safety and choice keep him in treatment."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A trauma-informed plan puts SAMHSA's principles into practice: safety first (grounding, no forced retelling), transparency about what therapy involves, his choice among recommended trauma-focused therapies, goals in his words, and peer support. When the anniversary makes things worse, reassess risk directly, look at the measure together, and revise the plan with him rather than blaming him or dropping the trauma work (ACA A.1.c)."
+  }
+}

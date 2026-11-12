@@ -348,7 +348,13 @@ describe("duplicate check", () => {
     for (let i = 0; i < docs.length; i++) for (let j = i + 1; j < docs.length; j++) max = Math.max(max, similarity(docs[i], docs[j]).score);
     // Different cases stay well clear even when they share decisions (adult
     // and pediatric septic shock: decisions 0.43, story 0.05; FAIL-1301, FAIL-1302).
-    assert.ok(max < DUPLICATE_THRESHOLD - 0.2, `highest seeded pair ${max.toFixed(3)}`);
+    // REQ-239 (FAIL-1481): the EPPP and NCMHCE suicide sessions share the
+    // C-SSRS questions and the Stanley-Brown steps as moves (decisions 0.64)
+    // under unrelated stories (0.01), score 0.33, on different courses and
+    // objectives (the check only compares sims on the same objective). The
+    // margin below the threshold is 0.15 for that reason; a retelling of the
+    // same story still scores far higher.
+    assert.ok(max < DUPLICATE_THRESHOLD - 0.15, `highest seeded pair ${max.toFixed(3)}`);
     assert.equal(similarity(BASE, structuredClone(BASE)).score, 1);
   });
   test("a variant that keeps most decisions under a new story is not a duplicate", () => {
