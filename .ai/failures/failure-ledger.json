@@ -16877,6 +16877,92 @@
       ],
       "prevention_notes": "A call that thinks gets max_tokens = its answer's own cap plus a named thinking allowance (effectiveMaxTokens), never a shared answer-sized cap; one PRACTICE_CALL definition keeps batch and live identical (parity DB test); the real-model effect is measured on the next trial with npm run items:style",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1640",
+      "date": "2026-11-12",
+      "title": "No way out of a lesson after a reload or a direct link",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Pilot tester 2026-11-12: 'once I'm in a lesson or objective, I can't navigate back to the dashboard or check my progress. I'm basically locked into the lesson until I finish it.'",
+      "how_detected": "pilot user report; reproduced by reading the stack config (no browser available in the build container)",
+      "root_cause": "The lesson screen set only a title and relied on the native stack's default back arrow, which appears only when a previous route is in the stack. On the web a reload or a link opened straight to a lesson has no history (no initialRouteName in app/(app)), so the header was empty; the only in-page exits were on the done screen, and the loading and error states had none. Nothing told the learner the place was saved, so leaving felt like losing work. FAIL-921 made Back buttons use useGoBack but did not cover screens that had no Back button of their own.",
+      "requirement": "REQ-250",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "Header Save and exit (goBackOr to the course) and Course progress on every lesson state; 'Your place is saved' line on every step but done; bottom Save and exit and Home (dismissTo Home when in the stack, else replace); each flushes the pending account save first (mobile/src/lib/lessonExit.ts).",
+      "fix_commits": [
+        "875983f"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/lessonExit.test.ts::Save and exit (FAIL-1640)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Checklist: a screen a learner works through gives its own way out through useGoBack on every state, not the header's default arrow.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1641",
+      "date": "2026-11-12",
+      "title": "Leaving a lesson at the optional Try it step lost the saved place",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Leaving at the 'Try it' (lab) step and reopening the objective started it again at Guess.",
+      "how_detected": "code review while verifying that leaving mid-step loses nothing (REQ-250)",
+      "root_cause": "REQ-096 added the lab step after Solo, but the save effect treats every step outside teach/fade/solo as 'clear', so reaching the lab step deleted the device and account copies. The account table's step check allows only teach/fade/solo.",
+      "requirement": "REQ-250",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonProgress.ts"
+      ],
+      "fix_summary": "savedStepFor maps lab to solo: the place is saved as the graded Solo step, one Continue away from Try it; no migration.",
+      "fix_commits": [
+        "875983f"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/lessonExit.test.ts::leaving at 'Try it' keeps the place (FAIL-1641)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Checklist: every step that saves a place keeps it when left, optional steps included.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1642",
+      "date": "2026-11-12",
+      "title": "The course page showed a lesson left part-way as Not started",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After leaving a lesson at Teach (before any graded check), the course page listed the objective as 'Not started' and offered 'Start course', with no sign the place was kept.",
+      "how_detected": "code review of the course page while checking 'on a resumed objective, the course page should show it as in progress' (REQ-250)",
+      "root_cause": "The course route reported only mastery; a mastery row is written by a graded check, and the saved place (lesson_progress) was never read by any listing.",
+      "requirement": "REQ-250",
+      "affected": [
+        "backend/app/api/courses/[id]/route.ts",
+        "mobile/src/lib/nextStep.ts",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/app/(app)/course/[trackId]/progress.tsx"
+      ],
+      "fix_summary": "GET /api/courses/:id returns lesson_saved_at per objective (within the app's 7-day resume window, same query); rows read In progress / Place saved; Continue and Continue unit open the saved place.",
+      "fix_commits": [
+        "875983f"
+      ],
+      "regression_tests": [
+        "backend/lib/lesson-saved-place.dbtest.ts",
+        "mobile/src/lib/lessonExit.test.ts::the course page shows a saved place (FAIL-1642)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Checklist: a list that shows progress counts a saved place as started.",
+      "recurrence_of": ""
     }
   ]
 }

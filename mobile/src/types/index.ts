@@ -117,6 +117,9 @@ export interface Objective {
   mastery_status?: MasteryStatus;
   mastery_score?: number;
   mastery_evidence?: string;
+  // REQ-250: when the learner's saved place in this objective's lesson was
+  // last written (within the app's 7-day resume window), else null.
+  lesson_saved_at?: string | null;
 }
 
 export interface LessonContent {

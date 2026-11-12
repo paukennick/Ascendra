@@ -12,6 +12,11 @@
 //                                   finished before a new one starts
 //   - everything Independent+    -> "Review", today's review
 //   - no objectives at all       -> null (the page says so instead)
+//
+// REQ-250 (FAIL-1642): a lesson left part-way has a saved place
+// (lesson_saved_at) even before any graded check, when the objective still
+// reads "Not started". Such a place counts as started, and the most recently
+// saved one is offered first: "Continue" opens it where the learner left off.
 
 import type { MasteryStatus } from "../types/index.ts";
 
@@ -19,6 +24,7 @@ export interface StepObjective {
   id: string;
   title: string;
   mastery_status?: MasteryStatus;
+  lesson_saved_at?: string | null;
 }
 
 export interface StepUnit {
@@ -39,6 +45,19 @@ export function nextCourseStep(units: readonly StepUnit[] | null | undefined): C
   if (!all.length) return null;
 
   const status = (o: StepObjective) => o.mastery_status ?? "Not started";
+  const savedAt = (o: StepObjective) => (o.lesson_saved_at ? Date.parse(o.lesson_saved_at) || 0 : 0);
+  let resume: { unitId: string; o: StepObjective } | null = null;
+  for (const x of all) if (savedAt(x.o) > (resume ? savedAt(resume.o) : 0)) resume = x;
+  if (resume) {
+    return {
+      kind: "continue",
+      label: "Continue",
+      a11y: `Continue with ${resume.o.title}, where you left off`,
+      unitId: resume.unitId,
+      objectiveId: resume.o.id,
+      objectiveTitle: resume.o.title,
+    };
+  }
   const started = all.some((x) => status(x.o) !== "Not started");
   if (!started) {
     const first = all[0];

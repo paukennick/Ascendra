@@ -229,7 +229,8 @@ describe("FAIL-928..933, 938: roles, labels, wording and structure (static)", ()
     const account = read("app/(app)/account.tsx");
     assert.match(account, /accessibilityLabel="Change profile photo"/);
     assert.match(account, /Display name: /);
-    assert.match(read("app/(app)/course/[trackId]/progress.tsx"), /accessibilityLabel=\{`\$\{o\.title\}, \$\{status\}\. Open lesson`\}/);
+    // REQ-250: the row also says when the lesson has a saved place.
+    assert.match(read("app/(app)/course/[trackId]/progress.tsx"), /accessibilityLabel=\{`\$\{o\.title\}, \$\{status\}(\$\{saved \? `\. \$\{SAVED_PLACE_LABEL\}` : ""\})?\. Open lesson`\}/);
     assert.match(read("app/(app)/settings.tsx"), /accessibilityRole="switch"/);
     const explore = read("app/(app)/explore.tsx");
     assert.match(explore, /All categories/);

@@ -216,7 +216,13 @@
   screen's layout or controls is checked with mobile/e2e/tab-order.e2e.mjs
   (Tab order, focus ring, traps, hidden focus; see mobile/e2e/README.md). A
   result that appears without moving focus goes through `LiveAnnouncement`. A signed-in screen
-  never sends a request before the session is restored.
+  never sends a request before the session is restored. REQ-250 (FAIL-1640):
+  a screen a learner works through (a lesson) never relies on the header's
+  default back arrow alone -- a reload or a link leaves no history and so no
+  arrow; it gives its own way out through `useGoBack`, on its loading and error
+  states too, and says when the learner's place is kept. Every step that saves
+  a place keeps it when left, optional steps included (FAIL-1641), and a list
+  that shows progress counts a saved place as started (FAIL-1642).
 - Database roles and exposure (REQ-207, FAIL-940..956): a migration that adds
   a table, view, sequence or function, or restates a function with CREATE OR
   REPLACE (which drops its `search_path`), ends with `select
