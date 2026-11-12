@@ -16592,6 +16592,32 @@
       "prevention_rules": [],
       "prevention_notes": "Re-checks compare the credential block's exam facts with the certification page, not only the outline; the regression test pins the wording.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1620",
+      "date": "2026-11-12",
+      "title": "Course list import put GET /api/courses on the model-route list",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/ai-spend-gate.test.ts: 'a route now reaches the model and is not in MODEL_ROUTES' with app/api/courses/route.ts, after the route imported simCountsByTrack from lib/sims.ts",
+      "how_detected": "backend npm test during development (never committed)",
+      "root_cause": "The model-route check walks the import graph. lib/sims.ts grades sim reasoning (sim-grading, the model), and lib/item-quality.ts (servableSql) imports the fact checker, so any route importing either for a read-only helper is counted as reaching the model, even though the list never calls it.",
+      "requirement": "REQ-249",
+      "affected": [
+        "backend/app/api/courses/route.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/item-quality.ts"
+      ],
+      "fix_summary": "The count lives in lib/sim-count.ts, which imports only the database, progress-sql, visibility, lib/item-status-sql.ts (servableSql and ITEM_KINDS moved there, re-exported from item-quality) and lib/sim/server-run.ts (pickServedVersion and VersionRow moved there).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-gate.test.ts",
+        "backend/lib/sim-count.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A read-only route takes SQL helpers and pure rules from model-free modules (lib/item-status-sql.ts, lib/sim/server-run.ts); importing lib/sims.ts or lib/item-quality.ts from a list route makes it a model route. The existing import-graph test is the guard.",
+      "recurrence_of": ""
     }
   ]
 }

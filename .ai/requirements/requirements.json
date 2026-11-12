@@ -9016,6 +9016,56 @@
       ],
       "documentation_required": [],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-249",
+      "category": "feature",
+      "title": "Course cards show sims; Explore filters by Has sims",
+      "description": "Nick (2026-11-12): 'can we create an icon or maybe a filter for courses with sims?' GET /api/courses gives each course sim_count: sims with a served version and a switched-on renderer, by the start route's rule (pickServedVersion, now in lib/sim/server-run.ts and shared with servedVersion), 0 while SIMS_ENABLED is off, in one query for the whole list (lib/sim-count.ts). Tier not applied; the 18+ rule matches GET /api/sims?trackId= (not gated, docs/sims.md 22.12 finding 3). The course card shows a '1 sim' / 'N sims' badge with the activity icon and its button label says 'Has N simulations'; Explore gains a 'Has sims' chip in its own row, ANDed with search, category and verification, hidden when no listed course has sims, with its own empty state. No migration.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim-count.ts",
+        "backend/lib/sim/server-run.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/item-status-sql.ts",
+        "backend/lib/item-quality.ts",
+        "backend/app/api/courses/route.ts",
+        "backend/lib/sim-count.test.ts",
+        "backend/lib/sim-count.dbtest.ts",
+        "mobile/src/lib/courseSims.ts",
+        "mobile/src/lib/courseSims.test.ts",
+        "mobile/src/lib/emptyStates.ts",
+        "mobile/src/components/CourseCard.tsx",
+        "mobile/app/(app)/explore.tsx",
+        "mobile/src/types/index.ts",
+        "docs/sims.md",
+        "docs/education-taxonomy.md"
+      ],
+      "acceptance_criteria": [
+        "sim_count on every GET /api/courses track",
+        "sim_count counts served sims with switched-on renderers and is 0 with sims off",
+        "one query for the whole list and none while sims are off",
+        "18+ rule matches GET /api/sims?trackId=",
+        "card badge with icon and text and a spoken label when sim_count > 0",
+        "Has sims chip ANDs with the other filters and is hidden when no course has sims",
+        "empty state names the filter"
+      ],
+      "validation_required": [
+        "backend lib/sim-count.test.ts",
+        "backend lib/sim-count.dbtest.ts",
+        "mobile src/lib/courseSims.test.ts",
+        "backend and mobile tsc unchanged from master"
+      ],
+      "documentation_required": [
+        "docs/sims.md 7",
+        "docs/education-taxonomy.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "visual look and the web Tab order not checked in a browser",
+        "Pro-only sims are counted (matches the course page)"
+      ]
     }
   ]
 }
