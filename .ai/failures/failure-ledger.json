@@ -17034,6 +17034,31 @@
       ],
       "prevention_notes": "Checklist: a list that shows progress counts a saved place as started.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1760",
+      "date": "2026-11-12",
+      "title": "Duplicate-option check failed code options that differ only in punctuation or case",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "10 of 92 Python/JavaScript lessons failed pre-generation on 2026-11-12 with 'duplicate option'.",
+      "how_detected": "Pre-generation problem-kind log (REQ-247) on the 2026-11-12 Python/JavaScript run.",
+      "root_cause": "normOption lowercases and strips punctuation, so `a == b` and `a === b`, [1, 2] and (1, 2), None and none collapse to the same key.",
+      "requirement": "REQ-254",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "Code-like options are compared exactly with whitespace collapsed (optionKey); plain-language options keep the loose comparison.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/code-option-duplicates.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "Content checks that normalize text must not erase distinctions that carry meaning in code."
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
     }
   ]
 }
