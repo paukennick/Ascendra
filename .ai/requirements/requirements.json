@@ -8596,6 +8596,49 @@
         "A time-unit param converted inside the expression (x * 60) is also an error: the rule asks for seconds rather than guessing at conversions",
         "The objective title paraphrases the ten V15 step names (short procedural phrases) rather than quoting the copyrighted outline"
       ]
+    },
+    {
+      "id": "REQ-242",
+      "category": "content",
+      "title": "AWS board sims wave 2: AWS MLA, Cloud Practitioner, Developer and SysOps (CloudOps)",
+      "description": "Nick's sims wave 2: nine learner-paced board sims for AWS courses on the existing board renderer and engine 1.2, patterned on TicketBurst and the NAT gateway bill (AWSSAA). AWSMLA (launch course) 3: drift detection, endpoint auto scaling metrics, training-data bias; AWSCLF 2: data transfer costs, a leaked access key (least privilege and shared responsibility); AWSDVA 2: deployment failure read from logs with a DLQ backlog, PHI in application logs; AWSSOA 2: CloudFormation UPDATE_ROLLBACK_FAILED with subnet sizing, EC2 status-check recovery alarms. Objectives chosen from each course catalog among those the sim selection rule (lib/sim/generator/selection.ts) qualifies. Prices, quotas and behaviors read from AWS documentation and price lists on 2026-11-11, one region (us-east-2, US East Ohio). Each sim: endings in all three classes, 3-4 critical criteria inside target, KPIs, expert path, debrief per ending, 5-6 golden paths, endingOrder, times stored in seconds. No engine, renderer, schema or migration change.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/AWSMLA/",
+        "backend/supabase/seed/sims/AWSCLF/",
+        "backend/supabase/seed/sims/AWSDVA/",
+        "backend/supabase/seed/sims/AWSSOA/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "every objective title exists in its course catalog and meets the selection rule",
+        "golden paths end the same in written reversed and jsonb key order",
+        "times are stored in seconds (secondsUnitProblems clean)"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "sim:cross-runtime and the engine-bundle replay",
+        "storage-order test",
+        "sims dbtests on a throwaway Postgres",
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.15",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "AWS prices are us-east-2 rates read 2026-11-11 and change over time",
+        "SageMaker Model Monitor is closed to new customers (scenario team is an existing customer)",
+        "authored teaching-model numbers are flagged",
+        "new documents enter expert review"
+      ]
     }
   ]
 }

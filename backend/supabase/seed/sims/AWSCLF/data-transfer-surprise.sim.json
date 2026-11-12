@@ -1,0 +1,1110 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "data-transfer-surprise",
+  "title": "The data transfer surprise",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "east",
+          "label": "us-east-2 (Ohio)",
+          "spokenLabel": "Region us-east-2, Ohio",
+          "items": [
+            {
+              "label": "S3 bucket: course videos (downloads to learners)",
+              "when": "true"
+            },
+            {
+              "label": "CloudFront distribution in front of the videos",
+              "when": "cf"
+            },
+            {
+              "label": "S3 bucket: raw uploads",
+              "when": "true"
+            },
+            {
+              "label": "S3 bucket: nightly backups",
+              "when": "true"
+            },
+            {
+              "label": "Web servers: {singleAz ? \"AZ a only\" : \"AZ a and AZ b\"}",
+              "when": "true"
+            },
+            {
+              "label": "Database: AZ a (standby in AZ b)",
+              "when": "true"
+            },
+            {
+              "label": "AWS Budgets alert",
+              "when": "budgetAlert"
+            }
+          ]
+        },
+        {
+          "id": "west",
+          "label": "us-west-2 (Oregon)",
+          "spokenLabel": "Region us-west-2, Oregon",
+          "items": [
+            {
+              "label": "Replica: raw uploads (from a finished DR test)",
+              "when": "testRepl"
+            },
+            {
+              "label": "Replica: nightly backups (disaster recovery plan)",
+              "when": "backupRepl"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "cost",
+          "label": "Data transfer a month (projected)",
+          "value": "{cost|usd}"
+        },
+        {
+          "id": "budget",
+          "label": "Budget",
+          "value": "{budget|usd}"
+        },
+        {
+          "id": "avail",
+          "label": "Site availability this month",
+          "value": "{avail|3dp}%"
+        }
+      ]
+    }
+  },
+  "objective": "Data transfer costs: inbound, outbound, Region to Region, and within a Region",
+  "secondaryObjectives": [
+    "AWS Budgets and AWS Cost Explorer, and which question each answers",
+    "High availability built from multiple Availability Zones that share no single point of failure"
+  ],
+  "sources": [
+    {
+      "cite": "Ascendra AWSCLF course catalog (backend/supabase/seed/tracks/aws.ts), built from the exam guide",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/cloud-practitioner-02/cloud-practitioner-02.html",
+      "note": "The objective and secondary objectives are the course's own titles, from the CLF-C02 outline at the course's source URL. Not re-fetched for this scenario."
+    },
+    {
+      "cite": "AWS. Price List API: AWS Data Transfer, US East (Ohio) offer file",
+      "checkedAt": "2026-11-11",
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSDataTransfer/current/us-east-2/index.json",
+      "note": "Read 2026-11-11 (file publicationDate 2026-11-11T19:19:41Z): data transfer out to the internet '$0.090 per GB - first 10 TB / month data transfer out beyond the global free tier'; 'data transfer in per month' $0.000; to US West (Oregon) $0.02 per GB; 'regional data transfer - in/out/between EC2 AZs' $0.010 per GB; to CloudFront $0.00 per GB. The scenario ignores the free tier. Prices change; re-check at the next review."
+    },
+    {
+      "cite": "AWS. Price List API: Amazon CloudFront offer file",
+      "checkedAt": "2026-11-11",
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonCloudFront/current/index.json",
+      "note": "Read 2026-11-11 (file publicationDate 2026-10-19): United States data transfer out $0.085 per GB for the first 10 TB a month."
+    },
+    {
+      "cite": "AWS. Cost Management User Guide: What is AWS Cost Explorer?",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html",
+      "note": "Read 2026-11-11: view and analyze costs and usage for up to the last 13 months and forecast 18 months; 'Cost Explorer refreshes your cost data at least once every 24 hours'."
+    },
+    {
+      "cite": "AWS. Cost Management User Guide: Managing your costs with AWS Budgets",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html",
+      "note": "Read 2026-11-11: notifications when you 'exceed, or are forecasted to exceed, your budgeted amount'; information 'updated up to three times a day'; alerts to an SNS topic, email, or both."
+    }
+  ],
+  "brief": {
+    "situation": "Monday 09:00. You look after AWS for a small online tutoring company in us-east-2 (Ohio). Last month's bill shows about $1,810 for data transfer, against a budget of $1,000. The month before it was about $910.",
+    "handover": [
+      "Learners stream and download course videos from an S3 bucket. Tutors upload about 3 TB of raw recordings a month.",
+      "Web servers run in two Availability Zones; the database runs in AZ a with a standby in AZ b. Nightly backups are copied to us-west-2 under the disaster-recovery plan.",
+      "Last quarter the platform team ran a disaster-recovery test."
+    ],
+    "howItWorks": [
+      "Learner-paced: nothing moves until you act. Investigate, make changes, then run the week.",
+      "The meters show the projected monthly data transfer bill and the site's availability.",
+      "Before you run the week you are asked what drove the bill and what you changed. The debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T09:00",
+    "tick": "1min",
+    "maxDuration": "8d",
+    "calendar": "date"
+  },
+  "params": {
+    "dtoPerGb": {
+      "value": 0.09,
+      "unit": "$",
+      "source": {
+        "cite": "AWS. Price List API: AWS Data Transfer, US East (Ohio) offer file",
+        "checkedAt": "2026-11-11",
+        "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSDataTransfer/current/us-east-2/index.json",
+        "note": "Read 2026-11-11 (file publicationDate 2026-11-11T19:19:41Z): data transfer out to the internet '$0.090 per GB - first 10 TB / month data transfer out beyond the global free tier'; 'data transfer in per month' $0.000; to US West (Oregon) $0.02 per GB; 'regional data transfer - in/out/between EC2 AZs' $0.010 per GB; to CloudFront $0.00 per GB. The scenario ignores the free tier. Prices change; re-check at the next review."
+      }
+    },
+    "cfPerGb": {
+      "value": 0.085,
+      "unit": "$",
+      "source": {
+        "cite": "AWS. Price List API: Amazon CloudFront offer file",
+        "checkedAt": "2026-11-11",
+        "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonCloudFront/current/index.json",
+        "note": "Read 2026-11-11 (file publicationDate 2026-10-19): United States data transfer out $0.085 per GB for the first 10 TB a month."
+      }
+    },
+    "xRegionPerGb": {
+      "value": 0.02,
+      "unit": "$",
+      "source": {
+        "cite": "AWS. Price List API: AWS Data Transfer, US East (Ohio) offer file",
+        "checkedAt": "2026-11-11",
+        "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSDataTransfer/current/us-east-2/index.json",
+        "note": "Read 2026-11-11 (file publicationDate 2026-11-11T19:19:41Z): data transfer out to the internet '$0.090 per GB - first 10 TB / month data transfer out beyond the global free tier'; 'data transfer in per month' $0.000; to US West (Oregon) $0.02 per GB; 'regional data transfer - in/out/between EC2 AZs' $0.010 per GB; to CloudFront $0.00 per GB. The scenario ignores the free tier. Prices change; re-check at the next review."
+      }
+    },
+    "regionalPerGb": {
+      "value": 0.01,
+      "unit": "$",
+      "source": {
+        "cite": "AWS. Price List API: AWS Data Transfer, US East (Ohio) offer file",
+        "checkedAt": "2026-11-11",
+        "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSDataTransfer/current/us-east-2/index.json",
+        "note": "Read 2026-11-11 (file publicationDate 2026-11-11T19:19:41Z): data transfer out to the internet '$0.090 per GB - first 10 TB / month data transfer out beyond the global free tier'; 'data transfer in per month' $0.000; to US West (Oregon) $0.02 per GB; 'regional data transfer - in/out/between EC2 AZs' $0.010 per GB; to CloudFront $0.00 per GB. The scenario ignores the free tier. Prices change; re-check at the next review."
+      }
+    },
+    "inPerGb": {
+      "value": 0,
+      "unit": "$",
+      "source": {
+        "cite": "AWS. Price List API: AWS Data Transfer, US East (Ohio) offer file",
+        "checkedAt": "2026-11-11",
+        "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSDataTransfer/current/us-east-2/index.json",
+        "note": "Read 2026-11-11 (file publicationDate 2026-11-11T19:19:41Z): data transfer out to the internet '$0.090 per GB - first 10 TB / month data transfer out beyond the global free tier'; 'data transfer in per month' $0.000; to US West (Oregon) $0.02 per GB; 'regional data transfer - in/out/between EC2 AZs' $0.010 per GB; to CloudFront $0.00 per GB. The scenario ignores the free tier. Prices change; re-check at the next review."
+      }
+    },
+    "videoGb": {
+      "value": 9000,
+      "unit": "GB",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Video downloads to learners: about 9 TB a month."
+      }
+    },
+    "uploadGb": {
+      "value": 3000,
+      "unit": "GB",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Raw uploads from tutors: about 3 TB a month (inbound)."
+      }
+    },
+    "testGb": {
+      "value": 45000,
+      "unit": "GB",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The raw-uploads replication rule copies about 45 TB a month to us-west-2, including re-encoded working files."
+      }
+    },
+    "backupGb": {
+      "value": 2000,
+      "unit": "GB",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Nightly backup copies to us-west-2: about 2 TB a month."
+      }
+    },
+    "xazGb": {
+      "value": 6000,
+      "unit": "GB",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Traffic between web servers in AZ b and the database in AZ a: about 6 TB a month."
+      }
+    },
+    "budget": {
+      "value": 1000,
+      "unit": "$",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The data transfer budget a month."
+      }
+    },
+    "outageS": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Wednesday's AZ a impairment lasts 90 minutes."
+      }
+    },
+    "monthS": {
+      "value": 2592000,
+      "unit": "s",
+      "source": {
+        "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+        "checkedAt": "2026-11-11",
+        "note": "Availability over a 30-day month (2,592,000 s): 99.9% leaves 2,592 s (43.2 minutes)."
+      }
+    },
+    "dayWait": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step of the week."
+      }
+    }
+  },
+  "state": {
+    "ceAt": {
+      "type": "time",
+      "init": null
+    },
+    "replAt": {
+      "type": "time",
+      "init": null
+    },
+    "ownerAt": {
+      "type": "time",
+      "init": null
+    },
+    "testRepl": {
+      "type": "bool",
+      "init": true
+    },
+    "backupRepl": {
+      "type": "bool",
+      "init": true
+    },
+    "unconfirmed": {
+      "type": "bool",
+      "init": false
+    },
+    "cf": {
+      "type": "bool",
+      "init": false
+    },
+    "singleAz": {
+      "type": "bool",
+      "init": false
+    },
+    "budgetAlert": {
+      "type": "bool",
+      "init": false
+    },
+    "inAnswer": {
+      "type": "enum",
+      "values": [
+        "none",
+        "right",
+        "wrong"
+      ],
+      "init": "none"
+    },
+    "downS": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000,
+      "unit": "s"
+    },
+    "dataLost": {
+      "type": "bool",
+      "init": false
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedBlind": {
+      "type": "bool",
+      "init": false
+    },
+    "changes": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "weekStarted": {
+      "type": "bool",
+      "init": false
+    },
+    "weekDone": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "cost": {
+      "expr": "round(videoGb * (cf ? cfPerGb : dtoPerGb) + uploadGb * inPerGb + (testRepl ? testGb * xRegionPerGb : 0) + (backupRepl ? backupGb * xRegionPerGb : 0) + (singleAz ? 0 : xazGb * regionalPerGb))",
+      "unit": "$",
+      "precision": 0
+    },
+    "avail": {
+      "expr": "round((1 - downS / monthS) * 100000) / 1000",
+      "unit": "%",
+      "precision": 3
+    },
+    "investigated": {
+      "expr": "not isNull(ceAt) and not isNull(replAt)"
+    },
+    "investigatedFirst": {
+      "expr": "investigated and not changedBlind"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Investigate and change",
+      "clock": "turns",
+      "actions": [
+        "costExplorer",
+        "replRules",
+        "askOwner",
+        "stopTestRepl",
+        "stopAllRepl",
+        "oneAz",
+        "addCloudFront",
+        "budgets",
+        "runWeek"
+      ]
+    },
+    "week": {
+      "label": "The week",
+      "clock": "turns",
+      "actions": []
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "costExplorer": {
+      "label": "Cost Explorer: last month's data transfer by usage type",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(ceAt)",
+          "then": [
+            {
+              "set": "ceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Last month by usage type: USE2-USW2-AWS-Out-Bytes (us-east-2 to us-west-2) about $940 for 47 TB; USE2-DataTransfer-Out-Bytes (to the internet) about $810 for 9 TB; USE2-DataTransfer-Regional-Bytes about $60; USE2-DataTransfer-In-Bytes $0 for 3 TB. The month before, the Region-to-Region line was about $40."
+        },
+        {
+          "log": "Cost Explorer: the jump is Region-to-Region transfer to us-west-2.",
+          "kind": "find"
+        },
+        {
+          "if": "inAnswer == \"none\"",
+          "then": [
+            {
+              "prompt": "inQ"
+            }
+          ]
+        }
+      ]
+    },
+    "replRules": {
+      "label": "List the S3 replication rules",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(replAt)",
+          "then": [
+            {
+              "set": "replAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Two rules copy to us-west-2: 'backups-to-oregon' on the backups bucket (created with the disaster-recovery plan) and 'uploads-dr-test' on the raw-uploads bucket (created for last quarter's DR test, owner: platform team)."
+        },
+        {
+          "log": "Replication: a DR-test rule is still copying every raw upload to us-west-2.",
+          "kind": "find"
+        }
+      ]
+    },
+    "askOwner": {
+      "label": "Ask the platform team whether anyone uses the us-west-2 copy of raw uploads",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(ownerAt)",
+          "then": [
+            {
+              "set": "ownerAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Platform team: 'That rule was only for the test. Nobody reads the Oregon copy of the raw uploads; the backups rule is the one the DR plan needs.'"
+        },
+        {
+          "log": "Owner: the uploads copy is unused; keep the backups copy.",
+          "kind": "find"
+        }
+      ]
+    },
+    "stopTestRepl": {
+      "label": "Turn off the DR-test replication rule (raw uploads)",
+      "group": "Change",
+      "available": "testRepl",
+      "why": "Already off.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "if": "isNull(ownerAt)",
+          "then": [
+            {
+              "set": "unconfirmed",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "set": "testRepl",
+          "to": "false"
+        },
+        {
+          "log": "Rule 'uploads-dr-test' disabled. Projected data transfer {cost|usd} a month."
+        }
+      ]
+    },
+    "stopAllRepl": {
+      "label": "Turn off all replication to us-west-2",
+      "group": "Change",
+      "available": "testRepl or backupRepl",
+      "why": "Nothing left to turn off.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "if": "isNull(ownerAt)",
+          "then": [
+            {
+              "set": "unconfirmed",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "set": "testRepl",
+          "to": "false"
+        },
+        {
+          "set": "backupRepl",
+          "to": "false"
+        },
+        {
+          "log": "Both replication rules disabled, including the DR plan's backup copy. Projected {cost|usd} a month.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "oneAz": {
+      "label": "Move the web servers into AZ a to avoid cross-AZ charges",
+      "group": "Change",
+      "available": "not singleAz",
+      "why": "Already in one AZ.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "singleAz",
+          "to": "true"
+        },
+        {
+          "log": "All web servers now in AZ a beside the database. Saves about $60 a month; the site now depends on one AZ.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "addCloudFront": {
+      "label": "Serve the course videos through Amazon CloudFront",
+      "group": "Change",
+      "available": "not cf",
+      "why": "Already in place.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "cf",
+          "to": "true"
+        },
+        {
+          "log": "CloudFront in front of the videos bucket: S3 to CloudFront transfer is free; CloudFront to learners is $0.085 per GB instead of $0.09. Projected {cost|usd} a month."
+        }
+      ]
+    },
+    "budgets": {
+      "label": "AWS Budgets: alert at 80% of the data transfer budget, actual and forecast",
+      "group": "Monitor",
+      "available": "not budgetAlert",
+      "why": "Already set.",
+      "effects": [
+        {
+          "set": "budgetAlert",
+          "to": "true"
+        },
+        {
+          "log": "Budget alert on data transfer at 80% of $1,000, actual and forecasted, to the team's email."
+        }
+      ]
+    },
+    "runWeek": {
+      "label": "Close the change window and run the week",
+      "group": "Run",
+      "available": "true",
+      "why": "Not available now.",
+      "effects": [
+        {
+          "set": "weekStarted",
+          "to": "true"
+        },
+        {
+          "reason": "plan"
+        },
+        {
+          "phase": "week"
+        },
+        {
+          "schedule": "dayT",
+          "after": "dayWait",
+          "with": {
+            "d": "1"
+          }
+        },
+        {
+          "log": "Change window closed. Projected data transfer {cost|usd} a month.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "prompts": {
+    "inQ": {
+      "title": "Uploads",
+      "context": "Tutors upload about 3 TB of recordings a month from the internet into S3. What do those uploads cost in data transfer?",
+      "choices": [
+        {
+          "id": "right",
+          "label": "Nothing: data transfer in from the internet is free",
+          "effects": [
+            {
+              "set": "inAnswer",
+              "to": "\"right\""
+            }
+          ],
+          "feedback": "Right. Inbound transfer is $0 per GB; you pay for data going out, to the internet or to another Region, and between AZs."
+        },
+        {
+          "id": "wrong",
+          "label": "About $270, the same $0.09 per GB as downloads",
+          "effects": [
+            {
+              "set": "inAnswer",
+              "to": "\"wrong\""
+            }
+          ],
+          "feedback": "No. Data transfer in from the internet is free; the $0.09 is for data going out."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "dayT": {
+      "label": "the next day",
+      "wait": {
+        "skipLabel": "the next day"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "d": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step."
+      },
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "timer.with.d == 1",
+              "then": [
+                {
+                  "log": "Tuesday: data transfer running at about {round(cost / 30)|usd} a day.",
+                  "kind": "sys"
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "2"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "timer.with.d == 2",
+              "then": [
+                {
+                  "log": "Wednesday 14:00: AWS Health reports impaired connectivity in us-east-2a for 90 minutes. The database fails over to its standby in AZ b.",
+                  "kind": "alarm"
+                },
+                {
+                  "if": "singleAz",
+                  "then": [
+                    {
+                      "add": "downS",
+                      "by": "outageS"
+                    },
+                    {
+                      "log": "Every web server is in AZ a: the site is down for 90 minutes.",
+                      "kind": "bad"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "The web servers in AZ b keep the site up.",
+                      "kind": "good"
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "3"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Thursday: a mistaken lifecycle rule deletes this week's backups in us-east-2.",
+                  "kind": "alarm"
+                },
+                {
+                  "if": "backupRepl",
+                  "then": [
+                    {
+                      "log": "The us-west-2 copies are intact; backups restored from Oregon.",
+                      "kind": "good"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "set": "dataLost",
+                      "to": "true"
+                    },
+                    {
+                      "log": "Replication was off since Monday: this week's backups exist nowhere else.",
+                      "kind": "bad"
+                    }
+                  ]
+                },
+                {
+                  "set": "weekDone",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "plan": {
+      "question": "Before you run the week: which kinds of data transfer cost money, which one drove this bill, and what did you make sure not to break?",
+      "parts": [
+        {
+          "label": "The charges",
+          "criteria": "Inbound free; outbound to the internet charged ($0.09 per GB here); Region to Region charged ($0.02 per GB to us-west-2); between AZs charged ($0.01 per GB); names the leftover replication rule as the driver.",
+          "modelAnswer": "Uploads coming in are free. Downloads to learners cost about $0.09 per GB, copies to us-west-2 $0.02 per GB, and traffic between AZs $0.01 per GB. The jump is 45 TB a month copied to Oregon by a replication rule left over from a DR test."
+        },
+        {
+          "label": "What not to break",
+          "criteria": "Confirms the copy is unused before turning it off; keeps the backups' replication for disaster recovery; keeps two AZs because the cross-AZ saving is small; adds a budget alert.",
+          "modelAnswer": "Check with the owner, then turn off only the DR-test rule. Keep the backups copy the DR plan needs, and keep the web servers in two AZs: $60 a month is not worth an outage. Add a budget alert so the next jump shows up within a day."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "availabilityTarget": {
+        "value": 99.9,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Stated SLA over the month by the error-budget method."
+        }
+      },
+      "availabilityRecovered": {
+        "value": 99.85,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "A small miss."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "weekDone and cost > budget",
+      "class": "recovered",
+      "rationale": "The site and data are safe but the bill is still over budget: a cost miss, recovered, never target.",
+      "source": {
+        "cite": "docs/sims.md 3.1 (cloud)",
+        "checkedAt": "2026-11-11",
+        "note": "As in the NAT case: a cost miss is recovered or harm by the cost rule, never target."
+      }
+    }
+  },
+  "endings": {
+    "outage": {
+      "label": "Site outage",
+      "class": "harm",
+      "when": "avail < availabilityRecovered",
+      "terminal": true,
+      "narrative": "The site was down for {downS|min} minutes this month: {avail|3dp}%, below the 99.9% target, to save about $60 a month."
+    },
+    "dataLoss": {
+      "label": "Backups lost",
+      "class": "harm",
+      "when": "dataLost",
+      "terminal": true,
+      "narrative": "This week's backups were deleted and no copy existed in us-west-2: the disaster-recovery copy had been turned off to save about $40 a month."
+    },
+    "fixed": {
+      "label": "Bill fixed without breaking anything",
+      "class": "target",
+      "when": "weekDone and cost <= budget and avail >= availabilityTarget and investigatedFirst and not testRepl and not unconfirmed and backupRepl and not singleAz",
+      "terminal": true,
+      "narrative": "Thursday: projected data transfer {cost|usd} a month, the site rode through the AZ impairment, and the backups were restored from Oregon."
+    },
+    "partly": {
+      "label": "Better, by a rougher route",
+      "class": "recovered",
+      "when": "weekDone",
+      "terminal": true,
+      "narrative": "Thursday: projected data transfer {cost|usd} a month. Something was missed: the evidence first, checking with the owner, or the cause itself."
+    },
+    "time_up": {
+      "label": "The week ran out",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The week ended without a decision."
+    }
+  },
+  "endingOrder": [
+    "outage",
+    "dataLoss",
+    "fixed",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "investigate",
+        "label": "Found the cause in Cost Explorer and the replication rules before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "investigatedFirst",
+            "score": "met",
+            "why": "Cost Explorer by usage type and the replication rules first."
+          },
+          {
+            "when": "investigated",
+            "score": "partial",
+            "why": "Looked, but after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without confirming the cause."
+          }
+        ]
+      },
+      {
+        "id": "confirm",
+        "label": "Confirmed the copy was unused before turning it off",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not testRepl and not unconfirmed",
+            "score": "met",
+            "why": "The owner confirmed, then the rule was turned off."
+          },
+          {
+            "when": "not testRepl",
+            "score": "partial",
+            "why": "Turned off without asking the owner."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The DR-test replication is still running."
+          }
+        ]
+      },
+      {
+        "id": "backups",
+        "label": "Kept the disaster-recovery backup copy",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "backupRepl",
+            "score": "met",
+            "why": "Backups still replicate to us-west-2."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Turned off the backup copy the DR plan needs."
+          }
+        ]
+      },
+      {
+        "id": "azs",
+        "label": "Kept the web servers in two AZs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not singleAz",
+            "score": "met",
+            "why": "Two AZs, no single point of failure."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Moved everything into one AZ for a $60 saving."
+          }
+        ]
+      },
+      {
+        "id": "alert",
+        "label": "Budget alert for the next surprise",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "budgetAlert",
+            "score": "met",
+            "why": "Alert at 80%, actual and forecast."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No budget alert."
+          }
+        ]
+      },
+      {
+        "id": "inbound",
+        "label": "Knew inbound transfer is free",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "inAnswer == \"right\"",
+            "score": "met",
+            "why": "Inbound is $0."
+          },
+          {
+            "when": "inAnswer == \"wrong\"",
+            "score": "missed",
+            "why": "Thought uploads cost $0.09 per GB."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "Not asked."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: the transfer charges, the cause and what not to break",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "cost",
+        "label": "Projected data transfer a month",
+        "value": "cost",
+        "format": "usd",
+        "expert": "about $865"
+      },
+      {
+        "id": "avail",
+        "label": "Site availability this month (%)",
+        "value": "avail",
+        "format": "number",
+        "expert": "100"
+      },
+      {
+        "id": "changes",
+        "label": "Changes made",
+        "value": "changes",
+        "format": "number",
+        "expert": "2"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Monday 09:00",
+        "text": "Cost Explorer by usage type: the jump is us-east-2 to us-west-2. Replication rules: a DR-test rule still copies raw uploads. Ask the owner: unused."
+      },
+      {
+        "at": "Monday 09:30",
+        "text": "Turn off only the DR-test rule. Keep the backups copy and both AZs. Put CloudFront in front of the videos."
+      },
+      {
+        "at": "Monday 09:40",
+        "text": "A budget alert at 80%, actual and forecast. The trade-off: about $100 a month of cross-AZ and backup transfer kept on purpose, for availability and recovery."
+      }
+    ],
+    "debrief": {
+      "outage": {
+        "headline": "Site outage",
+        "body": "Traffic between AZs costs $0.01 per GB, about $60 a month here. Putting every server in one AZ saved that and lost the site for 90 minutes when the AZ had trouble."
+      },
+      "dataLoss": {
+        "headline": "Backups lost",
+        "body": "Region-to-Region copies cost money, but the backup copy is what disaster recovery is for. Turning off all replication saved about $40 a month and left the week's backups with nowhere to be restored from."
+      },
+      "fixed": {
+        "headline": "Fixed without breaking anything",
+        "body": "You found the cause with data, checked with its owner, removed only the waste and kept what availability and recovery need. That is the expert path."
+      },
+      "partly": {
+        "headline": "Better, by a rougher route",
+        "body": "Check whether you looked at the data first, whether you asked the owner before turning the rule off, and whether the cause was removed."
+      },
+      "time_up": {
+        "headline": "No decision",
+        "body": "The bill keeps running while nothing changes."
+      }
+    },
+    "modelReasoning": "Data transfer has a direction and a distance. In from the internet is free. Out to the internet costs about $0.09 per GB here, Region to Region $0.02 per GB, and between AZs in one Region $0.01 per GB. Cost Explorer grouped by usage type shows which line moved: the Region-to-Region line, from a replication rule left over from a DR test. Confirm with the owner, then turn off that rule only. The backup copy and the second AZ cost a little and are what keep the business running when something fails. AWS Budgets then alerts on actual or forecast spend so the next jump is seen in a day, not on the bill."
+  }
+}

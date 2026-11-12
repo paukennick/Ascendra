@@ -1,0 +1,620 @@
+{
+  "slug": "endpoint-scaling-latency",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: metrics and a load test first, high-resolution concurrency policy, maximum 12, pre-warmed for the ad, 5XX alarm",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "metrics",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "loadTest",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "targetQ",
+          "choice": "right",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "adPlan",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setPolicy",
+          "params": {
+            "metric": "conc"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setMax",
+          "params": {
+            "cap": "c12"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "prewarmAd",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "errorAlarm",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 12,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 13,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "investigate": "met",
+          "metric": "met",
+          "capacity": "met",
+          "costfit": "met",
+          "prewarm": "met",
+          "target": "met"
+        },
+        "kpis": {
+          "failed": 0,
+          "cost": 227,
+          "changes": 3
+        },
+        "stateHash": "a1a3ee30c558ed47"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "invocations",
+      "title": "InvocationsPerInstance at 600 and maximum 12, no pre-warm: about 10 minutes of failures as it scales",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "metrics",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "loadTest",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "targetQ",
+          "choice": "right",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setPolicy",
+          "params": {
+            "metric": "inv600"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setMax",
+          "params": {
+            "cap": "c12"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 9,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 10,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 86,
+        "criteria": {
+          "investigate": "met",
+          "metric": "met",
+          "capacity": "met",
+          "costfit": "met",
+          "prewarm": "missed",
+          "target": "met"
+        },
+        "kpis": {
+          "failed": 600,
+          "cost": 223,
+          "changes": 2
+        },
+        "stateHash": "953eb1946d4935c4"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "noHeadroom",
+      "title": "Picks the right metric but at the 1,200 limit, maximum 40, pre-warmed for the ad: the ad is fine, the everyday target has no headroom",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "metrics",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "loadTest",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "targetQ",
+          "choice": "right",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "adPlan",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setPolicy",
+          "params": {
+            "metric": "inv1200"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setMax",
+          "params": {
+            "cap": "c40"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "prewarmAd",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "errorAlarm",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 12,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 13,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "investigate": "met",
+          "metric": "partial",
+          "capacity": "met",
+          "costfit": "met",
+          "prewarm": "met",
+          "target": "met"
+        },
+        "kpis": {
+          "failed": 0,
+          "cost": 153,
+          "changes": 3
+        },
+        "stateHash": "9621e7f3a959a3e1"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "latencyBlind",
+      "title": "Switches to a latency target on a hunch before looking, maximum 12: late, jerky scaling through the ad",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "setPolicy",
+          "params": {
+            "metric": "latency"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setMax",
+          "params": {
+            "cap": "c12"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "metrics",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "loadTest",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "targetQ",
+          "choice": "right",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "errorAlarm",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 10,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 11,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "investigate": "partial",
+          "metric": "missed",
+          "capacity": "met",
+          "costfit": "met",
+          "prewarm": "missed",
+          "target": "met"
+        },
+        "kpis": {
+          "failed": 1800,
+          "cost": 149,
+          "changes": 2
+        },
+        "stateHash": "9e185b2451a58f3e"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "maxFour",
+      "title": "Failure: the right policy, but the maximum stays at 4; the ad overwhelms the endpoint",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "metrics",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "loadTest",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "targetQ",
+          "choice": "wrong",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setPolicy",
+          "params": {
+            "metric": "inv600"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 8,
+          "tick": 1440
+        }
+      ],
+      "expect": {
+        "ending": "outage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "investigate": "met",
+          "metric": "met",
+          "capacity": "missed",
+          "costfit": "met",
+          "prewarm": "missed",
+          "target": "missed"
+        },
+        "kpis": {
+          "failed": 7200,
+          "cost": 223,
+          "changes": 1
+        },
+        "stateHash": "d42eceefc0c4eb17"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "gpu",
+      "title": "Failure: buys GPU instances to fix latency; projected far over budget",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "metrics",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setInstance",
+          "params": {
+            "type": "g5"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setPolicy",
+          "params": {
+            "metric": "inv600"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setMax",
+          "params": {
+            "cap": "c12"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 5,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "overBudget",
+        "class": "harm",
+        "rating": "bad",
+        "score": 33,
+        "criteria": {
+          "investigate": "missed",
+          "metric": "met",
+          "capacity": "met",
+          "costfit": "missed",
+          "prewarm": "missed",
+          "target": "na"
+        },
+        "kpis": {
+          "failed": 0,
+          "cost": 1028,
+          "changes": 3
+        },
+        "stateHash": "d7f96b17f0b89fdd"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}
