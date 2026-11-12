@@ -1,0 +1,519 @@
+{
+  "slug": "phi-in-application-logs",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: fields, destinations and readers first; vendor feed off, logging fixed, masking, readers limited, reported, evidence preserved",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sampleLogs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "phiQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "destinations",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "readers",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stopVendor",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixCode",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "maskPolicy",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "restrictReaders",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "retention",
+          "params": {
+            "how": "preserve"
+          },
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 13,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 14,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 15,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "investigate": "met",
+          "source": "met",
+          "vendor": "met",
+          "report": "met",
+          "mask": "met",
+          "readers": "met",
+          "phi": "met"
+        },
+        "kpis": {
+          "exposed": 0,
+          "changes": 6
+        },
+        "stateHash": "490273ee5d406cac"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "noReport",
+      "title": "Stops the data at the source and the exit but never tells the privacy officer",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sampleLogs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "phiQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "destinations",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stopVendor",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixCode",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "maskPolicy",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "restrictReaders",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 11,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 12,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "investigate": "met",
+          "source": "met",
+          "vendor": "met",
+          "report": "missed",
+          "mask": "met",
+          "readers": "met",
+          "phi": "met"
+        },
+        "kpis": {
+          "exposed": 0,
+          "changes": 4
+        },
+        "stateHash": "df3e81df39e5711b"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "maskOnly",
+      "title": "Relies on a masking policy alone: the vendor feed and the logging code stay as they were",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sampleLogs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "phiQ",
+          "choice": "wrong",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "destinations",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "maskPolicy",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 9,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 10,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 44,
+        "criteria": {
+          "investigate": "met",
+          "source": "missed",
+          "vendor": "missed",
+          "report": "met",
+          "mask": "met",
+          "readers": "missed",
+          "phi": "missed"
+        },
+        "kpis": {
+          "exposed": 0,
+          "changes": 2
+        },
+        "stateHash": "1f015a8c51b1b942"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "purge",
+      "title": "Failure: stops the exposure, then purges the stored logs before the privacy officer can assess them",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sampleLogs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "phiQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "destinations",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixCode",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stopVendor",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "retention",
+          "params": {
+            "how": "purge"
+          },
+          "seq": 7,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "evidence",
+        "class": "harm",
+        "rating": "bad",
+        "score": 69,
+        "criteria": {
+          "investigate": "met",
+          "source": "met",
+          "vendor": "met",
+          "report": "met",
+          "mask": "missed",
+          "readers": "missed",
+          "phi": "met"
+        },
+        "kpis": {
+          "exposed": 0,
+          "changes": 4
+        },
+        "stateHash": "bc3b79358576c230"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "readersOnly",
+      "title": "Failure: never looks for destinations; limits readers and reports, while the vendor feed keeps streaming PHI",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sampleLogs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "phiQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "readers",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "restrictReaders",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 9,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 10,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "ongoing",
+        "class": "harm",
+        "rating": "bad",
+        "score": 38,
+        "criteria": {
+          "investigate": "missed",
+          "source": "missed",
+          "vendor": "missed",
+          "report": "met",
+          "mask": "missed",
+          "readers": "met",
+          "phi": "met"
+        },
+        "kpis": {
+          "exposed": 2,
+          "changes": 2
+        },
+        "stateHash": "d729608984590826"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}

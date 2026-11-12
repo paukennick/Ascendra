@@ -1,0 +1,519 @@
+{
+  "slug": "stack-update-rollback-failed",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: events, subnets and CloudTrail first; continue the rollback skipping the deleted group; two /24 subnets; rerun through a change set",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stackEvents",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "subnetIps",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "ipQ",
+          "choice": "right",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "trailSg",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "continueRollback",
+          "params": {
+            "how": "skip"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixSubnets",
+          "params": {
+            "how": "new24"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rerunUpdate",
+          "params": {
+            "how": "changeset"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 11,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 12,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "investigate": "met",
+          "recover": "met",
+          "subnets": "met",
+          "preview": "met",
+          "who": "met",
+          "ips": "met"
+        },
+        "kpis": {
+          "capacity": 16,
+          "down": 0,
+          "changes": 3
+        },
+        "stateHash": "176a59bf654bf7d7"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "direct",
+      "title": "Recovers and fixes correctly, but reruns the update directly without a change set",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stackEvents",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "subnetIps",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "ipQ",
+          "choice": "right",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "continueRollback",
+          "params": {
+            "how": "skip"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixSubnets",
+          "params": {
+            "how": "new24"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rerunUpdate",
+          "params": {
+            "how": "direct"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 10,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 11,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "investigate": "met",
+          "recover": "met",
+          "subnets": "met",
+          "preview": "missed",
+          "who": "missed",
+          "ips": "met"
+        },
+        "kpis": {
+          "capacity": 16,
+          "down": 0,
+          "changes": 3
+        },
+        "stateHash": "e61bd0347cf9e094"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "recreateFirst",
+      "title": "Recreates the group by hand before reading anything, retries the rollback, then finds the right fix",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "recreateSg",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stackEvents",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "subnetIps",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "ipQ",
+          "choice": "right",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "continueRollback",
+          "params": {
+            "how": "plain"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "continueRollback",
+          "params": {
+            "how": "skip"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixSubnets",
+          "params": {
+            "how": "new24"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rerunUpdate",
+          "params": {
+            "how": "changeset"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "trailSg",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 13,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 14,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "investigate": "partial",
+          "recover": "met",
+          "subnets": "met",
+          "preview": "met",
+          "who": "met",
+          "ips": "met"
+        },
+        "kpis": {
+          "capacity": 16,
+          "down": 0,
+          "changes": 5
+        },
+        "stateHash": "1536a75c9ea714da"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "resize",
+      "title": "Failure: recovers the stack, tries to resize the /28s, reruns anyway; the sale runs on 4 instances",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stackEvents",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "subnetIps",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "ipQ",
+          "choice": "wrong",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "continueRollback",
+          "params": {
+            "how": "skip"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixSubnets",
+          "params": {
+            "how": "resize"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rerunUpdate",
+          "params": {
+            "how": "direct"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 10,
+          "tick": 1440
+        }
+      ],
+      "expect": {
+        "ending": "outage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 42,
+        "criteria": {
+          "investigate": "met",
+          "recover": "met",
+          "subnets": "missed",
+          "preview": "na",
+          "who": "missed",
+          "ips": "missed"
+        },
+        "kpis": {
+          "capacity": 4,
+          "down": 5400,
+          "changes": 3
+        },
+        "stateHash": "7a2543972bfa8169"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "deleteStack",
+      "title": "Failure: deletes the stack to start clean; the shop is down for three hours",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stackEvents",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deleteStack",
+          "seq": 2,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "outage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "investigate": "missed",
+          "recover": "missed",
+          "subnets": "missed",
+          "preview": "na",
+          "who": "missed",
+          "ips": "na"
+        },
+        "kpis": {
+          "capacity": 4,
+          "down": 10800,
+          "changes": 1
+        },
+        "stateHash": "a5f69beb6a86edf3"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}
