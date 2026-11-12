@@ -16,9 +16,10 @@ import { source } from "../sources";
 // Home; remediate; update anti-malware; scan and removal techniques such as
 // safe mode or a preinstallation environment; reimage/reinstall; schedule
 // scans and run updates; enable System Restore and create a restore point
-// in Windows Home; educate the end user). The course objective's title
-// still summarizes the older seven-step list; the malware lab teaches the
-// V15 list and the discrepancy is reported for the course owner (REQ-234).
+// in Windows Home; educate the end user). REQ-236 retitled the course
+// objective in place to that ten-step list (it summarized the older
+// seven-step list when REQ-234 wrote this lab); the objective document was
+// re-read on 2026-11-11.
 //
 // Density (docs/labs.md, policy "hybrid"): 3 / 3 / 2 / 2 = 10.
 // Values quoted as a standard (Windows 11 minimum requirements, Windows 10
@@ -324,7 +325,7 @@ export const APLUS_CORE2_LABS: SeedLabSet = {
     // -----------------------------------------------------------------------
     {
       slug: "aplus2-malware-removal-pos",
-      objective: "Best-practice malware removal procedure: investigate and verify symptoms, quarantine, disable System Restore, remediate, schedule scans and run updates, re-enable System Restore and create a restore point, and educate the user",
+      objective: "Best-practice malware removal procedure: investigate and verify symptoms, quarantine, disable System Restore in Windows Home, remediate, update anti-malware, scan and remove (safe mode or a preinstallation environment), reimage or reinstall, schedule scans and run updates, enable System Restore and create a restore point in Windows Home, and educate the end user",
       kind: "case",
       title: "Remove malware from a shop's office PC",
       brief:

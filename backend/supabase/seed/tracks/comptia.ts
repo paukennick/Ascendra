@@ -227,7 +227,12 @@ export const APLUS_CORE2_TRACK: SeedTrack = {
       objectives: [
         "Troubleshooting common Windows problems: slow performance, application crashes, boot failures, and blue screen errors",
         "Troubleshooting common PC security symptoms: browser redirection, unwanted pop-ups, and rogue antivirus",
-        "Best-practice malware removal procedure: investigate and verify symptoms, quarantine, disable System Restore, remediate, schedule scans and run updates, re-enable System Restore and create a restore point, and educate the user",
+        // REQ-236: retitled in place (same index, same row id, so mastery and
+        // attempts stay; seed-lib invalidates the lessons and items written
+        // for the old title, FAIL-893) from the older seven-step summary to
+        // the ten steps of 220-1202 V15 objective 2.6 (CompTIA's objectives
+        // document version 4.0, read in full 2026-11-11).
+        "Best-practice malware removal procedure: investigate and verify symptoms, quarantine, disable System Restore in Windows Home, remediate, update anti-malware, scan and remove (safe mode or a preinstallation environment), reimage or reinstall, schedule scans and run updates, enable System Restore and create a restore point in Windows Home, and educate the end user",
         "Troubleshooting common mobile OS and app issues: signal loss, failed app loads, and failed synchronization",
         "Troubleshooting common mobile security issues: unauthorized data access, unexpected data usage, and unauthorized location tracking",
       ],

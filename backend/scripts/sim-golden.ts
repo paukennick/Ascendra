@@ -282,7 +282,7 @@ async function steps(name: string): Promise<void> {
   if (!/^[a-z0-9-]+$/.test(name)) throw new Error("steps name: lower-case letters, digits and -");
   const m = (await import(`./sim-golden/${name}.steps.ts`)) as { ENTRY?: { course: string; slug: string }; FIXTURE?: { source: string; golden: string }; spec: (golden: string) => StepsSpec };
   if (m.FIXTURE) {
-    const fx: DocumentEntry = { course: "fixture", slug: name, file: m.FIXTURE.source, golden: m.FIXTURE.golden, kind: "scenario" };
+    const fx: DocumentEntry = { course: "fixture", slug: name, file: m.FIXTURE.source, golden: m.FIXTURE.golden, kind: "scenario", source: "authored" };
     buildSteps(loadDocument(fx), m.FIXTURE.golden, m.spec(m.FIXTURE.golden));
     return;
   }
