@@ -174,6 +174,19 @@ export interface SeedTrack {
   hiddenReason?: string; // seed-only, why (with the guideline URL)
 }
 
+// REQ-245: the MSCS bridge checked against current sources on 2026-11-11.
+// It has no exam, so its frame is the ACM/IEEE-CS/AAAI curriculum guideline
+// CS2023 (Computer Science Curricula 2023, January 2024; the full report
+// read as HTML from csed.acm.org), whose knowledge units name every topic in
+// these units except two that the standard texts below carry: the
+// comparison-sort lower bound (MIT 6.006 Lecture 5) and multiversion
+// concurrency control (Database System Concepts 7e, 18.7). Each unit's
+// sources and key values are in MSCS_UNIT_SOURCES after the track; every one
+// was read on the date it carries. One objective was reworded (FAIL-1561);
+// the units, their order and the other objectives are unchanged.
+const MSCS_CHECKED = "2026-11-11";
+const MSCS_VERIFIED_AT = "2026-11-11T00:00:00Z";
+
 export const MSCS_TRACK: SeedTrack = {
   code: "MSCS",
   title: "MSCS Foundations Coach",
@@ -181,6 +194,11 @@ export const MSCS_TRACK: SeedTrack = {
     "15-week graduate-CS bridge covering algorithms, data structures, discrete math, OS, computer architecture, database theory, ML math, cybersecurity, HCI/UX, and big data.",
   trackType: "graduate",
   subcategorySlug: "software-engineering",
+  freshnessModel: "academic_foundational",
+  // REQ-245: verified 2026-11-11 against the dated unit sources below
+  // (MSCS_UNIT_SOURCES); reviewed yearly like the other academic courses.
+  sourceVerifiedAt: MSCS_VERIFIED_AT,
+  contentReviewDueAt: "2027-11-11T00:00:00Z",
   // REQ-142: no exam -- a 15-week bridge the course defines itself (its units
   // below are the syllabus). Recorded so the currency report dates it rather
   // than listing it as a course with no outline.
@@ -189,7 +207,7 @@ export const MSCS_TRACK: SeedTrack = {
     name: "MSCS Foundations Coach 15-week bridge syllabus",
     version: "15-week plan, Sept 15-Dec 28, 2026",
     url: "https://github.com/paukennick/Ascendra/blob/master/backend/supabase/seed/data.ts",
-    checkedAt: "2026-11-08",
+    checkedAt: MSCS_CHECKED,
   },
   units: [
     {
@@ -350,7 +368,11 @@ export const MSCS_TRACK: SeedTrack = {
       rangeLabel: "Nov 24-30",
       gate: "Explain what a certificate chain actually proves, why hashing alone doesn't secure a password, and defend the choice of symmetric vs asymmetric encryption for a stated scenario.",
       objectives: [
-        "Symmetric vs asymmetric encryption, and why both exist together (e.g. TLS)",
+        // REQ-245 (FAIL-1561): was "Symmetric vs asymmetric encryption, and
+        // why both exist together (e.g. TLS)". TLS 1.3 has no public-key
+        // encryption of a session key (static RSA key transport was removed);
+        // it uses public-key cryptography for key agreement and signatures.
+        "Symmetric vs asymmetric cryptography, and how TLS 1.3 uses both: public-key key agreement and signatures, symmetric encryption for the data",
         "Hashing vs encryption -- what each guarantees and what neither does",
         "Digital signatures and what they actually prove",
         "Key exchange (Diffie-Hellman) at a conceptual level",
@@ -412,6 +434,115 @@ export const MSCS_TRACK: SeedTrack = {
     },
   ],
 };
+
+// REQ-245 (FAIL-1560): the MSCS units' dated sources, by unit title, all
+// read 2026-11-11. Seed-only: the lesson writer and the fact-checker get them
+// through lib/current-facts.ts, and the currency report dates them. Key
+// values are what a writer might otherwise remember from an older version.
+// No `outline`: the course has no official outline (CS2023 is a curriculum
+// guideline, cited by knowledge unit in the title).
+const mscsRef = (title: string, url: string, keyValues?: string[]): UnitSource => ({
+  title,
+  url,
+  kind: "reference",
+  checkedAt: MSCS_CHECKED,
+  ...(keyValues ? { keyValues } : {}),
+});
+const CS2023_URL = "https://csed.acm.org/wp-content/uploads/2025/11/CS2023-Report.htm";
+const cs2023 = (units: string, keyValues?: string[]) =>
+  mscsRef(`ACM/IEEE-CS/AAAI, Computer Science Curricula 2023 (CS2023, January 2024), knowledge units ${units}`, CS2023_URL, keyValues);
+const MIT_6006 = (lectures: string, keyValues?: string[]) =>
+  mscsRef(`MIT OpenCourseWare 6.006 Introduction to Algorithms (Spring 2020), lecture notes ${lectures}`, "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/", keyValues);
+const LEVIN = mscsRef("Oscar Levin, Discrete Mathematics: An Open Introduction, 4th edition (chapters 0-1, 4.5-4.6, 5)", "https://discrete.openmathbooks.org/dmoi4/");
+const NAND2TETRIS = mscsRef("Nand2Tetris course (projects 1-5: Boolean logic, Boolean arithmetic, memory, machine language, computer architecture)", "https://www.nand2tetris.org/course");
+const OSTEP = mscsRef("Arpaci-Dusseau, Operating Systems: Three Easy Pieces, version 1.10 (virtualization, concurrency, persistence)", "https://pages.cs.wisc.edu/~remzi/OSTEP/", [
+  "deadlock needs all four conditions at once: mutual exclusion, hold-and-wait, no preemption, circular wait; preventing any one prevents deadlock (OSTEP ch. 32, Common Concurrency Problems)",
+]);
+const DB_BOOK = mscsRef("Silberschatz, Korth and Sudarshan, Database System Concepts, 7th edition (2019), table of contents", "https://www.db-book.com/", [
+  "normal forms 7.3; B+-tree index files 14.3; transaction isolation levels 17.8; lock-based protocols 18.1; multiversion schemes (MVCC) 18.7; snapshot isolation 18.8; data partitioning 21.2 and replication 21.4; graph databases 10.6",
+]);
+const MML = mscsRef("Deisenroth, Faisal and Ong, Mathematics for Machine Learning (Cambridge University Press, 2020), Part I", "https://mml-book.github.io/");
+const TLS13 = mscsRef("IETF RFC 9846, The Transport Layer Security (TLS) Protocol Version 1.3 (July 2026)", "https://www.rfc-editor.org/rfc/rfc9846.txt", [
+  "RFC 9846 (July 2026) is the current TLS 1.3 specification; it obsoletes RFC 8446 (August 2018) and RFC 5246 (TLS 1.2)",
+  "TLS 1.3 removed static RSA and Diffie-Hellman cipher suites: every public-key key exchange is ephemeral (EC)DHE and gives forward secrecy; the server proves its identity with a certificate and a signature (CertificateVerify)",
+  "all handshake messages after the ServerHello are encrypted; application data is protected with symmetric AEAD ciphers",
+]);
+const NIST_CSF = mscsRef("NIST Cybersecurity Framework (CSF) 2.0, NIST CSWP 29 (February 26, 2024)", "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf", [
+  "CSF 2.0 has six functions: Govern (GV), Identify (ID), Protect (PR), Detect (DE), Respond (RS), Recover (RC); Govern is new in 2.0",
+]);
+const SP_800_53 = mscsRef("NIST SP 800-53 Rev. 5, Security and Privacy Controls (release 5.2.0, August 27, 2025)", "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final", [
+  "SP 800-53 Rev. 5 groups its controls into 20 families (Access Control through Supply Chain Risk Management); the current minor release is 5.2.0 (August 27, 2025)",
+]);
+const STRIDE = mscsRef("Microsoft Learn, Threat Modeling Tool threats (STRIDE)", "https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats", [
+  "STRIDE: Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege",
+]);
+const NNG_HEURISTICS = mscsRef("Nielsen Norman Group, 10 Usability Heuristics for User Interface Design (Jakob Nielsen, 1994; last reviewed January 30, 2024)", "https://www.nngroup.com/articles/ten-usability-heuristics/", [
+  "the ten heuristics as currently named: visibility of system status; match between the system and the real world; user control and freedom; consistency and standards; error prevention; recognition rather than recall; flexibility and efficiency of use; aesthetic and minimalist design; help users recognize, diagnose, and recover from errors; help and documentation",
+]);
+const NNG_GULFS = mscsRef("Nielsen Norman Group, The Two UX Gulfs: Evaluation and Execution", "https://www.nngroup.com/articles/two-ux-gulfs-evaluation-execution/", [
+  "the terms gulf of execution and gulf of evaluation were coined in 1986 by Hutchins, Hollan and Norman; Norman's The Design of Everyday Things made them widely known",
+]);
+const WCAG = mscsRef("W3C WAI, WCAG 2 Overview", "https://www.w3.org/WAI/standards-guidelines/wcag/", [
+  "WCAG 2.2 is the current W3C Recommendation (5 October 2023, updated 12 December 2024): 13 guidelines under four principles, perceivable, operable, understandable and robust; it adds 9 success criteria and makes 4.1.1 Parsing obsolete; WCAG 3 is still a draft",
+]);
+const MAPREDUCE = mscsRef("Dean and Ghemawat, MapReduce: Simplified Data Processing on Large Clusters (OSDI 2004)", "https://research.google/pubs/mapreduce-simplified-data-processing-on-large-clusters/");
+const NIST_BIG_DATA = mscsRef("NIST SP 1500-1r2, NIST Big Data Interoperability Framework: Volume 1, Definitions", "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1500-1r2.pdf", [
+  "NIST defines big data as extensive datasets, primarily in the characteristics of volume, velocity, variety and/or variability, that require a scalable architecture; the classic three Vs are volume, velocity and variety, and NIST adds variability",
+]);
+
+export const MSCS_UNIT_SOURCES: Readonly<Record<string, readonly UnitSource[]>> = {
+  "Complexity & computational thinking": [
+    cs2023("AL-Complexity", [
+      "CS2023's representative growth classes: O(1) array access; O(log n) binary search; O(n) linear search; O(n log n) mergesort; O(n^2) selection sort; O(n^c) polynomial, e.g. O(n^3) Gaussian elimination; O(2^n) all subsets; O(n!) all permutations",
+    ]),
+    MIT_6006("1-2"),
+  ],
+  "Core data structures": [
+    cs2023("AL-Foundational"),
+    MIT_6006("2, 4-8", ["hash tables give expected O(1) time operations (amortized if dynamic), not a worst-case guarantee; the expectation comes from choosing the hash function at random from a universal family (6.006 Lecture 5 review)"]),
+  ],
+  "Discrete mathematics I": [cs2023("MSF-Discrete"), LEVIN],
+  "Sorting, recursion, and recurrences": [
+    cs2023("AL-Foundational, AL-Strategies, MSF-Discrete"),
+    MIT_6006("3, 5", ["comparison sort lower bound: a comparison sort's decision tree needs at least n! leaves, so its height is at least log(n!) = Omega(n log n); merge sort is optimal in the comparison model (6.006 Lecture 5)"]),
+  ],
+  "Graph foundations": [
+    cs2023("AL-Foundational"),
+    MIT_6006("9-10", ["BFS and DFS each run in O(|V| + |E|) time with adjacency lists (6.006 Lectures 9-10)"]),
+  ],
+  "Graph algorithms & design strategies": [
+    cs2023("AL-Foundational, AL-Strategies"),
+    MIT_6006("11-13, 15-18", ["Dijkstra's algorithm requires non-negative edge weights, w(e) >= 0; Bellman-Ford handles negative weights (6.006 Lectures 12-13)"]),
+  ],
+  "Computer architecture": [
+    cs2023("AR-Representation, AR-Assembly, AR-Memory, AR-IO, AR-Organization", ["CS2023 names x86, ARM and RISC-V as instruction set architecture examples (AR-Assembly)"]),
+    NAND2TETRIS,
+  ],
+  "Operating systems": [cs2023("OS-Principles, OS-Concurrency, OS-Scheduling, OS-Process, OS-Memory, OS-Files, OS-Virtualization"), OSTEP],
+  "Databases and data systems": [cs2023("DM-Core, DM-Relational, DM-Processing, DM-Internals, DM-Distributed"), DB_BOOK],
+  "Math & foundations for machine learning": [cs2023("MSF-Linear, MSF-Probability, MSF-Statistics, MSF-Calculus, AI-ML"), MML],
+  "Cybersecurity I: cryptography & secure protocols": [cs2023("SEC-Crypto, NC-Security"), TLS13],
+  "Cybersecurity II: network defense & threat modeling": [
+    cs2023("NC-Fundamentals, NC-Security, SEC-Foundations, SEC-Coding, SEC-Engineering, SEC-Governance"),
+    STRIDE,
+    NIST_CSF,
+    SP_800_53,
+  ],
+  "HCI/UX: usability, interaction design & user research": [
+    cs2023("HCI-User, HCI-Accessibility, HCI-Evaluation, HCI-Design"),
+    NNG_HEURISTICS,
+    NNG_GULFS,
+    WCAG,
+  ],
+  "Big data systems & data mining": [
+    cs2023("DM-Core, DM-Analytics, DM-Distributed, PDC-Algorithms"),
+    MAPREDUCE,
+    mscsRef("Silberschatz, Korth and Sudarshan, Database System Concepts, 7th edition, chapters 10 (Big Data: MapReduce) and 11.4 (Data Mining)", "https://www.db-book.com/"),
+    NIST_BIG_DATA,
+  ],
+  "Final integration": [cs2023("NC-Fundamentals, SEC-Foundations, SEC-Engineering, DM-Distributed"), TLS13, STRIDE],
+};
+for (const unit of MSCS_TRACK.units) unit.sources = [...(MSCS_UNIT_SOURCES[unit.title] ?? [])];
 
 // REQ-102: the five CompTIA tracks in this file predate the `credential`
 // block, so the app had no exam code, format, or passing score for them --
@@ -2083,9 +2214,24 @@ export const SECURITYX_TRACK: SeedTrack = {
 const CMPCBS_RETIRED_AT = "2026-11-09T00:00:00Z";
 const R = CMPCBS_RETIRED_AT;
 const CMPCBS_CHECKED = "2026-11-09";
+// REQ-245: the day the taught units were re-checked against their sources and
+// the course was verified. A reference re-read that day carries this date; one
+// that could not be re-read keeps CMPCBS_CHECKED (cppreference answered with a
+// browser challenge, so the C++ units also cite Microsoft's C++ language
+// reference, read that day), and the retired units' references were not
+// re-read (retired units are not taught).
+const CMPCBS_VERIFIED = "2026-11-11";
+const CMPCBS_VERIFIED_AT = "2026-11-11T00:00:00Z";
 const ref = (title: string, url: string): UnitSource => ({ title, url, kind: "reference", checkedAt: CMPCBS_CHECKED });
+const reread = (title: string, url: string, keyValues?: string[]): UnitSource => ({
+  title,
+  url,
+  kind: "reference",
+  checkedAt: CMPCBS_VERIFIED,
+  ...(keyValues ? { keyValues } : {}),
+});
 const CMPCBS_SRC = {
-  writing: ref("OpenStax, Writing Guide with Handbook (2021)", "https://openstax.org/books/writing-guide/pages/preface"),
+  writing: reread("OpenStax, Writing Guide with Handbook (2021)", "https://openstax.org/books/writing-guide/pages/preface"),
   apa: ref("APA Style, Author-date citation system", "https://apastyle.apa.org/style-grammar-guidelines/citations/basic-principles/author-date"),
   mla: ref("Purdue OWL, MLA In-Text Citations: The Basics", "https://owl.purdue.edu/owl/research_and_citation/mla_style/mla_formatting_and_style_guide/mla_in_text_citations_the_basics.html"),
   hebrewBible: ref("Christine Hayes, Introduction to the Old Testament (Hebrew Bible), Open Yale Courses RLST 145, Lecture 1", "https://oyc.yale.edu/node/1724"),
@@ -2094,24 +2240,38 @@ const CMPCBS_SRC = {
   worldHistory2: ref("OpenStax, World History Volume 2 (2022), 5.1 The Protestant Reformation", "https://openstax.org/books/world-history-volume-2/pages/5-1-the-protestant-reformation"),
   brooks: ref("Christopher Brooks, Western Civilization: A Concise History I, 11.9 Orthodoxy and Heresy (LibreTexts)", "https://human.libretexts.org/Bookshelves/History/World_History/Book:_Western_Civilization_-_A_Concise_History_I_(Brooks)/11:_The_Late_Empire_and_Christianity/11.09:_Orthodoxy_and_Heresy"),
   hanneken: ref("Todd Hanneken, Theological Questions (open textbook, 2022; written from a Catholic perspective)", "https://open.umn.edu/opentextbooks/textbooks/theological-questions"),
-  introCs: ref("OpenStax, Introduction to Computer Science (2024)", "https://openstax.org/books/introduction-computer-science/pages/preface"),
-  calc1: ref("OpenStax, Calculus Volume 1", "https://openstax.org/books/calculus-volume-1/pages/preface"),
-  calc2: ref("OpenStax, Calculus Volume 2", "https://openstax.org/books/calculus-volume-2/pages/preface"),
-  calc3: ref("OpenStax, Calculus Volume 3", "https://openstax.org/books/calculus-volume-3/pages/preface"),
-  stats: ref("OpenStax, Introductory Statistics 2e", "https://openstax.org/books/introductory-statistics-2e/pages/preface"),
-  discrete: ref("Oscar Levin, Discrete Mathematics: An Open Introduction", "https://discrete.openmathbooks.org/"),
-  mactutor: ref("MacTutor History of Mathematics Archive, University of St Andrews", "https://mathshistory.st-andrews.ac.uk/"),
-  linear: ref("Robert Beezer, A First Course in Linear Algebra", "https://linear.pugetsound.edu/"),
-  linearOcw: ref("MIT OpenCourseWare 18.06 Linear Algebra (Spring 2010)", "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/"),
-  numerical: ref("MIT OpenCourseWare 18.330 Introduction to Numerical Analysis (Spring 2012)", "https://ocw.mit.edu/courses/18-330-introduction-to-numerical-analysis-spring-2012/"),
-  abstract: ref("Thomas Judson, Abstract Algebra: Theory and Applications", "https://judsonbooks.org/abstract-algebra-theory-and-applications/"),
-  diffEq: ref("William F. Trench, Elementary Differential Equations", "https://digitalcommons.trinity.edu/mono/8"),
-  probability: ref("Charles Grinstead and J. Laurie Snell, Introduction to Probability", "https://chance.dartmouth.edu/book.html"),
-  forecasting: ref("Rob Hyndman and George Athanasopoulos, Forecasting: Principles and Practice, 3rd edition", "https://otexts.com/fpp3/"),
-  infoSystems: ref("David Bourgeois, Information Systems for Business and Beyond (2019)", "https://open.umn.edu/opentextbooks/textbooks/189"),
+  introCs: reread("OpenStax, Introduction to Computer Science (2024)", "https://openstax.org/books/introduction-computer-science/pages/preface"),
+  calc1: reread("OpenStax, Calculus Volume 1", "https://openstax.org/books/calculus-volume-1/pages/preface"),
+  calc2: reread("OpenStax, Calculus Volume 2", "https://openstax.org/books/calculus-volume-2/pages/preface"),
+  calc3: reread("OpenStax, Calculus Volume 3", "https://openstax.org/books/calculus-volume-3/pages/preface"),
+  stats: reread("OpenStax, Introductory Statistics 2e", "https://openstax.org/books/introductory-statistics-2e/pages/preface"),
+  discrete: reread("Oscar Levin, Discrete Mathematics: An Open Introduction, 4th edition", "https://discrete.openmathbooks.org/"),
+  mactutor: reread("MacTutor History of Mathematics Archive, University of St Andrews", "https://mathshistory.st-andrews.ac.uk/"),
+  linear: reread("Robert Beezer, A First Course in Linear Algebra", "https://linear.pugetsound.edu/"),
+  linearOcw: reread("MIT OpenCourseWare 18.06 Linear Algebra (Spring 2010)", "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/"),
+  numerical: reread("MIT OpenCourseWare 18.330 Introduction to Numerical Analysis (Spring 2012)", "https://ocw.mit.edu/courses/18-330-introduction-to-numerical-analysis-spring-2012/"),
+  abstract: reread("Thomas Judson, Abstract Algebra: Theory and Applications", "https://judsonbooks.org/abstract-algebra-theory-and-applications/"),
+  diffEq: reread("William F. Trench, Elementary Differential Equations", "https://digitalcommons.trinity.edu/mono/8"),
+  probability: reread("Charles Grinstead and J. Laurie Snell, Introduction to Probability", "https://chance.dartmouth.edu/book.html"),
+  forecasting: reread("Rob Hyndman and George Athanasopoulos, Forecasting: Principles and Practice, 3rd edition", "https://otexts.com/fpp3/"),
+  infoSystems: reread("David Bourgeois, Information Systems for Business and Beyond (2019)", "https://open.umn.edu/opentextbooks/textbooks/189"),
   cpp: ref("cppreference.com, C++ language reference", "https://en.cppreference.com/w/cpp/language"),
-  dataStructures: ref("Pat Morin, Open Data Structures (C++ edition)", "https://opendatastructures.org/ods-cpp/"),
-  nistCsf: ref("NIST Cybersecurity Framework 2.0", "https://www.nist.gov/cyberframework"),
+  dataStructures: reread("Pat Morin, Open Data Structures (C++ edition)", "https://opendatastructures.org/ods-cpp/"),
+  nistCsf: reread("NIST Cybersecurity Framework 2.0", "https://www.nist.gov/cyberframework", [
+    "CSF 2.0 (NIST CSWP 29, February 26, 2024) has six functions: Govern, Identify, Protect, Detect, Respond, Recover; Govern is new in 2.0",
+  ]),
+  // REQ-245 (FAIL-1563): references added where a unit's objectives went
+  // beyond what its cited text covers. Each read 2026-11-11.
+  cs2023: reread("ACM/IEEE-CS/AAAI, Computer Science Curricula 2023 (CS2023), knowledge units NC-Fundamentals, SEP-IP, SEP-Privacy, SEP-Security", "https://csed.acm.org/wp-content/uploads/2025/11/CS2023-Report.htm"),
+  appliedDiscrete: reread("Al Doerr and Ken Levasseur, Applied Discrete Structures, 3rd edition, version 3-14 (June 2026): Boolean algebra (ch. 13), matrix algebra (ch. 5), algorithms (appendix A)", "https://discretemath.org/"),
+  numericalComputation: reread("Tobin Driscoll and Richard Braun, Fundamentals of Numerical Computation (online edition): error and conditioning (ch. 1), linear systems (ch. 2), roots (ch. 4), interpolation, differentiation and integration (ch. 5), initial-value problems (ch. 6)", "https://fncbook.com/"),
+  modeling: reread("SIAM, Math Modeling: Getting Started and Getting Solutions (Bliss, Kavanagh, Galluzzo and Levy, 2014): defining the problem, assumptions, building, analyzing and assessing a model", "https://m3challenge.siam.org/resources/modeling-handbook"),
+  technicalWriting: reread("Technical Writing Essentials (Suzan Last; adapted by Robin L. Potter and Tricia Hylton), CC BY 4.0", "https://pressbooks.senecapolytechnic.ca/technicalwriting"),
+  attack: reread("MITRE ATT&CK, Enterprise tactics (ATT&CK v20.1)", "https://attack.mitre.org/tactics/enterprise/", [
+    "ATT&CK v20.1 (current from October 13, 2026) lists 15 Enterprise tactics: Reconnaissance, Resource Development, Initial Access, Execution, Persistence, Privilege Escalation, Stealth, Defense Impairment, Credential Access, Discovery, Lateral Movement, Collection, Command and Control, Exfiltration, Impact",
+    "TA0005 is now named Stealth (blending in without touching security controls), and Defense Impairment (TA0112, created April 14, 2026) covers degrading or disabling security controls and monitoring; older material calls this area Defense Evasion",
+  ]),
+  msCpp: reread("Microsoft Learn, C++ Language Reference (standard C++ with Microsoft-specific notes)", "https://learn.microsoft.com/en-us/cpp/cpp/cpp-language-reference"),
 } as const;
 
 export const CMPCBS_TRACK: SeedTrack = {
@@ -2121,6 +2281,12 @@ export const CMPCBS_TRACK: SeedTrack = {
     "The foundation courses of a bachelor's degree in computer science and computational mathematics, taught as general courses from open textbooks: calculus through differential equations, discrete math, linear algebra, probability and statistics, numerical methods, C++ programming, data structures, information systems and security. Not affiliated with any university; your school's catalog sets its own requirements.",
   trackType: "graduate",
   subcategorySlug: "software-engineering",
+  freshnessModel: "academic_foundational",
+  // REQ-245: every taught unit checked against its references on 2026-11-11
+  // (one objective reworded, FAIL-1562; references added, FAIL-1563);
+  // reviewed yearly like the other academic courses.
+  sourceVerifiedAt: CMPCBS_VERIFIED_AT,
+  contentReviewDueAt: "2027-11-11T00:00:00Z",
   // REQ-195: the course outline is this seed; each unit names its own dated
   // references in `sources`.
   curriculum: {
@@ -2128,7 +2294,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     name: "Computer Science Degree Foundations outline (general courses taught from open textbooks)",
     version: "REQ-195, 2026-11-09",
     url: "https://github.com/paukennick/Ascendra/blob/master/backend/supabase/seed/data.ts",
-    checkedAt: CMPCBS_CHECKED,
+    checkedAt: CMPCBS_VERIFIED,
   },
   units: [
     // 0: reframed (objective 0); the elective-choice lines are retired.
@@ -2209,7 +2375,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Networking and database fundamentals",
         "Computing ethics: intellectual property, privacy, and computer crime",
       ],
-      sources: [CMPCBS_SRC.introCs],
+      sources: [CMPCBS_SRC.introCs, CMPCBS_SRC.cs2023],
     },
     {
       title: "Calculus I",
@@ -2246,7 +2412,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Statistical inference: estimation and hypothesis testing",
         "Regression and correlation between data sets",
       ],
-      sources: [CMPCBS_SRC.stats],
+      sources: [CMPCBS_SRC.stats, CMPCBS_SRC.probability],
     },
     {
       title: "Discrete Mathematics",
@@ -2259,7 +2425,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Matrices and algorithmic thinking",
         "Mathematical induction and combinatorics",
       ],
-      sources: [CMPCBS_SRC.discrete],
+      sources: [CMPCBS_SRC.discrete, CMPCBS_SRC.appliedDiscrete],
     },
     {
       title: "History of Mathematics",
@@ -2297,7 +2463,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Solving linear systems numerically",
         "Error analysis",
       ],
-      sources: [CMPCBS_SRC.numerical],
+      sources: [CMPCBS_SRC.numerical, CMPCBS_SRC.numericalComputation],
     },
     {
       title: "Abstract Algebra",
@@ -2315,7 +2481,11 @@ export const CMPCBS_TRACK: SeedTrack = {
       gate: "Find and classify the critical points of a function of two variables, and evaluate a line or surface integral, using Green's, Stokes' or the Divergence Theorem where it applies.",
       objectives: [
         "Limits, continuity, and differentiation for functions of several variables",
-        "Integration and power series in several variables",
+        // REQ-245 (FAIL-1562): was "Integration and power series in several
+        // variables". A multivariable calculus course (and its source,
+        // OpenStax Calculus Volume 3, chapter 5) teaches multiple integrals;
+        // power series are single-variable (Calculus Volume 2, chapter 6).
+        "Multiple integration: double and triple integrals and change of variables",
         "Optimization in several variables",
         "Analytic geometry of curves and surfaces",
         "Vector fields and integration along curves and surfaces",
@@ -2355,7 +2525,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Critiquing model assumptions and limitations",
         "Simulation-based methods",
       ],
-      sources: [CMPCBS_SRC.diffEq, CMPCBS_SRC.calc2],
+      sources: [CMPCBS_SRC.diffEq, CMPCBS_SRC.calc2, CMPCBS_SRC.modeling, CMPCBS_SRC.probability],
     },
     {
       title: "Regression and Forecasting",
@@ -2388,7 +2558,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Business process management concepts",
         "Technical writing for information systems documentation",
       ],
-      sources: [CMPCBS_SRC.infoSystems],
+      sources: [CMPCBS_SRC.infoSystems, CMPCBS_SRC.technicalWriting],
     },
     {
       title: "Programming in C++ I",
@@ -2400,7 +2570,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Control flow: loops and conditionals",
         "Writing and using functions",
       ],
-      sources: [CMPCBS_SRC.cpp],
+      sources: [CMPCBS_SRC.cpp, CMPCBS_SRC.msCpp],
     },
     {
       title: "Programming in C++ II",
@@ -2412,7 +2582,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Internal sorting algorithms",
         "Internal searching algorithms",
       ],
-      sources: [CMPCBS_SRC.cpp, CMPCBS_SRC.dataStructures],
+      sources: [CMPCBS_SRC.cpp, CMPCBS_SRC.dataStructures, CMPCBS_SRC.msCpp],
     },
     {
       title: "Data Structures and Algorithms",
@@ -2426,7 +2596,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Recursion as a problem-solving technique",
         "Implementing abstract data types with C++ classes",
       ],
-      sources: [CMPCBS_SRC.dataStructures, CMPCBS_SRC.cpp],
+      sources: [CMPCBS_SRC.dataStructures, CMPCBS_SRC.cpp, CMPCBS_SRC.msCpp],
     },
     {
       title: "Information Security",
@@ -2438,7 +2608,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Common attacker tactics and how controls get bypassed",
         "Defensive strategies and countermeasures",
       ],
-      sources: [CMPCBS_SRC.nistCsf, CMPCBS_SRC.introCs],
+      sources: [CMPCBS_SRC.nistCsf, CMPCBS_SRC.introCs, CMPCBS_SRC.attack],
     },
     // 26-27: degree logistics. Retired. The two residency lines named the
     // school; they are reworded (retired rows are not taught, so no
