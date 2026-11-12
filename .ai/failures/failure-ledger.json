@@ -15320,6 +15320,293 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-1400",
+      "date": "2026-11-11",
+      "title": "Pre-generation never retried a held half",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A pre-generated lesson held by the writer's doubt or the fact-check was dropped and left to the first learner visit; the live gate's one steered retry did not exist in the batch path",
+      "how_detected": "production hold counts, Nick's 'make holds rare' (2026-11-11)",
+      "root_cause": "REQ-208 refused the retry because a batch cannot make a second request; nothing made a live retry instead, so batch holds stayed holds",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "batchGenerator hands checkedIntro/checkedPractice's retry to a live writer (purpose pregen_retry) when the cap covers it; collect reports the counts",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts::REQ-235 (FAIL-1400): a held pre-generated half is retried once",
+        "steered",
+        "like the live gate"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "pre-completion: a batch path that holds gives the same steered retry",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1401",
+      "date": "2026-11-11",
+      "title": "No view of how often content is held",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The owner could not see generated vs held per course and kind; holds were found only by reading logs",
+      "how_detected": "Nick's request (2026-11-11)",
+      "root_cause": "item_holdbacks was a review queue (npm run items) with no aggregate, and no table records generation per course",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/lib/hold-rates.ts",
+        "backend/app/api/access/hold-rates/route.ts",
+        "mobile/src/components/HoldRates.tsx"
+      ],
+      "fix_summary": "owner-only counts report and Settings > Access section",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hold-rates.dbtest.ts",
+        "backend/lib/account-access.dbtest.ts::hold-rate view (owner only)",
+        "mobile/src/lib/holdRates.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "the report is the measure batch H is judged by",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1402",
+      "date": "2026-11-11",
+      "title": "item_holdbacks mixes holds with staged findings and replaced lessons",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A naive count of item_holdbacks would count re-check findings and lessons-fix logs as generation holds",
+      "how_detected": "review while writing the hold-rate query",
+      "root_cause": "the table is shared by the gate, the staging jobs (content.staged) and lesson-fixes (the old LessonRow, snake_case keys)",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/lib/hold-rates.ts"
+      ],
+      "fix_summary": "GATE_HOLD_SQL leaves out content ? 'staged', a lesson row with fade_problem, and fact_check_error",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hold-rates.dbtest.ts",
+        "backend/lib/sandbox.test.ts::no route reads the staging tables"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "pre-completion: a report over item_holdbacks leaves staged and replaced rows out",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1403",
+      "date": "2026-11-11",
+      "title": "A hold report could expose learner courses or claims",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Risk: counting holds by track would list learners' private course titles; returning claims would leak model text",
+      "how_detected": "design review",
+      "root_cause": "item_holdbacks rows exist for private tracks and carry claims/content",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/lib/hold-rates.ts"
+      ],
+      "fix_summary": "catalog tracks only (user_id is null), counts only",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hold-rates.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "the sandbox test checks no claims/content are selected",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1404",
+      "date": "2026-11-11",
+      "title": "Launch courses had units with no dated sources",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "AWSSAA, AWSMLA, SECPLUS, DPT and PTPREREQ had no unit sources at all; CNA and CCRN had one or two units; the writer fell back on memory and production holds were driven by thin source material",
+      "how_detected": "production holds (lead, 2026-11-11)",
+      "root_cause": "REQ-195/220 added unit sources only where a fix needed them; nothing required them on courses that generate",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/supabase/seed/tracks/ccrn.ts",
+        "backend/supabase/seed/tracks/nursing.ts",
+        "backend/supabase/seed/tracks/pt-dpt.ts",
+        "backend/supabase/seed/tracks/pt-prereq.ts",
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "dated sources and key values on every taught unit of the 7 launch courses",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-batch-h.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "content-batch-h.test.ts fails a launch-course unit with no dated source",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1405",
+      "date": "2026-11-11",
+      "title": "Writer and checker did not share the official outline wording",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Objectives are paraphrased (copyright rule), so the writer and the fact-checker each judged scope from our wording or memory, not the exam's statement",
+      "how_detected": "batch H brief",
+      "root_cause": "the seed held no outline statements; current-facts named only the exam",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/lib/current-facts.ts"
+      ],
+      "fix_summary": "UnitSource.outline; unitReferenceLines puts the statements first; whole-course prompts list them by unit",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-batch-h.test.ts::REQ-235: the writer and the checker get the same outline statements (FAIL-1405)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "pre-completion bullet",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1406",
+      "date": "2026-11-11",
+      "title": "Security+ taught BIA/DR in Security Operations",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "SY0-701 covers BIA (RTO, RPO, MTTR, MTBF) in 5.2 and backups/sites in 3.4, but the course had a domain-4 objective and lab for it, so readiness credited it to the wrong domain",
+      "how_detected": "G5 audit follow-up (Nick-approved)",
+      "root_cause": "an original objective predating the REQ-220 term-by-term placement",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "retired in place; BIA lab moved to the 5.2 line; gate no longer names RTO/RPO",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-batch-h.test.ts::Security+: business continuity / DR leaves Security Operations"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "secplus-v7-coverage keeps the terms per domain",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1407",
+      "date": "2026-11-11",
+      "title": "PTA labs header quoted the pre-2021 maintenance sentence",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The NPTE-PTA labs header quoted Medicare manual 230.1's 'develop, manage, or furnish skilled maintenance program services' as the rule",
+      "how_detected": "G5 audit follow-up",
+      "root_cause": "the manual still prints the sentence; the 2021 PFS rule lets a PT delegate furnishing maintenance to a PTA",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/supabase/seed/labs/pt-nptepta.ts"
+      ],
+      "fix_summary": "header paraphrases the current rule and notes the older clause is not current",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-batch-h.test.ts::the PTA labs header no longer quotes"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "-",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1408",
+      "date": "2026-11-11",
+      "title": "Sepsis key value said cultures strictly before antimicrobials",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "CCRN Multisystem key value: 'blood cultures before antimicrobials'; SSC 2026 says as soon as possible and ideally before",
+      "how_detected": "G5 re-read 2026-11-11 (SCCM page)",
+      "root_cause": "summarized wording when the value was first recorded",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/supabase/seed/tracks/ccrn.ts"
+      ],
+      "fix_summary": "reworded; choking and stroke values re-read and unchanged",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-batch-h.test.ts::CNA choking",
+        "sepsis and stroke key values re-read"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "a re-read records its day and whether only a summary was read",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1320",
+      "date": "2026-11-11",
+      "title": "Capabilities header dropped a screen type with a hyphen",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "parseCaps read renderers with /^([a-z]{1,20})@(\\d{1,3})$/, so security-console@1 in x-sim-caps was silently ignored; the server would have treated every app as unable to run the security console and told it to update.",
+      "how_detected": "Review while adding the security-console renderer (REQ-231); mobile runtime.test.ts 'capabilities' also fails on it",
+      "root_cause": "The renderer token pattern was written when every screen type was one lower-case word; nothing tied it to the screen types the schema allows or to the sims.screen_type column (varchar 40), and a token that fails the pattern is skipped without an error.",
+      "requirement": "REQ-231",
+      "affected": [
+        "backend/lib/sim/server-run.ts parseCaps"
+      ],
+      "fix_summary": "The pattern accepts a lower-case letter followed by up to 39 letters or hyphens.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/server-run.test.ts::a screen type with a hyphen is read (REQ-231",
+        "FAIL-1320)",
+        "backend/lib/sim/server-run.test.ts::the app advertises every default renderer the server turns on",
+        "mobile/src/sim/runtime.test.ts::capabilities"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A test parses the app's own header and asserts every default renderer is advertised and runnable, so a new screen type whose name the parser cannot read fails CI.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1321",
+      "date": "2026-11-11",
+      "title": "Sim document schema could not name 17 catalog objectives",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The phished-account sim failed the schema: objective: Too big: expected string to have <=400 characters. Its SY0-701 objective title is 455 characters; 17 catalog titles exceed 400 (the longest 586, SECPLUS).",
+      "how_detected": "npm run sims:lint while authoring REQ-231",
+      "root_cause": "The scenario schema capped objective at 400 characters as a sanity limit, but the seed registers a sim by the exact objective title (objectives.title is text, unbounded), so the cap silently excluded long catalog objectives from ever having a sim.",
+      "requirement": "REQ-231",
+      "affected": [
+        "backend/lib/sim/schema.ts scenarioSchema.objective"
+      ],
+      "fix_summary": "The cap is 1000 characters.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/security-console.test.ts::every catalog objective title fits the scenario schema's objective field"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A test runs every active catalog objective title through the schema's objective field.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-1360",
       "date": "2026-11-11",
       "title": "Turn-based sim ordered actions by timeAt, which cannot order actions at one tick",
@@ -15391,55 +15678,6 @@
       "no_test_reason": "",
       "prevention_rules": [],
       "prevention_notes": "Until FAIL-1250 gets a teachingOrder list, author teaching keys in jsonb order or give overlapping prompts mutually exclusive conditions; docs/sims.md 22.7 says so.",
-      "recurrence_of": ""
-    },
-    {
-      "id": "FAIL-1320",
-      "date": "2026-11-11",
-      "title": "Capabilities header dropped a screen type with a hyphen",
-      "status": "fixed",
-      "severity": "high",
-      "symptom": "parseCaps read renderers with /^([a-z]{1,20})@(\\d{1,3})$/, so security-console@1 in x-sim-caps was silently ignored; the server would have treated every app as unable to run the security console and told it to update.",
-      "how_detected": "Review while adding the security-console renderer (REQ-231); mobile runtime.test.ts 'capabilities' also fails on it",
-      "root_cause": "The renderer token pattern was written when every screen type was one lower-case word; nothing tied it to the screen types the schema allows or to the sims.screen_type column (varchar 40), and a token that fails the pattern is skipped without an error.",
-      "requirement": "REQ-231",
-      "affected": [
-        "backend/lib/sim/server-run.ts parseCaps"
-      ],
-      "fix_summary": "The pattern accepts a lower-case letter followed by up to 39 letters or hyphens.",
-      "fix_commits": [],
-      "regression_tests": [
-        "backend/lib/sim/server-run.test.ts::a screen type with a hyphen is read (REQ-231",
-        "FAIL-1320)",
-        "backend/lib/sim/server-run.test.ts::the app advertises every default renderer the server turns on",
-        "mobile/src/sim/runtime.test.ts::capabilities"
-      ],
-      "no_test_reason": "",
-      "prevention_rules": [],
-      "prevention_notes": "A test parses the app's own header and asserts every default renderer is advertised and runnable, so a new screen type whose name the parser cannot read fails CI.",
-      "recurrence_of": ""
-    },
-    {
-      "id": "FAIL-1321",
-      "date": "2026-11-11",
-      "title": "Sim document schema could not name 17 catalog objectives",
-      "status": "fixed",
-      "severity": "medium",
-      "symptom": "The phished-account sim failed the schema: objective: Too big: expected string to have <=400 characters. Its SY0-701 objective title is 455 characters; 17 catalog titles exceed 400 (the longest 586, SECPLUS).",
-      "how_detected": "npm run sims:lint while authoring REQ-231",
-      "root_cause": "The scenario schema capped objective at 400 characters as a sanity limit, but the seed registers a sim by the exact objective title (objectives.title is text, unbounded), so the cap silently excluded long catalog objectives from ever having a sim.",
-      "requirement": "REQ-231",
-      "affected": [
-        "backend/lib/sim/schema.ts scenarioSchema.objective"
-      ],
-      "fix_summary": "The cap is 1000 characters.",
-      "fix_commits": [],
-      "regression_tests": [
-        "backend/lib/sim/security-console.test.ts::every catalog objective title fits the scenario schema's objective field"
-      ],
-      "no_test_reason": "",
-      "prevention_rules": [],
-      "prevention_notes": "A test runs every active catalog objective title through the schema's objective field.",
       "recurrence_of": ""
     }
   ]

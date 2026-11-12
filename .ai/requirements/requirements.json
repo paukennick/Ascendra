@@ -8307,48 +8307,44 @@
       ]
     },
     {
-      "id": "REQ-233",
+      "id": "REQ-235",
       "category": "content",
-      "title": "Bedside sims wave 1: CCRN Pediatric, CCRN Neonatal, NCLEX-RN, NCLEX-PN, and a second AWS SAA board sim",
-      "description": "Nick's sims wave 1 (2026-11-11): baseline sims for four courses on the existing bedside screen, two each, plus a second AWS SAA board sim in a domain other than TicketBurst's. CCRNPEDS/pediatric-septic-shock-fluids and pediatric-dka-cerebral-edema; CCRNNEO/neonatal-rds-escalating-support and neonatal-sepsis-hypoglycemia; NCLEXRN/med-surg-deterioration-sbar and post-op-transfusion-reaction; NCLEXPN/ltc-change-in-condition and med-pass-error-caught; AWSSAA/nat-gateway-bill-spike (cost). Engine 1.2 with endingOrder; endings in all three classes, 3-4 critical criteria inside target, KPIs, expert path, debrief per ending, 5-6 golden paths; clinical sims at study pace (3x). Literature checked and dated on each document; authored teaching values flagged. No engine, renderer or schema change; no migration.",
+      "title": "Batch H wave 1: make holds rare -- dated sources and outline statements for the launch courses, pregen retry, owner hold-rate view, G5 follow-ups",
+      "description": "Nick asked to make holds rare (2026-11-11); production holds were driven by thin source material. For DPT, PTPREREQ, CCRNADULT, AWSSAA, AWSMLA, SECPLUS and CNA every taught unit names dated sources; the exam courses carry their official outline statements (headings only where copyrighted; 42 CFR text in full) and key values read 2026-11-11, given to the lesson writer and the fact-checker alike (lib/current-facts.ts). Pre-generation retries a held half once, steered, live (pregen_retry) inside --max-usd, and reports the counts. Settings > Access shows the owner generated vs held per course and kind for 7 and 30 days with the top reasons (counts only). G5 follow-ups: Security+ BCDR moved to 3.4/5.2 (retired in place in Security Operations, BIA lab to 5.2); PTA labs header reworded; CNA choking, sepsis and stroke BP values re-read (sepsis cultures 'ideally before'). No migration.",
       "priority": "high",
       "status": "completed",
       "minimum_access_scope": [
-        "backend/supabase/seed/sims/CCRNPEDS/",
-        "backend/supabase/seed/sims/CCRNNEO/",
-        "backend/supabase/seed/sims/NCLEXRN/",
-        "backend/supabase/seed/sims/NCLEXPN/",
-        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.sim.json",
-        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json",
-        "backend/lib/sim/documents.ts",
-        "backend/scripts/sim-golden/",
-        "docs/sims.md",
+        "backend/supabase/seed/",
+        "backend/lib/",
+        "backend/app/api/access/",
+        "mobile/src/",
+        "mobile/app/(app)/settings/",
+        "docs/operations-runbook.md",
         "CHANGELOG.md"
       ],
       "acceptance_criteria": [
-        "each scenario lints with zero errors and replays its goldens",
-        "every outcome class is reachable and every criterion is both met and missed",
-        "every objective title exists in its course catalog",
-        "golden paths end the same in written reversed and jsonb key order",
-        "clinical sims are paced (study pace by default)"
+        "every launch-course unit has a dated source (lib/content-batch-h.test.ts)",
+        "writer and checker get the same outline statements",
+        "a held pregen half is retried once steered and counted (lib/pregen.dbtest.ts)",
+        "hold-rate view is owner only and counts only (lib/hold-rates.dbtest.ts; lib/account-access.dbtest.ts)",
+        "Security+ BCDR retired in place and taught in 3.4/5.2"
       ],
       "validation_required": [
-        "npm run sims:lint",
-        "backend npm test (storage-order and objectives tests included)",
-        "sim:cross-runtime and the engine-bundle replay",
-        "sims dbtests on a throwaway Postgres",
+        "npm test",
+        "npm run test:db",
         "mobile npm test",
+        "mobile tsc",
         "omni gate"
       ],
       "documentation_required": [
-        "docs/sims.md",
-        "CHANGELOG.md"
+        "CHANGELOG.md",
+        "docs/operations-runbook.md"
       ],
       "risk_notes": [
-        "SSC Children's 2026 and AAP 2011 hypoglycemia read only through summaries",
-        "authored teaching-model numbers are flagged in their source notes",
-        "AWS prices are the Ohio rates read 2026-11-11 and change over time",
-        "new document hashes enter expert review"
+        "Outline statements are headings only for copyrighted outlines (AWS; CompTIA) per the repo's paraphrase rule; CNA uses public-domain 42 CFR text in full. Decision for Nick if he wants fuller outline text.",
+        "The AIS 2026 values were confirmed through a summary (UIC Drug Information Group) and AHA's Top Things page; the full guideline refused automated access. The hyperglycemic-crises values were read through the CCJM 2025 summary.",
+        "CCRN cardiovascular key values are carried from the 2026-10-31 audit (not re-read in this batch).",
+        "Hold rates from seeds only are not measurable; production numbers are the lead's to read."
       ]
     },
     {
@@ -8433,6 +8429,51 @@
       "risk_notes": [
         "Sources read through a summarizing fetch; vendor guidance (Microsoft Learn",
         "AWS re:Post) used for account and cloud steps; two V8 objective titles do not match the generator selection rule word list"
+      ]
+    },
+    {
+      "id": "REQ-233",
+      "category": "content",
+      "title": "Bedside sims wave 1: CCRN Pediatric, CCRN Neonatal, NCLEX-RN, NCLEX-PN, and a second AWS SAA board sim",
+      "description": "Nick's sims wave 1 (2026-11-11): baseline sims for four courses on the existing bedside screen, two each, plus a second AWS SAA board sim in a domain other than TicketBurst's. CCRNPEDS/pediatric-septic-shock-fluids and pediatric-dka-cerebral-edema; CCRNNEO/neonatal-rds-escalating-support and neonatal-sepsis-hypoglycemia; NCLEXRN/med-surg-deterioration-sbar and post-op-transfusion-reaction; NCLEXPN/ltc-change-in-condition and med-pass-error-caught; AWSSAA/nat-gateway-bill-spike (cost). Engine 1.2 with endingOrder; endings in all three classes, 3-4 critical criteria inside target, KPIs, expert path, debrief per ending, 5-6 golden paths; clinical sims at study pace (3x). Literature checked and dated on each document; authored teaching values flagged. No engine, renderer or schema change; no migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/CCRNPEDS/",
+        "backend/supabase/seed/sims/CCRNNEO/",
+        "backend/supabase/seed/sims/NCLEXRN/",
+        "backend/supabase/seed/sims/NCLEXPN/",
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.sim.json",
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "every objective title exists in its course catalog",
+        "golden paths end the same in written reversed and jsonb key order",
+        "clinical sims are paced (study pace by default)"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test (storage-order and objectives tests included)",
+        "sim:cross-runtime and the engine-bundle replay",
+        "sims dbtests on a throwaway Postgres",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "SSC Children's 2026 and AAP 2011 hypoglycemia read only through summaries",
+        "authored teaching-model numbers are flagged in their source notes",
+        "AWS prices are the Ohio rates read 2026-11-11 and change over time",
+        "new document hashes enter expert review"
       ]
     }
   ]

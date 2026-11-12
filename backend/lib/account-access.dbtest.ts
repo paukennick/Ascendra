@@ -551,3 +551,19 @@ describe("error-tracker test button (owner only)", () => {
     }
   });
 });
+
+// REQ-235: Settings > Access "Hold rates" (owner only, counts only).
+describe("hold-rate view (owner only)", () => {
+  test("anyone but the owner gets 403; the owner gets the counts-only report", async () => {
+    const { GET: holdGet } = await import("../app/api/access/hold-rates/route");
+    for (const who of [await unrestrictedUser(), await newUser()]) {
+      assert.equal((await call(holdGet, "/api/access/hold-rates", who, "GET")).status, 403);
+    }
+    const r = await call(holdGet, "/api/access/hold-rates", ownerId, "GET");
+    assert.equal(r.status, 200);
+    const body = (await r.json()) as { asOf: string; courses: { code: string; kinds: unknown[]; topReasons: unknown[] }[] };
+    assert.ok(Date.parse(body.asOf) > 0);
+    assert.ok(Array.isArray(body.courses));
+    for (const c of body.courses) assert.deepEqual(Object.keys(c).sort(), ["code", "kinds", "title", "topReasons"]);
+  });
+});

@@ -290,3 +290,49 @@ export const PTPREREQ_UNIT_SOURCES: Readonly<Record<string, readonly PrereqUnitS
   "Psychology for patient care": [ox("PSY", "2.2-2.3, 6.2-6.4, 9.2-9.3, 12.3, 14.1, 14.3, 15.4, 15.7")],
   "Statistics for reading research": [ox("STAT", "1.3, 2.5-2.7, 6.1-6.2, 8.1-8.2, 9.1-9.2, 10.1, 10.4, 11.3, 12.3-12.4")],
 };
+
+// REQ-235 (batch H wave 1): the unit's textbook sections reach the lesson
+// writer and the fact-checker (lib/current-facts.ts) as dated unit sources,
+// and four core units carry key values read on 2026-11-11 in the online
+// OpenStax editions (A&P 2e 12.4, 19.4, 26.5; College Physics 2e 9.2). A
+// refresher has no official outline, so there is none to quote.
+const BOOK_TITLE: Record<string, string> = {
+  [OX.AP]: "OpenStax Anatomy and Physiology 2e",
+  [OX.CHEM]: "OpenStax Chemistry 2e",
+  [OX.PHYS]: "OpenStax College Physics 2e",
+  [OX.BIO]: "OpenStax Biology 2e",
+  [OX.PSY]: "OpenStax Psychology 2e",
+  [OX.STAT]: "OpenStax Introductory Statistics 2e",
+};
+const PTPREREQ_KEY_VALUES: Readonly<Record<string, { url: string; keyValues: string[] }>> = {
+  "Nervous system": {
+    url: OX.AP,
+    keyValues: [
+      "resting membrane potential about -70 mV (varies between cells); threshold about -55 mV, where voltage-gated Na+ channels open; the action potential is all-or-none (AP 12.4)",
+    ],
+  },
+  "Cardiovascular system": {
+    url: OX.AP,
+    keyValues: ["cardiac output = heart rate x stroke volume, for each ventricle; resting mean about 5.25 L/min, range 4.0-8.0 L/min (AP 19.4)"],
+  },
+  "Respiratory system and acid-base balance": {
+    url: OX.AP,
+    keyValues: [
+      "arterial reference values: pH 7.35-7.45; pCO2 35-48 mm Hg (male), 32-45 mm Hg (female); total venous bicarbonate 22-29 mM; at pH 7.40 bicarbonate to carbonic acid is 20:1 (AP 26.5)",
+    ],
+  },
+  "Biomechanics: levers, torque and forces": {
+    url: OX.PHYS,
+    keyValues: ["torque = rF sin(theta) = perpendicular lever arm x force, in newton-meters (N-m) (College Physics 9.2)"],
+  },
+};
+for (const unit of PT_PREREQ_TRACK.units) {
+  const kv = PTPREREQ_KEY_VALUES[unit.title];
+  unit.sources = (PTPREREQ_UNIT_SOURCES[unit.title] ?? []).map((s) => ({
+    title: `${BOOK_TITLE[s.url] ?? s.url}, sections ${s.sections}`,
+    url: s.url,
+    kind: s.kind,
+    checkedAt: kv && kv.url === s.url ? "2026-11-11" : s.checkedAt,
+    ...(kv && kv.url === s.url ? { keyValues: kv.keyValues } : {}),
+  }));
+}
