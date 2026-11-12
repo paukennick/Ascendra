@@ -36,6 +36,7 @@ import { isNotFound } from "@/lib/notFound";
 import { LoadError } from "@/components/LoadError";
 import { HOME } from "@/lib/goBack";
 import { useGoBack } from "@/lib/useGoBack";
+import { objectiveRowStatus, SAVED_PLACE_LABEL } from "@/lib/lessonExit";
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
@@ -325,7 +326,8 @@ export default function CourseDashboard() {
                 {isOpen ? (
                   <View style={{ gap: 2, marginTop: 2 }}>
                     {u.objectives?.map((o, idx) => {
-                      const status = o.mastery_status ?? "Not started";
+                      // REQ-250: a saved place reads "In progress", not "Not started".
+                      const { status, saved } = objectiveRowStatus(o);
                       return (
                         <Pressable
                           key={o.id}
@@ -336,13 +338,14 @@ export default function CourseDashboard() {
                             })
                           }
                           accessibilityRole="button"
-                          accessibilityLabel={`${idx + 1}. ${o.title}. ${status}`}
+                          accessibilityLabel={`${idx + 1}. ${o.title}. ${status}${saved ? `. ${SAVED_PLACE_LABEL}` : ""}`}
                           style={({ pressed }) => [styles.objectiveRow, pressed && { opacity: 0.7 }]}
                         >
-                          <View style={[styles.statusDot, { backgroundColor: masteryColor[status] ?? colors.mutedDim }]} />
+                          <View style={[styles.statusDot, { backgroundColor: masteryColor[status] ?? (saved ? colors.accent : colors.mutedDim) }]} />
                           <Muted style={{ flex: 1, color: colors.text }} numberOfLines={2}>
                             {idx + 1}. {o.title}
                           </Muted>
+                          {saved ? <Badge label={SAVED_PLACE_LABEL} color={colors.accent} icon="bookmark" /> : null}
                           <Feather name="chevron-right" size={16} color={colors.mutedDim} />
                         </Pressable>
                       );
@@ -358,7 +361,11 @@ export default function CourseDashboard() {
                       fullWidth={false}
                       icon={complete ? "rotate-cw" : "arrow-right"}
                       onPress={() => {
-                        const next = u.objectives?.find((ob) => ob.mastery_status !== "Independent" && ob.mastery_status !== "Transfer-ready") ?? o;
+                        // REQ-250: a lesson left part-way in this unit comes first.
+                        const next =
+                          u.objectives?.find((ob) => !!ob.lesson_saved_at) ??
+                          u.objectives?.find((ob) => ob.mastery_status !== "Independent" && ob.mastery_status !== "Transfer-ready") ??
+                          o;
                         router.push({
                           pathname: `/course/${trackId}/lesson/${next.id}`,
                           params: { unitId: u.id, objectiveTitle: next.title },

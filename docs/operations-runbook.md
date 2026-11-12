@@ -589,6 +589,16 @@ batches because the practice questions are written from the teaching text:
    (`styleFindingKinds`); `problemKinds` is the problems of lessons that failed.
    Before REQ-248 any style finding failed the lesson outright (the
    2026-11-12 trial: 21 of 25 practice halves, FAIL-1600).
+6. REQ-251: to measure answer-choice style offline (no model, no database),
+   score a trial's drafts or an export of stored lessons with
+   `cd backend && npm run items:style -- <file-or-dir> [...] [--json] [--label <text>]`.
+   It finds practice halves (camelCase or `lesson_content` snake_case) and
+   quiz items anywhere in .json/.jsonl files and prints counts only: items
+   with each kind of style finding, flagged cue words, and how often the right
+   answer is the longest option. Export stored lessons read-only, for example
+   `psql "$DATABASE_URL" -At -c "select json_agg(t) from (select fade_problem, fade_choices, fade_correct_index, solo_check, solo_choices, solo_correct_index from lesson_content where generated_at > '<trial start>') t" > lessons.json`.
+   Stored lessons are what was served (after the retry); first-draft rates
+   need the drafts themselves.
 
 Left out always: retired objectives and units, hidden courses (`hidden_at`
 passed), private courses, authored lessons, and any objective that already has
@@ -600,8 +610,12 @@ the fact-check at its full `max_tokens` (thinking included), plus (REQ-248) one
 live steered retry of the practice half at the full live price, so every
 lesson in the batch can have its retry inside the cap. At the 2026-11-09
 prices (Sonnet 5.5, $2 in / $10 out per million tokens; batches $1 / $5) that is
-about **$0.195 a lesson (it was $0.119 before the retry was reserved), so about
-51 lessons per $10** of cap. Every live call (a retry, a fact-check) is also
+about **$0.255 a lesson, so about 39 lessons per $10** of cap. It was $0.119
+before the retry was reserved and $0.195 before REQ-251 let the practice half
+think: a practice request's `max_tokens` is now 10,000 (6,000 for the answer
+plus a 4,000-token thinking allowance, `PRACTICE_THINKING_BUDGET_TOKENS` in
+lib/lesson-generation.ts), and thinking is billed as output, so the bound
+prices all of it, on the batch draft and on the live retry. Every live call (a retry, a fact-check) is also
 checked against the cap at its worst case before it is made, so `max_usd` is a
 ceiling on the whole run, not only on the plan. The real cost is
 expected to be well under that (collect prints the actual figure), so a run
@@ -637,12 +651,13 @@ workflow stops at once, naming the secret, if `PROD_DATABASE_URL` or
 **(b) Estimate.** Actions -> Pre-generate lessons -> Run workflow, mode
 `estimate`. `tracks` defaults to the launch set in priority order:
 `DPT,PTPREREQ,CCRNADULT,AWSSAA,AWSMLA,SECPLUS,CNA`; `max_usd` 110. On the
-2026-11-12 seed (REQ-248, the retry reserved) a fresh database has 886 lessons
-for these tracks and an upper bound of $172.79 (DPT 110, PTPREREQ 95,
-CCRNADULT 271, AWSSAA 99, AWSMLA 107, SECPLUS 77, CNA 127); the 881 production
-still lacks are about $171.82. **$110 no longer covers the whole set**: it
-covers 551 lessons by the bound (fresh seed): the cutoff falls in AWSSAA, at
-"Design Cost-Optimized Architectures", leaving AWSMLA, SECPLUS and CNA out. Raise
+2026-11-12 seed (REQ-251: the retry reserved and the practice thinking
+allowance priced) a fresh database has 886 lessons for these tracks and an
+upper bound of $227.83 (DPT 110 lessons $28.25, PTPREREQ 95 $24.39, CCRNADULT
+271 $69.74, AWSSAA 99 $25.50, AWSMLA 107 $27.49, SECPLUS 77 $19.77, CNA 127
+$32.69); it was $172.79 before REQ-251. **$110 no longer covers the whole
+set**: it covers 401 lessons by the bound (fresh seed): the cutoff falls in
+CCRNADULT, at "Multisystem", leaving AWSSAA, AWSMLA, SECPLUS and CNA out. Raise
 `max_usd` and the Console workspace limit together, or let the cutoff stand and
 run again with what is left (the actual cost is expected to be far below the
 bound). Read the log:
@@ -652,7 +667,8 @@ no write.
 
 **(b2) Trial first.** Before the full run, spend a few dollars to prove the
 whole path on real API responses. Run `submit` with the same `tracks`,
-**`limit` 25 and `max_usd` 6** (25 lessons are about $4.90 at the upper bound),
+**`limit` 25 and `max_usd` 7** (25 lessons are about $6.40 at the upper bound
+since REQ-251; $6 no longer covers 25),
 then collect both stages as in (d). Check the counts and the Console usage page
 (e): **most of the 25 (90% or more) should be saved**. If they are not, read the
 "Content-check problems" and "Style findings" lines, fix the cause, and run

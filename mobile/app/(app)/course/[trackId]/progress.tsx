@@ -7,6 +7,7 @@ import type { CourseReadiness, Track, Unit } from "@/types";
 import { Badge, Card, ErrorBanner, H1, H2, Loading, Muted, ProgressBar, Screen } from "@/components/ui";
 import { colors, fonts, masteryColor, masteryIcon, spacing } from "@/lib/theme";
 import { domainLine, readinessSummary } from "@/lib/progress";
+import { objectiveRowStatus, SAVED_PLACE_LABEL } from "@/lib/lessonExit";
 
 export default function ProgressScreen() {
   const { trackId } = useLocalSearchParams<{ trackId: string }>();
@@ -96,8 +97,9 @@ export default function ProgressScreen() {
             <Muted>{u.mastered_objectives ?? 0}/{u.total_objectives ?? 0} mastered</Muted>
             <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
               {u.objectives?.map((o) => {
-                const status = o.mastery_status ?? "Not started";
-                const c = masteryColor[status] ?? colors.mutedDim;
+                // REQ-250: a saved place reads "In progress", not "Not started".
+                const { status, saved } = objectiveRowStatus(o);
+                const c = masteryColor[status] ?? (saved ? colors.accent : colors.mutedDim);
                 // REQ-075: each row opens its lesson -- the matrix used to be
                 // read-only, so spotting a weak objective here meant hunting
                 // for it again on the dashboard.
@@ -111,14 +113,14 @@ export default function ProgressScreen() {
                       })
                     }
                     accessibilityRole="button"
-                    accessibilityLabel={`${o.title}, ${status}. Open lesson`}
+                    accessibilityLabel={`${o.title}, ${status}${saved ? `. ${SAVED_PLACE_LABEL}` : ""}. Open lesson`}
                     style={({ pressed }) => [
                       { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm, minHeight: 48 },
                       pressed && { opacity: 0.7 },
                     ]}
                   >
                     <Muted style={{ flex: 1, color: colors.text }} numberOfLines={2}>{o.title}</Muted>
-                    <Badge label={status} color={c} icon={(masteryIcon[status] ?? "circle") as React.ComponentProps<typeof Feather>["name"]} />
+                    <Badge label={status} color={c} icon={(masteryIcon[status] ?? (saved ? "bookmark" : "circle")) as React.ComponentProps<typeof Feather>["name"]} />
                   </Pressable>
                 );
               })}

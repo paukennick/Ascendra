@@ -255,7 +255,14 @@ finite, so one check now sits inside the model-call layer
   and refused if spend plus reservations plus this call would pass the cap.
   When the call ends the same row is updated to the real usage. A function
   killed in between leaves the estimate, which keeps counting for 24 hours.
-  No migration: a reservation is an ordinary `ai_calls` row.
+  No migration: a reservation is an ordinary `ai_calls` row. `max_tokens`
+  includes any thinking allowance, so a call that thinks reserves it too:
+  since REQ-251 a lesson's practice call reserves 10,000 output tokens (6,000
+  answer plus 4,000 thinking), about $0.10 of output on Sonnet 5.5 where it
+  was $0.06, and in the rare case it stops at `max_tokens` its one
+  thinking-off rewrite reserves again on its own. Nothing in the budgets
+  assumes a per-call price: each call is gated on its own estimate and
+  settled at its real usage.
 - **Fails closed.** If the database cannot say what was spent, the call is
   refused with a 503 ("paused for a moment"), in the gate, in
   `requireAiBudget` and in `requireAiAllowance`.

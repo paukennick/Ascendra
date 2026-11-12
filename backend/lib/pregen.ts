@@ -61,7 +61,7 @@ import {
   type LessonIntroContent,
   type LessonPracticeContent,
 } from "@/lib/prompts";
-import { checkedIntro, checkedPractice, loadObjective, ContentHeldBackError, type LessonGenerator, type ObjectiveRow } from "@/lib/lesson-generation";
+import { checkedIntro, checkedPractice, loadObjective, ContentHeldBackError, PRACTICE_CALL, type LessonGenerator, type ObjectiveRow } from "@/lib/lesson-generation";
 import { saveLesson } from "@/lib/lesson-store";
 import { makeModelFactChecker, type FactChecker } from "@/lib/fact-check";
 import { lowConfidenceOf } from "@/lib/item-quality";
@@ -236,6 +236,10 @@ export async function checkTracks(tracks: string[], log: (m: string) => void): P
 // ---------------------------------------------------------------------------
 
 // userId null: an operator script, charged to no learner (REQ-202 makes the option required).
+// The teaching text (intro) is written with thinking off; the practice half
+// with the app's bounded thinking (PRACTICE_CALL, REQ-251), so its max_tokens
+// -- what every upper bound here is priced from -- includes the thinking
+// allowance.
 const COMMON = { effort: "medium" as const, thinking: "off" as const, userId: null };
 
 type Params = Record<string, unknown> & { max_tokens: number; system: unknown; messages: unknown };
@@ -258,7 +262,7 @@ export function introParams(model: string, obj: ObjectiveRow): Params {
 export function practiceParams(model: string, obj: ObjectiveRow, teach: string): Params {
   const practice = lessonPracticePrompt({ ...baseOf(obj), teach, verify: wantsVerification(obj.ctx) });
   return buildRequest(
-    { ...COMMON, model, purpose: "lesson_practice", system: practice.system, messages: [{ role: "user", content: practice.user }], maxTokens: 6000 },
+    { ...COMMON, ...PRACTICE_CALL, model, purpose: "lesson_practice", system: practice.system, messages: [{ role: "user", content: practice.user }] },
     zodOutputFormat(lessonPracticeSchema)
   ) as Params;
 }
@@ -546,14 +550,16 @@ export const liveRetryWriter: RetryWriter = {
     const { system, user } = lessonPracticePrompt({ ...baseOf(obj), teach, steer: steer ?? undefined, verify: wantsVerification(obj.ctx) });
     let made: LessonPracticeContent;
     try {
+      // REQ-251: the app's bounded thinking, one call. No thinking-off
+      // fallback here (the app's writePracticeDraft has one): a reply that
+      // ran out of max_tokens is a failed retry, inside the upper bound, and
+      // the lesson is written live on its first visit.
       made = (await callClaudeStructured({
         system,
         messages: [{ role: "user", content: user }],
         schema: lessonPracticeSchema,
-        maxTokens: 6000,
+        ...PRACTICE_CALL,
         model: getModel(),
-        effort: "medium",
-        thinking: "off",
         purpose: "pregen_retry",
         userId: null,
       })) as LessonPracticeContent;
