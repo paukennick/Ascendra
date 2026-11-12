@@ -115,7 +115,17 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
     adherenceTarget: { value: 80, tighter: "higher", note: "adherence >= 80%" },
     adherenceRecovered: { value: 60, tighter: "higher", note: "adherence 60-79%" },
   },
-  security: {},
+  // REQ-231 (docs/sims.md 9.2, 20.1, 22.7): an incident in the security
+  // console. Target: contained before the attacker reaches the impact stage
+  // (exfiltration or encryption), at most `containSpread` hosts or identities
+  // newly compromised after the first alert, evidence preserved before anything is wiped or rebuilt;
+  // recovered: contained after partial spread, or late, with evidence kept;
+  // harm: impact reached beyond the authored threshold, or evidence destroyed
+  // before it was collected. Times are sim seconds from the first alert.
+  security: {
+    containWindow: { value: 3600, tighter: "lower", note: "contained <= 60 min after the first alert" },
+    containSpread: { value: 0, tighter: "lower", note: "assets newly compromised after the first alert (spread); none is the target" },
+  },
   infrastructure: {},
   data: {},
   // REQ-225 (docs/sims.md 9.2, 20.2): a session with a client. Target: the
@@ -1454,6 +1464,59 @@ function screenCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collecto
       checkTemplate(it.label, root, WHERE_TICK, `screen.session.record.items[${j}].label`, info, col);
     });
   }
+  consoleCheck(doc, root, info, col);
+}
+
+// REQ-231 (docs/sims.md 20.1, 22.7): the security console's bindings,
+// checked like the session's. Display only: nothing here changes stepping.
+export const CONSOLE_TONES: readonly string[] = ["ok", "watch", "bad", "held"];
+export const CONSOLE_SEVERITIES: readonly string[] = ["critical", "high", "medium", "low"];
+const T_TONE: Ty = { k: "enum", values: [...CONSOLE_TONES] };
+
+function consoleCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "security-console" && !s.console) col.error("screen.console", "a security console needs its alert, event and asset bindings");
+  const c = s.console;
+  if (!c) return;
+  const ids = new Set<string>();
+  const unique = (id: string, path: string): void => {
+    if (ids.has(id)) col.error(path, `duplicate id ${id}`);
+    ids.add(id);
+  };
+  if (!Array.isArray(c.alerts) || !c.alerts.length) col.error("screen.console.alerts", "needs at least one alert");
+  if (!Array.isArray(c.assets) || !c.assets.length) col.error("screen.console.assets", "needs at least one asset (a host, an account, a cloud identity)");
+  if (!Array.isArray(c.events)) col.error("screen.console.events", "needs an events list (it may be empty)");
+  (c.alerts ?? []).forEach((a, i) => {
+    const path = `screen.console.alerts[${i}]`;
+    unique(a.id, path);
+    if (CONSOLE_SEVERITIES.indexOf(a.severity) < 0) col.error(`${path}.severity`, `must be one of ${CONSOLE_SEVERITIES.join(", ")}`);
+    checkTemplate(a.title, root, WHERE_TICK, `${path}.title`, info, col);
+    if (a.detail) checkTemplate(a.detail, root, WHERE_TICK, `${path}.detail`, info, col);
+    checkTemplate(a.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(a.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(a.open, root, WHERE_TICK, `${path}.open`, info, col, "bool");
+    checkOne(a.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+  });
+  (c.events ?? []).forEach((e, i) => {
+    const path = `screen.console.events[${i}]`;
+    unique(e.id, path);
+    if (!e.source) col.error(`${path}.source`, "names the log the line came from");
+    checkTemplate(e.text, root, WHERE_TICK, `${path}.text`, info, col);
+    checkOne(e.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(e.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+  });
+  (c.assets ?? []).forEach((a, i) => {
+    const path = `screen.console.assets[${i}]`;
+    unique(a.id, path);
+    if (!a.spokenLabel) col.error(path, "needs a spokenLabel");
+    if (!a.kind) col.error(`${path}.kind`, "says what it is (workstation, file server, user account, ...)");
+    checkTemplate(a.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(a.tone, root, WHERE_TICK, `${path}.tone`, info, col, T_TONE);
+  });
+  (c.meters ?? []).forEach((m, i) => {
+    unique(m.id, `screen.console.meters[${i}]`);
+    checkTemplate(m.value, root, WHERE_TICK, `screen.console.meters[${i}].value`, info, col);
+  });
 }
 
 // ---- interval arithmetic for the longest-skip bound (4.3) ----
