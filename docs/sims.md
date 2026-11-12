@@ -2209,6 +2209,7 @@ capabilities (5.10).
 
 | Route | What |
 |---|---|
+| `GET /api/courses` (REQ-249) | Each course gains `sim_count`: its sims with a served version and a renderer switched on, by the start route's rule (`pickServedVersion` in `lib/sim/server-run.ts`, `simCountsByTrack` in `lib/sim-count.ts`), in one query for the whole list; 0 everywhere and no query while `SIMS_ENABLED` is off. Tier is not applied (a Pro-only sim counts, as on the course page), and, like the list below, it is not behind the 18+ gate (22.12, finding 3). Drives the course card's sims badge and Explore's "Has sims" filter. |
 | `GET /api/sims?trackId=` / `?unitId=` / `?objectiveId=` | Sims the learner can open: title, screen type, objective, state ("In progress", "Done: Mediocre"), `access` (full/sample/locked), `reviewStatus`, `runnable` (false = "Update the app to open this"). |
 | `GET /api/sims/:id` | One sim: brief (no per-sim disclaimer; the study notice covers sims, REQ-165), client document of the served version (or the pinned version of an open run) with its hash, the open run if any, the latest finished run's summary. |
 | `POST /api/sims/:id/runs { restart?, deviceId }` | Start or resume (one open run per learner and sim); takes the lease. A clinical or fitness sim needs the study notice (403 `study_notice_required`, REQ-165). Returns `{ run, seed, leaseEpoch, clientDocument?, checkpoint, commandsAfter, lastTick }`; the document is omitted when the app's cached hash matches. |

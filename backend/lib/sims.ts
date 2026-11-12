@@ -39,9 +39,11 @@ import {
   verdictFor,
   pacingEligible,
   pacingRefusal,
+  pickServedVersion,
   withinPacedSpeedBound,
   type SimCaps,
   type VersionNeeds,
+  type VersionRow,
 } from "@/lib/sim/server-run.ts";
 
 // REQ-190 (docs/sims.md 6, 7, 9, 10, 11): the sim store and the route flows.
@@ -105,15 +107,10 @@ export interface SimRow {
   objective_title: string;
 }
 
-export interface VersionRow {
-  id: string;
-  version: number;
-  engine_major: number;
-  engine_minor: number;
-  renderer_level: number;
-  client_hash: string;
-  review_status: "needs_expert_review" | "approved" | "rejected";
-}
+// VersionRow and the served-version choice live in lib/sim/server-run.ts
+// (no database), so the course list can count sims without importing this
+// module (REQ-249).
+export type { VersionRow } from "@/lib/sim/server-run.ts";
 
 const SIM_COLS = `s.id, s.objective_id, s.slug, s.title, s.screen_type, s.safety_family, s.head_version_id,
                   o.unit_id, cu.track_id, o.title as objective_title`;
@@ -130,22 +127,12 @@ export async function servedVersion(
   env: Record<string, string | undefined> = process.env,
   db: Pick<TxClient, "query"> = { query }
 ): Promise<{ version: VersionRow; runnable: boolean } | null> {
-  const rows = await db.query<VersionRow & { is_head: boolean }>(
-    `select id, version, engine_major, engine_minor, renderer_level, client_hash, review_status, (id = $2::uuid) as is_head
+  const rows = await db.query<VersionRow>(
+    `select id, version, engine_major, engine_minor, renderer_level, client_hash, review_status
        from sim_versions where sim_id = $1 and ${servableSql("sim", "id")} order by version desc`,
-    [sim.id, sim.head_version_id]
+    [sim.id]
   );
-  const head = rows.find((r) => r.is_head) ?? null;
-  const approved = rows.filter((r) => r.review_status === "approved");
-  let first: VersionRow | null = null;
-  if (head && head.review_status === "approved") first = head;
-  else if (approved.length) first = approved[0];
-  else if (head && head.review_status !== "rejected" && serveUnreviewed(env)) first = head;
-  if (!first) return null;
-  const can = (v: VersionRow) => runnable({ ...v, screen_type: sim.screen_type }, caps);
-  if (can(first)) return { version: first, runnable: true };
-  const fallback = approved.find(can);
-  return fallback ? { version: fallback, runnable: true } : { version: first, runnable: false };
+  return pickServedVersion(rows, sim, caps, env);
 }
 
 // A sim this learner may open: not retired, on an active objective of a

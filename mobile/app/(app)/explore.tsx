@@ -7,6 +7,7 @@ import { useMatureContent } from "@/auth/MatureContentContext";
 import type { Track } from "@/types";
 import { Button, Card, Chip, EmptyState, ErrorBanner, Loading, Muted, SectionHeader, TextField } from "@/components/ui";
 import { courseRequestPrefill, exploreEmpty } from "@/lib/emptyStates";
+import { matchesSimsFilter, showSimsFilter } from "@/lib/courseSims";
 import { CourseCard } from "@/components/CourseCard";
 import { colors, spacing } from "@/lib/theme";
 
@@ -59,7 +60,8 @@ function groupByCategory(tracks: Track[]): Section[] {
 
 // Explore is the catalog-browsing surface Home used to be before the
 // catalog grew to 67+ tracks -- search, category filter, freshness filter,
-// all courses grouped by category rather than one flat wall of cards.
+// "Has sims" (REQ-249), all courses grouped by category rather than one
+// flat wall of cards.
 export default function Explore() {
   const router = useRouter();
   const [tracks, setTracks] = useState<Track[] | null>(null);
@@ -70,6 +72,12 @@ export default function Explore() {
   // confirmation first; closing the notice leaves the filter as it was.
   const mature = useMatureContent();
   const [freshnessFilter, setFreshnessFilter] = useState<FreshnessFilter>("all");
+  // REQ-249: "Has sims" narrows the list to courses with simulations. The
+  // chip is hidden when no listed course has any (sims switched off), and a
+  // hidden chip filters nothing.
+  const [simsOnly, setSimsOnly] = useState(false);
+  const simsFilterShown = useMemo(() => showSimsFilter(tracks), [tracks]);
+  const simsActive = simsOnly && simsFilterShown;
 
   const load = useCallback(() => {
     setError(null);
@@ -116,6 +124,7 @@ export default function Explore() {
     return tracks.filter((t) => {
       if (categorySlug && t.category_slug !== categorySlug) return false;
       if (!matchesFreshnessFilter(t, freshnessFilter)) return false;
+      if (!matchesSimsFilter(t, simsActive)) return false;
       // REQ-075: "nursing" or "cloud" used to return nothing unless it was
       // literally in a title or code. Match the description and taxonomy
       // names too.
@@ -127,7 +136,7 @@ export default function Explore() {
       }
       return true;
     });
-  }, [tracks, query, categorySlug, freshnessFilter]);
+  }, [tracks, query, categorySlug, freshnessFilter, simsActive]);
 
   const sections = useMemo(() => groupByCategory(filtered), [filtered]);
 
@@ -138,7 +147,7 @@ export default function Explore() {
     const name = courseRequestPrefill(query);
     router.push({ pathname: "/support", params: name ? { kind: "course_request", courseName: name } : { kind: "course_request" } });
   }, [query, router]);
-  const empty = exploreEmpty(query);
+  const empty = exploreEmpty(query, { simsOnly: simsActive });
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]} role="main">
@@ -184,6 +193,21 @@ export default function Explore() {
                   label="Unverified"
                   active={freshnessFilter === "needs_attention"}
                   onPress={() => setFreshnessFilter("needs_attention")}
+                />
+              </View>
+            ) : null}
+
+            {/* REQ-249: its own row, since it is an on/off filter, not a
+                fourth verification state. Selected state is spoken and shown
+                by more than color (Chip: role, aria-pressed, filled style). */}
+            {simsFilterShown ? (
+              <View style={{ flexDirection: "row", gap: spacing.sm }} role="group" aria-label="Filter by simulations">
+                <Chip
+                  label="Has sims"
+                  icon="activity"
+                  accessibilityLabel="Only courses with simulations"
+                  active={simsOnly}
+                  onPress={() => setSimsOnly((v) => !v)}
                 />
               </View>
             ) : null}

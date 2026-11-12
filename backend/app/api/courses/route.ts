@@ -4,6 +4,7 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { isCalendarDate, textField } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { isFavoriteSelect, listedOrStarted, ownedOrCatalog, trackProgressLateral } from "@/lib/progress-sql";
+import { simCountsByTrack } from "@/lib/sim-count";
 
 export const dynamic = "force-dynamic";
 
@@ -26,13 +27,13 @@ const FRESHNESS_MODELS = new Set([
 const CONTENT_FORMATS = new Set(["full_course"]);
 
 // GET /api/courses — list all tracks with rollup progress, last-studied time,
-// taxonomy (category/subcategory), and freshness status. REQ-036: this used
+// taxonomy (category/subcategory), freshness status and (REQ-249) sim_count. REQ-036: this used
 // to select st.* alone, leaving the client with nothing but track_type to
 // group by even though the taxonomy and freshness status already existed.
 export async function GET(req: Request) {
   try {
     const user = await requireUser(req);
-    const rows = await query(
+    const rows = await query<{ id: string }>(
       // REQ-082: catalog tracks (user_id null) are visible to everyone;
       // progress and favorite are computed for the caller. is_favorite is
       // selected after st.* on purpose -- node-pg assigns duplicate column
@@ -63,7 +64,11 @@ export async function GET(req: Request) {
        order by st.created_at asc`,
       [user.id],
     );
-    return ok({ tracks: rows });
+    // REQ-249: sim_count, the sims the learner could start on each course
+    // now (lib/sims.ts simCountsByTrack: one query for the whole list, none
+    // while sims are off), for the card's sims badge and Explore's filter.
+    const sims = await simCountsByTrack(user.id, rows.map((r) => r.id));
+    return ok({ tracks: rows.map((r) => ({ ...r, sim_count: sims.get(r.id) ?? 0 })) });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
