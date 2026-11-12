@@ -1,0 +1,1707 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pca-oversedation-naloxone",
+  "title": "The PCA and the 02:00 alarm",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 88
+          },
+          "announce": {
+            "bands": [
+              92,
+              88,
+              85
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate, last counted",
+          "value": "vRr",
+          "unit": "/min",
+          "sub": "counted at {vRrAt|clock}",
+          "alarm": {
+            "low": 8
+          },
+          "announce": {
+            "bands": [
+              10,
+              8,
+              6
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vRr > 0"
+        },
+        {
+          "id": "etco2",
+          "label": "EtCO2",
+          "spokenLabel": "End-tidal carbon dioxide",
+          "value": "etco2",
+          "unit": "mmHg",
+          "alarm": {
+            "high": 50
+          },
+          "announce": {
+            "bands": [
+              45,
+              50,
+              60
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(capnoAt)"
+        },
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vSbp > 0"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "PCA running: {pcaOn|yesno}. Oxygen {o2|0dp} L/min. Naloxone doses: {nalDoses|int}. Sedation (POSS): {poss|int}.",
+      "banner": [
+        {
+          "when": "rrtHere",
+          "text": "The rapid response team is in the room."
+        },
+        {
+          "when": "pcaOn and proxyOn",
+          "text": "His wife is holding the PCA button."
+        }
+      ]
+    }
+  },
+  "objective": "Map the nursing process onto the six clinical judgment steps, and use evaluation to decide whether the plan continues, changes or ends",
+  "secondaryObjectives": [
+    "Pain management, including the opioid-tolerant patient",
+    "Perioperative nursing: before, during and after"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf",
+      "note": "Read 2026-11-11 (primary PDF). Activity statements used: 'Administer medications for pain management'; 'Handle and administer controlled substances within regulatory guidelines'; 'Evaluate client response to medication'; 'Evaluate client responses to procedures and treatments'. The test plan names no sedation scale."
+    },
+    {
+      "cite": "Pasero Opioid-Induced Sedation Scale (POSS) with interventions, as reproduced by RNAO (Registered Nurses' Association of Ontario) best practice guideline pages",
+      "checkedAt": "2026-11-11",
+      "url": "https://bpgmobile.rnao.ca/node/763",
+      "note": "Read 2026-11-11 (the RNAO reproduction, not Pasero's original 1994 publication). S and 1-2 acceptable; 3 (frequently drowsy, arousable, drifts off to sleep during conversation) unacceptable: monitor closely until stable below 3, decrease the opioid dose 25-50% or notify the prescriber; 4 (somnolent, minimal or no response to verbal or physical stimulation) unacceptable: stop the opioid, consider naloxone, notify the prescriber, monitor closely."
+    },
+    {
+      "cite": "Pfizer. Naloxone Hydrochloride Injection, prescribing information (dosage, clinical pharmacology, warnings, precautions)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.pfizermedical.com/naloxone/dosage-admin",
+      "note": "Read 2026-11-11 (primary web pages). Postoperative opioid depression: 0.1 to 0.2 mg IV at two to three minute intervals to the desired degree of reversal, titrated to response; larger than necessary doses can reverse analgesia and raise blood pressure; abrupt postoperative reversal may cause nausea, vomiting, sweating, tremulousness, tachycardia, and has been followed by ventricular tachycardia and fibrillation, pulmonary edema and cardiac arrest. IV onset generally within two minutes; serum half-life in adults 30 to 81 min (mean 64); the duration of some opioids may exceed naloxone's, so keep the patient under continued surveillance and repeat doses as needed."
+    },
+    {
+      "cite": "Pfizer. Hydromorphone Hydrochloride Injection, prescribing information (clinical pharmacology)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.pfizermedical.com/hydromorphone/clinical-pharmacology",
+      "note": "Read 2026-11-11 (primary web page). Terminal elimination half-life after an IV dose about 2.3 hours."
+    },
+    {
+      "cite": "Jungquist CR, et al. American Society for Pain Management Nursing guidelines on monitoring for opioid-induced advancing sedation and respiratory depression: revisions. Pain Manag Nurs 2020;21(1):7-25. doi:10.1016/j.pmn.2019.06.007",
+      "checkedAt": "2026-11-11",
+      "url": "https://nursing.buffalo.edu/news-events/latest_news.host.html/content/shared/nursing/articles/academic_articles/aspmn-guidelines-2020.detail.html",
+      "note": "Read only through a summary (University at Buffalo School of Nursing news item, 2020-01-24, read 2026-11-11); the publisher page did not load. The summary says the revisions update the 2011 guidelines for hospitalized adults on opioids, add more specific recommendations for electronic monitoring and introduce three categories of risk factors. No number in this case is taken from it."
+    },
+    {
+      "cite": "Ascendra ADN-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-11",
+      "note": "The objective and secondary objectives are the course's own titles (the nursing process mapped onto clinical judgment, evaluation deciding whether the plan continues, changes or ends; pain management; perioperative nursing)."
+    }
+  ],
+  "brief": {
+    "situation": "02:10 on a surgical unit. The central monitor alarms: Mr. Hutchins in Room 9, 61, has an SpO2 of 85% on 2 L by nasal cannula. He had an open colectomy at 14:00 and has a hydromorphone PCA. His wife, staying overnight, says she 'pressed the button for him a few times so he could sleep'.",
+    "handover": [
+      "Obstructive sleep apnea (his CPAP machine is at home), BMI 38, no opioids before surgery. Gabapentin 300 mg at 21:00.",
+      "PCA: hydromorphone 0.2 mg per demand, 10-minute lockout, no basal rate. At 00:00 he was easy to rouse, RR 16, SpO2 95%.",
+      "Orders: naloxone 0.1 mg IV every 2-3 minutes as needed for POSS 4 or RR below 8, titrated to response; notify the surgical resident for POSS 3 or 4. Policy: sedation and RR with every PCA check."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Recognize, act, then keep evaluating: what you give works for a while, and the plan may have to change.",
+      "Partway through you are asked to write what you think is happening. The case ends at 03:40, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "02:10",
+    "tick": "1s",
+    "maxDuration": "2h",
+    "calendar": "clock"
+  },
+  "params": {
+    "proxyRise": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. While his wife keeps pressing the button, opioid effect climbs 0.02 a minute (from 1.05, RR 7, to arrest at 1.6 in about 40 min). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "selfRise": {
+      "value": 0.006,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. If the PCA is restarted, he presses it himself for pain and the effect climbs again, more slowly. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "opioidHalfLife": {
+      "value": 8280,
+      "unit": "s",
+      "source": {
+        "cite": "Pfizer. Hydromorphone Hydrochloride Injection, prescribing information",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/hydromorphone/clinical-pharmacology",
+        "note": "Read 2026-11-11. Terminal elimination half-life after an IV dose about 2.3 hours (8,280 s); the model's opioid effect falls with this half-life once dosing stops."
+      }
+    },
+    "naloxoneHalfLife": {
+      "value": 3840,
+      "unit": "s",
+      "source": {
+        "cite": "Pfizer. Naloxone Hydrochloride Injection, prescribing information (pharmacokinetics)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/naloxone",
+        "note": "Read 2026-11-11. Serum half-life in adults 30 to 81 min, mean 64 min (3,840 s); the model's naloxone effect falls with the mean."
+      }
+    },
+    "nalSmall": {
+      "value": 0.4,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Each 0.1 mg IV dose cancels 0.4 of opioid effect in this model; two doses bring him from POSS 4 to easy to rouse. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nalBig": {
+      "value": 1.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. 0.4 mg undiluted at once cancels 1.6, a full reversal: pain returns at once (the label warns of abrupt reversal). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nalGap": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Pfizer. Naloxone Hydrochloride Injection, prescribing information (dosage)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/naloxone/dosage-admin",
+        "note": "Read 2026-11-11. Postoperative reversal: 0.1-0.2 mg IV at two to three minute intervals; IV onset generally within two minutes."
+      }
+    },
+    "arrestEff": {
+      "value": 1.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Net opioid effect at which breathing stops (RR about 2) and his heart arrests from hypoxia. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sedatedEff": {
+      "value": 0.7,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Net effect at POSS 4 (no more than a minimal response). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "safeEff": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Net effect below which he is arousable with RR 12 or more; at 03:40 an effect at or above it (POSS 3 or worse) is still too sedated. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "stopWindow": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Pasero Opioid-Induced Sedation Scale (POSS), RNAO reproduction",
+        "checkedAt": "2026-11-11",
+        "url": "https://bpgmobile.rnao.ca/node/763",
+        "note": "Read 2026-11-11. POSS 4: stop the opioid. FLAG: the 3-minute window is this case's, not the scale's."
+      }
+    },
+    "reassessAfter": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Pfizer. Naloxone Hydrochloride Injection, prescribing information (pharmacokinetics, warnings)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/naloxone",
+        "note": "Read 2026-11-11. Half-life 30-81 min and the duration of some opioids may exceed naloxone's, so continued surveillance is needed. FLAG: the case asks for a reassessment at least 30 min after the last dose, the short end of the half-life range."
+      }
+    },
+    "countTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Counting respirations for a full minute, with a pulse and BP: about 1 min."
+      }
+    },
+    "rrtArrive": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Rapid response team to the room: about 5 min."
+      }
+    },
+    "residentCall": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The surgical resident calls back, reviews him and writes new orders: about 15 min."
+      }
+    },
+    "reviewAt": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 03:40, about 90 min after the alarm, long enough to show whether naloxone wears off first."
+      }
+    }
+  },
+  "state": {
+    "opioid": {
+      "type": "number",
+      "init": 1.05,
+      "min": 0,
+      "max": 3
+    },
+    "nal": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "pcaOn": {
+      "type": "bool",
+      "init": true
+    },
+    "proxyOn": {
+      "type": "bool",
+      "init": true
+    },
+    "o2": {
+      "type": "number",
+      "init": 2,
+      "min": 0,
+      "max": 15,
+      "unit": "L/min"
+    },
+    "hob": {
+      "type": "bool",
+      "init": false
+    },
+    "capnoAt": {
+      "type": "time",
+      "init": null
+    },
+    "rousedAt": {
+      "type": "time",
+      "init": null
+    },
+    "stopAt": {
+      "type": "time",
+      "init": null
+    },
+    "wifeTaught": {
+      "type": "bool",
+      "init": false
+    },
+    "o2UpEarly": {
+      "type": "bool",
+      "init": false
+    },
+    "vRr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 60,
+      "unit": "/min"
+    },
+    "vRrAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "countPending": {
+      "type": "bool",
+      "init": false
+    },
+    "nalDoses": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "nalFirstAt": {
+      "type": "time",
+      "init": null
+    },
+    "nalLastAt": {
+      "type": "time",
+      "init": null
+    },
+    "abrupt": {
+      "type": "bool",
+      "init": false
+    },
+    "reassessOk": {
+      "type": "bool",
+      "init": false
+    },
+    "left": {
+      "type": "bool",
+      "init": false
+    },
+    "restarted": {
+      "type": "bool",
+      "init": false
+    },
+    "rrtAt": {
+      "type": "time",
+      "init": null
+    },
+    "rrtHere": {
+      "type": "bool",
+      "init": false
+    },
+    "rrtGave": {
+      "type": "bool",
+      "init": false
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "ordersAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "eff": {
+      "expr": "max(0, opioid - nal)"
+    },
+    "poss": {
+      "expr": "eff >= sedatedEff ? 4 : (eff >= 0.3 ? 3 : 2)"
+    },
+    "rr": {
+      "expr": "round(clamp(16 - 9 * eff, 0, 30))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(97 - 10 * eff + 1.5 * (o2 - 2) - (hob ? 0 : 2), 50, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "etco2": {
+      "expr": "round(38 + 22 * eff)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(abrupt and not isNull(nalLastAt) and t < timeAt(nalLastAt) + 900 ? 128 : 78 + 6 * eff + 2 * sin(t / 29))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(abrupt and not isNull(nalLastAt) and t < timeAt(nalLastAt) + 900 ? 188 : 128)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rising": {
+      "expr": "pcaOn ? (proxyOn ? proxyRise : selfRise) : 0"
+    }
+  },
+  "processes": [
+    {
+      "id": "opioid",
+      "update": {
+        "opioid": "max(0, opioid + rising * dt / 60 - opioid * 0.693 / opioidHalfLife * dt)",
+        "nal": "max(0, nal - nal * 0.693 / naloxoneHalfLife * dt)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "Room 9",
+      "clock": "running",
+      "actions": [
+        "rouse",
+        "count",
+        "stopPca",
+        "button",
+        "airway",
+        "o2up",
+        "capno",
+        "naloxone",
+        "reassess",
+        "rrt",
+        "call",
+        "restart",
+        "leave",
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "rouse": {
+      "label": "Call his name and shake his shoulder: sedation level (POSS)",
+      "group": "Recognize",
+      "effects": [
+        {
+          "if": "isNull(rousedAt)",
+          "then": [
+            {
+              "set": "rousedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "poss == 4",
+              "then": [
+                {
+                  "log": "POSS 4: he barely stirs to a firm shake and says nothing. Snoring, with pauses.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "poss == 3",
+              "then": [
+                {
+                  "log": "POSS 3: he opens his eyes and answers, then drifts off mid-sentence.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "POSS 2: slightly drowsy, easy to rouse, answers clearly. Pain {abrupt ? 10 : 5|int}/10.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "count": {
+      "label": "Count respirations for a full minute; pulse and BP",
+      "group": "Recognize",
+      "available": "not countPending",
+      "why": "Already counting.",
+      "effects": [
+        {
+          "set": "countPending",
+          "to": "true"
+        },
+        {
+          "schedule": "countT",
+          "after": "countTime"
+        },
+        {
+          "log": "Counting his breathing for a full minute."
+        }
+      ]
+    },
+    "stopPca": {
+      "label": "Pause the PCA pump",
+      "group": "Act",
+      "available": "pcaOn",
+      "why": "The PCA is already paused.",
+      "effects": [
+        {
+          "set": "pcaOn",
+          "to": "false"
+        },
+        {
+          "if": "isNull(stopAt)",
+          "then": [
+            {
+              "set": "stopAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "PCA paused; no more hydromorphone is going in."
+        }
+      ]
+    },
+    "button": {
+      "label": "Take the PCA button from his wife and explain why only he presses it",
+      "group": "Act",
+      "available": "proxyOn",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "proxyOn",
+          "to": "false"
+        },
+        {
+          "set": "wifeTaught",
+          "to": "true"
+        },
+        {
+          "log": "His wife hands over the button: \"I just wanted him to sleep.\" You explain that a sleepy person can't press it, which is what keeps the PCA safe."
+        }
+      ]
+    },
+    "airway": {
+      "label": "Raise the head of the bed, open his airway, tell him to take deep breaths",
+      "group": "Act",
+      "available": "not hob",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "hob",
+          "to": "true"
+        },
+        {
+          "log": "Head of the bed up to 30 degrees, jaw supported; he takes a few deeper breaths when told."
+        }
+      ]
+    },
+    "o2up": {
+      "label": "Turn the oxygen up to 6 L",
+      "group": "Act",
+      "available": "o2 < 6",
+      "why": "Already at 6 L.",
+      "effects": [
+        {
+          "set": "o2",
+          "to": "6"
+        },
+        {
+          "if": "pcaOn and nalDoses == 0",
+          "then": [
+            {
+              "set": "o2UpEarly",
+              "to": "true"
+            },
+            {
+              "log": "The SpO2 number climbs, but nothing has changed how little he is breathing: more oxygen can hide a rising carbon dioxide.",
+              "kind": "sys"
+            }
+          ],
+          "else": [
+            {
+              "log": "Oxygen at 6 L."
+            }
+          ]
+        }
+      ]
+    },
+    "capno": {
+      "label": "Continuous capnography and pulse oximetry on the central monitor",
+      "group": "Act",
+      "available": "isNull(capnoAt)",
+      "why": "Already on.",
+      "effects": [
+        {
+          "if": "isNull(capnoAt)",
+          "then": [
+            {
+              "set": "capnoAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Capnography on: end-tidal CO2 {etco2} mmHg.",
+          "kind": "find"
+        }
+      ]
+    },
+    "naloxone": {
+      "label": "Naloxone IV",
+      "group": "Act",
+      "available": "isNull(nalLastAt) or t >= timeAt(nalLastAt) + nalGap",
+      "why": "Wait 2 minutes between doses to see the effect.",
+      "params": [
+        {
+          "id": "dose",
+          "kind": "choice",
+          "label": "Dose",
+          "options": [
+            {
+              "value": "small",
+              "label": "0.1 mg, diluted, slowly (repeat every 2-3 minutes as needed)"
+            },
+            {
+              "value": "big",
+              "label": "0.4 mg undiluted, pushed at once"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "add": "nalDoses",
+          "by": "1"
+        },
+        {
+          "if": "isNull(nalFirstAt)",
+          "then": [
+            {
+              "set": "nalFirstAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "nalLastAt",
+          "to": "t"
+        },
+        {
+          "schedule": "nalT",
+          "after": "nalGap"
+        },
+        {
+          "cases": [
+            {
+              "when": "dose == \"big\"",
+              "then": [
+                {
+                  "add": "nal",
+                  "by": "nalBig"
+                },
+                {
+                  "set": "abrupt",
+                  "to": "true"
+                },
+                {
+                  "log": "0.4 mg pushed. Within a minute he is bolt upright, sweating and vomiting, pain 10/10, HR 128, BP 188/100: an abrupt reversal.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "nal",
+                  "by": "nalSmall"
+                },
+                {
+                  "log": "Naloxone 0.1 mg IV given slowly. Watch for 2 minutes."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Reassess: sedation, breathing, SpO2",
+      "group": "Evaluate",
+      "effects": [
+        {
+          "if": "not isNull(nalLastAt) and t >= timeAt(nalLastAt) + reassessAfter",
+          "then": [
+            {
+              "set": "reassessOk",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "poss == 4",
+              "then": [
+                {
+                  "log": "POSS 4, RR {rr}, SpO2 {spo2}%: still dangerously sedated.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "poss == 3",
+              "then": [
+                {
+                  "log": "POSS 3, RR {rr}, SpO2 {spo2}%: drifting off again.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "POSS 2, RR {rr}, SpO2 {spo2}%: easy to rouse.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "rrt": {
+      "label": "Call the rapid response team",
+      "group": "Escalate",
+      "available": "isNull(rrtAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "if": "isNull(rrtAt)",
+          "then": [
+            {
+              "set": "rrtAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "rrtT",
+          "after": "rrtArrive"
+        },
+        {
+          "log": "Rapid response team called."
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the surgical resident (SBAR)",
+      "group": "Escalate",
+      "available": "isNull(callEffAt)",
+      "why": "The resident is already reviewing him.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "over",
+                  "label": "Mr. Hutchins in 9 is oversedated on his hydromorphone PCA: POSS 4, RR 7, SpO2 85%; I've stopped the PCA"
+                },
+                {
+                  "value": "sats",
+                  "label": "Mr. Hutchins's oxygen saturation dipped a bit"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "risk",
+                  "label": "Open colectomy today, untreated sleep apnea, BMI 38, opioid-naive, gabapentin at 21:00, and his wife pressed the button"
+                },
+                {
+                  "value": "min",
+                  "label": "Post-op day 0"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "oird",
+                  "label": "Opioid-induced respiratory depression; naloxone may wear off before the hydromorphone does"
+                },
+                {
+                  "value": "sleep",
+                  "label": "He's probably just catching up on sleep"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "change",
+                  "label": "Please see him and change the plan: stop the PCA, non-opioid pain relief, continuous capnography, CPAP from respiratory therapy"
+                },
+                {
+                  "value": "resume",
+                  "label": "Can I restart the PCA once he's awake?"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "sit == \"over\" and rec == \"change\" and isNull(callEffAt)",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            },
+            {
+              "schedule": "ordersT",
+              "after": "residentCall"
+            },
+            {
+              "log": "Resident: \"I'm coming. Keep going with the naloxone as ordered.\"",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Resident: \"Sounds like he's comfortable. Keep the PCA going.\"",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "restart": {
+      "label": "Restart the PCA now that he is awake",
+      "group": "Act",
+      "available": "not pcaOn and isNull(ordersAt)",
+      "why": "The PCA is running, or the resident has changed the plan.",
+      "effects": [
+        {
+          "set": "pcaOn",
+          "to": "true"
+        },
+        {
+          "set": "restarted",
+          "to": "true"
+        },
+        {
+          "log": "PCA restarted. He presses it for his pain, and the drug that caused this keeps going in.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "leave": {
+      "label": "He's awake: back to your other clients until the 04:00 check",
+      "group": "Evaluate",
+      "available": "not left",
+      "why": "You have already gone.",
+      "effects": [
+        {
+          "set": "left",
+          "to": "true"
+        },
+        {
+          "log": "You leave the room. Naloxone wears off sooner than hydromorphone.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "note": {
+      "label": "Document",
+      "group": "Evaluate",
+      "available": "isNull(noteAt)",
+      "why": "Already documented.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Times, POSS and RR before and after each step, doses, who was told, the plan change"
+            },
+            {
+              "value": "opinion",
+              "label": "'Patient oversleeping, woken'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"obj\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "log": "Note: alarm 02:10, POSS and RR at each step, PCA paused, naloxone doses and times, the response, the resident's orders, the teaching for his wife."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Note: 'Patient oversleeping, woken.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "countT": {
+      "label": "respiratory count",
+      "wait": {
+        "skipLabel": "the full-minute count (1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 1 min."
+      },
+      "effects": [
+        {
+          "set": "countPending",
+          "to": "false"
+        },
+        {
+          "set": "vRr",
+          "to": "rr"
+        },
+        {
+          "set": "vRrAt",
+          "to": "t"
+        },
+        {
+          "set": "vSbp",
+          "to": "sbp"
+        },
+        {
+          "set": "vDbp",
+          "to": "round(sbp * 0.58)"
+        },
+        {
+          "log": "RR {rr} a minute, shallow; HR {hr}, BP {sbp}/{round(sbp * 0.58)|0dp}.",
+          "kind": "find"
+        }
+      ]
+    },
+    "nalT": {
+      "label": "2 minutes after the naloxone",
+      "wait": {
+        "skipLabel": "2 minutes after the naloxone"
+      },
+      "instances": "many",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Pfizer. Naloxone Hydrochloride Injection, prescribing information",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/naloxone/dosage-admin",
+        "note": "Read 2026-11-11. IV onset generally within two minutes; doses at two to three minute intervals."
+      },
+      "effects": [
+        {
+          "log": "2 minutes since the naloxone: POSS {poss}, RR {rr}, SpO2 {spo2}%.",
+          "kind": "find"
+        }
+      ]
+    },
+    "rrtT": {
+      "label": "the rapid response team",
+      "wait": {
+        "skipLabel": "the rapid response team (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 5 min."
+      },
+      "effects": [
+        {
+          "set": "rrtHere",
+          "to": "true"
+        },
+        {
+          "if": "pcaOn",
+          "then": [
+            {
+              "set": "pcaOn",
+              "to": "false"
+            },
+            {
+              "log": "RRT nurse: \"Pause that PCA.\"",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "if": "eff >= safeEff",
+          "then": [
+            {
+              "add": "nal",
+              "by": "nalSmall * 2"
+            },
+            {
+              "add": "nalDoses",
+              "by": "2"
+            },
+            {
+              "if": "isNull(nalFirstAt)",
+              "then": [
+                {
+                  "set": "nalFirstAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "set": "nalLastAt",
+              "to": "t"
+            },
+            {
+              "set": "rrtGave",
+              "to": "true"
+            },
+            {
+              "log": "The rapid response team gives naloxone 0.1 mg twice, two minutes apart. He rouses.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Rapid response team at the bedside: he is rousable; they stay to watch with you.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    "ordersT": {
+      "label": "the resident's orders",
+      "wait": {
+        "skipLabel": "the resident's orders (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 15 min."
+      },
+      "effects": [
+        {
+          "set": "ordersAt",
+          "to": "t"
+        },
+        {
+          "set": "pcaOn",
+          "to": "false"
+        },
+        {
+          "log": "Resident's orders: PCA discontinued; scheduled IV acetaminophen; continuous capnography and pulse oximetry; respiratory therapy to start CPAP; repeat naloxone as needed; reassess him with you at 03:30.",
+          "kind": "good"
+        }
+      ]
+    },
+    "endT": {
+      "label": "03:40",
+      "wait": {
+        "skipLabel": "03:40, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 03:40."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "apnea",
+      "when": "rr <= 4",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Long pauses in his breathing; SpO2 {spo2}%.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "resedate",
+      "when": "nalDoses > 0 and poss >= 3 and t >= timeAt(nalLastAt) + 900",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Monitor: SpO2 {spo2}%, and he is snoring again.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "t >= 600",
+      "question": "Map what you did onto clinical judgment: what cues, what is happening, what you did, how you are evaluating it, and whether the pain plan continues, changes or ends.",
+      "parts": [
+        {
+          "label": "Cues and hypothesis",
+          "criteria": "Names POSS 4 (barely rousable), slow shallow breathing with pauses, SpO2 85%, and his risk factors (untreated sleep apnea, obesity, opioid-naive, gabapentin, PCA by proxy) as opioid-induced respiratory depression; not 'catching up on sleep'.",
+          "modelAnswer": "POSS 4 with RR 7, snoring with pauses and an SpO2 of 85% is opioid-induced respiratory depression. Sleep apnea without his CPAP, a BMI of 38, being opioid-naive, gabapentin, and his wife pressing the PCA all raised his risk."
+        },
+        {
+          "label": "Action, evaluation and the plan",
+          "criteria": "Stops the PCA and rouses him first, opens the airway, gives naloxone 0.1 mg every 2-3 minutes to effect rather than 0.4 mg at once, puts him on continuous capnography, takes the button from his wife, escalates to the resident asking for the plan to change; evaluates again at least 30 minutes after naloxone because it wears off before hydromorphone; does not restart the PCA or leave him.",
+          "modelAnswer": "Stop the PCA, rouse him, head up and airway open, then naloxone 0.1 mg, repeated at 2 minutes to effect, not 0.4 mg pushed. Capnography on, the button out of his wife's hand, and an SBAR to the resident asking to stop the PCA and change to non-opioid relief with CPAP. Evaluation decides the plan: naloxone's half-life is about an hour and hydromorphone's over two, so I reassess at 30 minutes and after, give more if he drifts off, and the old PCA plan ends."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and eff >= safeEff",
+      "class": "harm",
+      "rationale": "Still drifting off with slow breathing (POSS 3 or worse) 90 minutes after the alarm means an hour and a half of hypoventilation in a man with sleep apnea: this case calls that harm.",
+      "source": {
+        "cite": "Pasero Opioid-Induced Sedation Scale (POSS) with interventions, as reproduced by RNAO (Registered Nurses' Association of Ontario) best practice guideline pages",
+        "checkedAt": "2026-11-11",
+        "url": "https://bpgmobile.rnao.ca/node/763",
+        "note": "Read 2026-11-11 (the RNAO reproduction, not Pasero's original 1994 publication). S and 1-2 acceptable; 3 (frequently drowsy, arousable, drifts off to sleep during conversation) unacceptable: monitor closely until stable below 3, decrease the opioid dose 25-50% or notify the prescriber; 4 (somnolent, minimal or no response to verbal or physical stimulation) unacceptable: stop the opioid, consider naloxone, notify the prescriber, monitor closely."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Respiratory arrest",
+      "class": "harm",
+      "when": "eff >= arrestEff",
+      "terminal": true,
+      "narrative": "He stops breathing; SpO2 {spo2}%. A code is called. He is resuscitated and moved to intensive care."
+    },
+    "stillSedated": {
+      "label": "03:40 and still too sedated",
+      "class": "harm",
+      "when": "t >= reviewAt and eff >= safeEff",
+      "terminal": true,
+      "narrative": "03:40: POSS {poss}, RR {rr}. He has been breathing too little for most of the night."
+    },
+    "safe": {
+      "label": "Reversed, watched through the naloxone's window, plan changed",
+      "class": "target",
+      "when": "t >= reviewAt and eff < safeEff and not isNull(stopAt) and timeAt(stopAt) <= stopWindow and nalDoses > 0 and not abrupt and not rrtGave and not isNull(capnoAt) and reassessOk and not left and not isNull(ordersAt) and not restarted",
+      "terminal": true,
+      "narrative": "03:40: POSS {poss}, RR {rr}, SpO2 {spo2}%, on capnography with CPAP coming. You stopped the drug, reversed it gently, watched for it wearing off, and changed the plan."
+    },
+    "safeLate": {
+      "label": "Breathing again, by a slower route",
+      "class": "recovered",
+      "when": "t >= reviewAt",
+      "terminal": true,
+      "narrative": "03:40: POSS {poss}, RR {rr}. He is breathing, but the route cost time or safety: a slow stop, a full-dose reversal, the rapid response team doing the reversal, no watch through the naloxone's window, or a plan left unchanged."
+    },
+    "time_up": {
+      "label": "04:10",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "04:10: POSS {poss}, RR {rr}."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "stillSedated",
+    "safe",
+    "safeLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "stopFirst",
+        "label": "Stopped the opioid and roused him at once",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(stopAt)",
+            "score": "missed",
+            "why": "The PCA was never paused."
+          },
+          {
+            "when": "timeAt(stopAt) <= stopWindow and not isNull(rousedAt)",
+            "score": "met",
+            "why": "PCA paused at {timeAt(stopAt)|clock} and his sedation checked."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The PCA was paused at {timeAt(stopAt)|clock}, more than 3 minutes in."
+          }
+        ]
+      },
+      {
+        "id": "titrated",
+        "label": "Naloxone titrated in small doses",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "abrupt",
+            "score": "missed",
+            "why": "0.4 mg pushed at once: a full reversal with pain, vomiting and a BP of 188."
+          },
+          {
+            "when": "rrtGave",
+            "score": "partial",
+            "why": "The rapid response team gave the naloxone."
+          },
+          {
+            "when": "nalDoses == 0",
+            "score": "missed",
+            "why": "No naloxone for POSS 4 with RR 7."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Naloxone 0.1 mg, repeated to effect."
+          }
+        ]
+      },
+      {
+        "id": "monitored",
+        "label": "Watched him through the naloxone's window",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "left",
+            "score": "missed",
+            "why": "Left him after he woke; naloxone wears off before hydromorphone."
+          },
+          {
+            "when": "reassessOk and not isNull(capnoAt)",
+            "score": "met",
+            "why": "Capnography on and reassessed 30 minutes or more after the last dose."
+          },
+          {
+            "when": "reassessOk or not isNull(capnoAt)",
+            "score": "partial",
+            "why": "Capnography or a late reassessment, not both."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No capnography and no reassessment after the naloxone."
+          }
+        ]
+      },
+      {
+        "id": "plan",
+        "label": "Escalated and changed the plan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "restarted",
+            "score": "missed",
+            "why": "Restarted the PCA that caused this."
+          },
+          {
+            "when": "isNull(ordersAt)",
+            "score": "missed",
+            "why": "The resident never heard it in a way that changed the plan."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "SBAR at {timeAt(callEffAt)|clock}; PCA discontinued and a new plan written."
+          }
+        ]
+      },
+      {
+        "id": "airway",
+        "label": "Opened his airway and counted his breathing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "hob and not isNull(rousedAt) and vRr > 0",
+            "score": "met",
+            "why": "Head up, airway open, full-minute count."
+          },
+          {
+            "when": "hob or vRr > 0",
+            "score": "partial",
+            "why": "Airway or the full count, not both."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "noMask",
+        "label": "Did not mask the problem with oxygen",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "o2UpEarly",
+            "score": "missed",
+            "why": "Turned the oxygen up before stopping the opioid; the SpO2 number improves while the breathing does not."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Oxygen was not used as a substitute for treating the cause."
+          }
+        ]
+      },
+      {
+        "id": "proxy",
+        "label": "Stopped PCA by proxy and taught his wife",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "wifeTaught",
+            "score": "met",
+            "why": "The button is back with him alone, and his wife knows why."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "His wife was never told why only he presses the button."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Objective documentation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteObjective",
+            "score": "met",
+            "why": "Times, scores, doses and the response documented."
+          },
+          {
+            "when": "isNull(noteAt)",
+            "score": "missed",
+            "why": "Not documented."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The note gave an opinion instead of the data."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: the cues, the hypothesis, and evaluation deciding the plan",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toStop",
+        "label": "Alarm to the PCA paused",
+        "value": "isNull(stopAt) ? -1 : timeAt(stopAt)",
+        "format": "duration",
+        "expert": "under 1 min"
+      },
+      {
+        "id": "toNaloxone",
+        "label": "Alarm to the first naloxone",
+        "value": "isNull(nalFirstAt) ? -1 : timeAt(nalFirstAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "doses",
+        "label": "Naloxone doses",
+        "value": "nalDoses",
+        "format": "number",
+        "expert": "2 to 3 small doses"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "02:10",
+        "text": "Rouse him: POSS 4. Pause the PCA, take the button from his wife, head up and airway open, count RR for a full minute: 7."
+      },
+      {
+        "at": "02:12",
+        "text": "Naloxone 0.1 mg IV; again at 2 minutes. Capnography on. He rouses: POSS 2, RR 14."
+      },
+      {
+        "at": "~02:16",
+        "text": "SBAR to the resident: oversedated on the PCA, high risk, naloxone may wear off; please stop the PCA and change the plan."
+      },
+      {
+        "at": "~02:31",
+        "text": "New orders: PCA off, IV acetaminophen, capnography, CPAP. Explain to his wife; objective note."
+      },
+      {
+        "at": "02:45-03:40",
+        "text": "Reassess at 30 minutes and after; when he drifts toward POSS 3 again, another 0.1 mg."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "He stopped breathing",
+        "body": "POSS 4 with RR 7 means stop the opioid now and consider naloxone. Find when the PCA was paused, who held the button, and when the first naloxone went in."
+      },
+      "stillSedated": {
+        "headline": "Breathing too little for too long",
+        "body": "Stopping the PCA alone lets hydromorphone wear off over hours. POSS 4 with slow breathing needs naloxone to effect and a resident who changes the plan."
+      },
+      "safe": {
+        "headline": "Reversed, watched, plan changed",
+        "body": "You stopped the drug, reversed it in small doses so his pain relief was not torn away, watched past the point naloxone wears off, and used that evaluation to end the PCA plan. That is the expert path."
+      },
+      "safeLate": {
+        "headline": "Breathing, by a slower route",
+        "body": "He is breathing, but check how fast the PCA stopped, the naloxone dose, who gave it, whether he was watched past 30 minutes, and whether the plan changed."
+      },
+      "time_up": {
+        "headline": "04:10",
+        "body": "The case ran to its hard stop."
+      }
+    },
+    "modelReasoning": "Recognize: POSS 4 (barely rousable), RR 7 with pauses, SpO2 85%. Analyze and prioritize: opioid-induced respiratory depression in a man with untreated sleep apnea, obesity, no opioid tolerance and gabapentin, made worse by his wife pressing the PCA. Act: pause the PCA, rouse him, head up and airway open, and give naloxone 0.1 mg IV every 2-3 minutes to effect (a full 0.4 mg push tears away his analgesia and can cause vomiting, tachycardia, hypertension and worse). Put him on continuous capnography; more oxygen alone only hides the problem. Escalate to the resident with an SBAR that asks for the plan to change. Evaluate: naloxone's half-life is 30-81 minutes and hydromorphone's about 2.3 hours, so reassess at 30 minutes and after and repeat naloxone if he drifts off. The evaluation ends the PCA plan: non-opioid analgesia, CPAP, monitoring, and teaching his wife that only he presses the button."
+  },
+  "chapters": [
+    {
+      "id": "reversing",
+      "label": "Naloxone in",
+      "when": "nalDoses > 0"
+    }
+  ],
+  "teaching": {
+    "poss4": {
+      "during": "countT",
+      "ask": "While you count: what does POSS 4 call for?",
+      "choices": [
+        {
+          "id": "stop",
+          "label": "Stop the opioid, consider naloxone, call the prescriber, watch closely"
+        },
+        {
+          "id": "reduce",
+          "label": "Cut the next dose by a quarter"
+        },
+        {
+          "id": "sleep",
+          "label": "Nothing: let him sleep"
+        }
+      ],
+      "expect": "stop",
+      "explain": "POSS 4 (somnolent, minimal or no response) is unacceptable: stop the opioid, consider naloxone, notify the prescriber, and monitor until he is stable below 3 with satisfactory breathing.",
+      "source": {
+        "cite": "Pasero Opioid-Induced Sedation Scale (POSS) with interventions, as reproduced by RNAO (Registered Nurses' Association of Ontario) best practice guideline pages",
+        "checkedAt": "2026-11-11",
+        "url": "https://bpgmobile.rnao.ca/node/763",
+        "note": "Read 2026-11-11 (the RNAO reproduction, not Pasero's original 1994 publication). S and 1-2 acceptable; 3 (frequently drowsy, arousable, drifts off to sleep during conversation) unacceptable: monitor closely until stable below 3, decrease the opioid dose 25-50% or notify the prescriber; 4 (somnolent, minimal or no response to verbal or physical stimulation) unacceptable: stop the opioid, consider naloxone, notify the prescriber, monitor closely."
+      }
+    },
+    "wearsOff": {
+      "during": "ordersT",
+      "ask": "While the resident writes orders: he is awake now. Can you go?",
+      "choices": [
+        {
+          "id": "stay",
+          "label": "No: naloxone wears off before hydromorphone, so keep watching and reassess"
+        },
+        {
+          "id": "go",
+          "label": "Yes: he's awake, the problem is solved"
+        }
+      ],
+      "expect": "stay",
+      "explain": "Naloxone's half-life is 30-81 minutes; hydromorphone's is about 2.3 hours. The label says to keep the patient under continued surveillance and repeat doses as needed.",
+      "source": {
+        "cite": "Pfizer. Hydromorphone Hydrochloride Injection, prescribing information (clinical pharmacology)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/hydromorphone/clinical-pharmacology",
+        "note": "Read 2026-11-11 (primary web page). Terminal elimination half-life after an IV dose about 2.3 hours."
+      }
+    },
+    "smallDose": {
+      "during": "nalT",
+      "ask": "While the naloxone works: why 0.1 mg at a time?",
+      "choices": [
+        {
+          "id": "titrate",
+          "label": "To restore breathing without tearing away his pain relief or straining his heart"
+        },
+        {
+          "id": "cost",
+          "label": "To save the vial"
+        },
+        {
+          "id": "same",
+          "label": "It makes no difference how it's given"
+        }
+      ],
+      "expect": "titrate",
+      "explain": "The label's postoperative dose is 0.1-0.2 mg IV every 2-3 minutes to the desired reversal; larger doses reverse analgesia and raise blood pressure, and abrupt reversal can bring vomiting, tachycardia and worse.",
+      "source": {
+        "cite": "Pfizer. Naloxone Hydrochloride Injection, prescribing information (dosage, clinical pharmacology, warnings, precautions)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/naloxone/dosage-admin",
+        "note": "Read 2026-11-11 (primary web pages). Postoperative opioid depression: 0.1 to 0.2 mg IV at two to three minute intervals to the desired degree of reversal, titrated to response; larger than necessary doses can reverse analgesia and raise blood pressure; abrupt postoperative reversal may cause nausea, vomiting, sweating, tremulousness, tachycardia, and has been followed by ventricular tachycardia and fibrillation, pulmonary edema and cardiac arrest. IV onset generally within two minutes; serum half-life in adults 30 to 81 min (mean 64); the duration of some opioids may exceed naloxone's, so keep the patient under continued surveillance and repeat doses as needed."
+      }
+    }
+  }
+}
