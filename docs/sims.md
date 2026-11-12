@@ -4488,3 +4488,72 @@ first minute.
   and neonatal sepsis cases; elsewhere every slow path ends in an earlier
   ending first, so the linter's `time_up` warning remains, as in the
   existing CCRN cases.
+
+### 22.12 NCE and NCMHCE client sessions (REQ-239)
+
+Five more cases on the client `session` screen (22.5), for the two NBCC
+counseling courses (`backend/supabase/seed/tracks/nbcc.ts`, Mental Health >
+counseling licensure, so the 18+ confirmation and the study notice apply
+through the category). Same profile (`clinical-session`), same pacing
+(learner-paced `turns`, no running phase, so no pace or skip offer), same
+engine (1.2, an explicit `endingOrder`), no engine or renderer change.
+Registered as authored entries in one block at the end of `ALL_DOCUMENTS`;
+`NBCC_SESSION_DOCUMENTS` and `NBCC_OBJECTIVES` (lib/sim/documents.ts) list
+them for the tests, and the course seed exports the same titles
+(`NCE_SIM_OBJECTIVES`, `NCMHCE_SIM_OBJECTIVES`).
+
+| Course | Slug | Objective (exact title) | Core of the case |
+|---|---|---|---|
+| NCE | `nce-boundary-dual-relationship` | Manage boundaries and multiple relationships under the ACA Code of Ethics | A current client's friend request (prohibited, ACA A.5.e), her coaching your child's soccer team in a small town (an unavoidable overlap managed with consent, A.6.a) and her wedding invitation (a boundary extension to weigh, consult on and document first, A.6.b-c); a transfer 50 miles away is the recovered ending |
+| NCE | `nce-substance-use-screen` | Screen for substance use and match the client to a level of care | A court-referred DUI assessment: limits and a written release before anything goes to the court (B.6.g), the AUDIT (24; 15 or more suggests likely dependence on the authors' site), withdrawal history (needs trust), a borrowed sedative, 7 of 11 criteria (severe), a medical withdrawal evaluation before intensive outpatient |
+| NCMHCE | `ncmhce-intake-ptsd-alcohol` | Conduct an intake and reach a DSM-5-TR diagnosis in a counseling case | 'Panic attacks' that are cued by reminders of an assault: a gentle trauma question once trust is there, the four PTSD clusters for more than a month (VA), a co-occurring mild alcohol use disorder (3 of 11), medical rule-outs, a suicide screen; pressing for detail costs the alliance |
+| NCMHCE | `ncmhce-suicide-safety-plan` | Assess suicide risk and build a safety plan in a counseling session | A late-night voicemail: a direct question early, the C-SSRS follow-ups including a past attempt, pills in the nightstand moved out today, a six-step Stanley-Brown plan, her roommate involved with consent, 988, a call tomorrow; elevated, not imminent |
+| NCMHCE | `ncmhce-trauma-treatment-plan` | Build a trauma-informed treatment plan with the client | Two sessions three weeks apart, as an NCMHCE case runs: session 1 builds the plan with SAMHSA's principles (grounding first, no forced retelling, transparency, his choice of a recommended trauma-focused therapy, goals in his words, peer support, a measure); session 2, after the anniversary, reassesses risk early and revises the plan with him |
+
+Each has one written-reasoning moment, endings in all three classes, four
+critical criteria, KPIs with expert values, an expert path, a debrief per
+ending, one unscored prediction as a decision card (22.5 finding 3), and six
+golden paths (Good, Mediocre, Bad; every ending but `time_up` and every
+criterion both met and missed), built by
+`npm run sim:golden -- steps nce-boundary|nce-substance|ncmhce-intake|ncmhce-suicide|ncmhce-trauma`.
+Checked by `lib/sim/nbcc-session.test.ts` and, against a seeded database,
+`lib/nbcc-mental-health.dbtest.ts` (the gate, the seeded sims, and each
+expert path through the routes to a Good attempt).
+
+**Sources** (on each document): the NBCC outlines (read 2026-11-11), the ACA
+Code of Ethics (2014; current per counseling.org, read 2026-11-11, a revision
+pending Board adoption), the C-SSRS screen (re-read 2026-11-11), the VA
+National Center for PTSD criteria page (updated 2026-09-28), NIAAA's DSM-5
+comparison page (the 11 criteria and severity counts; DSM-5, so that they
+carry into DSM-5-TR is an inference), auditscreen.org's AUDIT scoring bands,
+the ASAM Criteria page (fourth edition, 2023; no dimension names or level
+numbers are attributed to it), SAMHSA's trauma-informed approaches page (five
+principles, updated 2026-02-08; the 2014 concept paper refused access) and
+988 page. Read only through earlier batches, not re-read: the Stanley-Brown
+SPRC summary and psychiatry.org's DSM page (2026-11-10, EPPP) and the APA
+PTSD guideline abstract (2026-11-11, EPPP labs). The DSM-5-TR itself was not
+read; no criteria text is reproduced.
+
+**Findings** (recorded, not worked around):
+
+1. **A two-session case on one clock.** The trauma case runs session 1 and
+   session 2 as two `turns` phases; ending session 1 (or its hour) sets
+   `s2At` and moves on, and session 2's hour uses `since(s2At)`. The three
+   weeks between them are not simulated, so `t` and the "session minutes"
+   KPI count both hours back to back. No engine change was needed.
+2. **Anything after the action that satisfies an ending never runs.** The
+   first draft of the substance case had "send the report" after "document";
+   documenting ended the run, so the report could never be sent, and the
+   linter did not flag it (it checks reachability of states, not of actions
+   after the run ends). The golden builder caught it ("run has ended"); the
+   court decision is now a field of the documentation form. Recorded as
+   FAIL-1480.
+3. **The sims list is not behind the 18+ gate.** `GET /api/sims?trackId=`
+   names a mental health course's sims (titles only) without the
+   confirmation; starting one is refused (403 `mature_content_required`), as
+   are opening the course and its labs. REQ-224 gates the course, teaching
+   and start routes, so this is as designed; listed for Nick in case titles
+   should be hidden too.
+4. **`time_up`** stays unreached in all five (every slow path ends in an
+   earlier ending), so the linter's `time_up` warning remains, as for the
+   EPPP cases.
