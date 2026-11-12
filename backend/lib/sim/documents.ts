@@ -99,6 +99,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // us-east-2. Keep these entries together. ----
   entry("AWSMLA", "fraud-model-drift"),
   entry("AWSMLA", "endpoint-scaling-latency"),
+  entry("AWSMLA", "loan-data-bias"),
   // ---- end REQ-242 ----
 ];
 
