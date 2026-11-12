@@ -346,13 +346,16 @@ describe("duplicate check", () => {
     const docs = ALL_DOCUMENTS.filter((e) => e.kind === "scenario").map((e) => loadDocument(e));
     let max = 0;
     for (let i = 0; i < docs.length; i++) for (let j = i + 1; j < docs.length; j++) max = Math.max(max, similarity(docs[i], docs[j]).score);
-    // Sims on the same screen share action words ("isolate", "escalate"), so
-    // their decisions overlap more than their stories: the three Security+
-    // incidents reach 0.33 on decisions with stories under 0.04 (FAIL-1301).
-    // The margin is 0.1 below the threshold, and only same-objective sims are
-    // ever compared in the gate.
-    assert.ok(max < DUPLICATE_THRESHOLD - 0.1, `highest seeded pair ${max.toFixed(3)}`);
+    // Different cases stay well clear even when they share decisions (adult
+    // and pediatric septic shock: decisions 0.43, story 0.05; FAIL-1301, FAIL-1302).
+    assert.ok(max < DUPLICATE_THRESHOLD - 0.2, `highest seeded pair ${max.toFixed(3)}`);
     assert.equal(similarity(BASE, structuredClone(BASE)).score, 1);
+  });
+  test("a variant that keeps most decisions under a new story is not a duplicate", () => {
+    const variant = structuredClone(BASE); variant.slug = "variant"; variant.title = "Another case altogether"; variant.brief = { situation: "A different person in another setting, with a new history, new readings and a new reason for the visit entirely.", handover: ["Nothing from the first case carries over."] };
+    const ids = Object.keys(variant.actions); for (const id of ids.slice(0, Math.ceil(ids.length / 4))) variant.actions[id] = { ...variant.actions[id], label: `Variant step ${id}` };
+    const v = similarity(BASE, variant);
+    assert.ok(v.decisions > 0.6 && v.score < DUPLICATE_THRESHOLD, `variant ${JSON.stringify(v)}`);
   });
   test("only sims on the same objective are compared", () => {
     const copy = { ...structuredClone(BASE), slug: "copy" };

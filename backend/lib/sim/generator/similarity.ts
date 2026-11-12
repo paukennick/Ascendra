@@ -56,13 +56,17 @@ export function jaccard(a: Set<string>, b: Set<string>): number {
 export interface Similarity {
   story: number;
   decisions: number;
-  score: number; // the higher of the two
+  // The story alone, or the mean of story and decisions, whichever is higher:
+  // a copied story is a duplicate; shared decisions alone are not, since a
+  // variant (same skill, different patient or system) shares its decisions
+  // by design (FAIL-1302).
+  score: number;
 }
 
 export function similarity(a: ScenarioDoc, b: ScenarioDoc): Similarity {
   const story = jaccard(storyShingles(a), storyShingles(b));
   const decisions = jaccard(decisionWords(a), decisionWords(b));
-  return { story, decisions, score: Math.max(story, decisions) };
+  return { story, decisions, score: Math.max(story, (story + decisions) / 2) };
 }
 
 export interface DuplicateHit {

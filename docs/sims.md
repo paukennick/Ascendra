@@ -2973,11 +2973,14 @@ which the table allows; the seed writes `'authored'` today).
 **Duplicate check** (`lib/sim/generator/similarity.ts`). Two Jaccard indexes
 (shared divided by either): the story (three-word runs of the title,
 situation and handover) and the decisions (content words of the action and
-ending labels). The similarity is the higher of the two; at 0.5 or above
-the draft is a duplicate of that sim. It is compared with every seeded sim
-and every earlier ready draft on the same objective. Across the seeded
-documents the highest pair on different cases is 0.22 (sepsis and the
-Whipple bleed, decisions); a band over its base is 1.0.
+ending labels). The similarity is the story index, or the mean of the two
+when that is higher; at 0.5 or above the draft is a duplicate of that sim.
+Shared decisions alone never make a duplicate: a variant (the same skill on
+a different patient or system) shares its decisions by design, as adult and
+pediatric septic shock do (decisions 0.43, story 0.05; FAIL-1302). It is
+compared with every seeded sim and every earlier ready draft on the same
+objective. Across the seeded documents the highest pair on different cases
+is 0.24 (adult and pediatric septic shock); a band over its base is 1.0.
 
 **Cost.** Each call's input, output and cache tokens and its price
 (`lib/ai-pricing.ts`) go into the draft's report,

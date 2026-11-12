@@ -15491,6 +15491,32 @@
       "prevention_rules": [],
       "prevention_notes": "Until FAIL-1250 gets a teachingOrder list, author teaching keys in jsonb order or give overlapping prompts mutually exclusive conditions; docs/sims.md 22.7 says so.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1302",
+      "date": "2026-11-12",
+      "title": "Duplicate check counted shared decisions alone as a duplicate",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After the bedside wave merged, adult and pediatric septic shock scored 0.43 (decisions) against a 0.5 duplicate threshold; a variant of one skill would have been held as a duplicate",
+      "how_detected": "CI Backend job on PR #143 (generator.test seeded-pairs check)",
+      "root_cause": "similarity took the higher of story and decisions overlap, so two sims teaching the same skill on different patients looked like copies",
+      "requirement": "REQ-230",
+      "affected": [
+        "backend/lib/sim/generator/similarity.ts",
+        "docs/sims.md"
+      ],
+      "fix_summary": "Score = max(story, mean(story, decisions)): a copied story is still a duplicate; shared decisions alone are not",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
     }
   ]
 }
