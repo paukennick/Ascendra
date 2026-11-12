@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- (internal) Pre-generation: collect now reports which content-check problems failed lessons, as message kinds with quoted text and numbers removed (summary `problemKinds`, plus one log line), so a high failure rate can be diagnosed from the public log without lesson text. The 2026-11-12 trial failed 21 of 25 practice halves on the content check with no way to see why.
+
 - (internal) What's new note 2026-11-12-c covering REQ-243, REQ-244, REQ-245 and REQ-246. No What's new: this is that note.
 
 - REQ-246 (learner-facing): **During the AI pilot, learners outside the pilot group can use the AI coach a little each day**, and get more AI-graded typed answers. Two pilot-only server settings, both applied only to learners the AI access mode limits (owners and invited pilot accounts are never counted): `AI_PILOT_COACH_MESSAGES_PER_DAY` (default 0, which keeps the coach in limited preview exactly as before) opens the coach with that many messages per rolling day, and past it the app says "You've used today's 10 coach messages. More open up {when}; lessons, practice and review keep working." with the message box still there; `AI_PILOT_GRADED_ANSWERS_PER_DAY` (default: Free's 3) sets the daily AI-graded answers. Neither changes the billing plans' counts, and both stop applying when `AI_ACCESS_MODE` changes. `GET /api/auth/me` `ai` gains `coachPerDay`. App change is JavaScript only (over the air); an older server keeps today's behavior. No migration. No What's new: the lead adds one note.
