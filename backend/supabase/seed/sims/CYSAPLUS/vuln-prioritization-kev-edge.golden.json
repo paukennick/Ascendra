@@ -1,0 +1,1178 @@
+{
+  "slug": "vuln-prioritization-kev-edge",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Enrich, escalate, workaround by 13 min, emergency upgrade, check for a web shell, rescan, then MAIL01 and the rest; notify leadership, the change board and the VPN owner",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "enrich",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "workaround",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "vpn",
+            "plan": "emergency"
+          },
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 33,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "huntVpn",
+          "seq": 9,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 41,
+          "seq": 10,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "rescan",
+          "seq": 11,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 46,
+          "seq": 12,
+          "tick": 41
+        },
+        {
+          "type": "act",
+          "action": "checkMail",
+          "seq": 13,
+          "tick": 46
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 51,
+          "seq": 14,
+          "tick": 46
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "hr",
+            "plan": "window"
+          },
+          "seq": 15,
+          "tick": 51
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 53,
+          "seq": 16,
+          "tick": 51
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "lab",
+            "plan": "accept"
+          },
+          "seq": 17,
+          "tick": 53
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 55,
+          "seq": 18,
+          "tick": 53
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "mail",
+            "plan": "falsePos"
+          },
+          "seq": 19,
+          "tick": 55
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 57,
+          "seq": 20,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 21,
+          "tick": 57
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 22,
+          "tick": 57
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 23,
+          "tick": 57
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "top": "vpn",
+            "mail": "fp"
+          },
+          "seq": 24,
+          "tick": 57
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "prioritizedCrit": "met",
+          "exposureFast": "met",
+          "huntedCrit": "met",
+          "validatedCrit": "met",
+          "escalated": "met",
+          "enrichedCrit": "met",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToClose": 8,
+          "emergencies": 0,
+          "compromised": 0
+        },
+        "stateHash": "d8595a9be17e54d3"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "cvssFirst",
+      "title": "Spends the emergency change on the CVSS 9.8 and 10.0 findings; the VPN is exploited at 40 min and credentials are harvested at 60",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "hr",
+            "plan": "emergency"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 20,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "lab",
+            "plan": "emergency"
+          },
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 40,
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 40,
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "mail",
+            "plan": "emergency"
+          },
+          "seq": 6,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 60,
+          "seq": 7,
+          "tick": 40
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "owner"
+          },
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "top": "hr",
+            "mail": "real"
+          },
+          "seq": 10,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "breached",
+        "class": "harm",
+        "rating": "bad",
+        "score": 6,
+        "criteria": {
+          "prioritizedCrit": "missed",
+          "exposureFast": "missed",
+          "huntedCrit": "missed",
+          "validatedCrit": "missed",
+          "escalated": "missed",
+          "enrichedCrit": "missed",
+          "notifiedCrit": "partial",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToClose": -1,
+          "emergencies": 3,
+          "compromised": 1
+        },
+        "stateHash": "1cee76cb991f3f5a"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "patchNoHunt",
+      "title": "Emergency upgrade first (closed at 20 min) and a rescan, but never checks the gateway for compromise",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "vpn",
+            "plan": "emergency"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 20,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 22,
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "enrich",
+          "seq": 5,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 28,
+          "seq": 6,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "rescan",
+          "seq": 7,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 33,
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "checkMail",
+          "seq": 9,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 38,
+          "seq": 10,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "hr",
+            "plan": "window"
+          },
+          "seq": 11,
+          "tick": 38
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 40,
+          "seq": 12,
+          "tick": 38
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "lab",
+            "plan": "accept"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 42,
+          "seq": 14,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "mail",
+            "plan": "falsePos"
+          },
+          "seq": 15,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 44,
+          "seq": 16,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 17,
+          "tick": 44
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 44
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 19,
+          "tick": 44
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "top": "vpn",
+            "mail": "fp"
+          },
+          "seq": 20,
+          "tick": 44
+        }
+      ],
+      "expect": {
+        "ending": "fixedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 78,
+        "criteria": {
+          "prioritizedCrit": "met",
+          "exposureFast": "met",
+          "huntedCrit": "missed",
+          "validatedCrit": "met",
+          "escalated": "partial",
+          "enrichedCrit": "met",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToClose": 20,
+          "emergencies": 0,
+          "compromised": 0
+        },
+        "stateHash": "b8931b547e9fd768"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "lateExploited",
+      "title": "Gets to the report at 41 min, after the exploit: takes the gateway offline, finds the web shell, upgrades and rescans",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 30,
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 30,
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 8,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 40,
+          "seq": 9,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 10,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 50,
+          "seq": 11,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "enrich",
+          "seq": 12,
+          "tick": 50
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 56,
+          "seq": 13,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "offlineVpn",
+          "seq": 14,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 61,
+          "seq": 15,
+          "tick": 56
+        },
+        {
+          "type": "act",
+          "action": "huntVpn",
+          "seq": 16,
+          "tick": 61
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 69,
+          "seq": 17,
+          "tick": 61
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 18,
+          "tick": 69
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 71,
+          "seq": 19,
+          "tick": 69
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "vpn",
+            "plan": "emergency"
+          },
+          "seq": 20,
+          "tick": 71
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 91,
+          "seq": 21,
+          "tick": 71
+        },
+        {
+          "type": "act",
+          "action": "rescan",
+          "seq": 22,
+          "tick": 91
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 96,
+          "seq": 23,
+          "tick": 91
+        },
+        {
+          "type": "act",
+          "action": "checkMail",
+          "seq": 24,
+          "tick": 96
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 101,
+          "seq": 25,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "hr",
+            "plan": "window"
+          },
+          "seq": 26,
+          "tick": 101
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 103,
+          "seq": 27,
+          "tick": 101
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "lab",
+            "plan": "accept"
+          },
+          "seq": 28,
+          "tick": 103
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 105,
+          "seq": 29,
+          "tick": 103
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "mail",
+            "plan": "falsePos"
+          },
+          "seq": 30,
+          "tick": 105
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 15,
+          "to": 107,
+          "seq": 31,
+          "tick": 105
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 32,
+          "tick": 107
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 33,
+          "tick": 107
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 34,
+          "tick": 107
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "top": "vpn",
+            "mail": "fp"
+          },
+          "seq": 35,
+          "tick": 107
+        }
+      ],
+      "expect": {
+        "ending": "fixedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "prioritizedCrit": "met",
+          "exposureFast": "partial",
+          "huntedCrit": "met",
+          "validatedCrit": "met",
+          "escalated": "partial",
+          "enrichedCrit": "met",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToClose": 56,
+          "emergencies": 0,
+          "compromised": 1
+        },
+        "stateHash": "6c42850d3276b3f0"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "fpUnchecked",
+      "title": "Workaround in 5 min and checks for compromise, but closes MAIL01 unchecked, never patches or rescans",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "workaround",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "enrich",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 11,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "huntVpn",
+          "seq": 5,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 19,
+          "seq": 6,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "vpn",
+            "plan": "window"
+          },
+          "seq": 7,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 21,
+          "seq": 8,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "hr",
+            "plan": "window"
+          },
+          "seq": 9,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 23,
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "lab",
+            "plan": "window"
+          },
+          "seq": 11,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 25,
+          "seq": 12,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "mail",
+            "plan": "falsePos"
+          },
+          "seq": 13,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 27,
+          "seq": 14,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 15,
+          "tick": 27
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "owner"
+          },
+          "seq": 17,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "top": "vpn",
+            "mail": "fp"
+          },
+          "seq": 18,
+          "tick": 27
+        }
+      ],
+      "expect": {
+        "ending": "fixedLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "prioritizedCrit": "missed",
+          "exposureFast": "met",
+          "huntedCrit": "met",
+          "validatedCrit": "missed",
+          "escalated": "missed",
+          "enrichedCrit": "met",
+          "notifiedCrit": "partial",
+          "record": "met"
+        },
+        "kpis": {
+          "minToClose": 0,
+          "emergencies": 0,
+          "compromised": 0
+        },
+        "stateHash": "23ba011815f23aaa"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "waitForWindow",
+      "title": "Puts every patch, the VPN included, in Saturday's window and closes the response with the gateway exposed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "enrich",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "vpn",
+            "plan": "window"
+          },
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "checkMail",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "hr",
+            "plan": "window"
+          },
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 15,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "lab",
+            "plan": "accept"
+          },
+          "seq": 9,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 17,
+          "seq": 10,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "finding": "mail",
+            "plan": "falsePos"
+          },
+          "seq": 11,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 19,
+          "seq": 12,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 13,
+          "tick": 19
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "nobody"
+          },
+          "seq": 15,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "top": "vpn",
+            "mail": "fp"
+          },
+          "seq": 16,
+          "tick": 19
+        }
+      ],
+      "expect": {
+        "ending": "stillExposed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "prioritizedCrit": "missed",
+          "exposureFast": "missed",
+          "huntedCrit": "missed",
+          "validatedCrit": "missed",
+          "escalated": "missed",
+          "enrichedCrit": "met",
+          "notifiedCrit": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minToClose": -1,
+          "emergencies": 0,
+          "compromised": 0
+        },
+        "stateHash": "9eb7578067224fcb"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

@@ -8681,6 +8681,47 @@
         "authored teaching-model numbers are flagged",
         "new documents enter expert review"
       ]
+    },
+    {
+      "id": "REQ-238",
+      "category": "content",
+      "title": "Security wave 2: CySA+, PenTest+, SecurityX and SecAI+ incidents on the security console",
+      "description": "Eight baseline sims, two per course (CYSAPLUS, PENTESTPLUS, SECURITYX, SECAIPLUS), on the existing security-console screen (REQ-231, docs/sims.md 22.7) following the Security+ pattern: learner-paced turns phases with the attacker on the analyst's clock, the security outcome profile, engine 1.2 with endingOrder, endings in all three classes, 3-4 critical criteria, KPIs, an expert path, a debrief per ending and six golden paths each. Objectives are active catalog objectives meeting the generator's selection rule; sources (CompTIA exam pages and the CS0-004 objectives PDF, NIST SP 800-61r3, NIST AI RMF, OWASP LLM Top 10 2025, CISA KEV/OT/CM0073, MITRE T1606.002, PTES) read and dated 2026-11-11; every address and domain from RFC 5737/2606. No engine, renderer, schema or migration change.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/security-w2.test.ts",
+        "backend/lib/sims-security-w2.dbtest.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "eight valid console sims",
+        "two per course",
+        "each on its own catalog objective meeting isPerformanceObjective (lib/sim/security-w2.test.ts)",
+        "every learner-visible address and domain is a documentation range (lib/sim/security-w2.test.ts)",
+        "goldens cover every ending but time_up and every criterion met and missed (npm run sims:lint)",
+        "seeded idempotently and golden paths play through the routes to one attempt each (lib/sims-security-w2.dbtest.ts)",
+        "storage-order and engine-bundle replays pass (lib/sim/storage-order.test.ts; lib/sim/cross-runtime/engine-bundle.test.ts)"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run sims:lint",
+        "sim:cross-runtime print and engine-print",
+        "relevant dbtests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.11",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "PenTest+ and SecurityX catalog titles are the course's own wording; the PT0-003/CAS-005/CY0-001 objective PDFs were not re-read",
+        "author's teaching timings and scores (marked on each param)"
+      ]
     }
   ]
 }

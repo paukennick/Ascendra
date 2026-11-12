@@ -1,0 +1,1585 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ot-segmentation-breach",
+  "title": "Incident: ransomware operators one hop from the plant",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "edr",
+          "severity": "high",
+          "title": "EDR: ransomware staging on IT file servers (AdFind, a renamed rclone, a PsExec service)",
+          "detail": "Launched from FILE02 by vendor-acme, an account used only for the packaging-line vendor's remote support.",
+          "when": "true",
+          "at": "0",
+          "status": "{attackerInIt ? \"Active\" : \"Entry closed\"}",
+          "open": "attackerInIt"
+        },
+        {
+          "id": "vpnA",
+          "severity": "medium",
+          "title": "VPN appliance: vendor-acme signed in at 01:20 from 198.51.100.120",
+          "detail": "The vendor's agreed support window is weekdays 08:00-17:00.",
+          "when": "true",
+          "at": "0",
+          "status": "{isNull(vpnCutAt) ? \"Session open\" : \"Appliance offline\"}",
+          "open": "isNull(vpnCutAt)"
+        },
+        {
+          "id": "da",
+          "severity": "high",
+          "title": "Directory: vendor-acme added to Domain Admins",
+          "when": "not isNull(daAt)",
+          "at": "timeAt(daAt)",
+          "status": "{credsLeft ? \"Active\" : \"Reset\"}",
+          "open": "credsLeft"
+        },
+        {
+          "id": "hist",
+          "severity": "critical",
+          "title": "HIST01 (plant historian): remote service installed from FILE02",
+          "when": "not isNull(otFootAt)",
+          "at": "timeAt(otFootAt)",
+          "status": "{otActive ? \"Attacker on the OT side\" : \"Cut off\"}",
+          "open": "otActive"
+        },
+        {
+          "id": "bk",
+          "severity": "critical",
+          "title": "Backup server: every restore point deleted",
+          "when": "not isNull(backupsAt)",
+          "at": "timeAt(backupsAt)",
+          "status": "\"Lost\"",
+          "open": "true"
+        },
+        {
+          "id": "enc",
+          "severity": "critical",
+          "title": "EDR: mass file encryption on IT servers",
+          "when": "not isNull(itEncAt)",
+          "at": "timeAt(itEncAt)",
+          "status": "{attackerInIt ? \"Spreading\" : \"Stopped\"}",
+          "open": "attackerInIt"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "VPN appliance",
+          "text": "01:20 vendor-acme from 198.51.100.120 (no MFA on vendor accounts)",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "VPN appliance",
+          "text": "Appliance firmware is two releases behind; the vendor account's password was last changed in 2023",
+          "when": "not isNull(entryReviewedAt)",
+          "at": "timeAt(entryReviewedAt)"
+        },
+        {
+          "id": "e3",
+          "source": "Firewall rules",
+          "text": "HIST01 has a leg in the IT server VLAN and one in the plant control network; IT reaches it on RDP and SMB; no DMZ between them",
+          "when": "not isNull(mappedAt)",
+          "at": "timeAt(mappedAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Firewall",
+          "text": "IT-to-OT conduit closed; historian data now leaves the plant one way through the DMZ",
+          "when": "not isNull(conduitCutAt)",
+          "at": "timeAt(conduitCutAt)"
+        },
+        {
+          "id": "e5",
+          "source": "Plant",
+          "text": "Line 2 running in manual; the control network is islanded",
+          "when": "not isNull(islandAt)",
+          "at": "timeAt(islandAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Plant",
+          "text": "Lines 1-3 shut down; product in the ovens scrapped",
+          "when": "not isNull(shutdownAt)",
+          "at": "timeAt(shutdownAt)"
+        },
+        {
+          "id": "e7",
+          "source": "EDR",
+          "text": "vendor-acme ran PsExec against HIST01",
+          "when": "not isNull(otFootAt)",
+          "at": "timeAt(otFootAt)"
+        },
+        {
+          "id": "e8",
+          "source": "Backup server",
+          "text": "Restore points deleted by vendor-acme",
+          "when": "not isNull(backupsAt)",
+          "at": "timeAt(backupsAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "vpn",
+          "label": "VPN appliance",
+          "spokenLabel": "VPN appliance",
+          "kind": "Remote access for staff and vendors",
+          "status": "{vpnReset ? \"Factory-reset\" : isNull(vpnCutAt) ? \"Online; attacker session open\" : \"Offline; vendors moved to the access broker\"}",
+          "tone": "isNull(vpnCutAt) ? \"bad\" : \"held\""
+        },
+        {
+          "id": "it",
+          "label": "IT servers",
+          "spokenLabel": "IT server VLAN",
+          "kind": "File, ERP and domain servers",
+          "status": "{not isNull(itEncAt) ? \"Encryption hit\" : not isNull(microAt) ? \"Microsegmented\" : attackerInIt ? \"Attacker active\" : \"Quiet\"}",
+          "tone": "not isNull(itEncAt) ? \"bad\" : attackerInIt ? \"bad\" : \"held\""
+        },
+        {
+          "id": "histA",
+          "label": "HIST01",
+          "spokenLabel": "Historian HIST01",
+          "kind": "Plant historian (dual-homed IT and OT)",
+          "status": "{not isNull(histIsoAt) ? \"Isolated\" : not isNull(otFootAt) ? \"Compromised\" : \"Reachable from IT\"}",
+          "tone": "not isNull(histIsoAt) ? \"held\" : not isNull(otFootAt) ? \"bad\" : \"watch\""
+        },
+        {
+          "id": "ot",
+          "label": "Plant control network",
+          "spokenLabel": "Plant control network",
+          "kind": "HMIs and line controllers (OT)",
+          "status": "{not isNull(hmiAt) ? \"HMIs encrypted\" : not isNull(islandAt) ? \"Islanded; running in manual\" : not isNull(shutdownAt) ? \"Plant shut down\" : otReachable ? \"Reachable from IT through HIST01\" : \"Separated from IT\"}",
+          "tone": "not isNull(hmiAt) ? \"bad\" : otActive ? \"bad\" : otReachable ? \"watch\" : \"held\""
+        },
+        {
+          "id": "bkA",
+          "label": "Backups",
+          "spokenLabel": "Backup server",
+          "kind": "Restore points for IT and the historian",
+          "status": "{not isNull(backupsAt) ? \"Deleted\" : not isNull(backupIsoAt) ? \"Admin plane isolated\" : \"Domain-joined\"}",
+          "tone": "not isNull(backupsAt) ? \"bad\" : not isNull(backupIsoAt) ? \"held\" : \"watch\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "evM",
+          "label": "Case file",
+          "value": "{isNull(imagedAt) ? \"empty\" : \"VPN appliance image and logs, FILE02 triage package\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Secure network architecture: segmentation, SASE, microsegmentation",
+  "secondaryObjectives": [
+    "Enterprise mobility, endpoint, and IoT/OT security engineering",
+    "Business continuity and disaster recovery at an enterprise architecture level"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA SecurityX CAS-005 (V5) exam page: domains Governance, risk, and compliance 20%, Security architecture 27%, Security engineering 31%, Security operations 22%",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/securityx/",
+      "note": "Relevant text: Security architecture covers network architecture ('segmentation, microsegmentation, VPN, always-on VPN, and API integration'), Zero Trust ('defining subject-object relationships'), security boundaries ('asset identification, management, attestation, data perimeters, and secure zones') and deperimeterization ('SASE, SD-WAN, and software-defined networking'); Security operations covers incident response including root cause analysis. The page has no objective text on federation by name. Read through a summarizing fetch on 2026-11-11; the CAS-005 objectives PDF was not re-read here. The course's unit titles are the course's own wording."
+    },
+    {
+      "cite": "CISA, FBI, EPA and DOE, Primary Mitigations to Reduce Cyber Threats to Operational Technology (fact sheet, May 6, 2025)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.cisa.gov/sites/default/files/2025-05/fact-sheet-primary-mitigations-to-reduce-cyber-threats-to-operational-technology-508c.pdf",
+      "note": "Relevant text: remove OT connections to the public internet; change default passwords; secure remote access to OT networks (phishing-resistant MFA for VPN access, least privilege, disable dormant accounts); 'Segment IT and OT networks', 'introducing a demilitarized zone for passing control data to enterprise logistics'; 'Practice and maintain the ability to operate manually': 'The capability for organizations to revert to manual controls to quickly restore operations is vital'. Read through a summarizing fetch of the PDF on 2026-11-11."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-11",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "The current revision (April 3, 2025; supersedes Rev. 2 of 2012). Relevant text: RS.MA-02 'Perform a preliminary review of a new incident report to verify that a cybersecurity incident has occurred, then estimate the severity of the incident and the level of urgency'; RS.MA-03 'Prioritize how quickly incident response should be performed for each incident based on its scope, likely impact, time-critical nature, and resource availability'; RS.MA-04 escalation and elevation; RS.MI-01 'Containment refers to preventing the expansion of an incident'; RS.MI-02 eradication 'to eliminate persistence mechanisms and entry points' and 'Identify all affected hosts and services'; RS.AN-07 incident data collected with integrity and provenance preserved; RS.CO-02 stakeholders notified. Read in the PDF text (nvlpubs.nist.gov) and the CSRC page on 2026-11-11."
+    },
+    {
+      "cite": "CrowdStrike, 2026 Global Threat Report (press release, 2026-02-24): 'The average eCrime breakout time fell to just 29 minutes in 2025', the fastest observed 27 seconds",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.crowdstrike.com/en-us/press-releases/2026-crowdstrike-global-threat-report/",
+      "note": "Vendor telemetry, not a standard. Also: '42% of vulnerabilities were exploited before public disclosure'; adversaries injected malicious prompts into GenAI tools at more than 90 organizations. Used only to set the scale of the attacker's clock; the scenario's step times are the author's. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security architect on call for Pemberly Foods, a fictional bakery manufacturer. At 02:00 EDR raises ransomware staging on the IT file servers, launched by the packaging-line vendor's remote-support account, which signed in through the VPN at 01:20. Three lines are running the night shift. Protect the plant, contain, keep evidence and report.",
+    "handover": [
+      "Operators have rehearsed running the lines in manual. A zero-trust access broker is deployed for staff applications but vendors still use the VPN.",
+      "A microsegmentation policy for the IT server VLAN is written and tested but not enforced."
+    ],
+    "howItWorks": [
+      "Each task takes analyst time: choose it, then let the work finish, which moves the clock by the minutes that task takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you declare the incident contained, you notify, write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "02:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "daDelay": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "otDelay": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "backupDelay": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "hmiDelay": {
+      "value": 2100,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "encDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "escalateWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Incident command within 15 minutes at a plant; author's figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "entryReviewedAt": {
+      "type": "time",
+      "init": null
+    },
+    "mappedAt": {
+      "type": "time",
+      "init": null
+    },
+    "vpnCutAt": {
+      "type": "time",
+      "init": null
+    },
+    "conduitCutAt": {
+      "type": "time",
+      "init": null
+    },
+    "histIsoAt": {
+      "type": "time",
+      "init": null
+    },
+    "islandAt": {
+      "type": "time",
+      "init": null
+    },
+    "shutdownAt": {
+      "type": "time",
+      "init": null
+    },
+    "backupIsoAt": {
+      "type": "time",
+      "init": null
+    },
+    "microAt": {
+      "type": "time",
+      "init": null
+    },
+    "credsResetAt": {
+      "type": "time",
+      "init": null
+    },
+    "imagedAt": {
+      "type": "time",
+      "init": null
+    },
+    "vpnReset": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceDestroyed": {
+      "type": "bool",
+      "init": false
+    },
+    "daAt": {
+      "type": "time",
+      "init": null
+    },
+    "otFootAt": {
+      "type": "time",
+      "init": null
+    },
+    "hmiAt": {
+      "type": "time",
+      "init": null
+    },
+    "backupsAt": {
+      "type": "time",
+      "init": null
+    },
+    "itEncAt": {
+      "type": "time",
+      "init": null
+    },
+    "allOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "vendorVpn",
+        "phish",
+        "insider"
+      ],
+      "init": "none"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "dmz",
+        "av",
+        "nochange"
+      ],
+      "init": "none"
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "it",
+        "nobody"
+      ],
+      "init": "none"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "attackerInIt": {
+      "expr": "isNull(vpnCutAt)"
+    },
+    "credsLeft": {
+      "expr": "not isNull(daAt) and isNull(credsResetAt)"
+    },
+    "otReachable": {
+      "expr": "isNull(conduitCutAt) and isNull(histIsoAt) and isNull(islandAt)"
+    },
+    "otActive": {
+      "expr": "not isNull(otFootAt) and isNull(histIsoAt) and isNull(islandAt)"
+    },
+    "attackerActive": {
+      "expr": "attackerInIt or otActive"
+    },
+    "spread": {
+      "expr": "isNull(otFootAt) and isNull(backupsAt) ? 0 : 1"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "reviewEntry",
+        "mapPaths",
+        "cutVpn",
+        "cutConduit",
+        "isolateHistorian",
+        "islandOt",
+        "shutdownPlant",
+        "isolateBackups",
+        "microsegment",
+        "resetCreds",
+        "imageEntry",
+        "resetVpn",
+        "escalate",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "reviewEntry": {
+      "label": "Review the VPN appliance and EDR for how they got in",
+      "group": "Investigate",
+      "available": "not busy and (isNull(entryReviewedAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "entryReviewedAt",
+          "to": "t"
+        },
+        {
+          "log": "You pull the VPN appliance's logs and configuration and the EDR process trees.",
+          "kind": "act"
+        },
+        {
+          "finding": "vendor-acme signed in at 01:20 from 198.51.100.120, outside the vendor's window, with a password unchanged since 2023 and no MFA; the appliance firmware is behind. From FILE02 the account is enumerating the domain."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "mapPaths": {
+      "label": "Map every path from IT into the plant (firewall rules, dual-homed hosts)",
+      "group": "Investigate",
+      "available": "not busy and (isNull(mappedAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "mappedAt",
+          "to": "t"
+        },
+        {
+          "log": "You review the firewall rule base and the asset inventory for anything that touches both networks.",
+          "kind": "act"
+        },
+        {
+          "finding": "HIST01, the historian, has one network leg in the IT server VLAN and one in the plant control network, reachable on RDP and SMB from IT. There is no DMZ: that host is the bridge."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "cutVpn": {
+      "label": "Take the VPN appliance offline and move vendors to the zero-trust access broker",
+      "group": "Contain",
+      "available": "not busy and (isNull(vpnCutAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(vpnCutAt)",
+          "then": [
+            {
+              "set": "vpnCutAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The appliance is off the internet. Staff use the access broker with MFA per application; vendor-acme has no broker access.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive and not credsLeft",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "cutConduit": {
+      "label": "Close the IT-to-OT conduit: historian data out through the DMZ only, nothing in",
+      "group": "Contain",
+      "available": "not busy and (isNull(conduitCutAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(conduitCutAt)",
+          "then": [
+            {
+              "set": "conduitCutAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the plant firewall, nothing from IT reaches the control network; historian data goes out one way to a DMZ replica.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive and not credsLeft",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "isolateHistorian": {
+      "label": "Isolate HIST01 from both networks",
+      "group": "Contain",
+      "available": "not busy and (isNull(histIsoAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(histIsoAt)",
+          "then": [
+            {
+              "set": "histIsoAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "HIST01 is isolated; the plant keeps running, trending is unavailable until a clean historian is up.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive and not credsLeft",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "islandOt": {
+      "label": "Island the plant control network and run the lines in manual",
+      "group": "Contain",
+      "available": "not busy and (isNull(islandAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(islandAt)",
+          "then": [
+            {
+              "set": "islandAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The control network is physically islanded and operators run the lines in manual, as rehearsed.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive and not credsLeft",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "shutdownPlant": {
+      "label": "Shut the whole plant down",
+      "group": "Contain",
+      "available": "not busy and (isNull(shutdownAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(shutdownAt)",
+          "then": [
+            {
+              "set": "shutdownAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Every line is stopped to a safe state; product in progress is scrapped.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "isolateBackups": {
+      "label": "Cut the backup server's admin plane off the domain",
+      "group": "Contain",
+      "available": "not busy and (isNull(backupIsoAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(backupIsoAt)",
+          "then": [
+            {
+              "set": "backupIsoAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The backup server answers only its own local administrators from the backup VLAN; domain accounts cannot manage it.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "microsegment": {
+      "label": "Apply the prepared microsegmentation policy to the IT server VLAN",
+      "group": "Contain",
+      "available": "not busy and (isNull(microAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(microAt)",
+          "then": [
+            {
+              "set": "microAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "East-west SMB, RDP and remote service traffic between IT servers is now denied except where a rule names it.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "resetCreds": {
+      "label": "Reset vendor-acme and every Domain Admin credential (twice for the service ticket key)",
+      "group": "Contain",
+      "available": "not busy and (isNull(credsResetAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(credsResetAt)",
+          "then": [
+            {
+              "set": "credsResetAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "vendor-acme is disabled, every Domain Admin password is reset and the ticket-granting key is reset twice.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive and not credsLeft",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "imageEntry": {
+      "label": "Image the VPN appliance and collect FILE02's triage package",
+      "group": "Evidence",
+      "available": "not busy and (isNull(imagedAt) and not vpnReset)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "imagedAt",
+          "to": "t"
+        },
+        {
+          "log": "The appliance's configuration, logs and an image, and FILE02's EDR triage package go to the case file with hashes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "resetVpn": {
+      "label": "Factory-reset the VPN appliance and reload a clean configuration",
+      "group": "Recover",
+      "available": "not busy and (not vpnReset and not isNull(vpnCutAt))",
+      "why": "Take it offline first.",
+      "effects": [
+        {
+          "set": "vpnReset",
+          "to": "true"
+        },
+        {
+          "if": "isNull(imagedAt)",
+          "then": [
+            {
+              "set": "evidenceDestroyed",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "The appliance is factory-reset on current firmware{isNull(imagedAt) ? \", with nothing kept from it first\" : \"\"}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Wake the incident commander and the plant manager",
+      "group": "Communicate",
+      "available": "not busy and (isNull(escalatedAt))",
+      "why": "Escalated.",
+      "effects": [
+        {
+          "set": "escalatedAt",
+          "to": "t"
+        },
+        {
+          "log": "You declare a major incident and call the incident commander and the plant manager.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Declare the incident contained and write the report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident phase and start the report.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "full",
+              "label": "Executives, the plant manager, legal, the insurer and CISA"
+            },
+            {
+              "value": "it",
+              "label": "IT leadership only"
+            },
+            {
+              "value": "nobody",
+              "label": "No one"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"full\" ? \"executives, the plant manager, legal, the insurer and CISA\" : who == \"it\" ? \"IT leadership only\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "vendorVpn",
+                  "label": "A vendor account with an old password and no MFA on an outdated VPN appliance"
+                },
+                {
+                  "value": "phish",
+                  "label": "A phished employee"
+                },
+                {
+                  "value": "insider",
+                  "label": "An insider"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Architecture change",
+              "options": [
+                {
+                  "value": "dmz",
+                  "label": "A DMZ between IT and OT with no dual-homed hosts; vendors through a zero-trust broker with MFA"
+                },
+                {
+                  "value": "av",
+                  "label": "Better antivirus"
+                },
+                {
+                  "value": "nochange",
+                  "label": "None needed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: cause {cause}, change {fix}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "domainAdmin",
+      "when": "t >= daDelay and attackerInIt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "daAt",
+          "to": "t"
+        },
+        {
+          "log": "Directory: vendor-acme was added to Domain Admins.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "historian",
+      "when": "t >= otDelay and attackerInIt and otReachable and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "otFootAt",
+          "to": "t"
+        },
+        {
+          "log": "EDR: vendor-acme installed a remote service on HIST01, the historian with a leg in the plant network.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "backups",
+      "when": "t >= backupDelay and attackerInIt and not isNull(daAt) and isNull(backupIsoAt) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "backupsAt",
+          "to": "t"
+        },
+        {
+          "log": "Backup server: every restore point was deleted by vendor-acme.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "itEncrypt",
+      "when": "t >= encDelay and attackerInIt and isNull(microAt) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "itEncAt",
+          "to": "t"
+        },
+        {
+          "log": "EDR: mass encryption started on the IT file servers.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "hmis",
+      "when": "t >= hmiDelay and otActive and isNull(shutdownAt) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "hmiAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Plant: the line 2 and line 3 HMIs show a ransom note; operators lose their screens mid-run and stop the lines by hand. The plant manager takes over; write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: what you protected first and why, how you separated the plant without stopping it, and what the architecture must change.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Priorities",
+          "criteria": "Protects safety and the plant first (the IT-to-OT path), then the backups (recovery), then closes the entry and the stolen admin rights; mentions why a full shutdown is not the default when manual operation is rehearsed.",
+          "modelAnswer": "The plant and its people come first, so I closed the only path into the control network, then cut the backups off the domain so we could recover, then shut the VPN and reset the stolen admin rights. Islanding and manual running were rehearsed, so a full shutdown was not needed."
+        },
+        {
+          "label": "Segmentation",
+          "criteria": "Identifies the dual-homed historian as the flat path; closes it with a DMZ one-way flow or isolation; uses microsegmentation to stop east-west spread on IT.",
+          "modelAnswer": "HIST01 had a leg on both networks with RDP and SMB open from IT. Closing the conduit and sending historian data one way through the DMZ removed that bridge; the microsegmentation policy stopped server-to-server spread on IT."
+        },
+        {
+          "label": "Architecture change",
+          "criteria": "Proposes a DMZ between IT and OT with no dual-homed hosts, vendor access through a zero-trust broker with MFA per application, and an offline or isolated backup admin plane; keeps evidence of the entry point before resetting it.",
+          "modelAnswer": "No host should sit on both networks: data crosses through a DMZ. Vendors come in through the broker with MFA to named applications only, and the backup admin plane stays off the domain. I imaged the appliance before resetting it."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Set against the 29-minute average eCrime breakout time in CrowdStrike's 2026 Global Threat Report (see sources)."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-11",
+          "note": "Neither the plant network nor the backups touched after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and (attackerActive or credsLeft)",
+      "class": "harm",
+      "rationale": "Closing while the attacker can reach the plant or still holds Domain Admin rights is never a safe outcome.",
+      "source": {
+        "cite": "CISA, FBI, EPA and DOE, Primary Mitigations to Reduce Cyber Threats to Operational Technology (fact sheet, May 6, 2025)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.cisa.gov/sites/default/files/2025-05/fact-sheet-primary-mitigations-to-reduce-cyber-threats-to-operational-technology-508c.pdf",
+        "note": "Relevant text: remove OT connections to the public internet; change default passwords; secure remote access to OT networks (phishing-resistant MFA for VPN access, least privilege, disable dormant accounts); 'Segment IT and OT networks', 'introducing a demilitarized zone for passing control data to enterprise logistics'; 'Practice and maintain the ability to operate manually': 'The capability for organizations to revert to manual controls to quickly restore operations is vital'. Read through a summarizing fetch of the PDF on 2026-11-11."
+      }
+    }
+  },
+  "endings": {
+    "otHit": {
+      "label": "Plant screens encrypted mid-run",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(hmiAt)",
+      "narrative": "The attacker crossed into the plant through the dual-homed historian and encrypted the HMIs while the lines were running."
+    },
+    "backupsLost": {
+      "label": "Backups deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(backupsAt)",
+      "narrative": "With domain admin rights the attacker deleted every restore point before the backup server was cut off from the domain."
+    },
+    "evidenceLost": {
+      "label": "The entry point wiped before it was imaged",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and evidenceDestroyed",
+      "narrative": "The VPN appliance was factory-reset with nothing kept, so how vendor-acme was used, and whether the appliance itself was implanted, is gone."
+    },
+    "stillIn": {
+      "label": "Closed with the attacker still in",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and (attackerActive or credsLeft)",
+      "narrative": "The incident was closed while {attackerInIt ? \"the VPN session was still open\" : otActive ? \"the attacker still sat on the historian\" : \"the Domain Admin credentials they took still worked\"}."
+    },
+    "contained": {
+      "label": "Plant protected, backups kept, entry closed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not isNull(allOffAt) and timeAt(allOffAt) <= containWindow and spread <= containSpread and isNull(itEncAt) and isNull(shutdownAt) and not isNull(imagedAt) and not evidenceDestroyed",
+      "narrative": "You closed the bridge into the plant and the backups before the attacker got there, shut the entry point and the stolen admin rights, kept the plant running, and kept the evidence."
+    },
+    "containedCostly": {
+      "label": "Contained, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The attacker is out and the plant is safe, but the plant was shut down, IT servers were encrypted, or containment took too long."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "otHit",
+    "backupsLost",
+    "evidenceLost",
+    "stillIn",
+    "contained",
+    "containedCostly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "otSafe",
+        "label": "Closed the path into the plant before the attacker reached it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(otFootAt)",
+            "score": "met",
+            "why": "{not isNull(islandAt) ? \"The control network was islanded.\" : not isNull(conduitCutAt) ? \"The conduit was closed.\" : not isNull(histIsoAt) ? \"The historian was isolated.\" : \"The attacker never got that far.\"}"
+          },
+          {
+            "when": "not otActive",
+            "score": "partial",
+            "why": "The attacker reached the historian before it was cut off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The attacker still sits on the historian."
+          }
+        ]
+      },
+      {
+        "id": "backupsSafe",
+        "label": "Cut the backups off the domain before they were deleted",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(backupsAt)",
+            "score": "met",
+            "why": "Every restore point survives."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The restore points are gone."
+          }
+        ]
+      },
+      {
+        "id": "entryClosed",
+        "label": "Closed the way in and the stolen admin rights within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(allOffAt) and timeAt(allOffAt) <= containWindow",
+            "score": "met",
+            "why": "{timeAt(allOffAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(allOffAt)",
+            "score": "partial",
+            "why": "{timeAt(allOffAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{attackerInIt ? \"The VPN session is still open.\" : otActive ? \"The historian is still theirs.\" : \"The stolen admin rights still work.\"}"
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Imaged the VPN appliance and collected FILE02 before any reset",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(imagedAt) and not evidenceDestroyed",
+            "score": "met",
+            "why": "In the case file."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{evidenceDestroyed ? \"Reset with nothing kept.\" : \"Nothing collected.\"}"
+          }
+        ]
+      },
+      {
+        "id": "mapped",
+        "label": "Mapped the IT-to-OT paths",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(mappedAt)",
+            "score": "met",
+            "why": "The dual-homed historian was found."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The bridge was never looked for."
+          }
+        ]
+      },
+      {
+        "id": "keptRunning",
+        "label": "Kept the plant running safely instead of a full shutdown",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(shutdownAt) and isNull(hmiAt)",
+            "score": "met",
+            "why": "{not isNull(islandAt) ? \"Islanded and in manual.\" : \"Running throughout.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{not isNull(hmiAt) ? \"The lines stopped when the HMIs were encrypted.\" : \"Every line was shut down.\"}"
+          }
+        ]
+      },
+      {
+        "id": "itSpared",
+        "label": "Stopped the spread on the IT servers before encryption",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(itEncAt)",
+            "score": "met",
+            "why": "No IT server was encrypted."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "IT servers were encrypted."
+          }
+        ]
+      },
+      {
+        "id": "escalated",
+        "label": "Called the incident commander and plant manager within 15 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(escalatedAt) and timeAt(escalatedAt) <= escalateWindow",
+            "score": "met",
+            "why": "{timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(escalatedAt)",
+            "score": "partial",
+            "why": "{timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "notifiedCrit",
+        "label": "Notified executives, the plant manager, legal, the insurer and CISA",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified == \"full\"",
+            "score": "met",
+            "why": "Everyone with a stake knows."
+          },
+          {
+            "when": "notified == \"it\"",
+            "score": "partial",
+            "why": "IT leadership only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the root cause and the architecture change accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"vendorVpn\" and fixDoc == \"dmz\"",
+            "score": "met",
+            "why": "The record matches."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written priorities, segmentation and architecture",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToContain",
+        "label": "Minutes until the attacker had no way in",
+        "value": "isNull(allOffAt) ? -1 : timeAt(allOffAt) / 60",
+        "format": "number",
+        "expert": "30 or less"
+      },
+      {
+        "id": "otExposed",
+        "label": "Minutes until the plant was separated from IT",
+        "value": "isNull(conduitCutAt) and isNull(histIsoAt) and isNull(islandAt) ? -1 : min(isNull(conduitCutAt) ? 99999 : timeAt(conduitCutAt), min(isNull(histIsoAt) ? 99999 : timeAt(histIsoAt), isNull(islandAt) ? 99999 : timeAt(islandAt))) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "linesStopped",
+        "label": "Lines stopped",
+        "value": "not isNull(shutdownAt) ? 3 : not isNull(hmiAt) ? 2 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Call the incident commander and the plant manager; map the IT-to-OT paths: the dual-homed historian is the bridge."
+      },
+      {
+        "at": "10-20 min",
+        "text": "Close the conduit (historian data out through the DMZ only); cut the backup server's admin plane off the domain."
+      },
+      {
+        "at": "20-35 min",
+        "text": "Take the VPN offline and reset vendor-acme and every Domain Admin credential; enforce the microsegmentation policy."
+      },
+      {
+        "at": "35-60 min",
+        "text": "Image the appliance and collect FILE02 before any reset or rebuild."
+      },
+      {
+        "at": "After",
+        "text": "Notify executives, the plant manager, legal, the insurer and CISA; record the vendor VPN account and the DMZ change."
+      }
+    ],
+    "debrief": {
+      "contained": {
+        "headline": "Good: the bridge first",
+        "body": "At a plant, the first question is what can reach the control network. You found the dual-homed historian, closed it, saved the backups and kept the lines running."
+      },
+      "containedCostly": {
+        "headline": "Contained, at a cost",
+        "body": "The plant is safe. The criteria show what cost you: a full shutdown that manual running would have avoided, IT encryption, or time."
+      },
+      "otHit": {
+        "headline": "The plant was reached",
+        "body": "Work on IT alone left the historian bridging into the control network. Close the IT-to-OT path first (CISA: segment IT and OT, use a DMZ)."
+      },
+      "backupsLost": {
+        "headline": "Backups deleted",
+        "body": "A domain-joined backup server is managed by whoever holds Domain Admin. Cut its admin plane off before the attacker reaches it."
+      },
+      "evidenceLost": {
+        "headline": "Entry point wiped",
+        "body": "Image the appliance before resetting it; it holds how the account was used and whether the appliance itself is implanted."
+      },
+      "stillIn": {
+        "headline": "Closed too soon",
+        "body": "Shutting the VPN does not undo Domain Admin rights already taken, and a foothold on the historian survives losing the VPN."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "With an intruder in IT, the architecture question is what bridges into the plant: here, a historian with a leg on both networks. Close that path first (one-way through the DMZ, isolate the historian, or island the plant and run in manual, as rehearsed) rather than shutting the plant down, cut the backups' admin plane off the domain, take the VPN offline and reset the vendor and Domain Admin credentials, enforce microsegmentation on IT, and image the appliance before resetting it. Afterwards: a DMZ with no dual-homed hosts and vendor access through a zero-trust broker with MFA."
+  }
+}
