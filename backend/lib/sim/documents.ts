@@ -94,6 +94,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "med-pass-error-caught"),
   entry("AWSSAA", "nat-gateway-bill-spike"),
   // ---- end REQ-233 ----
+  // ---- REQ-237: terminal and network screen, Linux+ (LINUXPLUS), Network+
+  // (NETWORKPLUS) and CKA outages. Keep these entries together. ----
+  entry("LINUXPLUS", "full-var-stops-database"),
+  entry("LINUXPLUS", "selinux-denies-moved-site"),
+  // ---- end REQ-237 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
