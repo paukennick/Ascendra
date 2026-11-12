@@ -105,6 +105,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AWSDVA", "canary-rollback-dlq"),
   entry("AWSDVA", "phi-in-application-logs"),
   entry("AWSSOA", "stack-update-rollback-failed"),
+  entry("AWSSOA", "ec2-status-check-recovery"),
   // ---- end REQ-242 ----
 ];
 
