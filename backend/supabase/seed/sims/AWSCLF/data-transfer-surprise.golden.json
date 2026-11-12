@@ -1,0 +1,500 @@
+{
+  "slug": "data-transfer-surprise",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: Cost Explorer and the replication rules, the owner confirms, only the DR-test rule off, CloudFront for videos, budget alert",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "costExplorer",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "inQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "replRules",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "askOwner",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stopTestRepl",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "addCloudFront",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "budgets",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 11,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 12,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "investigate": "met",
+          "confirm": "met",
+          "backups": "met",
+          "azs": "met",
+          "alert": "met",
+          "inbound": "met"
+        },
+        "kpis": {
+          "cost": 865,
+          "avail": 100,
+          "changes": 2
+        },
+        "stateHash": "31f7ee2f7cc235d9"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "noAsk",
+      "title": "Finds the cause and turns the rule off without asking its owner",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "costExplorer",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "inQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "replRules",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stopTestRepl",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "budgets",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 9,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 10,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "investigate": "met",
+          "confirm": "partial",
+          "backups": "met",
+          "azs": "met",
+          "alert": "met",
+          "inbound": "met"
+        },
+        "kpis": {
+          "cost": 910,
+          "avail": 100,
+          "changes": 1
+        },
+        "stateHash": "8b7d448c2c6fd83d"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "cloudFrontOnly",
+      "title": "Adds CloudFront on a hunch, then investigates but never turns the rule off: still over budget",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "addCloudFront",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "costExplorer",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "inQ",
+          "choice": "wrong",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "replRules",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "askOwner",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 9,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 10,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 36,
+        "criteria": {
+          "investigate": "partial",
+          "confirm": "missed",
+          "backups": "met",
+          "azs": "met",
+          "alert": "missed",
+          "inbound": "missed"
+        },
+        "kpis": {
+          "cost": 1765,
+          "avail": 100,
+          "changes": 1
+        },
+        "stateHash": "6f6571dc26d4f154"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    },
+    {
+      "id": "oneAz",
+      "title": "Failure: fixes the replication, then squeezes out the cross-AZ charge; Wednesday's AZ impairment takes the site down",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "costExplorer",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "inQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "replRules",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "askOwner",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stopTestRepl",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oneAz",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 10,
+          "tick": 1440
+        }
+      ],
+      "expect": {
+        "ending": "outage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 64,
+        "criteria": {
+          "investigate": "met",
+          "confirm": "met",
+          "backups": "met",
+          "azs": "missed",
+          "alert": "missed",
+          "inbound": "met"
+        },
+        "kpis": {
+          "cost": 850,
+          "avail": 99.792,
+          "changes": 2
+        },
+        "stateHash": "91130304ca2844d2"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "stopAll",
+      "title": "Failure: reads 'Region to Region is expensive' and turns off all replication; Thursday's backups are lost",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "costExplorer",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "inQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stopAllRepl",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "budgets",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 8,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 9,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "dataLoss",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "investigate": "missed",
+          "confirm": "partial",
+          "backups": "missed",
+          "azs": "met",
+          "alert": "met",
+          "inbound": "met"
+        },
+        "kpis": {
+          "cost": 870,
+          "avail": 100,
+          "changes": 1
+        },
+        "stateHash": "7115b40a0ace5e88"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}
