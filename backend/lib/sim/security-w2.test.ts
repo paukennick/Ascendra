@@ -5,6 +5,7 @@
 // names only documentation addresses and domains (RFC 5737, RFC 2606).
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { ALL_DOCUMENTS, loadDocument } from "./documents.ts";
 import { applyCommand, createRun, readValue, validateScenario, waits } from "./engine/v1/index.ts";
 import type { Command, ScenarioDoc } from "./engine/v1/index.ts";
@@ -86,6 +87,15 @@ describe("REQ-238 security-console sims", () => {
       assert.ok(isPerformanceObjective(d.objective, "general"), d.objective);
       assert.ok(!seen.has(d.objective), "one sim per objective");
       seen.add(d.objective);
+    }
+  });
+
+  // FAIL-1462: a KPI on a rate-driven count printed 83.20000000000003 in the
+  // debrief; a KPI with format "number" is rounded by the document.
+  test("every KPI the goldens record is a whole number", () => {
+    for (const e of W2) {
+      const g = JSON.parse(readFileSync(e.golden!, "utf8")) as { paths: { id: string; expect: { kpis?: Record<string, unknown> } }[] };
+      for (const p of g.paths) for (const [k, v] of Object.entries(p.expect.kpis ?? {})) assert.ok(typeof v === "number" && Number.isInteger(v), `${e.slug}/${p.id}: ${k} = ${v}`);
     }
   });
 
