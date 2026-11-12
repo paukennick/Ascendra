@@ -98,6 +98,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // Developer and SysOps (CloudOps) board cases, learner-paced, set in
   // us-east-2. Keep these entries together. ----
   entry("AWSMLA", "fraud-model-drift"),
+  entry("AWSMLA", "endpoint-scaling-latency"),
   // ---- end REQ-242 ----
 ];
 
