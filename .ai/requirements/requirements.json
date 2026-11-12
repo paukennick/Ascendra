@@ -9105,6 +9105,66 @@
       "risk_notes": [
         "the launch-set upper bound (about 171.82 USD) is over the 110 USD cap and Console limit"
       ]
+    },
+    {
+      "id": "REQ-253",
+      "category": "feature",
+      "title": "Lesson primers: a Key terms button in every lesson",
+      "description": "Phase 1B of teaching learners at every level (design 2026-11-12, sections 4-5, Nick's decisions): one shared primer per objective (lesson_primers, migration 079: terms jsonb {term, plain, example, exam_wording}, source_lesson_hash, model, generated_at), written on first use from the finished shared lesson (intro and practice text) and the objective: every term a newcomer would not know, one plain sentence, an everyday example, the exam's wording, about 8 at most, none defined with an undefined term. Checked before saving: deterministic (every primer term in the lesson, every technical term covered: title-listed items and acronyms, docs/lesson-primers.md), a plain-language lint, the writer's doubt, the existing fact-check per definition, one steered retry then save or fail (generateValid's pattern). Stale when the lesson's hash changes: rewritten on next use. GET /api/objectives/:id/primer with the lesson route's access rules and the 18+ rule; shared content uses no plan allowance, its calls are charged to the learner's daily budget, it waits at the global ceiling, 30 starts an hour. Pre-generation primers mode (batch submit and collect, max_usd honored with an upper bound naming every call, insert-if-absent, problem-kind counts, no lesson text in logs). Mobile KeyTermsButton: a reusable sheet at every lesson step, 48 dp targets, screen-reader labels, offline from the cached primer, loading and error states, exported with initiallyOpen for the levels work.",
+      "priority": "medium",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/079_lesson_primers.sql",
+        "backend/lib/primers.ts",
+        "backend/lib/pregen-primers.ts",
+        "backend/lib/pregen.ts",
+        "backend/app/api/objectives/[id]/primer/route.ts",
+        "backend/lib/schema-status.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/lib/ai-spend-ledger.ts",
+        "backend/lib/item-quality.ts",
+        "backend/scripts/pregenerate.ts",
+        "backend/scripts/pregenerate-lib.ts",
+        ".github/workflows/pregenerate.yml",
+        "mobile/src/components/KeyTerms.tsx",
+        "mobile/src/lib/keyTerms.ts",
+        "mobile/src/lib/localData.ts",
+        "mobile/src/api/client.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "docs/lesson-primers.md",
+        "docs/operations-runbook.md",
+        "docs/deploy-runbook-integration.md",
+        "docs/legal/data-inventory.md"
+      ],
+      "acceptance_criteria": [
+        "lesson_primers one shared row per objective with RLS and app_runtime grants",
+        "primer written on first use from the shared lesson and stored",
+        "every primer term appears in the lesson and every technical term is covered",
+        "plain-language lint and fact-check per definition with one steered retry",
+        "stale primer rewritten when the lesson hash changes",
+        "GET /api/objectives/:id/primer applies the lesson route's visibility and 18+ rules",
+        "no plan allowance used and the global ceiling applies",
+        "pregen primers mode honors max_usd and saves insert-if-absent with counts-only logs",
+        "Key terms button at every lesson step with 48 dp target and screen-reader labels and offline copy"
+      ],
+      "validation_required": [
+        "backend/lib/primers.test.ts",
+        "backend/lib/primers.dbtest.ts",
+        "mobile/src/lib/keyTerms.test.ts",
+        "npm run test:db and as app_runtime",
+        "tsc",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/lesson-primers.md",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "visuals unverified (no browser)",
+        "real model output unverified (tests mock it)",
+        "a 10 USD cap covers about half of the 95 Python and JavaScript primers by the upper bound"
+      ]
     }
   ]
 }

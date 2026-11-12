@@ -179,6 +179,19 @@ describe("migration 079", () => {
     assert.deepEqual((await checkSchema((sql) => query<{ ok: boolean }>(sql), probes)).missing, []);
   });
 
+  test("FAIL-1720: 079 restates 067's item_holdbacks check under 067's name; both probes pass, and a replay of 067 keeps 'primer'", async () => {
+    const p067 = SCHEMA_PROBES.filter((p) => p.migration === "067_sim_item_kind.sql");
+    assert.equal(p067.length, 1);
+    assert.deepEqual((await checkSchema((sql) => query<{ ok: boolean }>(sql), p067)).missing, []);
+    assert.deepEqual((await checkSchema((sql) => query<{ ok: boolean }>(sql), SCHEMA_PROBES)).missing, [], "every probe passes with 079 applied");
+    // 067 replayed (as lib/sims.dbtest.ts does): 'primer' is still allowed.
+    const sql067 = readFileSync(join(__dirname, "..", "supabase", "migrations", "067_sim_item_kind.sql"), "utf8");
+    await ownerQuery(`begin; ${sql067}; commit;`);
+    await query(`insert into item_holdbacks (item_kind, objective_id, reason, claims, content) values ('primer', $1, 'uncertain', '[]', 'null')`, [ids.nolesson]);
+    await query(`delete from item_holdbacks where objective_id = $1`, [ids.nolesson]);
+    assert.deepEqual((await checkSchema((sql) => query<{ ok: boolean }>(sql), SCHEMA_PROBES)).missing, []);
+  });
+
   test("terms must be a 1-12 item array and the hash 64 hex characters", async () => {
     const id = ids.nolesson;
     const ins = (terms: string, hash: string) =>
@@ -220,7 +233,7 @@ describe("migration 079", () => {
     await query(`insert into item_holdbacks (item_kind, objective_id, reason, claims, content) values ('primer', $1, 'uncertain', '[]', 'null')`, [ids.nolesson]);
     await assert.rejects(query(`insert into item_holdbacks (item_kind, objective_id, reason, claims, content) values ('nonsense', $1, 'uncertain', '[]', 'null')`, [ids.nolesson]));
     const kinds = await ownerQuery<{ conname: string }>(`select conname from pg_constraint where conrelid = 'item_holdbacks'::regclass and pg_get_constraintdef(oid) like '%item_kind%'`);
-    assert.deepEqual(kinds.map((k) => k.conname), ["item_holdbacks_item_kind_079"]);
+    assert.deepEqual(kinds.map((k) => k.conname), ["item_holdbacks_item_kind_067"], "restated under 067's own name (FAIL-1720)");
     await query(`delete from item_holdbacks where objective_id = $1`, [ids.nolesson]);
   });
 
@@ -229,6 +242,8 @@ describe("migration 079", () => {
     await ownerQuery(`begin; ${sql}; commit;`.replace("set local lock_timeout", "set local lock_timeout"));
     const n = await ownerQuery<{ n: number }>(`select count(*)::int as n from pg_constraint where conname like 'lesson_primers_%_079'`);
     assert.equal(n[0].n, 2);
+    const hb = await ownerQuery<{ n: number }>(`select count(*)::int as n from pg_constraint where conrelid = 'item_holdbacks'::regclass and pg_get_constraintdef(oid) like '%item_kind%'`);
+    assert.equal(hb[0].n, 1);
   });
 });
 

@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { flattenSystem } from "./prompts";
 import { InvalidContentError } from "./content-validator";
 import { FactCheckUnavailableError, HeldForAccuracyError } from "./generation-gate";
-import type { CheckVerdict, FactChecker } from "./fact-check";
+import type { CheckItem, CheckVerdict, FactChecker } from "./fact-check";
 import {
   acronymsIn,
   appearsIn,
@@ -300,14 +300,14 @@ function writerOf(drafts: PrimerContent[]) {
 }
 
 function checker(answers: ("agree" | "disagree")[][]): FactChecker & { calls: number } {
-  const fn = (async (items) => {
+  const fn = (async (items: CheckItem[]) => {
     fn.calls++;
     const round = answers.shift() ?? [];
     return items.map((it, i): CheckVerdict => {
       const a = round[i] ?? "agree";
       return { key: it.key, publish: a === "agree", answer: a === "agree" ? [0] : [1], unsupportedClaims: [], outcome: a };
     });
-  }) as FactChecker & { calls: number };
+  }) as unknown as FactChecker & { calls: number };
   fn.calls = 0;
   return fn;
 }

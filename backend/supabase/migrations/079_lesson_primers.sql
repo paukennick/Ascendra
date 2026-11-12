@@ -24,9 +24,10 @@
 --
 -- 2. item_holdbacks may record item_kind 'primer': a primer the writer was
 --    unsure of, or whose definitions the fact-check disputed, is logged
---    there like every other generated item (REQ-114, REQ-216). The check is
---    restated with every value 067 allowed plus 'primer', added NOT VALID
---    and then validated, as 067 did.
+--    there like every other generated item (REQ-114, REQ-216). The check
+--    item_holdbacks_item_kind_067 is restated, under the same name, with
+--    every value 067 allowed plus 'primer', added NOT VALID and then
+--    validated, as 067 did.
 --
 -- INDEPENDENT of 078 (learner level per course, another branch): nothing here
 -- reads or writes its tables, so the two apply in either order.
@@ -45,8 +46,7 @@
 -- ROLLBACK (nothing learner-owned):
 --   drop table if exists lesson_primers;
 --   delete from item_holdbacks where item_kind = 'primer';
---   -- then restate item_holdbacks_item_kind_067 without 'primer' and drop
---   -- item_holdbacks_item_kind_079.
+--   -- then restate item_holdbacks_item_kind_067 without 'primer' (067's list).
 -- docs/deploy-runbook-integration.md lists it with the other down paths.
 --
 -- Safe to run twice: if not exists, guarded DO blocks.
@@ -89,22 +89,28 @@ begin
 end $$;
 
 -- 2. item_holdbacks: 'primer' ---------------------------------------------------
+-- FAIL-1720: restated under 067's own name, item_holdbacks_item_kind_067. A
+-- new name would leave 067's schema probe (lib/schema-status.ts) reporting 067
+-- as missing, and a replay of 067 (lib/sims.dbtest.ts does one) would drop the
+-- new check, since 067 drops every item_kind check but its own.
 
 do $$
 declare
   c text;
+  def text;
 begin
-  if not exists (select 1 from pg_constraint where conrelid = 'item_holdbacks'::regclass and conname = 'item_holdbacks_item_kind_079') then
-    alter table item_holdbacks add constraint item_holdbacks_item_kind_079 check (item_kind in
+  select pg_get_constraintdef(oid) into def from pg_constraint
+   where conrelid = 'item_holdbacks'::regclass and conname = 'item_holdbacks_item_kind_067';
+  if def is null or def not like '%''primer''%' then
+    for c in select conname from pg_constraint
+              where conrelid = 'item_holdbacks'::regclass and contype = 'c'
+                and pg_get_constraintdef(oid) like '%item_kind%' loop
+      execute format('alter table item_holdbacks drop constraint %I', c);
+    end loop;
+    alter table item_holdbacks add constraint item_holdbacks_item_kind_067 check (item_kind in
       ('lesson', 'lesson_intro', 'review', 'exam', 'quiz', 'comparison', 'pbq', 'unit_check', 'lab', 'sim', 'primer')) not valid;
+    alter table item_holdbacks validate constraint item_holdbacks_item_kind_067;
   end if;
-  -- Every older item_kind check on item_holdbacks (067's) goes; 079's stays.
-  for c in select conname from pg_constraint
-            where conrelid = 'item_holdbacks'::regclass and contype = 'c' and conname <> 'item_holdbacks_item_kind_079'
-              and pg_get_constraintdef(oid) like '%item_kind%' loop
-    execute format('alter table item_holdbacks drop constraint %I', c);
-  end loop;
-  alter table item_holdbacks validate constraint item_holdbacks_item_kind_079;
 end $$;
 
 -- REQ-207: grant the least-privilege runtime role what it needs on the new

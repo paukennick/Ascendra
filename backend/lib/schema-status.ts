@@ -452,7 +452,8 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     migration: "079_lesson_primers.sql",
     what: "lesson_primers (Key terms in a lesson) and item_kind 'primer' on item_holdbacks",
     sql: `select to_regclass('public.lesson_primers') is not null
-             and exists(select 1 from pg_constraint where conname = 'item_holdbacks_item_kind_079') as ok`,
+             and exists(select 1 from pg_constraint where conname = 'item_holdbacks_item_kind_067'
+                         and pg_get_constraintdef(oid) like '%''primer''%') as ok`,
   },
   {
     // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
