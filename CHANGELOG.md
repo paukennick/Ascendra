@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- (internal) Pre-generation: collect now reports which content-check problems failed lessons, as message kinds with quoted text and numbers removed (summary `problemKinds`, plus one log line), so a high failure rate can be diagnosed from the public log without lesson text. The 2026-11-12 trial failed 21 of 25 practice halves on the content check with no way to see why.
+- REQ-247 (internal): Pre-generation collect now reports which content-check problems failed lessons, as message kinds with quoted text and numbers removed (summary `problemKinds`, plus one log line), so a high failure rate can be diagnosed from the public log without lesson text. The 2026-11-12 trial failed 21 of 25 practice halves on the content check with no way to see why.
 
 - (internal) What's new note 2026-11-12-c covering REQ-243, REQ-244, REQ-245 and REQ-246. No What's new: this is that note.
 
