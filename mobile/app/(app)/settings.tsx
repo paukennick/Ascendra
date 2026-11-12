@@ -112,10 +112,16 @@ export default function Settings() {
         </>
       ) : null}
 
-      {/* REQ-119 (M7): opt-in, kind study reminders. */}
       <SectionHeader label="Study" />
       <Card style={{ gap: 0 }}>
         <ListRow icon="target" label="Study profile" value="Your goal, exams and study time" onPress={() => router.push("/settings/study-profile")} />
+      </Card>
+
+      {/* REQ-243 (Nick, 2026-11-11): every kind of notification lives in one
+          Notifications section. Add a new channel (SMS, push) here as a row. */}
+      <SectionHeader label="Notifications" />
+      <Card style={{ gap: 0 }}>
+        {/* REQ-119 (M7): opt-in, kind study reminders. */}
         <ListRow icon="bell" label="Study reminders" value={reminderRowValue(reminders, remindersSupported)} onPress={() => router.push("/settings/reminders")} />
         <Divider />
         {/* REQ-197: exam change notices, exam countdown, weekly digest. */}
