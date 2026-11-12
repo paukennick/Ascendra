@@ -1,0 +1,1338 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "infant-respiratory-failure",
+  "title": "A baby too tired to breathe",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hrNow",
+          "unit": "/min",
+          "alarm": {
+            "low": 80
+          },
+          "announce": {
+            "bands": [
+              100,
+              80,
+              60
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "monitorOn"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Breaths per minute you count (or give)",
+          "value": "rrNow",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              60,
+              30,
+              15
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "monitorOn"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2Now",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90,
+              85,
+              75
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "monitorOn"
+        },
+        {
+          "id": "etco2",
+          "label": "EtCO2",
+          "spokenLabel": "End-tidal carbon dioxide",
+          "value": "etco2",
+          "unit": "mmHg",
+          "alarm": {
+            "high": 55
+          },
+          "announce": {
+            "bands": [
+              45,
+              55,
+              65
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "monitorOn"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hrNow"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hrNow"
+          }
+        }
+      ],
+      "infusions": "Oxygen: {o2Word}. Suctioned: {suctioned|yesno}. BVM: {bvmWord}. Nebulized epinephrine: {epiNeb|yesno}.",
+      "banner": [
+        {
+          "when": "apneic and not bvmOn",
+          "text": "She has stopped breathing."
+        },
+        {
+          "when": "attempting",
+          "text": "Laryngoscope in: no ventilation during the attempt."
+        },
+        {
+          "when": "compressing",
+          "text": "Chest compressions, 15:2 with your partner."
+        }
+      ]
+    }
+  },
+  "objective": "Assess and manage respiratory distress in infants and children, including croup and bronchiolitis",
+  "secondaryObjectives": [
+    "Apply the clinical judgment steps to a child in respiratory distress",
+    "Recognize and manage pediatric cardiac arrest and bradycardia with poor perfusion"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. Paramedic Examination Specifications (test plan)",
+      "checkedAt": "2026-11-09",
+      "url": "https://www.nremt.org/getmedia/1f27af23-e889-4edc-8041-55d1854d66ed/Paramedic-Test-Plan_1July2024",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-fetched for this scenario. Airway, Respiration & Ventilation 8-12% of items (respiratory distress in infants and children, least invasive airway that works); Clinical Judgment 34-38% (recognize and analyze cues, evaluate the response)."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Pediatric Respiratory Distress (Bronchiolitis)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Under 2 years with rhinorrhea, cough, wheeze or crackles and distress. Pulse oximetry and EtCO2; suction nose and mouth (infants are obligate nose breathers); oxygen escalated to SpO2 94-98%; nebulized epinephrine 5 mg (5 mL of 1 mg/mL) for severe distress if suction and oxygen fail; HFNC or CPAP when available; bag-valve-mask ventilation for respiratory failure or impending failure; supraglottic devices and intubation only if BVM fails, the airway managed in the least invasive way possible; albuterol and steroids not routinely, no ipratropium or nebulized hypertonic saline; frequent reassessment."
+    },
+    {
+      "cite": "Lasa JJ, et al. Part 8: Pediatric Advanced Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S479-S537. doi:10.1161/CIR.0000000000001368",
+      "checkedAt": "2026-11-11",
+      "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+      "note": "Read 2026-11-11 on cpr.heart.org (primary text, in two parts): out of hospital it is reasonable to use bag-mask ventilation rather than an advanced airway (COR 2a); with an advanced airway during CPR 20-30 breaths/min, hyperventilation may compromise hemodynamics; start CPR for a heart rate below 60/min with cardiopulmonary compromise despite effective ventilation with oxygen."
+    },
+    {
+      "cite": "AHA/AAP. Part 6: Pediatric Basic Life Support: 2025 AHA Guidelines for CPR and ECC. doi:10.1161/CIR.0000000000001370",
+      "checkedAt": "2026-11-09",
+      "url": "https://doi.org/10.1161/CIR.0000000000001370",
+      "note": "Rescue breathing for an infant or child with a pulse: 1 breath every 2-3 s (20-30/min). Relayed from the course's source record (backend/supabase/seed/labs/ems-sources.ts, read on cpr.heart.org 2026-11-09); not re-read for this scenario."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019 (DOT HS 812 666), with Change Notices 1.0 and 2.0 (2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://ldh.la.gov/assets/oph/ems/2025/EMSEducation/National_EMS_Scope_of_Practice_Model_2019.pdf",
+      "note": "Read 2026-11-11 in a text extraction of the Louisiana copy (the extractor did not keep every table column, so placement was checked against the course's own reading of 2026-11-09 in ems-sources.ts). EMR: CPR and AED, tourniquet and wound packing, naloxone, oral airway, BVM, oxygen; no pulse oximetry, glucose monitoring, epinephrine auto-injector or transport. EMT adds pulse oximetry, glucose monitoring, epinephrine auto-injector, aspirin, oral glucose, CPAP, 12-lead acquisition (not interpretation), transport. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways and a limited list of IV and IM medications including dextrose and glucagon. Paramedic adds 12-lead interpretation, manual defibrillation, intubation and the wider formulary. No newer model was found 2026-11-11 (EMS.gov's page was unavailable; the only other 'update' found is the 2017 change notice adding tourniquets, wound packing and naloxone to EMR and EMT)."
+    }
+  ],
+  "brief": {
+    "situation": "02:40. You are the paramedic on an ALS ambulance with an EMT partner. Ava, 7 months, about 8 kg, has had a cold for three days; tonight she stopped feeding and her parents say she 'breathes funny'. She lies in her mother's arms, pale, eyes half closed.",
+    "handover": [
+      "Ex-premature at 34 weeks; no other illness. The children's hospital is 18 minutes away.",
+      "Your kit: suction (bulb and catheter), oxygen with infant masks, infant BVM and masks, nebulizer, monitor with capnography, airway roll including infant laryngoscope, tubes and supraglottic airways. No CPAP or high-flow on this unit.",
+      "Your partner can ventilate, compress or drive, one at a time."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Watch the trend, not one number: a breathing rate that falls in a tiring infant is not improvement.",
+      "Partway through you are asked to explain your reasoning in writing. The case ends at the children's hospital, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "02:40",
+    "tick": "1s",
+    "maxDuration": "45min",
+    "calendar": "clock"
+  },
+  "params": {
+    "tireRate": {
+      "value": 0.024,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Untreated she tires from impending to frank respiratory failure (apnea) in about 6 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "suctionRelief": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Clearing the nose halves the work of breathing for an obligate nose breather. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "epiRelief": {
+      "value": 0.7,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Nebulized epinephrine eases the work of breathing by about 30% while it acts. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bvmRest": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Effective BVM support lets her rest: fatigue falls about 0.03 per minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "desatRate": {
+      "value": 0.6,
+      "unit": "%/s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. An apneic infant desaturates about 0.6% per second. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bradyRate": {
+      "value": 1.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Below an SpO2 of 70% her heart rate falls about 1.5 beats/min each second; it recovers at 3 per second once oxygenated. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "arrestHr": {
+      "value": 50,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Below 50/min with this hypoxia she is pulseless in this case. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "cprHr": {
+      "value": 60,
+      "unit": "/min",
+      "source": {
+        "cite": "Lasa JJ, et al. Part 8: Pediatric Advanced Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S479-S537. doi:10.1161/CIR.0000000000001368",
+        "checkedAt": "2026-11-11",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+        "note": "Read 2026-11-11 on cpr.heart.org (primary text, in two parts): out of hospital it is reasonable to use bag-mask ventilation rather than an advanced airway (COR 2a); with an advanced airway during CPR 20-30 breaths/min, hyperventilation may compromise hemodynamics; start CPR for a heart rate below 60/min with cardiopulmonary compromise despite effective ventilation with oxygen."
+      }
+    },
+    "tubeTime": {
+      "value": 40,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "An infant intubation attempt: about 40 s without ventilation."
+      }
+    },
+    "nebTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A nebulizer runs about 5 minutes."
+      }
+    },
+    "loadTime": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Out to the ambulance in a parent's arms or the car seat restraint: about 2 min."
+      }
+    },
+    "driveTime": {
+      "value": 1080,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "To the children's hospital: about 18 min (authored)."
+      }
+    },
+    "apneaGrace": {
+      "value": 20,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. BVM within 20 s of apnea counts as recognizing failure in time; the guidance says to ventilate for impending failure, before apnea. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "fatigue": {
+      "type": "number",
+      "init": 0.85,
+      "min": 0,
+      "max": 1.2
+    },
+    "spo2": {
+      "type": "number",
+      "init": 82,
+      "min": 30,
+      "max": 100,
+      "unit": "%"
+    },
+    "hr": {
+      "type": "number",
+      "init": 172,
+      "min": 20,
+      "max": 220
+    },
+    "hrMin": {
+      "type": "number",
+      "init": 172,
+      "min": 20,
+      "max": 220
+    },
+    "fastSecs": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3600,
+      "unit": "s"
+    },
+    "o2": {
+      "type": "enum",
+      "values": [
+        "none",
+        "blow-by",
+        "non-rebreather"
+      ],
+      "init": "none"
+    },
+    "bvmRate": {
+      "type": "enum",
+      "values": [
+        "none",
+        "slow",
+        "right",
+        "fast"
+      ],
+      "init": "none"
+    },
+    "monitorOn": {
+      "type": "bool",
+      "init": false
+    },
+    "suctioned": {
+      "type": "bool",
+      "init": false
+    },
+    "epiNeb": {
+      "type": "bool",
+      "init": false
+    },
+    "nebRunning": {
+      "type": "bool",
+      "init": false
+    },
+    "attempting": {
+      "type": "bool",
+      "init": false
+    },
+    "tubeTried": {
+      "type": "bool",
+      "init": false
+    },
+    "albuterol": {
+      "type": "bool",
+      "init": false
+    },
+    "compressing": {
+      "type": "bool",
+      "init": false
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "distended": {
+      "type": "bool",
+      "init": false
+    },
+    "steroid": {
+      "type": "bool",
+      "init": false
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "apneaAt": {
+      "type": "time",
+      "init": null
+    },
+    "bvmAt": {
+      "type": "time",
+      "init": null
+    },
+    "rightAt": {
+      "type": "time",
+      "init": null
+    },
+    "bradyAt": {
+      "type": "time",
+      "init": null
+    },
+    "cprAt": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "suctionAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "bvmOn": {
+      "expr": "bvmRate != \"none\" and not attempting"
+    },
+    "apneic": {
+      "expr": "fatigue >= 1"
+    },
+    "work": {
+      "expr": "tireRate * (suctioned ? suctionRelief : 1) * (nebRunning or epiNeb ? epiRelief : 1)",
+      "unit": "/min"
+    },
+    "spo2Target": {
+      "expr": "attempting ? 30 : (bvmOn ? (bvmRate == \"right\" ? (distended ? 90 : 97) : (bvmRate == \"slow\" ? 86 : 90)) : (apneic ? 30 : (o2 == \"non-rebreather\" ? 92 : (o2 == \"blow-by\" ? 88 : 82)) + (suctioned ? 4 : 0) - 30 * max(0, fatigue - 0.85)))"
+    },
+    "hrNow": {
+      "expr": "round(hr)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2Now": {
+      "expr": "round(spo2)",
+      "unit": "%",
+      "precision": 0
+    },
+    "rrNow": {
+      "expr": "bvmOn ? (bvmRate == \"right\" ? 25 : (bvmRate == \"slow\" ? 12 : 50)) : (apneic ? 0 : round(70 - 160 * max(0, fatigue - 0.75)))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "etco2": {
+      "expr": "bvmOn ? (bvmRate == \"right\" ? 42 : (bvmRate == \"slow\" ? 62 : 28)) : (apneic ? 0 : round(50 + 60 * max(0, fatigue - 0.8)))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "o2Word": {
+      "expr": "o2 == \"none\" ? \"room air\" : o2"
+    },
+    "bvmWord": {
+      "expr": "bvmRate == \"none\" ? \"not in use\" : (bvmRate == \"right\" ? \"25 breaths/min, oxygen\" : (bvmRate == \"slow\" ? \"12 breaths/min\" : \"about 50 breaths/min\"))"
+    }
+  },
+  "processes": [
+    {
+      "id": "breathing",
+      "when": "isNull(arrivedAt)",
+      "update": {
+        "fatigue": "clamp(bvmOn and bvmRate != \"slow\" ? fatigue - bvmRest * dt / 60 : fatigue + work * dt / 60, 0.5, 1.2)",
+        "spo2": "spo2 < spo2Target ? min(spo2Target, spo2 + 0.5 * dt) : max(spo2Target, spo2 - desatRate * dt)",
+        "hr": "compressing and bvmOn ? max(hr, 70) : (spo2 < 70 ? max(20, hr - bradyRate * dt) : min(165, hr + 3 * dt))",
+        "hrMin": "min(hrMin, hr)",
+        "fastSecs": "fastSecs + (bvmRate == \"fast\" and not attempting ? dt : 0)"
+      }
+    }
+  ],
+  "phases": {
+    "call": {
+      "label": "On the call",
+      "clock": "running",
+      "actions": [
+        "look",
+        "monitor",
+        "suction",
+        "blowBy",
+        "nrb",
+        "nebEpi",
+        "albuterol",
+        "dexamethasone",
+        "bvm",
+        "intubate",
+        "cpr",
+        "stopCpr",
+        "transport",
+        "notify"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "look": {
+      "label": "Pediatric assessment triangle and primary assessment",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "apneic",
+              "then": [
+                {
+                  "log": "Limp, grey, not breathing.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "fatigue >= 0.9",
+              "then": [
+                {
+                  "log": "Barely rousable, floppy. Shallow breaths, slower now, head bobbing, grunting; nostrils crusted with mucus. Cool, mottled feet. Her breathing is slowing because she is exhausted.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Appearance: listless, weak cry, does not track. Breathing: fast, grunting, nasal flaring, deep chest retractions, nostrils blocked with thick mucus; crackles and wheeze. Circulation: pale, capillary refill 3 s.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "monitor": {
+      "label": "Monitor: pulse oximetry, nasal capnography, ECG",
+      "group": "Assess",
+      "available": "not monitorOn",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "monitorOn",
+          "to": "true"
+        },
+        {
+          "log": "Monitor on."
+        }
+      ]
+    },
+    "suction": {
+      "label": "Suction the nose and mouth",
+      "group": "Airway",
+      "available": "not suctioned",
+      "why": "Done; repeat as needed by the parent with the bulb.",
+      "effects": [
+        {
+          "set": "suctioned",
+          "to": "true"
+        },
+        {
+          "if": "isNull(suctionAt)",
+          "then": [
+            {
+              "set": "suctionAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Thick mucus suctioned from both nostrils; the grunting eases a little.",
+          "kind": "good"
+        }
+      ]
+    },
+    "blowBy": {
+      "label": "Blow-by oxygen held by her mother",
+      "group": "Airway",
+      "available": "o2 == \"none\"",
+      "why": "Oxygen already on.",
+      "effects": [
+        {
+          "set": "o2",
+          "to": "\"blow-by\""
+        },
+        {
+          "log": "Blow-by oxygen at 10 L/min."
+        }
+      ]
+    },
+    "nrb": {
+      "label": "Infant non-rebreather mask",
+      "group": "Airway",
+      "available": "o2 != \"non-rebreather\"",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "o2",
+          "to": "\"non-rebreather\""
+        },
+        {
+          "log": "Infant non-rebreather at 10 L/min."
+        }
+      ]
+    },
+    "nebEpi": {
+      "label": "Nebulized epinephrine 5 mg (5 mL of 1 mg/mL)",
+      "group": "Medications",
+      "available": "not epiNeb and not nebRunning and not bvmOn",
+      "why": "Given or running, or she is being ventilated.",
+      "effects": [
+        {
+          "set": "nebRunning",
+          "to": "true"
+        },
+        {
+          "schedule": "nebT",
+          "after": "nebTime"
+        },
+        {
+          "log": "Nebulized epinephrine running through the infant mask (about 5 min)."
+        }
+      ]
+    },
+    "albuterol": {
+      "label": "Albuterol nebulizer for the wheeze",
+      "group": "Medications",
+      "available": "not albuterol",
+      "why": "Given.",
+      "effects": [
+        {
+          "set": "albuterol",
+          "to": "true"
+        },
+        {
+          "log": "No change. In bronchiolitis albuterol is not recommended routinely.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "dexamethasone": {
+      "label": "Dexamethasone 0.6 mg/kg",
+      "group": "Medications",
+      "available": "not steroid",
+      "why": "Given.",
+      "effects": [
+        {
+          "set": "steroid",
+          "to": "true"
+        },
+        {
+          "log": "Given. Steroids do not help bronchiolitis.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "bvm": {
+      "label": "Bag-valve-mask ventilation with oxygen",
+      "group": "Airway",
+      "params": [
+        {
+          "id": "rate",
+          "kind": "choice",
+          "label": "Rate",
+          "options": [
+            {
+              "value": "right",
+              "label": "1 breath every 2-3 s (20-30/min), just enough to see the chest rise"
+            },
+            {
+              "value": "slow",
+              "label": "1 breath every 5-6 s (10-12/min), the adult rate"
+            },
+            {
+              "value": "fast",
+              "label": "As fast as you can squeeze, to get her saturation up"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "bvmRate",
+          "to": "rate"
+        },
+        {
+          "if": "isNull(bvmAt)",
+          "then": [
+            {
+              "set": "bvmAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "rate == \"right\"",
+          "then": [
+            {
+              "if": "isNull(rightAt)",
+              "then": [
+                {
+                  "set": "rightAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "nebRunning",
+          "to": "false"
+        },
+        {
+          "log": "Infant mask sealed with an E-C grip, oxygen at 15 L/min, ventilating {rate == \"right\" ? \"about 25 a minute\" : (rate == \"slow\" ? \"about 12 a minute\" : \"as fast as you can\")}."
+        }
+      ]
+    },
+    "intubate": {
+      "label": "Intubate now",
+      "group": "Airway",
+      "available": "not tubeTried",
+      "why": "One attempt only.",
+      "effects": [
+        {
+          "set": "attempting",
+          "to": "true"
+        },
+        {
+          "set": "tubeTried",
+          "to": "true"
+        },
+        {
+          "schedule": "tubeT",
+          "after": "tubeTime"
+        },
+        {
+          "log": "Laryngoscope in. No ventilation during the attempt.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "cpr": {
+      "label": "Heart rate below 60 with poor perfusion: compressions 15:2",
+      "group": "Resuscitation",
+      "available": "hr < cprHr and not compressing",
+      "why": "Only for a heart rate below 60 with poor perfusion despite ventilation.",
+      "effects": [
+        {
+          "set": "compressing",
+          "to": "true"
+        },
+        {
+          "if": "isNull(cprAt)",
+          "then": [
+            {
+              "set": "cprAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Two-thumb encircling compressions, 15:2 with your partner ventilating."
+        }
+      ]
+    },
+    "stopCpr": {
+      "label": "Heart rate back above 60: stop compressions, keep ventilating",
+      "group": "Resuscitation",
+      "available": "compressing and spo2 >= 85",
+      "why": "Only once oxygenation has recovered.",
+      "effects": [
+        {
+          "set": "compressing",
+          "to": "false"
+        },
+        {
+          "log": "Compressions stopped; heart rate {hrNow}. Ventilation continues."
+        }
+      ]
+    },
+    "transport": {
+      "label": "Load and go to the children's hospital",
+      "group": "Transport",
+      "available": "isNull(departAt)",
+      "why": "Already on the way.",
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "arriveT",
+          "after": "loadTime + driveTime"
+        },
+        {
+          "log": "Loading (about 2 min), then 18 minutes. Care continues in the ambulance."
+        }
+      ]
+    },
+    "notify": {
+      "label": "Radio the children's hospital",
+      "group": "Transport",
+      "available": "not isNull(departAt) and not notified",
+      "why": "Once moving.",
+      "effects": [
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "log": "Report: 7-month-old, bronchiolitis with respiratory failure, BVM ventilation, SpO2 {spo2Now}%, HR {hrNow}, ETA."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "nebT": {
+      "label": "the nebulizer",
+      "wait": {
+        "skipLabel": "the end of the nebulizer (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 5 min."
+      },
+      "effects": [
+        {
+          "set": "nebRunning",
+          "to": "false"
+        },
+        {
+          "set": "epiNeb",
+          "to": "true"
+        },
+        {
+          "log": "Nebulizer finished."
+        }
+      ]
+    },
+    "tubeT": {
+      "label": "the intubation attempt",
+      "wait": {
+        "skipLabel": "the end of the attempt (about 40 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 40 s."
+      },
+      "effects": [
+        {
+          "set": "attempting",
+          "to": "false"
+        },
+        {
+          "log": "Grade 4 view, swollen, secretions everywhere: no tube. Back to the mask; her heart rate has dropped.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival at the children's hospital"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Load and drive."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the children's hospital; the team is waiting.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "apnea",
+      "when": "apneic and not bvmOn",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(apneaAt)",
+          "then": [
+            {
+              "set": "apneaAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "She has stopped breathing.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "brady",
+      "when": "hr < cprHr",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(bradyAt)",
+          "then": [
+            {
+              "set": "bradyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Heart rate below 60, pale and mottled.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "belly",
+      "when": "fastSecs >= 60 and not distended",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "distended",
+          "to": "true"
+        },
+        {
+          "log": "Her belly is tight and distended: air in the stomach, pushing on the diaphragm.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "slowing",
+      "when": "fatigue >= 0.92 and not bvmOn",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Her breathing is slowing and she no longer cries when touched.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(bvmAt) or t >= 300",
+      "question": "What told you she was failing rather than improving, and why the bag-valve mask rather than a tube?",
+      "parts": [
+        {
+          "label": "Recognize and analyze cues",
+          "criteria": "Listless, weak cry, grunting, retractions, head bobbing, then a breathing rate that slows with falling consciousness and a rising EtCO2: exhaustion and impending respiratory failure, not improvement. Suction (obligate nose breather) and oxygen first; nebulized epinephrine if they fail; albuterol and steroids do not help bronchiolitis.",
+          "modelAnswer": "She was listless with grunting, retractions and head bobbing, and then her breathing slowed while she got harder to rouse and her EtCO2 climbed: she was tiring out, heading into respiratory failure. Suction her nose, oxygen, nebulized epinephrine if that fails; albuterol and steroids won't help."
+        },
+        {
+          "label": "Take action and evaluate",
+          "criteria": "Start BVM ventilation for impending failure, 1 breath every 2-3 s with just enough volume to see the chest rise, and reassess SpO2, EtCO2 and heart rate; avoid fast bagging (gastric distension); intubate or place an SGA only if BVM fails; compressions for HR below 60 with poor perfusion despite effective ventilation.",
+          "modelAnswer": "Bag her at 20-30 a minute, just enough to see the chest rise, and watch SpO2, EtCO2 and the heart rate respond. Bagging fast fills her stomach. The mask was working, so no tube: an infant intubation attempt means no oxygen while you try. If her heart rate stays under 60 with poor perfusion despite good ventilation, start compressions."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(arrivedAt) and spo2 < 90",
+      "class": "recovered",
+      "rationale": "She reaches the children's hospital alive but still poorly oxygenated: the support was late or ineffective. This case calls it recovered.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Pediatric Respiratory Distress (Bronchiolitis)",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Under 2 years with rhinorrhea, cough, wheeze or crackles and distress. Pulse oximetry and EtCO2; suction nose and mouth (infants are obligate nose breathers); oxygen escalated to SpO2 94-98%; nebulized epinephrine 5 mg (5 mL of 1 mg/mL) for severe distress if suction and oxygen fail; HFNC or CPAP when available; bag-valve-mask ventilation for respiratory failure or impending failure; supraglottic devices and intubation only if BVM fails, the airway managed in the least invasive way possible; albuterol and steroids not routinely, no ipratropium or nebulized hypertonic saline; frequent reassessment."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Hypoxic arrest",
+      "class": "harm",
+      "terminal": true,
+      "when": "hr < arrestHr",
+      "narrative": "{t|clock}: heart rate {hrNow}, no palpable pulse. Hypoxic cardiac arrest in an infant has a poor outcome."
+    },
+    "ventilated": {
+      "label": "Arrived ventilated and oxygenated",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and spo2 >= 90 and bvmRate == \"right\" and not tubeTried and not distended and not isNull(rightAt) and isNull(apneaAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: Ava arrives pink on BVM ventilation at 25 a minute, SpO2 {spo2Now}%, HR {hrNow}, EtCO2 {etco2}."
+    },
+    "arrivedGaps": {
+      "label": "Arrived, by a harder route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: Ava reaches the children's hospital, SpO2 {spo2Now}%, HR {hrNow}. The route cost oxygen: late or ineffective ventilation, a failed tube, or a full stomach."
+    },
+    "time_up": {
+      "label": "45 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Forty-five minutes passed."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "ventilated",
+    "arrivedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "recognize",
+        "label": "Ventilated for impending failure, before (or within 20 s of) apnea",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(bvmAt)",
+            "score": "missed",
+            "why": "Never ventilated."
+          },
+          {
+            "when": "isNull(apneaAt)",
+            "score": "met",
+            "why": "BVM at {timeAt(bvmAt)|clock}, before she stopped breathing."
+          },
+          {
+            "when": "timeAt(bvmAt) <= timeAt(apneaAt) + apneaGrace",
+            "score": "partial",
+            "why": "BVM only as she stopped breathing."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "BVM {timeAt(bvmAt) - timeAt(apneaAt)} s after apnea."
+          }
+        ]
+      },
+      {
+        "id": "rate",
+        "label": "BVM at 20-30/min, just enough to see the chest rise",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(bvmAt)",
+            "score": "missed",
+            "why": "No ventilation."
+          },
+          {
+            "when": "bvmRate == \"right\" and not distended",
+            "score": "met",
+            "why": "About 25 a minute."
+          },
+          {
+            "when": "distended",
+            "score": "missed",
+            "why": "Bagged too fast: the stomach filled with air."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "An adult rate of 12 a minute is too slow for an infant."
+          }
+        ]
+      },
+      {
+        "id": "leastInvasive",
+        "label": "No intubation attempt while the mask worked",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "tubeTried",
+            "score": "missed",
+            "why": "An intubation attempt without ventilation, while BVM was an option."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "The least invasive airway that worked."
+          }
+        ]
+      },
+      {
+        "id": "first",
+        "label": "Suction and oxygen first",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(suctionAt) and timeAt(suctionAt) <= 120 and o2 != \"none\"",
+            "score": "met",
+            "why": "Suctioned and oxygen started early."
+          },
+          {
+            "when": "suctioned or o2 != \"none\"",
+            "score": "partial",
+            "why": "Only one of suction and oxygen early."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "noHarmDrugs",
+        "label": "No albuterol or steroids for bronchiolitis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "albuterol or steroid",
+            "score": "missed",
+            "why": "Albuterol or a steroid given."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Only treatments that help."
+          }
+        ]
+      },
+      {
+        "id": "brady",
+        "label": "Compressions for a heart rate below 60 with poor perfusion",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(bradyAt)",
+            "score": "na",
+            "why": "Her heart rate never fell below 60."
+          },
+          {
+            "when": "not isNull(cprAt) and timeAt(cprAt) <= timeAt(bradyAt) + 30",
+            "score": "met",
+            "why": "Compressions within 30 s."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No compressions for a heart rate below 60."
+          }
+        ]
+      },
+      {
+        "id": "notify",
+        "label": "Hospital notified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified",
+            "score": "met",
+            "why": "Notified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No notification."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: recognizing failure and choosing BVM",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toBvm",
+        "label": "Contact to BVM ventilation",
+        "value": "isNull(bvmAt) ? -1 : timeAt(bvmAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "lowHr",
+        "label": "Lowest heart rate",
+        "value": "round(hrMin)",
+        "format": "number",
+        "expert": "above 100"
+      },
+      {
+        "id": "sceneK",
+        "label": "Scene time",
+        "value": "isNull(departAt) ? -1 : timeAt(departAt) + loadTime",
+        "format": "duration",
+        "expert": "under 10 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "02:40",
+        "text": "Assessment triangle: listless, grunting, retractions, pale. Monitor: SpO2 82%, EtCO2 high. Suction both nostrils; non-rebreather."
+      },
+      {
+        "at": "02:41",
+        "text": "Still listless and breathing slowing as she tires: impending respiratory failure. BVM with oxygen at 1 breath every 2-3 s, just enough chest rise."
+      },
+      {
+        "at": "02:42",
+        "text": "Reassess: SpO2 climbing, EtCO2 falling, HR steady. No tube while the mask works. Load and go."
+      },
+      {
+        "at": "~02:45",
+        "text": "Radio the children's hospital. Keep ventilating and reassessing all the way."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "Hypoxic arrest",
+        "body": "Infants arrest from respiratory failure. A slowing breathing rate in a tiring, listless infant means failure; ventilate before she stops, and never stop ventilating for a tube attempt."
+      },
+      "ventilated": {
+        "headline": "Arrived ventilated and pink",
+        "body": "Suction, oxygen, recognizing exhaustion, and a well-sealed mask at 20-30 a minute: the least invasive airway that worked. That is the expert path."
+      },
+      "arrivedGaps": {
+        "headline": "Arrived, with gaps",
+        "body": "Look at when ventilation started relative to apnea, the rate you bagged at, and whether a tube attempt cost oxygen."
+      },
+      "time_up": {
+        "headline": "No hospital",
+        "body": "Forty-five minutes passed."
+      }
+    },
+    "modelReasoning": "A 7-month-old with three days of cold symptoms, now listless with grunting, retractions, head bobbing, crackles and wheeze, has bronchiolitis with severe distress. Suction the nose and mouth (obligate nose breather) and give oxygen; nebulized epinephrine if they fail; albuterol and steroids do not help. A breathing rate that slows while she becomes harder to rouse and her EtCO2 rises is exhaustion and impending respiratory failure, not improvement: start BVM ventilation with oxygen at 1 breath every 2-3 seconds, with just enough volume to see the chest rise, and reassess SpO2, EtCO2 and heart rate. Fast bagging fills the stomach. Manage the airway the least invasive way that works; an infant intubation attempt stops ventilation. Compress for a heart rate below 60 with poor perfusion despite effective ventilation. Keep scene time short and notify the children's hospital."
+  },
+  "chapters": [
+    {
+      "id": "bagging",
+      "label": "Ventilating",
+      "when": "bvmOn"
+    }
+  ],
+  "teaching": {
+    "neb": {
+      "during": "nebT",
+      "ask": "While the nebulizer runs: what will tell you it is not enough?",
+      "choices": [
+        {
+          "id": "tiring",
+          "label": "Slowing breaths, harder to rouse, EtCO2 rising"
+        },
+        {
+          "id": "rate",
+          "label": "Her breathing rate falling toward normal"
+        },
+        {
+          "id": "quiet",
+          "label": "Less noisy breathing"
+        }
+      ],
+      "expect": "tiring",
+      "explain": "In a tiring infant a falling rate, quieter breathing and drowsiness are signs of failure. Reassess frequently; escalate to BVM for impending failure.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Pediatric Respiratory Distress (Bronchiolitis)",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Under 2 years with rhinorrhea, cough, wheeze or crackles and distress. Pulse oximetry and EtCO2; suction nose and mouth (infants are obligate nose breathers); oxygen escalated to SpO2 94-98%; nebulized epinephrine 5 mg (5 mL of 1 mg/mL) for severe distress if suction and oxygen fail; HFNC or CPAP when available; bag-valve-mask ventilation for respiratory failure or impending failure; supraglottic devices and intubation only if BVM fails, the airway managed in the least invasive way possible; albuterol and steroids not routinely, no ipratropium or nebulized hypertonic saline; frequent reassessment."
+      }
+    },
+    "ride": {
+      "during": "arriveT",
+      "ask": "On the way: the mask seal is good and her SpO2 is 96%. Should you intubate now?",
+      "choices": [
+        {
+          "id": "no",
+          "label": "No: BVM is working; advanced airways only if it fails"
+        },
+        {
+          "id": "yes",
+          "label": "Yes: a tube is more secure for an 18-minute drive"
+        },
+        {
+          "id": "sga",
+          "label": "Place a supraglottic airway instead"
+        }
+      ],
+      "expect": "no",
+      "explain": "NASEMSO: SGA and intubation only if BVM fails; AHA 2025 PALS: out of hospital, bag-mask ventilation is reasonable rather than an advanced airway.",
+      "source": {
+        "cite": "Lasa JJ, et al. Part 8: Pediatric Advanced Life Support: 2025 American Heart Association Guidelines for CPR and ECC. Circulation 2025;152(suppl 2):S479-S537. doi:10.1161/CIR.0000000000001368",
+        "checkedAt": "2026-11-11",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support",
+        "note": "Read 2026-11-11 on cpr.heart.org (primary text, in two parts): out of hospital it is reasonable to use bag-mask ventilation rather than an advanced airway (COR 2a); with an advanced airway during CPR 20-30 breaths/min, hyperventilation may compromise hemodynamics; start CPR for a heart rate below 60/min with cardiopulmonary compromise despite effective ventilation with oxygen."
+      }
+    }
+  }
+}
