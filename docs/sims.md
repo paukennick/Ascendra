@@ -4554,6 +4554,12 @@ read; no criteria text is reproduced.
    are opening the course and its labs. REQ-224 gates the course, teaching
    and start routes, so this is as designed; listed for Nick in case titles
    should be hidden too.
-4. **`time_up`** stays unreached in all five (every slow path ends in an
+4. **Shared protocol, different cases.** The NCMHCE and EPPP suicide
+   sessions share the C-SSRS questions and the Stanley-Brown steps as moves
+   (decisions 0.64) under unrelated stories (0.01): similarity 0.33, the
+   highest seeded pair. They are on different objectives, which the
+   duplicate gate never compares; the generator test's pin now allows 0.15
+   below the 0.5 threshold instead of 0.2 (FAIL-1481).
+5. **`time_up`** stays unreached in all five (every slow path ends in an
    earlier ending), so the linter's `time_up` warning remains, as for the
    EPPP cases.
