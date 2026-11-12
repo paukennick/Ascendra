@@ -97,6 +97,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // ---- REQ-240 (bedside wave 2, nursing): LPN/VN, ADN-RN and BSN-RN
   // baseline bedside cases, two each. Keep these entries together. ----
   entry("LPNVN", "ltc-pressure-injury-infection"),
+  entry("LPNVN", "ltc-insulin-hypoglycemia"),
   // ---- end REQ-240 ----
 ];
 

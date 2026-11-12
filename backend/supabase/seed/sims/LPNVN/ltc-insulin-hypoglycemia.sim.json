@@ -1,0 +1,1684 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ltc-insulin-hypoglycemia",
+  "title": "Shaky before lunch",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Fingerstick glucose, last measured",
+          "value": "gLast",
+          "unit": "mg/dL",
+          "sub": "at {gAtNum|clock}",
+          "alarm": {
+            "low": 70
+          },
+          "announce": {
+            "bands": [
+              70,
+              54,
+              40
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "gLast > 0"
+        },
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate, last measured",
+          "value": "vHr",
+          "unit": "/min",
+          "alarm": {
+            "high": 100
+          },
+          "announce": {
+            "bands": [
+              100,
+              110
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vHr > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vHr > 0"
+        }
+      ],
+      "infusions": "Fast carbohydrate given: {fastGrams|0dp} g. Lunch lispro given: {lunchGiven|yesno}.",
+      "banner": [
+        {
+          "when": "not canSwallow",
+          "text": "She cannot swallow safely."
+        },
+        {
+          "when": "rnHere",
+          "text": "The RN supervisor is at the bedside."
+        }
+      ]
+    }
+  },
+  "objective": "Contribute to each step of clinical judgment -- recognize and analyze cues, prioritize hypotheses, generate solutions, take action, evaluate outcomes -- and report what needs RN judgment",
+  "secondaryObjectives": [
+    "Know insulin onset, peak and duration, and watch most closely for hypoglycemia at peak",
+    "Insulin administration and sliding scale orders",
+    "Recognizing side effects and adverse reactions"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.ncsbn.org/public-files/2026_PN_Test%20Plan-F.pdf",
+      "note": "Read 2026-11-11 (primary PDF). Activity statements used: 'Perform blood glucose monitoring'; 'Recognize and report change in client condition'; 'Follow the rights of medication administration'; and its clinical judgment section ('Clinical judgment content may be represented as a case study or as an individual stand-alone item'). The test plan does not name a hypoglycemia protocol."
+    },
+    {
+      "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+      "checkedAt": "2026-11-11",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+      "note": "Read 2026-11-11 (primary text, PMC12690178). Table 6.4: level 1 glucose <70 and >=54 mg/dL, level 2 <54 mg/dL, level 3 a severe event with altered mental and/or physical status requiring assistance. Rec 6.15: glucose is preferred for the conscious person with glucose <70 mg/dL; repeat the treatment 15 min after if hypoglycemia persists; text: 15 g carbohydrate for most people, recheck 15 min after. Rec 6.16 and text: glucagon for people unable or unwilling to take carbohydrate by mouth."
+    },
+    {
+      "cite": "CDC. Treatment of Low Blood Sugar (Hypoglycemia) (last reviewed 2024-05-15)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.cdc.gov/diabetes/treatment/treatment-low-blood-sugar-hypoglycemia.html",
+      "note": "Read 2026-11-11 (primary web page). The 15-15 rule: 15 g of carbs, wait 15 min, recheck, repeat if still below 70 mg/dL; 15 g is 4 ounces (half a cup) of juice or 3-4 glucose tablets; foods high in fat such as chocolate slow sugar absorption; afterwards eat a balanced snack or meal with protein and carbs; oral sugar only for someone awake and able to swallow."
+    },
+    {
+      "cite": "Lupin Pharmaceuticals. Glucagon for Injection, prescribing information (revised March 2024)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.lupin.com/US/cms/uploads/pi_glucagon_emergency_kit_3_2024_58152be619.pdf",
+      "note": "Read 2026-11-11 (primary PDF). Adults: 1 mg subcutaneously or intramuscularly; a second dose may be given while waiting for emergency help if no response after 15 min; turn the person on their side (they may vomit on waking); give oral carbohydrate once they respond and can swallow. Section 12.2: glucose rises within 10 min of a subcutaneous dose; after an intramuscular dose the mean peak glucose was 138 mg/dL at 26 min."
+    },
+    {
+      "cite": "Lilly Medical. What are the pharmacodynamic properties of Humulin and Humalog (insulin lispro)?",
+      "checkedAt": "2026-11-11",
+      "url": "https://medical.lilly.com/us/products/answers/what-are-the-pharmacodynamic-properties-of-humulin-insulin-human-and-humalog-insulin-lispro-42601",
+      "note": "Read 2026-11-11 (primary web page). Subcutaneous insulin lispro: more rapid onset than regular human insulin; time to peak insulin concentration 30 to 90 min; shorter duration than regular human insulin (no number given); properties vary between and within people."
+    },
+    {
+      "cite": "Ascendra LPN/VN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-11",
+      "note": "The objective and secondary objectives are the course's own titles (the six clinical judgment steps within the PN role, insulin onset and peak with hypoglycemia watched for at peak, insulin administration)."
+    }
+  ],
+  "brief": {
+    "situation": "11:10 in a long-term care home. You are the LPN for the west hall. The nursing assistant calls you to Room 14: Mrs. Kowalski, 84, is sweaty and shaky and 'isn't making sense'.",
+    "handover": [
+      "Type 2 diabetes on insulin: glargine 18 units at bedtime, and insulin lispro 6 units with each meal. You gave her breakfast lispro at 07:45; she was nauseated and ate about a quarter of her breakfast.",
+      "Her lunch tray comes at 11:45, and her next 6 units of lispro are due with it.",
+      "The hypoglycemia protocol (standing order): for glucose below 70 mg/dL and able to swallow, 15 g of fast carbohydrate (4 oz juice or 4 glucose tablets), recheck in 15 minutes and repeat if still below 70; once above 70, a snack with protein and carbohydrate; if she cannot swallow safely, glucagon 1 mg IM and turn her on her side; tell the RN about any glucose below 70."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Recognize what is happening, act, and check whether it worked. Absorbing sugar and walking the RN to the room take a few minutes.",
+      "Partway through you are asked to write what you think is happening. The case ends at 12:40 at the latest, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "11:10",
+    "tick": "1s",
+    "maxDuration": "90min",
+    "calendar": "clock"
+  },
+  "params": {
+    "drift": {
+      "value": -0.5,
+      "unit": "mg/dL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Her breakfast lispro with little food keeps pulling her glucose down by about 0.5 mg/dL a minute until about 12:30. Lispro's time to peak insulin concentration is 30-90 min (Lilly); the label data give no rate of glucose fall for this situation. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "insulinEnd": {
+      "value": 4800,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. The breakfast dose stops pulling her glucose down at about 12:30, nearly five hours after it was given (Lilly gives a shorter duration than regular insulin, with no number). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "gPerGram": {
+      "value": 3,
+      "unit": "mg/dL/g",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Each gram of carbohydrate she absorbs raises her glucose about 3 mg/dL, so 15 g raises it about 45 mg/dL. No guideline gives this number; the ADA and CDC only say to recheck at 15 min. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "kFast": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Juice or glucose tablets are absorbed at about a tenth of what is left each minute, about three quarters in 15 min. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "kSlow": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Food with fat or protein (chocolate, crackers with peanut butter, a sandwich) is absorbed about three times more slowly (CDC: fat slows how fast sugar is absorbed). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "glucagonRate": {
+      "value": 3,
+      "unit": "mg/dL/min",
+      "source": {
+        "cite": "Lupin. Glucagon for Injection prescribing information (March 2024), section 12.2",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.lupin.com/US/cms/uploads/pi_glucagon_emergency_kit_3_2024_58152be619.pdf",
+        "note": "Read 2026-11-11. Glucose rises within 10 min and peaked at a mean of 138 mg/dL 26 min after an IM dose. FLAG: modeled as a rise of 3 mg/dL a minute for 25 min (about 75 mg/dL), an authored simplification of that curve."
+      }
+    },
+    "glucagonSpan": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Lupin. Glucagon for Injection prescribing information (March 2024), section 12.2",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.lupin.com/US/cms/uploads/pi_glucagon_emergency_kit_3_2024_58152be619.pdf",
+        "note": "Read 2026-11-11. Mean peak glucose 26 min after an IM dose; the model's rise lasts 25 min."
+      }
+    },
+    "lunchDrift": {
+      "value": -1.5,
+      "unit": "mg/dL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. 6 units of lispro given with a lunch she barely eats pulls her glucose down about 1.5 mg/dL a minute for an hour. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lunchSpan": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. The lunch dose's pull lasts about an hour in this model. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "swallowG": {
+      "value": 45,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Below about 45 mg/dL she is too drowsy to swallow safely. ADA level 3 is defined by altered status needing help, not by a number. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "seizureG": {
+      "value": 30,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. At about 30 mg/dL she has a seizure. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "recheckEarly": {
+      "value": 780,
+      "unit": "s",
+      "source": {
+        "cite": "ADA Standards of Care 2026, section 6 (rec 6.15) and CDC 15-15 rule",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+        "note": "Read 2026-11-11. Recheck 15 min after treatment. The case accepts a recheck from 13 to 20 min."
+      }
+    },
+    "recheckLate": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "ADA Standards of Care 2026, section 6 (rec 6.15) and CDC 15-15 rule",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+        "note": "Read 2026-11-11. Recheck 15 min after treatment. The case accepts a recheck from 13 to 20 min."
+      }
+    },
+    "recheckWait": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "CDC. Treatment of Low Blood Sugar (Hypoglycemia)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.cdc.gov/diabetes/treatment/treatment-low-blood-sugar-hypoglycemia.html",
+        "note": "Read 2026-11-11. 'Have 15 grams of carbs, then wait 15 minutes.'"
+      }
+    },
+    "treatWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Authored: the protocol treatment started within 5 min of the first low reading (she is symptomatic and still falling)."
+      }
+    },
+    "rnWalk": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "RN supervisor to the room: about 10 min."
+      }
+    },
+    "providerCall": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "RN reaches the provider and gets orders: about 15 min."
+      }
+    },
+    "trayAt": {
+      "value": 2100,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Her lunch tray comes at 11:45."
+      }
+    },
+    "reviewAt": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 12:40."
+      }
+    }
+  },
+  "state": {
+    "g": {
+      "type": "number",
+      "init": 58,
+      "min": 0,
+      "max": 400,
+      "unit": "mg/dL"
+    },
+    "gutFast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "g"
+    },
+    "gutSlow": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "g"
+    },
+    "gLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 400,
+      "unit": "mg/dL"
+    },
+    "gAtNum": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "gAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstGAt": {
+      "type": "time",
+      "init": null
+    },
+    "lowAt": {
+      "type": "time",
+      "init": null
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "vHr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "/min"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "treat1At": {
+      "type": "time",
+      "init": null
+    },
+    "fastGrams": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "g"
+    },
+    "wrongCarb": {
+      "type": "bool",
+      "init": false
+    },
+    "treatedBlind": {
+      "type": "bool",
+      "init": false
+    },
+    "recheckOk": {
+      "type": "bool",
+      "init": false
+    },
+    "rechecked": {
+      "type": "bool",
+      "init": false
+    },
+    "glucagonAt": {
+      "type": "time",
+      "init": null
+    },
+    "glucagonEarly": {
+      "type": "bool",
+      "init": false
+    },
+    "aspirated": {
+      "type": "bool",
+      "init": false
+    },
+    "snackAt": {
+      "type": "time",
+      "init": null
+    },
+    "snackAfter70": {
+      "type": "bool",
+      "init": false
+    },
+    "reportAt": {
+      "type": "time",
+      "init": null
+    },
+    "reportEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "rnHere": {
+      "type": "bool",
+      "init": false
+    },
+    "ordersAt": {
+      "type": "time",
+      "init": null
+    },
+    "lunchAt": {
+      "type": "time",
+      "init": null
+    },
+    "lunchGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "lunchHeld": {
+      "type": "bool",
+      "init": false
+    },
+    "trayIn": {
+      "type": "bool",
+      "init": false
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "canSwallow": {
+      "expr": "g >= swallowG"
+    },
+    "hr": {
+      "expr": "round(g < 70 ? 96 + (70 - g) * 0.4 : 78)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(g < 70 ? 150 : 138)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "glucagonOn": {
+      "expr": "not isNull(glucagonAt) and t < timeAt(glucagonAt) + glucagonSpan"
+    },
+    "lunchOn": {
+      "expr": "lunchGiven and t < timeAt(lunchAt) + lunchSpan"
+    }
+  },
+  "processes": [
+    {
+      "id": "glucose",
+      "update": {
+        "g": "g + dt / 60 * ((t < insulinEnd ? drift : 0) + gPerGram * (gutFast * kFast + gutSlow * kSlow) + (glucagonOn ? glucagonRate : 0) + (lunchOn ? lunchDrift : 0))",
+        "gutFast": "gutFast - gutFast * kFast * dt / 60",
+        "gutSlow": "gutSlow - gutSlow * kSlow * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "On the hall",
+      "clock": "running",
+      "actions": [
+        "look",
+        "glucose",
+        "vitals",
+        "carb",
+        "glucagon",
+        "snack",
+        "report",
+        "holdLunch",
+        "giveLunch",
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Go to her: look, talk to her, check she can swallow",
+      "group": "Recognize",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "not canSwallow",
+              "then": [
+                {
+                  "log": "She only moans and her head lolls; she cannot follow you or swallow safely.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "g < 54",
+              "then": [
+                {
+                  "log": "Pale, sweaty, slurring; she can sip if you hold the cup, but she isn't following much.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "g < 70",
+              "then": [
+                {
+                  "log": "Sweaty and trembling, pulse fast; she says she feels 'funny' and doesn't know it's lunchtime. She can swallow.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Dry, steady, chatting; she asks when lunch is.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Fingerstick glucose",
+      "group": "Recognize",
+      "effects": [
+        {
+          "set": "gLast",
+          "to": "round(g)"
+        },
+        {
+          "set": "gAtNum",
+          "to": "t"
+        },
+        {
+          "set": "gAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstGAt)",
+          "then": [
+            {
+              "set": "firstGAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "g < 70",
+          "then": [
+            {
+              "if": "isNull(lowAt)",
+              "then": [
+                {
+                  "set": "lowAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "not isNull(treat1At) and t - timeAt(treat1At) >= recheckEarly",
+          "then": [
+            {
+              "set": "rechecked",
+              "to": "true"
+            },
+            {
+              "if": "t - timeAt(treat1At) <= recheckLate",
+              "then": [
+                {
+                  "set": "recheckOk",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "g < 54",
+              "then": [
+                {
+                  "log": "Glucose {round(g)|0dp} mg/dL: level 2 hypoglycemia.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "g < 70",
+              "then": [
+                {
+                  "log": "Glucose {round(g)|0dp} mg/dL: below 70.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Glucose {round(g)|0dp} mg/dL.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Pulse and blood pressure",
+      "group": "Recognize",
+      "effects": [
+        {
+          "set": "vHr",
+          "to": "hr"
+        },
+        {
+          "set": "vSbp",
+          "to": "sbp"
+        },
+        {
+          "set": "vDbp",
+          "to": "round(sbp * 0.55)"
+        },
+        {
+          "log": "HR {hr}, BP {sbp}/{round(sbp * 0.55)|0dp}.",
+          "kind": "find"
+        }
+      ]
+    },
+    "carb": {
+      "label": "Give carbohydrate by mouth",
+      "group": "Act",
+      "params": [
+        {
+          "id": "food",
+          "kind": "choice",
+          "label": "What",
+          "options": [
+            {
+              "value": "juice",
+              "label": "4 oz of apple juice (15 g, protocol)"
+            },
+            {
+              "value": "tabs",
+              "label": "4 glucose tablets (15 g, protocol)"
+            },
+            {
+              "value": "choc",
+              "label": "A chocolate bar from the nurses' station"
+            },
+            {
+              "value": "crackers",
+              "label": "Peanut butter crackers"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstGAt)",
+          "then": [
+            {
+              "set": "treatedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "not canSwallow",
+              "then": [
+                {
+                  "set": "aspirated",
+                  "to": "true"
+                },
+                {
+                  "log": "She cannot swallow safely: she coughs, chokes and the juice goes into her lungs.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "food == \"juice\" or food == \"tabs\"",
+              "then": [
+                {
+                  "add": "gutFast",
+                  "by": "15"
+                },
+                {
+                  "add": "fastGrams",
+                  "by": "15"
+                },
+                {
+                  "if": "isNull(treat1At)",
+                  "then": [
+                    {
+                      "set": "treat1At",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "schedule": "carbT",
+                  "after": "recheckWait"
+                },
+                {
+                  "log": "15 g of fast carbohydrate taken. Recheck in 15 minutes."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "gutSlow",
+                  "by": "15"
+                },
+                {
+                  "set": "wrongCarb",
+                  "to": "true"
+                },
+                {
+                  "if": "isNull(treat1At)",
+                  "then": [
+                    {
+                      "set": "treat1At",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "schedule": "carbT",
+                  "after": "recheckWait"
+                },
+                {
+                  "log": "She eats it slowly. The fat in it slows how fast the sugar gets in.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "glucagon": {
+      "label": "Glucagon 1 mg IM (protocol), turn her on her side",
+      "group": "Act",
+      "available": "isNull(glucagonAt)",
+      "why": "Already given.",
+      "effects": [
+        {
+          "if": "isNull(glucagonAt)",
+          "then": [
+            {
+              "set": "glucagonAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "canSwallow",
+          "then": [
+            {
+              "set": "glucagonEarly",
+              "to": "true"
+            },
+            {
+              "log": "Glucagon given while she could still swallow; oral glucose was the first choice.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "log": "Glucagon 1 mg IM in the thigh; she is on her side. Glucose should start to rise within about 10 minutes."
+        }
+      ]
+    },
+    "snack": {
+      "label": "Give a snack: half a turkey sandwich and milk",
+      "group": "Act",
+      "available": "isNull(snackAt) and canSwallow",
+      "why": "Already given, or she cannot swallow.",
+      "effects": [
+        {
+          "if": "isNull(snackAt)",
+          "then": [
+            {
+              "set": "snackAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "gutSlow",
+          "by": "30"
+        },
+        {
+          "if": "gLast >= 70 and not isNull(gAt) and not isNull(treat1At) and timeAt(gAt) > timeAt(treat1At)",
+          "then": [
+            {
+              "set": "snackAfter70",
+              "to": "true"
+            },
+            {
+              "log": "She eats the half sandwich and drinks the milk."
+            }
+          ],
+          "else": [
+            {
+              "log": "She eats some of it. A snack is slow; it is for after a recheck shows her above 70.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "report": {
+      "label": "Report to the RN supervisor (SBAR)",
+      "group": "Report",
+      "available": "isNull(reportEffAt)",
+      "why": "The RN is already coming.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "low",
+                  "label": "Mrs. Kowalski in 14 had a low glucose with sweating, shaking and confusion; I've treated it per protocol"
+                },
+                {
+                  "value": "confused",
+                  "label": "Mrs. Kowalski is a bit confused this morning"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "Lispro 6 units at 07:45, ate about a quarter of breakfast; glucose readings and times; 6 more units due at 11:45"
+                },
+                {
+                  "value": "min",
+                  "label": "She's diabetic"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "insulin",
+                  "label": "Breakfast insulin with very little food; she could drop again, and lunch insulin would make it worse if she eats little"
+                },
+                {
+                  "value": "fine",
+                  "label": "It's sorted now"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "review",
+                  "label": "Please review her 11:45 lispro with the provider before it's given"
+                },
+                {
+                  "value": "usual",
+                  "label": "I'll give her lunch insulin as usual"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(reportAt)",
+          "then": [
+            {
+              "set": "reportAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "sit == \"low\" and rec == \"review\" and not isNull(firstGAt) and isNull(reportEffAt)",
+          "then": [
+            {
+              "set": "reportEffAt",
+              "to": "t"
+            },
+            {
+              "schedule": "rnT",
+              "after": "rnWalk"
+            }
+          ],
+          "else": [
+            {
+              "log": "RN supervisor: \"Okay, keep an eye on her.\"",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "log": "Called the RN supervisor."
+        }
+      ]
+    },
+    "holdLunch": {
+      "label": "Hold the 11:45 lispro until the RN and provider have reviewed it",
+      "group": "Medications",
+      "available": "not lunchHeld and not lunchGiven",
+      "why": "Already decided.",
+      "effects": [
+        {
+          "set": "lunchHeld",
+          "to": "true"
+        },
+        {
+          "log": "The 11:45 lispro is on hold pending review."
+        }
+      ]
+    },
+    "giveLunch": {
+      "label": "Give the 11:45 lispro (6 units) as scheduled",
+      "group": "Medications",
+      "available": "not lunchGiven and isNull(ordersAt)",
+      "why": "Already given, or the provider has decided.",
+      "effects": [
+        {
+          "set": "lunchGiven",
+          "to": "true"
+        },
+        {
+          "if": "isNull(lunchAt)",
+          "then": [
+            {
+              "set": "lunchAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "6 units of lispro given. She has just had a low and is eating very little.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "note": {
+      "label": "Document",
+      "group": "Report",
+      "available": "isNull(noteAt)",
+      "why": "Already documented.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Signs, each glucose with its time, what was given and when, the recheck, who was told"
+            },
+            {
+              "value": "opinion",
+              "label": "'Hypoglycemic episode, resolved'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"obj\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "log": "Note: signs at 11:10, each glucose and time, the 15 g given, the recheck, the snack, the lunch dose on hold, the RN told."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Note: 'Hypoglycemic episode, resolved.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "carbT": {
+      "label": "15 minutes after the carbohydrate",
+      "wait": {
+        "skipLabel": "15 minutes after the carbohydrate"
+      },
+      "instances": "many",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "CDC. Treatment of Low Blood Sugar (Hypoglycemia)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.cdc.gov/diabetes/treatment/treatment-low-blood-sugar-hypoglycemia.html",
+        "note": "Read 2026-11-11. Wait 15 minutes, then check again."
+      },
+      "effects": [
+        {
+          "log": "15 minutes since the carbohydrate: time to recheck her glucose.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "rnT": {
+      "label": "the RN supervisor",
+      "wait": {
+        "skipLabel": "the RN supervisor (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 10 min."
+      },
+      "effects": [
+        {
+          "set": "rnHere",
+          "to": "true"
+        },
+        {
+          "schedule": "ordersT",
+          "after": "providerCall"
+        },
+        {
+          "if": "isNull(treat1At) and isNull(glucagonAt)",
+          "then": [
+            {
+              "log": "RN supervisor: \"She hasn't been treated? Start the protocol now; I'll call the provider.\"",
+              "kind": "sys"
+            }
+          ],
+          "else": [
+            {
+              "log": "RN supervisor at the bedside: checks her over and calls the provider about the insulin.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    "ordersT": {
+      "label": "the provider's orders",
+      "wait": {
+        "skipLabel": "the provider's orders (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 15 min."
+      },
+      "effects": [
+        {
+          "set": "ordersAt",
+          "to": "t"
+        },
+        {
+          "set": "lunchHeld",
+          "to": "true"
+        },
+        {
+          "log": "Provider (by phone to the RN): hold the lunch lispro today, glucose before lunch and at 14:00, and the insulin doses will be reviewed this afternoon.",
+          "kind": "good"
+        }
+      ]
+    },
+    "trayT": {
+      "label": "her lunch tray",
+      "wait": {
+        "skipLabel": "her lunch tray (11:45)",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Lunch tray at 11:45."
+      },
+      "effects": [
+        {
+          "set": "trayIn",
+          "to": "true"
+        },
+        {
+          "if": "canSwallow",
+          "then": [
+            {
+              "add": "gutSlow",
+              "by": "15"
+            },
+            {
+              "log": "Lunch tray: she picks at it and eats about a quarter.",
+              "kind": "sys"
+            }
+          ],
+          "else": [
+            {
+              "log": "Lunch tray: she is too drowsy to eat.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "endT": {
+      "label": "12:40",
+      "wait": {
+        "skipLabel": "12:40, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 12:40."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        },
+        {
+          "schedule": "trayT",
+          "after": "trayAt"
+        }
+      ]
+    },
+    {
+      "id": "aide",
+      "when": "t >= 900 and isNull(treat1At) and isNull(glucagonAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "The assistant: \"She's getting worse, she won't answer me properly.\"",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "cantSwallow",
+      "when": "not canSwallow",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "She stops answering and her breathing is noisy; she can't swallow safely now.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "rnHere or t >= 900",
+      "question": "What cues point to the problem, why now, what did you do, how will you know it worked, and what does the RN need to decide?",
+      "parts": [
+        {
+          "label": "Cues, the likely cause and why now",
+          "criteria": "Names sweating, trembling, a fast pulse and new confusion with a glucose below 70 as hypoglycemia; links it to her breakfast lispro with little food eaten; names the risk of another low and of the lunch dose if she eats little; does not settle on another cause (stroke, infection) without the glucose.",
+          "modelAnswer": "Sweating, trembling, a fast pulse and new confusion with a glucose of 58 is hypoglycemia. She had 6 units of lispro at 07:45 and ate a quarter of breakfast, so her insulin was working with little food. Until that wears off she can drop again, and the 11:45 dose with a small lunch would make it worse."
+        },
+        {
+          "label": "Action, evaluation and what goes to the RN",
+          "criteria": "Checks the glucose and that she can swallow, gives 15 g of fast carbohydrate (juice or tablets, not chocolate), rechecks in 15 minutes and repeats below 70, gives a snack once above 70, uses glucagon only if she cannot swallow; reports to the RN and asks for the lunch insulin to be reviewed, holding it meanwhile; documents objectively.",
+          "modelAnswer": "Fingerstick and a swallow check, then 4 oz of juice under the protocol. Recheck at 15 minutes; if still under 70, another 15 g; once above 70, a sandwich and milk. If she couldn't swallow, glucagon IM and on her side. SBAR to the RN: treated low, little intake, please review the 11:45 lispro with the provider; I hold it until then. Document each reading and time."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and isNull(ordersAt)",
+      "class": "recovered",
+      "rationale": "If she is out of danger at 12:40 but her insulin with poor intake never reached the RN and provider, the immediate goal was met but the cause was not, so a repeat low is likely: this case calls it recovered, not target.",
+      "source": {
+        "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+        "note": "Read 2026-11-11 (primary text, PMC12690178). Table 6.4: level 1 glucose <70 and >=54 mg/dL, level 2 <54 mg/dL, level 3 a severe event with altered mental and/or physical status requiring assistance. Rec 6.15: glucose is preferred for the conscious person with glucose <70 mg/dL; repeat the treatment 15 min after if hypoglycemia persists; text: 15 g carbohydrate for most people, recheck 15 min after. Rec 6.16 and text: glucagon for people unable or unwilling to take carbohydrate by mouth."
+      }
+    }
+  },
+  "endings": {
+    "seizure": {
+      "label": "She has a seizure from severe hypoglycemia",
+      "class": "harm",
+      "when": "g < seizureG",
+      "terminal": true,
+      "narrative": "Her glucose falls to about {round(g)|0dp} mg/dL; she seizes in her chair. The RN gives glucagon and 911 takes her to the hospital."
+    },
+    "aspirated": {
+      "label": "She aspirates the juice",
+      "class": "harm",
+      "when": "aspirated",
+      "terminal": true,
+      "narrative": "Juice poured into a mouth that could not swallow goes into her lungs. She coughs, her oxygen falls, and she is sent to the hospital with suspected aspiration."
+    },
+    "stable": {
+      "label": "Low treated, checked and the cause sent to the provider",
+      "class": "target",
+      "when": "not isNull(ordersAt) and g >= 70 and not isNull(treat1At) and not isNull(lowAt) and timeAt(treat1At) <= timeAt(lowAt) + treatWindow and not wrongCarb and not treatedBlind and recheckOk and not isNull(reportEffAt) and not lunchGiven",
+      "terminal": true,
+      "narrative": "{timeAt(ordersAt)|clock}: her glucose is above 70, she has eaten, and the lunch lispro is on hold until her doses are reviewed. You recognized the low, treated it by the protocol, checked that it worked, and sent the cause to the people who can change it."
+    },
+    "stableLate": {
+      "label": "Safe now, by a slower route",
+      "class": "recovered",
+      "when": "not isNull(ordersAt) and g >= 70",
+      "terminal": true,
+      "narrative": "{timeAt(ordersAt)|clock}: she is above 70 and the provider has decided about her insulin, but the route cost time or safety: a late or slow treatment, the wrong food, no 15-minute recheck, a report that missed the point, or a lunch dose that should have waited."
+    },
+    "time_up": {
+      "label": "12:40: treated, but the cause never reached the provider",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "12:40: her glucose is {round(g)|0dp} mg/dL, but nobody has looked at why it happened, and tonight's and tomorrow's insulin are unchanged."
+    }
+  },
+  "endingOrder": [
+    "seizure",
+    "aspirated",
+    "stable",
+    "stableLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "treat",
+        "label": "Treated the low by the protocol within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(treat1At) and isNull(glucagonAt)",
+            "score": "missed",
+            "why": "No carbohydrate or glucagon was given."
+          },
+          {
+            "when": "aspirated",
+            "score": "missed",
+            "why": "Fluid was given by mouth when she could not swallow."
+          },
+          {
+            "when": "not isNull(lowAt) and not isNull(treat1At) and timeAt(treat1At) <= timeAt(lowAt) + treatWindow",
+            "score": "met",
+            "why": "Treated at {timeAt(treat1At)|clock}."
+          },
+          {
+            "when": "treatedBlind and not isNull(treat1At) and timeAt(treat1At) <= treatWindow",
+            "score": "partial",
+            "why": "Treated quickly, but before checking her glucose."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Treated, but more than 5 minutes after the low reading, or only with glucagon after she stopped swallowing."
+          }
+        ]
+      },
+      {
+        "id": "rightCarb",
+        "label": "Fast carbohydrate, not food with fat",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "wrongCarb",
+            "score": "missed",
+            "why": "Chocolate or crackers first: the fat slows the sugar."
+          },
+          {
+            "when": "isNull(treat1At)",
+            "score": "missed",
+            "why": "No carbohydrate by mouth was ever given."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "15 g of juice or glucose tablets."
+          }
+        ]
+      },
+      {
+        "id": "recheck",
+        "label": "Rechecked 15 minutes after the treatment",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "recheckOk",
+            "score": "met",
+            "why": "Rechecked between 13 and 20 minutes after the treatment."
+          },
+          {
+            "when": "rechecked",
+            "score": "partial",
+            "why": "Rechecked, but later than 20 minutes."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never rechecked to see whether the treatment worked."
+          }
+        ]
+      },
+      {
+        "id": "reportRN",
+        "label": "Told the RN and kept the lunch dose for review",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lunchGiven",
+            "score": "missed",
+            "why": "The lunch lispro was given without a review, after a low with little food."
+          },
+          {
+            "when": "isNull(reportEffAt)",
+            "score": "missed",
+            "why": "The RN never heard about the low in a way that got the insulin reviewed."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Reported at {timeAt(reportEffAt)|clock}; the lunch dose waited for the review."
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Checked the glucose and her swallowing before treating",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "treatedBlind",
+            "score": "missed",
+            "why": "Treated before checking the glucose."
+          },
+          {
+            "when": "isNull(lookAt) or isNull(firstGAt)",
+            "score": "missed",
+            "why": "Did not look at her and measure the glucose."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Looked, checked she could swallow, and measured the glucose first."
+          }
+        ]
+      },
+      {
+        "id": "snack",
+        "label": "A snack with protein once above 70",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "snackAfter70",
+            "score": "met",
+            "why": "Half a sandwich and milk after a reading above 70."
+          },
+          {
+            "when": "not isNull(snackAt)",
+            "score": "partial",
+            "why": "A snack, but before a recheck showed her above 70."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No snack after the treatment."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Objective documentation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteObjective",
+            "score": "met",
+            "why": "Each reading, time and treatment documented."
+          },
+          {
+            "when": "isNull(noteAt)",
+            "score": "missed",
+            "why": "Not documented."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The note gave a conclusion instead of readings and times."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: the low, its cause, the check and what goes to the RN",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toGlucose",
+        "label": "11:10 to the first glucose",
+        "value": "isNull(firstGAt) ? -1 : timeAt(firstGAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toTreat",
+        "label": "Low reading to the first treatment",
+        "value": "isNull(treat1At) or isNull(lowAt) ? -1 : max(0, timeAt(treat1At) - timeAt(lowAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "lowest",
+        "label": "Lowest reading taken",
+        "value": "gLast",
+        "format": "number",
+        "expert": "the last reading above 70"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:10",
+        "text": "Go to her: sweaty, trembling, confused, can swallow. Fingerstick: 58 mg/dL."
+      },
+      {
+        "at": "11:10",
+        "text": "4 oz of juice under the protocol. SBAR to the RN: treated low, little breakfast after lispro, please review the 11:45 dose. Hold it meanwhile."
+      },
+      {
+        "at": "11:25",
+        "text": "Recheck at 15 minutes: above 70. Half a sandwich and milk. Objective note."
+      },
+      {
+        "at": "~11:35",
+        "text": "Provider: hold the lunch lispro, glucose before lunch and at 14:00, doses reviewed this afternoon."
+      }
+    ],
+    "debrief": {
+      "seizure": {
+        "headline": "Severe hypoglycemia: a seizure",
+        "body": "Sweating, shaking and confusion in someone on insulin is a low until a glucose says otherwise. Find when the glucose was checked, when 15 g went in, whether it was rechecked at 15 minutes, and whether lunch insulin went in on top of it."
+      },
+      "aspirated": {
+        "headline": "Juice into a mouth that couldn't swallow",
+        "body": "Oral sugar is only for someone awake and able to swallow. When she can't, the protocol is glucagon IM and turning her on her side."
+      },
+      "stable": {
+        "headline": "Recognized, treated, checked, reported",
+        "body": "You checked before treating, used fast sugar, rechecked at 15 minutes, followed with a real snack, and sent the cause, her insulin with poor intake, to the RN and provider. That is the expert path and every step of clinical judgment."
+      },
+      "stableLate": {
+        "headline": "Safe now, by a slower route",
+        "body": "She is above 70, but check how fast you treated, what you gave, whether you rechecked at 15 minutes, and whether the lunch insulin waited for the review."
+      },
+      "time_up": {
+        "headline": "Treated, but the cause stayed put",
+        "body": "Treating the number is half the job. Insulin given with little food caused this; the RN and provider need to hear it so the next dose changes."
+      }
+    },
+    "modelReasoning": "Recognize cues: sweating, trembling, a fast pulse and new confusion in a resident on insulin. Analyze: she had lispro at 07:45 and ate a quarter of breakfast, so insulin is working with little food. Prioritize: hypoglycemia first, confirmed by a fingerstick (58 mg/dL), over other causes of confusion. Generate solutions and act: she can swallow, so 15 g of fast carbohydrate (4 oz juice or glucose tablets) under the protocol, not chocolate or crackers, whose fat slows absorption; glucagon IM and side-lying only if she cannot swallow. Evaluate: recheck in 15 minutes, repeat below 70, and once above 70 give a snack with protein and carbohydrate. Report what needs RN judgment: the low, her intake and the lunch lispro, held until the RN and provider review it. Document each reading and time."
+  },
+  "chapters": [
+    {
+      "id": "treated",
+      "label": "First treatment in",
+      "when": "not isNull(treat1At) or not isNull(glucagonAt)"
+    }
+  ],
+  "teaching": {
+    "fatQ": {
+      "during": "rnT",
+      "ask": "While the RN comes: why not the chocolate bar from the station?",
+      "choices": [
+        {
+          "id": "fat",
+          "label": "Its fat slows how fast the sugar gets in"
+        },
+        {
+          "id": "sugar",
+          "label": "It has too much sugar"
+        },
+        {
+          "id": "fine",
+          "label": "It works just as well as juice"
+        }
+      ],
+      "expect": "fat",
+      "explain": "CDC: foods high in fat, such as chocolate, slow down how fast sugar is absorbed. Use 4 oz of juice or glucose tablets, then a balanced snack once she is back up.",
+      "source": {
+        "cite": "CDC. Treatment of Low Blood Sugar (Hypoglycemia) (last reviewed 2024-05-15)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.cdc.gov/diabetes/treatment/treatment-low-blood-sugar-hypoglycemia.html",
+        "note": "Read 2026-11-11 (primary web page). The 15-15 rule: 15 g of carbs, wait 15 min, recheck, repeat if still below 70 mg/dL; 15 g is 4 ounces (half a cup) of juice or 3-4 glucose tablets; foods high in fat such as chocolate slow sugar absorption; afterwards eat a balanced snack or meal with protein and carbs; oral sugar only for someone awake and able to swallow."
+      }
+    },
+    "rule15": {
+      "during": "carbT",
+      "ask": "While the sugar goes in: why recheck at 15 minutes rather than wait for lunch?",
+      "choices": [
+        {
+          "id": "evaluate",
+          "label": "To see whether it worked and repeat the 15 g if she is still below 70"
+        },
+        {
+          "id": "record",
+          "label": "Only so the chart has a second number"
+        },
+        {
+          "id": "lunch",
+          "label": "Lunch will fix it anyway"
+        }
+      ],
+      "expect": "evaluate",
+      "explain": "Evaluating the outcome is part of the treatment: the ADA says to repeat the treatment 15 minutes after if hypoglycemia persists, and she is still under the pull of her breakfast insulin.",
+      "source": {
+        "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+        "note": "Read 2026-11-11 (primary text, PMC12690178). Table 6.4: level 1 glucose <70 and >=54 mg/dL, level 2 <54 mg/dL, level 3 a severe event with altered mental and/or physical status requiring assistance. Rec 6.15: glucose is preferred for the conscious person with glucose <70 mg/dL; repeat the treatment 15 min after if hypoglycemia persists; text: 15 g carbohydrate for most people, recheck 15 min after. Rec 6.16 and text: glucagon for people unable or unwilling to take carbohydrate by mouth."
+      }
+    },
+    "glucagonQ": {
+      "during": "ordersT",
+      "ask": "While the provider is called: when would glucagon have been the right first step?",
+      "choices": [
+        {
+          "id": "swallow",
+          "label": "If she could not swallow safely"
+        },
+        {
+          "id": "below54",
+          "label": "For any reading below 54"
+        },
+        {
+          "id": "always",
+          "label": "For every low, to save time"
+        }
+      ],
+      "expect": "swallow",
+      "explain": "Glucagon is for people unable or unwilling to take carbohydrate by mouth (ADA). Given IM, glucose rises within about 10 minutes; turn her on her side, since she may vomit as she wakes.",
+      "source": {
+        "cite": "Lupin Pharmaceuticals. Glucagon for Injection, prescribing information (revised March 2024)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.lupin.com/US/cms/uploads/pi_glucagon_emergency_kit_3_2024_58152be619.pdf",
+        "note": "Read 2026-11-11 (primary PDF). Adults: 1 mg subcutaneously or intramuscularly; a second dose may be given while waiting for emergency help if no response after 15 min; turn the person on their side (they may vomit on waking); give oral carbohydrate once they respond and can swallow. Section 12.2: glucose rises within 10 min of a subcutaneous dose; after an intramuscular dose the mean peak glucose was 138 mg/dL at 26 min."
+      }
+    }
+  }
+}
