@@ -98,6 +98,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // (NETWORKPLUS) and CKA outages. Keep these entries together. ----
   entry("LINUXPLUS", "full-var-stops-database"),
   entry("LINUXPLUS", "selinux-denies-moved-site"),
+  entry("NETWORKPLUS", "vlan-missing-from-trunk"),
+  entry("NETWORKPLUS", "branch-dns-route-typo"),
   // ---- end REQ-237 ----
 ];
 

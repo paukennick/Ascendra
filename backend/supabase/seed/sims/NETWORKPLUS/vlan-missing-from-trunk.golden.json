@@ -1,0 +1,980 @@
+{
+  "slug": "vlan-missing-from-trunk",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "169.254 and a failed renew, scope has room, VLANs right, uplink allows 30,99 only; add 20, save, renew",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ipconfig",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "scope",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "vlanBrief",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 7,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "sw2Trunk",
+          "seq": 9,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 8,
+          "seq": 10,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "coreTrunk",
+          "seq": 11,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 9,
+          "seq": 12,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "runCfg",
+          "seq": 13,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 10,
+          "seq": 14,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "configTrunk",
+          "params": {
+            "line": "add20"
+          },
+          "seq": 15,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 12,
+          "seq": 16,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "save",
+          "seq": 17,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 13,
+          "seq": 18,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 19,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 15,
+          "seq": 20,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 21,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 22,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "trunk"
+          },
+          "seq": 23,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "layer2First": "met",
+          "additive": "met",
+          "fixedFast": "met",
+          "savedC": "met",
+          "verified": "met",
+          "noBlindRestart": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 10,
+          "faultsK": 0,
+          "restartsK": 0
+        },
+        "stateHash": "1facf2995ecdedaf"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "replaceList",
+      "title": "Finds the trunk, then types a bare allowed list: voice and management drop; recovers from the console",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ipconfig",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "sw2Trunk",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "configTrunk",
+          "params": {
+            "line": "only20"
+          },
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "console",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 20,
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "configTrunk",
+          "params": {
+            "line": "add3099"
+          },
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 22,
+          "seq": 10,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "save",
+          "seq": 11,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 23,
+          "seq": 12,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 13,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 25,
+          "seq": 14,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 15,
+          "tick": 25
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "trunk"
+          },
+          "seq": 17,
+          "tick": 25
+        }
+      ],
+      "expect": {
+        "ending": "voiceDropped",
+        "class": "harm",
+        "rating": "bad",
+        "score": 81,
+        "criteria": {
+          "layer2First": "met",
+          "additive": "missed",
+          "fixedFast": "met",
+          "savedC": "met",
+          "verified": "met",
+          "noBlindRestart": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 3,
+          "faultsK": 1,
+          "restartsK": 0
+        },
+        "stateHash": "fb9bbc335abef9ae"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "unsavedReload",
+      "title": "Fixes the trunk correctly, then reloads the switch without saving: the template comes back",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ipconfig",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "sw2Trunk",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "configTrunk",
+          "params": {
+            "line": "add20"
+          },
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 7,
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 9,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 17,
+          "seq": 10,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 11,
+          "tick": 17
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "trunk"
+          },
+          "seq": 13,
+          "tick": 17
+        }
+      ],
+      "expect": {
+        "ending": "reloadedUnsaved",
+        "class": "harm",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "layer2First": "met",
+          "additive": "missed",
+          "fixedFast": "missed",
+          "savedC": "missed",
+          "verified": "met",
+          "noBlindRestart": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 3,
+          "faultsK": 0,
+          "restartsK": 0
+        },
+        "stateHash": "0d281b1bdea9a453"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "dhcpBlame",
+      "title": "Restarts the DHCP service twice and waits: the payroll cutoff passes, then finds and fixes the trunk",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ipconfig",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "dhcpRestart",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 9,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "dhcpRestart",
+          "seq": 9,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 12,
+          "seq": 10,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "scope",
+          "seq": 11,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 14,
+          "seq": 12,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 24,
+          "seq": 14,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 34,
+          "seq": 16,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 44,
+          "seq": 18,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 54,
+          "seq": 20,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 54,
+          "seq": 21,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "sw2Trunk",
+          "seq": 22,
+          "tick": 54
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 55,
+          "seq": 23,
+          "tick": 54
+        },
+        {
+          "type": "act",
+          "action": "configTrunk",
+          "params": {
+            "line": "add20"
+          },
+          "seq": 24,
+          "tick": 55
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 57,
+          "seq": 25,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "save",
+          "seq": 26,
+          "tick": 57
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 58,
+          "seq": 27,
+          "tick": 57
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 28,
+          "tick": 58
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 60,
+          "seq": 29,
+          "tick": 58
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 30,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 31,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "trunk"
+          },
+          "seq": 32,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "payrollMissed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 75,
+        "criteria": {
+          "layer2First": "met",
+          "additive": "met",
+          "fixedFast": "partial",
+          "savedC": "met",
+          "verified": "met",
+          "noBlindRestart": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 55,
+          "faultsK": 0,
+          "restartsK": 2
+        },
+        "stateHash": "b22a2645f3028af9"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "guessFullList",
+      "title": "Sees the access VLANs are right and writes the full allowed list without looking at the trunk; saved and verified",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ipconfig",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vlanBrief",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "configTrunk",
+          "params": {
+            "line": "full"
+          },
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "save",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 6,
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 9,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 8,
+          "seq": 10,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "sw2Trunk",
+          "seq": 11,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 9,
+          "seq": 12,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 13,
+          "tick": 9
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "trunk"
+          },
+          "seq": 15,
+          "tick": 9
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "layer2First": "partial",
+          "additive": "met",
+          "fixedFast": "met",
+          "savedC": "met",
+          "verified": "met",
+          "noBlindRestart": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 3,
+          "faultsK": 0,
+          "restartsK": 0
+        },
+        "stateHash": "93b6bdc581224c25"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "closeEarly",
+      "title": "Restarts DHCP, a renew still fails, and closes blaming the DHCP server with floor 2 down",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ipconfig",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "dhcpRestart",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "dhcpServer"
+          },
+          "seq": 9,
+          "tick": 7
+        }
+      ],
+      "expect": {
+        "ending": "stillDown",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "layer2First": "missed",
+          "additive": "met",
+          "fixedFast": "missed",
+          "savedC": "missed",
+          "verified": "missed",
+          "noBlindRestart": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToFix": -1,
+          "faultsK": 0,
+          "restartsK": 1
+        },
+        "stateHash": "68e3f04ff6af3aa6"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}
