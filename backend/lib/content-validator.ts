@@ -53,6 +53,15 @@ const normOption = (s: string) =>
     .replace(/[\s\p{P}]+/gu, " ")
     .trim();
 
+// FAIL-1760: in code, case and punctuation carry meaning -- `a == b` and
+// `a === b`, `[1, 2]` and `(1, 2)`, `None` and `none` are different answers.
+// An option that looks like code (a backtick or code symbols) is compared
+// exactly, with only whitespace runs collapsed. Plain-language options keep
+// the loose comparison above, so "Use IAM roles." still duplicates "use IAM roles".
+const CODE_LIKE = /[`=(){}\[\]<>;]/;
+export const optionKey = (s: string): string =>
+  CODE_LIKE.test(s) ? `code:${s.normalize("NFKC").replace(/\s+/g, " ").trim()}` : normOption(s);
+
 function text(label: string, v: unknown, max: number, out: string[]): void {
   if (typeof v !== "string" || !v.trim()) out.push(`${label} is empty.`);
   else if (v.length > max) out.push(`${label} is longer than ${max} characters.`);
@@ -68,7 +77,7 @@ function options(label: string, choices: unknown, correctIndex: unknown, reasons
     if (typeof c !== "string" || !c.trim()) out.push(`${label} option ${i + 1} is empty.`);
     else if (c.length > CONTENT_LIMITS.option) out.push(`${label} option ${i + 1} is too long.`);
     else {
-      const n = normOption(c);
+      const n = optionKey(c);
       if (seen.has(n)) out.push(`${label} has a duplicate option ("${c.slice(0, 40)}").`);
       seen.add(n);
     }

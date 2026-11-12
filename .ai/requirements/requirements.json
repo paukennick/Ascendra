@@ -9250,6 +9250,26 @@
         "browser not available in the build container: web header behavior verified by code and unit tests only",
         "Web header behavior not checked in a browser: /opt/pw-browsers/chromium is missing in the build container, so the reproduction and mobile/e2e/tab-order.e2e.mjs were not run; verified by code, unit tests and a passing web export."
       ]
+    },
+    {
+      "id": "REQ-254",
+      "category": "quality",
+      "title": "Duplicate-option check respects code",
+      "description": "Code options that differ only in punctuation or case (== vs ===, [] vs (), None vs none) are different answers, not duplicates (FAIL-1760). Found by the 2026-11-12 Python/JavaScript pre-generation, where 10 of 92 lessons failed on it.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/content-validator.ts"
+      ],
+      "acceptance_criteria": [
+        "code-like options compared exactly with whitespace collapsed",
+        "plain-language duplicates still caught"
+      ],
+      "validation_required": [
+        "backend/lib/code-option-duplicates.test.ts"
+      ],
+      "documentation_required": [],
+      "risk_notes": []
     }
   ]
 }
