@@ -16099,6 +16099,29 @@
       "prevention_rules": [],
       "prevention_notes": "Run the spelling test with the per-sim checks, not only at the end.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1526",
+      "date": "2026-11-11",
+      "title": "Infant case: server-only debrief text repeated the client's time_up narrative",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts: NREMTPARAMEDIC/infant-respiratory-failure: server-only text reaches the client: Forty-five minutes passed.",
+      "how_detected": "backend npm test (lib/sim/documents.test.ts)",
+      "root_cause": "The time_up debrief body (server-only) was word for word the time_up narrative (sent to the app), so the leak check could not tell the server-only copy had stayed on the server.",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTPARAMEDIC/infant-respiratory-failure.sim.json"
+      ],
+      "fix_summary": "Reworded the debrief body.",
+      "fix_commits": [],
+      "regression_tests": [
+        "lib/sim/documents.test.ts client document leaks nothing server-only"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Debrief bodies are never copies of ending narratives (docs/sims.md 22.14).",
+      "recurrence_of": ""
     }
   ]
 }

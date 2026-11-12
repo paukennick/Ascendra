@@ -4557,14 +4557,15 @@ the glucose fall and rise per gram; the splenic bleed rate and dilution; the
 nitrate-tadalafil drop; infant fatigue and desaturation rates; every hospital
 door-to-device time and every drive time).
 
-**Findings while authoring** (FAIL-1520 to FAIL-1525; caught by the linter,
+**Findings while authoring** (FAIL-1520 to FAIL-1526; caught by the linter,
 the golden driver or review while authoring; none is in engine code):
 an ending that read a state no effect ever set (asystole), an AED action gated
 on the hidden rhythm instead of what the rescuer can know, timer `with`
 fields read as bare names instead of `timer.with.<field>`, reasoning moments
 that opened in the middle of a resuscitation step or on the tick a terminal
 ending fired, model constants that left the target or a harm ending
-unreachable until tuned against the goldens, and British spellings in one
-narrative. `time_up` is reached by no golden path in any of the eight (every
+unreachable until tuned against the goldens, British spellings in one
+narrative, and a server-only debrief body that repeated a client narrative
+word for word (the leak test in `lib/sim/documents.test.ts` caught it). `time_up` is reached by no golden path in any of the eight (every
 slow path ends earlier), so the linter's warning remains, as in the CCRN
 cases.
