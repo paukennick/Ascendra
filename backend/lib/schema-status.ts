@@ -447,6 +447,14 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                          where c.slug = 'mental-health' and s.slug = 'psychology-licensure') as ok`,
   },
   {
+    // REQ-253: the Key terms route reads and writes lesson_primers, and a
+    // primer held back is logged in item_holdbacks as item_kind 'primer'.
+    migration: "079_lesson_primers.sql",
+    what: "lesson_primers (Key terms in a lesson) and item_kind 'primer' on item_holdbacks",
+    sql: `select to_regclass('public.lesson_primers') is not null
+             and exists(select 1 from pg_constraint where conname = 'item_holdbacks_item_kind_079') as ok`,
+  },
+  {
     // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
     migration: "074_independent_confirmation.sql",
     what: "the 074 mastery_detail() (Independent needs a second unassisted correct answer 24 h after the first)",

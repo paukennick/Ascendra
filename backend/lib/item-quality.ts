@@ -125,7 +125,7 @@ export function noteListedClaims(label: string, o: UncertaintyFields | null | un
 }
 
 export interface HoldbackInput {
-  kind: ItemKind | "lesson_intro" | "pbq" | "unit_check";
+  kind: ItemKind | "lesson_intro" | "pbq" | "unit_check" | "primer";
   objectiveId?: string | null;
   unitId?: string | null;
   trackId?: string | null;
