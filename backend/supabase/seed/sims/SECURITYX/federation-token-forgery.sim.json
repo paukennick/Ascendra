@@ -1,0 +1,1522 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "federation-token-forgery",
+  "title": "Incident: forged sign-in tokens from a stolen signing key",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "forged",
+          "severity": "high",
+          "title": "Cloud sign-ins with valid federation tokens for three administrators, but no matching issuance on the federation servers",
+          "detail": "From 203.0.113.99; each token carries an MFA claim.",
+          "when": "true",
+          "at": "0",
+          "status": "{forgingWorks ? (isNull(correlatedAt) ? \"New\" : \"Forging confirmed\") : tokensLive ? \"Forging stopped; sessions still live\" : \"Contained\"}",
+          "open": "forgingWorks or tokensLive"
+        },
+        {
+          "id": "app",
+          "severity": "high",
+          "title": "New app registration 'Mail Sync' with read access to every mailbox and a client secret",
+          "when": "not isNull(appAt) and not isNull(appsReviewedAt) and timeAt(appsReviewedAt) >= timeAt(appAt)",
+          "at": "timeAt(appAt)",
+          "status": "{appLive ? \"Active\" : \"Removed\"}",
+          "open": "appLive"
+        },
+        {
+          "id": "reforge",
+          "severity": "high",
+          "title": "Forged tokens are being accepted again, signed by the new certificate",
+          "when": "not isNull(reforgeAt)",
+          "at": "timeAt(reforgeAt)",
+          "status": "{forgingWorks ? \"Active\" : \"Stopped\"}",
+          "open": "forgingWorks"
+        },
+        {
+          "id": "export",
+          "severity": "critical",
+          "title": "Mailboxes of the CEO and CFO being exported",
+          "when": "not isNull(exportAt)",
+          "at": "timeAt(exportAt)",
+          "status": "{not isNull(impactAt) ? \"Complete\" : attackerActive ? \"In progress\" : \"Stopped\"}",
+          "open": "attackerActive"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Cloud sign-in log",
+          "text": "09:40-09:58 admin.kpatel, admin.lroy, admin.tsun: federated sign-in from 203.0.113.99, MFA claim present",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "Federation servers",
+          "text": "No token issued to those accounts since 07:00",
+          "when": "not isNull(correlatedAt)",
+          "at": "timeAt(correlatedAt)"
+        },
+        {
+          "id": "e3",
+          "source": "Federation servers",
+          "text": "Two days ago: svc-fed-sync exported the token-signing certificate's private key from 192.0.2.61",
+          "when": "not isNull(fedReviewedAt)",
+          "at": "timeAt(fedReviewedAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Directory",
+          "text": "App registration 'Mail Sync' created by admin.lroy; mail read access consented for every mailbox",
+          "when": "not isNull(appAt) and not isNull(appsReviewedAt) and timeAt(appsReviewedAt) >= timeAt(appAt)",
+          "at": "timeAt(appAt)"
+        },
+        {
+          "id": "e5",
+          "source": "Federation servers",
+          "text": "svc-fed-sync read the new token-signing key",
+          "when": "not isNull(reforgeAt) and not isNull(fedReviewedAt) and timeAt(fedReviewedAt) >= timeAt(reforgeAt)",
+          "at": "timeAt(reforgeAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Mail audit",
+          "text": "Bulk export of the CEO's and CFO's mailboxes started",
+          "when": "not isNull(exportAt)",
+          "at": "timeAt(exportAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "fed",
+          "label": "fs.example.com",
+          "spokenLabel": "Federation servers fs.example.com",
+          "kind": "Identity provider (on premises)",
+          "status": "{rebuilt ? \"Rebuilt in the tier-0 enclave\" : not isNull(federationCutAt) ? \"Federation trust removed\" : rotation == \"twice\" ? \"Certificate rotated twice\" : rotation == \"once\" ? \"Certificate rotated once; old one still trusted\" : \"Signing key stolen\"}",
+          "tone": "forgingWorks ? \"bad\" : \"held\""
+        },
+        {
+          "id": "svc",
+          "label": "svc-fed-sync",
+          "spokenLabel": "Service account svc-fed-sync",
+          "kind": "Service account with rights on the federation servers",
+          "status": "{isNull(svcOffAt) ? (isNull(fedReviewedAt) ? \"Normal\" : \"Used to steal the key\") : \"Disabled\"}",
+          "tone": "isNull(svcOffAt) ? (isNull(fedReviewedAt) ? \"ok\" : \"bad\") : \"held\""
+        },
+        {
+          "id": "tenant",
+          "label": "Cloud tenant",
+          "spokenLabel": "Cloud tenant",
+          "kind": "Mail, files and HR apps (federated)",
+          "status": "{attackerActive ? \"Attacker has access\" : \"Attacker out\"}",
+          "tone": "attackerActive ? \"bad\" : \"held\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "evM",
+          "label": "Case file",
+          "value": "{isNull(imagedAt) ? \"empty\" : \"federation server images and logs\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Identity and access management architecture at enterprise scale",
+  "secondaryObjectives": [
+    "Incident response leadership across complex, multi-team environments",
+    "Enterprise security architecture and Zero Trust design principles"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA SecurityX CAS-005 (V5) exam page: domains Governance, risk, and compliance 20%, Security architecture 27%, Security engineering 31%, Security operations 22%",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/securityx/",
+      "note": "Relevant text: Security architecture covers network architecture ('segmentation, microsegmentation, VPN, always-on VPN, and API integration'), Zero Trust ('defining subject-object relationships'), security boundaries ('asset identification, management, attestation, data perimeters, and secure zones') and deperimeterization ('SASE, SD-WAN, and software-defined networking'); Security operations covers incident response including root cause analysis. The page has no objective text on federation by name. Read through a summarizing fetch on 2026-11-11; the CAS-005 objectives PDF was not re-read here. The course's unit titles are the course's own wording."
+    },
+    {
+      "cite": "MITRE ATT&CK T1606.002, Forge Web Credentials: SAML Tokens",
+      "checkedAt": "2026-11-11",
+      "url": "https://attack.mitre.org/techniques/T1606/002/",
+      "note": "Relevant text: an adversary can forge tokens 'if they possess a valid SAML token-signing certificate'; forged access 'may bypass multi-factor and other authentication protection mechanisms'; mitigation: rotate the AD FS token-signing certificate 'in rapid succession twice' to invalidate tokens made with the old one; restrict access to the federation servers; detection: authentication with valid signatures but without the issuance events that should precede them. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "CISA Eviction Strategies Tool, countermeasure CM0073: Rotate Active Directory Federation Services (AD FS) Certificates",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.cisa.gov/eviction-strategies-tool/info-countermeasures/CM0073",
+      "note": "Relevant text: replace the primary token-signing certificate and generate a second; revoke Microsoft 365 refresh tokens; 'Ensure all federation partners have consumed the new certificate'; 'Outages typically resolve after all the federation partners have the new certificates'. The page does not itself say 'twice'; that wording is ATT&CK's. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-11",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "The current revision (April 3, 2025; supersedes Rev. 2 of 2012). Relevant text: RS.MA-02 'Perform a preliminary review of a new incident report to verify that a cybersecurity incident has occurred, then estimate the severity of the incident and the level of urgency'; RS.MA-03 'Prioritize how quickly incident response should be performed for each incident based on its scope, likely impact, time-critical nature, and resource availability'; RS.MA-04 escalation and elevation; RS.MI-01 'Containment refers to preventing the expansion of an incident'; RS.MI-02 eradication 'to eliminate persistence mechanisms and entry points' and 'Identify all affected hosts and services'; RS.AN-07 incident data collected with integrity and provenance preserved; RS.CO-02 stakeholders notified. Read in the PDF text (nvlpubs.nist.gov) and the CSRC page on 2026-11-11."
+    },
+    {
+      "cite": "CrowdStrike, 2026 Global Threat Report (press release, 2026-02-24): 'The average eCrime breakout time fell to just 29 minutes in 2025', the fastest observed 27 seconds",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.crowdstrike.com/en-us/press-releases/2026-crowdstrike-global-threat-report/",
+      "note": "Vendor telemetry, not a standard. Also: '42% of vulnerabilities were exploited before public disclosure'; adversaries injected malicious prompts into GenAI tools at more than 90 organizations. Used only to set the scale of the attacker's clock; the scenario's step times are the author's. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security architect leading the technical response at Ostrander Group, a fictional manufacturer. At 10:00 the cloud identity team escalates: three administrator accounts signed in to the tenant with valid federation tokens and an MFA claim, from an address none of them use. You own the identity architecture. Decide how to restore trust, keep evidence and report.",
+    "handover": [
+      "The on-premises federation servers (fs.example.com) issue sign-in tokens for the cloud tenant (mail, files, HR). Cloud-only break-glass administrator accounts exist and are tested.",
+      "Rotating the signing certificate makes every relying party re-read the federation metadata; expect sign-in errors while they do."
+    ],
+    "howItWorks": [
+      "Each task takes analyst time: choose it, then let the work finish, which moves the clock by the minutes that task takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you declare the incident contained, you notify, write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "reforgeDelay": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "appDelay": {
+      "value": 2100,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "exportDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "exportDoneDelay": {
+      "value": 3900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      }
+    },
+    "rotateTwiceDur": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Fifteen minutes to rotate twice and push metadata to every relying party is the author's figure; CISA notes outages until partners consume the new certificate."
+      }
+    },
+    "rotateOnceDur": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Author's figure."
+      }
+    },
+    "escalateWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "Incident command within 15 minutes of confirmed token forgery; author's figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "correlatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "fedReviewedAt": {
+      "type": "time",
+      "init": null
+    },
+    "svcOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "rotation": {
+      "type": "enum",
+      "values": [
+        "none",
+        "once",
+        "twice"
+      ],
+      "init": "none"
+    },
+    "rotatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "rotateCleanAt": {
+      "type": "time",
+      "init": null
+    },
+    "reforgeAt": {
+      "type": "time",
+      "init": null
+    },
+    "federationCutAt": {
+      "type": "time",
+      "init": null
+    },
+    "revokedAt": {
+      "type": "time",
+      "init": null
+    },
+    "revokedCleanAt": {
+      "type": "time",
+      "init": null
+    },
+    "appAt": {
+      "type": "time",
+      "init": null
+    },
+    "appsReviewedAt": {
+      "type": "time",
+      "init": null
+    },
+    "appRemovedAt": {
+      "type": "time",
+      "init": null
+    },
+    "imagedAt": {
+      "type": "time",
+      "init": null
+    },
+    "rebuilt": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceDestroyed": {
+      "type": "bool",
+      "init": false
+    },
+    "exportAt": {
+      "type": "time",
+      "init": null
+    },
+    "impactAt": {
+      "type": "time",
+      "init": null
+    },
+    "allOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "key",
+        "phish",
+        "mfa"
+      ],
+      "init": "none"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tier0",
+        "mfa",
+        "nochange"
+      ],
+      "init": "none"
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "it",
+        "nobody"
+      ],
+      "init": "none"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "forgingWorks": {
+      "expr": "isNull(federationCutAt) and isNull(rotateCleanAt) and (isNull(rotatedAt) or not isNull(reforgeAt))"
+    },
+    "tokensLive": {
+      "expr": "isNull(revokedCleanAt)"
+    },
+    "appLive": {
+      "expr": "not isNull(appAt) and isNull(appRemovedAt)"
+    },
+    "attackerActive": {
+      "expr": "forgingWorks or tokensLive or appLive"
+    },
+    "spread": {
+      "expr": "isNull(appAt) and isNull(reforgeAt) ? 0 : 1"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "correlate",
+        "reviewFed",
+        "disableSvc",
+        "rotate",
+        "cutFederation",
+        "revokeSessions",
+        "reviewApps",
+        "removeApp",
+        "imageFed",
+        "rebuildFed",
+        "escalate",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "correlate": {
+      "label": "Correlate cloud sign-ins with federation-server issuance events",
+      "group": "Investigate",
+      "available": "not busy and (isNull(correlatedAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "correlatedAt",
+          "to": "t"
+        },
+        {
+          "log": "You match every federated sign-in today against the federation servers' issuance log.",
+          "kind": "act"
+        },
+        {
+          "finding": "The three administrator sign-ins carry tokens the federation servers never issued, with valid signatures and an MFA claim. Someone holds the token-signing key and is minting tokens (forged SAML)."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "reviewFed": {
+      "label": "Review the federation servers' admin and certificate-access logs",
+      "group": "Investigate",
+      "available": "not busy and (isNull(fedReviewedAt) or (not isNull(reforgeAt) and timeAt(reforgeAt) > timeAt(fedReviewedAt)))",
+      "why": "Reviewed; nothing new.",
+      "effects": [
+        {
+          "set": "fedReviewedAt",
+          "to": "t"
+        },
+        {
+          "log": "You pull the federation servers' security and certificate-store audit logs for the last week.",
+          "kind": "act"
+        },
+        {
+          "finding": "Two days ago the service account svc-fed-sync, from 192.0.2.61, exported the token-signing private key. The attacker's foothold is that account on the identity tier itself{isNull(reforgeAt) ? \"\" : \"; it also read the new key after your rotation\"}."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "disableSvc": {
+      "label": "Disable svc-fed-sync and reset its credentials",
+      "group": "Contain",
+      "available": "not busy and (isNull(svcOffAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(svcOffAt)",
+          "then": [
+            {
+              "set": "svcOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "svc-fed-sync is disabled and its password reset; directory sync pauses until a new tier-0 account runs it.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "rotate": {
+      "label": "Rotate the token-signing certificate",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "params": [
+        {
+          "id": "times",
+          "kind": "choice",
+          "label": "Rotation",
+          "options": [
+            {
+              "value": "twice",
+              "label": "Twice in rapid succession, then update every relying party"
+            },
+            {
+              "value": "once",
+              "label": "Once"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "times == \"twice\"",
+              "then": [
+                {
+                  "set": "rotation",
+                  "to": "\"twice\""
+                },
+                {
+                  "set": "rotatedAt",
+                  "to": "t"
+                },
+                {
+                  "if": "not isNull(svcOffAt)",
+                  "then": [
+                    {
+                      "if": "isNull(rotateCleanAt)",
+                      "then": [
+                        {
+                          "set": "rotateCleanAt",
+                          "to": "t"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "log": "New primary and secondary certificates, generated twice in quick succession; the old key is no longer trusted and every relying party has the new metadata.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "if": "rotation == \"none\"",
+                  "then": [
+                    {
+                      "set": "rotation",
+                      "to": "\"once\""
+                    }
+                  ]
+                },
+                {
+                  "log": "One rotation: the old certificate becomes the secondary and is still trusted, so tokens signed with the stolen key still validate.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "not attackerActive",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "times == \"twice\" ? rotateTwiceDur : rotateOnceDur"
+        }
+      ]
+    },
+    "cutFederation": {
+      "label": "Convert the cloud tenant from federated to cloud-managed sign-in (break-glass admins)",
+      "group": "Contain",
+      "available": "not busy and (isNull(federationCutAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(federationCutAt)",
+          "then": [
+            {
+              "set": "federationCutAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The tenant no longer trusts the federation servers; staff sign in with cloud credentials and MFA, and administrators use cloud-only break-glass accounts.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "revokeSessions": {
+      "label": "Revoke refresh tokens and sessions for every account",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "set": "revokedAt",
+          "to": "t"
+        },
+        {
+          "if": "not forgingWorks",
+          "then": [
+            {
+              "if": "isNull(revokedCleanAt)",
+              "then": [
+                {
+                  "set": "revokedCleanAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Every session and refresh token is revoked; everyone signs in again{forgingWorks ? \", but the stolen key can still mint new tokens\" : \"\"}.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "reviewApps": {
+      "label": "List app registrations, consents and new credentials since the first forged sign-in",
+      "group": "Investigate",
+      "available": "not busy and (isNull(appsReviewedAt) or (not isNull(appAt) and timeAt(appAt) > timeAt(appsReviewedAt)))",
+      "why": "Reviewed; nothing new.",
+      "effects": [
+        {
+          "set": "appsReviewedAt",
+          "to": "t"
+        },
+        {
+          "log": "You list app registrations, permission grants and credentials added in the tenant since 09:40.",
+          "kind": "act"
+        },
+        {
+          "finding": "{isNull(appAt) ? \"Nothing new.\" : \"'Mail Sync', created by admin.lroy's forged session, with read access to every mailbox and its own client secret: persistence that survives a certificate rotation and a session revoke.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "removeApp": {
+      "label": "Remove 'Mail Sync' and its consent",
+      "group": "Contain",
+      "available": "not busy and (not isNull(appAt) and not isNull(appsReviewedAt) and timeAt(appsReviewedAt) >= timeAt(appAt) and isNull(appRemovedAt))",
+      "why": "No such app found yet.",
+      "effects": [
+        {
+          "if": "isNull(appRemovedAt)",
+          "then": [
+            {
+              "set": "appRemovedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "'Mail Sync' and its consent are deleted after its configuration is exported to the case file.",
+          "kind": "act"
+        },
+        {
+          "if": "not attackerActive",
+          "then": [
+            {
+              "if": "isNull(allOffAt)",
+              "then": [
+                {
+                  "set": "allOffAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "imageFed": {
+      "label": "Image the federation servers and export their logs",
+      "group": "Evidence",
+      "available": "not busy and (isNull(imagedAt) and not rebuilt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "imagedAt",
+          "to": "t"
+        },
+        {
+          "log": "Disk and memory images of both federation servers and their logs go to the case file, with hashes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "rebuildFed": {
+      "label": "Rebuild the federation servers from clean media in the tier-0 enclave",
+      "group": "Recover",
+      "available": "not busy and (not rebuilt and (not isNull(svcOffAt) or not isNull(federationCutAt)))",
+      "why": "Cut the attacker off the identity tier first.",
+      "effects": [
+        {
+          "set": "rebuilt",
+          "to": "true"
+        },
+        {
+          "if": "isNull(imagedAt)",
+          "then": [
+            {
+              "set": "evidenceDestroyed",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "The federation servers are rebuilt from clean media inside the tier-0 enclave, reachable only from privileged access workstations{isNull(imagedAt) ? \"; the old disks were wiped with nothing kept\" : \"\"}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "25min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Stand up incident command: CISO, identity, SaaS owners, legal",
+      "group": "Communicate",
+      "available": "not busy and (isNull(escalatedAt))",
+      "why": "Escalated.",
+      "effects": [
+        {
+          "set": "escalatedAt",
+          "to": "t"
+        },
+        {
+          "log": "You open a major incident and bring in the CISO, the identity team, the SaaS owners and legal.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Declare the incident contained and write the report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident phase and start the report.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "full",
+              "label": "CISO, executives, legal and privacy, and every relying-party owner"
+            },
+            {
+              "value": "it",
+              "label": "The identity team only"
+            },
+            {
+              "value": "nobody",
+              "label": "No one"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"full\" ? \"CISO, executives, legal and privacy, and relying-party owners\" : who == \"it\" ? \"the identity team only\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "key",
+                  "label": "The token-signing key stolen through an over-privileged service account on the identity tier"
+                },
+                {
+                  "value": "phish",
+                  "label": "Phished administrator passwords"
+                },
+                {
+                  "value": "mfa",
+                  "label": "An MFA vendor flaw"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Architecture change",
+              "options": [
+                {
+                  "value": "tier0",
+                  "label": "Federation servers in a tier-0 enclave, no service account with key access, or cloud-managed sign-in"
+                },
+                {
+                  "value": "mfa",
+                  "label": "Stronger MFA for administrators"
+                },
+                {
+                  "value": "nochange",
+                  "label": "None needed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: cause {cause}, change {fix}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-238)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values. The attacker's pace is set against the published breakout time in the sources."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "reforge",
+      "when": "not isNull(rotatedAt) and isNull(rotateCleanAt) and isNull(svcOffAt) and isNull(federationCutAt) and isNull(reforgeAt) and t >= timeAt(rotatedAt) + reforgeDelay and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "reforgeAt",
+          "to": "t"
+        },
+        {
+          "log": "Cloud sign-in log: forged administrator tokens are accepted again, signed with the new certificate.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "appMade",
+      "when": "t >= appDelay and (forgingWorks or tokensLive) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "appAt",
+          "to": "t"
+        },
+        {
+          "log": "Cloud audit: a directory change by admin.lroy's session (details in the app registrations).",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "exportStart",
+      "when": "t >= exportDelay and attackerActive and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "exportAt",
+          "to": "t"
+        },
+        {
+          "log": "Mail audit: bulk export of the CEO's and CFO's mailboxes started.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "exportDone",
+      "when": "t >= exportDoneDelay and attackerActive and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "impactAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Mail audit: the export finished: two executives' mailboxes, including the pending acquisition. Legal takes over; write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: how you knew the tokens were forged, the order you restored trust in and why, and what you changed in the architecture.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Detection",
+          "criteria": "Identifies tokens with valid signatures and MFA claims but no issuance on the federation servers as forged with a stolen signing key (MFA does not help); traces the key theft to the service account.",
+          "modelAnswer": "The tokens validated and carried MFA claims, but the federation servers never issued them, so someone had the signing key. The certificate store log showed svc-fed-sync exporting it."
+        },
+        {
+          "label": "Order of containment",
+          "criteria": "Removes the attacker's foothold on the identity tier before rotating (or cuts the federation trust); rotates twice so the stolen key is no longer trusted; then revokes sessions; then hunts for persistence made with forged access (app registrations, consents, credentials).",
+          "modelAnswer": "I disabled svc-fed-sync first, otherwise it would read the new key too; rotated the certificate twice; revoked every session; then listed new apps and consents and removed what the forged sessions made."
+        },
+        {
+          "label": "Architecture",
+          "criteria": "Keeps images before rebuilding; moves the federation servers into a tier-0 enclave reachable only from privileged workstations, removes service accounts with key access, or moves to cloud-managed sign-in.",
+          "modelAnswer": "After imaging, the federation servers were rebuilt in the tier-0 enclave with no service account able to read the key; cloud-managed sign-in is the fallback if that cannot be held."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Set against the 29-minute average eCrime breakout time in CrowdStrike's 2026 Global Threat Report (see sources)."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-11",
+          "note": "No new key, app or credential made by the attacker after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and attackerActive",
+      "class": "harm",
+      "rationale": "Closing while the stolen key still mints tokens, a forged session lives or a backdoor app reads mail leaves the attacker in; it is never a safe outcome.",
+      "source": {
+        "cite": "MITRE ATT&CK T1606.002, Forge Web Credentials: SAML Tokens",
+        "checkedAt": "2026-11-11",
+        "url": "https://attack.mitre.org/techniques/T1606/002/",
+        "note": "Relevant text: an adversary can forge tokens 'if they possess a valid SAML token-signing certificate'; forged access 'may bypass multi-factor and other authentication protection mechanisms'; mitigation: rotate the AD FS token-signing certificate 'in rapid succession twice' to invalidate tokens made with the old one; restrict access to the federation servers; detection: authentication with valid signatures but without the issuance events that should precede them. Read through a summarizing fetch on 2026-11-11."
+      }
+    }
+  },
+  "endings": {
+    "breach": {
+      "label": "Executive mail exported",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(impactAt)",
+      "narrative": "The attacker kept a working way into the tenant for over an hour and exported two executives' mailboxes."
+    },
+    "evidenceLost": {
+      "label": "Identity tier wiped before it was imaged",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and evidenceDestroyed",
+      "narrative": "The federation servers were rebuilt with nothing kept, so how the service account got its rights, and what else it touched, is gone."
+    },
+    "stillIn": {
+      "label": "Closed with the attacker still in",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and attackerActive",
+      "narrative": "The incident was closed while {forgingWorks ? \"the attacker could still mint tokens\" : appLive ? \"the Mail Sync app still read every mailbox\" : \"forged sessions were still live\"}."
+    },
+    "contained": {
+      "label": "Trust restored at the root",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not isNull(allOffAt) and timeAt(allOffAt) <= containWindow and spread <= containSpread and isNull(exportAt) and not isNull(imagedAt) and not evidenceDestroyed and not isNull(svcOffAt) and not isNull(fedReviewedAt) and not isNull(appsReviewedAt) and (isNull(appAt) or timeAt(appsReviewedAt) >= timeAt(appAt))",
+      "narrative": "You cut the attacker off the identity tier before rotating, invalidated every forged token, checked for persistence they could have made, and kept the evidence."
+    },
+    "containedLate": {
+      "label": "Contained, late or with spread",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The attacker is out, but they made a backdoor or a second key first, the export had started, or containment took too long."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "breach",
+    "evidenceLost",
+    "stillIn",
+    "contained",
+    "containedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "containFast",
+        "label": "Ended every way the attacker had in within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not attackerActive and not isNull(allOffAt) and timeAt(allOffAt) <= containWindow",
+            "score": "met",
+            "why": "Out {timeAt(allOffAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not attackerActive and not isNull(allOffAt)",
+            "score": "partial",
+            "why": "Out, but {timeAt(allOffAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{forgingWorks ? \"The stolen key still mints tokens.\" : appLive ? \"Mail Sync still reads mail.\" : \"Forged sessions are still live.\"}"
+          }
+        ]
+      },
+      {
+        "id": "rootCut",
+        "label": "Closed the foothold on the identity tier before trusting a new key",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(svcOffAt) and (not isNull(rotateCleanAt) or not isNull(federationCutAt))",
+            "score": "met",
+            "why": "svc-fed-sync was off before the trust was rebuilt."
+          },
+          {
+            "when": "not isNull(svcOffAt)",
+            "score": "partial",
+            "why": "The account was disabled, but the trust was never rebuilt cleanly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The service account that stole the key still works."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Imaged the federation servers before rebuilding them",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(imagedAt) and not evidenceDestroyed",
+            "score": "met",
+            "why": "Images and logs are in the case file."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{evidenceDestroyed ? \"Rebuilt with nothing kept.\" : \"Nothing was imaged.\"}"
+          }
+        ]
+      },
+      {
+        "id": "scope",
+        "label": "Found the key theft and every persistence the forged sessions made",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fedReviewedAt) and not isNull(appsReviewedAt) and (isNull(appAt) or timeAt(appsReviewedAt) >= timeAt(appAt))",
+            "score": "met",
+            "why": "The identity tier and the tenant's apps were both reviewed."
+          },
+          {
+            "when": "not isNull(fedReviewedAt) or not isNull(appsReviewedAt)",
+            "score": "partial",
+            "why": "Only part of the scope was checked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one checked where the key came from or what was left behind."
+          }
+        ]
+      },
+      {
+        "id": "correlatedCrit",
+        "label": "Confirmed forgery by correlating sign-ins with issuance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(correlatedAt)",
+            "score": "met",
+            "why": "Tokens without issuance events: forged."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Forgery was assumed, not shown."
+          }
+        ]
+      },
+      {
+        "id": "escalated",
+        "label": "Stood up incident command within 15 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(escalatedAt) and timeAt(escalatedAt) <= escalateWindow",
+            "score": "met",
+            "why": "{timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(escalatedAt)",
+            "score": "partial",
+            "why": "{timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "rebuiltCrit",
+        "label": "Moved the identity tier into a protected enclave",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "rebuilt and not evidenceDestroyed",
+            "score": "met",
+            "why": "Rebuilt from clean media in tier 0."
+          },
+          {
+            "when": "rebuilt",
+            "score": "partial",
+            "why": "Rebuilt, but the evidence went with it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The compromised servers stay as they were."
+          }
+        ]
+      },
+      {
+        "id": "notifiedCrit",
+        "label": "Notified the CISO, executives, legal and privacy, and relying-party owners",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified == \"full\"",
+            "score": "met",
+            "why": "Everyone with a stake knows."
+          },
+          {
+            "when": "notified == \"it\"",
+            "score": "partial",
+            "why": "Only the identity team."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the root cause and the architecture change accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"key\" and fixDoc == \"tier0\"",
+            "score": "met",
+            "why": "The record matches."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written detection, order and architecture",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToContain",
+        "label": "Minutes until the attacker had no way in",
+        "value": "isNull(allOffAt) ? -1 : timeAt(allOffAt) / 60",
+        "format": "number",
+        "expert": "30 or less"
+      },
+      {
+        "id": "backdoors",
+        "label": "Backdoors the attacker made (app, second key)",
+        "value": "(isNull(appAt) ? 0 : 1) + (isNull(reforgeAt) ? 0 : 1)",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "rotations",
+        "label": "Certificate rotation",
+        "value": "rotation == \"twice\" ? 2 : rotation == \"once\" ? 1 : 0",
+        "format": "number",
+        "expert": "2, after the foothold is closed"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-15 min",
+        "text": "Stand up incident command; review the federation servers' certificate access: svc-fed-sync took the key. Disable it."
+      },
+      {
+        "at": "15-35 min",
+        "text": "Rotate the signing certificate twice and push the metadata; revoke every session."
+      },
+      {
+        "at": "35-60 min",
+        "text": "Correlate sign-ins to confirm the forgery's extent; list new apps and consents; image the federation servers."
+      },
+      {
+        "at": "60-90 min",
+        "text": "Rebuild the federation servers from clean media in the tier-0 enclave."
+      },
+      {
+        "at": "After",
+        "text": "Notify the CISO, executives, legal and privacy, and relying-party owners; record the stolen key and the tier-0 change."
+      }
+    ],
+    "debrief": {
+      "contained": {
+        "headline": "Good: trust rebuilt from the root",
+        "body": "MFA could not help against a stolen signing key. You closed the foothold that stole it, then replaced the key, then the sessions, then looked for what was left."
+      },
+      "containedLate": {
+        "headline": "Contained, with gaps",
+        "body": "The attacker is out. The criteria show what cost you: a backdoor app, a second stolen key, or time."
+      },
+      "breach": {
+        "headline": "Executive mail exported",
+        "body": "A single rotation leaves the old certificate trusted, and a session revoke while the key still works only makes the attacker mint new tokens."
+      },
+      "evidenceLost": {
+        "headline": "Evidence wiped",
+        "body": "Image the identity tier before rebuilding it; it is the only record of how the key was taken."
+      },
+      "stillIn": {
+        "headline": "Closed too soon",
+        "body": "Rotating while the attacker still controls a service account on the federation servers just hands them the new key; and access they already used can leave an app behind."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Valid, MFA-stamped tokens that the federation servers never issued mean the signing key is stolen. Find how (svc-fed-sync exported it), disable that account first, rotate the certificate twice in rapid succession (or cut the federation trust and use cloud-only break-glass accounts), revoke every session, then hunt for persistence made with forged access such as app registrations and consents. Image the federation servers before rebuilding them in a tier-0 enclave, and notify the CISO, executives, legal and privacy, and every relying-party owner."
+  }
+}

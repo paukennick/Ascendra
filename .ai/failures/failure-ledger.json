@@ -16029,6 +16029,140 @@
       "prevention_rules": [],
       "prevention_notes": "Run the whole backend npm test, not only the set's own test file, before committing a lab set; docs/labs.md authoring step 7 already says so.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1460",
+      "date": "2026-11-11",
+      "title": "Containment criterion read a first-time stamp and scored met after the attacker got back in",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "SECURITYX/federation-token-forgery golden rotateNoFoothold: containFast 'met' (17 min) on a path that closed with forged tokens accepted again",
+      "how_detected": "review of the golden expectations (npm run sim:golden -- steps sx-fed)",
+      "root_cause": "allOffAt is stamped the first time attackerActive is false and never cleared; rotating the key while svc-fed-sync still worked let the attacker re-read the key ten minutes later, but the criterion only read the stamp",
+      "requirement": "REQ-238",
+      "affected": [
+        "backend/supabase/seed/sims/SECURITYX/federation-token-forgery.sim.json"
+      ],
+      "fix_summary": "containFast's met and partial rows also require not attackerActive",
+      "fix_commits": [
+        "5b39af4"
+      ],
+      "regression_tests": [
+        "backend/supabase/seed/sims/SECURITYX/federation-token-forgery.golden.json (rotateNoFoothold expects containFast missed; npm run sims:lint)",
+        "backend/lib/sim/security-w2.test.ts::SecurityX: rotating twice while the service account still works lets the attacker read the new key"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "docs/sims.md 22.11"
+      ],
+      "prevention_notes": "docs/sims.md 22.11 finding 1: a criterion that reads a first-time stamp also checks the live derived value when access can be regained",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1461",
+      "date": "2026-11-11",
+      "title": "Record option 'none' duplicated the state enum's leading 'none'",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims lint: state.scopeDoc / state.fixDoc: duplicate enum values",
+      "how_detected": "sims:lint (validateScenario) before commit",
+      "root_cause": "the builder's enum helper prepends 'none' as the unset value, and a record field also offered 'none' as an answer",
+      "requirement": "REQ-238",
+      "affected": [
+        "CYSAPLUS/alert-triage-lolbin-hunt.sim.json",
+        "SECURITYX/federation-token-forgery.sim.json"
+      ],
+      "fix_summary": "answer values renamed (zero, nochange); SecAI+ dataDoc uses 'unset' as its initial value",
+      "fix_commits": [
+        "9b3dd21",
+        "5b39af4"
+      ],
+      "regression_tests": [
+        "npm run sims:lint (validateScenario duplicate-enum rule)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "docs/sims.md 22.11"
+      ],
+      "prevention_notes": "docs/sims.md 22.11 finding 2; the validator already refuses it",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1462",
+      "date": "2026-11-11",
+      "title": "Rate-driven KPI printed an unrounded float in the debrief",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "rag-assistant-data-leak expert golden: leakedK = 83.20000000000003 (shown as the KPI value)",
+      "how_detected": "reading the golden expectations",
+      "root_cause": "leaked grows by rate * dt / 60 with a fractional rate, and a number-format KPI is shown as computed",
+      "requirement": "REQ-238",
+      "affected": [
+        "SECAIPLUS/rag-assistant-data-leak.sim.json",
+        "SECAIPLUS/agent-indirect-prompt-injection.sim.json"
+      ],
+      "fix_summary": "leakedK value is round(leaked) in both SecAI+ documents",
+      "fix_commits": [
+        "04e51d0"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/security-w2.test.ts::every KPI the goldens record is a whole number"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "docs/sims.md 22.11"
+      ],
+      "prevention_notes": "the test fails on the old golden (checked by swapping it back)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1463",
+      "date": "2026-11-11",
+      "title": "Documentation-range test read 'RS.CO' as a domain",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "security-w2.test.ts: alert-triage-lolbin-hunt: RS.CO",
+      "how_detected": "first run of the new test",
+      "root_cause": "the host pattern was case-insensitive, so NIST subcategory ids like RS.CO-02 matched the .co TLD",
+      "requirement": "REQ-238",
+      "affected": [
+        "backend/lib/sim/security-w2.test.ts"
+      ],
+      "fix_summary": "host pattern is lower-case only",
+      "fix_commits": [
+        "6937a0e"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "a defect in the test itself; its passing run over all eight documents is the check",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.11 finding 4",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1464",
+      "date": "2026-11-11",
+      "title": "A trigger due at minute N fires during the skip into N, before the learner's action at N",
+      "status": "mitigated",
+      "severity": "low",
+      "symptom": "with appDelay 1800 the federation expert path's revoke at 30 min came after the backdoor app (appAt 1800 at tick 30)",
+      "how_detected": "authoring check with a modified document (scratch driver), 2026-11-11",
+      "root_cause": "turns-phase ordering: a skip advances tick by tick and evaluates triggers at the target tick before the next command is applied",
+      "requirement": "REQ-238",
+      "affected": [
+        "SECURITYX/federation-token-forgery.sim.json and the other REQ-238 attacker timings"
+      ],
+      "fix_summary": "attacker delays leave at least a minute after the expert path's matching action; appDelay is 2100 s",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/supabase/seed/sims/SECURITYX/federation-token-forgery.golden.json (expert path",
+        "npm run sims:lint)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "docs/sims.md 22.11"
+      ],
+      "prevention_notes": "documented with FAIL-1360's turns-phase ordering note; no lint rule",
+      "recurrence_of": "FAIL-1360"
     }
   ]
 }
