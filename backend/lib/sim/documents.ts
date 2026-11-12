@@ -94,6 +94,19 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "med-pass-error-caught"),
   entry("AWSSAA", "nat-gateway-bill-spike"),
   // ---- end REQ-233 ----
+  // ---- REQ-242 (AWS board sims, wave 2): AWS MLA, Cloud Practitioner,
+  // Developer and SysOps (CloudOps) board cases, learner-paced, set in
+  // us-east-2. Keep these entries together. ----
+  entry("AWSMLA", "fraud-model-drift"),
+  entry("AWSMLA", "endpoint-scaling-latency"),
+  entry("AWSMLA", "loan-data-bias"),
+  entry("AWSCLF", "data-transfer-surprise"),
+  entry("AWSCLF", "leaked-access-key"),
+  entry("AWSDVA", "canary-rollback-dlq"),
+  entry("AWSDVA", "phi-in-application-logs"),
+  entry("AWSSOA", "stack-update-rollback-failed"),
+  entry("AWSSOA", "ec2-status-check-recovery"),
+  // ---- end REQ-242 ----
   // ---- REQ-239: NBCC client sessions, courses NCE and NCMHCE (session
   // renderer, clinical-session profile; NBCC_SESSION_DOCUMENTS below) ----
   entry("NCE", "nce-boundary-dual-relationship"),

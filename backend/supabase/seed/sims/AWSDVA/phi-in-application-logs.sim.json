@@ -1,0 +1,1051 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "phi-in-application-logs",
+  "title": "Patient details in the logs",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "app",
+          "label": "Booking API (us-east-2)",
+          "spokenLabel": "Booking API in us-east-2",
+          "items": [
+            {
+              "label": "API Gateway to Lambda book-appointment",
+              "when": "true"
+            },
+            {
+              "label": "Logging: {codeFixed ? \"request ID, route, status, latency (structured JSON)\" : \"the whole request body\"}",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "logs",
+          "label": "CloudWatch Logs: /aws/lambda/book-appointment",
+          "spokenLabel": "Log group for book-appointment",
+          "items": [
+            {
+              "label": "Retention: {retentionSet ? \"30 days (copy preserved for the privacy officer)\" : (evidenceGone ? \"1 day (old events purged)\" : \"never expire\")}",
+              "when": "true"
+            },
+            {
+              "label": "Data protection policy: masking identifiers",
+              "when": "maskOn"
+            },
+            {
+              "label": "Subscription filter to the log analytics vendor",
+              "when": "vendorOn"
+            },
+            {
+              "label": "Readers: {readersOpen ? \"40 engineers and a contractor role\" : \"security team only; logs:Unmask restricted\"}",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "people",
+          "label": "People",
+          "spokenLabel": "People",
+          "items": [
+            {
+              "label": "Privacy officer informed",
+              "when": "escalated"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "exposed",
+          "label": "Days PHI kept flowing to the vendor",
+          "value": "{exposedDays}"
+        },
+        {
+          "id": "source",
+          "label": "New PHI written to logs",
+          "value": "{codeFixed ? \"stopped\" : (maskOn ? \"masked\" : \"still written\")}"
+        }
+      ]
+    }
+  },
+  "objective": "Identifying sensitive data: personally identifiable information (PII) and protected health information (PHI)",
+  "secondaryObjectives": [
+    "Masking sensitive data and limiting who can access it",
+    "A logging strategy that records application behavior and state",
+    "Structured logging for application events and user actions"
+  ],
+  "sources": [
+    {
+      "cite": "Ascendra AWSDVA course catalog (backend/supabase/seed/tracks/aws.ts), built from the exam guide",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03.html",
+      "note": "The objective and secondary objectives are the course's own titles, from the DVA-C03 outline at the course's source URL. Not re-fetched for this scenario."
+    },
+    {
+      "cite": "AWS. CloudWatch Logs User Guide: Help protect sensitive log data with masking",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data.html",
+      "note": "Read 2026-11-11: data protection policies 'audit and mask sensitive data that appears in log events ingested by the log groups'; matching data 'is masked at all egress points, including CloudWatch Logs Insights, metric filters, and subscription filters'; 'When you set a data protection policy, log events ingested to the log group before that time are not masked'; 'Only users who have the logs:Unmask IAM permission can view unmasked data'; findings emit LogEventsWithFindings in AWS/Logs."
+    },
+    {
+      "cite": "AWS. CloudWatch Logs User Guide: Working with log groups and log streams",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html",
+      "note": "Read 2026-11-11: 'By default, log data is stored in CloudWatch Logs indefinitely'; 'Any data older than the current retention setting is deleted. You can change the log retention for each log group at any time.'"
+    },
+    {
+      "cite": "HHS. Guidance Regarding Methods for De-identification of PHI under the HIPAA Privacy Rule",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.hhs.gov/hipaa/for-professionals/privacy/special-topics/de-identification/index.html",
+      "note": "Read 2026-11-11: PHI is individually identifiable health information, including demographic information, that relates to health or care and identifies the individual; the Safe Harbor identifiers include names, all elements of dates (except year) directly related to an individual such as birth date, email addresses, and health plan beneficiary numbers."
+    },
+    {
+      "cite": "HHS. Breach Notification Rule",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html",
+      "note": "Read 2026-11-11: an impermissible use or disclosure is presumed a breach unless a risk assessment of four factors shows a low probability of compromise: the nature and extent of the PHI, the unauthorized person, 'Whether the protected health information was actually acquired or viewed', and the extent of mitigation; individual notice 'in no case later than 60 days following the discovery of a breach'. The scenario leaves that decision to the clinic's privacy officer, not the developer."
+    }
+  ],
+  "brief": {
+    "situation": "Monday 09:00. You are a developer for a chain of clinics' online booking app, a Lambda function behind API Gateway in us-east-2 (Ohio). While debugging, you notice the function's CloudWatch logs contain whole booking requests: patient names, dates of birth, insurance member IDs and the reason for the visit.",
+    "handover": [
+      "The debug logging was added 14 months ago and never removed; about 2.1 million bookings since.",
+      "The clinics are a HIPAA covered entity. Their privacy officer decides whether something is a reportable breach.",
+      "The log analytics team set up a vendor feed for dashboards; you are not sure what it receives."
+    ],
+    "howItWorks": [
+      "Learner-paced: nothing moves until you act. Investigate, stop the exposure, report, then run the next days.",
+      "The board shows where the logs go and who can read them; the meters show whether PHI is still being written and sent.",
+      "Before you run the next days you are asked what the data is and what you did. The debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-08T09:00",
+    "tick": "1min",
+    "maxDuration": "8d",
+    "calendar": "date"
+  },
+  "params": {
+    "dayWait": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step of the week."
+      }
+    }
+  },
+  "state": {
+    "sampleAt": {
+      "type": "time",
+      "init": null
+    },
+    "destAt": {
+      "type": "time",
+      "init": null
+    },
+    "readersAt": {
+      "type": "time",
+      "init": null
+    },
+    "codeFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "maskOn": {
+      "type": "bool",
+      "init": false
+    },
+    "vendorOn": {
+      "type": "bool",
+      "init": true
+    },
+    "readersOpen": {
+      "type": "bool",
+      "init": true
+    },
+    "escalated": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceGone": {
+      "type": "bool",
+      "init": false
+    },
+    "retentionSet": {
+      "type": "bool",
+      "init": false
+    },
+    "phiAnswer": {
+      "type": "enum",
+      "values": [
+        "none",
+        "right",
+        "wrong"
+      ],
+      "init": "none"
+    },
+    "exposedDays": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 30
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedBlind": {
+      "type": "bool",
+      "init": false
+    },
+    "changes": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "weekStarted": {
+      "type": "bool",
+      "init": false
+    },
+    "weekDone": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "flowing": {
+      "expr": "vendorOn and not codeFixed and not maskOn"
+    },
+    "investigated": {
+      "expr": "not isNull(sampleAt) and not isNull(destAt)"
+    },
+    "investigatedFirst": {
+      "expr": "investigated and not changedBlind"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Investigate and change",
+      "clock": "turns",
+      "actions": [
+        "sampleLogs",
+        "destinations",
+        "readers",
+        "fixCode",
+        "maskPolicy",
+        "stopVendor",
+        "restrictReaders",
+        "escalate",
+        "retention",
+        "runWeek"
+      ]
+    },
+    "week": {
+      "label": "The week",
+      "clock": "turns",
+      "actions": []
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "sampleLogs": {
+      "label": "Logs Insights: sample the fields in recent log events",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(sampleAt)",
+          "then": [
+            {
+              "set": "sampleAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "fields @timestamp, body.patientName, body.dob, body.email, body.insuranceMemberId, body.reasonForVisit | limit 5 -> e.g. 'Dana R. Ellis', '1988-04-12', a personal email, member ID 'WX44829105', 'chest pain on exertion, 2 weeks'. Present in every booking event for 14 months."
+        },
+        {
+          "log": "Sample: names, dates of birth, emails, member IDs and visit reasons in every booking.",
+          "kind": "find"
+        },
+        {
+          "if": "phiAnswer == \"none\"",
+          "then": [
+            {
+              "prompt": "phiQ"
+            }
+          ]
+        }
+      ]
+    },
+    "destinations": {
+      "label": "Where do these logs go? Subscription filters and exports",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(destAt)",
+          "then": [
+            {
+              "set": "destAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "One subscription filter, 'vendor-dashboards', streams every event through Amazon Data Firehose to a third-party log analytics vendor, since 9 months ago. The vendor contract covers application metrics, not health data. No exports to S3."
+        },
+        {
+          "log": "Destinations: every log event, PHI included, streams to an outside vendor.",
+          "kind": "find"
+        }
+      ]
+    },
+    "readers": {
+      "label": "Who can read the log group?",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(readersAt)",
+          "then": [
+            {
+              "set": "readersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "IAM: 40 engineers through a developer role with CloudWatchLogsReadOnlyAccess, and a contractor role with the same policy."
+        },
+        {
+          "log": "Readers: far more people than need patient data.",
+          "kind": "find"
+        }
+      ]
+    },
+    "fixCode": {
+      "label": "Change the handler to log only request ID, route, status and latency (structured JSON), and deploy",
+      "group": "Change",
+      "available": "not codeFixed",
+      "why": "Already deployed.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "codeFixed",
+          "to": "true"
+        },
+        {
+          "log": "Deployed: the handler no longer logs request bodies. New events carry no patient data."
+        }
+      ]
+    },
+    "maskPolicy": {
+      "label": "Add a data protection policy to the log group (names, dates of birth, emails, a custom member-ID pattern)",
+      "group": "Change",
+      "available": "not maskOn",
+      "why": "Already on.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "maskOn",
+          "to": "true"
+        },
+        {
+          "log": "Data protection policy on: identifiers in newly ingested events are masked in Logs Insights, metric filters and subscription filters. The 14 months already stored stay unmasked."
+        }
+      ]
+    },
+    "stopVendor": {
+      "label": "Remove the subscription filter to the vendor",
+      "group": "Change",
+      "available": "vendorOn",
+      "why": "Already removed.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "vendorOn",
+          "to": "false"
+        },
+        {
+          "log": "Subscription filter 'vendor-dashboards' removed; nothing more leaves for the vendor."
+        }
+      ]
+    },
+    "restrictReaders": {
+      "label": "Limit reading the log group, and logs:Unmask, to the security team",
+      "group": "Change",
+      "available": "readersOpen",
+      "why": "Already limited.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "readersOpen",
+          "to": "false"
+        },
+        {
+          "log": "Read access to this log group limited to the security team; logs:Unmask granted to no one else."
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Report it to the privacy officer: what data, since when, where it went, who could read it",
+      "group": "Report",
+      "available": "not escalated",
+      "why": "Already reported.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "escalated",
+          "to": "true"
+        },
+        {
+          "log": "Incident report to the privacy officer, with the fields found{isNull(destAt) ? \"\" : \", the vendor feed\"}{isNull(readersAt) ? \"\" : \" and the readers\"}."
+        }
+      ]
+    },
+    "retention": {
+      "label": "Deal with the 14 months of stored PHI",
+      "group": "Change",
+      "available": "not retentionSet and not evidenceGone",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "How",
+          "options": [
+            {
+              "value": "preserve",
+              "label": "Preserve a restricted copy for the privacy officer, then set retention to 30 days"
+            },
+            {
+              "value": "purge",
+              "label": "Set retention to 1 day now so the old PHI is deleted"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "if": "how == \"preserve\"",
+          "then": [
+            {
+              "set": "retentionSet",
+              "to": "true"
+            },
+            {
+              "log": "An encrypted export kept for the privacy officer's assessment, access limited to security; retention on the log group set to 30 days."
+            }
+          ],
+          "else": [
+            {
+              "set": "evidenceGone",
+              "to": "true"
+            },
+            {
+              "log": "Retention set to 1 day: the stored events, and the record of what went where, are being deleted.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "runWeek": {
+      "label": "Close out and run the next days",
+      "group": "Run",
+      "available": "true",
+      "why": "Not available now.",
+      "effects": [
+        {
+          "set": "weekStarted",
+          "to": "true"
+        },
+        {
+          "reason": "plan"
+        },
+        {
+          "phase": "week"
+        },
+        {
+          "schedule": "dayT",
+          "after": "dayWait",
+          "with": {
+            "d": "1"
+          }
+        },
+        {
+          "log": "Closed. PHI to the vendor: {flowing ? \"still flowing\" : \"stopped\"}.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "prompts": {
+    "phiQ": {
+      "title": "What is this data?",
+      "context": "In this booking app, which of the logged fields are protected health information?",
+      "choices": [
+        {
+          "id": "right",
+          "label": "All of them together: name, birth date, email and member ID identify the patient, and the visit reason is their health information",
+          "effects": [
+            {
+              "set": "phiAnswer",
+              "to": "\"right\""
+            }
+          ],
+          "feedback": "Right. Identifiers such as names, birth dates, emails and health plan numbers become PHI when tied to health or care information held by a covered entity; here they sit beside the reason for a visit."
+        },
+        {
+          "id": "wrong",
+          "label": "Only the reason for the visit; the rest is ordinary PII",
+          "effects": [
+            {
+              "set": "phiAnswer",
+              "to": "\"wrong\""
+            }
+          ],
+          "feedback": "No. On their own they would be PII, but linked to a booking for care at a covered entity, the identifiers are part of the PHI."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "dayT": {
+      "label": "the next day",
+      "wait": {
+        "skipLabel": "the next day"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "d": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step."
+      },
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "timer.with.d == 1",
+              "then": [
+                {
+                  "if": "flowing",
+                  "then": [
+                    {
+                      "add": "exposedDays",
+                      "by": "1"
+                    },
+                    {
+                      "log": "Tuesday: another day of bookings, with patient details, streamed to the vendor.",
+                      "kind": "bad"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "Tuesday: no new patient data leaves the account.",
+                      "kind": "good"
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "2"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "timer.with.d == 2",
+              "then": [
+                {
+                  "cases": [
+                    {
+                      "when": "escalated and evidenceGone",
+                      "then": [
+                        {
+                          "log": "Wednesday: the privacy officer cannot tell from what is left which records went where, and must treat all 14 months as affected.",
+                          "kind": "bad"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "escalated",
+                      "then": [
+                        {
+                          "log": "Wednesday: the privacy officer starts the four-factor risk assessment with your report and the preserved logs.",
+                          "kind": "good"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "Wednesday: the vendor's support team emails to ask why their dashboards show patient names. The privacy officer hears of it from them.",
+                          "kind": "bad"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "3"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "if": "flowing",
+                  "then": [
+                    {
+                      "add": "exposedDays",
+                      "by": "1"
+                    },
+                    {
+                      "log": "Thursday: still streaming to the vendor.",
+                      "kind": "bad"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "Thursday: the booking logs hold only request IDs and status codes.",
+                      "kind": "sys"
+                    }
+                  ]
+                },
+                {
+                  "set": "weekDone",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "plan": {
+      "question": "Before you run the next days: what kind of data is this, where did it go, and what did you change and report?",
+      "parts": [
+        {
+          "label": "Identifying the data",
+          "criteria": "Classifies names, birth dates, emails and member IDs with the visit reason as PHI in a covered entity's booking app; names where it went (the vendor feed) and who could read it.",
+          "modelAnswer": "Names, dates of birth, emails and insurance member IDs tied to the reason for a clinic visit are PHI. They went to every engineer with log access and, through a subscription filter, to an outside vendor whose contract does not cover health data."
+        },
+        {
+          "label": "Containment and reporting",
+          "criteria": "Stops PHI at the source (logging change) and stops the vendor feed; masks as defense in depth, noting old events stay unmasked; restricts readers; preserves evidence; reports to the privacy officer, who owns the breach assessment.",
+          "modelAnswer": "Change the code so it never logs bodies, remove the vendor feed, add a masking policy for anything that slips through, and limit readers and logs:Unmask. Keep a restricted copy so the privacy officer can assess what was exposed, then shorten retention. Report it the same day; whether it is a reportable breach is their call."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {},
+    "noProgress": {
+      "when": "weekDone and not codeFixed",
+      "class": "recovered",
+      "rationale": "The exposure was contained downstream but the code still writes PHI to logs: a miss, recovered, never target.",
+      "source": {
+        "cite": "AWS. CloudWatch Logs User Guide: Help protect sensitive log data with masking",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data.html",
+        "note": "Read 2026-11-11: data protection policies 'audit and mask sensitive data that appears in log events ingested by the log groups'; matching data 'is masked at all egress points, including CloudWatch Logs Insights, metric filters, and subscription filters'; 'When you set a data protection policy, log events ingested to the log group before that time are not masked'; 'Only users who have the logs:Unmask IAM permission can view unmasked data'; findings emit LogEventsWithFindings in AWS/Logs."
+      }
+    }
+  },
+  "endings": {
+    "evidence": {
+      "label": "The record was destroyed",
+      "class": "harm",
+      "when": "evidenceGone",
+      "terminal": true,
+      "narrative": "The stored logs were purged before the privacy officer could assess them, so nobody can show which records reached whom."
+    },
+    "ongoing": {
+      "label": "PHI kept flowing out all week",
+      "class": "harm",
+      "when": "exposedDays >= 2",
+      "terminal": true,
+      "narrative": "Patient details streamed to the vendor for {exposedDays} more days after you found them."
+    },
+    "fixed": {
+      "label": "Found, stopped and reported",
+      "class": "target",
+      "when": "weekDone and investigatedFirst and codeFixed and not vendorOn and escalated and exposedDays == 0",
+      "terminal": true,
+      "narrative": "Thursday: no patient data is written or sent, the privacy officer has the facts and the preserved logs, and readers are limited."
+    },
+    "partly": {
+      "label": "Contained, by a rougher route",
+      "class": "recovered",
+      "when": "weekDone",
+      "terminal": true,
+      "narrative": "Thursday: the exposure is smaller, but something was missed: the destinations first, the code itself, the vendor feed or the report."
+    },
+    "time_up": {
+      "label": "The week ran out",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The week ended without a decision."
+    }
+  },
+  "endingOrder": [
+    "evidence",
+    "ongoing",
+    "fixed",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "investigate",
+        "label": "Found what was logged and where it went before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "investigatedFirst",
+            "score": "met",
+            "why": "Sampled the fields and traced the destinations first."
+          },
+          {
+            "when": "investigated",
+            "score": "partial",
+            "why": "Looked, but after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without knowing where the data went."
+          }
+        ]
+      },
+      {
+        "id": "source",
+        "label": "Stopped PHI at the source",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "codeFixed",
+            "score": "met",
+            "why": "The handler logs no request bodies."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The code still writes patient data to logs."
+          }
+        ]
+      },
+      {
+        "id": "vendor",
+        "label": "Stopped the feed to the vendor",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not vendorOn",
+            "score": "met",
+            "why": "Subscription filter removed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The vendor feed is still on."
+          }
+        ]
+      },
+      {
+        "id": "report",
+        "label": "Reported to the privacy officer",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "escalated",
+            "score": "met",
+            "why": "Reported the same day, with the facts."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never reported; the privacy officer heard from the vendor."
+          }
+        ]
+      },
+      {
+        "id": "mask",
+        "label": "Masking as defense in depth",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "maskOn",
+            "score": "met",
+            "why": "Data protection policy on the log group."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No masking policy."
+          }
+        ]
+      },
+      {
+        "id": "readers",
+        "label": "Limited who can read and unmask",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not readersOpen",
+            "score": "met",
+            "why": "Security team only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Forty engineers and a contractor can still read it."
+          }
+        ]
+      },
+      {
+        "id": "phi",
+        "label": "Classified the data correctly",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "phiAnswer == \"right\"",
+            "score": "met",
+            "why": "Identifiers plus the visit reason are PHI."
+          },
+          {
+            "when": "phiAnswer == \"wrong\"",
+            "score": "missed",
+            "why": "Treated the identifiers as ordinary PII."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "Not asked."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: the data, its destinations, the fix and the report",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "exposed",
+        "label": "Extra days PHI reached the vendor",
+        "value": "exposedDays",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "changes",
+        "label": "Changes made",
+        "value": "changes",
+        "format": "number",
+        "expert": "6"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Monday 09:00",
+        "text": "Sample the fields: identifiers and visit reasons, so PHI. Trace destinations: a vendor subscription filter. Check readers: 40 engineers and a contractor."
+      },
+      {
+        "at": "Monday 09:30",
+        "text": "Remove the vendor feed, deploy the logging fix, add a masking policy, limit readers and logs:Unmask."
+      },
+      {
+        "at": "Monday 10:00",
+        "text": "Report to the privacy officer; preserve a restricted copy, then set retention to 30 days. The trade-off: keeping the old PHI a while longer, locked down, so the exposure can be assessed."
+      }
+    ],
+    "debrief": {
+      "evidence": {
+        "headline": "The record was destroyed",
+        "body": "Deleting the logs felt like cleaning up, but the privacy officer needs them to judge what was exposed and to whom. Lock them down and keep a copy; shorten retention after."
+      },
+      "ongoing": {
+        "headline": "PHI kept flowing out all week",
+        "body": "The vendor feed, unmasked logs and the logging code each kept patient data leaving the account. Stopping any of them at once would have ended the exposure on Monday."
+      },
+      "fixed": {
+        "headline": "Found, stopped and reported",
+        "body": "You identified the data, found where it went, stopped it at the source and the exit, kept the evidence and reported it. That is the expert path."
+      },
+      "partly": {
+        "headline": "Contained, by a rougher route",
+        "body": "Check whether you traced the destinations first, whether the code still logs bodies, whether the vendor feed is off, and whether the privacy officer was told."
+      },
+      "time_up": {
+        "headline": "No decision",
+        "body": "The logs keep filling with patient data."
+      }
+    },
+    "modelReasoning": "Identifiers such as names, dates of birth, emails and health plan member IDs, linked to the reason for a clinic visit, are PHI. Find where the logs go before changing anything: here a subscription filter sends every event to an outside vendor. Stop it at the source by logging only what operations needs (request ID, route, status, latency) and at the exit by removing the feed. A CloudWatch Logs data protection policy masks identifiers in new events at every egress point but leaves events already stored unmasked, so it is defense in depth, not the fix. Limit readers and logs:Unmask, preserve a restricted copy, and report to the privacy officer, who runs the breach risk assessment."
+  }
+}
