@@ -4018,7 +4018,7 @@ first minute.
   number carry `FLAG` (for example the DKA edema onset and size, the RDS
   disease course, the transfusion slow-start rate and volume-to-harm,
   hospital rapid-response criteria, and the PN hold parameters).
-- **Two authoring findings (FAIL-1360, FAIL-1361).** In a `turns` phase every
+- **Authoring findings (FAIL-1360, FAIL-1361).** In a `turns` phase every
   action happens at the same tick until a wait is skipped, so a criterion
   that orders actions by `timeAt` cannot tell "investigated first" from
   "changed first"; the board case orders them with a flag set by the change
@@ -4026,6 +4026,13 @@ first minute.
   whatever the param's `unit` says: a "1440 min" day became 24 minutes. The
   linter checks neither; the goldens (`guessFirst`, and every path's final
   tick) pin both.
+- **Teaching key order (FAIL-1362, an instance of the open FAIL-1250).** Two
+  teaching prompts due at once are offered in the teaching map's key order,
+  which jsonb does not keep, so three goldens recorded in file order failed
+  the storage-order test. Every REQ-233 document now writes its teaching keys
+  in jsonb order (length, then bytewise); until a `teachingOrder` list exists,
+  new documents should do the same or make overlapping prompts mutually
+  exclusive.
 - **`time_up`** is a reachable harm in the pediatric DKA, pediatric sepsis
   and neonatal sepsis cases; elsewhere every slow path ends in an earlier
   ending first, so the linter's `time_up` warning remains, as in the

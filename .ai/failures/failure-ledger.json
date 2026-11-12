@@ -15335,9 +15335,8 @@
       "fix_summary": "The change actions set a changedBlind flag when the investigation is not complete; the criterion and the target read the flag.",
       "fix_commits": [],
       "regression_tests": [
-        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json guessFirst (investigate partial",
-        "recovered)",
-        "replayed by lib/sim/documents.test.ts and npm run sims:lint"
+        "backend/lib/sim/documents.test.ts",
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
@@ -15360,12 +15359,38 @@
       "fix_summary": "dayWait is 86400 with unit s.",
       "fix_commits": [],
       "regression_tests": [
-        "every nat-gateway-bill-spike golden path pins its final tick (4320 with a 1-minute tick = three days)",
-        "replayed by lib/sim/documents.test.ts"
+        "backend/lib/sim/documents.test.ts",
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
       "prevention_notes": "docs/sims.md 22.7 records it. A linter rule (a param used in schedule.after must have unit s) would prevent it; not added here because it would change engine/v1/validate.ts, which this wave leaves alone.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1362",
+      "date": "2026-11-11",
+      "title": "New sims' golden paths relied on the teaching map's file order (FAIL-1250 hit in new content)",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "storage-order.test.ts: pediatric-septic-shock-fluids, neonatal-sepsis-hypoglycemia and post-op-transfusion-reaction failed in jsonb key order: 'teaching prompt stopSign is not offered now'.",
+      "how_detected": "lib/sim/storage-order.test.ts",
+      "root_cause": "teachingDue offers the first due prompt in Object.keys order (open FAIL-1250). Two prompts were due at once and their keys were written in an order jsonb does not keep (shorter keys first, then bytewise), so the golden paths, recorded in file order, answered a prompt the server and app would not offer first.",
+      "requirement": "REQ-233",
+      "affected": [
+        "backend/supabase/seed/sims/CCRNPEDS/",
+        "backend/supabase/seed/sims/CCRNNEO/",
+        "backend/supabase/seed/sims/NCLEXRN/",
+        "backend/supabase/seed/sims/NCLEXPN/"
+      ],
+      "fix_summary": "Every REQ-233 document writes its teaching keys in jsonb order (length, then bytewise), so file order, server and app agree; goldens regenerated (same outcomes, scores and criteria).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/storage-order.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Until FAIL-1250 gets a teachingOrder list, author teaching keys in jsonb order or give overlapping prompts mutually exclusive conditions; docs/sims.md 22.7 says so.",
       "recurrence_of": ""
     }
   ]
