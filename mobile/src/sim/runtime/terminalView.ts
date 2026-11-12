@@ -99,29 +99,30 @@ export interface TerminalView {
   downCount: number;
 }
 
-// Oldest first, as a terminal scrolls; ties keep the order things happened
-// (command output in the order it was printed, then the authored order of
-// the lines; arrays keep their order in jsonb, FAIL-1222). At most `limit`
-// entries, the newest.
+// Oldest first, as a terminal scrolls. At the same sim time a line that
+// appeared on its own comes first (it happened as the minute began; a command
+// run in that minute prints after it), lines in their authored order (arrays
+// keep their order in jsonb, FAIL-1222), then command output in the order it
+// was printed. At most `limit` entries, the newest.
 export function terminalView(run: Run, limit = 40): TerminalView | null {
   const t = run.c.doc.screen.terminal;
   if (!t) return null;
   const dt = dtOf(run);
   const entries: { at: number; order: number; v: TerminalEntryView }[] = [];
+  const base = t.lines.length;
   run.outputs.forEach((o, i) => {
     const body = o.text ?? (o.table ? [o.table.columns.join("  "), ...o.table.rows.map((r) => r.join("  "))].join("\n") : "");
     const at = o.tick * dt;
     const time = clockAt(run, at);
-    entries.push({ at, order: i, v: { key: `o${i}`, kind: "output", text: body, time, at, error: false, a11y: `${time}, output: ${spokenText(body)}` } });
+    entries.push({ at, order: base + i, v: { key: `o${i}`, kind: "output", text: body, time, at, error: false, a11y: `${time}, output: ${spokenText(body)}` } });
   });
-  const base = run.outputs.length;
   t.lines.forEach((l, i) => {
     if (value(run, l.when) !== true) return;
     const at = seconds(run, l.at);
     const body = text(run, l.text);
     const error = l.error ? value(run, l.error) === true : false;
     const time = clockAt(run, at);
-    entries.push({ at, order: base + i, v: { key: `l:${l.id}`, kind: "line", text: body, time, at, error, a11y: `${time}, ${error ? "error" : "log"}: ${spokenText(body)}` } });
+    entries.push({ at, order: i, v: { key: `l:${l.id}`, kind: "line", text: body, time, at, error, a11y: `${time}, ${error ? "error" : "log"}: ${spokenText(body)}` } });
   });
   entries.sort((a, b) => a.at - b.at || a.order - b.order);
   const transcript = entries.slice(-limit).map((e) => e.v);
