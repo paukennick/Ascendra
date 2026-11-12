@@ -15806,6 +15806,82 @@
       ],
       "prevention_notes": "a re-read records its day and whether only a summary was read",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1300",
+      "date": "2026-11-11",
+      "title": "Generator key-order gate reversed the teaching map and failed every paced clinical draft",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The first key-order gate replayed golden paths with every object reversed; the Whipple bleed's expert path was rejected in reversed order ('teaching prompt bridge is not offered now'), so a valid clinical draft with two or more teaching prompts could never pass.",
+      "how_detected": "lib/sim/generator/generator.test.ts during development (mocked pipeline run on the Whipple case), before any commit",
+      "root_cause": "teachingDue still offers the first due teaching prompt in key order (FAIL-1250, open). lib/sim/storage-order.test.ts already leaves that one map out of its reversal; the generator's copy of the check was written from the lint rule (endingOrderProblems) instead of from the storage-order test, so it missed the known exception.",
+      "requirement": "REQ-230",
+      "affected": [
+        "backend/lib/sim/generator/gates.ts::storageKeyProblems"
+      ],
+      "fix_summary": "The reversed copy keeps the teaching map as written, exactly as storage-order.test.ts does; the jsonb order (what the app and server read) is still checked in full.",
+      "fix_commits": [
+        "69b4f2f"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts::key order (FAIL-1300)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A regression test replays the Whipple case (teaching prompts) through the gate and was confirmed to fail without the exception; docs/sims.md 12.2 gate 6 names FAIL-1250 so the exception is removed together with the fix for FAIL-1250.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1301",
+      "date": "2026-11-12",
+      "title": "Duplicate-check test margin too tight once a second screen family existed",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "generator.test 'seeded documents on different cases sit well below the threshold' failed in CI after the Security+ sims merged: highest pair 0.325 against a 0.30 bound",
+      "how_detected": "CI Backend job on PR #143",
+      "root_cause": "The test required every seeded pair to be 0.2 below the 0.5 duplicate threshold; three Security+ incidents on one screen share action vocabulary (decisions 0.33) though their stories differ (under 0.04)",
+      "requirement": "REQ-230",
+      "affected": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "fix_summary": "Margin 0.1 below the threshold, with the reason in the test; the gate itself is unchanged and only compares same-objective sims",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1302",
+      "date": "2026-11-12",
+      "title": "Duplicate check counted shared decisions alone as a duplicate",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After the bedside wave merged, adult and pediatric septic shock scored 0.43 (decisions) against a 0.5 duplicate threshold; a variant of one skill would have been held as a duplicate",
+      "how_detected": "CI Backend job on PR #143 (generator.test seeded-pairs check)",
+      "root_cause": "similarity took the higher of story and decisions overlap, so two sims teaching the same skill on different patients looked like copies",
+      "requirement": "REQ-230",
+      "affected": [
+        "backend/lib/sim/generator/similarity.ts",
+        "docs/sims.md"
+      ],
+      "fix_summary": "Score = max(story, mean(story, decisions)): a copied story is still a duplicate; shared decisions alone are not",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
     }
   ]
 }
