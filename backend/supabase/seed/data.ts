@@ -1121,15 +1121,14 @@ export const SECPLUSV8_TRACK: SeedTrack = {
 // wrong from memory of an older version is pinned as the unit's keyValues
 // (lib/current-facts.ts gives them to the writer and the fact-checker).
 //
-// Review date: no technology_aligned course recorded one before this, so
-// contentReviewDueAt is left unset pending Nick's decision (REQ-244 report:
-// tie it to the next language release -- Python 3.16 is scheduled for
-// 2027-10-06, ECMAScript 2027 is due June 2027 -- or the 12-month default).
-// The curriculum source still comes due through the currency report at
-// checkedAt + 12 months (COURSE_RECHECK_MONTHS).
+// Review date: Nick, 2026-11-11, chose the repo's 12-month default for the
+// technology_aligned courses (over tying each to its next language release),
+// matching the curriculum source's own re-check at checkedAt + 12 months
+// (COURSE_RECHECK_MONTHS).
 // ---------------------------------------------------------------------------
 const LANG_CHECKED = "2026-11-11";
 const LANG_VERIFIED_AT = "2026-11-11T00:00:00Z";
+const LANG_REVIEW_DUE_AT = "2027-11-11T00:00:00Z";
 const langRef = (title: string, url: string, keyValues?: string[]): UnitSource =>
   keyValues ? { title, url, kind: "reference", checkedAt: LANG_CHECKED, keyValues } : { title, url, kind: "reference", checkedAt: LANG_CHECKED };
 
@@ -1215,6 +1214,7 @@ export const PYTHON_TRACK: SeedTrack = {
   // compared with the pages in its sources.
   freshnessModel: "technology_aligned",
   sourceVerifiedAt: LANG_VERIFIED_AT,
+  contentReviewDueAt: LANG_REVIEW_DUE_AT,
   curriculum: {
     kind: "language_reference",
     name: "The Python documentation (docs.python.org)",
@@ -1417,6 +1417,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
   // every unit compared with the MDN, TC39 and Node.js pages in its sources.
   freshnessModel: "technology_aligned",
   sourceVerifiedAt: LANG_VERIFIED_AT,
+  contentReviewDueAt: LANG_REVIEW_DUE_AT,
   curriculum: {
     kind: "language_reference",
     name: "ECMA-262 ECMAScript Language Specification",

@@ -96,6 +96,7 @@ describe("REQ-244: the language courses are verified, dated and sourced", () => 
     for (const t of LANGUAGE_TRACKS) {
       assert.equal(t.freshnessModel, "technology_aligned", t.code);
       assert.equal(dayOf(t.sourceVerifiedAt), "2026-11-11", t.code);
+      assert.equal(dayOf(t.contentReviewDueAt), "2027-11-11", `${t.code}: 12-month review (Nick, 2026-11-11)`);
       assert.equal(t.curriculum?.checkedAt, "2026-11-11", t.code);
       assert.equal(t.sourceUrl, undefined, `${t.code}: a sourceUrl would replace the curriculum as its outline`);
       assert.deepEqual(courseOutlineProblems(t, TODAY), [], t.code);
