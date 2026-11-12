@@ -261,7 +261,11 @@ export type OutcomeClass = "target" | "recovered" | "harm";
 // REQ-225: "clinical-session" is the people-layer profile (docs/sims.md 9.2,
 // 20.2): a session with a client, where the outcome is what the session left
 // the client with (safety, protection, the right diagnosis, the alliance).
-export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session";
+// REQ-232: "physical-therapy" is the treatment-session profile (docs/sims.md
+// 9.2, 22.8): a PT session where the outcome is what the patient was left
+// with (the session's goal reached inside the stopping rules, a red flag
+// acted on, no fall, syncope or embolism).
+export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session" | "physical-therapy";
 
 export interface OutcomeSpec {
   profile: OutcomeProfile;
@@ -282,25 +286,30 @@ export interface Ending {
   phase?: Id; // a non-terminal ending is a branch point: the phase it moves to (required when terminal is false)
 }
 
+// One vital-sign tile: the bedside monitor's, and since REQ-232 the
+// treatment session's vitals too (the same bindings, alarms and bands).
+export interface VitalTile {
+  id: Id;
+  label: string;
+  spokenLabel: string;
+  value: Expr | [Expr, Expr];
+  unit: Unit;
+  sub?: Template;
+  alarm?: { low?: number; high?: number };
+  trend?: { history: Id; window: Duration; threshold: number };
+  announce: { bands: number[] };
+  colour: "ecg" | "art" | "cvp" | "pa" | "spo2" | "neutral";
+  hiddenUntil?: Expr;
+}
+
 export interface ScreenSpec {
   // REQ-231: "security-console" is the security operations console as built
-  // (the design's "security" placeholder stays unused).
-  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data" | "security-console";
+  // (the design's "security" placeholder stays unused). REQ-232:
+  // "treatment-session" is the PT treatment session.
+  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data" | "security-console" | "treatment-session";
   level?: number;
   bedside?: {
-    tiles: {
-      id: Id;
-      label: string;
-      spokenLabel: string;
-      value: Expr | [Expr, Expr];
-      unit: Unit;
-      sub?: Template;
-      alarm?: { low?: number; high?: number };
-      trend?: { history: Id; window: Duration; threshold: number };
-      announce: { bands: number[] };
-      colour: "ecg" | "art" | "cvp" | "pa" | "spo2" | "neutral";
-      hiddenUntil?: Expr;
-    }[];
+    tiles: VitalTile[];
     waveforms?: { kind: "ecg" | "art" | "pleth"; from: { hr: Id; sys?: Id; dia?: Id; flat?: Expr } }[];
     infusions?: Template;
     banner?: { when: Expr; text: Template }[];
@@ -340,6 +349,23 @@ export interface ScreenSpec {
     events: { id: Id; source: string; text: Template; when: Expr; at: Expr }[];
     assets: { id: Id; label: string; spokenLabel: string; kind: string; status: Template; tone: Expr }[];
     meters?: { id: Id; label: string; value: Template }[];
+  };
+  // REQ-232: the physical therapy treatment session (docs/sims.md 8.2, 20,
+  // 22.8), display-only like the board and the client session. The patient's
+  // name and presentation (a template over state); the vitals, read as the
+  // bedside tiles are (HR, BP, SpO2, RPE, pain); what the patient is doing and
+  // how they move now (`activity`); the tests and measures taken so far, each
+  // shown once `when` holds, `flag` marking a red-flag finding the screen
+  // reader must hear at once; the interventions given with their dosage; and
+  // the stopping and escalation rules, always shown, `met` marking a rule
+  // crossed now (spoken at once, like an alarm).
+  treatment?: {
+    patient: { name: string; presentation: Template };
+    vitals: VitalTile[];
+    activity?: Template;
+    measures?: { id: Id; label: string; result: Template; when: Expr; flag?: Expr }[];
+    dosage?: { label: string; items: { label: Template; when: Expr }[] };
+    rules: { id: Id; label: string; text: Template; met: Expr }[];
   };
 }
 

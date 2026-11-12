@@ -8307,48 +8307,43 @@
       ]
     },
     {
-      "id": "REQ-230",
+      "id": "REQ-232",
       "category": "feature",
-      "title": "Sims: sims:generate, the sim generator (gated drafts to register by hand, cost per draft)",
-      "description": "Nick approved the sim library plan 2026-11-11 (engine-order fix done in 1.2; learner-paced client sessions; measure the first 20 generated sims, then a separate monthly sim budget; breadth before variants). npm run sims:generate takes a course code, a sub-objective (exact objective title), a screen type (bedside, board, session) and an optional seed idea; builds the prompt from the course's own sources and the screen's authoring rules in docs/sims.md 12.1; asks the model for a document plus golden paths as move scripts; runs every gate (reply and writer confidence, schema, identity, golden paths, lint with the key-order rule, key-order replay, reachability by the bounded path search, server/checkpoint/client and engine-bundle replay, sourced and dated numbers with a course source cited, duplicate check) and then an independent fact check that must agree. A failing draft is retried once with the reasons, then held with them, never registered; a passing draft is written as files ready to register in lib/sim/documents.ts, never auto-registered. A selection helper lists sub-objectives meeting the selection rule (two of: time matters, cues, consequential choices, competing priorities) with the recorded reason, ranked by exam weight. Each draft's tokens and USD (writer attempts, retries, fact checks) go in a JSON report and a costs.jsonl ledger with --cost-summary. Only ANTHROPIC_PREGEN_API_KEY; with none it refuses to call the API. All tests use a mocked model; no real sims were generated.",
+      "title": "Sims: PT treatment-session screen type and the first three DPT cases",
+      "description": "A physical therapy treatment-session renderer (screen type treatment-session) behind SIMS_RENDERERS and on by default: the patient's presentation, vitals and response to activity, tests and measures with red flags, interventions with dosage, and stopping and escalation rules, with an outcome profile physical-therapy. Three DPT scenarios on DPT catalog objectives: early mobilization in the ICU, total knee arthroplasty progression with signs of DVT, and balance and fall risk after stroke. Sims take the clinical pace rule (study pace 3x) because vitals move on their own during exertion.",
       "priority": "high",
       "status": "completed",
       "minimum_access_scope": [
-        "backend/lib/sim/generator",
-        "backend/scripts/sims-generate.ts",
-        "backend/package.json",
-        "backend/.gitignore",
-        "backend/.env.example",
-        "docs/sims.md",
-        "docs/operations-runbook.md"
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/DPT",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
       ],
       "acceptance_criteria": [
-        "sims:generate with course objective screen and optional idea",
-        "prompt from course sources and docs/sims.md 12.1 rules",
-        "schema lint key-order path-search golden-replay on server engine and engine bundle and sources gates",
-        "fact-check call must agree",
-        "one steered retry then held with reasons never registered",
-        "passing draft written as files ready to register not auto-registered",
-        "selection helper with recorded reason ranked by exam weight",
-        "tokens and USD per draft in a JSON report and ledger",
-        "ANTHROPIC_PREGEN_API_KEY only and refuses without it",
-        "duplicate check with an explained similarity measure",
-        "mocked end to end: valid / lint-fail-then-pass / fact-check held"
+        "treatment-session renderer behind SIMS_RENDERERS with treatment-session@1 capability",
+        "accessibility to the bedside board and session standard",
+        "three DPT scenarios with golden paths Good Mediocre Bad",
+        "clinical pace rule applies",
+        "no engine stepping change"
       ],
       "validation_required": [
         "backend npm test",
-        "lib/sim/generator/generator.test.ts",
-        "npm run sims:generate estimate and keyless --run",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle",
+        "sims DB tests",
+        "mobile tsc and npm test",
         "omni gate"
       ],
       "documentation_required": [
-        "docs/sims.md 12 12.1 12.2",
-        "docs/operations-runbook.md Generating sims"
+        "docs/sims.md 22.7",
+        "CHANGELOG"
       ],
       "risk_notes": [
-        "selection is a keyword screen of the title and over-includes; a person confirms",
-        "no live API run yet: request shapes and real cost unverified until the key exists",
-        "generated sims seed as source authored until the seed is taught origin generated"
+        "Several physiological sizes and timings are authored teaching-model values marked FLAG in the documents",
+        "The 2022 VTE CPG was read only through a summary",
+        "Merged with REQ-231 (security console): the docs section is now docs/sims.md 22.8 (22.7 is the security console); the two parseCaps fixes were merged into REQ-231's (hyphenated types up to 40 characters)."
       ]
     },
     {
@@ -8519,6 +8514,51 @@
         "The AIS 2026 values were confirmed through a summary (UIC Drug Information Group) and AHA's Top Things page; the full guideline refused automated access. The hyperglycemic-crises values were read through the CCJM 2025 summary.",
         "CCRN cardiovascular key values are carried from the 2026-10-31 audit (not re-read in this batch).",
         "Hold rates from seeds only are not measurable; production numbers are the lead's to read."
+      ]
+    },
+    {
+      "id": "REQ-230",
+      "category": "feature",
+      "title": "Sims: sims:generate, the sim generator (gated drafts to register by hand, cost per draft)",
+      "description": "Nick approved the sim library plan 2026-11-11 (engine-order fix done in 1.2; learner-paced client sessions; measure the first 20 generated sims, then a separate monthly sim budget; breadth before variants). npm run sims:generate takes a course code, a sub-objective (exact objective title), a screen type (bedside, board, session) and an optional seed idea; builds the prompt from the course's own sources and the screen's authoring rules in docs/sims.md 12.1; asks the model for a document plus golden paths as move scripts; runs every gate (reply and writer confidence, schema, identity, golden paths, lint with the key-order rule, key-order replay, reachability by the bounded path search, server/checkpoint/client and engine-bundle replay, sourced and dated numbers with a course source cited, duplicate check) and then an independent fact check that must agree. A failing draft is retried once with the reasons, then held with them, never registered; a passing draft is written as files ready to register in lib/sim/documents.ts, never auto-registered. A selection helper lists sub-objectives meeting the selection rule (two of: time matters, cues, consequential choices, competing priorities) with the recorded reason, ranked by exam weight. Each draft's tokens and USD (writer attempts, retries, fact checks) go in a JSON report and a costs.jsonl ledger with --cost-summary. Only ANTHROPIC_PREGEN_API_KEY; with none it refuses to call the API. All tests use a mocked model; no real sims were generated.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim/generator",
+        "backend/scripts/sims-generate.ts",
+        "backend/package.json",
+        "backend/.gitignore",
+        "backend/.env.example",
+        "docs/sims.md",
+        "docs/operations-runbook.md"
+      ],
+      "acceptance_criteria": [
+        "sims:generate with course objective screen and optional idea",
+        "prompt from course sources and docs/sims.md 12.1 rules",
+        "schema lint key-order path-search golden-replay on server engine and engine bundle and sources gates",
+        "fact-check call must agree",
+        "one steered retry then held with reasons never registered",
+        "passing draft written as files ready to register not auto-registered",
+        "selection helper with recorded reason ranked by exam weight",
+        "tokens and USD per draft in a JSON report and ledger",
+        "ANTHROPIC_PREGEN_API_KEY only and refuses without it",
+        "duplicate check with an explained similarity measure",
+        "mocked end to end: valid / lint-fail-then-pass / fact-check held"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "lib/sim/generator/generator.test.ts",
+        "npm run sims:generate estimate and keyless --run",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 12 12.1 12.2",
+        "docs/operations-runbook.md Generating sims"
+      ],
+      "risk_notes": [
+        "selection is a keyword screen of the title and over-includes; a person confirms",
+        "no live API run yet: request shapes and real cost unverified until the key exists",
+        "generated sims seed as source authored until the seed is taught origin generated"
       ]
     }
   ]

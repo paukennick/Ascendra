@@ -1,0 +1,2214 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "stroke-balance-fall-risk",
+  "title": "After a stroke: two falls, a new pill and a walking plan",
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Brooks, 72",
+        "presentation": "Four months after a right-hemisphere ischemic stroke; weak left leg and arm. Quad cane. Two falls at home last month. On metoprolol and lisinopril; tamsulosin started 6 days ago. {beltOn ? \"Gait belt on.\" : \"No gait belt on.\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate, pulse oximeter",
+          "value": "hr",
+          "unit": "/min",
+          "sub": "on a beta blocker",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              90,
+              110
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure you took",
+          "value": [
+            "bpS",
+            "bpD"
+          ],
+          "unit": "mmHg",
+          "sub": "{bpPos}, {isNull(bpAt) ? 0 : t - timeAt(bpAt)|duration} ago",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              110,
+              100
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "not isNull(bpAt)"
+        },
+        {
+          "id": "rpe",
+          "label": "RPE",
+          "spokenLabel": "His last rating of exertion, Borg 6 to 20",
+          "value": "rpeSaid",
+          "unit": "/20",
+          "announce": {
+            "bands": [
+              15,
+              17
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(rpeAt)"
+        }
+      ],
+      "activity": "{activityText}",
+      "measures": [
+        {
+          "id": "ortho",
+          "label": "Orthostatic vital signs",
+          "result": "Supine 138/82, HR 64. Standing at 1 min 112/70, HR 68, light-headed; at 3 min 116/72. A 26/12 drop: orthostatic hypotension",
+          "when": "not isNull(orthoAt)",
+          "flag": "not isNull(orthoAt) and isNull(escalatedAt)"
+        },
+        {
+          "id": "berg",
+          "label": "Berg Balance Scale",
+          "result": "41 of 56 (below 50: fall risk)",
+          "when": "not isNull(bergAt)"
+        },
+        {
+          "id": "fga",
+          "label": "Functional Gait Assessment",
+          "result": "14 of 30",
+          "when": "not isNull(fgaAt)"
+        },
+        {
+          "id": "tug",
+          "label": "Timed Up and Go",
+          "result": "16 s with the quad cane (over 11 s: fall risk)",
+          "when": "not isNull(tugAt)"
+        },
+        {
+          "id": "tenMwt",
+          "label": "10 meter Walk Test",
+          "result": "0.62 m/s self-selected (under 1.0 m/s: fall risk)",
+          "when": "not isNull(tenAt)"
+        },
+        {
+          "id": "sts",
+          "label": "Five times sit-to-stand",
+          "result": "17 s, using his right arm (over 12 s: fall risk)",
+          "when": "not isNull(stsAt)"
+        },
+        {
+          "id": "abc",
+          "label": "Activities-specific Balance Confidence",
+          "result": "52%",
+          "when": "not isNull(abcAt)"
+        },
+        {
+          "id": "nearFall",
+          "label": "Near-fall",
+          "result": "{nearFallText}",
+          "when": "nearFalls > 0",
+          "flag": "nearFalls > 0"
+        }
+      ],
+      "dosage": {
+        "label": "Interventions",
+        "items": [
+          {
+            "label": "Gait belt on, guarding on his left",
+            "when": "beltOn"
+          },
+          {
+            "label": "Walking at his own pace",
+            "when": "not isNull(walkAt)"
+          },
+          {
+            "label": "Walking training: fast with stepping over and around obstacles, intensity by RPE with HR as a guide",
+            "when": "rpeBasis"
+          },
+          {
+            "label": "Walking training: speed raised until his heart rate reaches a target band",
+            "when": "hrBasis"
+          },
+          {
+            "label": "Static standing balance on foam",
+            "when": "not isNull(foamAt)"
+          },
+          {
+            "label": "Ankle pumps and standing up in stages",
+            "when": "preparedStands > 0"
+          },
+          {
+            "label": "Home program: {homePlanText}",
+            "when": "decided"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleOh",
+          "label": "Systolic BP falls 20 mmHg or more after standing, or he feels light-headed",
+          "text": "Sit him down at once and recheck; tell his physician about a new orthostatic drop.",
+          "met": "presyncope"
+        },
+        {
+          "id": "ruleClear",
+          "label": "Foot catching on the left as he tires",
+          "text": "Ease the speed or rest; guard closely on the weak side.",
+          "met": "pos == \"walkMax\" and fatigue >= 60"
+        },
+        {
+          "id": "ruleBp",
+          "label": "Systolic BP over 250 or diastolic over 115 during exercise",
+          "text": "Stop the exercise.",
+          "met": "sbp > 250 or dbp > 115"
+        },
+        {
+          "id": "ruleSpo2",
+          "label": "SpO2 below 90%",
+          "text": "Stop and let him recover.",
+          "met": "spo2 < 90"
+        }
+      ]
+    }
+  },
+  "objective": "Selecting and performing interventions for neurological and musculoskeletal conditions",
+  "secondaryObjectives": [
+    "Select from the neurologic core outcome set -- Berg Balance Scale, ABC Scale, Functional Gait Assessment, 10 Meter Walk Test, 6-Minute Walk Test and 5 Times Sit-to-Stand -- for adults in neurologic rehabilitation",
+    "Measure orthostatic vital signs, recognizing orthostatic hypotension as a fall of at least 20 mm Hg systolic or 10 mm Hg diastolic within 3 minutes of standing",
+    "Screen older adults for fall risk with the 2025 APTA-Geriatrics measures and cut-offs (TUG over 11 s, 5 times sit-to-stand over 12 s, single-limb stance under 6.5 s, Berg under 50, gait speed under 1.0 m/s)"
+  ],
+  "sources": [
+    {
+      "cite": "Physical Therapy Management of Fall Risk in Community-Dwelling Older Adults: An Evidence-Based Clinical Practice Guideline From the American Physical Therapy Association. J Geriatr Phys Ther. 2025;48. doi:10.1519/JPT.0000000000000454 (PMC12533762)",
+      "checkedAt": "2026-11-11",
+      "url": "https://europepmc.org/article/PMC/PMC12533762",
+      "note": "Read 2026-11-11 in the Europe PMC full text. Fall risk: Berg below 50, TUG over 11 s, five times sit-to-stand over 12 s, single-leg stance under 6.5 s, self-selected gait speed under 1.0 m/s. Exercise must be at least 150 minutes to 3 hours a week for 6 to 12 months and include progressive, sufficiently challenging balance training (level I, strong)."
+    },
+    {
+      "cite": "Moore JL, Potter K, Blankshain K, et al. A core set of outcome measures for adults with neurologic conditions undergoing rehabilitation: a clinical practice guideline. J Neurol Phys Ther. 2018;42:174-220. doi:10.1097/NPT.0000000000000229 (PMC6023606)",
+      "checkedAt": "2026-11-11",
+      "url": "https://europepmc.org/article/PMC/PMC6023606",
+      "note": "Read 2026-11-11 in the Europe PMC full text. The core set: Berg Balance Scale, Activities-specific Balance Confidence Scale, Functional Gait Assessment, 10 meter Walk Test, 6-Minute Walk Test, and the 5 Times Sit-to-Stand (best practice). APTA lists it as current with an update in progress."
+    },
+    {
+      "cite": "Hornby TG, Reisman DS, Ward IG, et al. Clinical practice guideline to improve locomotor function following chronic stroke, incomplete spinal cord injury, and brain injury. J Neurol Phys Ther. 2020;44(1):49-100. doi:10.1097/NPT.0000000000000303",
+      "checkedAt": "2026-11-11",
+      "url": "https://core.ac.uk/download/516412873.pdf",
+      "note": "Read 2026-11-11 in a repository copy of the published article. Action statement 1: use moderate- to high-intensity walking training (60-80% of heart rate reserve or up to 85% of maximum heart rate) for chronic stroke (strong); record HR and RPE at regular intervals; consult the physician before higher-intensity training. Action statement 6A: do not perform sitting or standing balance training aimed at postural stability to improve walking speed or distance."
+    },
+    {
+      "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+      "note": "Read 2026-11-11 through a text extraction of the PDF. Normal exercise response: HR rises about 10 beats/min per MET and returns to the pre-exercise level in 3-5 min; SBP rises about 10 mmHg per MET. Stop criteria include SBP drop >10 mmHg with increasing workload, new or worsening dysrhythmia, RR >40, unable to speak comfortably, SpO2 <90% or a drop of 4% or more (acute coronary syndrome), SpO2 <85% (lung disease); lung disease activity target 88-92%. Orthostatic hypotension: SBP drop >20 or DBP drop >10 mmHg within 3 min of standing. Beta blockers: lower HR with exercise and a dampened BP response; use the RPE scale in addition to HR."
+    },
+    {
+      "cite": "American Society of Nuclear Cardiology, Practice Points: Exercise Stress Testing (Weinberg R, Bullock-Palmer R)",
+      "checkedAt": "2026-11-11",
+      "url": "https://asnc.org/wp-content/uploads/2024/05/ASNC-Practice-Point-Exercise-Stress-Testing.pdf",
+      "note": "Read 2026-11-11. Indications for early termination of exercise include a hypertensive response (systolic BP over 250 mmHg and/or diastolic over 115 mmHg). The document is undated; the URL path is dated May 2024."
+    },
+    {
+      "cite": "CAPTE, Standards and Required Elements for Accreditation of Physical Therapist Education Programs (2024 standards), Standard 7D",
+      "checkedAt": "2026-10-08",
+      "url": "https://www.capteonline.org/globalassets/capte-docs/2024-capte-pt-standards-required-elements.pdf",
+      "note": "FLAG: not re-read for this scenario; the scope (7D10-7D16 interventions, 7D1 examination) is the DPT course seed's reading of 2026-10-08."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-11",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. The direction of each response follows the cited sources; the sizes and time constants are authored."
+    }
+  ],
+  "brief": {
+    "situation": "Outpatient neurologic clinic, 09:00. You are the physical therapist. Mr. Brooks, 72, is four months past a right-hemisphere ischemic stroke and is starting a new episode of care after two falls at home last month, both when he got up at night.",
+    "handover": [
+      "Left hemiparesis; walks with a quad cane; supervision outdoors.",
+      "Metoprolol and lisinopril for blood pressure; aspirin and a statin. His urologist started tamsulosin 6 days ago.",
+      "His goals: walk to the mailbox and around his church hall.",
+      "A 60-minute visit. A chair is always within reach."
+    ],
+    "howItWorks": [
+      "The clock runs in real time at the pace you choose: study pace (3x) or exam realism (1x). Pause any time.",
+      "Each test takes the time it really takes; skip ahead while it runs. Choose which tests are worth the time.",
+      "His heart rate and blood pressure respond to standing and walking. The stopping rules are on screen.",
+      "A written question comes early. Then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "5s",
+    "maxDuration": "75min",
+    "calendar": "clock"
+  },
+  "params": {
+    "hrRest": {
+      "value": 64,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. His resting heart rate on metoprolol."
+      }
+    },
+    "hrPerMetBb": {
+      "value": 4,
+      "unit": "bpm/MET",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Read 2026-11-11 through a text extraction of the PDF. Beta blockers lower the heart rate response to exercise and dampen the BP response; use RPE in addition to HR. FLAG: the size, about 4 beats/min per MET instead of about 10, is authored."
+      }
+    },
+    "sbpPerMetBb": {
+      "value": 7,
+      "unit": "mmHg/MET",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Read 2026-11-11 through a text extraction of the PDF. SBP normally rises about 10 mmHg per MET; dampened on a beta blocker. FLAG: about 7 mmHg per MET is authored."
+      }
+    },
+    "sbpRest": {
+      "value": 138,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. His seated resting systolic pressure."
+      }
+    },
+    "ohDrop": {
+      "value": 26,
+      "unit": "mmHg",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Read 2026-11-11 through a text extraction of the PDF. Orthostatic hypotension is a drop of more than 20 mmHg systolic or 10 diastolic within 3 min of standing; alpha blockers call for regular orthostatic checks. FLAG: his 26 mmHg drop is authored."
+      }
+    },
+    "ohPrepared": {
+      "value": 12,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. FLAG: ankle pumps and standing in stages roughly halve the drop."
+      }
+    },
+    "sitToDip": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. The drop follows a stand after at least 2 minutes sitting or lying."
+      }
+    },
+    "tauBp": {
+      "value": 10,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. His blood pressure follows a change of posture within seconds (a 10-second time constant), so the drop is there at the 1-minute reading."
+      }
+    },
+    "tauStill": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Standing still, the drop eases with a 5-minute time constant."
+      }
+    },
+    "tauWalk": {
+      "value": 90,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Walking (the calf muscle pump) eases it faster."
+      }
+    },
+    "buckleAfter": {
+      "value": 45,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. FLAG: light-headed and upright for about 45 seconds, his knees buckle."
+      }
+    },
+    "fatigueStumble": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. FLAG: about 2 minutes at near-maximal effort, his left foot catches and he stumbles; fatigue raises the fall risk after stroke."
+      }
+    },
+    "reasonAt": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The written question opens 30 s in."
+      }
+    },
+    "orthoSec": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Orthostatic vital signs: 5 minutes supine, then readings at 1 and 3 minutes standing."
+      }
+    },
+    "bergSec": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The Berg Balance Scale takes about 15 minutes."
+      }
+    },
+    "fgaSec": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The Functional Gait Assessment takes about 10 minutes."
+      }
+    },
+    "tugSec": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The Timed Up and Go, with a practice trial, takes about 1 minute."
+      }
+    },
+    "tenSec": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The 10 meter Walk Test, two trials, takes about 2 minutes."
+      }
+    },
+    "stsSec": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Five times sit-to-stand takes about 1 minute."
+      }
+    },
+    "abcSec": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The ABC Scale questionnaire takes about 5 minutes."
+      }
+    }
+  },
+  "state": {
+    "pos": {
+      "type": "enum",
+      "values": [
+        "seated",
+        "standing",
+        "walk",
+        "walkFast",
+        "walkMax",
+        "foam"
+      ],
+      "init": "seated"
+    },
+    "beltOn": {
+      "type": "bool",
+      "init": false
+    },
+    "hr": {
+      "type": "number",
+      "init": 64,
+      "min": 40,
+      "max": 200
+    },
+    "sbp": {
+      "type": "number",
+      "init": 138,
+      "min": 60,
+      "max": 280
+    },
+    "dbp": {
+      "type": "number",
+      "init": 82,
+      "min": 40,
+      "max": 160
+    },
+    "spo2": {
+      "type": "number",
+      "init": 97,
+      "min": 80,
+      "max": 100,
+      "unit": "%"
+    },
+    "orthoDip": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 60
+    },
+    "sitT": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "bpS": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 280
+    },
+    "bpD": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 160
+    },
+    "bpAt": {
+      "type": "time",
+      "init": null
+    },
+    "bpUpright": {
+      "type": "bool",
+      "init": false
+    },
+    "rpeSaid": {
+      "type": "number",
+      "init": 6,
+      "min": 6,
+      "max": 20
+    },
+    "rpeAt": {
+      "type": "time",
+      "init": null
+    },
+    "rpeWalking": {
+      "type": "bool",
+      "init": false
+    },
+    "testing": {
+      "type": "bool",
+      "init": false
+    },
+    "orthoAt": {
+      "type": "time",
+      "init": null
+    },
+    "bergAt": {
+      "type": "time",
+      "init": null
+    },
+    "fgaAt": {
+      "type": "time",
+      "init": null
+    },
+    "tugAt": {
+      "type": "time",
+      "init": null
+    },
+    "tenAt": {
+      "type": "time",
+      "init": null
+    },
+    "stsAt": {
+      "type": "time",
+      "init": null
+    },
+    "abcAt": {
+      "type": "time",
+      "init": null
+    },
+    "ohSeenAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstUprightAt": {
+      "type": "time",
+      "init": null
+    },
+    "unguarded": {
+      "type": "bool",
+      "init": false
+    },
+    "curDizzy": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3600,
+      "unit": "s"
+    },
+    "maxDizzy": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3600,
+      "unit": "s"
+    },
+    "fatigue": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3600,
+      "unit": "s"
+    },
+    "nearFalls": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "lastNear": {
+      "type": "enum",
+      "values": [
+        "none",
+        "buckle",
+        "stumble"
+      ],
+      "init": "none"
+    },
+    "fell": {
+      "type": "bool",
+      "init": false
+    },
+    "walkAt": {
+      "type": "time",
+      "init": null
+    },
+    "rpeBasis": {
+      "type": "bool",
+      "init": false
+    },
+    "hrBasis": {
+      "type": "bool",
+      "init": false
+    },
+    "foamAt": {
+      "type": "time",
+      "init": null
+    },
+    "preparedStands": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "decided": {
+      "type": "bool",
+      "init": false
+    },
+    "riskHigh": {
+      "type": "bool",
+      "init": false
+    },
+    "homePlan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "cpg",
+        "static",
+        "rest"
+      ],
+      "init": "none"
+    },
+    "finished": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "upright": {
+      "expr": "(pos == \"standing\" or pos == \"walk\" or pos == \"walkFast\" or pos == \"walkMax\" or pos == \"foam\")"
+    },
+    "load": {
+      "expr": "pos == \"walkMax\" ? 5 : pos == \"walkFast\" ? 4 : pos == \"walk\" ? 3 : pos == \"foam\" or pos == \"standing\" ? 1.6 : 1.2"
+    },
+    "presyncope": {
+      "expr": "upright and orthoDip >= 20"
+    },
+    "hrGoal": {
+      "expr": "hrRest + hrPerMetBb * (load - 1) + orthoDip / 5"
+    },
+    "sbpGoal": {
+      "expr": "sbpRest + sbpPerMetBb * (load - 1) - orthoDip"
+    },
+    "dbpGoal": {
+      "expr": "82 + (load - 1) - orthoDip / 2"
+    },
+    "rpe": {
+      "expr": "round(clamp(8 + 2.5 * (load - 1) + fatigue / 60, 6, 20))",
+      "precision": 0
+    },
+    "screenedCount": {
+      "expr": "(isNull(bergAt) ? 0 : 1) + (isNull(fgaAt) ? 0 : 1) + (isNull(tenAt) ? 0 : 1) + (isNull(stsAt) ? 0 : 1) + (isNull(abcAt) ? 0 : 1) + (isNull(tugAt) ? 0 : 1)"
+    },
+    "walked": {
+      "expr": "not isNull(walkAt) or rpeBasis or hrBasis"
+    },
+    "bpPos": {
+      "expr": "bpUpright ? \"standing\" : \"seated\""
+    },
+    "nearFallText": {
+      "expr": "lastNear == \"buckle\" ? \"Knees buckled while light-headed after standing; lowered to a chair with the gait belt\" : \"Left foot caught at near-maximal effort; caught with the gait belt\""
+    },
+    "homePlanText": {
+      "expr": "homePlan == \"cpg\" ? \"progressive, challenging balance and walking at least 150 minutes to 3 hours a week for 6 to 12 months\" : homePlan == \"static\" ? \"10 minutes a day of standing still with feet together\" : homePlan == \"rest\" ? \"rest and avoid walking alone until the next visit\" : \"none\""
+    },
+    "activityText": {
+      "expr": "fell ? \"On the floor after a fall\" : pos == \"seated\" ? \"Sitting in the chair\" : presyncope ? \"Standing, pale: says the room is spinning\" : pos == \"standing\" ? \"Standing with the quad cane\" : pos == \"walk\" ? \"Walking at his own pace; short left step, hip hiking to clear the foot\" : pos == \"walkFast\" ? \"Walking fast, stepping over and around cones; breathing hard, talking in short sentences\" : pos == \"walkMax\" ? (fatigue >= 60 ? \"Walking as fast as he can; left toe starting to catch\" : \"Walking as fast as he can, gasping\") : \"Standing on foam, feet apart, holding the bar\""
+    }
+  },
+  "processes": [
+    {
+      "id": "vitals",
+      "update": {
+        "hr": "hr + (hrGoal - hr) * dt / 60",
+        "sbp": "sbp + (sbpGoal - sbp) * dt / tauBp",
+        "dbp": "dbp + (dbpGoal - dbp) * dt / tauBp",
+        "spo2": "spo2 + (97 - (load >= 4 ? 1 : 0) - spo2) * dt / 60"
+      }
+    },
+    {
+      "id": "dip",
+      "update": {
+        "orthoDip": "upright ? orthoDip - orthoDip * dt / (pos == \"standing\" or pos == \"foam\" ? tauStill : tauWalk) : 0"
+      }
+    },
+    {
+      "id": "dizzy",
+      "update": {
+        "curDizzy": "presyncope ? curDizzy + dt : 0",
+        "maxDizzy": "max(maxDizzy, presyncope ? curDizzy + dt : 0)",
+        "fatigue": "pos == \"walkMax\" ? fatigue + dt : max(0, fatigue - dt)"
+      }
+    }
+  ],
+  "phases": {
+    "visit": {
+      "label": "In the clinic",
+      "clock": "running",
+      "actions": [
+        "belt",
+        "orthoTest",
+        "berg",
+        "fga",
+        "tug",
+        "tenMwt",
+        "sts",
+        "abc",
+        "takeBp",
+        "askRpe",
+        "stand",
+        "standPrepared",
+        "sit",
+        "walk",
+        "walkTrain",
+        "foam",
+        "callMd",
+        "decide",
+        "endSession"
+      ]
+    },
+    "done": {
+      "label": "After the visit",
+      "clock": "stopped",
+      "actions": []
+    }
+  },
+  "initialPhase": "visit",
+  "actions": {
+    "belt": {
+      "label": "Put the gait belt on him",
+      "group": "Safety",
+      "available": "not beltOn",
+      "why": "It is on.",
+      "effects": [
+        {
+          "set": "beltOn",
+          "to": "true"
+        },
+        {
+          "log": "Gait belt on, snug at his waist; you will guard on his left.",
+          "kind": "good"
+        }
+      ]
+    },
+    "orthoTest": {
+      "label": "Orthostatic vital signs (about 8 min)",
+      "group": "Tests",
+      "available": "isNull(orthoAt) and not testing and pos == \"seated\"",
+      "why": "One test at a time, starting seated; or already done.",
+      "effects": [
+        {
+          "set": "testing",
+          "to": "true"
+        },
+        {
+          "schedule": "orthoT",
+          "after": "orthoSec"
+        },
+        {
+          "log": "He lies down for 5 minutes; then you will stand him up, guarding, and take readings at 1 and 3 minutes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "berg": {
+      "label": "Berg Balance Scale (about 15 min)",
+      "group": "Tests",
+      "available": "isNull(bergAt) and not testing and pos == \"seated\"",
+      "why": "One test at a time, starting seated; or already done.",
+      "effects": [
+        {
+          "set": "testing",
+          "to": "true"
+        },
+        {
+          "schedule": "bergT",
+          "after": "bergSec"
+        },
+        {
+          "log": "Berg Balance Scale under way, guarding throughout.",
+          "kind": "act"
+        }
+      ]
+    },
+    "fga": {
+      "label": "Functional Gait Assessment (about 10 min)",
+      "group": "Tests",
+      "available": "isNull(fgaAt) and not testing and pos == \"seated\"",
+      "why": "One test at a time, starting seated; or already done.",
+      "effects": [
+        {
+          "set": "testing",
+          "to": "true"
+        },
+        {
+          "schedule": "fgaT",
+          "after": "fgaSec"
+        },
+        {
+          "log": "Functional Gait Assessment under way, guarding throughout.",
+          "kind": "act"
+        }
+      ]
+    },
+    "tug": {
+      "label": "Timed Up and Go (about 1 min)",
+      "group": "Tests",
+      "available": "isNull(tugAt) and not testing and pos == \"seated\"",
+      "why": "One test at a time, starting seated; or already done.",
+      "effects": [
+        {
+          "set": "testing",
+          "to": "true"
+        },
+        {
+          "schedule": "tugT",
+          "after": "tugSec"
+        },
+        {
+          "log": "Timed Up and Go with the quad cane, guarding.",
+          "kind": "act"
+        }
+      ]
+    },
+    "tenMwt": {
+      "label": "10 meter Walk Test (about 2 min)",
+      "group": "Tests",
+      "available": "isNull(tenAt) and not testing and pos == \"seated\"",
+      "why": "One test at a time, starting seated; or already done.",
+      "effects": [
+        {
+          "set": "testing",
+          "to": "true"
+        },
+        {
+          "schedule": "tenT",
+          "after": "tenSec"
+        },
+        {
+          "log": "10 meter Walk Test at his own speed, guarding.",
+          "kind": "act"
+        }
+      ]
+    },
+    "sts": {
+      "label": "Five times sit-to-stand (about 1 min)",
+      "group": "Tests",
+      "available": "isNull(stsAt) and not testing and pos == \"seated\"",
+      "why": "One test at a time, starting seated; or already done.",
+      "effects": [
+        {
+          "set": "testing",
+          "to": "true"
+        },
+        {
+          "schedule": "stsT",
+          "after": "stsSec"
+        },
+        {
+          "log": "Five times sit-to-stand from the chair.",
+          "kind": "act"
+        }
+      ]
+    },
+    "abc": {
+      "label": "ABC Scale questionnaire (about 5 min)",
+      "group": "Tests",
+      "available": "isNull(abcAt) and not testing",
+      "why": "One test at a time; or already done.",
+      "effects": [
+        {
+          "set": "testing",
+          "to": "true"
+        },
+        {
+          "schedule": "abcT",
+          "after": "abcSec"
+        },
+        {
+          "log": "He fills in the Activities-specific Balance Confidence Scale.",
+          "kind": "act"
+        }
+      ]
+    },
+    "takeBp": {
+      "label": "Take his blood pressure now",
+      "group": "Monitor",
+      "available": "not testing",
+      "why": "Wait for the test to finish.",
+      "effects": [
+        {
+          "set": "bpS",
+          "to": "round(sbp)"
+        },
+        {
+          "set": "bpD",
+          "to": "round(dbp)"
+        },
+        {
+          "set": "bpAt",
+          "to": "t"
+        },
+        {
+          "set": "bpUpright",
+          "to": "upright"
+        },
+        {
+          "log": "BP {bpS}/{bpD} {upright ? \"standing\" : \"seated\"}.",
+          "kind": "find"
+        },
+        {
+          "if": "upright and sbpRest - bpS >= 20 and isNull(ohSeenAt)",
+          "then": [
+            {
+              "set": "ohSeenAt",
+              "to": "t"
+            },
+            {
+              "log": "That is a {sbpRest - bpS} mmHg drop from sitting: orthostatic hypotension.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    "askRpe": {
+      "label": "Ask his rating of exertion (Borg 6-20)",
+      "group": "Monitor",
+      "available": "not testing",
+      "why": "Wait for the test to finish.",
+      "effects": [
+        {
+          "set": "rpeSaid",
+          "to": "rpe"
+        },
+        {
+          "set": "rpeAt",
+          "to": "t"
+        },
+        {
+          "if": "pos == \"walk\" or pos == \"walkFast\" or pos == \"walkMax\"",
+          "then": [
+            {
+              "set": "rpeWalking",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "\"About {rpe}.\"",
+          "kind": "find"
+        }
+      ]
+    },
+    "stand": {
+      "label": "Stand him up",
+      "group": "Move",
+      "available": "pos == \"seated\" and not testing and not fell",
+      "why": "He is already up, or a test is running.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"standing\""
+        },
+        {
+          "if": "t - sitT >= sitToDip",
+          "then": [
+            {
+              "set": "orthoDip",
+              "to": "ohDrop"
+            }
+          ]
+        },
+        {
+          "if": "isNull(firstUprightAt)",
+          "then": [
+            {
+              "set": "firstUprightAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not beltOn",
+          "then": [
+            {
+              "set": "unguarded",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "He pushes up from the chair and stands with the quad cane.",
+          "kind": "act"
+        }
+      ]
+    },
+    "standPrepared": {
+      "label": "Ankle pumps and sitting tall first, then stand up in stages",
+      "group": "Move",
+      "available": "pos == \"seated\" and not testing and not fell",
+      "why": "He is already up, or a test is running.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"standing\""
+        },
+        {
+          "add": "preparedStands",
+          "by": "1"
+        },
+        {
+          "if": "t - sitT >= sitToDip",
+          "then": [
+            {
+              "set": "orthoDip",
+              "to": "ohPrepared"
+            }
+          ]
+        },
+        {
+          "if": "isNull(firstUprightAt)",
+          "then": [
+            {
+              "set": "firstUprightAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not beltOn",
+          "then": [
+            {
+              "set": "unguarded",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "Ten ankle pumps, then he stands slowly and pauses before stepping.",
+          "kind": "act"
+        }
+      ]
+    },
+    "sit": {
+      "label": "Sit him down in the chair",
+      "group": "Move",
+      "available": "upright",
+      "why": "He is sitting.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"seated\""
+        },
+        {
+          "set": "sitT",
+          "to": "t"
+        },
+        {
+          "log": "He sits down in the chair.",
+          "kind": "act"
+        }
+      ]
+    },
+    "walk": {
+      "label": "Walk at his own pace with the quad cane",
+      "group": "Treat",
+      "available": "upright",
+      "why": "Stand him up first.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"walk\""
+        },
+        {
+          "if": "isNull(walkAt)",
+          "then": [
+            {
+              "set": "walkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not beltOn",
+          "then": [
+            {
+              "set": "unguarded",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "Walking the hallway at his own pace.",
+          "kind": "act"
+        }
+      ]
+    },
+    "walkTrain": {
+      "label": "Walking training at higher intensity",
+      "group": "Treat",
+      "available": "upright",
+      "why": "Stand him up first.",
+      "params": [
+        {
+          "id": "basis",
+          "kind": "choice",
+          "label": "How you set the intensity",
+          "options": [
+            {
+              "value": "rpe",
+              "label": "Fast walking with stepping over and around cones; intensity by his RPE, with heart rate as a guide"
+            },
+            {
+              "value": "hr",
+              "label": "Raise the speed until his heart rate reaches 60-80% of heart rate reserve from his age-predicted maximum"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(walkAt)",
+          "then": [
+            {
+              "set": "walkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not beltOn",
+          "then": [
+            {
+              "set": "unguarded",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "basis == \"rpe\"",
+              "then": [
+                {
+                  "set": "pos",
+                  "to": "\"walkFast\""
+                },
+                {
+                  "set": "rpeBasis",
+                  "to": "true"
+                },
+                {
+                  "log": "Fast walking over and around cones, aiming for hard but sustainable effort by his RPE; you note his heart rate as well.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "pos",
+                  "to": "\"walkMax\""
+                },
+                {
+                  "set": "hrBasis",
+                  "to": "true"
+                },
+                {
+                  "log": "You raise his speed, waiting for his heart rate to reach the band. It barely moves; he is walking as fast as he can.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "foam": {
+      "label": "Static standing balance on foam, holding the bar",
+      "group": "Treat",
+      "available": "upright",
+      "why": "Stand him up first.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"foam\""
+        },
+        {
+          "if": "isNull(foamAt)",
+          "then": [
+            {
+              "set": "foamAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not beltOn",
+          "then": [
+            {
+              "set": "unguarded",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "Standing still on foam, feet apart, holding the bar.",
+          "kind": "act"
+        }
+      ]
+    },
+    "callMd": {
+      "label": "Call his primary care physician: the orthostatic drop, the new tamsulosin, the falls",
+      "group": "Decide",
+      "available": "isNull(escalatedAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "not isNull(ohSeenAt)",
+              "then": [
+                {
+                  "set": "escalatedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "SBAR: \"New orthostatic hypotension, a 26/12 drop with light-headedness, six days after tamsulosin was added to metoprolol and lisinopril, and two falls at night.\" The physician will review his medicines today.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "The physician's office asks what has changed. You have no new finding to report yet.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "decide": {
+      "label": "Decide his fall risk and home program",
+      "group": "Decide",
+      "available": "not decided",
+      "why": "Already decided.",
+      "params": [
+        {
+          "id": "plan",
+          "kind": "form",
+          "label": "Your decision",
+          "fields": [
+            {
+              "id": "risk",
+              "label": "Fall risk",
+              "options": [
+                {
+                  "value": "high",
+                  "label": "High: his measures are past the fall-risk cut-offs and he has fallen twice"
+                },
+                {
+                  "value": "low",
+                  "label": "Low: he walks with a cane and his stroke was months ago"
+                }
+              ]
+            },
+            {
+              "id": "home",
+              "label": "Home program",
+              "options": [
+                {
+                  "value": "cpg",
+                  "label": "Progressive, challenging balance and walking, at least 150 minutes to 3 hours a week for 6 to 12 months"
+                },
+                {
+                  "value": "static",
+                  "label": "10 minutes a day of standing still with feet together"
+                },
+                {
+                  "value": "rest",
+                  "label": "Rest and avoid walking alone until the next visit"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "decided",
+          "to": "true"
+        },
+        {
+          "set": "riskHigh",
+          "to": "risk == \"high\""
+        },
+        {
+          "set": "homePlan",
+          "to": "home"
+        },
+        {
+          "log": "Plan recorded.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "Finish the visit",
+      "group": "Finish",
+      "available": "pos == \"seated\" and not testing",
+      "why": "Sit him down first; let the test finish.",
+      "effects": [
+        {
+          "set": "finished",
+          "to": "true"
+        },
+        {
+          "log": "The visit ends.",
+          "kind": "sys"
+        },
+        {
+          "phase": "done"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "orthoT": {
+      "label": "orthostatic vital signs",
+      "wait": {
+        "skipLabel": "the orthostatic vital signs (about 8 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Orthostatic vital signs: 5 minutes supine, then readings at 1 and 3 minutes standing."
+      },
+      "effects": [
+        {
+          "set": "testing",
+          "to": "false"
+        },
+        {
+          "set": "orthoAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(ohSeenAt)",
+          "then": [
+            {
+              "set": "ohSeenAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "sitT",
+          "to": "t"
+        },
+        {
+          "set": "bpS",
+          "to": "112"
+        },
+        {
+          "set": "bpD",
+          "to": "70"
+        },
+        {
+          "set": "bpAt",
+          "to": "t"
+        },
+        {
+          "set": "bpUpright",
+          "to": "true"
+        },
+        {
+          "log": "Supine 138/82, HR 64. Standing 1 min: 112/70, HR 68, light-headed; 3 min: 116/72. A 26/12 drop. You sat him back down.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    "bergT": {
+      "label": "the Berg Balance Scale",
+      "wait": {
+        "skipLabel": "the Berg Balance Scale (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The Berg Balance Scale takes about 15 minutes."
+      },
+      "effects": [
+        {
+          "set": "testing",
+          "to": "false"
+        },
+        {
+          "set": "bergAt",
+          "to": "t"
+        },
+        {
+          "set": "sitT",
+          "to": "t"
+        },
+        {
+          "log": "Berg 41 of 56: lost points on turning, tandem stance, single-leg stance and stepping onto a stool.",
+          "kind": "find"
+        }
+      ]
+    },
+    "fgaT": {
+      "label": "the Functional Gait Assessment",
+      "wait": {
+        "skipLabel": "the Functional Gait Assessment (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The Functional Gait Assessment takes about 10 minutes."
+      },
+      "effects": [
+        {
+          "set": "testing",
+          "to": "false"
+        },
+        {
+          "set": "fgaAt",
+          "to": "t"
+        },
+        {
+          "set": "sitT",
+          "to": "t"
+        },
+        {
+          "log": "FGA 14 of 30: unsteady with head turns, narrow base and stepping over obstacles.",
+          "kind": "find"
+        }
+      ]
+    },
+    "tugT": {
+      "label": "the Timed Up and Go",
+      "wait": {
+        "skipLabel": "the Timed Up and Go (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The Timed Up and Go, with a practice trial, takes about 1 minute."
+      },
+      "effects": [
+        {
+          "set": "testing",
+          "to": "false"
+        },
+        {
+          "set": "tugAt",
+          "to": "t"
+        },
+        {
+          "set": "sitT",
+          "to": "t"
+        },
+        {
+          "log": "TUG 16 s with the quad cane.",
+          "kind": "find"
+        }
+      ]
+    },
+    "tenT": {
+      "label": "the 10 meter Walk Test",
+      "wait": {
+        "skipLabel": "the 10 meter Walk Test (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The 10 meter Walk Test, two trials, takes about 2 minutes."
+      },
+      "effects": [
+        {
+          "set": "testing",
+          "to": "false"
+        },
+        {
+          "set": "tenAt",
+          "to": "t"
+        },
+        {
+          "set": "sitT",
+          "to": "t"
+        },
+        {
+          "log": "10 meter Walk Test: 0.62 m/s at his own speed.",
+          "kind": "find"
+        }
+      ]
+    },
+    "stsT": {
+      "label": "five times sit-to-stand",
+      "wait": {
+        "skipLabel": "five times sit-to-stand (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Five times sit-to-stand takes about 1 minute."
+      },
+      "effects": [
+        {
+          "set": "testing",
+          "to": "false"
+        },
+        {
+          "set": "stsAt",
+          "to": "t"
+        },
+        {
+          "set": "sitT",
+          "to": "t"
+        },
+        {
+          "log": "Five times sit-to-stand: 17 s, pushing with his right arm.",
+          "kind": "find"
+        }
+      ]
+    },
+    "abcT": {
+      "label": "the ABC Scale",
+      "wait": {
+        "skipLabel": "the ABC Scale (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The ABC Scale questionnaire takes about 5 minutes."
+      },
+      "effects": [
+        {
+          "set": "testing",
+          "to": "false"
+        },
+        {
+          "set": "abcAt",
+          "to": "t"
+        },
+        {
+          "log": "ABC Scale 52%.",
+          "kind": "find"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "dizzy",
+      "when": "presyncope",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(ohSeenAt)",
+          "then": [
+            {
+              "set": "ohSeenAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "\"Whoa, the room's spinning.\" He goes pale and grips the cane.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "buckle",
+      "when": "presyncope and curDizzy >= buckleAfter",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "beltOn",
+              "then": [
+                {
+                  "add": "nearFalls",
+                  "by": "1"
+                },
+                {
+                  "set": "lastNear",
+                  "to": "\"buckle\""
+                },
+                {
+                  "set": "pos",
+                  "to": "\"seated\""
+                },
+                {
+                  "set": "sitT",
+                  "to": "t"
+                },
+                {
+                  "set": "orthoDip",
+                  "to": "0"
+                },
+                {
+                  "log": "His knees buckle. With the gait belt you lower him into the chair.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "fell",
+                  "to": "true"
+                },
+                {
+                  "set": "pos",
+                  "to": "\"seated\""
+                },
+                {
+                  "log": "His knees buckle and he falls before you can reach him.",
+                  "kind": "alarm"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stumble",
+      "when": "pos == \"walkMax\" and fatigue >= fatigueStumble",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "fatigue",
+          "to": "0"
+        },
+        {
+          "cases": [
+            {
+              "when": "beltOn",
+              "then": [
+                {
+                  "add": "nearFalls",
+                  "by": "1"
+                },
+                {
+                  "set": "lastNear",
+                  "to": "\"stumble\""
+                },
+                {
+                  "set": "pos",
+                  "to": "\"standing\""
+                },
+                {
+                  "log": "His left toe catches and he pitches forward; you catch him with the gait belt.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "fell",
+                  "to": "true"
+                },
+                {
+                  "set": "pos",
+                  "to": "\"seated\""
+                },
+                {
+                  "log": "His left toe catches and he falls.",
+                  "kind": "alarm"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "plan": {
+      "trigger": "t >= reasonAt",
+      "question": "Mr. Brooks has fallen twice at night and started tamsulosin 6 days ago. Which tests will you use today, what does his medication list change about how you train him, and how will you keep him safe?",
+      "parts": [
+        {
+          "label": "Tests",
+          "criteria": "Chooses orthostatic vital signs (new alpha blocker, falls on getting up) and a few measures from the neurologic core set or the fall-risk screen (Berg, FGA, 10 meter Walk Test, TUG, five times sit-to-stand, ABC), knowing the fall-risk cut-offs (Berg under 50, TUG over 11 s, gait speed under 1.0 m/s, sit-to-stand over 12 s); does not spend the visit on every test.",
+          "modelAnswer": "Orthostatic vitals first, because of the new tamsulosin and the night-time falls. Then the Berg or FGA, the 10 meter Walk Test and the TUG: Berg under 50, TUG over 11 seconds or gait speed under 1.0 m/s mean fall risk."
+        },
+        {
+          "label": "Training and safety",
+          "criteria": "Gait belt and guarding on the weak side for anything upright; stands him in stages after sitting, and sits him at once if light-headed; reports a new orthostatic drop with the new alpha blocker to his physician; walking training at moderate to high intensity guided by RPE because the beta blocker blunts his heart rate; not static standing balance to improve walking; a home program of challenging balance and walking at the guideline dose.",
+          "modelAnswer": "Gait belt on and guarding on the left whenever he is up; ankle pumps and standing in stages, and straight back to the chair if he is light-headed; call his physician about the orthostatic drop and the tamsulosin. Train walking fast with obstacles, setting intensity by RPE, since metoprolol blunts his heart rate. Home program: progressive, challenging balance and walking, at least 150 minutes to 3 hours a week for 6 to 12 months."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 30,
+        "source": {
+          "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+          "checkedAt": "2026-11-11",
+          "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+          "note": "Read 2026-11-11 through a text extraction of the PDF. Orthostatic hypotension: a drop of more than 20/10 mmHg within 3 min of standing; screen people after stroke for it and monitor BP during and after exercise. FLAG: sitting him down within 30 s of light-headedness is authored, tighter than the profile's 2 minutes, because he has fallen twice on standing."
+        }
+      },
+      "spo2Floor": {
+        "value": 90,
+        "source": {
+          "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+          "checkedAt": "2026-11-11",
+          "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+          "note": "Read 2026-11-11 through a text extraction of the PDF. Collaborate with the team when SpO2 is below 90%; tighter than the profile default for a patient without lung disease."
+        }
+      },
+      "escalateWindow": {
+        "value": 900,
+        "source": {
+          "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+          "checkedAt": "2026-11-11",
+          "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+          "note": "Read 2026-11-11 through a text extraction of the PDF. Alpha blockers: assess orthostatic vital signs regularly and discuss with the medical team, considering a change to the treatment plan. The 15-minute window is the profile default."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "finished and not walked",
+      "class": "recovered",
+      "rationale": "He was kept safe and tested, but no walking training was done; walking training at moderate to high intensity is what improves walking after chronic stroke, so the visit made no progress toward his goals. A gap, not harm in itself.",
+      "source": {
+        "cite": "Hornby TG, Reisman DS, Ward IG, et al. Clinical practice guideline to improve locomotor function following chronic stroke, incomplete spinal cord injury, and brain injury. J Neurol Phys Ther. 2020;44(1):49-100. doi:10.1097/NPT.0000000000000303",
+        "checkedAt": "2026-11-11",
+        "url": "https://core.ac.uk/download/516412873.pdf",
+        "note": "Read 2026-11-11 in a repository copy of the published article. Action statement 1: use moderate- to high-intensity walking training (60-80% of heart rate reserve or up to 85% of maximum heart rate) for chronic stroke (strong); record HR and RPE at regular intervals; consult the physician before higher-intensity training. Action statement 6A: do not perform sitting or standing balance training aimed at postural stability to improve walking speed or distance."
+      }
+    }
+  },
+  "endings": {
+    "fell": {
+      "label": "A fall in the clinic",
+      "class": "harm",
+      "terminal": true,
+      "when": "fell",
+      "narrative": "He fell in the clinic. Nothing is broken, but he is shaken, his confidence drops further, and the visit ends with an incident report."
+    },
+    "safePlan": {
+      "label": "Tested, trained and safe",
+      "class": "target",
+      "terminal": true,
+      "when": "finished and not unguarded and maxDizzy <= stopWindow and not isNull(escalatedAt) and timeAt(escalatedAt) - timeAt(ohSeenAt) <= escalateWindow and rpeBasis and not hrBasis and riskHigh and homePlan == \"cpg\" and isNull(foamAt)",
+      "narrative": "You found his orthostatic hypotension and told his physician the same morning, kept him guarded and stood him in stages, trained his walking hard but by RPE, and sent him home with a guideline-dose balance and walking program."
+    },
+    "noWalking": {
+      "label": "Safe, but no walking training",
+      "class": "recovered",
+      "terminal": true,
+      "when": "finished and not walked",
+      "narrative": "He went home safe and well tested, but without any walking training today."
+    },
+    "planGaps": {
+      "label": "Safe, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "finished",
+      "narrative": "He went home without a fall, but something was missing or late: guarding, the orthostatic drop and the call to his physician, how hard he trained, or his home program."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The visit ran over its time."
+    }
+  },
+  "endingOrder": [
+    "fell",
+    "safePlan",
+    "noWalking",
+    "planGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "guarded",
+        "label": "Gait belt on and guarding whenever he was up",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "unguarded",
+            "score": "missed",
+            "why": "He was standing or walking without the gait belt."
+          },
+          {
+            "when": "isNull(firstUprightAt)",
+            "score": "na",
+            "why": "He was not stood up outside a test."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Gait belt on and guarding on his left every time he was up."
+          }
+        ]
+      },
+      {
+        "id": "ohResponse",
+        "label": "Sat him down within 30 s of light-headedness",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "maxDizzy == 0",
+            "score": "met",
+            "why": "He never stayed up light-headed."
+          },
+          {
+            "when": "maxDizzy <= stopWindow",
+            "score": "met",
+            "why": "Seated {maxDizzy|duration} after the light-headedness started."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "He stayed up light-headed for {maxDizzy|duration}."
+          }
+        ]
+      },
+      {
+        "id": "ohReported",
+        "label": "Told his physician about the orthostatic drop and the new tamsulosin",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(ohSeenAt)",
+            "score": "missed",
+            "why": "The orthostatic drop was never found."
+          },
+          {
+            "when": "isNull(escalatedAt)",
+            "score": "missed",
+            "why": "Found, but his physician was not told."
+          },
+          {
+            "when": "timeAt(escalatedAt) - timeAt(ohSeenAt) <= escalateWindow",
+            "score": "met",
+            "why": "Physician called {(timeAt(escalatedAt) - timeAt(ohSeenAt))|duration} after the drop was found."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Physician called {(timeAt(escalatedAt) - timeAt(ohSeenAt))|duration} after the drop was found; call during the visit."
+          }
+        ]
+      },
+      {
+        "id": "orthoFirst",
+        "label": "Measured orthostatic vital signs before training",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(orthoAt)",
+            "score": "missed",
+            "why": "No orthostatic vital signs, despite the new alpha blocker and the falls on standing."
+          },
+          {
+            "when": "isNull(walkAt) or timeAt(orthoAt) <= timeAt(walkAt)",
+            "score": "met",
+            "why": "Orthostatic vital signs before any walking."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Orthostatic vital signs only after walking."
+          }
+        ]
+      },
+      {
+        "id": "measures",
+        "label": "Chose measures from the core set and fall-risk screen",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "screenedCount >= 2",
+            "score": "met",
+            "why": "{screenedCount} measures from the core set and the fall-risk screen."
+          },
+          {
+            "when": "screenedCount == 1",
+            "score": "partial",
+            "why": "Only one balance or gait measure."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No balance or gait measure."
+          }
+        ]
+      },
+      {
+        "id": "riskCalled",
+        "label": "Called his fall risk high",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "decided and riskHigh",
+            "score": "met",
+            "why": "High fall risk: past the cut-offs and two falls."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Fall risk not called high."
+          }
+        ]
+      },
+      {
+        "id": "intensity",
+        "label": "Walking training at higher intensity, set by RPE on a beta blocker",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "hrBasis",
+            "score": "missed",
+            "why": "Intensity chased a heart-rate band that metoprolol blunts: near-maximal effort."
+          },
+          {
+            "when": "rpeBasis",
+            "score": "met",
+            "why": "Hard walking with obstacles, set by RPE with HR as a guide."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No higher-intensity walking training."
+          }
+        ]
+      },
+      {
+        "id": "noStatic",
+        "label": "No static standing balance to improve walking",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(foamAt)",
+            "score": "met",
+            "why": "Training time went to walking."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Static standing balance on foam is not recommended to improve walking after stroke."
+          }
+        ]
+      },
+      {
+        "id": "homeDose",
+        "label": "Home program at the fall-prevention dose",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "homePlan == \"cpg\"",
+            "score": "met",
+            "why": "Challenging balance and walking, 150 minutes to 3 hours a week for 6 to 12 months."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Below the guideline's dose, or the wrong kind of exercise."
+          }
+        ]
+      },
+      {
+        "id": "rpeChecked",
+        "label": "Checked his RPE while walking",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "rpeWalking",
+            "score": "met",
+            "why": "Asked his RPE while walking."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "RPE never checked while walking."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written plan: tests, the medication list, safety",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "longestDizzy",
+        "label": "Longest time upright while light-headed",
+        "value": "maxDizzy",
+        "format": "duration",
+        "expert": "none"
+      },
+      {
+        "id": "tests",
+        "label": "Balance and gait measures used",
+        "value": "screenedCount",
+        "format": "number",
+        "expert": "3 or 4"
+      },
+      {
+        "id": "nearFalls",
+        "label": "Near-falls caught with the gait belt",
+        "value": "nearFalls",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00",
+        "text": "Gait belt on. Orthostatic vital signs first: a 26/12 drop with light-headedness six days after tamsulosin."
+      },
+      {
+        "at": "09:09",
+        "text": "Call his physician about the drop, the new tamsulosin and the night falls."
+      },
+      {
+        "at": "09:10",
+        "text": "TUG 16 s, 10 meter Walk Test 0.62 m/s, Berg 41: high fall risk."
+      },
+      {
+        "at": "09:30",
+        "text": "Ankle pumps, stand in stages, walk at his own pace, then fast walking with cones set by RPE (metoprolol blunts his heart rate). Check RPE; rest seated."
+      },
+      {
+        "at": "09:50",
+        "text": "Home program: challenging balance and walking, at least 150 minutes to 3 hours a week for 6 to 12 months, and getting up slowly at night."
+      }
+    ],
+    "debrief": {
+      "safePlan": {
+        "headline": "Tested, trained and safe",
+        "body": "You chose tests that answered his questions, found the orthostatic drop and called his physician, guarded him every time he stood, and trained his walking hard but by RPE. That is the expert path."
+      },
+      "planGaps": {
+        "headline": "Safe, with gaps",
+        "body": "No fall, which matters most. Look at the gait belt, how long he stayed up light-headed, the call to his physician, how you set his intensity, and the home program's dose."
+      },
+      "noWalking": {
+        "headline": "Safe, but no walking training",
+        "body": "Testing and safety were there; the training was not. Walking training at moderate to high intensity is what moves walking after stroke."
+      },
+      "fell": {
+        "headline": "A fall in the clinic",
+        "body": "The most useful kind of run to learn from. A gait belt and guarding on the weak side, standing in stages, and sitting him down at once when he is light-headed prevent this fall."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Choose the tests worth the time: three or four measures leave room for walking training in an hour."
+      }
+    },
+    "modelReasoning": "Two falls on getting up at night and a new alpha blocker (tamsulosin) on top of metoprolol and lisinopril make orthostatic hypotension the first thing to test: 26/12 with light-headedness meets the definition (20/10 within 3 min). Report it to his physician the same visit. Use a few measures from the core set and the fall-risk screen (TUG 16 s, gait speed 0.62 m/s, Berg 41: all past the cut-offs): high fall risk. Guard with a gait belt whenever he is up, stand him in stages, and sit him at once if light-headed. Train walking at moderate to high intensity with variable stepping, set by RPE because metoprolol blunts the heart rate response, rather than static standing balance. Home program: progressive, challenging balance and walking at least 150 minutes to 3 hours a week for 6 to 12 months."
+  },
+  "chapters": [
+    {
+      "id": "training",
+      "label": "Walking training",
+      "when": "walked"
+    }
+  ],
+  "teaching": {
+    "whyDrop": {
+      "during": "orthoT",
+      "ask": "While you take his orthostatic vital signs: what is the most likely new contributor to a drop on standing?",
+      "choices": [
+        {
+          "id": "tamsulosin",
+          "label": "The tamsulosin (an alpha blocker) added 6 days ago to his BP medicines"
+        },
+        {
+          "id": "stroke",
+          "label": "The stroke itself, four months ago"
+        },
+        {
+          "id": "dehydration",
+          "label": "Nothing in particular; older adults just get dizzy"
+        }
+      ],
+      "expect": "tamsulosin",
+      "explain": "Alpha blockers can cause orthostatic hypotension; the acute care guide says to assess orthostatic vital signs regularly and discuss them with the medical team. A new drop after a new alpha blocker, with falls on getting up, is worth a call today.",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Read 2026-11-11 through a text extraction of the PDF. Normal exercise response: HR rises about 10 beats/min per MET and returns to the pre-exercise level in 3-5 min; SBP rises about 10 mmHg per MET. Stop criteria include SBP drop >10 mmHg with increasing workload, new or worsening dysrhythmia, RR >40, unable to speak comfortably, SpO2 <90% or a drop of 4% or more (acute coronary syndrome), SpO2 <85% (lung disease); lung disease activity target 88-92%. Orthostatic hypotension: SBP drop >20 or DBP drop >10 mmHg within 3 min of standing. Beta blockers: lower HR with exercise and a dampened BP response; use the RPE scale in addition to HR."
+      }
+    },
+    "bergMeans": {
+      "during": "bergT",
+      "ask": "His Berg is heading for about 41 of 56. What does a score under 50 mean for a community-dwelling older adult?",
+      "choices": [
+        {
+          "id": "risk",
+          "label": "A raised risk of falling"
+        },
+        {
+          "id": "fine",
+          "label": "Normal for his age"
+        },
+        {
+          "id": "wheelchair",
+          "label": "He should use a wheelchair"
+        }
+      ],
+      "expect": "risk",
+      "explain": "The 2025 APTA fall-risk guideline uses a Berg below 50 as one marker of fall risk, alongside a TUG over 11 s, five times sit-to-stand over 12 s and gait speed under 1.0 m/s.",
+      "source": {
+        "cite": "Physical Therapy Management of Fall Risk in Community-Dwelling Older Adults: An Evidence-Based Clinical Practice Guideline From the American Physical Therapy Association. J Geriatr Phys Ther. 2025;48. doi:10.1519/JPT.0000000000000454 (PMC12533762)",
+        "checkedAt": "2026-11-11",
+        "url": "https://europepmc.org/article/PMC/PMC12533762",
+        "note": "Read 2026-11-11 in the Europe PMC full text. Fall risk: Berg below 50, TUG over 11 s, five times sit-to-stand over 12 s, single-leg stance under 6.5 s, self-selected gait speed under 1.0 m/s. Exercise must be at least 150 minutes to 3 hours a week for 6 to 12 months and include progressive, sufficiently challenging balance training (level I, strong)."
+      }
+    }
+  }
+}

@@ -34,7 +34,8 @@ export function simsEnabled(env: Record<string, string | undefined> = process.en
 // client session (the people layer) to the default so testers see it;
 // SIMS_RENDERERS=bedside,board turns it off again without a release.
 // REQ-231 adds the security operations console ("security-console").
-export const DEFAULT_RENDERERS = ["bedside", "board", "session", "security-console"] as const;
+// REQ-232 adds the PT treatment session ("treatment-session") the same way.
+export const DEFAULT_RENDERERS = ["bedside", "board", "session", "security-console", "treatment-session"] as const;
 export function renderersOn(env: Record<string, string | undefined> = process.env): string[] {
   const raw = env.SIMS_RENDERERS;
   if (raw === undefined || raw.trim() === "") return [...DEFAULT_RENDERERS];
@@ -91,7 +92,7 @@ export function parseCaps(header: string | null | undefined): SimCaps | null {
     }
     if (k === "renderers") {
       for (const r of v.split(",")) {
-        // REQ-231 (FAIL-1320): a screen type may contain a hyphen
+        // REQ-231 (FAIL-1320; REQ-232 found the same bug, FAIL-1340): a screen type may contain a hyphen
         // ("security-console"); the old pattern dropped it silently, so the
         // server thought the app could not run the console. Same 40-character
         // limit as sims.screen_type.

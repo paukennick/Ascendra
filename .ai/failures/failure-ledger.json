@@ -15320,28 +15320,130 @@
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-1300",
+      "id": "FAIL-1340",
       "date": "2026-11-11",
-      "title": "Generator key-order gate reversed the teaching map and failed every paced clinical draft",
+      "title": "The sim capability header refused a hyphenated screen type",
       "status": "fixed",
-      "severity": "medium",
-      "symptom": "The first key-order gate replayed golden paths with every object reversed; the Whipple bleed's expert path was rejected in reversed order ('teaching prompt bridge is not offered now'), so a valid clinical draft with two or more teaching prompts could never pass.",
-      "how_detected": "lib/sim/generator/generator.test.ts during development (mocked pipeline run on the Whipple case), before any commit",
-      "root_cause": "teachingDue still offers the first due teaching prompt in key order (FAIL-1250, open). lib/sim/storage-order.test.ts already leaves that one map out of its reversal; the generator's copy of the check was written from the lint rule (endingOrderProblems) instead of from the storage-order test, so it missed the known exception.",
-      "requirement": "REQ-230",
+      "severity": "high",
+      "symptom": "An app advertising treatment-session@1 parsed to no treatment-session renderer, so every DPT sim answered 409 app_update_required and listed as not runnable.",
+      "how_detected": "test (lib/sim/treatment.test.ts, before any app shipped it)",
+      "root_cause": "parseCaps matched renderer types with /^[a-z]{1,20}@/, written when every screen type was one lower-case word; the treatment-session type has a hyphen.",
+      "requirement": "REQ-232",
       "affected": [
-        "backend/lib/sim/generator/gates.ts::storageKeyProblems"
+        "backend/lib/sim/server-run.ts"
       ],
-      "fix_summary": "The reversed copy keeps the teaching map as written, exactly as storage-order.test.ts does; the jsonb order (what the app and server read) is still checked in full.",
+      "fix_summary": "The type pattern is now /^[a-z][a-z-]{0,29}@/.",
       "fix_commits": [
-        "69b4f2f"
+        "64656fe"
       ],
       "regression_tests": [
-        "backend/lib/sim/generator/generator.test.ts::key order (FAIL-1300)"
+        "backend/lib/sim/treatment.test.ts",
+        "mobile/src/sim/runtime.test.ts"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "A regression test replays the Whipple case (teaching prompts) through the gate and was confirmed to fail without the exception; docs/sims.md 12.2 gate 6 names FAIL-1250 so the exception is removed together with the fix for FAIL-1250.",
+      "prevention_notes": "A new screen type is tested end to end through parseCaps and runnable with the app's real header (simCaps).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1341",
+      "date": "2026-11-11",
+      "title": "The sim DB tests' moment finder missed reasoning moments that open on the clock",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Golden paths played through the routes scored 8-12 points under their goldens: the written moment was never graded, so its criterion counted as missed.",
+      "how_detected": "test (lib/sims-treatment.dbtest.ts)",
+      "root_cause": "momentOpening (copied from sims-session.dbtest.ts) replays command prefixes only up to the last command's tick; a moment that opens by time between commands (the DPT plans open 30 s in) is first open at the tick of the command that answers it. The EPPP moments open from a command, so the original never hit this.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/lib/sims-treatment.dbtest.ts"
+      ],
+      "fix_summary": "Replay each prefix with toTick set to the next command's tick.",
+      "fix_commits": [
+        "ca266d5"
+      ],
+      "regression_tests": [
+        "backend/lib/sims-treatment.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The helper in lib/sims-session.dbtest.ts has the same limit; harmless for its documents, change it if reused.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1342",
+      "date": "2026-11-11",
+      "title": "TKA case credited a screen made at the same tick as the walk that revealed the calf",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Golden path peCaught (walking first, calf complaint while walking) scored screenFirst met.",
+      "how_detected": "golden review before writing the golden file",
+      "root_cause": "The calf cue trigger sets the history time at the tick the walk starts, and the criterion compared suspicion time <= first loading time.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/supabase/seed/sims/DPT/tka-gait-dvt-red-flag.sim.json"
+      ],
+      "fix_summary": "Strict comparison in the criterion and the target ending.",
+      "fix_commits": [
+        "ca266d5"
+      ],
+      "regression_tests": [
+        "backend/supabase/seed/sims/DPT/tka-gait-dvt-red-flag.golden.json"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Order criteria compare a learner action with a trigger time strictly when the trigger is caused by the action.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1343",
+      "date": "2026-11-11",
+      "title": "Stroke case: the measured BP drop lagged the orthostatic model",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "20 s after standing the light-headed state (26 mmHg dip) was on, but a BP taken then showed about 12 mmHg of drop, under the 20 mmHg definition the case teaches.",
+      "how_detected": "test (lib/sim/treatment.test.ts)",
+      "root_cause": "Systolic pressure followed its target with a 30 s time constant while the presyncope rule read the dip directly.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/supabase/seed/sims/DPT/stroke-balance-fall-risk.sim.json"
+      ],
+      "fix_summary": "An authored 10 s BP time constant (param tauBp).",
+      "fix_commits": [
+        "ca266d5"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/treatment.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When a rule and a displayed measurement describe the same thing, test that they agree.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1344",
+      "date": "2026-11-11",
+      "title": "Two DPT debriefs repeated the client-visible time_up narrative",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts 'client document leaks nothing server-only' failed for the TKA and stroke cases: server-only debrief text reached the client document.",
+      "how_detected": "test (backend npm test, lib/sim/documents.test.ts)",
+      "root_cause": "The time_up debrief body was written with the same sentence as the ending's narrative, which the client document keeps; the leak check cannot tell the copies apart.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/supabase/seed/sims/DPT/tka-gait-dvt-red-flag.sim.json",
+        "backend/supabase/seed/sims/DPT/stroke-balance-fall-risk.sim.json"
+      ],
+      "fix_summary": "Debrief bodies now say something the narrative does not.",
+      "fix_commits": [
+        "0726be1"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the full backend npm test, not only the linter and the new tests, before reporting a new sim.",
       "recurrence_of": ""
     },
     {
@@ -15391,31 +15493,6 @@
       "no_test_reason": "",
       "prevention_rules": [],
       "prevention_notes": "A test runs every active catalog objective title through the schema's objective field.",
-      "recurrence_of": ""
-    },
-    {
-      "id": "FAIL-1301",
-      "date": "2026-11-12",
-      "title": "Duplicate-check test margin too tight once a second screen family existed",
-      "status": "fixed",
-      "severity": "low",
-      "symptom": "generator.test 'seeded documents on different cases sit well below the threshold' failed in CI after the Security+ sims merged: highest pair 0.325 against a 0.30 bound",
-      "how_detected": "CI Backend job on PR #143",
-      "root_cause": "The test required every seeded pair to be 0.2 below the 0.5 duplicate threshold; three Security+ incidents on one screen share action vocabulary (decisions 0.33) though their stories differ (under 0.04)",
-      "requirement": "REQ-230",
-      "affected": [
-        "backend/lib/sim/generator/generator.test.ts"
-      ],
-      "fix_summary": "Margin 0.1 below the threshold, with the reason in the test; the gate itself is unchanged and only compares same-objective sims",
-      "fix_commits": [],
-      "regression_tests": [
-        "backend/lib/sim/generator/generator.test.ts"
-      ],
-      "no_test_reason": "",
-      "prevention_rules": [
-        ".ai/checklists/pre-completion.md"
-      ],
-      "prevention_notes": "",
       "recurrence_of": ""
     },
     {
@@ -15490,32 +15567,6 @@
       "no_test_reason": "",
       "prevention_rules": [],
       "prevention_notes": "Until FAIL-1250 gets a teachingOrder list, author teaching keys in jsonb order or give overlapping prompts mutually exclusive conditions; docs/sims.md 22.7 says so.",
-      "recurrence_of": ""
-    },
-    {
-      "id": "FAIL-1302",
-      "date": "2026-11-12",
-      "title": "Duplicate check counted shared decisions alone as a duplicate",
-      "status": "fixed",
-      "severity": "medium",
-      "symptom": "After the bedside wave merged, adult and pediatric septic shock scored 0.43 (decisions) against a 0.5 duplicate threshold; a variant of one skill would have been held as a duplicate",
-      "how_detected": "CI Backend job on PR #143 (generator.test seeded-pairs check)",
-      "root_cause": "similarity took the higher of story and decisions overlap, so two sims teaching the same skill on different patients looked like copies",
-      "requirement": "REQ-230",
-      "affected": [
-        "backend/lib/sim/generator/similarity.ts",
-        "docs/sims.md"
-      ],
-      "fix_summary": "Score = max(story, mean(story, decisions)): a copied story is still a duplicate; shared decisions alone are not",
-      "fix_commits": [],
-      "regression_tests": [
-        "backend/lib/sim/generator/generator.test.ts"
-      ],
-      "no_test_reason": "",
-      "prevention_rules": [
-        ".ai/checklists/pre-completion.md"
-      ],
-      "prevention_notes": "",
       "recurrence_of": ""
     },
     {
@@ -15754,6 +15805,82 @@
         ".ai/checklists/pre-completion.md"
       ],
       "prevention_notes": "a re-read records its day and whether only a summary was read",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1300",
+      "date": "2026-11-11",
+      "title": "Generator key-order gate reversed the teaching map and failed every paced clinical draft",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The first key-order gate replayed golden paths with every object reversed; the Whipple bleed's expert path was rejected in reversed order ('teaching prompt bridge is not offered now'), so a valid clinical draft with two or more teaching prompts could never pass.",
+      "how_detected": "lib/sim/generator/generator.test.ts during development (mocked pipeline run on the Whipple case), before any commit",
+      "root_cause": "teachingDue still offers the first due teaching prompt in key order (FAIL-1250, open). lib/sim/storage-order.test.ts already leaves that one map out of its reversal; the generator's copy of the check was written from the lint rule (endingOrderProblems) instead of from the storage-order test, so it missed the known exception.",
+      "requirement": "REQ-230",
+      "affected": [
+        "backend/lib/sim/generator/gates.ts::storageKeyProblems"
+      ],
+      "fix_summary": "The reversed copy keeps the teaching map as written, exactly as storage-order.test.ts does; the jsonb order (what the app and server read) is still checked in full.",
+      "fix_commits": [
+        "69b4f2f"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts::key order (FAIL-1300)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A regression test replays the Whipple case (teaching prompts) through the gate and was confirmed to fail without the exception; docs/sims.md 12.2 gate 6 names FAIL-1250 so the exception is removed together with the fix for FAIL-1250.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1301",
+      "date": "2026-11-12",
+      "title": "Duplicate-check test margin too tight once a second screen family existed",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "generator.test 'seeded documents on different cases sit well below the threshold' failed in CI after the Security+ sims merged: highest pair 0.325 against a 0.30 bound",
+      "how_detected": "CI Backend job on PR #143",
+      "root_cause": "The test required every seeded pair to be 0.2 below the 0.5 duplicate threshold; three Security+ incidents on one screen share action vocabulary (decisions 0.33) though their stories differ (under 0.04)",
+      "requirement": "REQ-230",
+      "affected": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "fix_summary": "Margin 0.1 below the threshold, with the reason in the test; the gate itself is unchanged and only compares same-objective sims",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1302",
+      "date": "2026-11-12",
+      "title": "Duplicate check counted shared decisions alone as a duplicate",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After the bedside wave merged, adult and pediatric septic shock scored 0.43 (decisions) against a 0.5 duplicate threshold; a variant of one skill would have been held as a duplicate",
+      "how_detected": "CI Backend job on PR #143 (generator.test seeded-pairs check)",
+      "root_cause": "similarity took the higher of story and decisions overlap, so two sims teaching the same skill on different patients looked like copies",
+      "requirement": "REQ-230",
+      "affected": [
+        "backend/lib/sim/generator/similarity.ts",
+        "docs/sims.md"
+      ],
+      "fix_summary": "Score = max(story, mean(story, decisions)): a copied story is still a duplicate; shared decisions alone are not",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
       "recurrence_of": ""
     }
   ]

@@ -1,0 +1,752 @@
+{
+  "slug": "stroke-balance-fall-risk",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert path at study pace: gait belt, orthostatic vitals first and a same-visit call to his physician, TUG, 10 meter walk and Berg, high risk, guarded walking training set by RPE, guideline home program",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "belt",
+          "seq": 2,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "orthoTest",
+          "seq": 4,
+          "tick": 7
+        },
+        {
+          "type": "teach",
+          "prompt": "whyDrop",
+          "choice": "tamsulosin",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "orthoT",
+          "instance": 1,
+          "to": 103,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "callMd",
+          "seq": 7,
+          "tick": 103
+        },
+        {
+          "type": "act",
+          "action": "tug",
+          "seq": 8,
+          "tick": 103
+        },
+        {
+          "type": "skip",
+          "timer": "tugT",
+          "instance": 2,
+          "to": 115,
+          "seq": 9,
+          "tick": 103
+        },
+        {
+          "type": "act",
+          "action": "tenMwt",
+          "seq": 10,
+          "tick": 115
+        },
+        {
+          "type": "skip",
+          "timer": "tenT",
+          "instance": 3,
+          "to": 139,
+          "seq": 11,
+          "tick": 115
+        },
+        {
+          "type": "act",
+          "action": "berg",
+          "seq": 12,
+          "tick": 139
+        },
+        {
+          "type": "teach",
+          "prompt": "bergMeans",
+          "choice": "risk",
+          "seq": 13,
+          "tick": 139
+        },
+        {
+          "type": "skip",
+          "timer": "bergT",
+          "instance": 4,
+          "to": 319,
+          "seq": 14,
+          "tick": 139
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "risk": "high",
+            "home": "cpg"
+          },
+          "seq": 15,
+          "tick": 319
+        },
+        {
+          "type": "act",
+          "action": "standPrepared",
+          "seq": 16,
+          "tick": 319
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 17,
+          "tick": 319
+        },
+        {
+          "type": "chapter",
+          "chapter": "training",
+          "choice": "continue",
+          "seq": 18,
+          "tick": 319
+        },
+        {
+          "type": "act",
+          "action": "walkTrain",
+          "params": {
+            "basis": "rpe"
+          },
+          "seq": 19,
+          "tick": 331
+        },
+        {
+          "type": "act",
+          "action": "askRpe",
+          "seq": 20,
+          "tick": 343
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 21,
+          "tick": 367
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 22,
+          "tick": 373
+        }
+      ],
+      "expect": {
+        "ending": "safePlan",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "guarded": "met",
+          "ohResponse": "met",
+          "ohReported": "met",
+          "orthoFirst": "met",
+          "measures": "met",
+          "riskCalled": "met",
+          "intensity": "met",
+          "noStatic": "met",
+          "homeDose": "met",
+          "rpeChecked": "met"
+        },
+        "kpis": {
+          "longestDizzy": 0,
+          "tests": 3,
+          "nearFalls": 0
+        },
+        "stateHash": "5f8cbe8a58678fc0"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "slowSafe",
+      "title": "Gait belt, TUG and 10 meter walk, no orthostatic vitals; stands him up after a long sit, sits him down within 25 s when he is light-headed, but never calls his physician; own-pace walking only",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "belt",
+          "seq": 1,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 2,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "tug",
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "tugT",
+          "instance": 1,
+          "to": 19,
+          "seq": 4,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "tenMwt",
+          "seq": 5,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "tenT",
+          "instance": 2,
+          "to": 43,
+          "seq": 6,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "risk": "high",
+            "home": "cpg"
+          },
+          "seq": 7,
+          "tick": 43
+        },
+        {
+          "type": "act",
+          "action": "stand",
+          "seq": 8,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 9,
+          "tick": 77
+        },
+        {
+          "type": "act",
+          "action": "standPrepared",
+          "seq": 10,
+          "tick": 83
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 11,
+          "tick": 83
+        },
+        {
+          "type": "chapter",
+          "chapter": "training",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 83
+        },
+        {
+          "type": "act",
+          "action": "askRpe",
+          "seq": 13,
+          "tick": 95
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 14,
+          "tick": 107
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 15,
+          "tick": 107
+        }
+      ],
+      "expect": {
+        "ending": "planGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 68,
+        "criteria": {
+          "guarded": "met",
+          "ohResponse": "met",
+          "ohReported": "missed",
+          "orthoFirst": "missed",
+          "measures": "met",
+          "riskCalled": "met",
+          "intensity": "missed",
+          "noStatic": "met",
+          "homeDose": "met",
+          "rpeChecked": "met"
+        },
+        "kpis": {
+          "longestDizzy": 20,
+          "tests": 2,
+          "nearFalls": 0
+        },
+        "stateHash": "febc38b457cc08ec"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "hrChaser",
+      "title": "Orthostatic vitals and the call done; walking intensity chased by heart rate on metoprolol, a stumble caught by the belt; then static balance on foam",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "belt",
+          "seq": 1,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 2,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "orthoTest",
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "teach",
+          "prompt": "whyDrop",
+          "choice": "tamsulosin",
+          "seq": 4,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "orthoT",
+          "instance": 1,
+          "to": 103,
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "callMd",
+          "seq": 6,
+          "tick": 103
+        },
+        {
+          "type": "act",
+          "action": "tenMwt",
+          "seq": 7,
+          "tick": 103
+        },
+        {
+          "type": "skip",
+          "timer": "tenT",
+          "instance": 2,
+          "to": 127,
+          "seq": 8,
+          "tick": 103
+        },
+        {
+          "type": "act",
+          "action": "tug",
+          "seq": 9,
+          "tick": 127
+        },
+        {
+          "type": "skip",
+          "timer": "tugT",
+          "instance": 3,
+          "to": 139,
+          "seq": 10,
+          "tick": 127
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "risk": "high",
+            "home": "cpg"
+          },
+          "seq": 11,
+          "tick": 139
+        },
+        {
+          "type": "act",
+          "action": "standPrepared",
+          "seq": 12,
+          "tick": 139
+        },
+        {
+          "type": "act",
+          "action": "walkTrain",
+          "params": {
+            "basis": "hr"
+          },
+          "seq": 13,
+          "tick": 139
+        },
+        {
+          "type": "chapter",
+          "chapter": "training",
+          "choice": "continue",
+          "seq": 14,
+          "tick": 139
+        },
+        {
+          "type": "act",
+          "action": "askRpe",
+          "seq": 15,
+          "tick": 139
+        },
+        {
+          "type": "act",
+          "action": "foam",
+          "seq": 16,
+          "tick": 163
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 17,
+          "tick": 187
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 18,
+          "tick": 187
+        }
+      ],
+      "expect": {
+        "ending": "planGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 77,
+        "criteria": {
+          "guarded": "met",
+          "ohResponse": "met",
+          "ohReported": "met",
+          "orthoFirst": "met",
+          "measures": "met",
+          "riskCalled": "met",
+          "intensity": "missed",
+          "noStatic": "missed",
+          "homeDose": "met",
+          "rpeChecked": "met"
+        },
+        "kpis": {
+          "longestDizzy": 0,
+          "tests": 2,
+          "nearFalls": 1
+        },
+        "stateHash": "ccb77b05404cbec5"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "unguardedFall",
+      "title": "No gait belt, no tests; stands him up after sitting and lets him stand there light-headed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 1,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "stand",
+          "seq": 2,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "fell",
+        "class": "harm",
+        "rating": "bad",
+        "score": 9,
+        "criteria": {
+          "guarded": "missed",
+          "ohResponse": "missed",
+          "ohReported": "missed",
+          "orthoFirst": "missed",
+          "measures": "missed",
+          "riskCalled": "missed",
+          "intensity": "missed",
+          "noStatic": "met",
+          "homeDose": "missed",
+          "rpeChecked": "missed"
+        },
+        "kpis": {
+          "longestDizzy": 45,
+          "tests": 0,
+          "nearFalls": 0
+        },
+        "stateHash": "49e5c4501a4e2217"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    },
+    {
+      "id": "testsOnly",
+      "title": "Gait belt, orthostatic vitals and the call, then the Berg, FGA and ABC Scale; a good home program but no walking training today",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "belt",
+          "seq": 1,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 2,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "orthoTest",
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "teach",
+          "prompt": "whyDrop",
+          "choice": "tamsulosin",
+          "seq": 4,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "orthoT",
+          "instance": 1,
+          "to": 103,
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "callMd",
+          "seq": 6,
+          "tick": 103
+        },
+        {
+          "type": "act",
+          "action": "berg",
+          "seq": 7,
+          "tick": 103
+        },
+        {
+          "type": "teach",
+          "prompt": "bergMeans",
+          "choice": "risk",
+          "seq": 8,
+          "tick": 103
+        },
+        {
+          "type": "skip",
+          "timer": "bergT",
+          "instance": 2,
+          "to": 283,
+          "seq": 9,
+          "tick": 103
+        },
+        {
+          "type": "act",
+          "action": "fga",
+          "seq": 10,
+          "tick": 283
+        },
+        {
+          "type": "skip",
+          "timer": "fgaT",
+          "instance": 3,
+          "to": 403,
+          "seq": 11,
+          "tick": 283
+        },
+        {
+          "type": "act",
+          "action": "abc",
+          "seq": 12,
+          "tick": 403
+        },
+        {
+          "type": "skip",
+          "timer": "abcT",
+          "instance": 4,
+          "to": 463,
+          "seq": 13,
+          "tick": 403
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "risk": "high",
+            "home": "cpg"
+          },
+          "seq": 14,
+          "tick": 463
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 15,
+          "tick": 463
+        }
+      ],
+      "expect": {
+        "ending": "noWalking",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "guarded": "na",
+          "ohResponse": "met",
+          "ohReported": "met",
+          "orthoFirst": "met",
+          "measures": "met",
+          "riskCalled": "met",
+          "intensity": "missed",
+          "noStatic": "met",
+          "homeDose": "met",
+          "rpeChecked": "missed"
+        },
+        "kpis": {
+          "longestDizzy": 0,
+          "tests": 3,
+          "nearFalls": 0
+        },
+        "stateHash": "682d3e552655c8db"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "lowRisk",
+      "title": "Gait belt and a TUG only; calls his fall risk low with a static home program; stands him up after a long sit and waits until his knees buckle",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "belt",
+          "seq": 1,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 2,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "tug",
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "tugT",
+          "instance": 1,
+          "to": 19,
+          "seq": 4,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "risk": "low",
+            "home": "static"
+          },
+          "seq": 5,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "stand",
+          "seq": 6,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 7,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "noWalking",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 23,
+        "criteria": {
+          "guarded": "met",
+          "ohResponse": "missed",
+          "ohReported": "missed",
+          "orthoFirst": "missed",
+          "measures": "partial",
+          "riskCalled": "missed",
+          "intensity": "missed",
+          "noStatic": "met",
+          "homeDose": "missed",
+          "rpeChecked": "missed"
+        },
+        "kpis": {
+          "longestDizzy": 45,
+          "tests": 1,
+          "nearFalls": 1
+        },
+        "stateHash": "d6d8b255b8515ad3"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}

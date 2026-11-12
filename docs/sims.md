@@ -38,9 +38,10 @@ Whether a sim is paced depends on its kind, not its course:
   task takes (22.7).
 
 The rule is `pacingEligible` in `backend/lib/sim/server-run.ts`: a running
-phase and a clinical or fitness outcome profile. No PT or fitness running
-sim exists yet; a new one gets pacing by declaring the features. Details in
-5.4a to 5.4f and 22.2.
+phase and a clinical or fitness track (the safety family the seed derives
+from the course category). The three DPT treatment sessions (REQ-232, 22.8)
+are the first PT running sims and get study pace by default; no fitness
+running sim exists yet. Details in 5.4a to 5.4f, 22.2 and 22.8.
 
 Sim labs are the product's main paid differentiator. Nick's instruction for
 this work: "I care little about the time it will take and more that overall
@@ -76,8 +77,8 @@ engine and the practice-lab acknowledgement).
 20. Sims for every subject family
 21. Review resolution
 22. Phase 1b as built (REQ-190), pacing (REQ-209), more CCRN cases (REQ-222),
-    CNA cases (REQ-223), the client session (REQ-225) and the security
-    console (REQ-231)
+    CNA cases (REQ-223), the client session (REQ-225), the security console
+    (REQ-231) and the PT treatment session (REQ-232)
 
 ---
 
@@ -2419,6 +2420,7 @@ direction):
 | Fitness | no adverse event, screening done correctly, primary goal met (for example knee pain reduced ≥ 50%), adherence ≥ 80% | safe, goal partly met (pain reduced 25-49%) or adherence 60-79% | an adverse event, a required referral skipped, injury, or drop-out |
 | Clinical session (REQ-225) | the session's safety or diagnostic task done within its window (`safetyWindow`, default 20 min from the cue), rapport >= 6/10 at the close (`allianceTarget`) | done late, partly, or at a cost to the alliance or the client's autonomy (an over-restrictive referral, a disclosure made on a guess) | a client left at foreseeable risk, a required protective step not taken, confidentiality broken beyond what the law allows, a diagnosis that misses a required rule-out, or a walk-out after a rupture |
 | Security (REQ-231, 22.7) | contained within `containWindow` (default 60 min; the Security+ cases use 30) of the first alert, no asset newly compromised after it (`containSpread` 0), evidence preserved before anything is purged, wiped or terminated | contained, but late, after spread to another asset, with partial evidence (a disk image without memory), or with a costly recovery (an older backup past the RPO) | the attacker's impact reached (payment fraud, backups destroyed, data copied out), evidence destroyed before collection, a reinfection during recovery, or the incident closed with an attacker path still open |
+| Physical therapy (REQ-232) | the session's goal reached with every stopping rule respected (activity eased within `stopWindow`, default 2 min, of a rule being crossed; SpO2 floor `spo2Floor`, default 88%) and any red flag escalated within `escalateWindow` (default 15 min) | the goal partly reached, a stopping rule acted on late, or a red flag escalated by a slower route (the patient told to call) or after it became an emergency | a fall, syncope, an embolism, rapid response, or a red flag left unescalated |
 | Infrastructure, data | defined with their renderers (20) | | |
 
 Two readings are written down so they are not re-decided per scenario.
@@ -2658,7 +2660,8 @@ device while sims are off (5.9).
 (default `bedside,board` since REQ-190, because the first flagship is the
 TicketBurst board, 19.4 item 1; `bedside,board,session` since REQ-225, so
 testers see the client session; `bedside,board,session,security-console`
-since REQ-231). A renderer can be launched, or pulled after a bad
+since REQ-231; `bedside,board,session,security-console,treatment-session`
+since REQ-232, for the PT treatment session). A renderer can be launched, or pulled after a bad
 scenario, without touching the others. A sim whose screen type is not
 listed behaves as if `SIMS_ENABLED` were off for that sim.
 
@@ -3593,7 +3596,7 @@ cover the whole catalog (95 courses):
 | **Architecture board** | Cloud: AWS (12), Azure (9), Google Cloud (11), Cloud+, CloudNetX | Place services across zones and regions under a cost meter, then survive spikes, outages, failovers and budget cuts |
 | **Project dashboard** | Project management: PMP, CAPM, PgMP, PfMP, PMI-ACP, PMI-RMP, PMI-SP, PMI-PBA, PMO-CP, PMI-CP, CPMAI, Project+ | Run a project week by week: change requests, risks, team and stakeholder events, earned value; delayed consequences |
 | **Client trainer** | Fitness: NASM, ACE, ACSM, NCCPT, NSCA-CPT, NSCA-CSCS | Screen, assess movement, program by phase, coach through weeks; adherence, pain and progress respond |
-| **Treatment session** | Physical therapy: NPTE-PT, NPTE-PTA, DPT, the ten ABPTS specialties | Examine, choose tests and measures, treat and progress a patient across visits; vitals and red flags during exercise |
+| **Treatment session** (REQ-232, 22.8) | Physical therapy: DPT now; NPTE-PT, NPTE-PTA and the ten ABPTS specialties later | Examine, choose tests and measures, treat and progress a patient across visits; vitals and red flags during exercise |
 | **Security operations console** (REQ-231, 22.7) | Security: Security+ (SY0-701 and V8) now; CySA+, PenTest+, SecurityX, SecAI+ later | Triage alerts and logs during a live incident, contain, eradicate, recover, report; the attacker progresses on a clock |
 | **Terminal and network** | Infrastructure: Tech+, Network+, Linux+, Server+, AutoOps+ | Diagnose and fix a broken network or server through a simulated shell (an authored fault tree, not an emulator) and topology; outages spread while you work |
 | **Client session** (REQ-225, 22.5) | Mental health: EPPP, then NCE, NCMHCE and ASWB | Conduct a session with a client: ask, respond, intervene and document; rapport, distress, disclosure and risk move with each choice and with time |
@@ -4321,6 +4324,91 @@ AWS re:Post, named in the sources but not in the scenarios), and CrowdStrike's
    test checks every catalog title fits.
 3. **The screen spec and the profile list are in the engine folder** again
    (as for the board and the session): display and lint only, no minor.
+
+### 22.8 The PT treatment session and the first DPT cases (REQ-232)
+
+**The renderer** (`screen.type: "treatment-session"`, `treatment-session@1`,
+behind `SIMS_RENDERERS`, on by default). `screen.treatment` holds the
+patient's name and presentation (a template), the vitals (the bedside tile
+type, `VitalTile`, so alarms, bands, `hiddenUntil` and units work as on the
+monitor; the validator checks them with the same `tileChecks`), `activity`
+(what the patient is doing and how they move now), `measures` (each shown
+once `when` holds; `flag` marks a red flag), `dosage` (the interventions
+given, with their dose) and `rules` (the stopping and escalation rules,
+always shown; `met` marks one crossed now; at least one is required).
+`TreatmentPanel` (`mobile/src/sim/SimPanels.tsx`) sits above the vitals;
+the view model is `treatmentView`, `treatmentAlarmTexts` and `treatmentNews`
+in `src/sim/runtime/view.ts`, and `tileViews` reads the treatment vitals
+when there is no bedside. Accessibility as the bedside, board and session:
+every block is one accessible element with its state in words ("met now",
+"not met", "Red flag"), never colour alone; a met rule or a red flag is
+announced at once like an alarm; a new result, a change of activity and a
+new dosage line are announced politely (the announcer's one sentence per
+10 s); "Read the patient" speaks the vitals, activity, rules met and
+results; 48 dp targets; web keyboard order is the order on screen. JS only,
+so it ships over the air; an app without `treatment-session@1` is told to
+update (5.10). Authors should change `activity` in steps, not every tick, or
+the polite queue fills with stale sentences.
+
+**Pacing: the clinical rule applies.** Heart rate, blood pressure, SpO2 and
+breathing move on their own while a patient exerts and recovers (the acute
+care guide's 10 beats/min and 10 mmHg per MET, recovering in 3-5 minutes),
+and a stopping rule is about how long the clinician lets a bad value run.
+That is the bedside situation, not the client session's (22.5), so each case
+runs in a `running` phase; DPT sits under `healthcare-nursing`, so the seed
+derives `clinical`, `pacingEligible` holds and study pace (3x) is the default
+with exam realism (1x) and Pause available. Tests that take minutes (the Berg,
+orthostatic vitals) are waits the learner can skip. The TKA case's three days
+between visits are a `turns` phase with one wait.
+
+**Outcome profile `physical-therapy`** (9.2): `stopWindow` 120 s,
+`spo2Floor` 88%, `escalateWindow` 900 s; the cases tighten them where the
+patient calls for it (ICU 5 min to call the team for a new rhythm; stroke
+30 s to sit him down when light-headed; SpO2 90% without lung disease).
+`safetyFamilyOf` reads the profile as clinical.
+
+**Cases** (`backend/supabase/seed/sims/DPT/`, golden paths built by
+`npm run sim:golden -- steps dpt-icu|dpt-tka|dpt-stroke`). Objectives are
+DPT catalog titles chosen by the 12 step 1 rule (tested by recognition and
+action over time):
+
+| Slug | Objective | Endings (class) | Critical criteria |
+|---|---|---|---|
+| `icu-early-mobility` | Selecting and performing interventions for cardiovascular and pulmonary conditions to achieve patient goals | rapidResponse (harm), chairSafe (target), chairGaps, backInBed (recovered) | safety screen before standing; activity eased within 2 min of SpO2 below 88%; team called for a new rhythm |
+| `tka-gait-dvt-red-flag` | Total knee arthroplasty rehabilitation per the 2026 APTA guideline (...) | peMissed, sentHome (harm), referredSameDay (target), peCaught, referredNoRehab, referredGaps (recovered) | screened before loading on Thursday; no leg exercise or calf massage once a clot is suspected; same-day call to the surgeon; 911 at once for lung-clot signs |
+| `stroke-balance-fall-risk` | Selecting and performing interventions for neurological and musculoskeletal conditions | fell (harm), safePlan (target), noWalking, planGaps (recovered) | gait belt whenever upright; sat down within 30 s of light-headedness; the orthostatic drop and the new tamsulosin reported to his physician |
+
+Each has one written moment, KPIs, an expert path, a debrief per ending,
+`endingOrder` (engine minor 2), two chapters or teaching prompts where a
+wait allows, and six golden paths (Good, Mediocre, Bad; every ending but
+`time_up` and every criterion met and missed).
+
+**Sources** carry `checkedAt` 2026-11-11 and say how each was read. Read in
+primary text: the APTA acute care vital sign guide 2021 (through a text
+extraction of the PDF), Hodgson 2014 (a hosted copy; its figures were not
+readable, so no HR or MAP limit is taken from it), the 2026 TKA CPG, the 2025
+fall-risk CPG and the 2018 neurologic core-set CPG (Europe PMC full text), the
+2016 VTE CPG (a hosted copy), Hornby 2020 (a repository copy) and the ASNC
+termination criteria. Read only through a summary: the 2022 VTE CPG (Guideline
+Central). The CAPTE scope line is the course seed's reading of 2026-10-08.
+Authored teaching-model sizes and timings say so and the ones that stand in
+for a missing number carry `FLAG` (ICU desaturation per MET, oxygen gain and
+the AF trigger; the PE timing and its vitals; the beta-blocker HR and BP
+slopes, the orthostatic drop size, buckling and stumbling times).
+
+**Findings against this design** (20: recorded, not worked around):
+
+1. **The capability parser refused a hyphen (FAIL-1340).** `parseCaps` took
+   letters only, so `treatment-session@1` was dropped and every app would
+   have been told to update. Fixed in `lib/sim/server-run.ts`; no stepping
+   change.
+2. **Bindings and profile live in the engine folder**, as for the board and
+   the session: `VitalTile` was factored out of the bedside type (same shape,
+   so no document or hash changed), `screen.treatment` and the profile were
+   added. Display and lint only; no engine minor.
+3. **A moment that opens on the clock** is open at the tick of the command
+   that answers it; the DB tests' helper (copied from the session tests)
+   missed that (FAIL-1341).
 
 ### 22.9 Bedside wave 1: CCRN Pediatric, CCRN Neonatal, NCLEX-RN, NCLEX-PN and a second SAA board case (REQ-233)
 

@@ -21,8 +21,10 @@ export interface DocumentReport {
   goldenResults: GoldenResult[];
 }
 
+// REQ-232: a physical therapy treatment session is clinical (its course sits
+// under healthcare, so the seed derives "clinical" too).
 export function safetyFamilyOf(doc: ScenarioDoc): SafetyFamily {
-  if (doc.outcome?.profile === "clinical") return "clinical";
+  if (doc.outcome?.profile === "clinical" || doc.outcome?.profile === "physical-therapy") return "clinical";
   if (doc.outcome?.profile === "fitness") return "fitness";
   return "general";
 }
