@@ -99,6 +99,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CYSAPLUS", "alert-triage-lolbin-hunt"),
   entry("CYSAPLUS", "vuln-prioritization-kev-edge"),
   entry("PENTESTPLUS", "pentest-third-party-webshell"),
+  entry("PENTESTPLUS", "pentest-scope-boundary"),
   // ---- end REQ-238 ----
 ];
 
