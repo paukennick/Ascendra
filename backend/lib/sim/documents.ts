@@ -94,6 +94,10 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "med-pass-error-caught"),
   entry("AWSSAA", "nat-gateway-bill-spike"),
   // ---- end REQ-233 ----
+  // ---- REQ-238 (security wave 2): security-console incidents for CySA+,
+  // PenTest+, SecurityX and SecAI+, two each. Keep these entries together. ----
+  entry("CYSAPLUS", "alert-triage-lolbin-hunt"),
+  // ---- end REQ-238 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
