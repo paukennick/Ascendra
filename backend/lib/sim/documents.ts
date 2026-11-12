@@ -98,6 +98,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // baseline bedside cases, two each. Keep these entries together. ----
   entry("LPNVN", "ltc-pressure-injury-infection"),
   entry("LPNVN", "ltc-insulin-hypoglycemia"),
+  entry("ADNRN", "pca-oversedation-naloxone"),
   // ---- end REQ-240 ----
 ];
 
