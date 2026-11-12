@@ -4488,3 +4488,69 @@ first minute.
   and neonatal sepsis cases; elsewhere every slow path ends in an earlier
   ending first, so the linter's `time_up` warning remains, as in the
   existing CCRN cases.
+
+### 22.15 AWS board sims, wave 2: AWS MLA, Cloud Practitioner, Developer and SysOps (REQ-242)
+
+Nine learner-paced documents on the existing board renderer and engine 1.2,
+patterned on TicketBurst and the NAT gateway bill; no engine, renderer,
+schema or migration change. Each declares engine minor 2 and `endingOrder`,
+runs two `turns` phases (investigate and change, then the week, one skip per
+day), has endings in all three outcome classes, three or four critical
+criteria inside its `target` condition, KPIs, an expert path that names its
+trade-off, a debrief per ending, one reasoning moment, one decision card and
+five or six golden paths built by `npm run sim:golden -- steps <name>`
+(`scripts/sim-golden/<name>.steps.ts`, the shared week in
+`aws-board-helpers.ts`). Every objective is an exact catalog title that the
+selection rule (12.2, `lib/sim/generator/selection.ts`) qualifies; the
+examples in the brief that did not qualify (a DynamoDB hot partition, a
+Lambda throttling case on its own) were folded into qualifying objectives or
+left for a later wave. All durations are stored in seconds (unit `s`) and
+shown with `|min` or `|duration`.
+
+| Course / slug | Objective (exact title, abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| AWSMLA/fraud-model-drift | Creating performance baselines and implementing drift detection | evidence first; baseline from the training set; retrain on mature labels only; new model proven in shadow | aws-mla-drift |
+| AWSMLA/endpoint-scaling-latency | Selecting the metrics that drive auto scaling | evidence first; scales on invocations or concurrency per instance; maximum covers the peak; CPU instance type within budget | aws-mla-scaling |
+| AWSMLA/loan-data-bias | Identifying and mitigating sources of bias: dataset splitting, shuffling, augmentation | measured first; shuffled stratified split; oversampling after the split (no leakage); release through bias review | aws-mla-bias |
+| AWSCLF/data-transfer-surprise | Data transfer costs: inbound, outbound, Region to Region, and within a Region | evidence first; owner confirms before the rule is turned off; backup replication kept; two AZs kept | aws-clf-transfer |
+| AWSCLF/leaked-access-key | Managed policies versus custom policies, written to least privilege | full scope (CloudTrail and every Region); key deactivated with the quarantine kept; attacker's user disabled; customer managed policy | aws-clf-key |
+| AWSDVA/canary-rollback-dlq | Troubleshooting deployment failures from output logs | logs first; permission on the one parameter; canary and alarm kept; DLQ redriven before it expires | aws-dva-canary |
+| AWSDVA/phi-in-application-logs | Identifying sensitive data: PII and PHI | destinations found first; PHI stopped at the source; vendor feed off; privacy officer told | aws-dva-phi |
+| AWSSOA/stack-update-rollback-failed | Identifying and remediating deployment issues: subnet sizing, CloudFormation errors, permissions problems | events first; continue-update-rollback skipping the deleted resource; new /24 subnets | aws-soa-cfn |
+| AWSSOA/ec2-status-check-recovery | Analyzing performance metrics and automating remediation with CloudWatch, AWS Lambda, AWS Systems Manager, and CloudTrail | evidence first; cache off the instance store; recover on the system check; reboot on the instance check, 3 periods | aws-soa-recover |
+
+- **One Region.** Every scenario is set in us-east-2 (US East, Ohio), as the
+  NAT case is. Prices were read on 2026-11-11 from the AWS Price List API
+  offer files (no JavaScript needed, so the numbers are the published ones):
+  SageMaker hosting ml.c5.xlarge $0.204, ml.g5.xlarge $1.4084 an hour; data
+  transfer out to the internet $0.09 per GB (first 10 TB), to us-west-2
+  $0.02, within the Region between AZs $0.01, in $0; CloudFront US out $0.085
+  per GB. Re-check every six months (12.1).
+- **Sources** carry `checkedAt` 2026-11-11 and a quoted note each: SageMaker
+  AI (Model Monitor data quality, schedule expressions, CloudWatch metrics,
+  model quality, shadow tests, auto scaling policy, scaling policy
+  definition, load testing, endpoint metrics), Application Auto Scaling
+  scheduled scaling, SageMaker Clarify (CI, DPL, post-training metrics),
+  Kapoor and Narayanan 2022 on leakage, Cost Explorer, AWS Budgets, the
+  shared responsibility model, the AWSCompromisedKeyQuarantineV3 policy
+  reference, IAM best practices and managed policies, Lambda asynchronous
+  error handling and DLQs, CodeDeploy deployment configurations, SAM gradual
+  deployments, SQS SetQueueAttributes, CloudWatch Logs masking and
+  retention, HHS de-identification and breach notification guidance,
+  CloudFormation continue-update-rollback, DeletionPolicy and change sets,
+  VPC subnet sizing and CreateSubnet, EC2 instance recovery and CloudWatch
+  alarm actions. The re:Post compromised-account article was read directly
+  (it names the V2 quarantine policy; the policy reference documents V3).
+- **Model Monitor is closed to new customers** (AWS's availability-change
+  page, read 2026-11-11, gives no date). The drift case's team is an
+  existing customer and its model reasoning names the replacement for new
+  teams. The MLA-C02 outline still asks for drift detection, so the skill
+  stands; whether to recast the case on the open-source monitoring
+  solutions is a decision for Nick.
+- **Flagged teaching values.** AWS publishes no recovery or scale-out times,
+  so the endpoint case's failed-request minutes per policy and the
+  recovery case's recovery and reboot outages carry `FLAG` notes. Everything
+  else that is not an AWS figure is scenario data, labeled as such.
+- **`time_up`** is not reached by any golden path in these cases (every
+  path ends in an earlier ending), so the linter's `time_up` warning remains,
+  as in the NAT case.
