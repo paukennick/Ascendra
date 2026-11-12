@@ -16422,6 +16422,30 @@
       "prevention_rules": [],
       "prevention_notes": "docs/sims.md 22.10 finding 3",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1540",
+      "date": "2026-11-11",
+      "title": "DP-300 stuck at Review due after its review-date line was deleted",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Production showed DP-300 as Review due since 2026-10-27 although the course was re-verified on 2026-11-09 (sourceVerifiedAt 2026-11-09 in the seed).",
+      "how_detected": "Production freshness state read 2026-11-12 (REQ-244 brief); traced through git history (commit b5c4cf7) and seed-lib.ts",
+      "root_cause": "The 2026-11-09 audit fix removed contentReviewDueAt: 2026-10-27 from the seed, expecting the review to end. The seed writes content_review_due_at with coalesce(new, existing), so a missing value keeps the stored date; review_due stays true for good. Nothing documented that the field cannot be cleared by deleting it.",
+      "requirement": "REQ-244",
+      "affected": [
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/seed-lib.ts"
+      ],
+      "fix_summary": "DP-300 re-verified 2026-11-11 and given contentReviewDueAt 2027-11-11 (12-month exam-outline default), which replaces the stale stored date on the next seed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/course-verification-req244.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "SeedTrack.contentReviewDueAt now says a later date ends a review and deleting the line does not; the regression test checks DP-300 sets one and that every course reviews after its check. GCP DevOps had the same deletion (2026-11-23) and is reported for its owner.",
+      "recurrence_of": ""
     }
   ]
 }
