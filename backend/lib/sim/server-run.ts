@@ -33,7 +33,8 @@ export function simsEnabled(env: Record<string, string | undefined> = process.en
 // so the default is both renderers this release ships. REQ-225 adds the
 // client session (the people layer) to the default so testers see it;
 // SIMS_RENDERERS=bedside,board turns it off again without a release.
-export const DEFAULT_RENDERERS = ["bedside", "board", "session"] as const;
+// REQ-231 adds the security operations console ("security-console").
+export const DEFAULT_RENDERERS = ["bedside", "board", "session", "security-console"] as const;
 export function renderersOn(env: Record<string, string | undefined> = process.env): string[] {
   const raw = env.SIMS_RENDERERS;
   if (raw === undefined || raw.trim() === "") return [...DEFAULT_RENDERERS];
@@ -90,7 +91,11 @@ export function parseCaps(header: string | null | undefined): SimCaps | null {
     }
     if (k === "renderers") {
       for (const r of v.split(",")) {
-        const m = /^([a-z]{1,20})@(\d{1,3})$/.exec(r.trim());
+        // REQ-231 (FAIL-1320): a screen type may contain a hyphen
+        // ("security-console"); the old pattern dropped it silently, so the
+        // server thought the app could not run the console. Same 40-character
+        // limit as sims.screen_type.
+        const m = /^([a-z][a-z-]{0,39})@(\d{1,3})$/.exec(r.trim());
         if (m) caps.renderers.push({ type: m[1], level: Number(m[2]) });
       }
     }

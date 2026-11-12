@@ -15343,6 +15343,55 @@
       "prevention_rules": [],
       "prevention_notes": "A regression test replays the Whipple case (teaching prompts) through the gate and was confirmed to fail without the exception; docs/sims.md 12.2 gate 6 names FAIL-1250 so the exception is removed together with the fix for FAIL-1250.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1320",
+      "date": "2026-11-11",
+      "title": "Capabilities header dropped a screen type with a hyphen",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "parseCaps read renderers with /^([a-z]{1,20})@(\\d{1,3})$/, so security-console@1 in x-sim-caps was silently ignored; the server would have treated every app as unable to run the security console and told it to update.",
+      "how_detected": "Review while adding the security-console renderer (REQ-231); mobile runtime.test.ts 'capabilities' also fails on it",
+      "root_cause": "The renderer token pattern was written when every screen type was one lower-case word; nothing tied it to the screen types the schema allows or to the sims.screen_type column (varchar 40), and a token that fails the pattern is skipped without an error.",
+      "requirement": "REQ-231",
+      "affected": [
+        "backend/lib/sim/server-run.ts parseCaps"
+      ],
+      "fix_summary": "The pattern accepts a lower-case letter followed by up to 39 letters or hyphens.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/server-run.test.ts::a screen type with a hyphen is read (REQ-231",
+        "FAIL-1320)",
+        "backend/lib/sim/server-run.test.ts::the app advertises every default renderer the server turns on",
+        "mobile/src/sim/runtime.test.ts::capabilities"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A test parses the app's own header and asserts every default renderer is advertised and runnable, so a new screen type whose name the parser cannot read fails CI.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1321",
+      "date": "2026-11-11",
+      "title": "Sim document schema could not name 17 catalog objectives",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The phished-account sim failed the schema: objective: Too big: expected string to have <=400 characters. Its SY0-701 objective title is 455 characters; 17 catalog titles exceed 400 (the longest 586, SECPLUS).",
+      "how_detected": "npm run sims:lint while authoring REQ-231",
+      "root_cause": "The scenario schema capped objective at 400 characters as a sanity limit, but the seed registers a sim by the exact objective title (objectives.title is text, unbounded), so the cap silently excluded long catalog objectives from ever having a sim.",
+      "requirement": "REQ-231",
+      "affected": [
+        "backend/lib/sim/schema.ts scenarioSchema.objective"
+      ],
+      "fix_summary": "The cap is 1000 characters.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/security-console.test.ts::every catalog objective title fits the scenario schema's objective field"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A test runs every active catalog objective title through the schema's objective field.",
+      "recurrence_of": ""
     }
   ]
 }

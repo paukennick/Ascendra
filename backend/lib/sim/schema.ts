@@ -153,7 +153,7 @@ export const endingSchema = z.object({
 });
 
 export const screenSpecSchema = z.object({
-  type: z.enum(["bedside", "board", "dashboard", "trainer", "session", "security", "terminal", "data"]),
+  type: z.enum(["bedside", "board", "dashboard", "trainer", "session", "security", "terminal", "data", "security-console"]),
   level: z.number().optional(),
   bedside: z
     .object({
@@ -191,6 +191,26 @@ export const screenSpecSchema = z.object({
       ),
       notes: z.array(z.object({ id, label: z.string(), text: template, when: expr.optional(), alert: expr.optional() })).optional(),
       record: z.object({ label: z.string(), items: z.array(z.object({ label: template, when: expr })) }).optional(),
+    })
+    .optional(),
+  // REQ-231: the security operations console (engine types.ts ScreenSpec.console).
+  console: z
+    .object({
+      alerts: z.array(
+        z.object({
+          id,
+          severity: z.enum(["critical", "high", "medium", "low"]),
+          title: template,
+          detail: template.optional(),
+          when: expr,
+          at: expr,
+          status: template,
+          open: expr,
+        }),
+      ),
+      events: z.array(z.object({ id, source: z.string(), text: template, when: expr, at: expr })),
+      assets: z.array(z.object({ id, label: z.string(), spokenLabel: z.string(), kind: z.string(), status: template, tone: expr })),
+      meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
     })
     .optional(),
 });
@@ -238,7 +258,10 @@ export const scenarioSchema = z.object({
   slug: z.string().min(1).max(80),
   title: z.string().min(1).max(200),
   screen: screenSpecSchema,
-  objective: z.string().min(1).max(400),
+  // REQ-231 (FAIL-1321): the exact title of a course objective, which the
+  // seed matches by equality; catalog titles run to 586 characters
+  // (SECPLUS), so 400 refused a sim on 17 real objectives.
+  objective: z.string().min(1).max(1000),
   secondaryObjectives: z.array(z.string()).optional(),
   sources: z.array(sourceSchema),
   brief: z.object({ situation: z.string().max(6000), handover: z.array(z.string()).optional(), howItWorks: z.array(z.string()).optional() }),

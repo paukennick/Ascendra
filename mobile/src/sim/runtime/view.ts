@@ -9,6 +9,7 @@ import { evaluate } from "../engine/v1/eval.ts";
 import { parseCached } from "../engine/v1/parser.ts";
 import type { Action, ActionParam, ScreenSpec, WaitInfo } from "../engine/v1/types.ts";
 import { isTapPadParam } from "./tapPad.ts";
+import { consoleView, type ConsoleView } from "./consoleView.ts";
 
 type Tile = NonNullable<ScreenSpec["bedside"]>["tiles"][number];
 
@@ -288,6 +289,7 @@ export interface RunView {
   tiles: TileView[];
   board: ReturnType<typeof boardViews>;
   session: SessionView | null;
+  console: ConsoleView | null; // REQ-231: the security operations console
   groups: { group: string; actions: ActionView[] }[];
   waits: WaitInfo[];
   prompt: PromptView | null;
@@ -317,6 +319,7 @@ export function runView(run: Run, logLimit = 60): RunView {
     tiles: tileViews(run),
     board: boardViews(run),
     session: sessionView(run),
+    console: consoleView(run),
     groups: groupActions(actionViews(run)),
     waits: waits(run),
     prompt: p && run.state.openPrompt ? { id: run.state.openPrompt, title: p.title, context: text(run, p.context), choices: p.choices.map((c) => ({ id: c.id, label: c.label })) } : null,
