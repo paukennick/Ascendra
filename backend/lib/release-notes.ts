@@ -85,6 +85,46 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // Wave 1 (2026-11-12 UTC): REQ-231 security console, REQ-232 treatment
+    // session, REQ-233 nine more sims, REQ-235 batch H sources. Gated whole on
+    // sims: three of its four items are sims (FAIL-1271 rule).
+    id: "2026-11-12",
+    date: "2026-11-12",
+    covers: ["REQ-231", "REQ-232", "REQ-233", "REQ-235"],
+    requires: "sims",
+    title: "New practice scenarios in five more courses",
+    items: [
+      {
+        icon: "shield",
+        headline: "Security+ incidents",
+        body:
+          "Contain a phished account, a ransomware outbreak and a leaked cloud key on a new security console. " +
+          "The attacker keeps moving while you work, so the order you act in matters.",
+      },
+      {
+        icon: "eye",
+        headline: "Physical therapy sessions",
+        body:
+          "Doctor of Physical Therapy has three sessions where vitals respond to activity: ICU mobility, " +
+          "gait after a knee replacement, and balance after a stroke.",
+      },
+      {
+        icon: "zap",
+        headline: "Nine more cases",
+        body:
+          "New cases for CCRN Pediatric and Neonatal, NCLEX-RN and NCLEX-PN, and a second AWS Solutions Architect " +
+          "scenario about a surprise network bill.",
+      },
+      {
+        icon: "check-circle",
+        headline: "Sharper lessons in launch courses",
+        body:
+          "Seven courses now teach from the official exam outline and dated sources, so fewer lessons " +
+          "are held back for a second check.",
+      },
+    ],
+  },
+  {
     // REQ-234 (labs for A+ and the EPPP; DP-900 and pelvic health top-ups).
     // The lead may fold this into the day's combined note when merging.
     id: "2026-11-11-d",
