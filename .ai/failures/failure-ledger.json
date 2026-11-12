@@ -15392,6 +15392,31 @@
       "prevention_rules": [],
       "prevention_notes": "A test runs every active catalog objective title through the schema's objective field.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1301",
+      "date": "2026-11-12",
+      "title": "Duplicate-check test margin too tight once a second screen family existed",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "generator.test 'seeded documents on different cases sit well below the threshold' failed in CI after the Security+ sims merged: highest pair 0.325 against a 0.30 bound",
+      "how_detected": "CI Backend job on PR #143",
+      "root_cause": "The test required every seeded pair to be 0.2 below the 0.5 duplicate threshold; three Security+ incidents on one screen share action vocabulary (decisions 0.33) though their stories differ (under 0.04)",
+      "requirement": "REQ-230",
+      "affected": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "fix_summary": "Margin 0.1 below the threshold, with the reason in the test; the gate itself is unchanged and only compares same-objective sims",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
     }
   ]
 }

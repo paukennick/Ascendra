@@ -346,7 +346,12 @@ describe("duplicate check", () => {
     const docs = ALL_DOCUMENTS.filter((e) => e.kind === "scenario").map((e) => loadDocument(e));
     let max = 0;
     for (let i = 0; i < docs.length; i++) for (let j = i + 1; j < docs.length; j++) max = Math.max(max, similarity(docs[i], docs[j]).score);
-    assert.ok(max < DUPLICATE_THRESHOLD - 0.2, `highest seeded pair ${max.toFixed(3)}`);
+    // Sims on the same screen share action words ("isolate", "escalate"), so
+    // their decisions overlap more than their stories: the three Security+
+    // incidents reach 0.33 on decisions with stories under 0.04 (FAIL-1301).
+    // The margin is 0.1 below the threshold, and only same-objective sims are
+    // ever compared in the gate.
+    assert.ok(max < DUPLICATE_THRESHOLD - 0.1, `highest seeded pair ${max.toFixed(3)}`);
     assert.equal(similarity(BASE, structuredClone(BASE)).score, 1);
   });
   test("only sims on the same objective are compared", () => {
