@@ -225,6 +225,16 @@ export const screenSpecSchema = z.object({
       rules: z.array(z.object({ id, label: z.string(), text: template, met: expr })),
     })
     .optional(),
+  // REQ-237: the terminal and network screen (engine types.ts ScreenSpec.terminal).
+  terminal: z
+    .object({
+      prompt: template,
+      lines: z.array(z.object({ id, text: template, when: expr, at: expr, error: expr.optional() })),
+      nodes: z.array(z.object({ id, label: z.string(), spokenLabel: z.string(), kind: z.string(), status: template, tone: expr })),
+      links: z.array(z.object({ id, from: id, to: id, label: z.string(), status: template, tone: expr })),
+      meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
+    })
+    .optional(),
 });
 
 const criterionScoreSchema = z.enum(["met", "partial", "missed"]);

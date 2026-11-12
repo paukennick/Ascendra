@@ -65,6 +65,7 @@ Every course runs the same loop. You learn a topic, practice it with help, prove
 - **NCE and NCMHCE:** five counseling sessions: boundaries in a small town and a court-referred substance use assessment (NCE); a diagnostic intake, a suicide risk assessment with a safety plan, and a trauma-informed treatment plan built and then revised over two sessions, as NCMHCE cases run (NCMHCE)
 - **AWS Solutions Architect Associate, and Professional:** TicketBurst launch day on a design board, with a harder version in the Professional course
 - **CompTIA Security+ (SY0-701 and V8):** three incidents on a security operations console: a phished account, ransomware on a file server and a leaked cloud key
+- **CompTIA Linux+, CompTIA Network+ and CKA:** two outages each on a terminal and network screen, where you run commands from a fixed set and watch a map of hosts, switches or cluster nodes: a full disk that stops a database, an SELinux denial after a move, a VLAN missing from a trunk, a DNS failure worked with the troubleshooting method, a crash-looping rollout and a NotReady node with a drain
 
 Clinical sims that run on a live clock start near the moment things change and play at study pace by default, with exam-speed realism one tap away. When nothing is happening you can skip to the next change, and you can save a case at a chapter break and finish it on another device. IT and cloud sims move only when you act.
 

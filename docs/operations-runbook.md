@@ -237,7 +237,7 @@ next deployment only.
 - `MIGRATION_LOCK_TIMEOUT` (default `5s`; `0` = off). The lock wait
   `npm run migrate` allows before a migration fails and rolls back.
 - `SIMS_ENABLED` (off unless set), `SIMS_RENDERERS` (default
-  `bedside,board,session,security-console,treatment-session`), `SIMS_SERVE_UNREVIEWED` (on unless `off`): simulations.
+  `bedside,board,session,security-console,treatment-session,terminal`), `SIMS_SERVE_UNREVIEWED` (on unless `off`): simulations.
   `LABS_SERVE_UNREVIEWED` (on unless `off`): labs waiting for expert review.
 - `ITEM_FACT_CHECK` (on unless `off`): the second-model check before generated
   items publish. Off lets them publish unchecked.

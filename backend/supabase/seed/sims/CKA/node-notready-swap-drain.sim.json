@@ -1,0 +1,1460 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "node-notready-swap-drain",
+  "title": "Outage: a worker node NotReady after patching, and a drain to do",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "admin@cp1:~$",
+      "lines": [
+        {
+          "id": "alert",
+          "text": "07:00 alert: node w2 NotReady since 02:03 (after the patch reboot); its pods were evicted to w1 and w3",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "w2back",
+          "text": "node w2 status is now: NodeReady",
+          "when": "not isNull(w2ReadyAt)",
+          "at": "timeAt(w2ReadyAt)"
+        },
+        {
+          "id": "pressure",
+          "text": "w1 kubelet: memory pressure; evicting report-generator pods",
+          "when": "not isNull(pressureAt)",
+          "at": "timeAt(pressureAt)",
+          "error": "true"
+        },
+        {
+          "id": "payDown",
+          "text": "payments: fewer than 2 ready replicas; card checkout failing",
+          "when": "not isNull(paymentsDownAt)",
+          "at": "timeAt(paymentsDownAt)",
+          "error": "true"
+        },
+        {
+          "id": "wiped",
+          "text": "w2: kubeadm reset removed the node's kubelet configuration and certificates",
+          "when": "resetDone",
+          "at": "timeAt(resetAt)",
+          "error": "true"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "cp1",
+          "label": "cp1",
+          "spokenLabel": "control plane node cp1",
+          "kind": "Control plane",
+          "status": "Ready",
+          "tone": "\"up\""
+        },
+        {
+          "id": "w1",
+          "label": "w1",
+          "spokenLabel": "worker w1",
+          "kind": "Worker",
+          "status": "{w2Sched ? \"Ready\" : not isNull(pressureAt) ? \"Ready, memory pressure\" : \"Ready, running hot (w2's pods)\"}",
+          "tone": "w2Sched ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "w2",
+          "label": "w2",
+          "spokenLabel": "worker w2",
+          "kind": "Worker (patched last night)",
+          "status": "{resetDone ? \"Wiped by kubeadm reset\" : not w2Up ? \"NotReady: kubelet not running\" : w2Cordoned ? \"Ready, cordoned\" : \"Ready\"}",
+          "tone": "resetDone or not w2Up ? \"down\" : w2Cordoned ? \"out\" : \"up\""
+        },
+        {
+          "id": "w3",
+          "label": "w3",
+          "spokenLabel": "worker w3",
+          "kind": "Worker (patch due tonight)",
+          "status": "{not isNull(w3PatchedAt) ? (w3Cordoned ? \"Patched, still cordoned\" : \"Patched, Ready\") : w3Cordoned ? (w3Drained ? \"Drained, ready to patch\" : \"Cordoned, drain incomplete\") : \"Ready, waiting for its patch\"}",
+          "tone": "w3Cordoned ? \"out\" : \"up\""
+        },
+        {
+          "id": "pay",
+          "label": "payments (3 replicas, PDB minAvailable 2)",
+          "spokenLabel": "the payments service",
+          "kind": "Deployment",
+          "status": "{not isNull(paymentsDownAt) ? \"Below its budget: failing\" : \"3 of 3 ready\"}",
+          "tone": "not isNull(paymentsDownAt) ? \"down\" : \"up\""
+        },
+        {
+          "id": "reports",
+          "label": "report-generator",
+          "spokenLabel": "the report generator",
+          "kind": "Deployment (BestEffort)",
+          "status": "{not isNull(pressureAt) ? \"Evicted from w1\" : \"Running\"}",
+          "tone": "not isNull(pressureAt) ? \"down\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l2",
+          "from": "cp1",
+          "to": "w2",
+          "label": "w2 node heartbeat",
+          "status": "{w2Up and not resetDone ? \"Posting status\" : \"No status since 02:03\"}",
+          "tone": "w2Up and not resetDone ? \"up\" : \"down\""
+        },
+        {
+          "id": "l3",
+          "from": "cp1",
+          "to": "w3",
+          "label": "w3 node heartbeat",
+          "status": "Posting status",
+          "tone": "\"up\""
+        },
+        {
+          "id": "l1",
+          "from": "cp1",
+          "to": "w1",
+          "label": "w1 node heartbeat",
+          "status": "Posting status",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "capM",
+          "label": "Schedulable workers",
+          "value": "{(w2Sched ? 1 : 0) + (w3Cordoned ? 0 : 1) + 1|0dp} of 3"
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshoot clusters and nodes: a NotReady node, kubelet configuration and certificates, the container runtime and the node's conditions with kubectl describe node, journalctl -u kubelet and crictl",
+  "secondaryObjectives": [
+    "Manage the lifecycle of a cluster: upgrade the control plane and then each node with kubeadm upgrade, drain, kubelet and kubectl upgrades, and uncordon, one minor version at a time",
+    "Prepare the underlying infrastructure for a kubeadm cluster: container runtime (containerd) with the systemd cgroup driver, kernel modules and sysctls, swap off, and the ports the control plane and kubelet need"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF, Certified Kubernetes Administrator (CKA) Exam Curriculum v1.37 (cncf/curriculum, commit 0a8cc08)",
+      "checkedAt": "2026-11-11",
+      "url": "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKA_Curriculum_v1.37.pdf",
+      "note": "Relevant text: 30% Troubleshooting: 'Troubleshoot clusters and nodes', 'Troubleshoot cluster components', 'Monitor cluster and application resource usage', 'Manage and evaluate container output streams', 'Troubleshoot services and networking'; 15% Workloads and Scheduling: 'Understand application deployments and how to perform rolling update and rollbacks', 'Use ConfigMaps and Secrets to configure applications'; 25% Cluster Architecture, Installation and Configuration: 'Manage the lifecycle of Kubernetes clusters', 'Prepare underlying infrastructure for installing a Kubernetes cluster'. Read in primary text (the PDF, extracted) on 2026-11-11. The course objective titles are the course seed's elaborations of these (2026-11-07)."
+    },
+    {
+      "cite": "Kubernetes documentation (v1.37), Nodes",
+      "checkedAt": "2026-11-11",
+      "url": "https://kubernetes.io/docs/concepts/architecture/nodes/",
+      "note": "Relevant text: 'In the case that a node becomes unreachable ... the node controller sets the Ready condition to Unknown'; 'By default, the node controller waits 5 minutes between marking the node as Unknown and submitting the first eviction request'; heartbeats are updates to the Node's .status and Lease objects in kube-node-lease; 'Marking a node as unschedulable prevents the scheduler from placing new pods onto that Node but does not affect existing Pods on the Node. This is useful as a preparatory step before a node reboot or other maintenance.' Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "Kubernetes documentation (v1.37), Taints and Tolerations",
+      "checkedAt": "2026-11-11",
+      "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
+      "note": "Relevant text: 'node.kubernetes.io/not-ready: Node is not ready. This corresponds to the NodeCondition Ready being False'; 'Kubernetes automatically adds a toleration for node.kubernetes.io/not-ready and node.kubernetes.io/unreachable with tolerationSeconds=300 ... Pods remain bound to Nodes for 5 minutes after one of these problems is detected.' DaemonSet pods tolerate them with no tolerationSeconds. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "Kubernetes documentation (v1.37), Installing kubeadm: Swap configuration",
+      "checkedAt": "2026-11-11",
+      "url": "https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/",
+      "note": "Relevant text: 'The default behavior of a kubelet is to fail to start if swap memory is detected on a node.' 'To disable swap, sudo swapoff -a can be used to disable swapping temporarily. To make this change persistent across reboots, make sure swap is disabled in config files like /etc/fstab, systemd.swap'. Read through a summarizing fetch on 2026-11-11. The kubelet's exact log wording in the scenario is an authored rendering."
+    },
+    {
+      "cite": "Kubernetes documentation, Safely Drain a Node, and the kubectl drain reference",
+      "checkedAt": "2026-11-11",
+      "url": "https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/",
+      "note": "Relevant text: drain lets you 'safely evict all of your pods from a node before you perform maintenance'; safe evictions 'will respect the PodDisruptionBudgets you have specified'; 'Any drains that would cause the number of healthy replicas to fall below the specified budget are blocked'; 'kubectl uncordon <node name>' afterwards. kubectl drain reference: 'If there are daemon set-managed pods, drain will not proceed without --ignore-daemonsets'; --delete-emptydir-data 'Continue even if there are pods using emptyDir (local data that will be deleted when the node is drained)'; --disable-eviction 'Force drain to use delete, even if eviction is supported. This will bypass checking PodDisruptionBudgets, use with caution.' Both read through summarizing fetches on 2026-11-11 (https://kubernetes.io/docs/reference/kubectl/generated/kubectl_drain/). The exact refusal messages in the scenario are authored renderings."
+    }
+  ],
+  "brief": {
+    "situation": "You are the cluster administrator at Fernhill Books (fictional), on a kubeadm cluster with one control plane node and three workers. Worker w2 rebooted at 02:00 for a kernel patch and has been NotReady since; its pods were evicted to w1 and w3, which are running hot. Worker w3 still needs the same patch and reboot in this morning's window. payments runs 3 replicas with a PodDisruptionBudget of minAvailable 2. Bring w2 back for good, then patch w3 without breaking payments.",
+    "handover": [
+      "Last week someone added a swap file to w2's /etc/fstab while testing a database there.",
+      "You can reach every node over SSH from cp1."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, device or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "07:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "pressureDelay": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-237)",
+        "checkedAt": "2026-11-11",
+        "note": "How many operator minutes each command or change takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. w1 reaches memory pressure 50 minutes in if w2 is still out."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "nodesAt": {
+      "type": "time",
+      "init": null
+    },
+    "describeAt": {
+      "type": "time",
+      "init": null
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "journalAt": {
+      "type": "time",
+      "init": null
+    },
+    "swapShowAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "swapOff": {
+      "type": "bool",
+      "init": false
+    },
+    "fstabFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "w2Up": {
+      "type": "bool",
+      "init": false
+    },
+    "w2ReadyAt": {
+      "type": "time",
+      "init": null
+    },
+    "w2Cordoned": {
+      "type": "bool",
+      "init": false
+    },
+    "persistChecked": {
+      "type": "bool",
+      "init": false
+    },
+    "resetDone": {
+      "type": "bool",
+      "init": false
+    },
+    "resetAt": {
+      "type": "time",
+      "init": null
+    },
+    "w3Cordoned": {
+      "type": "bool",
+      "init": false
+    },
+    "w3Drained": {
+      "type": "bool",
+      "init": false
+    },
+    "drainBlocked": {
+      "type": "bool",
+      "init": false
+    },
+    "bypassed": {
+      "type": "bool",
+      "init": false
+    },
+    "w3PatchedAt": {
+      "type": "time",
+      "init": null
+    },
+    "patchedUndrained": {
+      "type": "bool",
+      "init": false
+    },
+    "paymentsDownAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressureAt": {
+      "type": "time",
+      "init": null
+    },
+    "faultsAdded": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "swap",
+        "certs",
+        "runtime"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "w2Sched": {
+      "expr": "w2Up and not resetDone and not w2Cordoned"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "getNodes",
+        "describeW2",
+        "kubeletStatus",
+        "kubeletJournal",
+        "swapShow",
+        "swapOffA",
+        "fstabFix",
+        "restartKubelet",
+        "rebootW2",
+        "cordonW2",
+        "uncordonW2",
+        "kubeadmReset",
+        "drainW3",
+        "rebootW3",
+        "uncordonW3",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "getNodes": {
+      "label": "kubectl get nodes",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "nodesAt",
+          "to": "t"
+        },
+        {
+          "output": "admin@cp1:~$ kubectl get nodes\nNAME   STATUS{\"     \"}ROLES           VERSION\ncp1    Ready{\"      \"}control-plane   v1.37.1\nw1     Ready{\"      \"}<none>          v1.37.1\nw2     {w2Up and not resetDone ? (w2Cordoned ? \"Ready,SchedulingDisabled\" : \"Ready\") : \"NotReady\"}   <none>          v1.37.1\nw3     {w3Cordoned ? \"Ready,SchedulingDisabled\" : \"Ready\"}   <none>          v1.37.1"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "describeW2": {
+      "label": "kubectl describe node w2",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "describeAt",
+          "to": "t"
+        },
+        {
+          "output": "admin@cp1:~$ kubectl describe node w2\nTaints:             {w2Up and not resetDone ? \"<none>\" : \"node.kubernetes.io/unreachable:NoExecute, node.kubernetes.io/unreachable:NoSchedule\"}\nConditions:\n  Type    Status   Reason              Message\n  Ready   {w2Up and not resetDone ? \"True     KubeletReady        kubelet is posting ready status\" : \"Unknown  NodeStatusUnknown   Kubelet stopped posting node status.\"}"
+        },
+        {
+          "if": "not w2Up",
+          "then": [
+            {
+              "finding": "Ready is Unknown: the kubelet on w2 stopped reporting. The node controller tainted it, and its pods were evicted after the default 5 minutes."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "kubeletStatus": {
+      "label": "ssh w2 -- systemctl status kubelet",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "statusAt",
+          "to": "t"
+        },
+        {
+          "output": "admin@w2:~$ systemctl status kubelet\n● kubelet.service - kubelet: The Kubernetes Node Agent\n     Active: {w2Up and not resetDone ? \"active (running)\" : \"activating (auto-restart) (Result: exit-code)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "kubeletJournal": {
+      "label": "ssh w2 -- journalctl -u kubelet -n 20",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "journalAt",
+          "to": "t"
+        },
+        {
+          "output": "admin@w2:~$ journalctl -u kubelet -n 20\n{w2Up and not resetDone ? \"kubelet[2104]: Successfully registered node w2\" : \"kubelet[1877]: E1111 06:59:51 run.go:72] command failed: failed to run Kubelet: running with swap on is not supported, please disable swap or set --fail-swap-on flag to false\"}"
+        },
+        {
+          "if": "not w2Up",
+          "then": [
+            {
+              "finding": "The kubelet refuses to start because swap is on: the swap file from /etc/fstab came back with the reboot."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "swapShow": {
+      "label": "ssh w2 -- swapon --show; grep swap /etc/fstab",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "swapShowAt",
+          "to": "t"
+        },
+        {
+          "output": "admin@w2:~$ swapon --show; grep swap /etc/fstab\n{swapOff ? \"\" : \"NAME      TYPE SIZE USED PRIO\n/swapfile file   8G   0B   -2\n\"}{fstabFixed ? \"#/swapfile none swap sw 0 0\" : \"/swapfile none swap sw 0 0\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "swapOffA": {
+      "label": "ssh w2 -- sudo swapoff -a",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "swapOff",
+          "to": "true"
+        },
+        {
+          "output": "admin@w2:~$ sudo swapoff -a"
+        },
+        {
+          "log": "Swap is off on w2 until the next boot.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fstabFix": {
+      "label": "ssh w2 -- sudo sed -i '/swapfile/ s/^/#/' /etc/fstab",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "fstabFixed",
+          "to": "true"
+        },
+        {
+          "output": "admin@w2:~$ sudo sed -i '/swapfile/ s/^/#/' /etc/fstab"
+        },
+        {
+          "log": "The swap file's /etc/fstab line is commented out, so swap stays off after a reboot.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restartKubelet": {
+      "label": "ssh w2 -- sudo systemctl restart kubelet",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "admin@w2:~$ sudo systemctl restart kubelet"
+        },
+        {
+          "if": "swapOff and not resetDone",
+          "then": [
+            {
+              "set": "w2Up",
+              "to": "true"
+            },
+            {
+              "if": "isNull(w2ReadyAt)",
+              "then": [
+                {
+                  "set": "w2ReadyAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "The kubelet starts, registers, and w2 goes Ready.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "The kubelet exits again: {resetDone ? \"the node has no kubelet configuration left\" : \"swap is still on\"}.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "rebootW2": {
+      "label": "ssh w2 -- sudo systemctl reboot",
+      "group": "Fix",
+      "available": "not busy and (w2Up and not resetDone)",
+      "why": "w2 is not running the kubelet; fix it first.",
+      "effects": [
+        {
+          "set": "persistChecked",
+          "to": "true"
+        },
+        {
+          "if": "w2Sched",
+          "then": [
+            {
+              "add": "faultsAdded",
+              "by": "1"
+            },
+            {
+              "log": "w2 rebooted with pods on it and no drain: they were killed, not evicted.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "output": "admin@w2:~$ sudo systemctl reboot"
+        },
+        {
+          "if": "fstabFixed",
+          "then": [
+            {
+              "set": "swapOff",
+              "to": "true"
+            },
+            {
+              "log": "w2 is back from the reboot with swap still off; the kubelet started on its own.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "swapOff",
+              "to": "false"
+            },
+            {
+              "set": "w2Up",
+              "to": "false"
+            },
+            {
+              "log": "w2 rebooted, the swap file came back from /etc/fstab, and the kubelet refuses to start again.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "cordonW2": {
+      "label": "kubectl cordon w2",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "w2Cordoned",
+          "to": "true"
+        },
+        {
+          "output": "admin@cp1:~$ kubectl cordon w2\nnode/w2 cordoned"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "uncordonW2": {
+      "label": "kubectl uncordon w2",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "w2Cordoned",
+          "to": "false"
+        },
+        {
+          "output": "admin@cp1:~$ kubectl uncordon w2\nnode/w2 uncordoned"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "kubeadmReset": {
+      "label": "ssh w2 -- sudo kubeadm reset -f",
+      "group": "Fix",
+      "available": "not busy and (not resetDone)",
+      "why": "Already reset.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "resetDone",
+          "to": "true"
+        },
+        {
+          "set": "resetAt",
+          "to": "t"
+        },
+        {
+          "set": "w2Up",
+          "to": "false"
+        },
+        {
+          "output": "admin@w2:~$ sudo kubeadm reset -f\n[reset] Stopping the kubelet service\n[reset] Deleting contents of directories: [/etc/kubernetes/manifests /var/lib/kubelet /etc/kubernetes/pki]\n[reset] Deleting files: [/etc/kubernetes/admin.conf /etc/kubernetes/kubelet.conf ...]"
+        },
+        {
+          "log": "kubeadm reset wiped w2's kubelet configuration and certificates; it has to be joined again from scratch.",
+          "kind": "alarm"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "drainW3": {
+      "label": "kubectl drain w3",
+      "group": "Patch w3",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "params": [
+        {
+          "id": "flags",
+          "kind": "choice",
+          "label": "Flags",
+          "options": [
+            {
+              "value": "safe",
+              "label": "--ignore-daemonsets --delete-emptydir-data"
+            },
+            {
+              "value": "local",
+              "label": "--ignore-daemonsets"
+            },
+            {
+              "value": "bypass",
+              "label": "--ignore-daemonsets --delete-emptydir-data --disable-eviction"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "w3Cordoned",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "flags == \"local\"",
+              "then": [
+                {
+                  "output": "admin@cp1:~$ kubectl drain w3 --ignore-daemonsets\nnode/w3 cordoned\nerror: unable to drain node \"w3\" due to error: cannot delete Pods with local storage (use --delete-emptydir-data to override): shop/cache-6f8b9-2mqwz"
+                }
+              ]
+            },
+            {
+              "when": "flags == \"bypass\"",
+              "then": [
+                {
+                  "set": "w3Drained",
+                  "to": "true"
+                },
+                {
+                  "set": "bypassed",
+                  "to": "true"
+                },
+                {
+                  "output": "admin@cp1:~$ kubectl drain w3 --ignore-daemonsets --delete-emptydir-data --disable-eviction\nnode/w3 cordoned\npod/payments-7c9d8f6b5-k2xnr deleted\npod/payments-7c9d8f6b5-r8tqp deleted\nnode/w3 drained"
+                },
+                {
+                  "if": "w2Sched",
+                  "then": [
+                    {
+                      "add": "faultsAdded",
+                      "by": "1"
+                    },
+                    {
+                      "log": "Two payments pods were deleted at once, past the budget; they came back on w2 within a minute.",
+                      "kind": "bad"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "if": "isNull(paymentsDownAt)",
+                      "then": [
+                        {
+                          "set": "paymentsDownAt",
+                          "to": "t"
+                        }
+                      ]
+                    },
+                    {
+                      "log": "Two payments pods were deleted past their budget with nowhere to run: payments is below minAvailable and failing.",
+                      "kind": "alarm"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "w2Sched",
+              "then": [
+                {
+                  "set": "w3Drained",
+                  "to": "true"
+                },
+                {
+                  "output": "admin@cp1:~$ kubectl drain w3 --ignore-daemonsets --delete-emptydir-data\nnode/w3 cordoned\nevicting pod shop/payments-7c9d8f6b5-k2xnr\nevicting pod shop/payments-7c9d8f6b5-r8tqp\nevicting pod shop/cache-6f8b9-2mqwz\npod/payments-7c9d8f6b5-k2xnr evicted\npod/payments-7c9d8f6b5-r8tqp evicted\npod/cache-6f8b9-2mqwz evicted\nnode/w3 drained"
+                },
+                {
+                  "log": "w3 drained through the eviction API; payments stayed within its budget, rescheduled onto w2.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "drainBlocked",
+                  "to": "true"
+                },
+                {
+                  "output": "admin@cp1:~$ kubectl drain w3 --ignore-daemonsets --delete-emptydir-data\nnode/w3 cordoned\nevicting pod shop/payments-7c9d8f6b5-k2xnr\npod/payments-7c9d8f6b5-k2xnr evicted\nevicting pod shop/payments-7c9d8f6b5-r8tqp\nerror when evicting pods/\"payments-7c9d8f6b5-r8tqp\" -n \"shop\" (will retry after 5s): Cannot evict pod as it would violate the pod's disruption budget.\n^C"
+                },
+                {
+                  "log": "The drain is blocked: with w2 out, the evicted payments pod has nowhere to run, and the budget stops a second eviction.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "rebootW3": {
+      "label": "ssh w3 -- sudo systemctl reboot  (apply the patch)",
+      "group": "Patch w3",
+      "available": "not busy and (isNull(w3PatchedAt))",
+      "why": "w3 is already patched.",
+      "effects": [
+        {
+          "output": "admin@w3:~$ sudo systemctl reboot"
+        },
+        {
+          "if": "isNull(w3PatchedAt)",
+          "then": [
+            {
+              "set": "w3PatchedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not w3Drained",
+          "then": [
+            {
+              "set": "patchedUndrained",
+              "to": "true"
+            },
+            {
+              "if": "w2Sched",
+              "then": [
+                {
+                  "add": "faultsAdded",
+                  "by": "1"
+                },
+                {
+                  "log": "w3 rebooted with its pods still on it: they were killed, and payments dropped to one ready replica for a few minutes.",
+                  "kind": "bad"
+                }
+              ],
+              "else": [
+                {
+                  "if": "isNull(paymentsDownAt)",
+                  "then": [
+                    {
+                      "set": "paymentsDownAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "w3 rebooted with payments still on it and w2 out: payments fell below its budget and failed.",
+                  "kind": "alarm"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "log": "w3 rebooted into the patched kernel with nothing on it.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "uncordonW3": {
+      "label": "kubectl uncordon w3",
+      "group": "Patch w3",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "w3Cordoned",
+          "to": "false"
+        },
+        {
+          "output": "admin@cp1:~$ kubectl uncordon w3\nnode/w3 uncordoned"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 600",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "admin@cp1:~$ sleep 600"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the maintenance done and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why w2 was NotReady",
+              "options": [
+                {
+                  "value": "swap",
+                  "label": "Swap re-enabled from /etc/fstab at the reboot; the kubelet will not start with swap on"
+                },
+                {
+                  "value": "certs",
+                  "label": "The kubelet's certificate expired"
+                },
+                {
+                  "value": "runtime",
+                  "label": "containerd failed to start"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: cause {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-237)",
+        "checkedAt": "2026-11-11",
+        "note": "How many operator minutes each command or change takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "pressure",
+      "when": "t >= pressureDelay and phase == \"incident\" and not w2Sched",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "pressureAt",
+          "to": "t"
+        },
+        {
+          "log": "07:50: w1 hit memory pressure and evicted the report generator.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the change record: why w2 was NotReady and how you made the fix stick, and how you patched w3 without breaking payments.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Diagnosis",
+          "criteria": "Reads Ready Unknown as the kubelet not reporting, and finds in journalctl -u kubelet that it refuses to run with swap on.",
+          "modelAnswer": "describe node showed Ready Unknown, so the kubelet had stopped posting status; its journal said it would not run with swap on, because the reboot re-enabled the swap file in /etc/fstab."
+        },
+        {
+          "label": "A fix that survives a reboot",
+          "criteria": "swapoff -a now and removes or comments the fstab entry, then restarts the kubelet and confirms Ready.",
+          "modelAnswer": "swapoff -a, commented the swap line in /etc/fstab so it stays off after the next boot, restarted the kubelet and watched w2 go Ready."
+        },
+        {
+          "label": "Draining w3",
+          "criteria": "Drains w3 only once w2 can take pods, with --ignore-daemonsets and --delete-emptydir-data through the eviction API so the PDB is respected; does not use --disable-eviction; reboots after the drain completes and uncordons.",
+          "modelAnswer": "With w2 back and schedulable, I drained w3 with --ignore-daemonsets --delete-emptydir-data, which respects payments' budget, rebooted it for the patch and uncordoned it. Draining while w2 was out would have stalled on the budget; --disable-eviction would have broken it."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "w2 back with time to spare before w1's memory pressure; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-11",
+          "note": "No pods killed by a reboot without a drain, and no budget bypassed."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not w2Up",
+      "class": "harm",
+      "rationale": "Closing with w2 still NotReady leaves the cluster a worker short with w1 and w3 running hot; it is never a safe outcome.",
+      "source": {
+        "cite": "Kubernetes documentation (v1.37), Nodes",
+        "checkedAt": "2026-11-11",
+        "url": "https://kubernetes.io/docs/concepts/architecture/nodes/",
+        "note": "Relevant text: 'In the case that a node becomes unreachable ... the node controller sets the Ready condition to Unknown'; 'By default, the node controller waits 5 minutes between marking the node as Unknown and submitting the first eviction request'; heartbeats are updates to the Node's .status and Lease objects in kube-node-lease; 'Marking a node as unschedulable prevents the scheduler from placing new pods onto that Node but does not affect existing Pods on the Node. This is useful as a preparatory step before a node reboot or other maintenance.' Read through a summarizing fetch on 2026-11-11."
+      }
+    }
+  },
+  "endings": {
+    "nodeWiped": {
+      "label": "w2 wiped with kubeadm reset",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and resetDone",
+      "narrative": "kubeadm reset deleted w2's kubelet configuration and certificates; the node has to be joined again, and the cluster stays a worker short."
+    },
+    "paymentsDown": {
+      "label": "Payments broken during the patch",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(paymentsDownAt)",
+      "narrative": "payments fell below its disruption budget while w3 was emptied, and card checkout failed."
+    },
+    "pressureSpread": {
+      "label": "The outage spread to w1",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(pressureAt)",
+      "narrative": "w2 was still out at 07:50; w1 hit memory pressure and evicted the report generator."
+    },
+    "stillNotReady": {
+      "label": "Closed with w2 NotReady",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not w2Up",
+      "narrative": "The work was closed while w2's kubelet still would not start."
+    },
+    "fixed": {
+      "label": "Both nodes done cleanly",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and w2Up and timeAt(w2ReadyAt) <= restoreWindow and fstabFixed and faultsAdded <= newFaults and not bypassed and w3Drained and not patchedUndrained and not isNull(w3PatchedAt) and not w3Cordoned and not w2Cordoned and not isNull(journalAt) and timeAt(journalAt) <= timeAt(firstChangeAt)",
+      "narrative": "w2 is Ready and will stay so after its next reboot; w3 was drained within its budget, patched and returned to service."
+    },
+    "fixedGaps": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Both nodes run, but the fix was late, will not survive a reboot, skipped the drain or its budget, or left a node cordoned."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no change record."
+    }
+  },
+  "endingOrder": [
+    "nodeWiped",
+    "paymentsDown",
+    "pressureSpread",
+    "stillNotReady",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "journalFirst",
+        "label": "Read the kubelet's journal before changing the node",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(journalAt) and (isNull(firstChangeAt) or timeAt(journalAt) <= timeAt(firstChangeAt))",
+            "score": "met",
+            "why": "The swap refusal was read first."
+          },
+          {
+            "when": "not isNull(journalAt)",
+            "score": "partial",
+            "why": "The journal was read only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The kubelet's own log was never read."
+          }
+        ]
+      },
+      {
+        "id": "persistent",
+        "label": "Made the swap fix survive a reboot",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fstabFixed and w2Up",
+            "score": "met",
+            "why": "The fstab entry is commented out."
+          },
+          {
+            "when": "w2Up",
+            "score": "partial",
+            "why": "Swap is off only until w2's next reboot."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "w2 is not running."
+          }
+        ]
+      },
+      {
+        "id": "safeDrain",
+        "label": "Drained w3 through the eviction API, with capacity back, before its reboot",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(paymentsDownAt)",
+            "score": "missed",
+            "why": "payments went below its budget."
+          },
+          {
+            "when": "w3Drained and not bypassed and not patchedUndrained and not isNull(w3PatchedAt)",
+            "score": "met",
+            "why": "Evicted within the budget, then patched."
+          },
+          {
+            "when": "not isNull(w3PatchedAt)",
+            "score": "partial",
+            "why": "{bypassed ? \"--disable-eviction skipped the budget check.\" : \"w3 was rebooted without a completed drain.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "w3 was not patched."
+          }
+        ]
+      },
+      {
+        "id": "w2Fast",
+        "label": "w2 Ready within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "w2Up and timeAt(w2ReadyAt) <= restoreWindow",
+            "score": "met",
+            "why": "Ready {timeAt(w2ReadyAt) / 60|0dp} min in."
+          },
+          {
+            "when": "w2Up",
+            "score": "partial",
+            "why": "Ready, but {timeAt(w2ReadyAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "w2 is NotReady."
+          }
+        ]
+      },
+      {
+        "id": "backInService",
+        "label": "Left both nodes schedulable",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "w2Up and not w2Cordoned and not w3Cordoned",
+            "score": "met",
+            "why": "Both uncordoned."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{w3Cordoned ? \"w3 is still cordoned.\" : \"w2 is cordoned or down.\"}"
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"swap\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written diagnosis, lasting fix and drain",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToReady",
+        "label": "Minutes until w2 was Ready",
+        "value": "isNull(w2ReadyAt) ? -1 : timeAt(w2ReadyAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "faultsK",
+        "label": "Faults the work introduced",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "kubectl get nodes and describe node w2: Ready Unknown, kubelet stopped posting status."
+      },
+      {
+        "at": "4-7 min",
+        "text": "On w2, the kubelet is in auto-restart; its journal says swap is on. swapon --show and /etc/fstab show the swap file."
+      },
+      {
+        "at": "7-11 min",
+        "text": "swapoff -a, comment the fstab line, restart the kubelet; w2 goes Ready."
+      },
+      {
+        "at": "11-23 min",
+        "text": "kubectl drain w3 --ignore-daemonsets --delete-emptydir-data (payments moves to w2 within budget), reboot w3, uncordon w3."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: both nodes done cleanly",
+        "body": "You read the kubelet's own refusal, fixed swap now and for the next boot, and only drained w3 once w2 could take its pods."
+      },
+      "fixedGaps": {
+        "headline": "Done, with gaps",
+        "body": "Both nodes run. The criteria show what is left: a fix that will not survive a reboot, a drain that skipped the budget, a late start or a cordon left on."
+      },
+      "nodeWiped": {
+        "headline": "Node wiped",
+        "body": "kubeadm reset is for removing a node, not repairing one. The kubelet's journal named the problem: swap."
+      },
+      "paymentsDown": {
+        "headline": "Payments broke",
+        "body": "A drain respects PodDisruptionBudgets only through the eviction API, and only if the pods have somewhere to go. Bring w2 back first; never --disable-eviction for a routine patch."
+      },
+      "pressureSpread": {
+        "headline": "The outage spread",
+        "body": "Two workers carried three workers' pods until w1 gave way. journalctl -u kubelet on w2 named the fix in a minute."
+      },
+      "stillNotReady": {
+        "headline": "Closed too soon",
+        "body": "w2's kubelet still would not start. Fix the cause, not the symptom."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Ready Unknown means the kubelet stopped posting status. journalctl -u kubelet on w2 shows it refusing to run with swap on, re-enabled from /etc/fstab by the patch reboot. Run swapoff -a, comment out the fstab line so it holds across reboots, restart the kubelet and confirm Ready. Only then drain w3 with --ignore-daemonsets --delete-emptydir-data so evictions respect payments' budget and land on w2, reboot w3 for its patch, and uncordon it. Never kubeadm reset a node to repair it or --disable-eviction a routine drain."
+  }
+}
