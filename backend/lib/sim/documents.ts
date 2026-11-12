@@ -99,6 +99,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // Keep these entries together. ----
   entry("NREMTEMR", "unresponsive-adult-cpr-aed"),
   entry("NREMTEMR", "thigh-bleed-tourniquet"),
+  entry("NREMTEMT", "anaphylaxis-epinephrine"),
   // ---- end REQ-241 ----
 ];
 

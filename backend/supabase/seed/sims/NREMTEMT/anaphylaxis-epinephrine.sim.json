@@ -1,0 +1,1422 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "anaphylaxis-epinephrine",
+  "title": "Peanut sauce at a birthday dinner",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate, last measured",
+          "value": "vHr",
+          "unit": "/min",
+          "sub": "at {vAt|clock}",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate, last measured",
+          "value": "vRr",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              24,
+              30
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation on the pulse oximeter",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 94
+          },
+          "announce": {
+            "bands": [
+              94,
+              90,
+              85
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "probeOn"
+        }
+      ],
+      "infusions": "Epinephrine doses: {epiCount}. Oxygen: {o2On|yesno}. Position: {position}. {isNull(departAt) ? \"On scene\" : (isNull(arrivedAt) ? \"En route\" : \"At the hospital\")}.",
+      "banner": [
+        {
+          "when": "isNull(departAt)",
+          "text": "Maya, 22, sits at the table, hoarse, scratching hives on her neck."
+        },
+        {
+          "when": "alsHere",
+          "text": "The paramedic intercept has joined you."
+        }
+      ]
+    }
+  },
+  "objective": "Treat anaphylaxis with intramuscular epinephrine at the weight-appropriate dose and reassess for a repeat dose",
+  "secondaryObjectives": [
+    "Recognize anaphylaxis and tell it apart from a mild allergic reaction by airway, breathing and circulation findings",
+    "Administer or assist with medications within EMT scope -- oxygen, oral glucose, aspirin, epinephrine auto-injector, naloxone, inhaled bronchodilator, the patient's own nitroglycerin -- checking the rights of medication administration"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. EMT Examination Specifications (test plan)",
+      "checkedAt": "2026-11-09",
+      "url": "https://nremt.org/getmedia/4cb170ab-35fa-4ec0-a76c-634847005bc4/EMT-Test-Plan_Public",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-fetched for this scenario. Primary Assessment 39-43% of items (tell anaphylaxis from a mild allergic reaction); Patient Treatment and Transport 20-24% (epinephrine auto-injector, medications within EMT scope)."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Anaphylaxis and Allergic Reaction",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Anaphylaxis: two or more of skin or mucosal involvement, respiratory compromise, persistent GI symptoms, hypotension or its symptoms, rapidly after a likely allergen (skin absent in up to 40%). Epinephrine is the primary treatment: 1 mg/mL IM in the anterolateral thigh, 0.3 mg at 25 kg or more, 0.15 mg under 25 kg, from a vial or auto-injector; repeat every 5-15 minutes if anaphylaxis and hypoperfusion persist; albuterol for wheeze; 20 mL/kg isotonic fluid IV or IO for hypoperfusion (ALS); time to epinephrine is a safety consideration."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Universal Care",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Oxygen to SpO2 94-98%; vital signs and reassessment."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019 (DOT HS 812 666), with Change Notices 1.0 and 2.0 (2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://ldh.la.gov/assets/oph/ems/2025/EMSEducation/National_EMS_Scope_of_Practice_Model_2019.pdf",
+      "note": "Read 2026-11-11 in a text extraction of the Louisiana copy (the extractor did not keep every table column, so placement was checked against the course's own reading of 2026-11-09 in ems-sources.ts). EMR: CPR and AED, tourniquet and wound packing, naloxone, oral airway, BVM, oxygen; no pulse oximetry, glucose monitoring, epinephrine auto-injector or transport. EMT adds pulse oximetry, glucose monitoring, epinephrine auto-injector, aspirin, oral glucose, CPAP, 12-lead acquisition (not interpretation), transport. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways and a limited list of IV and IM medications including dextrose and glucagon. Paramedic adds 12-lead interpretation, manual defibrillation, intubation and the wider formulary. No newer model was found 2026-11-11 (EMS.gov's page was unavailable; the only other 'update' found is the 2017 change notice adding tourniquets, wound packing and naloxone to EMR and EMT)."
+    }
+  ],
+  "brief": {
+    "situation": "19:20. You and your partner are EMTs on an ambulance, called to a restaurant. Maya, 22, about 60 kg, ate a dish with peanut sauce about 10 minutes ago at a birthday dinner. She says her throat feels tight and she feels faint.",
+    "handover": [
+      "Her own auto-injector is at home. Your ambulance carries agency epinephrine auto-injectors, adult (0.3 mg) and junior (0.15 mg), oxygen, and her albuterol inhaler is in her bag.",
+      "Paramedics can meet you on the way if you ask. The nearest emergency department is about 14 minutes away.",
+      "Within EMT scope: epinephrine auto-injector, oxygen, assisting with an inhaled bronchodilator. No IV fluids or IV drugs."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Scene time and the drive both run on the clock. Treatment continues in the ambulance.",
+      "Partway through you are asked to explain your decisions in writing. The case ends at the hospital, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "19:20",
+    "tick": "1s",
+    "maxDuration": "40min",
+    "calendar": "clock"
+  },
+  "params": {
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Untreated, this reaction progresses from moderate to cardiovascular collapse in about 8 minutes (under 20 minutes after the exposure). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "epiPotency": {
+      "value": 0.15,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. One adult IM dose reverses the reaction at about 0.15 severity units per minute at its peak. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "epiTau": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. The IM dose's effect wanes with a 5-minute time constant, so hypoperfusion returns about 15 minutes later in this case; NASEMSO's repeat interval is 5-15 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "deltoidFactor": {
+      "value": 0.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. An IM dose in the deltoid acts less than one in the anterolateral thigh; NASEMSO specifies the thigh. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "walkHit": {
+      "value": 0.35,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Walking a hypotensive anaphylaxis patient upright can precipitate sudden collapse (a sudden fall in venous return). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "repeatMin": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Anaphylaxis and Allergic Reaction",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Anaphylaxis: two or more of skin or mucosal involvement, respiratory compromise, persistent GI symptoms, hypotension or its symptoms, rapidly after a likely allergen (skin absent in up to 40%). Epinephrine is the primary treatment: 1 mg/mL IM in the anterolateral thigh, 0.3 mg at 25 kg or more, 0.15 mg under 25 kg, from a vial or auto-injector; repeat every 5-15 minutes if anaphylaxis and hypoperfusion persist; albuterol for wheeze; 20 mL/kg isotonic fluid IV or IO for hypoperfusion (ALS); time to epinephrine is a safety consideration."
+      }
+    },
+    "repeatWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. A repeat dose within 5 minutes of hypoperfusion returning. NASEMSO says repeat every 5-15 minutes while it persists. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "epiWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. First dose within 5 minutes of reaching her: time to epinephrine is a NASEMSO safety consideration, without a number. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "vitalsTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A full set of vital signs: about 1 min."
+      }
+    },
+    "loadTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Stretcher in, out to the ambulance and loaded: about 4 min."
+      }
+    },
+    "driveTime": {
+      "value": 840,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Restaurant to the nearest emergency department: about 14 min (authored)."
+      }
+    },
+    "alsEta": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Paramedic intercept about 10 min after the request (authored)."
+      }
+    },
+    "stableSev": {
+      "value": 0.45,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Arrived with severity below 0.45: SBP above about 95 mmHg. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "collapseSev": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Severity at which she arrests. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "sev": {
+      "type": "number",
+      "init": 0.6,
+      "min": 0,
+      "max": 1.5
+    },
+    "epi": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "epiCount": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "o2On": {
+      "type": "bool",
+      "init": false
+    },
+    "probeOn": {
+      "type": "bool",
+      "init": false
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "medChecked": {
+      "type": "bool",
+      "init": false
+    },
+    "walked": {
+      "type": "bool",
+      "init": false
+    },
+    "alsHere": {
+      "type": "bool",
+      "init": false
+    },
+    "fluids": {
+      "type": "bool",
+      "init": false
+    },
+    "watched": {
+      "type": "bool",
+      "init": false
+    },
+    "wrongDose": {
+      "type": "bool",
+      "init": false
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "albuterol": {
+      "type": "bool",
+      "init": false
+    },
+    "position": {
+      "type": "enum",
+      "values": [
+        "sitting",
+        "flat, legs raised"
+      ],
+      "init": "sitting"
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vHr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 220,
+      "unit": "/min"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "vRr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 60,
+      "unit": "/min"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "epi1At": {
+      "type": "time",
+      "init": null
+    },
+    "epi2At": {
+      "type": "time",
+      "init": null
+    },
+    "lastEpiAt": {
+      "type": "time",
+      "init": null
+    },
+    "repeatDueAt": {
+      "type": "time",
+      "init": null
+    },
+    "alsAt": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "flatAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "sbp": {
+      "expr": "round(clamp(128 - 70 * sev, 40, 160))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(88 + 60 * sev + 12 * min(epi, 1), 50, 180))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(16 + 16 * sev)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp((o2On ? 100 : 97) - 14 * sev, 60, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "loading": {
+      "expr": "not isNull(departAt) and t < timeAt(departAt) + loadTime"
+    }
+  },
+  "processes": [
+    {
+      "id": "reaction",
+      "when": "isNull(arrivedAt)",
+      "update": {
+        "sev": "clamp(sev + (riseRate - epiPotency * epi) * dt / 60, 0.05, 1.5)",
+        "epi": "max(0, epi - epi * dt / epiTau)"
+      }
+    }
+  ],
+  "phases": {
+    "call": {
+      "label": "On the call",
+      "clock": "running",
+      "actions": [
+        "look",
+        "history",
+        "vitals",
+        "probe",
+        "watch",
+        "checkMed",
+        "epinephrine",
+        "oxygen",
+        "flat",
+        "albuterol",
+        "requestAls",
+        "transport",
+        "notify"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "look": {
+      "label": "General impression: airway, breathing, skin",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "sev >= 0.75",
+              "then": [
+                {
+                  "log": "Voice almost gone, stridor on breathing in, wheeze; lips swollen; pale and clammy under the hives; drowsy.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "sev >= 0.45",
+              "then": [
+                {
+                  "log": "Hoarse voice, wheeze, lips swelling, hives on the neck and chest; pale, says she feels faint.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Speaking full sentences, hives fading, lips less swollen, color better.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "history": {
+      "label": "SAMPLE history",
+      "group": "Assess",
+      "available": "isNull(historyAt)",
+      "why": "Already taken.",
+      "effects": [
+        {
+          "if": "isNull(historyAt)",
+          "then": [
+            {
+              "set": "historyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Peanut allergy (anaphylaxis at 15); mild asthma, albuterol inhaler; no other medications. Peanut sauce about 10 minutes before the call; throat tight within minutes, vomited once.",
+          "kind": "find"
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Full set of vital signs",
+      "group": "Assess",
+      "available": "not vPending",
+      "why": "Already taking them.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "set": "probeOn",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Cuff, pulse oximeter, count the breaths (about 1 min)."
+        }
+      ]
+    },
+    "probe": {
+      "label": "Put the pulse oximeter on",
+      "group": "Assess",
+      "available": "not probeOn",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "probeOn",
+          "to": "true"
+        },
+        {
+          "log": "Pulse oximeter on her finger."
+        }
+      ]
+    },
+    "watch": {
+      "label": "Wait a few minutes to see whether the hives settle",
+      "group": "Treat",
+      "available": "not watched",
+      "why": "Already chosen.",
+      "effects": [
+        {
+          "set": "watched",
+          "to": "true"
+        },
+        {
+          "log": "You decide to watch. Hives with a hoarse voice, wheeze and a low blood pressure are not a skin-only reaction.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "checkMed": {
+      "label": "Check the auto-injector: right drug, dose for her weight, not expired, solution clear",
+      "group": "Treat",
+      "available": "not medChecked",
+      "why": "Already checked.",
+      "effects": [
+        {
+          "set": "medChecked",
+          "to": "true"
+        },
+        {
+          "log": "Adult epinephrine auto-injector, 0.3 mg, in date, clear. Maya is about 60 kg."
+        }
+      ]
+    },
+    "epinephrine": {
+      "label": "Epinephrine auto-injector, IM",
+      "group": "Treat",
+      "available": "isNull(lastEpiAt) or t >= timeAt(lastEpiAt) + repeatMin",
+      "why": "A repeat dose comes no sooner than 5 minutes after the last.",
+      "params": [
+        {
+          "id": "epiForm",
+          "kind": "form",
+          "label": "Dose and site",
+          "fields": [
+            {
+              "id": "dose",
+              "label": "Auto-injector",
+              "options": [
+                {
+                  "value": "adult",
+                  "label": "Adult, 0.3 mg"
+                },
+                {
+                  "value": "junior",
+                  "label": "Junior, 0.15 mg"
+                }
+              ]
+            },
+            {
+              "id": "site",
+              "label": "Site",
+              "options": [
+                {
+                  "value": "thigh",
+                  "label": "Outer thigh (anterolateral), through clothing if needed"
+                },
+                {
+                  "value": "arm",
+                  "label": "Upper arm (deltoid)"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "add": "epi",
+          "by": "(dose == \"adult\" ? 1 : 0.5) * (site == \"thigh\" ? 1 : deltoidFactor)"
+        },
+        {
+          "add": "epiCount",
+          "by": "1"
+        },
+        {
+          "if": "dose != \"adult\"",
+          "then": [
+            {
+              "set": "wrongDose",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "epiCount == 1",
+              "then": [
+                {
+                  "set": "epi1At",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "when": "epiCount == 2",
+              "then": [
+                {
+                  "set": "epi2At",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "lastEpiAt",
+          "to": "t"
+        },
+        {
+          "log": "Epinephrine {dose == \"adult\" ? \"0.3 mg\" : \"0.15 mg\"} IM, {site == \"thigh\" ? \"outer thigh\" : \"upper arm\"}, held 3 seconds. Time noted."
+        }
+      ]
+    },
+    "oxygen": {
+      "label": "Oxygen by non-rebreather mask",
+      "group": "Treat",
+      "available": "not o2On",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "o2On",
+          "to": "true"
+        },
+        {
+          "log": "Non-rebreather at 15 L/min."
+        }
+      ]
+    },
+    "flat": {
+      "label": "Lay her flat on the stretcher, legs raised",
+      "group": "Treat",
+      "available": "position != \"flat, legs raised\"",
+      "why": "Already flat.",
+      "effects": [
+        {
+          "set": "position",
+          "to": "\"flat, legs raised\""
+        },
+        {
+          "if": "isNull(flatAt)",
+          "then": [
+            {
+              "set": "flatAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Flat, legs raised; she says the faintness eases a little."
+        }
+      ]
+    },
+    "albuterol": {
+      "label": "Assist with her albuterol inhaler for the wheeze",
+      "group": "Treat",
+      "available": "not albuterol",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "albuterol",
+          "to": "true"
+        },
+        {
+          "set": "sev",
+          "to": "max(0.05, sev - 0.03)"
+        },
+        {
+          "log": "Two puffs with a spacer: the wheeze eases slightly. It does nothing for the low blood pressure or the throat swelling."
+        }
+      ]
+    },
+    "requestAls": {
+      "label": "Request a paramedic intercept",
+      "group": "Call",
+      "available": "isNull(alsAt)",
+      "why": "Already requested.",
+      "effects": [
+        {
+          "if": "isNull(alsAt)",
+          "then": [
+            {
+              "set": "alsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "alsT",
+          "after": "alsEta"
+        },
+        {
+          "log": "Medic 7 will meet you on the way, about 10 minutes.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "transport": {
+      "label": "Move her to the ambulance and go",
+      "group": "Transport",
+      "available": "isNull(departAt)",
+      "why": "Already on the way.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "How she gets to the ambulance",
+          "options": [
+            {
+              "value": "stretcher",
+              "label": "On the stretcher, lying flat"
+            },
+            {
+              "value": "walk",
+              "label": "She walks out with help; it's only 20 meters"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "how == \"walk\"",
+          "then": [
+            {
+              "set": "walked",
+              "to": "true"
+            },
+            {
+              "set": "sev",
+              "to": "sev + (sev >= 0.4 ? walkHit : 0)"
+            },
+            {
+              "if": "sev >= 0.7",
+              "then": [
+                {
+                  "log": "Halfway to the door her legs buckle; she is grey and barely conscious.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "set": "position",
+              "to": "\"flat, legs raised\""
+            },
+            {
+              "if": "isNull(flatAt)",
+              "then": [
+                {
+                  "set": "flatAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "schedule": "arriveT",
+          "after": "loadTime + driveTime"
+        },
+        {
+          "log": "Loading and leaving: about 4 minutes, then 14 to the emergency department."
+        }
+      ]
+    },
+    "notify": {
+      "label": "Radio the hospital: anaphylaxis, treatment so far, ETA",
+      "group": "Transport",
+      "available": "not isNull(departAt) and not notified",
+      "why": "Once you are moving.",
+      "effects": [
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "log": "ED notified: anaphylaxis, epinephrine doses and times, current vital signs, ETA."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "vitalsT": {
+      "label": "vital signs",
+      "wait": {
+        "skipLabel": "the vital signs (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 1 min."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "vHr",
+          "to": "hr"
+        },
+        {
+          "set": "vSbp",
+          "to": "sbp"
+        },
+        {
+          "set": "vDbp",
+          "to": "dbp"
+        },
+        {
+          "set": "vRr",
+          "to": "rr"
+        },
+        {
+          "log": "HR {hr}, BP {sbp}/{dbp}, RR {rr}, SpO2 {spo2}%.",
+          "kind": "find"
+        }
+      ]
+    },
+    "alsT": {
+      "label": "the paramedic intercept",
+      "wait": {
+        "skipLabel": "the paramedic intercept (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 10 min."
+      },
+      "effects": [
+        {
+          "set": "alsHere",
+          "to": "true"
+        },
+        {
+          "if": "sev >= 0.4",
+          "then": [
+            {
+              "set": "fluids",
+              "to": "true"
+            },
+            {
+              "set": "sev",
+              "to": "max(0.05, sev - 0.1)"
+            },
+            {
+              "log": "The paramedic starts an IV and runs a fluid bolus for the low blood pressure.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "The paramedic joins you and reviews your treatment.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival at the emergency department"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Load and drive."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the emergency department.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "relapse",
+      "when": "epiCount >= 1 and not isNull(lastEpiAt) and t >= timeAt(lastEpiAt) + repeatMin and sbp < 90 and isNull(repeatDueAt)",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(repeatDueAt)",
+          "then": [
+            {
+              "set": "repeatDueAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "She says the faintness is back; her radial pulse is weak again.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "worse",
+      "when": "sev >= 0.8",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Stridor now; she can barely speak and is drowsy.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(departAt) or t >= 420",
+      "question": "What makes this anaphylaxis rather than a mild allergic reaction, and what will tell you she needs a second dose?",
+      "parts": [
+        {
+          "label": "Recognition",
+          "criteria": "Skin and mucosal signs plus respiratory compromise (hoarseness, throat tightness, wheeze) and hypotension or faintness, minutes after a known allergen: anaphylaxis, so epinephrine IM at once; hives alone would be a mild reaction.",
+          "modelAnswer": "Hives and lip swelling plus a hoarse voice, throat tightness and wheeze, and a low blood pressure with faintness, minutes after peanut: two or more systems, so anaphylaxis, not a skin-only reaction. Epinephrine IM in the thigh now."
+        },
+        {
+          "label": "Reassessment and the repeat dose",
+          "criteria": "Reassess airway, breathing, pulse and blood pressure every few minutes; repeat the dose 5-15 minutes after the first if hypoperfusion or respiratory compromise persists or returns; keep her flat, do not let her walk; oxygen; paramedics for IV fluids.",
+          "modelAnswer": "Recheck her breathing, pulse and blood pressure every few minutes. If she is still hypotensive or the signs return 5-15 minutes after the first dose, give a second dose. Keep her flat, never walk her, oxygen, and ask paramedics for IV fluids."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(arrivedAt) and sev >= stableSev",
+      "class": "recovered",
+      "rationale": "She reaches the hospital alive but still hypotensive: treatment helped too little or too late. This case calls it recovered, not target.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Anaphylaxis and Allergic Reaction",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Anaphylaxis: two or more of skin or mucosal involvement, respiratory compromise, persistent GI symptoms, hypotension or its symptoms, rapidly after a likely allergen (skin absent in up to 40%). Epinephrine is the primary treatment: 1 mg/mL IM in the anterolateral thigh, 0.3 mg at 25 kg or more, 0.15 mg under 25 kg, from a vial or auto-injector; repeat every 5-15 minutes if anaphylaxis and hypoperfusion persist; albuterol for wheeze; 20 mL/kg isotonic fluid IV or IO for hypoperfusion (ALS); time to epinephrine is a safety consideration."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Cardiovascular collapse",
+      "class": "harm",
+      "when": "sev >= collapseSev",
+      "terminal": true,
+      "narrative": "{t|clock}: Maya becomes unresponsive with no radial pulse. Anaphylaxis has progressed to cardiovascular collapse."
+    },
+    "stable": {
+      "label": "At the hospital, improving",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and sev < stableSev and not walked and not wrongDose and not isNull(epi1At) and timeAt(epi1At) <= epiWindow and (isNull(repeatDueAt) or (not isNull(epi2At) and timeAt(epi2At) - timeAt(repeatDueAt) <= repeatWindow))",
+      "narrative": "{timeAt(arrivedAt)|clock}: Maya arrives speaking in full sentences, BP {sbp}/{dbp}, with every dose and time on your report."
+    },
+    "arrived": {
+      "label": "At the hospital, still unstable or treated late",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: Maya arrives alive, BP {sbp}/{dbp}. The route had gaps: a late or under-dosed first injection, a missed repeat, or she was walked."
+    },
+    "time_up": {
+      "label": "40 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Forty minutes and she has not reached the hospital."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "stable",
+    "arrived"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "epiFirst",
+        "label": "Epinephrine 0.3 mg IM in the thigh within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(epi1At)",
+            "score": "missed",
+            "why": "No epinephrine was given."
+          },
+          {
+            "when": "wrongDose",
+            "score": "partial",
+            "why": "A junior (0.15 mg) dose for a 60 kg adult."
+          },
+          {
+            "when": "timeAt(epi1At) <= epiWindow",
+            "score": "met",
+            "why": "First dose at {timeAt(epi1At)|clock}."
+          },
+          {
+            "when": "timeAt(epi1At) <= epiWindow * 2",
+            "score": "partial",
+            "why": "First dose at {timeAt(epi1At)|clock}: late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "First dose only at {timeAt(epi1At)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "repeat",
+        "label": "Second dose when hypoperfusion returned",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(repeatDueAt)",
+            "score": "na",
+            "why": "Hypoperfusion did not return while you had her."
+          },
+          {
+            "when": "not isNull(epi2At) and timeAt(epi2At) - timeAt(repeatDueAt) <= repeatWindow",
+            "score": "met",
+            "why": "Second dose at {timeAt(epi2At)|clock}."
+          },
+          {
+            "when": "not isNull(epi2At)",
+            "score": "partial",
+            "why": "Second dose at {timeAt(epi2At)|clock}, late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Her pressure fell again and no second dose was given."
+          }
+        ]
+      },
+      {
+        "id": "position",
+        "label": "Kept her flat; never walked her",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "walked",
+            "score": "missed",
+            "why": "She walked to the ambulance while hypotensive."
+          },
+          {
+            "when": "not isNull(flatAt) and timeAt(flatAt) <= 300",
+            "score": "met",
+            "why": "Flat with legs raised early."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Laid flat only late."
+          }
+        ]
+      },
+      {
+        "id": "assess",
+        "label": "Assessed and reassessed: impression, history, vital signs",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lookAt) and not isNull(historyAt) and not isNull(firstVAt)",
+            "score": "met",
+            "why": "Impression, SAMPLE and vital signs."
+          },
+          {
+            "when": "not isNull(firstVAt)",
+            "score": "partial",
+            "why": "Vital signs, but no full impression or history."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No vital signs."
+          }
+        ]
+      },
+      {
+        "id": "rights",
+        "label": "Checked the medication before giving it",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "medChecked and not isNull(epi1At)",
+            "score": "met",
+            "why": "Drug, dose, expiry and clarity checked."
+          },
+          {
+            "when": "isNull(epi1At)",
+            "score": "na",
+            "why": "No medication given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Given without a check."
+          }
+        ]
+      },
+      {
+        "id": "support",
+        "label": "Oxygen and paramedic support",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "o2On and not isNull(alsAt)",
+            "score": "met",
+            "why": "Oxygen and a paramedic intercept."
+          },
+          {
+            "when": "o2On or not isNull(alsAt)",
+            "score": "partial",
+            "why": "Only one of oxygen and a paramedic intercept."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "notify",
+        "label": "Hospital notified en route",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified",
+            "score": "met",
+            "why": "Notified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No notification."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: recognizing anaphylaxis and the repeat dose",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toEpi",
+        "label": "Reaching her to the first epinephrine",
+        "value": "isNull(epi1At) ? -1 : timeAt(epi1At)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "scene",
+        "label": "Scene time",
+        "value": "isNull(departAt) ? -1 : timeAt(departAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "doses",
+        "label": "Epinephrine doses",
+        "value": "epiCount",
+        "format": "number",
+        "expert": "2"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "19:20",
+        "text": "Hoarse, wheezing, hives and swollen lips, faint, minutes after peanut: anaphylaxis. Check the adult auto-injector; 0.3 mg IM into the outer thigh."
+      },
+      {
+        "at": "19:21",
+        "text": "Flat with legs raised, oxygen, vital signs (BP 86/52), SAMPLE history. Request a paramedic intercept."
+      },
+      {
+        "at": "19:25",
+        "text": "Onto the stretcher lying flat and go; notify the hospital. Albuterol for the wheeze if it persists."
+      },
+      {
+        "at": "~19:34",
+        "text": "Faintness back, BP below 90: second 0.3 mg IM. Paramedic adds IV fluid. Reassess every few minutes."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "She collapsed",
+        "body": "Anaphylaxis can move from hives to collapse in minutes. Epinephrine IM in the thigh is the treatment; antihistamines, inhalers and watching are not. Look at when the first dose went in and whether she was walked."
+      },
+      "stable": {
+        "headline": "At the hospital, improving",
+        "body": "Early recognition, the right dose in the right site, a flat patient, and a second dose as soon as the pressure fell again. That is the expert path."
+      },
+      "arrived": {
+        "headline": "Arrived, by a harder route",
+        "body": "She made it, but check the first dose (when, which auto-injector, where), whether the second dose came when the pressure fell, and how she got to the ambulance."
+      },
+      "time_up": {
+        "headline": "Not at the hospital",
+        "body": "Forty minutes passed."
+      }
+    },
+    "modelReasoning": "Hives and lip swelling with throat tightness, hoarseness, wheeze and a low blood pressure minutes after a known allergen is anaphylaxis, not a mild reaction. Epinephrine is the primary treatment: check the auto-injector, then 0.3 mg IM into the anterolateral thigh for a patient of 25 kg or more, at once. Lay her flat with legs raised and never walk her; oxygen; vital signs; ask for paramedics for IV fluids. Reassess every few minutes; if hypoperfusion persists or returns 5-15 minutes after the dose, repeat it. Albuterol helps the wheeze only. Scene time counts: load her lying flat, notify the hospital, and keep treating en route."
+  },
+  "chapters": [
+    {
+      "id": "dosed",
+      "label": "First dose given",
+      "when": "epiCount >= 1"
+    }
+  ],
+  "teaching": {
+    "mild": {
+      "during": "vitalsT",
+      "ask": "While the vital signs cycle: which finding alone would make this a mild allergic reaction rather than anaphylaxis?",
+      "choices": [
+        {
+          "id": "hives",
+          "label": "Hives only, with normal breathing and blood pressure"
+        },
+        {
+          "id": "wheeze",
+          "label": "Hives with wheeze"
+        },
+        {
+          "id": "faint",
+          "label": "Hives with faintness and a low blood pressure"
+        }
+      ],
+      "expect": "hives",
+      "explain": "Signs in one organ system (hives alone) are a non-anaphylactic reaction. Skin signs with respiratory compromise or hypotension, rapidly after an allergen, are anaphylaxis.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Anaphylaxis and Allergic Reaction",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Anaphylaxis: two or more of skin or mucosal involvement, respiratory compromise, persistent GI symptoms, hypotension or its symptoms, rapidly after a likely allergen (skin absent in up to 40%). Epinephrine is the primary treatment: 1 mg/mL IM in the anterolateral thigh, 0.3 mg at 25 kg or more, 0.15 mg under 25 kg, from a vial or auto-injector; repeat every 5-15 minutes if anaphylaxis and hypoperfusion persist; albuterol for wheeze; 20 mL/kg isotonic fluid IV or IO for hypoperfusion (ALS); time to epinephrine is a safety consideration."
+      }
+    },
+    "repeatQ": {
+      "during": "arriveT",
+      "ask": "On the way: when would you give a second epinephrine dose?",
+      "choices": [
+        {
+          "id": "persist",
+          "label": "5-15 minutes after the first if hypoperfusion or breathing trouble persists or returns"
+        },
+        {
+          "id": "never",
+          "label": "Never: one dose is the EMT limit"
+        },
+        {
+          "id": "now",
+          "label": "Right away, to be safe"
+        }
+      ],
+      "expect": "persist",
+      "explain": "NASEMSO: repeat the IM dose every 5-15 minutes while anaphylaxis with hypoperfusion persists. Reassess every few minutes so you notice when it returns.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Anaphylaxis and Allergic Reaction",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Anaphylaxis: two or more of skin or mucosal involvement, respiratory compromise, persistent GI symptoms, hypotension or its symptoms, rapidly after a likely allergen (skin absent in up to 40%). Epinephrine is the primary treatment: 1 mg/mL IM in the anterolateral thigh, 0.3 mg at 25 kg or more, 0.15 mg under 25 kg, from a vial or auto-injector; repeat every 5-15 minutes if anaphylaxis and hypoperfusion persist; albuterol for wheeze; 20 mL/kg isotonic fluid IV or IO for hypoperfusion (ALS); time to epinephrine is a safety consideration."
+      }
+    }
+  }
+}
