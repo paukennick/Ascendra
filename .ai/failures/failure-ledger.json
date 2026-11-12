@@ -16840,6 +16840,43 @@
       ],
       "prevention_notes": "the prompt reads the thresholds and words from the module the lint uses, and tests fail if the rule text drops them; real-model effect to be measured with npm run items:style on a 25-lesson trial",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1663",
+      "date": "2026-11-12",
+      "title": "Practice writer ran with thinking off, so it could not check option sets against the style rules",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "2026-11-12 pre-generation trial: 22 of 25 first practice drafts had answer-choice style findings (key much longer than the wrong options, cue words in wrong options) although the prompt carried the rules; REQ-251 then stated the exact numbers, which a writer can only meet by measuring its options before it commits to them",
+      "how_detected": "review of the 2026-11-12 trial with Nick (decision 2026-11-12: 'Let the model think')",
+      "root_cause": "Every lesson call ran with thinking off (FAIL-008: on Sonnet 5 adaptive thinking had used the whole answer-sized max_tokens and returned only a thinking block). That fixed the truncation by removing thinking rather than by giving it its own room, so the practice writer had to emit each option set in one pass, with no chance to compare lengths or scan for cue words; the 5.5 models also accept no thinking-only budget (budget_tokens is a 400), so 'turn it on, bounded' needed max_tokens sized as answer plus allowance",
+      "requirement": "REQ-251",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/pregen.ts",
+        "backend/lib/anthropic.ts",
+        "backend/scripts/eval/live.ts"
+      ],
+      "fix_summary": "PRACTICE_CALL (lib/lesson-generation.ts): adaptive thinking at effort low, max_tokens = PRACTICE_OUTPUT_TOKENS 6000 + PRACTICE_THINKING_BUDGET_TOKENS 4000 via the new CallOptions.thinkingBudgetTokens (sizes max_tokens only, never sent); used by claudeGenerator.practice, pregen practiceParams and liveRetryWriter.practice and the live eval; a max_tokens stop in the app is rewritten once with thinking off (writePracticeDraft). Intro stays thinking off. Pregen bounds price the allowance (per lesson about 0.255 USD, was 0.195)",
+      "fix_commits": [
+        "b334a8a"
+      ],
+      "regression_tests": [
+        "backend/lib/practice-thinking.test.ts",
+        "backend/lib/anthropic.test.ts::REQ-251: a caller's own thinking allowance is added on top of its answer cap",
+        "only when thinking may run",
+        "backend/lib/pregen.dbtest.ts::practiceParams sends exactly what the app's generator sends for the same lesson",
+        "and its system prompt carries ITEM_WRITING_RULES",
+        "backend/lib/pregen.dbtest.ts::estimate: per-track counts and cost",
+        "an upper bound",
+        "and nothing sent"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A call that thinks gets max_tokens = its answer's own cap plus a named thinking allowance (effectiveMaxTokens), never a shared answer-sized cap; one PRACTICE_CALL definition keeps batch and live identical (parity DB test); the real-model effect is measured on the next trial with npm run items:style",
+      "recurrence_of": ""
     }
   ]
 }

@@ -258,7 +258,12 @@
   style findings (`*Lint`) get the app's one steered retry (`fixFor`) and a
   style-only retry is used, as `generateValid` does; a cost upper bound names
   every call a unit of work can make (retries included); a full paid run
-  needs an explicit confirmation after a trial.
+  needs an explicit confirmation after a trial. REQ-251 (FAIL-1663): a model
+  call that thinks gets `max_tokens` = its answer's own cap plus a named
+  thinking allowance (`thinkingBudgetTokens`; the 5.5 models take no
+  `budget_tokens`), never a cap shared with the answer (FAIL-008), and every
+  cost bound prices that allowance; batch and live writers of the same item
+  share one call configuration (`PRACTICE_CALL`).
 - Phone sessions and screens (REQ-217, FAIL-1040..1066): a silent refresh never
   writes the biometric-sealed key (Android prompts for every write); it is
   written at sign-in, unlock and when the app goes to the background, and a
