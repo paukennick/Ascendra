@@ -2661,7 +2661,9 @@ device while sims are off (5.9).
 TicketBurst board, 19.4 item 1; `bedside,board,session` since REQ-225, so
 testers see the client session; `bedside,board,session,security-console`
 since REQ-231; `bedside,board,session,security-console,treatment-session`
-since REQ-232, for the PT treatment session). A renderer can be launched, or pulled after a bad
+since REQ-232, for the PT treatment session;
+`bedside,board,session,security-console,treatment-session,terminal` since
+REQ-237, for the terminal and network screen). A renderer can be launched, or pulled after a bad
 scenario, without touching the others. A sim whose screen type is not
 listed behaves as if `SIMS_ENABLED` were off for that sim.
 
