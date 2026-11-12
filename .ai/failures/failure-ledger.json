@@ -16759,6 +16759,77 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-1720",
+      "date": "2026-11-12",
+      "title": "Migration 079 restated 067's item_holdbacks check under a new name: 067's probe failed and a replay of 067 dropped 'primer'",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "npm run test:db: schema status, /api/health, app_runtime and 029b/031 status tests listed 067_sim_item_kind.sql as missing after 079 was applied",
+      "how_detected": "full integration suite (npm run test:db) before commit: schema status, /api/health, app_runtime, 029b/031 status and migration 040 tests",
+      "root_cause": "079 first added item_holdbacks_item_kind_079 (067's kinds plus 'primer') and dropped every other item_kind check, copying 067's own pattern. Two things relied on 067's name: 067's schema probe names item_holdbacks_item_kind_067, so a database with every migration looked like it lacked 067 (/api/health would have failed in production after 079), and 067 itself drops every item_kind check but its own, so replaying it (lib/sims.dbtest.ts does) removed 079's check and 'primer' with it.",
+      "requirement": "REQ-253",
+      "affected": [
+        "backend/supabase/migrations/079_lesson_primers.sql",
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "079 restates the check under 067's own name, item_holdbacks_item_kind_067, with 'primer' added, only when it lacks 'primer'. 067's probe is unchanged; 079's probe checks that check's definition includes 'primer'.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/primers.dbtest.ts::FAIL-1720: 079 restates 067's item_holdbacks check under 067's name; both probes pass, and a replay of 067 keeps 'primer'"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A migration that changes a constraint an earlier migration or probe names keeps that name (or updates every reader in the same change), and is tested with the earlier migration replayed after it.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1721",
+      "date": "2026-11-12",
+      "title": "New pregen purpose broke the pinned list of ceiling-exempt purposes",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/ai-spend-ceiling.test.ts: pregen purposes deepEqual ['pregen','pregen_fact_check','pregen_retry'] got pregen_primer too",
+      "how_detected": "backend npm test during development",
+      "root_cause": "The test pins the purposes that start with pregen on purpose, so a new one is a deliberate decision; pregen_primer (the primer batch rows) is operator spend outside the global ceiling like the others",
+      "requirement": "REQ-253",
+      "affected": [
+        "backend/lib/ai-calls.ts",
+        "backend/lib/ai-spend-ceiling.test.ts"
+      ],
+      "fix_summary": "Added pregen_primer to the pinned list",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-ceiling.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The pinned list is the guard: a new pregen purpose must be added there knowingly",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1722",
+      "date": "2026-11-12",
+      "title": "Migration 079 added a table without updating the data inventory",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/ship-notes.test.ts: docs/legal/data-inventory.md was checked up to migration 077, but 079 exists",
+      "how_detected": "backend npm test during development",
+      "root_cause": "A new table needs a line in the data inventory even when it holds nothing personal; lesson_primers was written before the inventory was updated",
+      "requirement": "REQ-253",
+      "affected": [
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "Listed lesson_primers under Shared, not personal and moved the check to migration 079",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "ship-notes.test.ts already fails CI on this; the pre-completion checklist names the inventory",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-1660",
       "date": "2026-11-12",
       "title": "Length lint flagged a key that was not the longest option",

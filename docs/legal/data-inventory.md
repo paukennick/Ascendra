@@ -8,9 +8,10 @@ this file and those pages together**.
 
 Rebuilt 2026-11-09 (REQ-205) from the table list of a database with every
 migration applied (migrations 001-070) and the foreign keys into `app_users`,
-and brought up to migration 077 on 2026-11-11 (REQ-228: 071-077 add
+and brought up to migration 079 on 2026-11-12 (REQ-228: 071-077 add
 `mature_content_confirmations`, `mastery_backup_074`,
-`inbound_email_events` and `app_users.totp_last_step`),
+`inbound_email_events` and `app_users.totp_last_step`; REQ-253: 079 adds
+`lesson_primers`, shared content with no learner column),
 not from memory: every table with a `user_id` column or a foreign key into
 `app_users` is below, and `lib/legal-privacy-f4.dbtest.ts` fails when a new one
 is missing from this file. Regenerate the list with:
@@ -89,7 +90,7 @@ row stays with its user link removed (and is listed under Kept after deletion).
 
 ### Shared, not personal
 
-`lesson_content`, `pbq_scenarios`, `coach_quiz_items`, `exam_items`,
+`lesson_content`, `lesson_primers`, `pbq_scenarios`, `coach_quiz_items`, `exam_items`,
 `review_items`, `discrimination_items`, `unit_check_items`, `labs`,
 `lab_report_questions`, `sims`, `sim_versions`, `sim_reviews`, `item_status`,
 `item_holdbacks`, `item_quality_params`, `learned_set_attempts`, `concept_sets`,

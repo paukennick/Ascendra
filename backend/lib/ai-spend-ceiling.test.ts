@@ -70,7 +70,8 @@ describe("the ceiling check at the ceiling (every purpose)", () => {
     const { d, calls } = deps();
     const check = makeGlobalCeilingCheck(d);
     const pre = purposes.filter((p) => p.startsWith("pregen"));
-    assert.deepEqual(pre.sort(), ["pregen", "pregen_fact_check", "pregen_retry"]);
+    // REQ-253: pregen_primer is the primer batch rows.
+    assert.deepEqual(pre.sort(), ["pregen", "pregen_fact_check", "pregen_primer", "pregen_retry"]);
     for (const p of pre) {
       await check(ctx(p, null));
       await check(ctx(p, LEARNER));

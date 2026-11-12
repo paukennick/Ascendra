@@ -202,6 +202,7 @@ const MODEL_ROUTES: Record<string, RouteKind> = {
   "app/api/objectives/[id]/lab/route.ts": "indirect",
   "app/api/objectives/[id]/lesson/prefetch-next/route.ts": "inline",
   "app/api/objectives/[id]/lesson/route.ts": "inline",
+  "app/api/objectives/[id]/primer/route.ts": "inline",
   "app/api/objectives/[id]/refresher/route.ts": "indirect",
   "app/api/pbq/route.ts": "inline",
   "app/api/reminders/plan/route.ts": "indirect",
