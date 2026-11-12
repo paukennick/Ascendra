@@ -98,6 +98,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // PenTest+, SecurityX and SecAI+, two each. Keep these entries together. ----
   entry("CYSAPLUS", "alert-triage-lolbin-hunt"),
   entry("CYSAPLUS", "vuln-prioritization-kev-edge"),
+  entry("PENTESTPLUS", "pentest-third-party-webshell"),
   // ---- end REQ-238 ----
 ];
 
