@@ -55,7 +55,7 @@ Every course runs the same loop. You learn a topic, practice it with help, prove
 
 **Practice exams.** A 10-question timed sprint, or a full mock exam with the real exam's length, domain weights and time limit. You can take it untimed if you'd rather.
 
-**Hands-on labs.** Build labs ask you to produce something real, such as an IAM policy, a work breakdown structure or an SBAR handoff. Case labs walk a fictional case through two to four steps. Every part is scored met, partly there or not yet, with the model answer beside yours. Some parts are graded on the spot: put steps in order, match pairs, tap the problem lines in a log or config, type a command, or give a number within a tolerance. There are 1,212 labs across the catalog.
+**Hands-on labs.** Build labs ask you to produce something real, such as an IAM policy, a work breakdown structure or an SBAR handoff. Case labs walk a fictional case through two to four steps. Every part is scored met, partly there or not yet, with the model answer beside yours. Some parts are graded on the spot: put steps in order, match pairs, tap the problem lines in a log or config, type a command, or give a number within a tolerance. There are 1,263 labs across the catalog.
 
 **Simulations.** Some courses have sims: a scenario that runs on a clock, reacts to what you do, and ends with a score for the outcome and your process plus a debrief. Today there are sims in seven courses:
 

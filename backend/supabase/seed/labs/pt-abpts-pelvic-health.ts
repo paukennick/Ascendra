@@ -1,4 +1,4 @@
-import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { CLINICAL_SAFETY, part, numericPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-152: ABPTS Pelvic & Women's Health Clinical Specialist (ABPTSPWCS),
@@ -33,6 +33,21 @@ import { source } from "../sources";
 // a conservative option, Kegel teaching points) were verified there on
 // 2026-11-04 against the StatPearls chapters tagged in
 // seed/tracks/pt-abpts.ts (SP-UI, SP-SUI, SP-PREG, SP-POP, SP-KEG).
+//
+// REQ-234 (2026-11-11): topped up from 5 to 8 labs, 2 / 3 / 3, above the
+// hybrid plan's 1 / 3 / 1 on purpose (the plan's verb heuristic finds no
+// performance objective in the knowledge and professional units). The
+// override and its rule (at least the plan, at most three a unit) are
+// LAB_PLAN_TOP_UPS in scripts/generate-labs-lib.ts. Added: fecal
+// incontinence and the anal sphincters (StatPearls "Fecal Incontinence",
+// statpearls.com point-of-care 21655, last updated 2025-12-16, read through
+// a fetch tool's summary on 2026-11-11: internal sphincter 80% to 85% of
+// resting tone, enteric supply; external sphincter pudendal; passive versus
+// urge incontinence; NICE NG12 colorectal recommendations read 2026-11-11
+// for the change-in-bowel-habit and rectal-bleeding red flag); appraising a
+// PFMT trial (arithmetic on the fictional trial's counts; NICE QS77 for the
+// 3-month first-line program as above); and rescuing a stalled PFMT
+// program (NICE QS77).
 //
 // SAFETY: every patient is fictional; exam practice, not clinical guidance.
 // Internal examination is described only at the level of consent, scope and
@@ -239,6 +254,132 @@ export const ABPTSPWCS_LABS: SeedLabSet = {
               "Documentation",
               "Documents the disclosure minimally and respectfully (history of trauma, no details, patient's stated preferences), the consent discussion and her choices, and the plan, so that the next clinician does not re-ask; flags the chart appropriately without stigmatizing language.",
               "The note records 'history of sexual trauma disclosed; patient asks not to discuss details', her preferences (sister present, clinician gender, signal to stop), that internal examination was offered and deferred by her choice, and the plan. Nothing more about the trauma is written, and the chart is flagged so she is never asked to repeat it."
+            ),
+          ],
+        },
+      ],
+    },
+    // ======================================================================
+    // REQ-234 top-up (2026-11-11): 2 / 3 / 3 = 8.
+    // ======================================================================
+    // ----------------------------------------------------------------- Knowledge (+1)
+    {
+      slug: "pwcs-fecal-incontinence-sphincters",
+      objective:
+        "Know the anal sphincters' roles: the internal sphincter (enteric nerves) gives about 80% to 85% of resting tone, while the external sphincter (pudendal nerve) holds continence during coughing or lifting",
+      kind: "case",
+      title: "Relate two women's bowel leakage to the anal sphincters",
+      brief:
+        "Two fictional women are referred for fecal incontinence. Ms D, 34, had a vaginal birth with a third-degree perineal tear eight months ago; she feels the urge to open her bowels but cannot hold on long enough to reach the toilet, and leaks when she lifts her baby or coughs. Ms E, 71, finds stool on her underwear at the end of the day without having felt anything; she had radiation treatment to the pelvis years ago. Neither has had a recent change in bowel habit or seen blood.",
+      safetyNote: CLINICAL_SAFETY,
+      steps: [
+        {
+          text: "Both women describe their symptoms at their first visits, as summarized in the referral.",
+          ask: "Classify each woman's incontinence and relate it to the sphincter mechanism most likely involved.",
+          parts: [
+            part(
+              "Ms D",
+              "Calls it urge incontinence (sensation preserved, cannot defer) with leakage on exertion, and relates it to the external anal sphincter (voluntary, pudendal nerve), which holds continence during coughing and lifting and is commonly injured in third-degree obstetric tears.",
+              "Urge fecal incontinence: she feels the need but cannot defer, plus leakage with lifting and coughing. That points to the external anal sphincter, the voluntary, pudendal-nerve-supplied muscle that closes the canal against sudden pressure such as coughing or lifting, and which a third-degree tear can damage."
+            ),
+            part(
+              "Ms E",
+              "Calls it passive incontinence (leakage without awareness) and relates it to reduced resting tone, mainly the internal anal sphincter's job (about 80% to 85% of resting tone, enteric nerve supply), possibly with reduced rectal sensation; names pelvic radiation as a plausible contributor.",
+              "Passive fecal incontinence: stool passes without her noticing. Resting continence depends mainly on the internal anal sphincter (smooth muscle, enteric nervous system), which gives about 80% to 85% of resting anal tone; reduced resting tone or reduced rectal sensation lets stool escape unnoticed. Past pelvic radiation can affect both."
+            ),
+          ],
+        },
+        {
+          text: "At the follow-up, Ms E mentions that over the last six weeks her stools have become looser and more frequent than her usual pattern, and she has noticed some blood.",
+          ask: "What does this change, and what is the plan for each woman?",
+          parts: [
+            part(
+              "Referral",
+              "Treats a new change in bowel habit with rectal bleeding as a red flag needing prompt medical evaluation (in NICE NG12 these symptoms trigger testing for possible colorectal cancer), refers Ms E back to her physician before continuing, and documents it.",
+              "A new, persistent change in bowel habit with rectal bleeding is a medical red flag, not a pelvic floor problem: NICE NG12 lists these among the symptoms that call for testing to guide referral for suspected colorectal cancer. Pause the pelvic floor plan, contact her physician the same day for prompt evaluation, explain why to Ms E without alarming her, and document."
+            ),
+            part(
+              "Conservative plan",
+              "For Ms D (and Ms E once cleared): education on the mechanism, stool consistency management with the physician (fiber and fluid, avoiding foods that loosen stool), a defecation routine, pelvic floor and external sphincter training with urge-resistance practice, and biofeedback where sensation or squeeze is impaired; for Ms D also coordination with obstetric or colorectal follow-up for the sphincter injury.",
+              "Ms D: explain the sphincter injury and why squeeze strength matters; manage stool consistency (soft-formed stools are easier to hold) with her physician's guidance on fiber, fluid and food triggers; train the external sphincter and pelvic floor with graded squeezes, endurance holds and urge-resistance practice, using biofeedback if her squeeze or sensation is poor; keep her obstetric or colorectal follow-up for the tear. Ms E, once medically cleared: a regular toileting routine, stool consistency management, skin care with barrier products, and sensory and pelvic floor retraining with biofeedback."
+            ),
+          ],
+        },
+      ],
+    },
+    // ----------------------------------------------------------------- Professional practice (+2)
+    {
+      slug: "pwcs-appraise-pfmt-trial",
+      objective: "Critical inquiry, clinical decision-making and evidence-based practice in pelvic health (the largest professional area at 8%)",
+      kind: "build",
+      title: "Appraise a trial of pelvic floor muscle training",
+      brief:
+        "A fictional journal article reports a randomized trial in 200 women with stress urinary incontinence. 100 received 12 weeks of supervised pelvic floor muscle training (PFMT); 100 received a leaflet only. At 12 weeks, 'cure' (no leakage on a 3-day bladder diary) was reached by 50 of 100 in the PFMT group and 20 of 100 in the leaflet group. Allocation was concealed; the person reading the diaries did not know the groups; 8 women in the PFMT group and 3 in the leaflet group were lost to follow-up and were counted as not cured. The trial recruited women aged 30 to 60 from a urogynecology clinic and excluded women with prolapse beyond stage II.",
+      safetyNote: CLINICAL_SAFETY,
+      steps: [
+        {
+          text: "",
+          ask: "Calculate the effect, judge the trial's validity, and decide whether it applies to a fictional 74-year-old in a rural clinic with stage III prolapse.",
+          parts: [
+            numericPart(
+              "Absolute risk reduction of still leaking (percentage points)",
+              "30 (50% cured minus 20% cured) is met; within 5 is partly there.",
+              "Cure 50% with PFMT and 20% with the leaflet: absolute difference 50 - 20 = 30 percentage points (equivalently, still leaking falls from 80% to 50%).",
+              { answer: 30, tolerance: 0.5, partialTolerance: 5, unit: "points" }
+            ),
+            numericPart(
+              "Number needed to treat",
+              "4 (1 / 0.30 = 3.3, rounded up) is met; 3.3 unrounded is partly there.",
+              "NNT = 1 / ARR = 1 / 0.30 = 3.3, rounded up to 4: about four women need supervised PFMT for one more to be cured than with a leaflet alone.",
+              { answer: 4, tolerance: 0, partialTolerance: 0.7 }
+            ),
+            part(
+              "Validity",
+              "Names the strengths (randomized with concealed allocation, blinded outcome assessment, an intention-to-treat style analysis counting dropouts as not cured, which is conservative) and the limits (participants could not be blinded to PFMT, a 3-day diary is a short outcome window, 12-week follow-up says nothing about long-term cure, more PFMT dropouts).",
+              "Strengths: randomized with concealed allocation (protects against selection bias); the diary reader was blinded; all randomized women were analyzed, with dropouts counted as not cured, which works against the PFMT group, so the effect is if anything understated. Limits: women knew whether they were exercising (no participant blinding); a 3-day diary can miss intermittent leakage; 12 weeks says nothing about whether cure lasts; the PFMT group lost more women (8 versus 3)."
+            ),
+            part(
+              "Applicability to the 74-year-old",
+              "Notes that she falls outside the trial's population (older than 60, stage III prolapse excluded, a rural rather than specialist clinic), so the size of benefit may differ, but that supervised PFMT remains a reasonable first-line option supported by guidelines (NICE: at least 3 months of supervised PFMT for stress incontinence), adapted to her prolapse and with her preferences, and that prolapse management (for example a pessary) is considered alongside.",
+              "She differs from the trial's sample: older than 60, stage III prolapse (excluded), seen in a rural clinic. The 30-point effect may not transfer directly. Still, guideline evidence (NICE recommends supervised PFMT for at least 3 months as first-line for stress incontinence) supports offering it, adapted to her, with her goals and preferences, while her prolapse is assessed and managed (for example a pessary fitting, which can change continence)."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "pwcs-pfmt-adherence-follow-up",
+      objective: "Address lack of motivation and inconsistent technique, the main barriers to sticking with pelvic floor muscle training, through education and follow-up",
+      kind: "case",
+      title: "Rescue a pelvic floor training program that has stalled",
+      brief:
+        "Ms F, a fictional 45-year-old teacher with stress urinary incontinence, began a supervised pelvic floor muscle training program six weeks ago. At her fourth visit she says the exercises 'aren't working', she does them 'when I remember, maybe twice a week', and she is thinking of giving up. Her bladder diary shows leakage about as often as at the start.",
+      safetyNote: CLINICAL_SAFETY,
+      steps: [
+        {
+          text: "She agrees to let you look at how she is doing the exercises today.",
+          ask: "What do you check first, and how?",
+          parts: [
+            part(
+              "Technique first",
+              "Rechecks technique before assuming the program fails (with consent: observation, palpation or biofeedback), looking for substitution with gluteals, adductors or abdominals, breath holding or bearing down instead of lifting, and inability to relax fully between contractions.",
+              "Before judging the program, check that she is doing the right contraction. With her consent, observe and palpate (or use biofeedback): is she squeezing and lifting the pelvic floor, or substituting with the buttocks, inner thighs or abdominals, holding her breath, or bearing down? Can she relax fully between contractions? Wrong technique is a common reason for 'no change'."
+            ),
+            part(
+              "Adherence",
+              "Explores the barriers non-judgmentally (forgetting, time, no feedback, doubts it works), and explains that effects build over months, which is why guidelines advise supervised training for at least 3 months, so six weeks at twice a week is not yet a fair test.",
+              "Ask openly what gets in the way: forgetting, time, not knowing if she is doing it right, doubt. Explain that strength and coordination build over months: NICE advises supervised training for at least 3 months as first-line care, so six weeks at twice a week has not yet tested it."
+            ),
+          ],
+        },
+        {
+          text: "On biofeedback she pushes down and contracts her buttocks; with cueing ('lift as if stopping wind, and let go') she produces a correct, weak contraction she can hold for 4 seconds. She says she would do the exercises if they fitted her school day.",
+          ask: "Rebuild the program so she can and will do it.",
+          parts: [
+            part(
+              "Program and follow-up",
+              "Re-teaches the correct contraction with biofeedback or a cue that works for her, sets a dosed progressive program starting from her current 4-second hold (slow holds and quick contractions, sets per day, progressing hold time and position), anchors sessions to daily routines (for example before class, at lunch, in the car), adds 'the knack' (contracting before a cough or lift), uses reminders, a simple log and the bladder diary to show progress, schedules close follow-up, and agrees what she will do if leakage does not improve after an adequate trial.",
+              "Teach the cue that worked ('lift as if stopping wind, then let go fully') and confirm it with biofeedback. Dose from where she is: slow holds of about 4 seconds with equal rest, repeated in short sets, plus quick contractions, several times a day, progressing hold time, repetitions and position (lying, sitting, standing, during activity). Fit it to her day: a set before first period, one at lunch, one at a red light. Add the knack: contract before coughing, sneezing or lifting. Use phone reminders and a tick log; repeat the bladder diary at the next review so she can see change. Review in two to three weeks, and agree what happens if leakage has not improved after at least 3 months of correct training (re-assessment and referral options)."
             ),
           ],
         },
