@@ -104,6 +104,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AWSCLF", "leaked-access-key"),
   entry("AWSDVA", "canary-rollback-dlq"),
   entry("AWSDVA", "phi-in-application-logs"),
+  entry("AWSSOA", "stack-update-rollback-failed"),
   // ---- end REQ-242 ----
 ];
 
