@@ -117,3 +117,13 @@ describe("FAIL-1563: CMPCBS units cited references that did not cover all their 
     }
   });
 });
+
+describe("REQ-245 (Nick, 2026-11-11): MSCS is for any learner, so its weeks are numbered, not dated", () => {
+  test("every unit is labeled Week 1..15 in order, with no calendar dates", () => {
+    assert.deepEqual(
+      MSCS_TRACK.units.map((u) => u.rangeLabel),
+      MSCS_TRACK.units.map((_, i) => `Week ${i + 1}`)
+    );
+    assert.doesNotMatch(MSCS_TRACK.curriculum?.version ?? "", /\b(Sept|Oct|Nov|Dec|20\d\d)\b/);
+  });
+});

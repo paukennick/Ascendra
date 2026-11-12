@@ -205,14 +205,16 @@ export const MSCS_TRACK: SeedTrack = {
   curriculum: {
     kind: "self_defined",
     name: "MSCS Foundations Coach 15-week bridge syllabus",
-    version: "15-week plan, Sept 15-Dec 28, 2026",
+    // REQ-245 (Nick, 2026-11-11): for any learner, so weeks are numbered,
+    // not dated (the units were labeled for one Sept 15-Dec 28, 2026 run).
+    version: "15-week plan",
     url: "https://github.com/paukennick/Ascendra/blob/master/backend/supabase/seed/data.ts",
     checkedAt: MSCS_CHECKED,
   },
   units: [
     {
       title: "Complexity & computational thinking",
-      rangeLabel: "Sept 15-21",
+      rangeLabel: "Week 1",
       gate: "Given unfamiliar short Python functions, estimate time and auxiliary-space complexity and justify each answer.",
       objectives: [
         "Define an algorithm and input size",
@@ -225,7 +227,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Core data structures",
-      rangeLabel: "Sept 22-28",
+      rangeLabel: "Week 2",
       gate: "Choose a data structure for a new problem, defend the choice, and explain the cost of rejected alternatives.",
       objectives: [
         "Explain arrays, linked lists, stacks, queues, deques, hash tables, sets, trees, heaps",
@@ -236,7 +238,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Discrete mathematics I",
-      rangeLabel: "Sept 29-Oct 5",
+      rangeLabel: "Week 3",
       gate: "Read symbolic notation, translate it into plain language, and construct a basic valid argument.",
       objectives: [
         "Propositions and predicates",
@@ -250,7 +252,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Sorting, recursion, and recurrences",
-      rangeLabel: "Oct 6-12",
+      rangeLabel: "Week 4",
       gate: "Choose an appropriate sorting approach for a stated constraint and explain average/worst-case behavior.",
       objectives: [
         "Trace recursion and identify base cases",
@@ -263,7 +265,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Graph foundations",
-      rangeLabel: "Oct 13-19",
+      rangeLabel: "Week 5",
       gate: "Select BFS or DFS for a new task and explain the result and complexity.",
       objectives: [
         "Vertices and edges",
@@ -276,7 +278,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Graph algorithms & design strategies",
-      rangeLabel: "Oct 20-26",
+      rangeLabel: "Week 6",
       gate: "Recognize whether an unfamiliar problem suggests traversal, greedy choice, divide and conquer, or dynamic programming, and defend the classification.",
       objectives: [
         "Shortest paths",
@@ -290,7 +292,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Computer architecture",
-      rangeLabel: "Oct 27-Nov 2",
+      rangeLabel: "Week 7",
       gate: "Explain how logic gates compose into arithmetic and stateful memory, then trace the conceptual path from a high-level instruction to machine execution and identify where the OS participates.",
       objectives: [
         "Binary and hex representation",
@@ -311,7 +313,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Operating systems",
-      rangeLabel: "Nov 3-9",
+      rangeLabel: "Week 8",
       gate: "Explain a process, system call, and context switch accurately, then diagnose a simple race condition or deadlock scenario and explain how synchronization changes correctness and performance.",
       objectives: [
         "Programs vs processes",
@@ -336,7 +338,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Databases and data systems",
-      rangeLabel: "Nov 10-16",
+      rangeLabel: "Week 9",
       gate: "Select an appropriate data model for a new use case and explain transactional, indexing, consistency, and operational tradeoffs.",
       objectives: [
         "Relational model",
@@ -354,7 +356,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Math & foundations for machine learning",
-      rangeLabel: "Nov 17-23",
+      rangeLabel: "Week 10",
       gate: "Explain the mathematical role of vectors, similarity, probability, and gradients in plain language and apply them to small examples.",
       objectives: [
         "Linear algebra: scalars/vectors/matrices, dot product, matrix multiplication, transpose, magnitude/distance, cosine similarity",
@@ -365,7 +367,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Cybersecurity I: cryptography & secure protocols",
-      rangeLabel: "Nov 24-30",
+      rangeLabel: "Week 11",
       gate: "Explain what a certificate chain actually proves, why hashing alone doesn't secure a password, and defend the choice of symmetric vs asymmetric encryption for a stated scenario.",
       objectives: [
         // REQ-245 (FAIL-1561): was "Symmetric vs asymmetric encryption, and
@@ -382,7 +384,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Cybersecurity II: network defense & threat modeling",
-      rangeLabel: "Dec 1-7",
+      rangeLabel: "Week 12",
       gate: "Threat-model an unfamiliar system and defend which controls matter most, using the vocabulary a security course expects.",
       objectives: [
         "TCP/IP layers and where common attacks target each one",
@@ -395,7 +397,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "HCI/UX: usability, interaction design & user research",
-      rangeLabel: "Dec 8-14",
+      rangeLabel: "Week 13",
       gate: "Apply the 10 heuristics to an unfamiliar interface without being told which ones are relevant and justify a concrete design change by name.",
       objectives: [
         "Nielsen's 10 usability heuristics",
@@ -412,7 +414,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Big data systems & data mining",
-      rangeLabel: "Dec 15-21",
+      rangeLabel: "Week 14",
       gate: "Explain why a MapReduce-shaped solution helps (or doesn't) for a stated problem, and distinguish 'data mining' from 'machine learning'.",
       objectives: [
         "What actually makes data 'big' (volume/velocity/variety) vs just large",
@@ -424,7 +426,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Final integration",
-      rangeLabel: "Dec 22-28",
+      rangeLabel: "Week 15",
       gate: "Defend the chosen architecture flow layer by layer -- 'AWS handles it' is never sufficient.",
       objectives: [
         "Integrate algorithms, data structures, OS, architecture, and database theory into one architecture flow",
