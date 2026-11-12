@@ -118,6 +118,15 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("SECAIPLUS", "agent-indirect-prompt-injection"),
   entry("SECAIPLUS", "rag-assistant-data-leak"),
   // ---- end REQ-238 ----
+  // ---- REQ-240 (bedside wave 2, nursing): LPN/VN, ADN-RN and BSN-RN
+  // baseline bedside cases, two each. Keep these entries together. ----
+  entry("LPNVN", "ltc-pressure-injury-infection"),
+  entry("LPNVN", "ltc-insulin-hypoglycemia"),
+  entry("ADNRN", "pca-oversedation-naloxone"),
+  entry("ADNRN", "heart-failure-pulmonary-edema"),
+  entry("BSNRN", "assisted-living-norovirus-outbreak"),
+  entry("BSNRN", "charge-nurse-short-staffed-shift"),
+  // ---- end REQ-240 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they

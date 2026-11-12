@@ -1,0 +1,1557 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "charge-nurse-short-staffed-shift",
+  "title": "Charge nurse, one nurse short",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Bed 2 HR",
+          "spokenLabel": "Bed 2, Mr. Ito, heart rate on telemetry",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              110,
+              120,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "spo2",
+          "label": "Bed 2 SpO2",
+          "spokenLabel": "Bed 2, Mr. Ito, oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              92,
+              90,
+              88
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "rr",
+          "label": "Bed 2 RR",
+          "spokenLabel": "Bed 2, Mr. Ito, respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 26
+          },
+          "announce": {
+            "bands": [
+              22,
+              26,
+              30
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Assignments made: {assigned|yesno}. Nursing assistant briefed: {not isNull(marcoAt)|yesno}. House supervisor called: {not isNull(supAt)|yesno}.",
+      "banner": [
+        {
+          "when": "objection and not resolved and not dismissed",
+          "text": "Priya is waiting for an answer about her assignment."
+        },
+        {
+          "when": "floatHere",
+          "text": "A float RN has arrived from the staffing office."
+        }
+      ]
+    }
+  },
+  "objective": "Know that nurse managers coordinate care, delegate and support staff's professional development",
+  "secondaryObjectives": [
+    "Delegate to team members by role and competence, keeping accountability for the delegated task",
+    "Conflict engagement and resolution within teams",
+    "Know that delegation is first set by organizational policy naming which tasks can go to which staff and in what situations"
+  ],
+  "sources": [
+    {
+      "cite": "AACN. The Essentials: Core Competencies for Professional Nursing Education (2026 edition, announced April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.aacnnursing.org/essentials",
+      "note": "Read 2026-11-11 (primary web page). The page describes the 2026 edition's targeted refinements to the 2021 Essentials; it does not list the domains by name, so the domain placement (Domain 10, leadership) is the course catalog's."
+    },
+    {
+      "cite": "ANA and NCSBN. National Guidelines for Nursing Delegation (effective 2019-04-01)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf",
+      "note": "Read 2026-11-11 (primary PDF, ANA copy). Delegation is allowing a delegatee to perform a specific nursing activity outside their traditional role; assignment is routine care within an authorized scope. Five rights: right task, right circumstance ('The health condition of the patient must be stable'), right person, right directions and communication (specific to the patient, the nurse and the delegatee), right supervision and evaluation. The licensed nurse cannot delegate activities that require clinical reasoning, nursing judgment or critical decision making; keeps overall accountability; must follow up with the delegatee and the patient and stay available; delegation decisions weigh the stability and predictability of the patient's condition."
+    },
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf",
+      "note": "Read 2026-11-11 (primary PDF). 'Delegate and supervise care of client provided by others (e.g., LPN/VN, assistive personnel, other RNs)'; 'Prioritize the delivery of client care based on acuity'; 'Organize workload to manage time effectively'."
+    },
+    {
+      "cite": "Ascendra BSN-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-11",
+      "note": "The objective and secondary objectives are the course's own titles (nurse managers coordinate care, delegate and support staff development; delegate by role and competence keeping accountability; conflict resolution within teams)."
+    }
+  ],
+  "brief": {
+    "situation": "07:00 on a medical-surgical unit. You are the charge nurse. One RN called in sick, so the day team is you, Priya (RN, 12 years), Sam (RN, new graduate, three weeks off orientation), Lena (LPN, floating from another unit) and Marco (nursing assistant). Make the assignments, then lead the shift.",
+    "handover": [
+      "Bed 2, Mr. Ito, 58, day 1 after a hip replacement: since 06:30 heart rate 112 and SpO2 91% on room air, newly anxious. Night shift was about to call the provider.",
+      "Bed 4, Mrs. Grant, 82, dementia, stable: bath, feeding help, vital signs every 4 hours. Bed 5, Mr. Lopez, 66, stable diabetes: scheduled medications and a simple dressing.",
+      "Bed 7: an admission from the emergency department at 07:30 (cellulitis, IV antibiotics). Bed 8, Ms. Ford: discharge at 09:00 with new anticoagulant teaching. Bed 9, Mr. Dunn: a unit of red cells due at 08:00; unit policy says only RNs hang blood, and Sam has never done it without his preceptor."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Assign, delegate with clear directions, then follow up: your team will come to you with problems as the morning goes on.",
+      "Partway through you are asked to write your reasoning. The case ends at 08:30, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "07:00",
+    "tick": "1s",
+    "maxDuration": "2h",
+    "calendar": "clock"
+  },
+  "params": {
+    "sevRise": {
+      "value": 0.007,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Mr. Ito's suspected pulmonary embolism worsens untreated: from 0.4 at 07:00 to collapse (1.0) about 86 min later. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sevFall": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Once treatment is under way he slowly stabilizes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "collapseSev": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Severity at which he collapses. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "priyaTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Priya, assigned Bed 2 first, is assessing him within about 10 min."
+      }
+    },
+    "samTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Sam, new to the unit's flow, gets to Bed 2 about 25 min in."
+      }
+    },
+    "lenaTime": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Lena collects data and reports it; an RN assesses him about 45 min in."
+      }
+    },
+    "ordersTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Rapid response and the provider: orders for imaging and treatment about 15 min after the RN's assessment."
+      }
+    },
+    "assessWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "ANA and NCSBN. National Guidelines for Nursing Delegation (2019)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf",
+        "note": "Read 2026-11-11. Right circumstance: the patient's condition must be stable to delegate; an unstable client stays with an RN. FLAG: the 15-minute window for his RN assessment is this case's."
+      }
+    },
+    "supTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The house supervisor finds a float RN: about 30 min."
+      }
+    },
+    "supWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Authored: the staffing gap raised with the house supervisor within 15 min."
+      }
+    },
+    "objectAt": {
+      "value": 2100,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "07:35: Priya comes to you about her assignment if it is unsafe."
+      }
+    },
+    "bloodAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "07:45: the blood for Bed 9 is ready at the blood bank."
+      }
+    },
+    "followFrom": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "ANA and NCSBN. National Guidelines for Nursing Delegation (2019)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf",
+        "note": "Read 2026-11-11. Right supervision and evaluation: the licensed nurse follows up with the delegatee and the patient. FLAG: the case counts a follow-up from 07:30 on."
+      }
+    },
+    "reviewAt": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 08:30."
+      }
+    }
+  },
+  "state": {
+    "sev": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "assigned": {
+      "type": "bool",
+      "init": false
+    },
+    "itoTo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "priya",
+        "sam",
+        "lena"
+      ],
+      "init": "none"
+    },
+    "admitTo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "priya",
+        "sam",
+        "me"
+      ],
+      "init": "none"
+    },
+    "dunnTo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "priya",
+        "sam",
+        "lena"
+      ],
+      "init": "none"
+    },
+    "itoAssessAt": {
+      "type": "time",
+      "init": null
+    },
+    "itoOrdersAt": {
+      "type": "time",
+      "init": null
+    },
+    "chargeSawIto": {
+      "type": "bool",
+      "init": false
+    },
+    "marcoAt": {
+      "type": "time",
+      "init": null
+    },
+    "marcoHow": {
+      "type": "enum",
+      "values": [
+        "none",
+        "clear",
+        "assess",
+        "vague"
+      ],
+      "init": "none"
+    },
+    "followAt": {
+      "type": "time",
+      "init": null
+    },
+    "supAt": {
+      "type": "time",
+      "init": null
+    },
+    "floatHere": {
+      "type": "bool",
+      "init": false
+    },
+    "objection": {
+      "type": "bool",
+      "init": false
+    },
+    "resolved": {
+      "type": "bool",
+      "init": false
+    },
+    "dismissed": {
+      "type": "bool",
+      "init": false
+    },
+    "samAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "samHow": {
+      "type": "enum",
+      "values": [
+        "none",
+        "pair",
+        "alone",
+        "take"
+      ],
+      "init": "none"
+    },
+    "lenaAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "bloodMoved": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "treating": {
+      "expr": "not isNull(itoOrdersAt)"
+    },
+    "hr": {
+      "expr": "round(clamp(96 + 40 * sev + 2 * sin(t / 31), 50, 180))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(95 - 9 * sev, 70, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(16 + 14 * sev)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "itoRn": {
+      "expr": "itoTo == \"priya\" or chargeSawIto"
+    },
+    "bloodOk": {
+      "expr": "dunnTo == \"priya\" or (dunnTo == \"sam\" and samHow == \"pair\")"
+    }
+  },
+  "processes": [
+    {
+      "id": "ito",
+      "update": {
+        "sev": "max(0.1, treating ? sev - sevFall * dt / 60 : sev + sevRise * dt / 60)"
+      }
+    }
+  ],
+  "phases": {
+    "shift": {
+      "label": "The shift",
+      "clock": "running",
+      "actions": [
+        "assign",
+        "seeIto",
+        "briefMarco",
+        "followUp",
+        "callSup",
+        "rebalance",
+        "dismiss",
+        "supportSam",
+        "moveBlood"
+      ]
+    }
+  },
+  "initialPhase": "shift",
+  "actions": {
+    "assign": {
+      "label": "Make the assignments",
+      "group": "Assign",
+      "available": "not assigned",
+      "why": "Assignments are made.",
+      "params": [
+        {
+          "id": "plan",
+          "kind": "form",
+          "label": "Assignments",
+          "fields": [
+            {
+              "id": "ito",
+              "label": "Bed 2, Mr. Ito (HR 112, SpO2 91%, new anxiety)",
+              "options": [
+                {
+                  "value": "priya",
+                  "label": "Priya (RN, 12 years)"
+                },
+                {
+                  "value": "sam",
+                  "label": "Sam (new graduate RN)"
+                },
+                {
+                  "value": "lena",
+                  "label": "Lena (float LPN)"
+                }
+              ]
+            },
+            {
+              "id": "admit",
+              "label": "Bed 7, the 07:30 admission",
+              "options": [
+                {
+                  "value": "priya",
+                  "label": "Priya"
+                },
+                {
+                  "value": "sam",
+                  "label": "Sam"
+                },
+                {
+                  "value": "me",
+                  "label": "Me, the charge nurse"
+                }
+              ]
+            },
+            {
+              "id": "dunn",
+              "label": "Bed 9, Mr. Dunn's 08:00 transfusion",
+              "options": [
+                {
+                  "value": "priya",
+                  "label": "Priya"
+                },
+                {
+                  "value": "sam",
+                  "label": "Sam"
+                },
+                {
+                  "value": "lena",
+                  "label": "Lena"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "assigned",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "ito == \"priya\"",
+              "then": [
+                {
+                  "set": "itoTo",
+                  "to": "\"priya\""
+                },
+                {
+                  "schedule": "itoT",
+                  "after": "priyaTime"
+                }
+              ]
+            },
+            {
+              "when": "ito == \"sam\"",
+              "then": [
+                {
+                  "set": "itoTo",
+                  "to": "\"sam\""
+                },
+                {
+                  "schedule": "itoT",
+                  "after": "samTime"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "itoTo",
+                  "to": "\"lena\""
+                },
+                {
+                  "schedule": "itoT",
+                  "after": "lenaTime"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "admit == \"priya\"",
+              "then": [
+                {
+                  "set": "admitTo",
+                  "to": "\"priya\""
+                }
+              ]
+            },
+            {
+              "when": "admit == \"sam\"",
+              "then": [
+                {
+                  "set": "admitTo",
+                  "to": "\"sam\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "admitTo",
+                  "to": "\"me\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "dunn == \"priya\"",
+              "then": [
+                {
+                  "set": "dunnTo",
+                  "to": "\"priya\""
+                }
+              ]
+            },
+            {
+              "when": "dunn == \"sam\"",
+              "then": [
+                {
+                  "set": "dunnTo",
+                  "to": "\"sam\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dunnTo",
+                  "to": "\"lena\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Assignments posted. Beds 4, 5 and 8 go to the nurses with the lighter loads; Lena takes Bed 5's medications and dressing."
+        }
+      ]
+    },
+    "seeIto": {
+      "label": "Go to Bed 2 yourself and assess Mr. Ito",
+      "group": "Lead",
+      "available": "isNull(itoAssessAt)",
+      "why": "An RN has already assessed him.",
+      "effects": [
+        {
+          "set": "chargeSawIto",
+          "to": "true"
+        },
+        {
+          "if": "isNull(itoAssessAt)",
+          "then": [
+            {
+              "set": "itoAssessAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cancel": "itoT"
+        },
+        {
+          "schedule": "ordersT",
+          "after": "ordersTime"
+        },
+        {
+          "log": "Bed 2: short of breath, pleuritic chest pain, HR {hr}, SpO2 {spo2}%, calf swollen. You call the rapid response team and the provider: possible pulmonary embolism.",
+          "kind": "good"
+        }
+      ]
+    },
+    "briefMarco": {
+      "label": "Delegate to Marco, the nursing assistant",
+      "group": "Delegate",
+      "available": "isNull(marcoAt)",
+      "why": "Already briefed.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Directions",
+          "options": [
+            {
+              "value": "clear",
+              "label": "Vital signs, bath and breakfast set-up for Beds 4 and 5; tell the assigned nurse at once if SBP is under 100, HR over 110, SpO2 under 92% or anyone seems different"
+            },
+            {
+              "value": "assess",
+              "label": "Check on Bed 2 for me and let me know if he looks okay"
+            },
+            {
+              "value": "vague",
+              "label": "Help out with Mrs. Grant and whoever else needs it"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(marcoAt)",
+          "then": [
+            {
+              "set": "marcoAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"clear\"",
+              "then": [
+                {
+                  "set": "marcoHow",
+                  "to": "\"clear\""
+                },
+                {
+                  "log": "Marco repeats back the tasks and the numbers to report."
+                }
+              ]
+            },
+            {
+              "when": "how == \"assess\"",
+              "then": [
+                {
+                  "set": "marcoHow",
+                  "to": "\"assess\""
+                },
+                {
+                  "log": "Marco heads to Bed 2.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "marcoHow",
+                  "to": "\"vague\""
+                },
+                {
+                  "log": "Marco: \"Sure.\" He isn't sure what to start with, or what to report.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "followUp": {
+      "label": "Check in with Marco and the nurses: tasks done, values out of range, anything new",
+      "group": "Lead",
+      "available": "not isNull(marcoAt)",
+      "why": "Delegate first.",
+      "effects": [
+        {
+          "if": "t >= followFrom",
+          "then": [
+            {
+              "if": "isNull(followAt)",
+              "then": [
+                {
+                  "set": "followAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "marcoHow == \"clear\"",
+              "then": [
+                {
+                  "log": "Marco: Beds 4 and 5 bathed and fed, vital signs within the limits; he reported Mrs. Grant's low intake to her nurse.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Marco: \"I've been helping where I could.\" Mrs. Grant's vital signs haven't been done.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "callSup": {
+      "label": "Call the house supervisor about the sick call",
+      "group": "Lead",
+      "available": "isNull(supAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "if": "isNull(supAt)",
+          "then": [
+            {
+              "set": "supAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "supT",
+          "after": "supTime"
+        },
+        {
+          "log": "House supervisor: \"I'll find you someone from the float pool.\""
+        }
+      ]
+    },
+    "rebalance": {
+      "label": "Rebalance Priya's assignment",
+      "group": "Lead",
+      "available": "objection and not resolved",
+      "why": "Nothing to rebalance yet.",
+      "params": [
+        {
+          "id": "to",
+          "kind": "choice",
+          "label": "Who takes the admission",
+          "options": [
+            {
+              "value": "me",
+              "label": "I'll take the admission myself"
+            },
+            {
+              "value": "sam",
+              "label": "Move it to Sam, with you available to him"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "resolved",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "to == \"me\"",
+              "then": [
+                {
+                  "set": "admitTo",
+                  "to": "\"me\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "admitTo",
+                  "to": "\"sam\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "You listen, agree it's too much with Bed 2 unstable, and move the admission. Priya: \"Thank you.\"",
+          "kind": "good"
+        }
+      ]
+    },
+    "dismiss": {
+      "label": "Tell Priya everyone is busy and to do her best",
+      "group": "Lead",
+      "available": "objection and not resolved and not dismissed",
+      "why": "Nothing to answer.",
+      "effects": [
+        {
+          "set": "dismissed",
+          "to": "true"
+        },
+        {
+          "log": "Priya goes back to work, angry and stretched between an unstable client and an admission.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "supportSam": {
+      "label": "Answer Sam about the transfusion",
+      "group": "Develop",
+      "available": "samAsked and samHow == \"none\"",
+      "why": "Nothing to answer.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Answer",
+          "options": [
+            {
+              "value": "pair",
+              "label": "Do it with Priya for the two-person check and the first 15 minutes; I'm available, and we'll talk it through after"
+            },
+            {
+              "value": "alone",
+              "label": "It's all in the policy; you'll be fine"
+            },
+            {
+              "value": "take",
+              "label": "Don't worry, I'll do it for you"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "how == \"pair\"",
+              "then": [
+                {
+                  "set": "samHow",
+                  "to": "\"pair\""
+                },
+                {
+                  "log": "Sam and Priya check the unit together at the bedside; Sam starts it and stays for the first 15 minutes.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "how == \"alone\"",
+              "then": [
+                {
+                  "set": "samHow",
+                  "to": "\"alone\""
+                },
+                {
+                  "log": "Sam starts the blood alone, unsure of the checks.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "samHow",
+                  "to": "\"take\""
+                },
+                {
+                  "log": "You hang it yourself. Mr. Dunn is safe; Sam is no closer to doing it.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "moveBlood": {
+      "label": "Move Bed 9's transfusion to an RN",
+      "group": "Lead",
+      "available": "lenaAsked and not bloodMoved",
+      "why": "Nothing to move.",
+      "effects": [
+        {
+          "set": "bloodMoved",
+          "to": "true"
+        },
+        {
+          "log": "You reassign the transfusion to Priya; Lena takes over Bed 8's morning medications."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "itoT": {
+      "label": "an RN at Bed 2",
+      "wait": {
+        "skipLabel": "an RN's assessment of Bed 2"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Depends on who has him: about 10, 25 or 45 min."
+      },
+      "effects": [
+        {
+          "if": "isNull(itoAssessAt)",
+          "then": [
+            {
+              "set": "itoAssessAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "ordersT",
+          "after": "ordersTime"
+        },
+        {
+          "cases": [
+            {
+              "when": "itoTo == \"lena\"",
+              "then": [
+                {
+                  "log": "Lena reports Bed 2's vital signs to you; an RN finally assesses him: possible pulmonary embolism.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Bed 2's nurse assesses him: pleuritic chest pain, swollen calf. Rapid response and the provider called: possible pulmonary embolism.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ordersT": {
+      "label": "Bed 2's orders",
+      "wait": {
+        "skipLabel": "the provider's orders for Bed 2 (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 15 min."
+      },
+      "effects": [
+        {
+          "if": "isNull(itoOrdersAt)",
+          "then": [
+            {
+              "set": "itoOrdersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Bed 2: CT angiography ordered and anticoagulation started; he is on continuous monitoring.",
+          "kind": "good"
+        }
+      ]
+    },
+    "supT": {
+      "label": "the float RN",
+      "wait": {
+        "skipLabel": "the float RN (about 30 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 30 min."
+      },
+      "effects": [
+        {
+          "set": "floatHere",
+          "to": "true"
+        },
+        {
+          "log": "A float RN arrives and takes Beds 4 and 8.",
+          "kind": "good"
+        }
+      ]
+    },
+    "endT": {
+      "label": "08:30",
+      "wait": {
+        "skipLabel": "08:30, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Medical-surgical unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 08:30."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "marcoBed2",
+      "when": "marcoHow == \"assess\" and t >= 1200",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Marco: \"Bed 2 says he's fine, just nervous.\" An assistant's impression is not an assessment.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "objects",
+      "when": "itoTo == \"priya\" and admitTo == \"priya\" and t >= objectAt",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "objection",
+          "to": "true"
+        },
+        {
+          "log": "Priya: \"Bed 2 is unstable and you've given me the admission too. I can't do both safely.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "samAsks",
+      "when": "dunnTo == \"sam\" and t >= bloodAt",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "samAsked",
+          "to": "true"
+        },
+        {
+          "log": "Sam: \"The blood for Bed 9 is ready. I've never hung it without my preceptor.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "lenaAsks",
+      "when": "dunnTo == \"lena\" and t >= bloodAt",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lenaAsked",
+          "to": "true"
+        },
+        {
+          "log": "Lena: \"Policy here says only RNs hang blood. Who should take Bed 9?\"",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "lead": {
+      "trigger": "t >= 900",
+      "question": "Explain your assignments and delegation: who has the unstable client and why, what you delegated with what directions, how you supported your team, and who stays accountable.",
+      "parts": [
+        {
+          "label": "Assignment and delegation",
+          "criteria": "Gives the unstable, unpredictable client (Bed 2) to the experienced RN or assesses him personally, never to the LPN or assistant; keeps assessment, teaching and transfusion with RNs as policy requires; delegates routine, stable tasks to the assistant with specific directions and report limits; names the five rights; states that the delegating nurse stays accountable and follows up.",
+          "modelAnswer": "Mr. Ito is unstable and unpredictable, so he goes to Priya, who sees him first, or I assess him myself; he is not delegated or assigned to the LPN, and Marco does not 'check on him'. Marco gets stable, routine tasks for Beds 4 and 5 with exact numbers to report at once. Lena takes Bed 5's medications and dressing within her scope; blood stays with RNs per policy. I stay accountable for what I delegate, so I check back with Marco and the nurses."
+        },
+        {
+          "label": "Leading the team",
+          "criteria": "Raises the staffing gap with the house supervisor early; listens to the RN's safety concern and rebalances instead of dismissing it; develops the new graduate by pairing him for the transfusion rather than leaving him alone or taking it over.",
+          "modelAnswer": "The sick call goes to the house supervisor at 07:00. If Priya says her load is unsafe, I listen and move the admission to myself. Sam has never hung blood alone, so he does it with Priya for the check and the first 15 minutes and we debrief after: safe for Mr. Dunn and a step forward for Sam."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and isNull(itoOrdersAt)",
+      "class": "harm",
+      "rationale": "If the unstable client still has no treatment at 08:30, the assignment left a likely pulmonary embolism unassessed for an hour and a half; this case calls it harm.",
+      "source": {
+        "cite": "ANA and NCSBN. National Guidelines for Nursing Delegation (effective 2019-04-01)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf",
+        "note": "Read 2026-11-11 (primary PDF, ANA copy). Delegation is allowing a delegatee to perform a specific nursing activity outside their traditional role; assignment is routine care within an authorized scope. Five rights: right task, right circumstance ('The health condition of the patient must be stable'), right person, right directions and communication (specific to the patient, the nurse and the delegatee), right supervision and evaluation. The licensed nurse cannot delegate activities that require clinical reasoning, nursing judgment or critical decision making; keeps overall accountability; must follow up with the delegatee and the patient and stay available; delegation decisions weigh the stability and predictability of the patient's condition."
+      }
+    }
+  },
+  "endings": {
+    "collapse": {
+      "label": "Bed 2 collapses",
+      "class": "harm",
+      "when": "sev >= collapseSev",
+      "terminal": true,
+      "narrative": "Mr. Ito collapses, SpO2 {spo2}%; a code is called. The unstable client was not seen by an RN in time."
+    },
+    "ledWell": {
+      "label": "A safe shift: right person, right task, a team supported",
+      "class": "target",
+      "when": "t >= reviewAt and not isNull(itoOrdersAt) and itoRn and timeAt(itoAssessAt) <= assessWindow and marcoHow == \"clear\" and bloodOk and not dismissed and (not objection or resolved) and not isNull(supAt)",
+      "terminal": true,
+      "narrative": "08:30: Bed 2 is being treated for a likely pulmonary embolism, the transfusion is running safely, and your team knows what it is doing. You matched people to tasks, delegated with clear directions, and listened when it was too much."
+    },
+    "ledLate": {
+      "label": "Through the morning, by a slower route",
+      "class": "recovered",
+      "when": "t >= reviewAt",
+      "terminal": true,
+      "narrative": "08:30: Bed 2 is being treated and the work is getting done, but the route cost time or safety: the unstable client with the wrong person, vague or wrong delegation, blood with the wrong nurse, a new graduate left alone, a safety concern brushed off, or no call for help with staffing."
+    },
+    "time_up": {
+      "label": "09:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "09:00."
+    }
+  },
+  "endingOrder": [
+    "collapse",
+    "ledWell",
+    "ledLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "unstable",
+        "label": "The unstable client went to an RN at once",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(itoAssessAt)",
+            "score": "missed",
+            "why": "No RN assessed Bed 2."
+          },
+          {
+            "when": "itoRn and timeAt(itoAssessAt) <= assessWindow",
+            "score": "met",
+            "why": "Bed 2 was assessed by an RN at {timeAt(itoAssessAt)|clock}."
+          },
+          {
+            "when": "itoTo == \"lena\" and not chargeSawIto",
+            "score": "missed",
+            "why": "The unstable client was assigned to the LPN; his assessment came at {timeAt(itoAssessAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Bed 2 reached an RN at {timeAt(itoAssessAt)|clock}, after 15 minutes."
+          }
+        ]
+      },
+      {
+        "id": "delegate",
+        "label": "Delegated to the assistant with specific directions",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "marcoHow == \"assess\"",
+            "score": "missed",
+            "why": "Asked the assistant to judge whether an unstable client was okay: assessment is not delegable."
+          },
+          {
+            "when": "marcoHow == \"clear\"",
+            "score": "met",
+            "why": "Specific tasks for stable clients with the values to report at once."
+          },
+          {
+            "when": "marcoHow == \"vague\"",
+            "score": "partial",
+            "why": "Delegated, but with no specific tasks or report limits."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The assistant was never given his work."
+          }
+        ]
+      },
+      {
+        "id": "rightPerson",
+        "label": "Matched the transfusion to scope and competence",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dunnTo == \"sam\" and samHow == \"alone\"",
+            "score": "missed",
+            "why": "A new graduate left to hang blood alone after he said he never had."
+          },
+          {
+            "when": "dunnTo == \"lena\" and not bloodMoved",
+            "score": "missed",
+            "why": "The transfusion stayed with the LPN against unit policy."
+          },
+          {
+            "when": "bloodOk",
+            "score": "met",
+            "why": "Blood with an RN who could do it safely."
+          },
+          {
+            "when": "bloodMoved",
+            "score": "partial",
+            "why": "Moved to an RN only after the LPN raised the policy."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Safe for Mr. Dunn, but done by reassigning or taking it over rather than by a match from the start."
+          }
+        ]
+      },
+      {
+        "id": "team",
+        "label": "Listened to a safety concern and got help",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dismissed",
+            "score": "missed",
+            "why": "Brushed off an RN's concern that her assignment was unsafe."
+          },
+          {
+            "when": "objection and not resolved",
+            "score": "missed",
+            "why": "Never answered the RN's concern about her assignment."
+          },
+          {
+            "when": "isNull(supAt)",
+            "score": "partial",
+            "why": "No unresolved concern, but the staffing gap never went to the house supervisor."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Concerns answered and the staffing gap raised with the house supervisor."
+          }
+        ]
+      },
+      {
+        "id": "supervisor",
+        "label": "Raised the staffing gap early",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(supAt) and timeAt(supAt) <= supWindow",
+            "score": "met",
+            "why": "House supervisor called at {timeAt(supAt)|clock}."
+          },
+          {
+            "when": "not isNull(supAt)",
+            "score": "partial",
+            "why": "Called after 15 minutes."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The house supervisor never heard about the sick call."
+          }
+        ]
+      },
+      {
+        "id": "follow",
+        "label": "Followed up on what was delegated",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(followAt)",
+            "score": "met",
+            "why": "Checked back with the team after 07:30."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked back on the delegated work."
+          }
+        ]
+      },
+      {
+        "id": "develop",
+        "label": "Supported the new graduate's growth",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "samHow == \"pair\"",
+            "score": "met",
+            "why": "Paired him with an experienced RN and offered a debrief."
+          },
+          {
+            "when": "samHow == \"take\"",
+            "score": "partial",
+            "why": "Safe, but took the skill away from him."
+          },
+          {
+            "when": "samHow == \"alone\"",
+            "score": "missed",
+            "why": "Left him to manage alone."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "Sam had no transfusion to ask about."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "lead",
+        "label": "Written reasoning: assignment, delegation and leading the team",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toIto",
+        "label": "07:00 to an RN at Bed 2",
+        "value": "isNull(itoAssessAt) ? -1 : timeAt(itoAssessAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "toSup",
+        "label": "07:00 to the house supervisor",
+        "value": "isNull(supAt) ? -1 : timeAt(supAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "toTreat",
+        "label": "07:00 to Bed 2's treatment",
+        "value": "isNull(itoOrdersAt) ? -1 : timeAt(itoOrdersAt)",
+        "format": "duration",
+        "expert": "under 30 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "07:00",
+        "text": "Assign Bed 2 to Priya (he is unstable: she sees him first), the admission to yourself, Bed 9's blood to Sam with support. Call the house supervisor about the sick call."
+      },
+      {
+        "at": "07:01",
+        "text": "Marco: vital signs, baths and breakfast for Beds 4 and 5, with the exact values to report at once. Lena: Bed 5's medications and dressing."
+      },
+      {
+        "at": "~07:10",
+        "text": "Priya at Bed 2: possible pulmonary embolism; rapid response and the provider. Orders by about 07:25."
+      },
+      {
+        "at": "07:30-07:45",
+        "text": "Check back with Marco and the nurses. When Sam says he has never hung blood alone, pair him with Priya and debrief after."
+      }
+    ],
+    "debrief": {
+      "collapse": {
+        "headline": "The unstable client collapsed",
+        "body": "Find who had Bed 2, how long it took an RN to reach him, and whether anyone was asked to 'check on him' who could not assess. An unstable client stays with an RN who sees him first: the right circumstance for delegation is a stable client."
+      },
+      "ledWell": {
+        "headline": "Right person, right task, a team that knew what to do",
+        "body": "The unstable client with an experienced RN, routine work delegated with specific directions, blood with an RN and the new graduate supported, a concern heard, help asked for, and follow-up. That is the expert path."
+      },
+      "ledLate": {
+        "headline": "Through the morning, by a slower route",
+        "body": "Bed 2 is treated, but check who had him and how fast an RN arrived, what Marco was told, who hung the blood, how Sam and Priya were answered, and whether the staffing office heard."
+      },
+      "time_up": {
+        "headline": "09:00",
+        "body": "The case ran to its hard stop."
+      }
+    },
+    "modelReasoning": "A charge nurse coordinates care, delegates and develops the team. The unstable, unpredictable client (Bed 2: tachycardic, hypoxic, newly anxious after surgery) goes to the experienced RN, who sees him first, or the charge nurse assesses him; he is not assigned to the LPN, and the assistant is never asked to judge whether he is okay, because assessment and clinical judgment cannot be delegated (right circumstance, right task). Routine care of stable clients goes to the assistant with specific directions and the values to report at once (right directions and communication), and the charge nurse follows up (right supervision and evaluation), staying accountable. Unit policy keeps blood with RNs; the new graduate who has never hung blood alone is paired with an experienced RN and debriefed (right person, professional development). When an RN says her load is unsafe, listen and rebalance; and raise the sick call with the house supervisor early."
+  },
+  "chapters": [
+    {
+      "id": "posted",
+      "label": "Assignments posted",
+      "when": "assigned"
+    }
+  ],
+  "teaching": {
+    "fiveRights": {
+      "during": "itoT",
+      "ask": "While Bed 2 waits for an RN: which right does giving an unstable client to an assistant or LPN most clearly break?",
+      "choices": [
+        {
+          "id": "circumstance",
+          "label": "Right circumstance: the client's condition must be stable"
+        },
+        {
+          "id": "supervision",
+          "label": "Right supervision"
+        },
+        {
+          "id": "none",
+          "label": "None, if the delegatee is willing"
+        }
+      ],
+      "expect": "circumstance",
+      "explain": "The national guidelines' right circumstance says the patient's health condition must be stable, and delegation decisions weigh how stable and predictable the condition is. Assessment and judgment stay with the licensed nurse.",
+      "source": {
+        "cite": "ANA and NCSBN. National Guidelines for Nursing Delegation (effective 2019-04-01)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf",
+        "note": "Read 2026-11-11 (primary PDF, ANA copy). Delegation is allowing a delegatee to perform a specific nursing activity outside their traditional role; assignment is routine care within an authorized scope. Five rights: right task, right circumstance ('The health condition of the patient must be stable'), right person, right directions and communication (specific to the patient, the nurse and the delegatee), right supervision and evaluation. The licensed nurse cannot delegate activities that require clinical reasoning, nursing judgment or critical decision making; keeps overall accountability; must follow up with the delegatee and the patient and stay available; delegation decisions weigh the stability and predictability of the patient's condition."
+      }
+    },
+    "accountable": {
+      "during": "supT",
+      "ask": "While the float nurse is found: once Marco takes Mrs. Grant's vital signs, who is accountable for them?",
+      "choices": [
+        {
+          "id": "nurse",
+          "label": "The nurse who delegated them, who must follow up"
+        },
+        {
+          "id": "marco",
+          "label": "Marco alone"
+        },
+        {
+          "id": "sup",
+          "label": "The house supervisor"
+        }
+      ],
+      "expect": "nurse",
+      "explain": "The delegatee is responsible for the task, but the delegating nurse keeps overall accountability for the patient and must follow up with the delegatee and the patient.",
+      "source": {
+        "cite": "ANA and NCSBN. National Guidelines for Nursing Delegation (effective 2019-04-01)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf",
+        "note": "Read 2026-11-11 (primary PDF, ANA copy). Delegation is allowing a delegatee to perform a specific nursing activity outside their traditional role; assignment is routine care within an authorized scope. Five rights: right task, right circumstance ('The health condition of the patient must be stable'), right person, right directions and communication (specific to the patient, the nurse and the delegatee), right supervision and evaluation. The licensed nurse cannot delegate activities that require clinical reasoning, nursing judgment or critical decision making; keeps overall accountability; must follow up with the delegatee and the patient and stay available; delegation decisions weigh the stability and predictability of the patient's condition."
+      }
+    },
+    "notDelegable": {
+      "during": "ordersT",
+      "ask": "While Bed 2's orders come: which of these can never be delegated to the assistant?",
+      "choices": [
+        {
+          "id": "judge",
+          "label": "Deciding whether a client's new symptoms are serious"
+        },
+        {
+          "id": "vitals",
+          "label": "Vital signs on a stable client"
+        },
+        {
+          "id": "bath",
+          "label": "A bed bath"
+        }
+      ],
+      "expect": "judge",
+      "explain": "The licensed nurse cannot delegate any activity that requires clinical reasoning, nursing judgment or critical decision making.",
+      "source": {
+        "cite": "ANA and NCSBN. National Guidelines for Nursing Delegation (effective 2019-04-01)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf",
+        "note": "Read 2026-11-11 (primary PDF, ANA copy). Delegation is allowing a delegatee to perform a specific nursing activity outside their traditional role; assignment is routine care within an authorized scope. Five rights: right task, right circumstance ('The health condition of the patient must be stable'), right person, right directions and communication (specific to the patient, the nurse and the delegatee), right supervision and evaluation. The licensed nurse cannot delegate activities that require clinical reasoning, nursing judgment or critical decision making; keeps overall accountability; must follow up with the delegatee and the patient and stay available; delegation decisions weigh the stability and predictability of the patient's condition."
+      }
+    }
+  }
+}
