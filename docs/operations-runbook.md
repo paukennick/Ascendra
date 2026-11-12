@@ -589,6 +589,16 @@ batches because the practice questions are written from the teaching text:
    (`styleFindingKinds`); `problemKinds` is the problems of lessons that failed.
    Before REQ-248 any style finding failed the lesson outright (the
    2026-11-12 trial: 21 of 25 practice halves, FAIL-1600).
+6. REQ-251: to measure answer-choice style offline (no model, no database),
+   score a trial's drafts or an export of stored lessons with
+   `cd backend && npm run items:style -- <file-or-dir> [...] [--json] [--label <text>]`.
+   It finds practice halves (camelCase or `lesson_content` snake_case) and
+   quiz items anywhere in .json/.jsonl files and prints counts only: items
+   with each kind of style finding, flagged cue words, and how often the right
+   answer is the longest option. Export stored lessons read-only, for example
+   `psql "$DATABASE_URL" -At -c "select json_agg(t) from (select fade_problem, fade_choices, fade_correct_index, solo_check, solo_choices, solo_correct_index from lesson_content where generated_at > '<trial start>') t" > lessons.json`.
+   Stored lessons are what was served (after the retry); first-draft rates
+   need the drafts themselves.
 
 Left out always: retired objectives and units, hidden courses (`hidden_at`
 passed), private courses, authored lessons, and any objective that already has

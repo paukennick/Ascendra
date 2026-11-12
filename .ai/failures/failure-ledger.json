@@ -16757,6 +16757,89 @@
       ],
       "prevention_notes": "the bound names every call a lesson can make",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1660",
+      "date": "2026-11-12",
+      "title": "Length lint flagged a key that was not the longest option",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "distractorProblems reported 'the right answer is much longer than the other options' when a distractor was as long as or longer than the key, because one very short distractor pulled the mean down (e.g. key 37 chars, distractors 50, 7, 10)",
+      "how_detected": "review of the length check (REQ-251 item 3)",
+      "root_cause": "the check compared the key only with the MEAN distractor length; the cue it targets (REQ-187: the longest option is the answer) needs the key to be the longest option",
+      "requirement": "REQ-251",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "the length finding now also requires the key to be longer than every distractor; thresholds unchanged",
+      "fix_commits": [
+        "1933a07"
+      ],
+      "regression_tests": [
+        "backend/lib/item-writing-quality.test.ts::FAIL-1660"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "tests pin the exemption and that a key longer than every distractor and over the limit is still flagged",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1661",
+      "date": "2026-11-12",
+      "title": "Cue-word lint flagged 'every' in a stated interval",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "a wrong option such as 'Repeat the set every 2 hours' or 'Stretch every other day' (DPT, nursing and backup schedules) was reported as using the absolute word every",
+      "how_detected": "review of the cue-word list against the DPT trial's domain (REQ-251 item 3)",
+      "root_cause": "the lint matched the word alone; in a frequency ('every N hours') every states a schedule, not an absolute claim",
+      "requirement": "REQ-251",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "cueWords ignores every when a time unit follows, optionally after a number, 'other', 'few' or a range; every user/case and other cues in the same option are still caught",
+      "fix_commits": [
+        "1933a07"
+      ],
+      "regression_tests": [
+        "backend/lib/item-writing-quality.test.ts::FAIL-1661"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "tests pin both the exemption and the cases that stay caught",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1662",
+      "date": "2026-11-12",
+      "title": "Item-writing rules did not state the lint's thresholds or full cue list",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "2026-11-12 pre-generation trial: 22 of 25 first practice drafts had style findings (12 solo and 9 guided keys much longer, 12 guided and 12 solo cue words); 15 of 25 still had them after the steered retry and were served",
+      "how_detected": "pre-generation trial 2026-11-12 (REQ-247 problem kinds)",
+      "root_cause": "the prompt said 'parallel in length' and 'never the longest' with no number while the lint checks 1.25x the mean or +8 characters; it named four of the eight cue words the lint checks; each question must also work as free response, so the key was written as a qualified model answer with nowhere else to put the qualifications (stored 2026-11-09 sample: key longest in 45 of 64 option sets); the option-field schema description said only 'similar in length'; the retry steer said 'make the options parallel' with no target",
+      "requirement": "REQ-251",
+      "affected": [
+        "backend/lib/prompts.ts",
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "rules, option schema descriptions and template state the lint's numbers and word list from lib/item-style.ts (shared with the lint), say options are short answers with qualifications in the explanation, add an example pair and a per-set check; steer names the target length and the word list",
+      "fix_commits": [
+        "1933a07"
+      ],
+      "regression_tests": [
+        "backend/lib/item-writing-quality.test.ts::REQ-251: the rules carry the check's numbers and word list",
+        "backend/lib/item-writing-quality.test.ts::REQ-251: the retry steer names a target"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "the prompt reads the thresholds and words from the module the lint uses, and tests fail if the rule text drops them; real-model effect to be measured with npm run items:style on a 25-lesson trial",
+      "recurrence_of": ""
     }
   ]
 }
