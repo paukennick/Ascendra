@@ -85,6 +85,37 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // 2026-11-12 (c): REQ-243 Settings Notifications, REQ-244/245 course
+    // verification, REQ-246 pilot coach allowance. The coach item is true only
+    // with AI_PILOT_COACH_MESSAGES_PER_DAY=10 and AI_PILOT_GRADED_ANSWERS_PER_DAY=20
+    // set in production; change this note if those change.
+    id: "2026-11-12-c",
+    date: "2026-11-12",
+    covers: ["REQ-243", "REQ-244", "REQ-245", "REQ-246"],
+    title: "The coach opens up for the pilot",
+    items: [
+      {
+        icon: "compass",
+        headline: "Ask the coach, 10 times a day",
+        body:
+          "During the pilot everyone can send the AI coach 10 messages a day and get 20 typed answers graded, " +
+          "up from none and 3. Lessons, practice and review stay unlimited.",
+      },
+      {
+        icon: "bell",
+        headline: "Notifications in one place",
+        body: "Settings now has a Notifications section with Study reminders and Email together.",
+      },
+      {
+        icon: "check-circle",
+        headline: "Every course is verified",
+        body:
+          "Python, JavaScript, DP-300, GCP DevOps, MSCS, CS degree foundations and PT prerequisites were checked " +
+          "against current sources. Two outdated objectives were corrected.",
+      },
+    ],
+  },
+  {
     // Wave 2 (2026-11-12 UTC): REQ-237 terminal screen, REQ-238 security,
     // REQ-239 NCE/NCMHCE, REQ-240 nursing, REQ-241 EMS, REQ-242 AWS. Gated
     // whole on sims: four of its five items are sims (FAIL-1271 rule).

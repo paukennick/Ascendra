@@ -14,7 +14,7 @@ import { useStoredDraft } from "@/lib/useStoredDraft";
 import { useKeyboardOverlap } from "@/lib/useKeyboardOverlap";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ReportCoachReply } from "@/components/ReportCoachReply";
-import { COACH_PREVIEW_BODY, COACH_PREVIEW_TITLE, aiAccessSignalOf, hasFullAi } from "@/lib/aiAccess";
+import { COACH_PREVIEW_BODY, COACH_PREVIEW_TITLE, aiAccessMessage, aiAccessSignalOf, coachOpen } from "@/lib/aiAccess";
 import { DictationHint } from "@/components/DictationHint";
 import { lengthProblem } from "@/lib/dictation";
 
@@ -59,9 +59,10 @@ export default function ChatScreen() {
   const { user } = useAuth();
   // REQ-201: the server says (GET /api/auth/me `ai`) whether the coach is open
   // to this learner; a refusal while on screen (the mode just changed) closes
-  // it the same way.
+  // it the same way. REQ-246: the box also shows for the pilot's daily coach
+  // count (`ai.coachPerDay`); a coach_limit refusal keeps it open.
   const [previewRefused, setPreviewRefused] = useState(false);
-  const fullAi = hasFullAi(user) && !previewRefused;
+  const fullAi = coachOpen(user) && !previewRefused;
   useStoredDraft(
     user && trackId ? chatDraftKey(user.id, trackId) : null,
     chatDraftPayload(input, prefill),
@@ -107,8 +108,11 @@ export default function ChatScreen() {
       // Take the unanswered message back out of the thread; its text goes
       // back in the box below, ready to send again.
       setMessages((prev) => (prev && prev[prev.length - 1] === userMsg ? prev.slice(0, -1) : prev));
-      if (aiAccessSignalOf(err)?.state === "limited_preview") setPreviewRefused(true);
-      setSendError(friendlyError(err, { kept: true }));
+      const signal = aiAccessSignalOf(err);
+      if (signal?.state === "limited_preview") setPreviewRefused(true);
+      // REQ-246: the day's coach count is used up -- the server's own calm
+      // words in the banner; the box stays usable.
+      setSendError(signal?.state === "coach_limit" ? aiAccessMessage(signal) : friendlyError(err, { kept: true }));
       // The draft is only meant to be cleared by a *successful* send: put the
       // text back (unless they've started something new) so it isn't lost and
       // sending it again reuses its clientMessageId.

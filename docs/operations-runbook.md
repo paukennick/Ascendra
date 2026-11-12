@@ -222,6 +222,16 @@ next deployment only.
 - `AI_GLOBAL_DAILY_CEILING_USD` (unset or `off` = none). Total model spend per
   UTC day; at it coach chat and lesson regenerate pause for everyone but
   owners.
+- `AI_PILOT_COACH_MESSAGES_PER_DAY` (default `0` = no coach) and
+  `AI_PILOT_GRADED_ANSWERS_PER_DAY` (unset = Free's 3). REQ-246, pilot only:
+  daily coach messages and AI-graded answers for a learner the AI mode limits
+  (not owners, not granted accounts). Pilot values `10` and `20`. They do
+  nothing once `AI_ACCESS_MODE` is `all` (or `paid` with billing on); delete
+  them when the pilot ends. A value that is not a whole number is reported
+  in `/api/health` (coach falls back to 0, graded to Free's allowance). Raise
+  the graded count with the pilot name, never
+  `BILLING_ALLOWANCE_GRADED_ANSWER_FREE`, which is Free's count after launch.
+  docs/billing.md, "Pilot-only allowances".
 - `ERROR_TRACKER_DSN`: see "Error tracker" above. Unset = nothing is sent.
 - `MIN_APP_VERSION` (semver; unset = no minimum). App builds below it get a
   426 "update required". `IOS_APP_STORE_URL` (an `https://apps.apple.com/`
