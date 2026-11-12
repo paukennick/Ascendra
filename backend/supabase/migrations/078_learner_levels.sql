@@ -122,6 +122,20 @@ create index if not exists learner_level_changes_user_track on learner_level_cha
 create index if not exists learner_level_changes_track on learner_level_changes (track_id);
 create index if not exists learner_level_changes_unit on learner_level_changes (unit_id);
 
+-- Supabase Data API lock-out, as 026, 052, 060 and 077 did: RLS on, nothing
+-- for anon/authenticated. app_runtime_sync() below gives the app's role its
+-- policy and grants.
+alter table learner_course_profiles enable row level security;
+alter table learner_unit_levels enable row level security;
+alter table learner_level_changes enable row level security;
+do $$
+begin
+  if exists (select 1 from pg_roles where rolname = 'anon')
+     and exists (select 1 from pg_roles where rolname = 'authenticated') then
+    revoke all on learner_course_profiles, learner_unit_levels, learner_level_changes from anon, authenticated;
+  end if;
+end $$;
+
 -- 4. The per-course switch for the level-aware lesson flow ----------------------------
 
 alter table subject_tracks add column if not exists level_flow boolean not null default false;

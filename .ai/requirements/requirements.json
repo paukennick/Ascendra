@@ -9149,6 +9149,55 @@
         "browser not available in the build container: web header behavior verified by code and unit tests only",
         "Web header behavior not checked in a browser: /opt/pw-browsers/chromium is missing in the build container, so the reproduction and mobile/e2e/tab-order.e2e.mjs were not run; verified by code, unit tests and a passing web export."
       ]
+    },
+    {
+      "id": "REQ-252",
+      "category": "feature",
+      "title": "Teaching learners at every level, phase 1A: levels, the per-course goal question, the level-aware lesson flow and progress signals",
+      "description": "Per course: the goal question approved 2026-11-10 (five options) and a level (New, Some background, Experienced) defaulted from the goal and the account experience answer (experience wins), confirmed by a concrete self-rating, changeable per course or per unit. Levels move up automatically from mastery evidence (4 of the last 5 first-try solo answers in a unit right without a hint) with a notice and Undo, never silently. On courses with subject_tracks.level_flow (Python and JavaScript in phase 1): New gets a one-tap hunch on the Guided item and the full worked example before Guided; Experienced is offered Skip guided; Some background unchanged; Solo the same for all. Progress signals: a five-rung mastery ladder (Mastered and Kept are today's Independent and Transfer-ready), You can now, before/after, comeback credit. Phase 1 lesson events in learner_events with a fixed detail. Migration 078.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/078_learner_levels.sql",
+        "backend/lib/learner-level.ts",
+        "backend/lib/learner-level-rules.ts",
+        "backend/app/api/courses/[id]/level",
+        "backend/app/api/objectives/[id]/lesson-event",
+        "mobile/src/lib/learnerLevel.ts",
+        "mobile/src/components/LearnerLevel.tsx",
+        "mobile/src/components/CourseLevelPanel.tsx",
+        "mobile/app/(app)/course/[trackId]/level.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "acceptance_criteria": [
+        "The five goal options are asked when a course is opened and editable in course level settings",
+        "Level defaults from goal and experience with experience winning and is shown as a chip",
+        "Per-unit levels override the course level",
+        "A unit moves up one level when 4 of the last 5 first-try solo answers are right without a hint with a notice and Undo",
+        "Pilot courses only: New gets the one-tap hunch and full worked example and Experienced is offered Skip guided",
+        "Mastered and Kept rungs equal Independent and Transfer-ready",
+        "No model call is added",
+        "Lesson events store no answer text"
+      ],
+      "validation_required": [
+        "backend lib/learner-level-rules.test.ts",
+        "backend lib/learner-level.dbtest.ts against Postgres 16 with migrations through 078 and the seed",
+        "mobile src/lib/learnerLevel.test.ts",
+        "tsc backend and mobile compared with master",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/learner-levels.md",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md",
+        "mobile/src/content/legal.ts FAQ About Privacy"
+      ],
+      "risk_notes": [
+        "Privacy text changed without a version bump (decision for Nick)",
+        "Every existing learner sees the goal question once on each course page",
+        "Hunch falls back to the typed guess while the practice half is still generating"
+      ]
     }
   ]
 }

@@ -16843,6 +16843,50 @@
       ],
       "prevention_notes": "Checklist: a list that shows progress counts a saved place as started.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1680",
+      "date": "2026-11-12",
+      "title": "Data inventory 'up to migration' header named 077 first after 078 was added",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/ship-notes.test.ts: docs/legal/data-inventory.md was checked up to migration 077, but 078 exists (after the header already mentioned 078 later in the sentence)",
+      "how_detected": "backend npm test (ship-notes.test.ts)",
+      "root_cause": "The check reads the FIRST 'up to migration NNN' in the file. Adding the new migration as a second clause after the old 'up to migration 077' left the old number first, so the inventory still read as stale although 078's tables were listed.",
+      "requirement": "REQ-252",
+      "affected": [
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "Reworded the header so 'up to migration 078' is the first and only such phrase, with 071-077 and 078 listed after it.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts::its 'up to migration NNN' is the newest migration"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When bumping the inventory, replace the number in the existing phrase rather than appending a second 'up to migration' clause; the test catches it.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1681",
+      "date": "2026-11-12",
+      "title": "A level changed from a lesson's chip did not apply when the learner came back to that lesson",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Found in review after merging REQ-250: the lesson read the level once per objective, so changing it in the level settings opened from the lesson's chip (a push, which keeps the lesson mounted) left the lesson on the old level until it was reopened.",
+      "how_detected": "Code review of the merged lesson screen",
+      "root_cause": "The level fetch was keyed on the objective and unit only; returning to a still-mounted screen fires no mount effect. REQ-250 made leaving and returning to a lesson the normal path, so the stale state became reachable.",
+      "requirement": "REQ-252",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "The lesson refetches the level quietly on focus (useFocusEffect), after the first load.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Screen-level focus behavior; the app's tests run pure libraries under node --test and no browser or device is available in this environment. The level state parsing it uses is tested in src/lib/learnerLevel.test.ts.",
+      "prevention_rules": [],
+      "prevention_notes": "A screen that links to a settings screen for state it reads refetches that state on focus.",
+      "recurrence_of": ""
     }
   ]
 }
