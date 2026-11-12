@@ -16592,6 +16592,145 @@
       "prevention_rules": [],
       "prevention_notes": "Re-checks compare the credential block's exam facts with the certification page, not only the outline; the regression test pins the wording.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1600",
+      "date": "2026-11-12",
+      "title": "Pre-generation failed lessons on style findings the app serves",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "2026-11-12 trial: 21 of 25 practice halves failed the content check; every problem kind was a distractor-lint finding (absolute word, longer key, count mismatch)",
+      "how_detected": "production trial with REQ-247 problem kinds",
+      "root_cause": "collectPractice checked lessonPracticeProblems (hard + lint) and failed on any finding with no retry; REQ-216 M6 split lint from hard problems in generateValid for the live path but pregen kept the combined list",
+      "requirement": "REQ-248",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "hard problems fail; style-only drafts get styleRetry (one live steered retry with fixFor, inside the cap); a style-only retry is saved; a hard retry fails; no cap means no retry",
+      "fix_commits": [
+        "0e98059"
+      ],
+      "regression_tests": [
+        "backend/lib/pregen-style-retry.test.ts",
+        "backend/lib/pregen.dbtest.ts::REQ-248 (FAIL-1600)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "batch paths use the live split (Hard/Lint functions), never the combined *Problems list, to decide a failure",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1601",
+      "date": "2026-11-12",
+      "title": "Cue-word lint flagged proper names such as Always Encrypted",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "an option 'Enable Always Encrypted on the column' (a DP-300 objective's feature) was reported as using the absolute word always",
+      "how_detected": "review of the absolute-word rule (REQ-248 item 3)",
+      "root_cause": "distractorProblems lowercased every word, so a Title-case product name was read as the cue word",
+      "requirement": "REQ-248",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "cueWords skips a Title-case cue word after the first word and not after a sentence break or opening quote; ALL-CAPS and sentence-initial cues are still caught",
+      "fix_commits": [
+        "0e98059"
+      ],
+      "regression_tests": [
+        "backend/lib/pregen-style-retry.test.ts::FAIL-1601"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "tests pin both the exemption and the cases that must stay caught",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1602",
+      "date": "2026-11-12",
+      "title": "Pregen retry writer rejected a held half's retry for style findings alone",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "a REQ-235 holdback retry whose only problems were style findings was reported as 'retry content check' and dropped, where the app would retry once more and serve it",
+      "how_detected": "review while fixing FAIL-1600",
+      "root_cause": "liveRetryWriter.practice checked lessonPracticeProblems (hard + lint) instead of the hard list",
+      "requirement": "REQ-248",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "the writer fails only hard problems; batchGenerator.practice applies styleRetry to the holdback retry",
+      "fix_commits": [
+        "0e98059"
+      ],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts::REQ-248 (FAIL-1600)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "same as FAIL-1600",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1603",
+      "date": "2026-11-12",
+      "title": "A full pre-generation run could be submitted without a passing trial",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "the runbook said trial first, but nothing stopped a full submit; the 2026-11-12 trial saved 4 of 25, so a full run would have spent most of the cap on failures",
+      "how_detected": "REQ-248 brief",
+      "root_cause": "the trial step was advice only; the trial's counts live in a workflow artifact, so the script cannot check them",
+      "requirement": "REQ-248",
+      "affected": [
+        "backend/scripts/pregenerate-lib.ts",
+        ".github/workflows/pregenerate.yml"
+      ],
+      "fix_summary": "submit without --limit needs --confirm-full-run; the workflow needs confirm_full_run, checked before npm ci; runbook asks for 90% saved in the trial",
+      "fix_commits": [
+        "0e98059"
+      ],
+      "regression_tests": [
+        "backend/lib/pregen-style-retry.test.ts::FAIL-1603",
+        "backend/scripts/pregenerate-lib.test.ts::REQ-248 (FAIL-1603)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "an explicit confirmation input",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1604",
+      "date": "2026-11-12",
+      "title": "The pregen upper bound left no room for retries",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "the estimate priced two batch requests and one fact-check per lesson; a cap filled by the plan left REQ-235 retries to be refused at run time (notRetriedForBudget)",
+      "how_detected": "REQ-248 brief",
+      "root_cause": "REQ-235 added live retries checked at run time but did not reserve them in price()/submit/the practice batch plan",
+      "requirement": "REQ-248",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "price(), submit's rebuilt check and the practice-batch rebuilt check add one live practice retry per lesson (liveRequestUpperUsd); every live call is still checked at its worst case before it is made",
+      "fix_commits": [
+        "0e98059"
+      ],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts::FAIL-979: the budget guard",
+        "backend/lib/pregen.dbtest.ts::REQ-248 (FAIL-1604)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "the bound names every call a lesson can make",
+      "recurrence_of": ""
     }
   ]
 }

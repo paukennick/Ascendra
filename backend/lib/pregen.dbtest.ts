@@ -31,6 +31,7 @@ import {
   estimateRun,
   plan,
   practiceParams,
+  introParams,
   selectCandidates,
   submitRun,
   liveRequestUpperUsd,
@@ -41,9 +42,9 @@ import {
   type RetryWriter,
 } from "./pregen";
 import { claudeGenerator, loadObjective } from "./lesson-generation";
-import { fixFor, lessonPracticeLint } from "./content-validator";
+import { CONTENT_LIMITS, fixFor, lessonPracticeLint } from "./content-validator";
 import { ITEM_WRITING_RULES } from "./prompts";
-import { BudgetError, batchUsageUsd, factCheckUpperUsd, parseRequestId, requestIds } from "../scripts/pregenerate-lib";
+import { BudgetError, batchRequestUpperUsd, batchUsageUsd, factCheckUpperUsd, parseRequestId, requestIds } from "../scripts/pregenerate-lib";
 
 const MODEL = process.env.ANTHROPIC_MODEL!;
 const codeA = `PGA${run}`.toUpperCase();
@@ -868,6 +869,17 @@ describe("REQ-248 (FAIL-1600): a draft with style findings only gets the app's o
     assert.ok(lessonPracticeLint(out).length > 0);
     reply(practiceBody(ids.b1, HARD));
     await assert.rejects(liveRetryWriter.practice(obj, "t", null), /retry content check/);
+  });
+});
+
+describe("REQ-248 (FAIL-1604): the upper bound reserves one live retry per lesson", () => {
+  test("a lesson's planned cost is intro + practice batch requests, one live practice retry, and the fact-check", async () => {
+    const r = await plan({ tracks: [codeB], limit: null, maxUsd: null }, () => {});
+    const c = r.priced.find((p) => p.objectiveId === ids.b1)!;
+    const practice = practiceParams(MODEL, c.obj, "t".repeat(CONTENT_LIMITS.teach));
+    const expected = batchRequestUpperUsd(MODEL, introParams(MODEL, c.obj)) + batchRequestUpperUsd(MODEL, practice) + liveRequestUpperUsd(MODEL, practice) + factCheckUpperUsd(MODEL);
+    assert.ok(Math.abs(c.usd - expected) < 1e-9, `${c.usd} vs ${expected}`);
+    assert.ok(Math.abs(liveRequestUpperUsd(MODEL, practice) - 2 * batchRequestUpperUsd(MODEL, practice)) < 1e-9, "the retry is at the live price");
   });
 });
 

@@ -9016,6 +9016,45 @@
       ],
       "documentation_required": [],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-248",
+      "category": "feature",
+      "title": "Pre-generation handles style findings as the live app does",
+      "description": "The 2026-11-12 pre-generation trial (25 DPT objectives, claude-sonnet-5-5) saved 4 of 25 practice halves; REQ-247's problem kinds showed only distractor-lint (style) findings. Live generation (generateValid with lintOf, REQ-216 M6) retries such a draft once, steered with fixFor, and serves a retry with style findings only; pre-generation failed it outright. Pre-generation now does the same: hard problems fail; style-only drafts get one live steered retry (pregen_retry, inside --max-usd, counted); a style-only retry is saved through the same fact-check and holdbacks; a retry with hard problems, or one the cap cannot cover, leaves the lesson for its first visit. A held half's retry follows the same rule. The upper bound reserves one live practice retry per lesson. A capitalized cue word inside a proper name is not a cue. A submit without --limit needs --confirm-full-run (workflow confirm_full_run). The batch practice prompt is the app's, ITEM_WRITING_RULES included (tested). No migration.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/pregen.ts",
+        "backend/lib/content-validator.ts",
+        "backend/scripts/pregenerate-lib.ts",
+        "backend/scripts/pregenerate.ts",
+        ".github/workflows/pregenerate.yml",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "style-only then clean retry is saved",
+        "style-only then style-only retry is saved and logged",
+        "style-only then hard retry fails",
+        "no cap means no retry",
+        "batch practice prompt equals the live prompt",
+        "upper bound includes one live retry per lesson",
+        "a full submit needs confirm_full_run"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend lib/pregen.dbtest.ts",
+        "tsc",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "the launch-set upper bound (about 171.82 USD) is over the 110 USD cap and Console limit"
+      ]
     }
   ]
 }
