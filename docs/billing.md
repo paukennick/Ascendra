@@ -357,6 +357,8 @@ Backend (Vercel). All optional until you turn plans on.
 | `BILLING_PRICE_<FAMILY>_<PERIOD>_USD` | Fallback display prices, e.g. `BILLING_PRICE_ALL_ACCESS_YEARLY_USD`. |
 | `AI_ACCESS_MODE` | REQ-201: `all` (default), `granted` (full AI for owners and Settings > Access grants only) or `paid`. Independent of `BILLING_ENABLED`. See "AI access modes". |
 | `AI_GLOBAL_DAILY_CEILING_USD` | REQ-201: total AI spend per UTC day across everyone; unset = none. Recommended production value `5`. |
+| `AI_PILOT_COACH_MESSAGES_PER_DAY` | REQ-246: coach messages a day for a learner the AI mode limits; `0` (default) = no coach. Pilot value `10`. See "Pilot-only allowances". |
+| `AI_PILOT_GRADED_ANSWERS_PER_DAY` | REQ-246: AI-graded typed answers a day for a learner the AI mode limits; unset = Free's allowance (3). Pilot value `20`. |
 
 App (EAS build env, `mobile/eas.json` `build.production.env`):
 
@@ -694,9 +696,39 @@ or price shown:
   and counts toward the global ceiling's total; at the ceiling every one but
   guess feedback (a grader) is paused, see below.
 
-`GET /api/auth/me` carries `ai: { mode, full }` when the mode is `granted`
-or `paid` (absent in `all`, so the default response is unchanged); the app
-shows the coach and "Regenerate lesson" as limited preview from it.
+`GET /api/auth/me` carries `ai: { mode, full, coachPerDay }` when the mode
+is `granted` or `paid` (absent in `all`, so the default response is
+unchanged); the app shows the coach and "Regenerate lesson" as limited
+preview from it. `coachPerDay` (REQ-246) is the pilot's daily coach count for
+a limited learner when it is above 0, otherwise null; the app shows the coach
+box when `full` is true or `coachPerDay` is above 0.
+
+### Pilot-only allowances (REQ-246)
+
+Nick, 2026-11-12: during the pilot, a learner who is not an owner and not
+granted gets 10 coach messages a day instead of none, and 20 AI-graded
+answers a day instead of 3 -- "just for the pilot, not a permanent focus".
+Two settings, read per request, that apply **only** to a learner the mode
+gives the Free AI experience. They do nothing once `AI_ACCESS_MODE` is `all`,
+or `paid` with `BILLING_ENABLED` on, and they never change the billing tiers
+(`ALLOWANCE_DEFAULTS`: Free stays coach 0, graded 3).
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `AI_PILOT_COACH_MESSAGES_PER_DAY` | `0` | Coach messages per rolling 24 hours, counted in `allowance_uses` (kind `coach_message`, in place of the plan count, never both). At the count: 429 `{ error, aiAccess: { state: "coach_limit", feature: "coach", mode, resetsAt, limit, used } }`, "You've used today's 10 coach messages. More open up {when}; lessons, practice and review keep working." No plan or price. A use is given back when no reply is saved (an error, or a copy of the same message stored first). `0`, unset or not a whole number: the 403 limited preview above, unchanged. The global ceiling and the per-learner daily budget still apply. |
+| `AI_PILOT_GRADED_ANSWERS_PER_DAY` | unset | AI-graded typed answers per rolling 24 hours, in place of `BILLING_ALLOWANCE_GRADED_ANSWER_FREE` for a limited learner. Unset or invalid: Free's allowance (3). |
+
+Raise the pilot's graded count with `AI_PILOT_GRADED_ANSWERS_PER_DAY`, not
+`BILLING_ALLOWANCE_GRADED_ANSWER_FREE`: the billing name is also Free's
+graded count once billing is on (and the published allowance table), so
+setting it for the pilot would carry over into launch. An invalid value of
+either pilot setting shows as a warning in `/api/health`.
+
+Pilot values (Nick, 2026-11-12): `AI_PILOT_COACH_MESSAGES_PER_DAY=10` and
+`AI_PILOT_GRADED_ANSWERS_PER_DAY=20`. When the pilot ends, delete both and
+redeploy (switching the mode already stops them; deleting keeps the settings
+honest). No migration or data change: the counted uses are ordinary
+`allowance_uses` rows that age out in 24 hours.
 
 ### `AI_GLOBAL_DAILY_CEILING_USD`
 
@@ -753,7 +785,10 @@ Nick sets these himself in Vercel, or asks the lead to:
 
 1. Vercel -> backend project -> Settings -> Environment Variables ->
    **Production**: `AI_ACCESS_MODE=granted` and
-   `AI_GLOBAL_DAILY_CEILING_USD=5`. (Preview: optional, same values to test.)
+   `AI_GLOBAL_DAILY_CEILING_USD=5`, and for the pilot allowances (REQ-246)
+   `AI_PILOT_COACH_MESSAGES_PER_DAY=10` and
+   `AI_PILOT_GRADED_ANSWERS_PER_DAY=20`. (Preview: optional, same values to
+   test.)
 2. Redeploy (Vercel applies new variables on the next deployment):
    Deployments -> the latest production deployment -> Redeploy.
 3. Check: `/api/health` has no AI warning; signed in as an owner,

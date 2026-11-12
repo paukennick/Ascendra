@@ -8951,6 +8951,50 @@
         "GCPDEVOPS had the same deleted review line (2026-11-23) and will show Review due from that day",
         "GCPDEVOPS resolved in this branch (FAIL-1541, FAIL-1542); the earlier GCPDEVOPS risk note is superseded"
       ]
+    },
+    {
+      "id": "REQ-246",
+      "category": "feature",
+      "title": "Pilot-only coach and graded-answer allowances",
+      "description": "Nick, 2026-11-12: during the pilot, learners the AI mode limits (not owners, not granted accounts) get 10 coach messages a day instead of none and 20 AI-graded answers a day instead of 3, just for the pilot. Two env settings read per request and applied only when aiLimited: AI_PILOT_COACH_MESSAGES_PER_DAY (default 0 = the unchanged 403 limited preview; above 0 the coach is counted per rolling day in allowance_uses in place of the plan count, 429 aiAccess coach_limit at the limit, no plan or price) and AI_PILOT_GRADED_ANSWERS_PER_DAY (unset = Free's allowance). They stop applying when AI_ACCESS_MODE changes and never change ALLOWANCE_DEFAULTS or BILLING_ALLOWANCE_*. GET /api/auth/me ai gains coachPerDay; the app shows the coach box when full or coachPerDay > 0 and shows a coach_limit refusal in the error banner (JS only, OTA). No migration.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/ai-access-config.ts",
+        "backend/lib/ai-access.ts",
+        "backend/app/api/chat/route.ts",
+        "mobile/src/lib/aiAccess.ts",
+        "mobile/app/(app)/course/[trackId]/chat.tsx",
+        "docs/billing.md",
+        "docs/operations-runbook.md",
+        "backend/.env.example"
+      ],
+      "acceptance_criteria": [
+        "with AI_PILOT_COACH_MESSAGES_PER_DAY=10 a limited learner sends 10 coach messages and the 11th is a 429 coach_limit",
+        "a failed reply releases its use and a replay is not counted twice",
+        "owners and granted accounts are not counted",
+        "at 0 or invalid the 403 limited_preview is unchanged",
+        "the global ceiling and per-learner budget still apply",
+        "AI_PILOT_GRADED_ANSWERS_PER_DAY replaces Free's graded count for limited learners only and Free's billing count is unchanged",
+        "invalid values are reported in /api/health",
+        "the app shows the coach box for coachPerDay > 0 and older servers keep today's behavior"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "ai-access DB tests on throwaway Postgres 16",
+        "mobile npm test",
+        "tsc backend and mobile",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "changelog",
+        "docs/billing.md",
+        "docs/operations-runbook.md",
+        "backend/.env.example"
+      ],
+      "risk_notes": [
+        "rows share allowance_uses kind coach_message with the plan count; a pilot learner's last-24h uses would count toward a plan's coach count for up to a day after billing launch"
+      ]
     }
   ]
 }
