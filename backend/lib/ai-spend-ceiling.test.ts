@@ -70,7 +70,7 @@ describe("the ceiling check at the ceiling (every purpose)", () => {
     const { d, calls } = deps();
     const check = makeGlobalCeilingCheck(d);
     const pre = purposes.filter((p) => p.startsWith("pregen"));
-    assert.deepEqual(pre.sort(), ["pregen", "pregen_fact_check"]);
+    assert.deepEqual(pre.sort(), ["pregen", "pregen_fact_check", "pregen_retry"]);
     for (const p of pre) {
       await check(ctx(p, null));
       await check(ctx(p, LEARNER));

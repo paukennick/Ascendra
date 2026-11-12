@@ -15,15 +15,17 @@ import { source } from "../sources";
 // monitors, holds treatment and consults the PT, and reports; the PTA does
 // not perform the initial examination or evaluation, re-evaluate, change
 // goals or the plan of care, interpret findings into a new diagnosis or
-// prognosis, or discharge. CMS Medicare Benefit Policy Manual ch. 15 sec.
-// 230.1 (Rev. 13889, issued 2026-07-30, read from the CMS PDF on
-// 2026-11-07): "PTAs may not provide evaluative or assessment services, make
-// clinical judgments or decisions; develop, manage, or furnish skilled
-// maintenance program services; or take responsibility for the service."
-// REQ-220: the "furnish ... maintenance" clause predates CMS MLN Matters
-// MM12071 (effective 2021-01-01; CY 2021 PFS final rule, 85 FR 84472),
-// under which the PT may delegate furnishing maintenance therapy to a PTA;
-// the PT still establishes the program. No rubric here relies on that clause.
+// prognosis, or discharge. The Medicare rule as it stands (REQ-235, re-read
+// 2026-11-11): a PTA does not evaluate or assess, make clinical judgments,
+// develop or manage a maintenance program, or take responsibility for the
+// service, and works at the direction and under the supervision of the
+// treating PT (Medicare Benefit Policy Manual ch. 15 sec. 230.1, Rev. 13889,
+// issued 2026-07-30). Since 2021-01-01 the PT may delegate FURNISHING skilled
+// maintenance therapy to a PTA under Part B (CY 2021 PFS final rule; CMS MLN
+// Matters MM12071; APTA's "Skilled Maintenance Therapy Under Medicare"
+// page). Note: sec. 230.1 still prints an older sentence that also bars the
+// PTA from furnishing maintenance services; that clause predates the 2021
+// rule and no rubric here relies on it, so it is not quoted as current.
 // Rubrics therefore mark an answer down when the learner evaluates,
 // re-plans or discharges on their own, and up when they hold, report and
 // defer to the PT. Supervision levels are left to "state law and the

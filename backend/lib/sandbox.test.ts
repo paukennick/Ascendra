@@ -218,7 +218,11 @@ describe("REQ-196: staging is never served", () => {
       .map((f) => f.slice(ROOT.length + 1))
       .sort();
     // REQ-216: lib/item-quality.ts heldBackSince reads only reason 'uncertain' rows (never a staged finding).
-    assert.deepEqual(readers, ["lib/exec-checks.ts", "lib/item-quality.ts", "lib/lesson-generation.ts", "lib/recheck-stored.ts", "lib/staging.ts"]);
+    // REQ-235: lib/hold-rates.ts is the owner's count of gate holds; it serves no content and leaves staged findings out.
+    assert.deepEqual(readers, ["lib/exec-checks.ts", "lib/hold-rates.ts", "lib/item-quality.ts", "lib/lesson-generation.ts", "lib/recheck-stored.ts", "lib/staging.ts"]);
+    const holdRates = readFileSync(join(ROOT, "lib/hold-rates.ts"), "utf8");
+    assert.match(holdRates, /not \(hb\.content \? 'staged'\)/, "staged findings are not counted as holds");
+    assert.ok(!/select[^;]*\b(content|claims)\s*(,|from|as)\b/i.test(holdRates), "no claims or content are selected");
     assert.match(readFileSync(join(ROOT, "lib/item-quality.ts"), "utf8"), /created_at >= \$2 and reason = 'uncertain'/);
   });
 

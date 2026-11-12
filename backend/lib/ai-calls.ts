@@ -77,7 +77,9 @@ export type AiPurpose =
   // fact-check call made while saving. Neither counts toward the global
   // daily AI ceiling (lib/ai-budget.ts globalSpendSinceUsd; see PREGEN_PURPOSE_PREFIX).
   | "pregen"
-  | "pregen_fact_check";
+  | "pregen_fact_check"
+  // REQ-235: the one live steered retry of a held pre-generated half.
+  | "pregen_retry";
 
 // REQ-208: the prefix every pre-generation purpose starts with, so the global
 // ceiling's sum can leave them out with one predicate.
