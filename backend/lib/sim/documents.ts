@@ -72,6 +72,19 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("DPT", "tka-gait-dvt-red-flag"),
   entry("DPT", "stroke-balance-fall-risk"),
   // ---- end REQ-232 -----------------------------------------------------
+  // ---- REQ-233 (bedside wave 1): CCRN Pediatric, CCRN Neonatal, NCLEX-RN
+  // and NCLEX-PN bedside cases, and a second AWS SAA board case. Keep these
+  // entries together. ----
+  entry("CCRNPEDS", "pediatric-septic-shock-fluids"),
+  entry("CCRNPEDS", "pediatric-dka-cerebral-edema"),
+  entry("CCRNNEO", "neonatal-rds-escalating-support"),
+  entry("CCRNNEO", "neonatal-sepsis-hypoglycemia"),
+  entry("NCLEXRN", "med-surg-deterioration-sbar"),
+  entry("NCLEXRN", "post-op-transfusion-reaction"),
+  entry("NCLEXPN", "ltc-change-in-condition"),
+  entry("NCLEXPN", "med-pass-error-caught"),
+  entry("AWSSAA", "nat-gateway-bill-spike"),
+  // ---- end REQ-233 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they

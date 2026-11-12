@@ -8429,6 +8429,51 @@
         "Sources read through a summarizing fetch; vendor guidance (Microsoft Learn",
         "AWS re:Post) used for account and cloud steps; two V8 objective titles do not match the generator selection rule word list"
       ]
+    },
+    {
+      "id": "REQ-233",
+      "category": "content",
+      "title": "Bedside sims wave 1: CCRN Pediatric, CCRN Neonatal, NCLEX-RN, NCLEX-PN, and a second AWS SAA board sim",
+      "description": "Nick's sims wave 1 (2026-11-11): baseline sims for four courses on the existing bedside screen, two each, plus a second AWS SAA board sim in a domain other than TicketBurst's. CCRNPEDS/pediatric-septic-shock-fluids and pediatric-dka-cerebral-edema; CCRNNEO/neonatal-rds-escalating-support and neonatal-sepsis-hypoglycemia; NCLEXRN/med-surg-deterioration-sbar and post-op-transfusion-reaction; NCLEXPN/ltc-change-in-condition and med-pass-error-caught; AWSSAA/nat-gateway-bill-spike (cost). Engine 1.2 with endingOrder; endings in all three classes, 3-4 critical criteria inside target, KPIs, expert path, debrief per ending, 5-6 golden paths; clinical sims at study pace (3x). Literature checked and dated on each document; authored teaching values flagged. No engine, renderer or schema change; no migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/CCRNPEDS/",
+        "backend/supabase/seed/sims/CCRNNEO/",
+        "backend/supabase/seed/sims/NCLEXRN/",
+        "backend/supabase/seed/sims/NCLEXPN/",
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.sim.json",
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "every objective title exists in its course catalog",
+        "golden paths end the same in written reversed and jsonb key order",
+        "clinical sims are paced (study pace by default)"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test (storage-order and objectives tests included)",
+        "sim:cross-runtime and the engine-bundle replay",
+        "sims dbtests on a throwaway Postgres",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "SSC Children's 2026 and AAP 2011 hypoglycemia read only through summaries",
+        "authored teaching-model numbers are flagged in their source notes",
+        "AWS prices are the Ohio rates read 2026-11-11 and change over time",
+        "new document hashes enter expert review"
+      ]
     }
   ]
 }
