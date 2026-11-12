@@ -101,6 +101,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AWSMLA", "endpoint-scaling-latency"),
   entry("AWSMLA", "loan-data-bias"),
   entry("AWSCLF", "data-transfer-surprise"),
+  entry("AWSCLF", "leaked-access-key"),
   // ---- end REQ-242 ----
 ];
 
