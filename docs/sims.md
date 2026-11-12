@@ -4488,3 +4488,85 @@ first minute.
   and neonatal sepsis cases; elsewhere every slow path ends in an earlier
   ending first, so the linter's `time_up` warning remains, as in the
   existing CCRN cases.
+
+### 22.11 Security wave 2: CySA+, PenTest+, SecurityX and SecAI+ on the security console (REQ-238)
+
+Eight documents, two per course, on the existing `security-console@1`
+screen (22.7) and engine 1.2. No engine, renderer, schema or migration
+change. Each follows the Security+ pattern: learner-paced (`turns` phases;
+each task costs analyst minutes through one `work` wait, and the attacker's
+steps are `interruptsSkip` triggers on the same clock), outcome profile
+`security` (`containWindow` 1800 s, tightened to 900 s in the scope case,
+`containSpread` 0), engine minor 2 with `endingOrder` (harm endings first),
+endings in all three classes, three or four critical criteria (all inside the
+`target` ending's condition), three KPIs, an expert path, a debrief per
+ending, one three-part reasoning moment and six golden paths built by
+`npm run sim:golden -- steps <name>` (every ending but `time_up`, every
+criterion met and missed). Every address and domain is from the
+documentation ranges (RFC 5737, RFC 2606); `lib/sim/security-w2.test.ts`
+scans every learner-visible string for that.
+
+| Course / slug | Objective (catalog title, abridged) | Core of the case | Critical criteria | Steps name |
+|---|---|---|---|---|
+| CYSAPLUS/alert-triage-lolbin-hunt | Given a scenario, assess: triage, ... escalation | Four alerts by severity label; the medium certutil/rundll32 one is the live intrusion; LSASS read at 15 min, lateral to FIN-SQL01 at 30, upload done at 70 | every alert dispositioned on evidence; footholds and stolen credentials cut in 30 min; memory before reimage; hunt after the last attacker step | cysa-triage |
+| CYSAPLUS/vuln-prioritization-kev-edge | Prioritization criteria: exploitability, active exploitation ... | A KEV, internet-facing VPN flaw (lower CVSS) against CVSS 9.8/10.0 internal and isolated findings and a banner-only false positive; exploited at 40 min if still exposed | ranked by exploitation, exposure and asset value; exposure closed in 30 min; checked for a web shell; rescan after the patch | cysa-vuln |
+| PENTESTPLUS/pentest-third-party-webshell | Communication and escalation paths during an engagement | A web shell the team did not write on an in-scope portal; customer exports appear at 20 and 30 min; phone vs email to the client | emergency contact phoned in 15 min; shell never used or removed; team logs saved and hashed; portal testing paused | pt-webshell |
+| PENTESTPLUS/pentest-scope-boundary | Vulnerability scanning tools and interpreting their output | Discovery output includes a vendor's host and a shared web host; a queued scan of everything starts at 18:15; the excluded imaging server crashes if scanned | nothing outside the authorization; excluded host spared; ambiguous assets raised with the client; printer default credentials validated first | pt-scope |
+| SECURITYX/federation-token-forgery | Identity and access management architecture at enterprise scale | Forged SAML tokens from a stolen signing key; one rotation leaves it trusted; rotating while svc-fed-sync works lets it read the new key; a backdoor app at 35 min | out in 30 min; the identity-tier foothold closed before trusting a new key; federation servers imaged before rebuild; key theft and persistence both scoped | sx-fed |
+| SECURITYX/ot-segmentation-breach | Secure network architecture: segmentation, SASE, microsegmentation | Ransomware operators in IT via a vendor VPN account; a dual-homed historian bridges into the plant at 20 min; backups deleted at 25; HMIs at 35 | plant path closed first; backups cut off the domain; entry and Domain Admin rights closed in 30 min; appliance imaged before reset | sx-ot |
+| SECAIPLUS/agent-indirect-prompt-injection | Analyzing evidence of AI-specific attacks and applying compensating controls ... | Hidden instructions in email (and a poisoned forum article at 25 min) make a tool-using support agent leak orders through image URLs and, at 45 min, issue refunds | image channel closed in 30 min; refunds and replies behind human approval (a system-prompt line is not a control); every untrusted source searched; evidence before purge | ai-inject |
+| SECAIPLUS/rag-assistant-data-leak | Data security controls for AI systems: ... classification, redaction, masking, minimization | A retrieval assistant indexed HR and Finance with a read-all connector and no permission check; a contractor pulls salaries, then contracts at 15 min, then scripts the API key | sensitive retrieval stopped in 30 min; fixed with a data control (permission-aware retrieval or removing the collections), not a prompt; recipients listed; logs and an index manifest kept first | ai-rag |
+
+**Objectives.** Each is an active catalog objective of its course that meets
+the generator's selection rule (`isPerformanceObjective`), one sim per
+objective, with catalog secondaries. The PenTest+ and SecurityX catalog unit
+titles are the course's own wording, not CompTIA's, so the sims cite the
+official exam pages for the matching CompTIA text. Level: CySA+ is the
+analyst's call (triage, hunt, prioritize); PenTest+ is an authorized tester's
+duties to the client (scope, rules of engagement, out-of-band reporting, hands
+off evidence, framed defensively); SecurityX is the architect's decisions
+(trust, segmentation, what to rebuild where); SecAI+ is AI-specific controls
+(output handling, human approval, permission-aware retrieval, masking).
+
+**Sources** (each document carries them with `checkedAt` 2026-11-11 unless
+noted, and says how it was read): the CompTIA CS0-004 objectives PDF
+(document version 2.0, through a summarizing fetch) and the CySA+, PenTest+
+(PT0-003), SecurityX (CAS-005) and SecAI+ (CY0-001) exam pages (summarizing
+fetches; the PT0-003, CAS-005 and CY0-001 PDFs were not re-read); NIST SP
+800-61r3 (PDF text and the CSRC page); NIST AI 100-1 (PDF text: MANAGE 2.4,
+4.3) and the AI RMF page; OWASP Top 10 for LLM Applications 2025 (LLM01, 02,
+06, 08 pages); CISA's KEV page, the May 2025 OT primary-mitigations fact
+sheet and Eviction Strategies countermeasure CM0073; MITRE ATT&CK T1606.002;
+PTES pre-engagement and post-exploitation (the readthedocs mirror;
+pentest-standard.org refused automated reads); CrowdStrike's 2026 Global
+Threat Report press release; RFC 5737 and 2606. FIRST EPSS/CVSS and the
+ATT&CK technique names for the LOLBin case are cited as the CySA+ course seed
+records them (read 2026-11-07), not re-read. All step times, task durations,
+scores and rates are the author's teaching figures and say so on each param.
+
+**Authoring findings** (FAIL-1460 to FAIL-1464; recorded, not worked around):
+
+1. **A "contained at" stamp is not current state (FAIL-1460).** The
+   federation case stamps `allOffAt` the first time the attacker has no way
+   in, but rotating the key while the service account still works lets the
+   attacker back in ten minutes later; the containment criterion read only
+   the stamp and scored "met" on a path that ended with the attacker in. A
+   criterion that reads a first-time stamp now also checks the live derived
+   value (`not attackerActive and ...`). The REQ-231 incidents cannot regain
+   access after their stamp, so they are unaffected.
+2. **A form option named `none` collides with the state enum's `none`
+   (FAIL-1461).** Record fields whose options include "None" produced a
+   duplicate enum value; the validator refused it. Use another value
+   (`zero`, `nochange`) or `unset` as the enum's initial value.
+3. **A rate-driven KPI printed raw floats (FAIL-1462).** `leaked` grows by
+   `rate * dt / 60`, and a `number` KPI is shown as computed (83.20000000000003
+   in the debrief); KPIs over such counts use `round()`. The test checks every
+   wave-2 golden KPI is whole.
+4. **The documentation-range test matched NIST identifiers (FAIL-1463).** A
+   case-insensitive host pattern read "RS.CO" as a domain; the pattern is
+   lower-case only.
+5. **A trigger due at minute N fires during the skip into N (FAIL-1464),**
+   before any action the learner takes at N, so an expert path that acts
+   "at 30 min" is already late for a 30-minute trigger. The delays leave a
+   minute's margin after the expert path; the goldens pin it. Same family as
+   FAIL-1360 (turns-phase ordering).
