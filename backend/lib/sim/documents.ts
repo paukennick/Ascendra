@@ -101,6 +101,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("PENTESTPLUS", "pentest-third-party-webshell"),
   entry("PENTESTPLUS", "pentest-scope-boundary"),
   entry("SECURITYX", "federation-token-forgery"),
+  entry("SECURITYX", "ot-segmentation-breach"),
   // ---- end REQ-238 ----
 ];
 
