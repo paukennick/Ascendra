@@ -121,6 +121,10 @@ import { NREMTEMR_LABS } from "./ems-emr";
 // REQ-182
 import { NREMTPARAMEDIC_LABS } from "./ems-paramedic";
 import { NREMTAEMT_LABS } from "./ems-aemt";
+// REQ-234: CompTIA A+ Core 1 and Core 2, and the EPPP.
+import { APLUS_CORE1_LABS } from "./comptia-aplus-core1";
+import { APLUS_CORE2_LABS } from "./comptia-aplus-core2";
+import { EPPP_LABS } from "./eppp";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -242,4 +246,7 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   NREMTEMR_LABS,
   NREMTPARAMEDIC_LABS,
   NREMTAEMT_LABS,
+  APLUS_CORE1_LABS,
+  APLUS_CORE2_LABS,
+  EPPP_LABS,
 ].map(withValueSources);

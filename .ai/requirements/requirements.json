@@ -8350,6 +8350,50 @@
         "AWS prices are the Ohio rates read 2026-11-11 and change over time",
         "new document hashes enter expert review"
       ]
+    },
+    {
+      "id": "REQ-234",
+      "category": "content",
+      "title": "Labs for A+ Core 1/2 and the EPPP; DP-900 and PWCS top-ups",
+      "description": "Lead (wave 1): lab sets for the three courses that have none -- CompTIA A+ Core 1 (APLUS_CORE1) and Core 2 (APLUS_CORE2), hands-on troubleshooting labs across the current V15 domains, and the EPPP across ASPPB's eight Part 1 domains under the mental health mature-content rules -- and top up Azure DP-900 (4 labs) and ABPTS Pelvic & Women's Health (ABPTSPWCS, 5) to at least 8 each. Every value sourced and dated in value-sources.ts. Density follows the hybrid plan (A+ 10 and 10, EPPP 14); the two top-ups are recorded in LAB_PLAN_TOP_UPS, which never goes below the plan or above the per-unit cap.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/comptia-aplus-core1.ts",
+        "backend/supabase/seed/labs/comptia-aplus-core2.ts",
+        "backend/supabase/seed/labs/eppp.ts",
+        "backend/supabase/seed/labs/microsoft-dp900.ts",
+        "backend/supabase/seed/labs/pt-abpts-pelvic-health.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/scripts/generate-labs-lib.ts",
+        "backend/lib/labs-aplus-eppp.test.ts",
+        "backend/lib/release-notes.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "APLUS_CORE1 and APLUS_CORE2 have 10 labs each and EPPP 14 following the hybrid plan unit by unit",
+        "DP900 and ABPTSPWCS have 8 labs each within the per-unit cap",
+        "every new lab has a dated value source or a reason in value-sources.ts",
+        "all labs pass the content rules and name active objectives",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "lab dbtests on a throwaway Postgres after migrate and seed",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "All new labs are needs_expert_review: A+ by an IT support professional; EPPP by a licensed psychologist; PWCS by a board-certified pelvic health PT",
+        "APA Ethics Code and two StatPearls chapters were read through a fetch tool's summary (apa.org and NCBI refuse scripted downloads)",
+        "Course objective for A+ malware removal still summarizes the older seven-step list; V15 lists ten steps",
+        "The net use command page was not re-read (404 at its usual URL)"
+      ]
     }
   ]
 }
