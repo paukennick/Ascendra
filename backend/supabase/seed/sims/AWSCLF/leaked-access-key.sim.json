@@ -1,0 +1,1150 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "leaked-access-key",
+  "title": "The access key on GitHub",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "iam",
+          "label": "IAM (global)",
+          "spokenLabel": "Identity and access management",
+          "items": [
+            {
+              "label": "User ci-deploy: {ciPolicy == \"custom\" ? \"customer managed policy (deploy only)\" : (ciPolicy == \"power\" ? \"PowerUserAccess (AWS managed)\" : \"AdministratorAccess (AWS managed)\")}",
+              "when": "true"
+            },
+            {
+              "label": "ci-deploy's leaked key: active",
+              "when": "keyActive"
+            },
+            {
+              "label": "AWSCompromisedKeyQuarantineV3 on ci-deploy (attached by AWS)",
+              "when": "quarantine"
+            },
+            {
+              "label": "User support-admin (unknown): active key, AdministratorAccess",
+              "when": "attackerUser and not isNull(trailAt)"
+            },
+            {
+              "label": "Root user: MFA on",
+              "when": "rootMfa"
+            }
+          ]
+        },
+        {
+          "id": "home",
+          "label": "us-east-2 (Ohio)",
+          "spokenLabel": "Your Region, us-east-2",
+          "items": [
+            {
+              "label": "Web app and database",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "other",
+          "label": "Other Regions",
+          "spokenLabel": "Other Regions",
+          "items": [
+            {
+              "label": "24 unknown GPU instances (sa-east-1, ap-southeast-1)",
+              "when": "rogue and not isNull(regionsAt)"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "fraud",
+          "label": "Unauthorized charges so far",
+          "value": "{fraudCost|usd}"
+        },
+        {
+          "id": "spend",
+          "label": "Month's spend (projected)",
+          "value": "{spend|usd}"
+        },
+        {
+          "id": "budget",
+          "label": "Monthly budget",
+          "value": "{budget|usd}"
+        }
+      ]
+    }
+  },
+  "objective": "Managed policies versus custom policies, written to least privilege",
+  "secondaryObjectives": [
+    "The AWS shared responsibility model: security *of* the cloud versus security *in* the cloud",
+    "Credential handling: access keys, password policies, AWS Secrets Manager, AWS Systems Manager",
+    "Protecting the root user, and the short list of tasks only the root user can perform"
+  ],
+  "sources": [
+    {
+      "cite": "Ascendra AWSCLF course catalog (backend/supabase/seed/tracks/aws.ts), built from the exam guide",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/cloud-practitioner-02/cloud-practitioner-02.html",
+      "note": "The objective and secondary objectives are the course's own titles, from the CLF-C02 outline at the course's source URL. Not re-fetched for this scenario."
+    },
+    {
+      "cite": "AWS. Shared Responsibility Model",
+      "checkedAt": "2026-11-11",
+      "url": "https://aws.amazon.com/compliance/shared-responsibility-model/",
+      "note": "Read 2026-11-11: 'AWS is responsible for protecting the infrastructure that runs all of the services offered in the AWS Cloud'; customer responsibility 'will be determined by the AWS Cloud services that a customer selects', including 'using IAM tools to apply the appropriate permissions'. The page does not name credentials specifically; managing them is read as part of the customer's IAM duty."
+    },
+    {
+      "cite": "AWS. Managed Policy Reference: AWSCompromisedKeyQuarantineV3",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSCompromisedKeyQuarantineV3.html",
+      "note": "Read 2026-11-11: 'applied by AWS in the event that an IAM user's credentials have been compromised or exposed publicly'; denies actions such as iam:CreateUser, iam:CreateAccessKey, iam:AttachUserPolicy, ec2:RunInstances; 'Do NOT remove this policy. Instead, please follow the instructions specified in the support case'."
+    },
+    {
+      "cite": "AWS re:Post Knowledge Center: What do I do if I notice unauthorized activity in my AWS account?",
+      "checkedAt": "2026-11-11",
+      "url": "https://repost.aws/knowledge-center/potential-account-compromise",
+      "note": "Read 2026-11-11 (re:Post article): create an updated access key and deactivate the original ('Don't delete the original access key during this step'); deactivate users you didn't create; review CloudTrail event history for unsanctioned keys, policies and roles; 'check for all resources in all AWS Regions, even in Regions that you didn't launch resources'; 'Back up any resources you need for investigation before deleting them'; enable MFA on the root user. It names the V2 quarantine policy; the policy reference (read the same day) documents V3."
+    },
+    {
+      "cite": "AWS. IAM User Guide: Security best practices in IAM",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html",
+      "note": "Read 2026-11-11: workloads should use 'temporary credentials with IAM roles'; 'AWS managed policies might not grant least-privilege permissions for your specific use cases because they are available for use by all AWS customers. As a result, we recommend that you reduce permissions further by defining customer managed policies that are specific to your use cases'; require MFA; protect root user credentials."
+    },
+    {
+      "cite": "AWS. IAM User Guide: Managed policies and inline policies",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html",
+      "note": "Read 2026-11-11: an AWS managed policy is 'created and administered by AWS' and 'You cannot change the permissions defined in AWS managed policies'; customer managed policies you 'create ... for your specific use cases'."
+    }
+  ],
+  "brief": {
+    "situation": "Tuesday 08:10. An email from AWS: the access key of your IAM user ci-deploy was found in a public GitHub repository. AWS opened a support case and attached a quarantine policy to the user. Your company runs everything in us-east-2 (Ohio).",
+    "handover": [
+      "ci-deploy is the user the build pipeline uses to deploy. It has the AWS managed policy AdministratorAccess, 'to save time'.",
+      "A developer pushed a config file with the key last night.",
+      "The account normally spends about $1,500 a month against a $2,000 budget."
+    ],
+    "howItWorks": [
+      "Learner-paced: nothing moves until you act. Investigate, contain, fix, then run the next days.",
+      "The board shows identities and resources by Region; the meters show the unauthorized charges and the month's projected spend.",
+      "Before you run the next days you are asked who was responsible and what you changed. The debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-09T08:10",
+    "tick": "1min",
+    "maxDuration": "8d",
+    "calendar": "date"
+  },
+  "params": {
+    "budget": {
+      "value": 2000,
+      "unit": "$",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The account's monthly budget."
+      }
+    },
+    "normalSpend": {
+      "value": 1500,
+      "unit": "$",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The account's normal monthly spend."
+      }
+    },
+    "rogueDay": {
+      "value": 1680,
+      "unit": "$",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The 24 unauthorized instances cost about $70 an hour, about $1,680 a day, as Cost Explorer shows in the scenario."
+      }
+    },
+    "dayWait": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step of the week."
+      }
+    }
+  },
+  "state": {
+    "trailAt": {
+      "type": "time",
+      "init": null
+    },
+    "regionsAt": {
+      "type": "time",
+      "init": null
+    },
+    "billAt": {
+      "type": "time",
+      "init": null
+    },
+    "keyActive": {
+      "type": "bool",
+      "init": true
+    },
+    "quarantine": {
+      "type": "bool",
+      "init": true
+    },
+    "attackerUser": {
+      "type": "bool",
+      "init": true
+    },
+    "rogue": {
+      "type": "bool",
+      "init": true
+    },
+    "snapshotted": {
+      "type": "bool",
+      "init": false
+    },
+    "ciPolicy": {
+      "type": "enum",
+      "values": [
+        "admin",
+        "power",
+        "custom"
+      ],
+      "init": "admin"
+    },
+    "rootMfa": {
+      "type": "bool",
+      "init": false
+    },
+    "respAnswer": {
+      "type": "enum",
+      "values": [
+        "none",
+        "right",
+        "wrong"
+      ],
+      "init": "none"
+    },
+    "relaunched": {
+      "type": "bool",
+      "init": false
+    },
+    "fraudCost": {
+      "type": "number",
+      "init": 410,
+      "min": 0,
+      "max": 1000000,
+      "unit": "$"
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedBlind": {
+      "type": "bool",
+      "init": false
+    },
+    "changes": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "weekStarted": {
+      "type": "bool",
+      "init": false
+    },
+    "weekDone": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "spend": {
+      "expr": "normalSpend + fraudCost",
+      "unit": "$",
+      "precision": 0
+    },
+    "investigated": {
+      "expr": "not isNull(trailAt) and not isNull(regionsAt)"
+    },
+    "investigatedFirst": {
+      "expr": "investigated and not changedBlind"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Investigate and change",
+      "clock": "turns",
+      "actions": [
+        "trail",
+        "regions",
+        "bill",
+        "deactivateKey",
+        "removeQuarantine",
+        "disableAttacker",
+        "terminate",
+        "ciPolicyFix",
+        "rootMfaOn",
+        "runWeek"
+      ]
+    },
+    "week": {
+      "label": "The week",
+      "clock": "turns",
+      "actions": []
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "trail": {
+      "label": "CloudTrail event history for ci-deploy's key",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(trailAt)",
+          "then": [
+            {
+              "set": "trailAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "02:14 CreateUser support-admin; 02:14 CreateAccessKey for support-admin; 02:15 AttachUserPolicy AdministratorAccess to support-admin; 02:20-02:31 RunInstances, 24 instances, in sa-east-1 and ap-southeast-1. 06:05 AWS attached AWSCompromisedKeyQuarantineV3 to ci-deploy."
+        },
+        {
+          "log": "CloudTrail: the key made a new admin user, support-admin, before AWS quarantined it.",
+          "kind": "find"
+        }
+      ]
+    },
+    "regions": {
+      "label": "EC2 Global View: running instances in every Region",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(regionsAt)",
+          "then": [
+            {
+              "set": "regionsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "12 GPU instances running in sa-east-1 (Sao Paulo) and 12 in ap-southeast-1 (Singapore), launched 02:20-02:31. Regions you never use. Nothing unexpected in us-east-2."
+        },
+        {
+          "log": "Every Region checked: 24 unknown instances in two Regions you never use.",
+          "kind": "find"
+        }
+      ]
+    },
+    "bill": {
+      "label": "Cost Explorer: today's charges by Region",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(billAt)",
+          "then": [
+            {
+              "set": "billAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Since 02:20: about $70 an hour in sa-east-1 and ap-southeast-1, about $410 so far."
+        },
+        {
+          "log": "Bill: about $70 an hour of charges you did not make.",
+          "kind": "find"
+        },
+        {
+          "if": "respAnswer == \"none\"",
+          "then": [
+            {
+              "prompt": "respQ"
+            }
+          ]
+        }
+      ]
+    },
+    "deactivateKey": {
+      "label": "Deactivate ci-deploy's leaked key (the pipeline gets a new credential)",
+      "group": "Contain",
+      "available": "keyActive",
+      "why": "Already deactivated.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "keyActive",
+          "to": "false"
+        },
+        {
+          "log": "The leaked key is deactivated, not yet deleted; the pipeline uses a new credential. Delete the old key once the pipeline is confirmed working."
+        }
+      ]
+    },
+    "removeQuarantine": {
+      "label": "Detach the quarantine policy so the pipeline can deploy again",
+      "group": "Contain",
+      "available": "quarantine",
+      "why": "Already detached.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "quarantine",
+          "to": "false"
+        },
+        {
+          "log": "AWSCompromisedKeyQuarantineV3 detached from ci-deploy. The policy said not to remove it.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "disableAttacker": {
+      "label": "Deactivate support-admin's key and remove its permissions",
+      "group": "Contain",
+      "available": "attackerUser and not isNull(trailAt)",
+      "why": "Find what the key did first, or it is already done.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "attackerUser",
+          "to": "false"
+        },
+        {
+          "log": "support-admin's access key deactivated and AdministratorAccess detached. The user is kept, disabled, for the investigation."
+        }
+      ]
+    },
+    "terminate": {
+      "label": "Terminate the unknown instances in both Regions",
+      "group": "Contain",
+      "available": "rogue and not isNull(regionsAt)",
+      "why": "Find them first, or they are already gone.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "How",
+          "options": [
+            {
+              "value": "snap",
+              "label": "Snapshot their volumes for the investigation, then terminate"
+            },
+            {
+              "value": "now",
+              "label": "Terminate them now"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "rogue",
+          "to": "false"
+        },
+        {
+          "if": "how == \"snap\"",
+          "then": [
+            {
+              "set": "snapshotted",
+              "to": "true"
+            },
+            {
+              "log": "EBS snapshots taken for the investigation, then all 24 instances terminated."
+            }
+          ],
+          "else": [
+            {
+              "log": "All 24 instances terminated; nothing kept for the investigation.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "ciPolicyFix": {
+      "label": "Replace AdministratorAccess on ci-deploy",
+      "group": "Fix",
+      "available": "ciPolicy != \"custom\"",
+      "why": "Already a custom policy.",
+      "params": [
+        {
+          "id": "pol",
+          "kind": "choice",
+          "label": "Replace with",
+          "options": [
+            {
+              "value": "custom",
+              "label": "A customer managed policy with only what the pipeline deploys"
+            },
+            {
+              "value": "power",
+              "label": "The AWS managed PowerUserAccess policy"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "ciPolicy",
+          "to": "pol"
+        },
+        {
+          "log": "{ciPolicy == \"custom\" ? \"ci-deploy now has a customer managed policy allowing only what the pipeline deploys (CloudFormation, the app bucket, one ECS service).\" : \"ci-deploy now has PowerUserAccess: everything except IAM management.\"}"
+        }
+      ]
+    },
+    "rootMfaOn": {
+      "label": "Check the root user: MFA on, no access keys",
+      "group": "Monitor",
+      "available": "not rootMfa",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "rootMfa",
+          "to": "true"
+        },
+        {
+          "log": "Root user: MFA turned on; it has no access keys."
+        }
+      ]
+    },
+    "runWeek": {
+      "label": "Hand the case to AWS Support with your findings and run the next days",
+      "group": "Run",
+      "available": "true",
+      "why": "Not available now.",
+      "effects": [
+        {
+          "set": "weekStarted",
+          "to": "true"
+        },
+        {
+          "reason": "plan"
+        },
+        {
+          "phase": "week"
+        },
+        {
+          "schedule": "dayT",
+          "after": "dayWait",
+          "with": {
+            "d": "1"
+          }
+        },
+        {
+          "log": "Findings sent to the AWS support case. Unauthorized charges so far {fraudCost|usd}.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "prompts": {
+    "respQ": {
+      "title": "Whose job was this?",
+      "context": "Under the AWS shared responsibility model, who was responsible for keeping this key safe?",
+      "choices": [
+        {
+          "id": "right",
+          "label": "We were: credentials and permissions are security in the cloud",
+          "effects": [
+            {
+              "set": "respAnswer",
+              "to": "\"right\""
+            }
+          ],
+          "feedback": "Right. AWS secures the infrastructure; the customer manages its users, keys and permissions. AWS helped here, but the key was ours to protect."
+        },
+        {
+          "id": "wrong",
+          "label": "AWS was: it runs the account, so it should have stopped the leak",
+          "effects": [
+            {
+              "set": "respAnswer",
+              "to": "\"wrong\""
+            }
+          ],
+          "feedback": "No. AWS secures the cloud itself; who has which key and permission is the customer's side of the model."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "dayT": {
+      "label": "the next day",
+      "wait": {
+        "skipLabel": "the next day"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "d": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step."
+      },
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "timer.with.d == 1",
+              "then": [
+                {
+                  "if": "rogue",
+                  "then": [
+                    {
+                      "add": "fraudCost",
+                      "by": "rogueDay"
+                    },
+                    {
+                      "log": "Wednesday: the unknown instances ran another day: about $1,680 more.",
+                      "kind": "bad"
+                    }
+                  ]
+                },
+                {
+                  "if": "attackerUser",
+                  "then": [
+                    {
+                      "set": "relaunched",
+                      "to": "true"
+                    },
+                    {
+                      "set": "rogue",
+                      "to": "true"
+                    },
+                    {
+                      "log": "Wednesday 01:40: support-admin, which the quarantine does not cover, launches 24 new instances in eu-north-1.",
+                      "kind": "bad"
+                    }
+                  ]
+                },
+                {
+                  "if": "not quarantine and keyActive",
+                  "then": [
+                    {
+                      "set": "relaunched",
+                      "to": "true"
+                    },
+                    {
+                      "set": "rogue",
+                      "to": "true"
+                    },
+                    {
+                      "log": "Wednesday 02:05: with the quarantine gone, the leaked key launches instances again.",
+                      "kind": "bad"
+                    }
+                  ]
+                },
+                {
+                  "if": "not relaunched and not rogue",
+                  "then": [
+                    {
+                      "log": "Wednesday: no new activity from either user in CloudTrail.",
+                      "kind": "good"
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "2"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "timer.with.d == 2",
+              "then": [
+                {
+                  "cases": [
+                    {
+                      "when": "ciPolicy == \"custom\"",
+                      "then": [
+                        {
+                          "log": "Thursday: the pipeline deploys with its custom policy and new credential; nothing else is allowed.",
+                          "kind": "good"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "ciPolicy == \"power\"",
+                      "then": [
+                        {
+                          "log": "Thursday: the pipeline deploys; its policy still allows almost every service in every Region.",
+                          "kind": "sys"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "Thursday: the pipeline deploys with AdministratorAccess again.",
+                          "kind": "sys"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "3"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Friday: AWS Support reviews your findings on the case.",
+                  "kind": "sys"
+                },
+                {
+                  "set": "weekDone",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "plan": {
+      "question": "Before you run the next days: who was responsible for this key, what did the key do, and what stops it happening again?",
+      "parts": [
+        {
+          "label": "Responsibility and scope",
+          "criteria": "States that credentials and IAM permissions are the customer's responsibility (security in the cloud); names what the key did from CloudTrail (a new admin user, instances in two unused Regions).",
+          "modelAnswer": "Keys and permissions are our side of the shared responsibility model. CloudTrail shows the key created support-admin with AdministratorAccess and launched 24 instances in two Regions we never use."
+        },
+        {
+          "label": "Containment and least privilege",
+          "criteria": "Deactivates the leaked key and leaves the quarantine policy on; disables the attacker's user; terminates the instances (after snapshots); replaces AdministratorAccess with a customer managed policy limited to what the pipeline needs; root MFA.",
+          "modelAnswer": "Deactivate the key and keep the quarantine. Disable support-admin, which the quarantine does not cover. Snapshot and terminate the instances. Give the pipeline a customer managed policy with only what it deploys; an AWS managed policy is written for everyone and is broader than this job needs."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "costRecoveredPct": {
+        "value": 110,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Cost over 110% of budget is harm."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "weekDone and ciPolicy == \"admin\"",
+      "class": "recovered",
+      "rationale": "The incident is contained but the pipeline still has full admin rights, so the next leaked key does the same: recovered, never target.",
+      "source": {
+        "cite": "AWS. IAM User Guide: Security best practices in IAM",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html",
+        "note": "Read 2026-11-11: workloads should use 'temporary credentials with IAM roles'; 'AWS managed policies might not grant least-privilege permissions for your specific use cases because they are available for use by all AWS customers. As a result, we recommend that you reduce permissions further by defining customer managed policies that are specific to your use cases'; require MFA; protect root user credentials."
+      }
+    }
+  },
+  "endings": {
+    "overrun": {
+      "label": "Unauthorized charges ran on",
+      "class": "harm",
+      "when": "spend > budget * costRecoveredPct / 100",
+      "terminal": true,
+      "narrative": "Unauthorized charges reached {fraudCost|usd}: the month is projected at {spend|usd} against a {budget|usd} budget."
+    },
+    "pathOpen": {
+      "label": "The attacker came back",
+      "class": "harm",
+      "when": "relaunched",
+      "terminal": true,
+      "narrative": "A way in was left open and the attacker launched instances again. Unauthorized charges {fraudCost|usd}."
+    },
+    "fixed": {
+      "label": "Contained and locked down",
+      "class": "target",
+      "when": "weekDone and investigated and not keyActive and quarantine and not attackerUser and not rogue and ciPolicy == \"custom\"",
+      "terminal": true,
+      "narrative": "Friday: no new activity since Tuesday, {fraudCost|usd} of unauthorized charges documented for the support case, and the pipeline holds only what it needs."
+    },
+    "partly": {
+      "label": "Contained, by a rougher route",
+      "class": "recovered",
+      "when": "weekDone",
+      "terminal": true,
+      "narrative": "Friday: unauthorized charges {fraudCost|usd}. The attack stopped, but something was missed: the full scope, the leaked key itself, or the pipeline's permissions."
+    },
+    "time_up": {
+      "label": "The week ran out",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The week ended without a decision."
+    }
+  },
+  "endingOrder": [
+    "overrun",
+    "pathOpen",
+    "fixed",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "scope",
+        "label": "Found everything the key did (CloudTrail and every Region)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "investigated",
+            "score": "met",
+            "why": "CloudTrail and every Region checked."
+          },
+          {
+            "when": "not isNull(trailAt) or not isNull(regionsAt)",
+            "score": "partial",
+            "why": "Only one of CloudTrail and the Region check."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked at what the key did."
+          }
+        ]
+      },
+      {
+        "id": "key",
+        "label": "Deactivated the leaked key and kept the quarantine",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not keyActive and quarantine",
+            "score": "met",
+            "why": "Key deactivated, quarantine left on."
+          },
+          {
+            "when": "not keyActive",
+            "score": "partial",
+            "why": "Key deactivated, but the quarantine was removed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The leaked key is still active."
+          }
+        ]
+      },
+      {
+        "id": "persist",
+        "label": "Disabled the user the attacker created",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not attackerUser",
+            "score": "met",
+            "why": "support-admin disabled."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "support-admin still has an active admin key."
+          }
+        ]
+      },
+      {
+        "id": "least",
+        "label": "Gave the pipeline a least-privilege custom policy",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ciPolicy == \"custom\"",
+            "score": "met",
+            "why": "A customer managed policy for the pipeline's job."
+          },
+          {
+            "when": "ciPolicy == \"power\"",
+            "score": "partial",
+            "why": "An AWS managed policy: smaller, still far broader than the job."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still AdministratorAccess."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Kept evidence before terminating",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "snapshotted",
+            "score": "met",
+            "why": "Snapshots before termination."
+          },
+          {
+            "when": "not rogue",
+            "score": "missed",
+            "why": "Terminated without keeping anything."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "Nothing terminated."
+          }
+        ]
+      },
+      {
+        "id": "root",
+        "label": "Checked the root user",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "rootMfa",
+            "score": "met",
+            "why": "Root MFA on, no root keys."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Root user not checked."
+          }
+        ]
+      },
+      {
+        "id": "resp",
+        "label": "Placed the responsibility correctly",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "respAnswer == \"right\"",
+            "score": "met",
+            "why": "Credentials are security in the cloud."
+          },
+          {
+            "when": "respAnswer == \"wrong\"",
+            "score": "missed",
+            "why": "Put it on AWS."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "Not asked."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: responsibility, scope, containment and least privilege",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "fraud",
+        "label": "Unauthorized charges",
+        "value": "fraudCost",
+        "format": "usd",
+        "expert": "$410"
+      },
+      {
+        "id": "spend",
+        "label": "Month's projected spend",
+        "value": "spend",
+        "format": "usd",
+        "expert": "$1,910"
+      },
+      {
+        "id": "changes",
+        "label": "Changes made",
+        "value": "changes",
+        "format": "number",
+        "expert": "4"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Tuesday 08:10",
+        "text": "CloudTrail for the key: a new admin user and 24 instances. Every Region: two you never use. The bill: about $70 an hour."
+      },
+      {
+        "at": "Tuesday 08:30",
+        "text": "Deactivate the leaked key and leave the quarantine on; disable support-admin; snapshot and terminate the instances."
+      },
+      {
+        "at": "Tuesday 09:00",
+        "text": "A customer managed policy for the pipeline and root MFA. The trade-off: the pipeline waits an hour for a narrower policy instead of getting its old rights back at once."
+      }
+    ],
+    "debrief": {
+      "overrun": {
+        "headline": "Unauthorized charges ran on",
+        "body": "The unknown instances kept running at about $70 an hour. Check every Region, even ones you never use, and stop what you did not launch."
+      },
+      "pathOpen": {
+        "headline": "The attacker came back",
+        "body": "AWS's quarantine covers only the leaked user. The attacker's own admin user, or the leaked key once the quarantine came off, was a way back in. CloudTrail shows what to close."
+      },
+      "fixed": {
+        "headline": "Contained and locked down",
+        "body": "You scoped the incident, closed every way in, kept the evidence and cut the pipeline down to what it needs. That is the expert path."
+      },
+      "partly": {
+        "headline": "Contained, by a rougher route",
+        "body": "Check whether you looked at CloudTrail and every Region, whether the leaked key itself was deactivated, and whether the pipeline still has broad rights."
+      },
+      "time_up": {
+        "headline": "No decision",
+        "body": "The incident stays open."
+      }
+    },
+    "modelReasoning": "Under the shared responsibility model AWS secures the infrastructure and the customer manages its own users, keys and permissions, so a leaked key is the customer's to fix, with AWS's help. Scope it with CloudTrail and a check of every Region: the key created its own admin user, which AWS's quarantine does not cover. Deactivate the leaked key, leave the quarantine policy on, disable the attacker's user, and snapshot then terminate what you did not launch. The deeper fix is least privilege: an AWS managed policy such as AdministratorAccess or PowerUserAccess is written for every customer, so a customer managed policy with only what the pipeline deploys limits what the next leaked key can do. Workloads on AWS can use roles with temporary credentials instead of keys at all."
+  }
+}

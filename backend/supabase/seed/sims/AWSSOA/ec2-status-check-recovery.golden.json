@@ -1,0 +1,612 @@
+{
+  "slug": "ec2-status-check-recovery",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: history, config and CPU first; recover on the system check (2 of 2), reboot on the instance check (3 of 3), on-call paged, cache moved to EBS",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "config",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "recQ",
+          "choice": "right",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "cpuPattern",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setRecover",
+          "params": {
+            "metric": "system"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setReboot",
+          "params": {
+            "metric": "instance3"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pageOnCall",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "moveToEbs",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 12,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 13,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "investigate": "met",
+          "store": "met",
+          "recover": "met",
+          "reboot": "met",
+          "noReplace": "met",
+          "page": "met",
+          "survive": "met"
+        },
+        "kpis": {
+          "down": 1800,
+          "avail": 99.931,
+          "changes": 3
+        },
+        "stateHash": "a09621b3fc440e8e"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "race",
+      "title": "The right alarms and the move to EBS, but the reboot alarm uses the same 2 periods as the recover alarm",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "config",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "recQ",
+          "choice": "right",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setRecover",
+          "params": {
+            "metric": "system"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setReboot",
+          "params": {
+            "metric": "instance2"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pageOnCall",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "moveToEbs",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 11,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 12,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "investigate": "met",
+          "store": "met",
+          "recover": "met",
+          "reboot": "partial",
+          "noReplace": "met",
+          "page": "met",
+          "survive": "met"
+        },
+        "kpis": {
+          "down": 1800,
+          "avail": 99.931,
+          "changes": 3
+        },
+        "stateHash": "4203b74ea8018d06"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "simplifiedOnly",
+      "title": "Moves to EBS and relies on simplified recovery with no recover alarm; tries a recover alarm on the instance check, which is rejected",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "config",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "recQ",
+          "choice": "right",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "moveToEbs",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setRecover",
+          "params": {
+            "metric": "instance"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setReboot",
+          "params": {
+            "metric": "instance3"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pageOnCall",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 11,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 12,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "investigate": "met",
+          "store": "met",
+          "recover": "missed",
+          "reboot": "met",
+          "noReplace": "met",
+          "page": "met",
+          "survive": "met"
+        },
+        "kpis": {
+          "down": 2100,
+          "avail": 99.919,
+          "changes": 3
+        },
+        "stateHash": "74444cc8becdea56"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "alarmsNoEbs",
+      "title": "Failure: the right alarms, but the cache stays on the instance store; recovery comes back without it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "config",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "recQ",
+          "choice": "wrong",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setRecover",
+          "params": {
+            "metric": "system"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setReboot",
+          "params": {
+            "metric": "instance3"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pageOnCall",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 10,
+          "tick": 1440
+        }
+      ],
+      "expect": {
+        "ending": "outage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 69,
+        "criteria": {
+          "investigate": "met",
+          "store": "missed",
+          "recover": "met",
+          "reboot": "met",
+          "noReplace": "met",
+          "page": "met",
+          "survive": "missed"
+        },
+        "kpis": {
+          "down": 8100,
+          "avail": 99.688,
+          "changes": 2
+        },
+        "stateHash": "cee7b4a5cfe06ba5"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "cpuReboot",
+      "title": "Failure: a CPU reboot alarm set on a hunch reboots the nightly job and misses the OS hang",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "setReboot",
+          "params": {
+            "metric": "cpu"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setRecover",
+          "params": {
+            "metric": "system"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "cpuPattern",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 7,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "outage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 29,
+        "criteria": {
+          "investigate": "missed",
+          "store": "missed",
+          "recover": "met",
+          "reboot": "missed",
+          "noReplace": "met",
+          "page": "missed",
+          "survive": "na"
+        },
+        "kpis": {
+          "down": 18000,
+          "avail": 99.306,
+          "changes": 2
+        },
+        "stateHash": "bf3af89cf311175c"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    },
+    {
+      "id": "replace",
+      "title": "Failure: puts the server in an Auto Scaling group of 1; the replacement voids the license",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "useAsg",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 5,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "license",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "investigate": "missed",
+          "store": "missed",
+          "recover": "missed",
+          "reboot": "missed",
+          "noReplace": "missed",
+          "page": "missed",
+          "survive": "na"
+        },
+        "kpis": {
+          "down": 86400,
+          "avail": 96.667,
+          "changes": 1
+        },
+        "stateHash": "8cd2ccd5c207b4f7"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}

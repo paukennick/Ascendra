@@ -1,0 +1,1244 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ec2-status-check-recovery",
+  "title": "The license server that keeps going down",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "ec2",
+          "label": "Instance lic-01 (us-east-2a)",
+          "spokenLabel": "Instance lic-01 in us-east-2a",
+          "items": [
+            {
+              "label": "Type: {onEbs ? \"m5.large (EBS only)\" : \"m5d.large (with an instance store volume)\"}",
+              "when": "true"
+            },
+            {
+              "label": "License cache: {onEbs ? \"on an EBS volume\" : \"on the instance store (/mnt/nvme)\"}",
+              "when": "true"
+            },
+            {
+              "label": "Simplified automatic recovery: {onEbs ? \"supported, on by default\" : \"not supported (instance store at launch)\"}",
+              "when": "true"
+            },
+            {
+              "label": "In an Auto Scaling group of 1 (replace on failure)",
+              "when": "asg"
+            }
+          ]
+        },
+        {
+          "id": "cw",
+          "label": "CloudWatch alarms",
+          "spokenLabel": "CloudWatch alarms",
+          "items": [
+            {
+              "label": "Recover: StatusCheckFailed_System, 2 of 2 one-minute periods",
+              "when": "recoverAlarm == \"system\""
+            },
+            {
+              "label": "Reboot: {rebootAlarm == \"cpu\" ? \"CPUUtilization > 90% for 5 minutes\" : (rebootAlarm == \"instance3\" ? \"StatusCheckFailed_Instance, 3 of 3 one-minute periods\" : \"StatusCheckFailed_Instance, 2 of 2 one-minute periods\")}",
+              "when": "rebootAlarm != \"none\""
+            },
+            {
+              "label": "Status check alarm to the on-call (SNS)",
+              "when": "sns"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "avail",
+          "label": "License service availability this month",
+          "value": "{avail|3dp}%"
+        },
+        {
+          "id": "down",
+          "label": "Downtime this month",
+          "value": "{downS|min} min"
+        }
+      ]
+    }
+  },
+  "objective": "Analyzing performance metrics and automating remediation with CloudWatch, AWS Lambda, AWS Systems Manager, and CloudTrail",
+  "secondaryObjectives": [
+    "Configuring CloudWatch alarms, including composite alarms and the actions they can invoke",
+    "Sending notifications to Amazon SNS from AWS services and from alarms"
+  ],
+  "sources": [
+    {
+      "cite": "Ascendra AWSSOA course catalog (backend/supabase/seed/tracks/aws.ts), built from the exam guide",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/sysops-administrator-associate-03/sysops-administrator-associate-03.html",
+      "note": "The objective and secondary objectives are the course's own titles, from the SOA-C03 outline at the course's source URL. Not re-fetched for this scenario."
+    },
+    {
+      "cite": "AWS. Amazon EC2 User Guide: Instance recovery",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html",
+      "note": "Read 2026-11-11: 'If a system status check fails, AWS initiates automatic instance recovery'; it 'does not operate if only the instance status check fails'. Simplified automatic recovery is 'Enabled by default on supported instances' but 'Not supported for instances that attach instance store volumes at launch'; CloudWatch action based recovery 'Requires manual configuration', gives 'Faster recovery attempts' and 'Customizable notifications through SNS'. Preserved: instance ID, public, private and Elastic IP addresses, metadata, attached EBS volumes, Availability Zone. Lost: RAM and, for CloudWatch recovery, data on instance store volumes. The page gives no recovery times; the scenario's times are flagged teaching values."
+    },
+    {
+      "cite": "AWS. CloudWatch User Guide: Create alarms to stop, terminate, reboot, or recover an EC2 instance",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/UsingAlarmActions.html",
+      "note": "Read 2026-11-11: 'The recover action can be used only with StatusCheckFailed_System, not with StatusCheckFailed_Instance'; reboot is recommended for instance health check failures; 'avoid setting the same evaluation period for both a reboot alarm and a recover alarm. We recommend that you set recover alarms to two evaluation periods of one minute each and reboot alarms to three evaluation periods of one minute each'; 'Terminated instances cannot be recovered'."
+    }
+  ],
+  "brief": {
+    "situation": "Monday 09:00. lic-01 serves engineering software licenses for 300 designers, from one EC2 instance in us-east-2a (Ohio). It went down twice last month, both times at night, and each outage lasted hours until someone noticed. You are asked to make it heal itself.",
+    "handover": [
+      "The vendor binds the license to the instance ID and private IP. A new instance needs a new license from the vendor, about a day's wait.",
+      "The license server keeps a cache it needs at start-up on the instance's local NVMe volume.",
+      "A heavy report job runs every night from 01:00 to 02:00. Target: 99.9% a month."
+    ],
+    "howItWorks": [
+      "Learner-paced: nothing moves until you act. Investigate, set up recovery, then run the week.",
+      "The board shows the instance and its alarms; the meters show availability and downtime.",
+      "Before you run the week you are asked which failure gets which remedy. The debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-22T09:00",
+    "tick": "1min",
+    "maxDuration": "8d",
+    "calendar": "date"
+  },
+  "params": {
+    "moveS": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Planned 15-minute window tonight to move the cache to EBS and change the instance type (stop, change, start)."
+      }
+    },
+    "rebootS": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Outage while a 3-minute reboot alarm fires and the instance reboots. No AWS figure exists for this; it stands in for one and is a teaching value, not a measured one."
+      }
+    },
+    "cwRecoverS": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Outage while a recover alarm (2 one-minute periods) fires and the instance moves to new hardware. No AWS figure exists for this; it stands in for one and is a teaching value, not a measured one."
+      }
+    },
+    "simpleRecoverS": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Outage with simplified automatic recovery, which AWS describes only as a standard attempt, slower than alarm-based recovery. No AWS figure exists for this; it stands in for one and is a teaching value, not a measured one."
+      }
+    },
+    "onCallS": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "With an alarm notifying the on-call, a manual reboot about 30 minutes after the page."
+      }
+    },
+    "unnoticedS": {
+      "value": 17400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "With no alarm, the 03:10 hang is noticed when the designers start at 08:00."
+      }
+    },
+    "stopStartPagedS": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Paged on-call stops and starts the instance on new hardware in about 45 minutes."
+      }
+    },
+    "stopStartLateS": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "With no page, a host failure at 14:00 is reported by users and fixed in about an hour."
+      }
+    },
+    "cacheS": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Rebuilding the license cache from backup after the instance store is lost takes about 2 hours."
+      }
+    },
+    "cpuRebootS": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "A false reboot during the report job: 10 minutes down and the job rerun."
+      }
+    },
+    "relicenseS": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "A replacement instance waits about a day for a new license from the vendor."
+      }
+    },
+    "monthS": {
+      "value": 2592000,
+      "unit": "s",
+      "source": {
+        "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+        "checkedAt": "2026-11-11",
+        "note": "Availability over a 30-day month (2,592,000 s): 99.9% leaves 2,592 s (43.2 minutes)."
+      }
+    },
+    "dayWait": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step of the week."
+      }
+    }
+  },
+  "state": {
+    "histAt": {
+      "type": "time",
+      "init": null
+    },
+    "configAt": {
+      "type": "time",
+      "init": null
+    },
+    "cpuAt": {
+      "type": "time",
+      "init": null
+    },
+    "onEbs": {
+      "type": "bool",
+      "init": false
+    },
+    "recoverAlarm": {
+      "type": "enum",
+      "values": [
+        "none",
+        "system"
+      ],
+      "init": "none"
+    },
+    "rebootAlarm": {
+      "type": "enum",
+      "values": [
+        "none",
+        "instance3",
+        "instance2",
+        "cpu"
+      ],
+      "init": "none"
+    },
+    "sns": {
+      "type": "bool",
+      "init": false
+    },
+    "asg": {
+      "type": "bool",
+      "init": false
+    },
+    "recAnswer": {
+      "type": "enum",
+      "values": [
+        "none",
+        "right",
+        "wrong"
+      ],
+      "init": "none"
+    },
+    "licenseLost": {
+      "type": "bool",
+      "init": false
+    },
+    "downS": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10000000,
+      "unit": "s"
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedBlind": {
+      "type": "bool",
+      "init": false
+    },
+    "changes": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "weekStarted": {
+      "type": "bool",
+      "init": false
+    },
+    "weekDone": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "avail": {
+      "expr": "round((1 - downS / monthS) * 100000) / 1000",
+      "unit": "%",
+      "precision": 3
+    },
+    "investigated": {
+      "expr": "not isNull(histAt) and not isNull(configAt)"
+    },
+    "investigatedFirst": {
+      "expr": "investigated and not changedBlind"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Investigate and change",
+      "clock": "turns",
+      "actions": [
+        "history",
+        "config",
+        "cpuPattern",
+        "moveToEbs",
+        "setRecover",
+        "setReboot",
+        "pageOnCall",
+        "useAsg",
+        "runWeek"
+      ]
+    },
+    "week": {
+      "label": "The week",
+      "clock": "turns",
+      "actions": []
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "history": {
+      "label": "Status check history for last month's outages",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(histAt)",
+          "then": [
+            {
+              "set": "histAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "3rd, 02:40: StatusCheckFailed_Instance (system check passing); console log shows the kernel out of memory; fixed by a reboot at 07:55. 19th, 23:10: StatusCheckFailed_System; AWS Health: hardware degradation on the host; fixed by a stop and start at 06:30, then 2 hours rebuilding the license cache."
+        },
+        {
+          "log": "History: one OS hang (instance check) and one host failure (system check).",
+          "kind": "find"
+        }
+      ]
+    },
+    "config": {
+      "label": "Describe lic-01",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(configAt)",
+          "then": [
+            {
+              "set": "configAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "m5d.large with a 75 GB NVMe instance store volume attached at launch, mounted at /mnt/nvme, holding the license cache. EBS root volume. Auto-recovery behavior: default, but simplified automatic recovery does not cover instances with instance store at launch."
+        },
+        {
+          "log": "Config: the cache lives on the instance store, and simplified recovery does not cover this instance.",
+          "kind": "find"
+        },
+        {
+          "if": "recAnswer == \"none\"",
+          "then": [
+            {
+              "prompt": "recQ"
+            }
+          ]
+        }
+      ]
+    },
+    "cpuPattern": {
+      "label": "CloudWatch: CPUUtilization over two weeks",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(cpuAt)",
+          "then": [
+            {
+              "set": "cpuAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Daytime 15-30%. Every night 01:00-02:00: 92-97% during the report job. Neither outage was preceded by high CPU."
+        },
+        {
+          "log": "CPU: high every night by design; not a sign of failure.",
+          "kind": "find"
+        }
+      ]
+    },
+    "moveToEbs": {
+      "label": "Tonight: move the cache to an EBS volume and change to m5.large (15-minute window)",
+      "group": "Change",
+      "available": "not onEbs",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "onEbs",
+          "to": "true"
+        },
+        {
+          "add": "downS",
+          "by": "moveS"
+        },
+        {
+          "log": "Cache moved to a gp3 EBS volume; instance stopped, changed to m5.large (EBS only), started. Same instance ID and private IP; simplified automatic recovery now applies."
+        }
+      ]
+    },
+    "setRecover": {
+      "label": "Create a recover alarm",
+      "group": "Change",
+      "available": "recoverAlarm == \"none\"",
+      "why": "Already created.",
+      "params": [
+        {
+          "id": "metric",
+          "kind": "choice",
+          "label": "Metric",
+          "options": [
+            {
+              "value": "system",
+              "label": "StatusCheckFailed_System, 2 of 2 one-minute periods"
+            },
+            {
+              "value": "instance",
+              "label": "StatusCheckFailed_Instance, 2 of 2 one-minute periods"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "if": "metric == \"system\"",
+          "then": [
+            {
+              "set": "recoverAlarm",
+              "to": "\"system\""
+            },
+            {
+              "log": "Alarm: StatusCheckFailed_System, Minimum, 1 minute, 2 of 2, action: recover."
+            }
+          ],
+          "else": [
+            {
+              "log": "CloudWatch rejects it: the recover action works only with StatusCheckFailed_System.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "setReboot": {
+      "label": "Create a reboot alarm",
+      "group": "Change",
+      "available": "rebootAlarm == \"none\"",
+      "why": "Already created.",
+      "params": [
+        {
+          "id": "metric",
+          "kind": "choice",
+          "label": "Metric",
+          "options": [
+            {
+              "value": "instance3",
+              "label": "StatusCheckFailed_Instance, 3 of 3 one-minute periods"
+            },
+            {
+              "value": "instance2",
+              "label": "StatusCheckFailed_Instance, 2 of 2 one-minute periods"
+            },
+            {
+              "value": "cpu",
+              "label": "CPUUtilization above 90% for 5 minutes"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "rebootAlarm",
+          "to": "metric"
+        },
+        {
+          "log": "{rebootAlarm == \"cpu\" ? \"Alarm: CPUUtilization > 90% for 5 minutes, action: reboot.\" : (rebootAlarm == \"instance3\" ? \"Alarm: StatusCheckFailed_Instance, 3 of 3 one-minute periods, action: reboot.\" : \"Alarm: StatusCheckFailed_Instance, 2 of 2 one-minute periods, action: reboot (same periods as the recover alarm).\")}"
+        }
+      ]
+    },
+    "pageOnCall": {
+      "label": "Alarm on StatusCheckFailed to the on-call's SNS topic",
+      "group": "Monitor",
+      "available": "not sns",
+      "why": "Already set.",
+      "effects": [
+        {
+          "set": "sns",
+          "to": "true"
+        },
+        {
+          "log": "Alarm on StatusCheckFailed (either check) notifies the on-call through SNS, and the recover and reboot alarms notify the same topic."
+        }
+      ]
+    },
+    "useAsg": {
+      "label": "Put lic-01 in an Auto Scaling group of 1 so a failed instance is replaced",
+      "group": "Change",
+      "available": "not asg",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "asg",
+          "to": "true"
+        },
+        {
+          "log": "Auto Scaling group of 1 with EC2 health checks: an impaired instance is terminated and a new one launched from the image."
+        }
+      ]
+    },
+    "runWeek": {
+      "label": "Close the change window and run the week",
+      "group": "Run",
+      "available": "true",
+      "why": "Not available now.",
+      "effects": [
+        {
+          "set": "weekStarted",
+          "to": "true"
+        },
+        {
+          "reason": "plan"
+        },
+        {
+          "phase": "week"
+        },
+        {
+          "schedule": "dayT",
+          "after": "dayWait",
+          "with": {
+            "d": "1"
+          }
+        },
+        {
+          "log": "Change window closed. Downtime so far this month {downS|min} minutes.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "prompts": {
+    "recQ": {
+      "title": "What survives recovery?",
+      "context": "If lic-01 is recovered to new hardware, what does it keep?",
+      "choices": [
+        {
+          "id": "right",
+          "label": "Its instance ID, IP addresses and EBS volumes; not memory or instance store data",
+          "effects": [
+            {
+              "set": "recAnswer",
+              "to": "\"right\""
+            }
+          ],
+          "feedback": "Right. Recovery keeps the identity the license is bound to, but RAM and, with alarm-based recovery, the instance store are lost; simplified recovery does not cover instance-store instances at all."
+        },
+        {
+          "id": "wrong",
+          "label": "Everything, including the local NVMe volume",
+          "effects": [
+            {
+              "set": "recAnswer",
+              "to": "\"wrong\""
+            }
+          ],
+          "feedback": "No. Instance store data does not move to new hardware; only EBS volumes and the instance's identity do."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "dayT": {
+      "label": "the next day",
+      "wait": {
+        "skipLabel": "the next day"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "d": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step."
+      },
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "timer.with.d == 1",
+              "then": [
+                {
+                  "if": "rebootAlarm == \"cpu\"",
+                  "then": [
+                    {
+                      "add": "downS",
+                      "by": "cpuRebootS"
+                    },
+                    {
+                      "log": "Tuesday 01:05: the report job pushes CPU to 95% and the CPU alarm reboots lic-01 mid-job: 10 minutes down and the report rerun.",
+                      "kind": "bad"
+                    }
+                  ]
+                },
+                {
+                  "log": "Tuesday 03:10: the kernel runs out of memory; StatusCheckFailed_Instance.",
+                  "kind": "alarm"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "asg",
+                      "then": [
+                        {
+                          "set": "licenseLost",
+                          "to": "true"
+                        },
+                        {
+                          "add": "downS",
+                          "by": "relicenseS"
+                        },
+                        {
+                          "log": "The Auto Scaling group replaces lic-01 with a new instance: new instance ID, so the license is invalid until the vendor reissues it, about a day.",
+                          "kind": "bad"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "rebootAlarm == \"instance3\" or rebootAlarm == \"instance2\"",
+                      "then": [
+                        {
+                          "add": "downS",
+                          "by": "rebootS"
+                        },
+                        {
+                          "log": "The reboot alarm fires after its periods; lic-01 reboots and is back in about 5 minutes.",
+                          "kind": "good"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "sns",
+                      "then": [
+                        {
+                          "add": "downS",
+                          "by": "onCallS"
+                        },
+                        {
+                          "log": "The on-call is paged and reboots it about 30 minutes later.",
+                          "kind": "sys"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "add": "downS",
+                          "by": "unnoticedS"
+                        },
+                        {
+                          "log": "Nothing alerts. The designers find it down at 08:00.",
+                          "kind": "bad"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "2"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "timer.with.d == 2",
+              "then": [
+                {
+                  "log": "Wednesday 14:00: hardware degradation on lic-01's host; StatusCheckFailed_System.",
+                  "kind": "alarm"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "asg",
+                      "then": [
+                        {
+                          "log": "The replacement instance is unaffected, but still waits for its license.",
+                          "kind": "sys"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "recoverAlarm == \"system\" and onEbs",
+                      "then": [
+                        {
+                          "add": "downS",
+                          "by": "cwRecoverS"
+                        },
+                        {
+                          "log": "The recover alarm moves lic-01 to new hardware: same ID and IP, cache intact on EBS. About 10 minutes.",
+                          "kind": "good"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "recoverAlarm == \"system\"",
+                      "then": [
+                        {
+                          "add": "downS",
+                          "by": "cwRecoverS"
+                        },
+                        {
+                          "add": "downS",
+                          "by": "cacheS"
+                        },
+                        {
+                          "log": "The recover alarm moves lic-01 to new hardware, but the instance store is empty: the cache is rebuilt from backup, about 2 hours more.",
+                          "kind": "bad"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "onEbs",
+                      "then": [
+                        {
+                          "add": "downS",
+                          "by": "simpleRecoverS"
+                        },
+                        {
+                          "log": "Simplified automatic recovery moves lic-01 to new hardware: about 15 minutes, notice in the Health Dashboard.",
+                          "kind": "sys"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "sns",
+                      "then": [
+                        {
+                          "add": "downS",
+                          "by": "stopStartPagedS"
+                        },
+                        {
+                          "add": "downS",
+                          "by": "cacheS"
+                        },
+                        {
+                          "log": "Nothing recovers it automatically; the on-call is paged, stops and starts it, then rebuilds the cache: about 3 hours.",
+                          "kind": "bad"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "add": "downS",
+                          "by": "stopStartLateS"
+                        },
+                        {
+                          "add": "downS",
+                          "by": "cacheS"
+                        },
+                        {
+                          "log": "Nothing alerts or recovers it; users report it, and the cache is rebuilt after a stop and start: about 3 hours.",
+                          "kind": "bad"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "3"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Thursday: the week's incidents are reviewed.",
+                  "kind": "sys"
+                },
+                {
+                  "set": "weekDone",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "plan": {
+      "question": "Before you run the week: which failure needs which remedy, and why does the instance store matter?",
+      "parts": [
+        {
+          "label": "Remedy per failure",
+          "criteria": "A host problem (StatusCheckFailed_System) is fixed by recovery to new hardware, keeping the instance ID and IP the license needs; an OS problem (StatusCheckFailed_Instance) by a reboot; recover alarm at 2 of 2 and reboot alarm at 3 of 3 one-minute periods to avoid a race; CPU is not a failure signal here; replacement breaks the license.",
+          "modelAnswer": "A failed system check means the host: recover it, which keeps the instance ID and IP. A failed instance check means the OS: reboot it. Set recover at 2 of 2 and reboot at 3 of 3 so they never race, and notify the on-call. CPU is high every night by design, and replacing the instance would void the license."
+        },
+        {
+          "label": "The instance store",
+          "criteria": "Moves the license cache to EBS and to an EBS-only type, because instance store data is lost on recovery and simplified recovery does not cover instances with instance store at launch.",
+          "modelAnswer": "Recovery loses the instance store, and simplified recovery does not apply to an instance launched with one. Move the cache to EBS and change to m5.large in a short planned window; then both kinds of recovery work and keep the cache."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "availabilityTarget": {
+        "value": 99.9,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Stated SLA over the month by the error-budget method."
+        }
+      },
+      "availabilityRecovered": {
+        "value": 99.85,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "A small miss."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "weekDone and recoverAlarm == \"none\" and rebootAlarm == \"none\"",
+      "class": "recovered",
+      "rationale": "No automatic remediation was set up, so the server still depends on someone noticing; at best recovered, never target.",
+      "source": {
+        "cite": "AWS. CloudWatch User Guide: Create alarms to stop, terminate, reboot, or recover an EC2 instance",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/UsingAlarmActions.html",
+        "note": "Read 2026-11-11: 'The recover action can be used only with StatusCheckFailed_System, not with StatusCheckFailed_Instance'; reboot is recommended for instance health check failures; 'avoid setting the same evaluation period for both a reboot alarm and a recover alarm. We recommend that you set recover alarms to two evaluation periods of one minute each and reboot alarms to three evaluation periods of one minute each'; 'Terminated instances cannot be recovered'."
+      }
+    }
+  },
+  "endings": {
+    "license": {
+      "label": "The license was lost",
+      "class": "harm",
+      "when": "licenseLost",
+      "terminal": true,
+      "narrative": "Replacing lic-01 gave it a new instance ID; the designers waited a day for a new license."
+    },
+    "outage": {
+      "label": "Long outages again",
+      "class": "harm",
+      "when": "avail < availabilityRecovered",
+      "terminal": true,
+      "narrative": "lic-01 was down {downS|min} minutes this month: {avail|3dp}%, below the 99.9% target."
+    },
+    "fixed": {
+      "label": "It heals itself",
+      "class": "target",
+      "when": "weekDone and avail >= availabilityTarget and investigatedFirst and onEbs and recoverAlarm == \"system\" and rebootAlarm == \"instance3\" and not asg",
+      "terminal": true,
+      "narrative": "Thursday: both failures healed in minutes with the same instance ID and cache; {avail|3dp}% this month."
+    },
+    "partly": {
+      "label": "Better, by a rougher route",
+      "class": "recovered",
+      "when": "weekDone",
+      "terminal": true,
+      "narrative": "Thursday: {avail|3dp}% this month. Something was missed: the evidence first, the instance store, or the right alarm for each failure."
+    },
+    "time_up": {
+      "label": "The week ran out",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The week ended without a decision."
+    }
+  },
+  "endingOrder": [
+    "license",
+    "outage",
+    "fixed",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "investigate",
+        "label": "Read the status-check history and the instance's configuration before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "investigatedFirst",
+            "score": "met",
+            "why": "History and configuration first."
+          },
+          {
+            "when": "investigated",
+            "score": "partial",
+            "why": "Read them, but after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without knowing which checks failed."
+          }
+        ]
+      },
+      {
+        "id": "store",
+        "label": "Moved the cache off the instance store",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "onEbs",
+            "score": "met",
+            "why": "Cache on EBS, m5.large."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cache still lives on the instance store."
+          }
+        ]
+      },
+      {
+        "id": "recover",
+        "label": "Recover alarm on the system status check",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "recoverAlarm == \"system\"",
+            "score": "met",
+            "why": "StatusCheckFailed_System, 2 of 2, recover."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No recover alarm."
+          }
+        ]
+      },
+      {
+        "id": "reboot",
+        "label": "Reboot alarm on the instance status check, without a race",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rebootAlarm == \"instance3\"",
+            "score": "met",
+            "why": "StatusCheckFailed_Instance, 3 of 3, reboot."
+          },
+          {
+            "when": "rebootAlarm == \"instance2\"",
+            "score": "partial",
+            "why": "Same periods as the recover alarm: they can race."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No reboot alarm on the instance check."
+          }
+        ]
+      },
+      {
+        "id": "noReplace",
+        "label": "Kept the instance's identity (no replacement)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not asg",
+            "score": "met",
+            "why": "Recovery, not replacement."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Replacement voided the license."
+          }
+        ]
+      },
+      {
+        "id": "page",
+        "label": "Notifies the on-call",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "sns",
+            "score": "met",
+            "why": "SNS to the on-call."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody is told."
+          }
+        ]
+      },
+      {
+        "id": "survive",
+        "label": "Knew what recovery keeps",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "recAnswer == \"right\"",
+            "score": "met",
+            "why": "ID, IPs and EBS; not RAM or instance store."
+          },
+          {
+            "when": "recAnswer == \"wrong\"",
+            "score": "missed",
+            "why": "Thought the instance store moves too."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "Not asked."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: the remedy per failure and the instance store",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "down",
+        "label": "Downtime this month",
+        "value": "downS",
+        "format": "duration",
+        "expert": "30 minutes"
+      },
+      {
+        "id": "avail",
+        "label": "Availability this month (%)",
+        "value": "avail",
+        "format": "number",
+        "expert": "99.931"
+      },
+      {
+        "id": "changes",
+        "label": "Changes made",
+        "value": "changes",
+        "format": "number",
+        "expert": "3"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Monday 09:00",
+        "text": "History: one instance-check failure (OS), one system-check failure (host). Config: the cache is on the instance store. CPU: high nightly by design."
+      },
+      {
+        "at": "Monday 09:30",
+        "text": "Recover alarm on StatusCheckFailed_System (2 of 2), reboot alarm on StatusCheckFailed_Instance (3 of 3), both to the on-call."
+      },
+      {
+        "at": "Monday 22:00",
+        "text": "Move the cache to EBS and change to m5.large in a 15-minute window. The trade-off: 15 planned minutes now for recoveries that keep the cache later."
+      }
+    ],
+    "debrief": {
+      "license": {
+        "headline": "The license was lost",
+        "body": "Replacing a failed instance is right for stateless servers, but this license is bound to the instance ID. Recovery keeps the ID; replacement does not."
+      },
+      "outage": {
+        "headline": "Long outages again",
+        "body": "Each failure needs its own remedy: recover for the system check, reboot for the instance check, and the cache off the instance store so recovery does not lose it."
+      },
+      "fixed": {
+        "headline": "It heals itself",
+        "body": "You read which checks failed, matched recover and reboot to them with non-racing periods, and moved the cache to EBS so recovery keeps it. That is the expert path."
+      },
+      "partly": {
+        "headline": "Better, by a rougher route",
+        "body": "Check whether you read the history first, whether the cache is still on the instance store, and whether each check has its own action."
+      },
+      "time_up": {
+        "headline": "No decision",
+        "body": "The next failure waits for someone to notice."
+      }
+    },
+    "modelReasoning": "EC2 has two status checks. A failed system check is AWS's host: recover the instance to new hardware, which keeps its ID, IPs and EBS volumes, so a license bound to them survives. A failed instance check is the operating system: reboot it. CloudWatch allows the recover action only on StatusCheckFailed_System; AWS suggests recover at 2 of 2 and reboot at 3 of 3 one-minute periods so they never race. Instance store data is lost on recovery, and simplified automatic recovery does not cover instances launched with instance store, so move the cache to EBS. CPU is high every night by design and is no failure signal; replacing the instance would void the license."
+  }
+}

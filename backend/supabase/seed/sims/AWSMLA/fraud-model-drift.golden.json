@@ -1,0 +1,536 @@
+{
+  "slug": "fraud-model-drift",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: the evidence first, baseline from the training data, drift alarms, retrain on mature labels, v8 in shadow then promoted",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "monitorReport",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "compareTraining",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "whyQ",
+          "choice": "right",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "labelsCheck",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "registry",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rebaseline",
+          "params": {
+            "src": "training"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "driftAlarm",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "retrain",
+          "params": {
+            "data": "mature"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deployV8",
+          "params": {
+            "mode": "shadow"
+          },
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 13,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 14,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "investigate": "met",
+          "baseline": "met",
+          "labels": "met",
+          "shadow": "met",
+          "alarm": "met",
+          "why": "met"
+        },
+        "kpis": {
+          "recall": 0.83,
+          "loss": 68000,
+          "changes": 3
+        },
+        "stateHash": "60b3200e8b2f4941"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "replaceGood",
+      "title": "Investigates and retrains well, but swaps v8 straight into production without a shadow test",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "compareTraining",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "whyQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "labelsCheck",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rebaseline",
+          "params": {
+            "src": "training"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "retrain",
+          "params": {
+            "data": "mature"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deployV8",
+          "params": {
+            "mode": "replace"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "driftAlarm",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 11,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 12,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "investigate": "met",
+          "baseline": "met",
+          "labels": "met",
+          "shadow": "missed",
+          "alarm": "met",
+          "why": "met"
+        },
+        "kpis": {
+          "recall": 0.83,
+          "loss": 68000,
+          "changes": 3
+        },
+        "stateHash": "b99c10b5395c5e78"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "blindRebaseline",
+      "title": "Rebuilds the baseline on a hunch before looking, then does the rest right but blames the monitor",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "rebaseline",
+          "params": {
+            "src": "training"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "compareTraining",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "whyQ",
+          "choice": "wrong",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "labelsCheck",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "retrain",
+          "params": {
+            "data": "mature"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deployV8",
+          "params": {
+            "mode": "shadow"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 10,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 11,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "investigate": "partial",
+          "baseline": "met",
+          "labels": "met",
+          "shadow": "met",
+          "alarm": "missed",
+          "why": "missed"
+        },
+        "kpis": {
+          "recall": 0.83,
+          "loss": 68000,
+          "changes": 3
+        },
+        "stateHash": "faaf79a2aafbe7a3"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "recentShadow",
+      "title": "Failure: retrains on the last 30 days and re-baselines on yesterday's traffic; the shadow review stops v8, losses stay high",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "compareTraining",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "whyQ",
+          "choice": "right",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "labelsCheck",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rebaseline",
+          "params": {
+            "src": "yesterday"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "driftAlarm",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "retrain",
+          "params": {
+            "data": "recent30"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deployV8",
+          "params": {
+            "mode": "shadow"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 11,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 12,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "investigate": "met",
+          "baseline": "missed",
+          "labels": "missed",
+          "shadow": "met",
+          "alarm": "partial",
+          "why": "met"
+        },
+        "kpis": {
+          "recall": 0.61,
+          "loss": 156000,
+          "changes": 3
+        },
+        "stateHash": "d05ac88cecd4d8ba"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    },
+    {
+      "id": "shipRecent",
+      "title": "Failure: retrains on the last 30 days without looking and replaces v7 at once",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "retrain",
+          "params": {
+            "data": "recent30"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deployV8",
+          "params": {
+            "mode": "replace"
+          },
+          "seq": 2,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "worse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "investigate": "missed",
+          "baseline": "missed",
+          "labels": "missed",
+          "shadow": "missed",
+          "alarm": "missed",
+          "why": "na"
+        },
+        "kpis": {
+          "recall": 0.55,
+          "loss": 180000,
+          "changes": 2
+        },
+        "stateHash": "604f740b5b0b49fc"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}

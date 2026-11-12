@@ -1,0 +1,1252 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "endpoint-scaling-latency",
+  "title": "The endpoint that would not scale",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "endpoint",
+          "label": "Endpoint recs-prod (us-east-2)",
+          "spokenLabel": "Production endpoint recs-prod in us-east-2",
+          "items": [
+            {
+              "label": "Variant AllTraffic: {inst == \"g5\" ? \"ml.g5.xlarge\" : \"ml.c5.xlarge\"}",
+              "when": "true"
+            },
+            {
+              "label": "Scaling policy: {policy == \"inv600\" ? \"InvocationsPerInstance 600/min\" : (policy == \"inv1200\" ? \"InvocationsPerInstance 1,200/min\" : (policy == \"conc\" ? \"ConcurrentRequestsPerModel 5 (high resolution)\" : (policy == \"latency\" ? \"custom ModelLatency 300 ms\" : \"CPUUtilization 70%\")))}",
+              "when": "true"
+            },
+            {
+              "label": "Capacity: minimum 1, maximum {maxInst}",
+              "when": "true"
+            },
+            {
+              "label": "Scheduled action: minimum 6 on Wednesday 19:30-22:30",
+              "when": "prewarm"
+            }
+          ]
+        },
+        {
+          "id": "ops",
+          "label": "Operations",
+          "spokenLabel": "Operations",
+          "items": [
+            {
+              "label": "Alarm: Invocation5XXErrors to the on-call",
+              "when": "errAlarm"
+            },
+            {
+              "label": "Marketing: TV ad Wednesday 20:00",
+              "when": "true"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "cost",
+          "label": "Endpoint cost a month (projected)",
+          "value": "{cost|usd}"
+        },
+        {
+          "id": "budget",
+          "label": "Endpoint budget a month",
+          "value": "{budget|usd}"
+        },
+        {
+          "id": "avail",
+          "label": "Requests served this month",
+          "value": "{avail|3dp}%"
+        }
+      ]
+    }
+  },
+  "objective": "Selecting the metrics that drive auto scaling",
+  "secondaryObjectives": [
+    "Selecting inference instance families for performance and cost",
+    "Optimizing capacity for cost, performance, and reliability"
+  ],
+  "sources": [
+    {
+      "cite": "Ascendra AWSMLA course catalog (backend/supabase/seed/tracks/aws.ts), built from the exam guide",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/machine-learning-engineer-associate-02/machine-learning-engineer-associate-02.html",
+      "note": "The objective and secondary objectives are the course's own titles, from the MLA-C02 outline at the course's source URL. Not re-fetched for this scenario."
+    },
+    {
+      "cite": "AWS. Price List API: Amazon SageMaker, US East (Ohio) offer file",
+      "checkedAt": "2026-11-11",
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonSageMaker/current/us-east-2/index.json",
+      "note": "Read 2026-11-11 (file publicationDate 2026-11-12T00:41:14Z UTC): Hosting ml.c5.xlarge $0.204 an hour; ml.g5.xlarge $1.4084 an hour; ml.m5.xlarge $0.23 an hour (usage types USE2-Host:...). On-demand real-time hosting, us-east-2. Prices change; re-check at the next review."
+    },
+    {
+      "cite": "AWS pricing convention (730 hours a month)",
+      "checkedAt": "2026-11-11",
+      "note": "AWS pricing examples bill a month as 730 hours; stated from that convention, as in the NAT case, not re-read this session."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Auto scaling policy overview",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/endpoint-auto-scaling-policy.html",
+      "note": "Read 2026-11-11: target tracking 'adds and removes the number of instances as required to keep the metric at, or close to, the specified target value'; default scale-in and scale-out cooldown 300 seconds each; 'You can manually scale out by increasing the minimum value'; 'SageMaker AI auto scaling does not enforce a limit' for the maximum."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Define a scaling policy",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/endpoint-auto-scaling-add-code-define.html",
+      "note": "Read 2026-11-11: predefined metric types SageMakerVariantInvocationsPerInstance and SageMakerVariantConcurrentRequestsPerModelHighResolution; the high-resolution metrics 'emit data every 10 seconds' so the policy scales out 'much more quickly' while it scales in 'at the same speed' as standard metrics, which emit once a minute."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Load testing your auto scaling configuration",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/endpoint-scaling-loadtest.html",
+      "note": "Read 2026-11-11: SageMakerVariantInvocationsPerInstance = (MAX_RPS * SAFETY_FACTOR) * 60; 'SageMaker AI recommends that you start testing with a SAFETY_FACTOR of 0.5'; multiply by 60 for the per-minute metric."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Amazon SageMaker AI metrics in CloudWatch",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/monitoring-cloudwatch.html",
+      "note": "Read 2026-11-11: ModelLatency in microseconds; InvocationsPerInstance normalized by instance count; Invocation5XXErrors; ConcurrentRequestsPerModel 'The number of concurrent requests being received by the model'; CPUUtilization is the sum over cores, 0-400% on four vCPUs."
+    },
+    {
+      "cite": "AWS. Application Auto Scaling User Guide: Scheduled scaling",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/autoscaling/application/userguide/application-auto-scaling-scheduled-scaling.html",
+      "note": "Read 2026-11-11: scheduled actions 'increase or decrease capacity at specific times' by changing minimum and maximum capacity; used with scaling policies, 'the scaling policy can continue to make decisions'. The page does not name SageMaker; endpoint variants are Application Auto Scaling scalable targets (SageMaker auto scaling prerequisites page, read the same day)."
+    }
+  ],
+  "brief": {
+    "situation": "Monday 09:00. You run the product-recommendation model, a SageMaker AI real-time endpoint in us-east-2 (Ohio). During last Tuesday's flash sale its p99 latency hit 2.8 seconds and 4% of requests failed, yet auto scaling never added an instance. Marketing runs a TV ad on Wednesday at 20:00.",
+    "handover": [
+      "One ml.c5.xlarge at $0.204 an hour. Target tracking on CPUUtilization at 70%; minimum 1, maximum 4 instances.",
+      "The model must answer within 300 ms. The endpoint's budget is $400 a month.",
+      "Normal evening peak is about 18 requests a second."
+    ],
+    "howItWorks": [
+      "Learner-paced: nothing moves until you act. Investigate, change the scaling, then run the week.",
+      "The board shows the endpoint's configuration; the meters show the projected monthly cost and the share of requests served.",
+      "Before you run the week you are asked what the scaling metric should be and why. The debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-15T09:00",
+    "tick": "1min",
+    "maxDuration": "8d",
+    "calendar": "date"
+  },
+  "params": {
+    "c5Hourly": {
+      "value": 0.204,
+      "unit": "$",
+      "source": {
+        "cite": "AWS. Price List API: Amazon SageMaker, US East (Ohio) offer file",
+        "checkedAt": "2026-11-11",
+        "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonSageMaker/current/us-east-2/index.json",
+        "note": "Read 2026-11-11 (file publicationDate 2026-11-12T00:41:14Z UTC): Hosting ml.c5.xlarge $0.204 an hour; ml.g5.xlarge $1.4084 an hour; ml.m5.xlarge $0.23 an hour (usage types USE2-Host:...). On-demand real-time hosting, us-east-2. Prices change; re-check at the next review."
+      }
+    },
+    "g5Hourly": {
+      "value": 1.4084,
+      "unit": "$",
+      "source": {
+        "cite": "AWS. Price List API: Amazon SageMaker, US East (Ohio) offer file",
+        "checkedAt": "2026-11-11",
+        "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonSageMaker/current/us-east-2/index.json",
+        "note": "Read 2026-11-11 (file publicationDate 2026-11-12T00:41:14Z UTC): Hosting ml.c5.xlarge $0.204 an hour; ml.g5.xlarge $1.4084 an hour; ml.m5.xlarge $0.23 an hour (usage types USE2-Host:...). On-demand real-time hosting, us-east-2. Prices change; re-check at the next review."
+      }
+    },
+    "hoursPerMonth": {
+      "value": 730,
+      "unit": "h",
+      "source": {
+        "cite": "AWS pricing convention (730 hours a month)",
+        "checkedAt": "2026-11-11",
+        "note": "AWS pricing examples bill a month as 730 hours; stated from that convention, as in the NAT case, not re-read this session."
+      }
+    },
+    "budget": {
+      "value": 400,
+      "unit": "$",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The endpoint's budget a month."
+      }
+    },
+    "c5Rps": {
+      "value": 20,
+      "unit": "req/s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Load test: one ml.c5.xlarge keeps p99 under 300 ms up to 20 requests a second."
+      }
+    },
+    "g5Rps": {
+      "value": 45,
+      "unit": "req/s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Load test: one ml.g5.xlarge keeps p99 under 300 ms up to 45 requests a second; this model gains little from a GPU."
+      }
+    },
+    "adRps": {
+      "value": 120,
+      "unit": "req/s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Marketing's expected peak during the TV ad, for about 2 hours."
+      }
+    },
+    "adS": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The ad-driven peak lasts about 2 hours."
+      }
+    },
+    "lateFast": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Failed-request time while a high-resolution (10 s) concurrency policy scales out and new instances start. No AWS figure exists for this; it stands in for one and is a teaching value, not a measured one."
+      }
+    },
+    "lateStd": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Failed-request time while a one-minute InvocationsPerInstance policy at 600 detects the spike and new instances start. No AWS figure exists for this; it stands in for one and is a teaching value, not a measured one."
+      }
+    },
+    "lateEdge": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Failed-request time with InvocationsPerInstance at 1,200: no headroom, so it scales late and instances run at their limit. No AWS figure exists for this; it stands in for one and is a teaching value, not a measured one."
+      }
+    },
+    "lateLatency": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Failed-request time with a latency target: latency rises only after instances saturate, so it adds capacity late and in jerks. No AWS figure exists for this; it stands in for one and is a teaching value, not a measured one."
+      }
+    },
+    "monthS": {
+      "value": 2592000,
+      "unit": "s",
+      "source": {
+        "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+        "checkedAt": "2026-11-11",
+        "note": "Availability over a 30-day month (2,592,000 s): 99.9% leaves 2,592 s (43.2 minutes)."
+      }
+    },
+    "dayWait": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step of the week."
+      }
+    }
+  },
+  "state": {
+    "metricsAt": {
+      "type": "time",
+      "init": null
+    },
+    "loadAt": {
+      "type": "time",
+      "init": null
+    },
+    "adAt": {
+      "type": "time",
+      "init": null
+    },
+    "policy": {
+      "type": "enum",
+      "values": [
+        "cpu",
+        "inv600",
+        "inv1200",
+        "conc",
+        "latency"
+      ],
+      "init": "cpu"
+    },
+    "maxInst": {
+      "type": "number",
+      "init": 4,
+      "min": 1,
+      "max": 100
+    },
+    "inst": {
+      "type": "enum",
+      "values": [
+        "c5",
+        "g5"
+      ],
+      "init": "c5"
+    },
+    "prewarm": {
+      "type": "bool",
+      "init": false
+    },
+    "errAlarm": {
+      "type": "bool",
+      "init": false
+    },
+    "targetAnswer": {
+      "type": "enum",
+      "values": [
+        "none",
+        "right",
+        "wrong"
+      ],
+      "init": "none"
+    },
+    "errS": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedBlind": {
+      "type": "bool",
+      "init": false
+    },
+    "changes": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "weekStarted": {
+      "type": "bool",
+      "init": false
+    },
+    "weekDone": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "hourly": {
+      "expr": "inst == \"g5\" ? g5Hourly : c5Hourly",
+      "unit": "$"
+    },
+    "perInst": {
+      "expr": "inst == \"g5\" ? g5Rps : c5Rps",
+      "unit": "req/s"
+    },
+    "avgInst": {
+      "expr": "inst == \"g5\" ? 1 : ((policy == \"inv600\" or policy == \"conc\") ? 1.5 : 1)"
+    },
+    "cost": {
+      "expr": "round(hourly * hoursPerMonth * avgInst + (prewarm ? 3 * 6 * hourly : 0))",
+      "unit": "$",
+      "precision": 0
+    },
+    "capOk": {
+      "expr": "maxInst * perInst >= adRps"
+    },
+    "tracksLoad": {
+      "expr": "policy == \"inv600\" or policy == \"conc\""
+    },
+    "avail": {
+      "expr": "round((1 - errS / monthS) * 100000) / 1000",
+      "unit": "%",
+      "precision": 3
+    },
+    "investigated": {
+      "expr": "not isNull(metricsAt) and not isNull(loadAt)"
+    },
+    "investigatedFirst": {
+      "expr": "investigated and not changedBlind"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Investigate and change",
+      "clock": "turns",
+      "actions": [
+        "metrics",
+        "loadTest",
+        "adPlan",
+        "setPolicy",
+        "setMax",
+        "setInstance",
+        "prewarmAd",
+        "errorAlarm",
+        "runWeek"
+      ]
+    },
+    "week": {
+      "label": "The week",
+      "clock": "turns",
+      "actions": []
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "metrics": {
+      "label": "CloudWatch: last Tuesday's flash sale on recs-prod",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(metricsAt)",
+          "then": [
+            {
+              "set": "metricsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "During the sale: InvocationsPerInstance peaked at 1,500 a minute on the one instance; ConcurrentRequestsPerModel max 38; CPUUtilization max 45% (of 400% on 4 vCPUs); ModelLatency p99 2.8 s; Invocation5XXErrors about 4% of requests. The CPU policy never reached 70%, so it never scaled out."
+        },
+        {
+          "log": "Metrics: requests and concurrency tracked the load; CPU did not.",
+          "kind": "find"
+        }
+      ]
+    },
+    "loadTest": {
+      "label": "Run a load test on one ml.c5.xlarge",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(loadAt)",
+          "then": [
+            {
+              "set": "loadAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "p99 latency stays under 300 ms up to 20 requests a second, then queues build and errors start. At that point CPU is about 45%: the model server's workers are all busy before the CPUs are."
+        },
+        {
+          "log": "Load test: 20 requests a second per instance is the limit.",
+          "kind": "find"
+        },
+        {
+          "if": "targetAnswer == \"none\"",
+          "then": [
+            {
+              "prompt": "targetQ"
+            }
+          ]
+        }
+      ]
+    },
+    "adPlan": {
+      "label": "Ask marketing for the ad's expected traffic",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(adAt)",
+          "then": [
+            {
+              "set": "adAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "TV ad Wednesday 20:00. Expected peak about 120 requests a second, for about 2 hours, rising within minutes of the ad airing."
+        },
+        {
+          "log": "The ad: 120 requests a second, arriving within minutes.",
+          "kind": "find"
+        }
+      ]
+    },
+    "setPolicy": {
+      "label": "Change the target tracking policy",
+      "group": "Change",
+      "available": "true",
+      "why": "Not available now.",
+      "params": [
+        {
+          "id": "metric",
+          "kind": "choice",
+          "label": "Scaling metric and target",
+          "options": [
+            {
+              "value": "inv600",
+              "label": "Target tracking: InvocationsPerInstance at 600 a minute"
+            },
+            {
+              "value": "inv1200",
+              "label": "Target tracking: InvocationsPerInstance at 1,200 a minute"
+            },
+            {
+              "value": "conc",
+              "label": "Target tracking: ConcurrentRequestsPerModel (high resolution) at 5"
+            },
+            {
+              "value": "latency",
+              "label": "Target tracking on a custom ModelLatency metric at 300 ms"
+            },
+            {
+              "value": "cpu",
+              "label": "Keep target tracking on CPUUtilization at 70%"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "policy",
+          "to": "metric"
+        },
+        {
+          "log": "Scaling policy now: {policy == \"inv600\" ? \"InvocationsPerInstance 600/min\" : (policy == \"inv1200\" ? \"InvocationsPerInstance 1,200/min\" : (policy == \"conc\" ? \"ConcurrentRequestsPerModel 5 (high resolution)\" : (policy == \"latency\" ? \"custom ModelLatency 300 ms\" : \"CPUUtilization 70%\")))}. Default cooldowns (300 s)."
+        }
+      ]
+    },
+    "setMax": {
+      "label": "Change the maximum instance count",
+      "group": "Change",
+      "available": "true",
+      "why": "Not available now.",
+      "params": [
+        {
+          "id": "cap",
+          "kind": "choice",
+          "label": "Maximum instances",
+          "options": [
+            {
+              "value": "c4",
+              "label": "4 (as now)"
+            },
+            {
+              "value": "c12",
+              "label": "12"
+            },
+            {
+              "value": "c40",
+              "label": "40"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "cap == \"c12\"",
+              "then": [
+                {
+                  "set": "maxInst",
+                  "to": "12"
+                }
+              ]
+            },
+            {
+              "when": "cap == \"c40\"",
+              "then": [
+                {
+                  "set": "maxInst",
+                  "to": "40"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "maxInst",
+                  "to": "4"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Maximum capacity {maxInst} instances: up to {maxInst * perInst} requests a second within the latency target."
+        }
+      ]
+    },
+    "setInstance": {
+      "label": "Change the instance type",
+      "group": "Change",
+      "available": "true",
+      "why": "Not available now.",
+      "params": [
+        {
+          "id": "type",
+          "kind": "choice",
+          "label": "Instance type",
+          "options": [
+            {
+              "value": "c5",
+              "label": "ml.c5.xlarge (CPU, as now)"
+            },
+            {
+              "value": "g5",
+              "label": "ml.g5.xlarge (GPU)"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "inst",
+          "to": "type"
+        },
+        {
+          "log": "Instance type now {inst == \"g5\" ? \"ml.g5.xlarge at $1.4084 an hour\" : \"ml.c5.xlarge at $0.204 an hour\"}. Projected {cost|usd} a month."
+        }
+      ]
+    },
+    "prewarmAd": {
+      "label": "Schedule the minimum up to 6 for the ad (Wednesday 19:30-22:30)",
+      "group": "Change",
+      "available": "not prewarm",
+      "why": "Already scheduled.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "prewarm",
+          "to": "true"
+        },
+        {
+          "log": "Scheduled actions: minimum 6 at 19:30 Wednesday, back to 1 at 22:30. The policy still scales above that."
+        }
+      ]
+    },
+    "errorAlarm": {
+      "label": "Alarm on Invocation5XXErrors to the on-call",
+      "group": "Monitor",
+      "available": "not errAlarm",
+      "why": "Already set.",
+      "effects": [
+        {
+          "set": "errAlarm",
+          "to": "true"
+        },
+        {
+          "log": "Alarm: Invocation5XXErrors above 1% of requests for 3 minutes pages the on-call."
+        }
+      ]
+    },
+    "runWeek": {
+      "label": "Close the change window and run the week",
+      "group": "Run",
+      "available": "true",
+      "why": "Not available now.",
+      "effects": [
+        {
+          "set": "weekStarted",
+          "to": "true"
+        },
+        {
+          "reason": "plan"
+        },
+        {
+          "phase": "week"
+        },
+        {
+          "schedule": "dayT",
+          "after": "dayWait",
+          "with": {
+            "d": "1"
+          }
+        },
+        {
+          "log": "Change window closed. Projected endpoint cost {cost|usd} a month.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "prompts": {
+    "targetQ": {
+      "title": "The target value",
+      "context": "With 20 requests a second as one instance's limit, what InvocationsPerInstance target does AWS's load-test formula give with its recommended starting safety factor?",
+      "choices": [
+        {
+          "id": "right",
+          "label": "600 a minute: 20 x 0.5 x 60",
+          "effects": [
+            {
+              "set": "targetAnswer",
+              "to": "\"right\""
+            }
+          ],
+          "feedback": "Right. (MAX_RPS x SAFETY_FACTOR) x 60, starting with a safety factor of 0.5, leaves room for the time it takes to scale out."
+        },
+        {
+          "id": "wrong",
+          "label": "1,200 a minute: 20 x 60, so no instance sits idle",
+          "effects": [
+            {
+              "set": "targetAnswer",
+              "to": "\"wrong\""
+            }
+          ],
+          "feedback": "No. At the limit there is no headroom while new instances start, so latency breaks before scaling catches up. AWS suggests starting at a safety factor of 0.5."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "dayT": {
+      "label": "the next day",
+      "wait": {
+        "skipLabel": "the next day"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "d": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step; the ad airs on Wednesday evening."
+      },
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "timer.with.d == 1",
+              "then": [
+                {
+                  "log": "Tuesday: normal evening peak, about 18 requests a second, served within 300 ms.",
+                  "kind": "sys"
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "2"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "timer.with.d == 2",
+              "then": [
+                {
+                  "log": "Wednesday 20:00: the ad airs. Traffic climbs to about 120 requests a second within minutes.",
+                  "kind": "alarm"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "policy == \"cpu\" or not capOk",
+                      "then": [
+                        {
+                          "add": "errS",
+                          "by": "adS"
+                        },
+                        {
+                          "log": "{policy == \"cpu\" ? \"CPU stays under 70%, so nothing scales\" : \"Scaling stops at the maximum instance count\"}: requests time out and fail for the 2 hours of the ad.",
+                          "kind": "bad"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "prewarm",
+                      "then": [
+                        {
+                          "log": "Six instances were already running at 19:30; the policy adds more as needed. No failed requests.",
+                          "kind": "good"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "policy == \"conc\"",
+                      "then": [
+                        {
+                          "add": "errS",
+                          "by": "lateFast"
+                        },
+                        {
+                          "log": "The high-resolution concurrency metric triggers scale-out within seconds; about 2 minutes of failures while instances start.",
+                          "kind": "good"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "policy == \"inv600\"",
+                      "then": [
+                        {
+                          "add": "errS",
+                          "by": "lateStd"
+                        },
+                        {
+                          "log": "The one-minute InvocationsPerInstance alarm scales out; about 10 minutes of failures while instances start.",
+                          "kind": "sys"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "policy == \"inv1200\"",
+                      "then": [
+                        {
+                          "add": "errS",
+                          "by": "lateEdge"
+                        },
+                        {
+                          "log": "With no headroom it scales late and runs at the edge: about 15 minutes of failures.",
+                          "kind": "sys"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "add": "errS",
+                          "by": "lateLatency"
+                        },
+                        {
+                          "log": "Latency jumps only once instances are saturated, so capacity arrives late and in jerks: about 30 minutes of failures.",
+                          "kind": "bad"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "3"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Thursday: finance projects the endpoint at {cost|usd} this month against a {budget|usd} budget; {avail|3dp}% of this month's requests served.",
+                  "kind": "sys"
+                },
+                {
+                  "set": "weekDone",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "plan": {
+      "question": "Before you run the week: which metric should drive scaling, with what target and limits, and why was CPU the wrong signal?",
+      "parts": [
+        {
+          "label": "The metric and the target",
+          "criteria": "Rejects CPU because the model saturates on concurrency at about 45% CPU; scales on InvocationsPerInstance at 600 (from the load test: 20 x 0.5 x 60) or on high-resolution ConcurrentRequestsPerModel for a sudden spike.",
+          "modelAnswer": "CPU never passes 45% when the workers are full, so a CPU policy never fires. Scale on what saturates: requests per instance at 600 a minute from the load test with a 0.5 safety factor, or concurrency per model, whose 10-second metric reacts fastest to an ad spike."
+        },
+        {
+          "label": "Capacity and cost",
+          "criteria": "Raises the maximum to cover 120 requests a second (at least 6 instances at 20 each, more for headroom); keeps the CPU instance type within budget; pre-warms for a known event.",
+          "modelAnswer": "120 requests a second needs at least 6 instances at the limit and 12 at the target, so the maximum goes to 12. Stay on ml.c5.xlarge: the GPU type is about seven times the price for little gain here. Raise the minimum before the ad starts, because scaling out always lags a spike."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "availabilityTarget": {
+        "value": 99.9,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Stated SLA over the month by the error-budget method."
+        }
+      },
+      "availabilityRecovered": {
+        "value": 99.85,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "A small miss."
+        }
+      },
+      "costRecoveredPct": {
+        "value": 110,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Cost over 110% of budget is harm."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "weekDone and policy == \"cpu\"",
+      "class": "harm",
+      "rationale": "Left on CPU, the endpoint cannot scale for a known 2-hour spike: an outage past the SLA, so harm.",
+      "source": {
+        "cite": "docs/sims.md 9.2 (cloud)",
+        "checkedAt": "2026-11-11",
+        "note": "An outage beyond the SLA is harm in the cloud profile."
+      }
+    }
+  },
+  "endings": {
+    "outage": {
+      "label": "Requests failed through the ad",
+      "class": "harm",
+      "when": "avail < availabilityRecovered",
+      "terminal": true,
+      "narrative": "{round(errS / 60)} minutes of failed requests this month: {avail|3dp}% served, below the 99.9% target."
+    },
+    "overBudget": {
+      "label": "Fast, and far over budget",
+      "class": "harm",
+      "when": "weekStarted and cost > budget * costRecoveredPct / 100",
+      "terminal": true,
+      "narrative": "The endpoint is projected at {cost|usd} a month against {budget|usd}: more than 110% of budget."
+    },
+    "fixed": {
+      "label": "Scaled on the right signal, within budget",
+      "class": "target",
+      "when": "weekDone and avail >= availabilityTarget and cost <= budget and investigatedFirst and tracksLoad and capOk",
+      "terminal": true,
+      "narrative": "Thursday: the ad was served with {avail|3dp}% of requests answered this month, at {cost|usd} a month projected."
+    },
+    "partly": {
+      "label": "Through the ad, by a rougher route",
+      "class": "recovered",
+      "when": "weekDone",
+      "terminal": true,
+      "narrative": "Thursday: {avail|3dp}% served, {cost|usd} a month. The endpoint coped, but the evidence, the metric or the limits were not what they should be."
+    },
+    "time_up": {
+      "label": "The week ran out",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The week ended without a decision."
+    }
+  },
+  "endingOrder": [
+    "outage",
+    "overBudget",
+    "fixed",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "investigate",
+        "label": "Read the metrics and load-tested before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "investigatedFirst",
+            "score": "met",
+            "why": "Flash-sale metrics and a load test first."
+          },
+          {
+            "when": "investigated",
+            "score": "partial",
+            "why": "Looked at the data, but after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed the scaling without evidence."
+          }
+        ]
+      },
+      {
+        "id": "metric",
+        "label": "Scales on a metric that tracks the load",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "tracksLoad",
+            "score": "met",
+            "why": "Requests or concurrency per instance, at a target with headroom."
+          },
+          {
+            "when": "policy == \"inv1200\"",
+            "score": "partial",
+            "why": "The right metric, but a target with no headroom."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "CPU or latency: signals that move only after the model is saturated."
+          }
+        ]
+      },
+      {
+        "id": "capacity",
+        "label": "Maximum capacity covers the ad's peak",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "capOk",
+            "score": "met",
+            "why": "{maxInst} instances cover 120 requests a second."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{maxInst} instances cannot carry 120 requests a second."
+          }
+        ]
+      },
+      {
+        "id": "costfit",
+        "label": "Stayed on the instance type that fits the model and budget",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "inst == \"c5\"",
+            "score": "met",
+            "why": "ml.c5.xlarge: the load test fits, at $0.204 an hour."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "ml.g5.xlarge at about seven times the price."
+          }
+        ]
+      },
+      {
+        "id": "prewarm",
+        "label": "Pre-warmed capacity for a known event",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "prewarm",
+            "score": "met",
+            "why": "Minimum raised before the ad."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Waited for scaling to react to the spike."
+          }
+        ]
+      },
+      {
+        "id": "target",
+        "label": "Knew the load-test formula",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "targetAnswer == \"right\"",
+            "score": "met",
+            "why": "600 = 20 x 0.5 x 60."
+          },
+          {
+            "when": "targetAnswer == \"wrong\"",
+            "score": "missed",
+            "why": "No headroom while instances start."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "Not asked."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: the scaling metric, target and limits",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "failed",
+        "label": "Failed-request time this week",
+        "value": "errS",
+        "format": "duration",
+        "expert": "0"
+      },
+      {
+        "id": "cost",
+        "label": "Projected endpoint cost a month",
+        "value": "cost",
+        "format": "usd",
+        "expert": "about $227"
+      },
+      {
+        "id": "changes",
+        "label": "Changes made",
+        "value": "changes",
+        "format": "number",
+        "expert": "3"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Monday 09:00",
+        "text": "Flash-sale metrics: requests and concurrency rose, CPU stayed at 45%. Load test: 20 requests a second per instance. The ad: 120 a second."
+      },
+      {
+        "at": "Monday 09:30",
+        "text": "Policy on high-resolution concurrency (or InvocationsPerInstance at 600), maximum 12, stay on ml.c5.xlarge."
+      },
+      {
+        "at": "Monday 09:45",
+        "text": "Schedule the minimum to 6 around the ad and alarm on 5XX errors. The trade-off: about $4 of idle capacity for an ad that cannot wait for scaling."
+      }
+    ],
+    "debrief": {
+      "outage": {
+        "headline": "Requests failed through the ad",
+        "body": "A CPU policy never fires on a model that saturates on concurrency at 45% CPU, and a maximum of 4 instances cannot carry 120 requests a second at 20 each. Scale on requests or concurrency, and size the maximum from the load test."
+      },
+      "overBudget": {
+        "headline": "Fast, and far over budget",
+        "body": "The GPU instance costs about seven times as much for a model that gains little from it. Fix the scaling signal before buying bigger hardware."
+      },
+      "fixed": {
+        "headline": "Scaled on the right signal, within budget",
+        "body": "You read the evidence, scaled on a metric that tracks load, sized the maximum from the load test and stayed within budget. That is the expert path."
+      },
+      "partly": {
+        "headline": "Through the ad, by a rougher route",
+        "body": "Check whether you load-tested before changing things, whether the target had headroom, and whether the maximum covered the peak."
+      },
+      "time_up": {
+        "headline": "No decision",
+        "body": "The ad arrives with the endpoint unchanged."
+      }
+    },
+    "modelReasoning": "Scale on the resource that runs out first. This model's workers fill at about 45% CPU, so a 70% CPU policy never fires; latency rises only after saturation, so it reacts late. InvocationsPerInstance tracks load directly: AWS's load-test formula gives (20 x 0.5) x 60 = 600 a minute. ConcurrentRequestsPerModel at high resolution emits every 10 seconds and scales out fastest for a sudden spike. Size the maximum from the peak (120 / 20 = 6 at the limit, 12 at target) and pre-warm for a known event, because new instances take minutes. The GPU type costs $1.4084 an hour against $0.204 and adds little to this model."
+  }
+}
