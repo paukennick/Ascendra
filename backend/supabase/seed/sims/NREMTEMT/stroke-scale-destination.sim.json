@@ -1,0 +1,1196 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "stroke-scale-destination",
+  "title": "He can't find his words",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate, last measured (irregular)",
+          "value": "vHr",
+          "unit": "/min",
+          "sub": "irregular, at {vAt|clock}",
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "high": 220
+          },
+          "announce": {
+            "bands": [
+              180,
+              220
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 94
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Fingerstick glucose",
+          "value": "gluLast",
+          "unit": "mg/dL",
+          "announce": {
+            "bands": [
+              60,
+              180
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "gluLast > 0"
+        }
+      ],
+      "infusions": "Stroke screen: {isNull(scaleAt) ? \"not done\" : \"positive\"}. Severity screen: {isNull(sevAt) ? \"not done\" : \"positive, suspected large vessel occlusion\"}. Last known well on record: {lkwText}. Destination: {dest == \"none\" ? \"not chosen\" : destName}.",
+      "banner": [
+        {
+          "when": "isNull(departAt)",
+          "text": "Mr. Reyes sits slumped on the kitchen floor; his wife kneels beside him."
+        },
+        {
+          "when": "choked",
+          "text": "He is coughing and choking."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize a possible stroke with a validated prehospital stroke scale, fix the last-known-well time, and choose a stroke-capable destination",
+  "secondaryObjectives": [
+    "Choose the transport destination -- trauma, stroke, STEMI or pediatric-capable center -- and decide when lights and siren are justified",
+    "Recognize altered mental status and check the causes an EMT can find: hypoxia, hypoglycemia, overdose, stroke and head injury"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. EMT Examination Specifications (test plan)",
+      "checkedAt": "2026-11-09",
+      "url": "https://nremt.org/getmedia/4cb170ab-35fa-4ec0-a76c-634847005bc4/EMT-Test-Plan_Public",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-fetched for this scenario. Primary Assessment 39-43% of items (recognize a possible stroke with a validated scale, fix the last-known-well time); Patient Treatment and Transport 20-24% (choose a stroke-capable destination)."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Suspected Stroke/Transient Ischemic Attack",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Validated prehospital stroke scale (face, arm drift, speech) and a stroke severity scale (vision changes, sensory neglect, aphasia) to identify possible large vessel occlusion; 'last known well' and its source, made specific (not the time symptoms were found); check glucose and treat only below 60 mg/dL; oxygen to 94-98%; early hospital notification including suspected LVO; elevate the head 15-30 degrees if SBP > 100 to prevent aspiration; do not treat hypertension; destinations include stroke-ready, primary, thrombectomy-capable and comprehensive centers per the local stroke plan; LKW under 24 hours with a positive severity scale may be eligible for thrombectomy; minimize scene time."
+    },
+    {
+      "cite": "Prabhakaran S, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke (AHA/ASA). Stroke 2026. doi:10.1161/STR.0000000000000513",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.guidelinecentral.com/insights/feb-2026-ahaasa-earlymanagementacuteischemicstroke-guideline-spotlight",
+      "note": "Read 2026-11-11 only through a summary (Guideline Central 'guideline spotlight'): where rapid interhospital transfer is not well functioning, direct transport to the closest EVT-capable hospital is endorsed instead of the nearest thrombolytic-capable one; thrombolysis in the 4.5-hour window. The same guideline was partly read in full text for the CCRN stroke case on 2026-11-10."
+    },
+    {
+      "cite": "American Heart Association. Mission: Lifeline EMS Recognition Criteria, 2027 awards (2026 data)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.heart.org/-/media/Files/Professional/Quality-Improvement/Mission-Lifeline/2027/ML-EMS-Recognition-Criteria-2027.pdf",
+      "note": "Read 2026-11-11 (primary PDF): 12-lead ECG within 10 minutes for suspected heart attack; STEMI pre-arrival notification within 10 minutes of the STEMI-positive ECG; EMS first medical contact to PCI within 90 minutes (or to thrombolytics within 60 minutes); stroke measures: LKW documented, glucose evaluated, stroke screen documented, pre-arrival notification (no scene-time threshold); OHCA: call to first compression within 420 seconds."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019 (DOT HS 812 666), with Change Notices 1.0 and 2.0 (2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://ldh.la.gov/assets/oph/ems/2025/EMSEducation/National_EMS_Scope_of_Practice_Model_2019.pdf",
+      "note": "Read 2026-11-11 in a text extraction of the Louisiana copy (the extractor did not keep every table column, so placement was checked against the course's own reading of 2026-11-09 in ems-sources.ts). EMR: CPR and AED, tourniquet and wound packing, naloxone, oral airway, BVM, oxygen; no pulse oximetry, glucose monitoring, epinephrine auto-injector or transport. EMT adds pulse oximetry, glucose monitoring, epinephrine auto-injector, aspirin, oral glucose, CPAP, 12-lead acquisition (not interpretation), transport. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways and a limited list of IV and IM medications including dextrose and glucagon. Paramedic adds 12-lead interpretation, manual defibrillation, intubation and the wider formulary. No newer model was found 2026-11-11 (EMS.gov's page was unavailable; the only other 'update' found is the 2017 change notice adding tourniquets, wound packing and naloxone to EMR and EMT)."
+    }
+  ],
+  "brief": {
+    "situation": "07:52. You and your partner are EMTs called to a house: a 67-year-old man 'not making sense'. His wife found him on the kitchen floor at 07:45, unable to get up, his speech garbled.",
+    "handover": [
+      "Region's stroke plan (authored for this case): a positive stroke screen goes to the nearest stroke center; a positive severity screen (suspected large vessel occlusion) with last known well under 24 hours goes to the thrombectomy-capable center when it adds no more than about 30 minutes.",
+      "Mercy Hospital, a primary stroke center (no thrombectomy), is 9 minutes away. University Medical Center, a comprehensive stroke center, is 24 minutes away. Interhospital transfers in this region take more than an hour.",
+      "Within EMT scope: glucose check, pulse oximetry, oxygen, aspirin only for suspected cardiac chest pain, and transport."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Scene time and the drive run on the clock: brain tissue is lost every minute until the blocked vessel is opened.",
+      "Partway through you are asked to explain your decisions in writing. The case ends at the hospital door, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "07:52",
+    "tick": "1s",
+    "maxDuration": "90min",
+    "calendar": "clock"
+  },
+  "params": {
+    "lkwBefore": {
+      "value": 1320,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Last known well 07:30, 22 minutes before EMS contact (his wife heard him talking normally on the phone). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "gluTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A fingerstick glucose: about 1 min."
+      }
+    },
+    "vitalsTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A full set of vital signs: about 1 min."
+      }
+    },
+    "loadTime": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Onto the stretcher, out and loaded: about 3 min."
+      }
+    },
+    "nearDrive": {
+      "value": 540,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The primary stroke center is 9 min away (authored)."
+      }
+    },
+    "farDrive": {
+      "value": 1440,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The comprehensive stroke center is 24 min away (authored)."
+      }
+    },
+    "sceneLimit": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Wheels rolling within 15 minutes of contact. NASEMSO says minimize scene time and Mission: Lifeline 2027 sets no scene-time threshold; 15 minutes is this case's teaching target. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "gluPending": {
+      "type": "bool",
+      "init": false
+    },
+    "headUp": {
+      "type": "bool",
+      "init": false
+    },
+    "o2On": {
+      "type": "bool",
+      "init": false
+    },
+    "choked": {
+      "type": "bool",
+      "init": false
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "notifyLkwRight": {
+      "type": "bool",
+      "init": false
+    },
+    "lkwAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "meds": {
+      "type": "bool",
+      "init": false
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vHr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 220,
+      "unit": "/min"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 260,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "gluLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 600,
+      "unit": "mg/dL"
+    },
+    "lkw": {
+      "type": "enum",
+      "values": [
+        "none",
+        "found",
+        "seen"
+      ],
+      "init": "none"
+    },
+    "dest": {
+      "type": "enum",
+      "values": [
+        "none",
+        "near",
+        "far"
+      ],
+      "init": "none"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "gluAt": {
+      "type": "time",
+      "init": null
+    },
+    "scaleAt": {
+      "type": "time",
+      "init": null
+    },
+    "sevAt": {
+      "type": "time",
+      "init": null
+    },
+    "askAt": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "chokedAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "spo2": {
+      "expr": "choked ? 86 : (o2On ? 99 : 95)",
+      "unit": "%",
+      "precision": 0
+    },
+    "lkwText": {
+      "expr": "lkw == \"seen\" ? \"07:30 (last seen normal)\" : (lkw == \"found\" ? \"07:45 (time found)\" : \"not recorded\")"
+    },
+    "destName": {
+      "expr": "dest == \"far\" ? \"University Medical Center\" : \"Mercy Hospital\""
+    },
+    "sceneTime": {
+      "expr": "isNull(departAt) ? t : timeAt(departAt) + loadTime"
+    },
+    "lkwToDoor": {
+      "expr": "isNull(arrivedAt) ? -1 : timeAt(arrivedAt) + lkwBefore",
+      "unit": "s"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "call": {
+      "label": "On the call",
+      "clock": "running",
+      "actions": [
+        "look",
+        "askLkw",
+        "recordLkw",
+        "glucose",
+        "vitals",
+        "scale",
+        "severity",
+        "oxygen",
+        "headUp",
+        "aspirin",
+        "pills",
+        "transport",
+        "notify"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "look": {
+      "label": "General impression and primary assessment",
+      "group": "Assess",
+      "available": "isNull(lookAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Awake, eyes open, looking to his left. Airway clear, breathing unlaboured; skin warm, pulse irregular. He answers with jumbled words and cannot lift his right arm.",
+          "kind": "find"
+        }
+      ]
+    },
+    "askLkw": {
+      "label": "Ask his wife: when was he last seen completely normal?",
+      "group": "Assess",
+      "available": "not lkwAsked",
+      "why": "Already asked.",
+      "effects": [
+        {
+          "set": "lkwAsked",
+          "to": "true"
+        },
+        {
+          "if": "isNull(askAt)",
+          "then": [
+            {
+              "set": "askAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "\"I found him at quarter to eight. But he was fine at 7:30: I was on the phone with him from upstairs and he was talking normally.\" Her phone shows the call ending at 07:30.",
+          "kind": "find"
+        }
+      ]
+    },
+    "recordLkw": {
+      "label": "Record last known well",
+      "group": "Assess",
+      "params": [
+        {
+          "id": "when",
+          "kind": "choice",
+          "label": "Last known well",
+          "options": [
+            {
+              "value": "seen",
+              "label": "07:30, when his wife last heard him normal on the phone"
+            },
+            {
+              "value": "found",
+              "label": "07:45, when she found him"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "lkw",
+          "to": "when"
+        },
+        {
+          "log": "Last known well recorded: {lkwText}."
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Fingerstick glucose",
+      "group": "Assess",
+      "available": "not gluPending",
+      "why": "Already running.",
+      "effects": [
+        {
+          "set": "gluPending",
+          "to": "true"
+        },
+        {
+          "schedule": "gluT",
+          "after": "gluTime"
+        },
+        {
+          "log": "Lancet, strip, meter."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Vital signs and pulse oximetry",
+      "group": "Assess",
+      "available": "not vPending",
+      "why": "Already taking them.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Cuff, pulse oximeter, count the breaths."
+        }
+      ]
+    },
+    "scale": {
+      "label": "Stroke screen: face, arm drift, speech",
+      "group": "Assess",
+      "available": "isNull(scaleAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(scaleAt)",
+          "then": [
+            {
+              "set": "scaleAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Right side of the face droops; the right arm drifts down within seconds; speech garbled, he cannot repeat the phrase. Positive screen.",
+          "kind": "find"
+        }
+      ]
+    },
+    "severity": {
+      "label": "Severity screen: vision, aphasia, neglect",
+      "group": "Assess",
+      "available": "isNull(sevAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(sevAt)",
+          "then": [
+            {
+              "set": "sevAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Eyes deviated to the left and he does not look to his right; he cannot name a pen or follow a two-step command. Positive severity screen: suspected large vessel occlusion.",
+          "kind": "find"
+        }
+      ]
+    },
+    "oxygen": {
+      "label": "Oxygen by non-rebreather mask",
+      "group": "Treat",
+      "available": "not o2On",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "o2On",
+          "to": "true"
+        },
+        {
+          "log": "Non-rebreather at 15 L/min. His saturation was already in the target range."
+        }
+      ]
+    },
+    "headUp": {
+      "label": "Stretcher head up 15-30 degrees, head and neck neutral",
+      "group": "Treat",
+      "available": "not headUp",
+      "why": "Already positioned.",
+      "effects": [
+        {
+          "set": "headUp",
+          "to": "true"
+        },
+        {
+          "log": "Head of the stretcher raised about 30 degrees; weak right arm supported on a pillow."
+        }
+      ]
+    },
+    "aspirin": {
+      "label": "Give him chewable aspirin: it could be a clot",
+      "group": "Treat",
+      "available": "not choked",
+      "why": "He is already choking.",
+      "effects": [
+        {
+          "set": "meds",
+          "to": "true"
+        },
+        {
+          "set": "choked",
+          "to": "true"
+        },
+        {
+          "if": "isNull(chokedAt)",
+          "then": [
+            {
+              "set": "chokedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He coughs and chokes on the tablets: his swallow is weak on the right. Aspirin is for suspected cardiac chest pain in EMT scope, and a bleed has not been ruled out.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "pills": {
+      "label": "His wife hands you his blood pressure pills: help him take one",
+      "group": "Treat",
+      "available": "not choked",
+      "why": "He is already choking.",
+      "effects": [
+        {
+          "set": "meds",
+          "to": "true"
+        },
+        {
+          "set": "choked",
+          "to": "true"
+        },
+        {
+          "if": "isNull(chokedAt)",
+          "then": [
+            {
+              "set": "chokedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He chokes on the pill and water. Do not treat the blood pressure in a suspected stroke, and nothing by mouth.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "transport": {
+      "label": "Load and go",
+      "group": "Transport",
+      "available": "isNull(departAt)",
+      "why": "Already on the way.",
+      "params": [
+        {
+          "id": "where",
+          "kind": "choice",
+          "label": "Destination",
+          "options": [
+            {
+              "value": "near",
+              "label": "Mercy Hospital, primary stroke center, 9 min"
+            },
+            {
+              "value": "far",
+              "label": "University Medical Center, comprehensive stroke center (thrombectomy), 24 min"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "dest",
+          "to": "where"
+        },
+        {
+          "schedule": "arriveT",
+          "after": "loadTime + (where == \"far\" ? farDrive : nearDrive)"
+        },
+        {
+          "log": "Loading (about 3 min), then to {destName}."
+        }
+      ]
+    },
+    "notify": {
+      "label": "Stroke alert to the receiving hospital",
+      "group": "Transport",
+      "available": "not isNull(departAt) and not notified",
+      "why": "Once you know where you are going.",
+      "effects": [
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "if": "isNull(notifyAt)",
+          "then": [
+            {
+              "set": "notifyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "notifyLkwRight",
+          "to": "lkw == \"seen\""
+        },
+        {
+          "if": "gluLast > 0",
+          "then": [
+            {
+              "log": "Stroke alert to {destName}: 67-year-old man, last known well {lkwText}, positive stroke screen{isNull(sevAt) ? \"\" : \", positive severity screen\"}, glucose {gluLast} mg/dL, ETA."
+            }
+          ],
+          "else": [
+            {
+              "log": "Stroke alert to {destName}: 67-year-old man, last known well {lkwText}, positive stroke screen{isNull(sevAt) ? \"\" : \", positive severity screen\"}, glucose not checked, ETA."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "gluT": {
+      "label": "the glucose",
+      "wait": {
+        "skipLabel": "the glucose reading (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 1 min."
+      },
+      "effects": [
+        {
+          "set": "gluPending",
+          "to": "false"
+        },
+        {
+          "set": "gluLast",
+          "to": "132"
+        },
+        {
+          "if": "isNull(gluAt)",
+          "then": [
+            {
+              "set": "gluAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Glucose 132 mg/dL: not hypoglycemia, so not a mimic you can treat.",
+          "kind": "find"
+        }
+      ]
+    },
+    "vitalsT": {
+      "label": "vital signs",
+      "wait": {
+        "skipLabel": "the vital signs (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 1 min."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "vHr",
+          "to": "92"
+        },
+        {
+          "set": "vSbp",
+          "to": "188"
+        },
+        {
+          "set": "vDbp",
+          "to": "96"
+        },
+        {
+          "log": "HR 92 and irregular, BP 188/96, RR 18, SpO2 {spo2}%.",
+          "kind": "find"
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival at {destName}"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Load and drive."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At {destName}.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "long",
+      "when": "isNull(departAt) and t >= sceneLimit",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Fifteen minutes on scene. Every minute until the vessel is opened costs brain.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(departAt) or t >= 600",
+      "question": "Which findings decided the destination, and why does the exact last-known-well time matter?",
+      "parts": [
+        {
+          "label": "Destination",
+          "criteria": "Positive stroke screen plus a positive severity screen (gaze deviation, aphasia, neglect) suggests a large vessel occlusion; under the regional plan, with last known well under 24 hours and the comprehensive center adding about 15 minutes, go there for thrombectomy rather than the nearer center, because transfers take over an hour.",
+          "modelAnswer": "Face, arm and speech were positive and the severity screen showed gaze deviation and aphasia: a likely large vessel occlusion. Last known well was 22 minutes before we arrived, so thrombectomy is possible. The plan sends him to the thrombectomy center when it adds no more than about 30 minutes; it adds 15, and a transfer would add more than an hour."
+        },
+        {
+          "label": "Last known well and mimics",
+          "criteria": "LKW is the last time he was seen normal (07:30, with its source), not when he was found (07:45); it decides eligibility for thrombolysis and thrombectomy. Glucose ruled out hypoglycemia; nothing by mouth; head up 15-30 degrees; do not treat the blood pressure; early stroke alert.",
+          "modelAnswer": "Last known well is 07:30, when his wife heard him talking normally on the phone, not 07:45 when she found him: the hospital times its treatment windows from it. Glucose 132 rules out hypoglycemia. Nothing by mouth, head up, leave the blood pressure alone, and call the stroke alert early."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(arrivedAt) and dest == \"near\" and not isNull(sevAt)",
+      "class": "recovered",
+      "rationale": "He reaches a stroke center safely, but one that cannot do thrombectomy for the suspected large vessel occlusion; a transfer adds over an hour. This case calls it recovered.",
+      "source": {
+        "cite": "Prabhakaran S, et al. 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke (AHA/ASA). Stroke 2026. doi:10.1161/STR.0000000000000513",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.guidelinecentral.com/insights/feb-2026-ahaasa-earlymanagementacuteischemicstroke-guideline-spotlight",
+        "note": "Read 2026-11-11 only through a summary (Guideline Central 'guideline spotlight'): where rapid interhospital transfer is not well functioning, direct transport to the closest EVT-capable hospital is endorsed instead of the nearest thrombolytic-capable one; thrombolysis in the 4.5-hour window. The same guideline was partly read in full text for the CCRN stroke case on 2026-11-10."
+      }
+    }
+  },
+  "endings": {
+    "aspiration": {
+      "label": "He aspirated",
+      "class": "harm",
+      "terminal": true,
+      "when": "choked and not isNull(chokedAt) and t >= timeAt(chokedAt) + 30",
+      "narrative": "{t|clock}: still coughing, SpO2 {spo2}%, with crackles on the right. A stroke patient's swallow is unsafe until tested; nothing by mouth."
+    },
+    "toThrombectomy": {
+      "label": "At the thrombectomy center, alert called with the right time",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and dest == \"far\" and not isNull(gluAt) and not isNull(scaleAt) and not isNull(sevAt) and lkw == \"seen\" and notifyLkwRight and sceneTime <= sceneLimit",
+      "narrative": "{timeAt(arrivedAt)|clock}: the stroke team meets you at the door with last known well 07:30 on the board, and takes him straight to imaging."
+    },
+    "farGaps": {
+      "label": "At the thrombectomy center, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and dest == \"far\"",
+      "narrative": "{timeAt(arrivedAt)|clock}: he reaches the right center, but the team starts behind: a missing glucose or screen, a long scene time, no alert, or the wrong last-known-well time."
+    },
+    "nearCenter": {
+      "label": "At a center without thrombectomy",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and dest == \"near\"",
+      "narrative": "{timeAt(arrivedAt)|clock}: Mercy confirms a large vessel occlusion on CT angiography and arranges a transfer to University; the transfer adds well over an hour."
+    },
+    "time_up": {
+      "label": "90 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Ninety minutes and he has not reached a hospital."
+    }
+  },
+  "endingOrder": [
+    "aspiration",
+    "toThrombectomy",
+    "farGaps",
+    "nearCenter"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "glucose",
+        "label": "Glucose checked before leaving the scene",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(gluAt) and (isNull(departAt) or timeAt(gluAt) <= timeAt(departAt) + loadTime)",
+            "score": "met",
+            "why": "Glucose 132 mg/dL: no hypoglycemia."
+          },
+          {
+            "when": "not isNull(gluAt)",
+            "score": "partial",
+            "why": "Glucose checked only on the road."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No glucose: hypoglycemia, the commonest treatable mimic, was never ruled out."
+          }
+        ]
+      },
+      {
+        "id": "lkw",
+        "label": "Last known well 07:30, from its source",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lkw == \"seen\" and lkwAsked",
+            "score": "met",
+            "why": "07:30, the phone call, recorded and reported."
+          },
+          {
+            "when": "lkw == \"found\"",
+            "score": "missed",
+            "why": "Recorded 07:45, the time he was found: wrong by 15 minutes."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Last known well never established."
+          }
+        ]
+      },
+      {
+        "id": "destination",
+        "label": "Suspected LVO taken to the thrombectomy-capable center",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dest == \"far\" and not isNull(sevAt)",
+            "score": "met",
+            "why": "Severity screen positive; University chosen."
+          },
+          {
+            "when": "dest == \"far\"",
+            "score": "partial",
+            "why": "The right center, but without a severity screen to justify it."
+          },
+          {
+            "when": "dest == \"near\"",
+            "score": "missed",
+            "why": "The nearer center cannot do thrombectomy; the plan sends a suspected LVO to University."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No destination chosen."
+          }
+        ]
+      },
+      {
+        "id": "scene",
+        "label": "Wheels rolling within 15 minutes, stroke alert sent",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(departAt) and sceneTime <= sceneLimit and notified",
+            "score": "met",
+            "why": "Scene time {sceneTime|duration}; alert at {timeAt(notifyAt)|clock}."
+          },
+          {
+            "when": "not isNull(departAt) and (sceneTime <= sceneLimit or notified)",
+            "score": "partial",
+            "why": "Scene time {sceneTime|duration}; alert sent: {notified|yesno}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Long scene time and no alert."
+          }
+        ]
+      },
+      {
+        "id": "screens",
+        "label": "Stroke and severity screens done",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(scaleAt) and not isNull(sevAt)",
+            "score": "met",
+            "why": "Both screens."
+          },
+          {
+            "when": "not isNull(scaleAt) or not isNull(sevAt)",
+            "score": "partial",
+            "why": "Only one screen."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No validated screen."
+          }
+        ]
+      },
+      {
+        "id": "safe",
+        "label": "Nothing by mouth, head up, blood pressure left alone, oxygen only if needed",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "meds",
+            "score": "missed",
+            "why": "Something was given by mouth."
+          },
+          {
+            "when": "headUp and not o2On",
+            "score": "met",
+            "why": "Head up, nothing by mouth, no oxygen at 95%."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Head not raised, or oxygen given at a saturation already in range."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: destination and last known well",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "sceneK",
+        "label": "Scene time (contact to wheels rolling)",
+        "value": "isNull(departAt) ? -1 : sceneTime",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "lkwDoor",
+        "label": "Last known well to the hospital door",
+        "value": "lkwToDoor",
+        "format": "duration",
+        "expert": "under 1 h at a thrombectomy center"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "07:52",
+        "text": "Primary assessment: airway clear, garbled speech, right arm weak, eyes to the left. Ask his wife when he was last normal: 07:30 on the phone. Record it."
+      },
+      {
+        "at": "07:53",
+        "text": "Stroke screen positive; severity screen positive (gaze, aphasia): suspected LVO. Glucose 132; vital signs BP 188/96, irregular pulse, SpO2 95%: no oxygen, no BP treatment."
+      },
+      {
+        "at": "07:55",
+        "text": "Head up 30 degrees, nothing by mouth. Load for University (thrombectomy), 24 min."
+      },
+      {
+        "at": "07:58",
+        "text": "Stroke alert: LKW 07:30, positive severity screen, glucose 132, ETA. Wheels rolling under 10 minutes."
+      }
+    ],
+    "debrief": {
+      "aspiration": {
+        "headline": "He aspirated",
+        "body": "A stroke can take away a safe swallow. Nothing by mouth: aspirin belongs to cardiac chest pain in EMT scope, and the blood pressure is not treated in the field."
+      },
+      "toThrombectomy": {
+        "headline": "Right place, right time, right information",
+        "body": "Screens, glucose, the true last known well, a short scene, the thrombectomy center and an early alert: the stroke team could act at the door."
+      },
+      "farGaps": {
+        "headline": "Right center, with gaps",
+        "body": "Check the glucose, the screens, the last-known-well time you reported, the alert and the scene time."
+      },
+      "nearCenter": {
+        "headline": "A center that could not finish the job",
+        "body": "With a positive severity screen the plan sends a suspected large vessel occlusion to the thrombectomy center: the extra 15 minutes are far shorter than a transfer."
+      },
+      "time_up": {
+        "headline": "No hospital",
+        "body": "Ninety minutes passed."
+      }
+    },
+    "modelReasoning": "Sudden garbled speech, a right facial droop and right arm drift are a positive stroke screen; gaze deviation and aphasia on a severity screen suggest a large vessel occlusion. Last known well is the last time he was seen normal, with its source (07:30, the phone call), not when he was found. Check glucose to rule out hypoglycemia; keep oxygen for SpO2 below 94%; raise the head 15-30 degrees; give nothing by mouth (no aspirin, no blood pressure pills) and do not treat the hypertension. Under the regional plan a suspected LVO within 24 hours goes to the thrombectomy-capable center when it adds no more than about 30 minutes; call a stroke alert early and keep scene time short."
+  },
+  "chapters": [
+    {
+      "id": "rolling",
+      "label": "On the road",
+      "when": "not isNull(departAt)"
+    }
+  ],
+  "teaching": {
+    "door": {
+      "during": "arriveT",
+      "ask": "On the way: what should your stroke alert say first?",
+      "choices": [
+        {
+          "id": "lkw",
+          "label": "Last known well and its source, the screen results, glucose, ETA"
+        },
+        {
+          "id": "bp",
+          "label": "The blood pressure, so they can lower it"
+        },
+        {
+          "id": "hist",
+          "label": "His full medication list"
+        }
+      ],
+      "expect": "lkw",
+      "explain": "The team plans imaging and treatment from the last-known-well time, the screens and glucose. Mission: Lifeline counts LKW, glucose, the screen and pre-arrival notification.",
+      "source": {
+        "cite": "American Heart Association. Mission: Lifeline EMS Recognition Criteria, 2027 awards (2026 data)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.heart.org/-/media/Files/Professional/Quality-Improvement/Mission-Lifeline/2027/ML-EMS-Recognition-Criteria-2027.pdf",
+        "note": "Read 2026-11-11 (primary PDF): 12-lead ECG within 10 minutes for suspected heart attack; STEMI pre-arrival notification within 10 minutes of the STEMI-positive ECG; EMS first medical contact to PCI within 90 minutes (or to thrombolytics within 60 minutes); stroke measures: LKW documented, glucose evaluated, stroke screen documented, pre-arrival notification (no scene-time threshold); OHCA: call to first compression within 420 seconds."
+      }
+    },
+    "mimic": {
+      "during": "gluT",
+      "ask": "While the meter counts down: why check glucose in a suspected stroke?",
+      "choices": [
+        {
+          "id": "mimic",
+          "label": "Hypoglycemia can look exactly like a stroke and is treatable now"
+        },
+        {
+          "id": "lytic",
+          "label": "To decide the aspirin dose"
+        },
+        {
+          "id": "habit",
+          "label": "It's routine; it rarely changes anything"
+        }
+      ],
+      "expect": "mimic",
+      "explain": "Low glucose can cause one-sided weakness and garbled speech. NASEMSO: check glucose and treat only below 60 mg/dL.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Suspected Stroke/Transient Ischemic Attack",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Validated prehospital stroke scale (face, arm drift, speech) and a stroke severity scale (vision changes, sensory neglect, aphasia) to identify possible large vessel occlusion; 'last known well' and its source, made specific (not the time symptoms were found); check glucose and treat only below 60 mg/dL; oxygen to 94-98%; early hospital notification including suspected LVO; elevate the head 15-30 degrees if SBP > 100 to prevent aspiration; do not treat hypertension; destinations include stroke-ready, primary, thrombectomy-capable and comprehensive centers per the local stroke plan; LKW under 24 hours with a positive severity scale may be eligible for thrombectomy; minimize scene time."
+      }
+    }
+  }
+}
