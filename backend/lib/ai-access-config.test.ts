@@ -15,7 +15,12 @@ import {
   aiGlobalCeilingIsValid,
   aiLimited,
   aiVerdict,
+  aiPilotCoachIsValid,
+  aiPilotGradedIsValid,
   ceilingVerdict,
+  coachLimitMessage,
+  pilotCoachMessagesPerDay,
+  pilotGradedAnswersPerDay,
   globalDailyCeilingUsd,
   gradedPreviewMessage,
   nextUtcDayStart,
@@ -26,6 +31,7 @@ import {
   type AiVerdict,
 } from "./ai-access-config";
 import { BULK_GRANT_MAX, parseBulkGrantInput, splitEmailList } from "./account-access-config";
+import { ALLOWANCE_DEFAULTS, allowanceLimit } from "./billing-config";
 
 describe("AI_ACCESS_MODE", () => {
   test("unset or empty is all (today's behavior)", () => {
@@ -99,6 +105,75 @@ describe("mode x user x feature", () => {
       assert.equal(aiVerdict(m, "ordinary", "shared_lesson", false), "open");
       assert.equal(aiVerdict(m, "ordinary", "written_grading", false), "counted");
     }
+  });
+});
+
+describe("REQ-246: pilot-only allowances", () => {
+  test("AI_PILOT_COACH_MESSAGES_PER_DAY: unset, empty or 0 = 0 (today's behavior); a whole number counts", () => {
+    assert.equal(pilotCoachMessagesPerDay({}), 0);
+    assert.equal(pilotCoachMessagesPerDay({ AI_PILOT_COACH_MESSAGES_PER_DAY: "" }), 0);
+    assert.equal(pilotCoachMessagesPerDay({ AI_PILOT_COACH_MESSAGES_PER_DAY: "0" }), 0);
+    assert.equal(pilotCoachMessagesPerDay({ AI_PILOT_COACH_MESSAGES_PER_DAY: " 10 " }), 10);
+    for (const v of [undefined, "", "0", "10"]) {
+      assert.equal(aiPilotCoachIsValid(v === undefined ? {} : { AI_PILOT_COACH_MESSAGES_PER_DAY: v }), true, String(v));
+    }
+  });
+
+  test("AI_PILOT_COACH_MESSAGES_PER_DAY: invalid values fall back to 0 and are reported", () => {
+    for (const v of ["-1", "2.5", "ten", "1e3", "none", "10 a day", "99999999999999999999"]) {
+      assert.equal(pilotCoachMessagesPerDay({ AI_PILOT_COACH_MESSAGES_PER_DAY: v }), 0, v);
+      assert.equal(aiPilotCoachIsValid({ AI_PILOT_COACH_MESSAGES_PER_DAY: v }), false, v);
+      assert.match(aiAccessWarnings({ AI_PILOT_COACH_MESSAGES_PER_DAY: v }).join(" "), /AI_PILOT_COACH_MESSAGES_PER_DAY .*treated as 0/, v);
+    }
+  });
+
+  test("AI_PILOT_GRADED_ANSWERS_PER_DAY: unset or invalid = null (Free's allowance applies); a whole number counts", () => {
+    assert.equal(pilotGradedAnswersPerDay({}), null);
+    assert.equal(pilotGradedAnswersPerDay({ AI_PILOT_GRADED_ANSWERS_PER_DAY: " " }), null);
+    assert.equal(pilotGradedAnswersPerDay({ AI_PILOT_GRADED_ANSWERS_PER_DAY: "20" }), 20);
+    assert.equal(pilotGradedAnswersPerDay({ AI_PILOT_GRADED_ANSWERS_PER_DAY: "0" }), 0);
+    for (const v of ["-3", "twenty", "3.5"]) {
+      assert.equal(pilotGradedAnswersPerDay({ AI_PILOT_GRADED_ANSWERS_PER_DAY: v }), null, v);
+      assert.equal(aiPilotGradedIsValid({ AI_PILOT_GRADED_ANSWERS_PER_DAY: v }), false, v);
+      assert.match(aiAccessWarnings({ AI_PILOT_GRADED_ANSWERS_PER_DAY: v }).join(" "), /AI_PILOT_GRADED_ANSWERS_PER_DAY .*Free's graded-answer allowance/, v);
+    }
+    assert.deepEqual(aiAccessWarnings({ AI_ACCESS_MODE: "granted", AI_PILOT_COACH_MESSAGES_PER_DAY: "10", AI_PILOT_GRADED_ANSWERS_PER_DAY: "20" }), []);
+  });
+
+  test("the coach verdict: counted for a limited learner above 0, blocked at 0, and only for a limited learner", () => {
+    for (const mode of AI_ACCESS_MODES) {
+      for (const billingOn of [false, true]) {
+        for (const user of ["owner", "granted", "paying", "ordinary"] as AiUserKind[]) {
+          const limited = aiLimited(mode, user, billingOn);
+          assert.equal(aiVerdict(mode, user, "coach", billingOn, 10), limited ? "counted" : "billing", `${mode}/${billingOn} ${user}`);
+          assert.equal(aiVerdict(mode, user, "coach", billingOn, 0), aiVerdict(mode, user, "coach", billingOn), "0 is the default");
+          // The other features never change with the pilot coach count.
+          for (const f of ["regenerate", "written_grading", "shared_lesson"] as AiFeature[]) {
+            assert.equal(aiVerdict(mode, user, f, billingOn, 10), aiVerdict(mode, user, f, billingOn), `${f}`);
+          }
+        }
+      }
+    }
+    assert.equal(aiVerdict("granted", "ordinary", "coach", false, 10), "counted");
+    assert.equal(aiVerdict("granted", "ordinary", "coach", false, 0), "blocked");
+    assert.equal(aiVerdict("all", "ordinary", "coach", false, 10), "billing", "goes away when the mode is all");
+    assert.equal(aiVerdict("paid", "ordinary", "coach", true, 10), "billing", "and when paid mode meets billing on");
+  });
+
+  test("the pilot settings never change the billing tiers' counts (Free stays coach 0 / graded 3)", () => {
+    const env = { AI_PILOT_COACH_MESSAGES_PER_DAY: "10", AI_PILOT_GRADED_ANSWERS_PER_DAY: "20" };
+    assert.equal(ALLOWANCE_DEFAULTS.coach_message.limits.free, 0);
+    assert.equal(ALLOWANCE_DEFAULTS.graded_answer.limits.free, 3);
+    assert.equal(allowanceLimit("coach_message", "free", env), 0);
+    assert.equal(allowanceLimit("graded_answer", "free", env), 3);
+    // Why the pilot has its own graded name: the billing override is Free's count once billing is on.
+    assert.equal(allowanceLimit("graded_answer", "free", { BILLING_ALLOWANCE_GRADED_ANSWER_FREE: "20" }), 20);
+  });
+
+  test("the coach-limit words: calm, what still works, no plan or price", () => {
+    const m = coachLimitMessage(10, "in about 5 hours");
+    assert.equal(m, "You've used today's 10 coach messages. More open up in about 5 hours; lessons, practice and review keep working.");
+    assert.doesNotMatch(m, /\bPlus\b|\bPro\b|upgrade|\$|price|\bplans?\b|subscri/i);
   });
 });
 

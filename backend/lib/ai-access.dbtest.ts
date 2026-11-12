@@ -15,6 +15,9 @@
 //   3. AI_ACCESS_MODE unset (all) with no ceiling: exactly the behaviour
 //      before REQ-201 -- no `ai` field, no counting, the same bodies as
 //      AI_ACCESS_MODE=all.
+//   4. REQ-246, the pilot-only allowances: AI_PILOT_COACH_MESSAGES_PER_DAY
+//      (coach chat counted per rolling day, 429 coach_limit at it) and
+//      AI_PILOT_GRADED_ANSWERS_PER_DAY.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
@@ -24,7 +27,7 @@ import { signAccessToken } from "./auth/tokens";
 import { __setClientForTest } from "./anthropic";
 import { callCostUsd } from "./ai-pricing";
 import { globalSpendTodayUsd, resetGlobalSpendCache } from "./ai-access";
-import { COACH_PREVIEW_MESSAGE, GLOBAL_PAUSE_MESSAGE, LESSON_PREPARING_MESSAGE, REGENERATE_PREVIEW_MESSAGE } from "./ai-access-config";
+import { COACH_PREVIEW_MESSAGE, coachLimitMessage, GLOBAL_PAUSE_MESSAGE, LESSON_PREPARING_MESSAGE, REGENERATE_PREVIEW_MESSAGE } from "./ai-access-config";
 import { POST as grantsPost } from "../app/api/access/grants/route";
 import { GET as grantsGet } from "../app/api/access/grants/route";
 import { GET as authMeGet } from "../app/api/auth/me/route";
@@ -40,7 +43,10 @@ const run = Date.now().toString(36);
 const track = randomUUID(), unit = randomUUID(), obj = randomUUID(), scen = randomUUID();
 const track2 = randomUUID(), unit2 = randomUUID(), objB = randomUUID(), objNew = randomUUID();
 const users: string[] = [];
-const ENV = ["BILLING_ENABLED", "OWNER_EMAILS", "AI_ACCESS_MODE", "AI_GLOBAL_DAILY_CEILING_USD", "AI_DAILY_BUDGET_USD", "AI_UNRESTRICTED_DAILY_CEILING_USD"];
+const ENV = [
+  "BILLING_ENABLED", "OWNER_EMAILS", "AI_ACCESS_MODE", "AI_GLOBAL_DAILY_CEILING_USD", "AI_DAILY_BUDGET_USD", "AI_UNRESTRICTED_DAILY_CEILING_USD",
+  "AI_PILOT_COACH_MESSAGES_PER_DAY", "AI_PILOT_GRADED_ANSWERS_PER_DAY",
+];
 const OWNER = `aimodes-owner-${run}@example.test`;
 
 const usage = { input_tokens: 100, output_tokens: 20, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
@@ -173,7 +179,7 @@ describe("AI_ACCESS_MODE=granted (billing off)", () => {
     assert.equal(modelCalls, 0, "nothing reached the model");
     for (const b of [c, r]) assert.equal(b.upgrade ?? b.allowance ?? b.aiPaused, undefined, "no plan sheet keys");
     const me = await json(await call(authMeGet, "/api/auth/me", u));
-    assert.deepEqual(me.user.ai, { mode: "granted", full: false });
+    assert.deepEqual(me.user.ai, { mode: "granted", full: false, coachPerDay: null });
   });
 
   test("an ordinary learner: Free's 3 graded typed answers a day across grade_open, explain-back and PBQ; multiple choice unlimited", async () => {
@@ -229,7 +235,7 @@ describe("AI_ACCESS_MODE=granted (billing off)", () => {
       assert.equal(((await rg.json()) as any).aiAccess, undefined);
       for (let i = 0; i < 5; i++) assert.equal((await gradeOpen(who)).status, 200);
       assert.equal(await counted(who), 0);
-      assert.deepEqual((await json(await call(authMeGet, "/api/auth/me", who))).user.ai, { mode: "granted", full: true });
+      assert.deepEqual((await json(await call(authMeGet, "/api/auth/me", who))).user.ai, { mode: "granted", full: true, coachPerDay: null });
     }
   });
 });
@@ -362,5 +368,150 @@ describe("AI_ACCESS_MODE unset (all), no ceiling", () => {
     assert.deepEqual(results["all"], results["undefined"]);
     assert.deepEqual(results[""], results["undefined"]);
     assert.equal((results["undefined"][1] as any)[0], 200);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 4. REQ-246: pilot-only allowances
+// ---------------------------------------------------------------------------
+
+describe("REQ-246: AI_PILOT_COACH_MESSAGES_PER_DAY and AI_PILOT_GRADED_ANSWERS_PER_DAY", () => {
+  const coachCounted = async (u: string) =>
+    (await queryOne<{ n: number }>(`select count(*)::int as n from allowance_uses where user_id = $1 and kind = 'coach_message'`, [u]))!.n;
+  let msgN = 0;
+  const chatAs = (u: string, clientMessageId?: string, message = `Pilot question ${++msgN}?`) =>
+    call(chatPost, "/api/chat", u, "POST", { trackId: track, message, ...(clientMessageId ? { clientMessageId } : {}) });
+  const pilot = (coach: string) => {
+    process.env.AI_ACCESS_MODE = "granted";
+    process.env.AI_PILOT_COACH_MESSAGES_PER_DAY = coach;
+    process.env.AI_DAILY_BUDGET_USD = "off"; // the per-learner budget out of the way
+  };
+
+  test("10 a day: ten messages pass, the eleventh is a 429 coach_limit with calm words and no model call", async () => {
+    pilot("10");
+    const u = await newUser();
+    assert.deepEqual((await json(await call(authMeGet, "/api/auth/me", u))).user.ai, { mode: "granted", full: false, coachPerDay: 10 });
+    for (let i = 0; i < 10; i++) assert.equal((await chatAs(u)).status, 200, `message ${i + 1}`);
+    assert.equal(await coachCounted(u), 10);
+    const before = modelCalls;
+    const res = await json(await chatAs(u), 429);
+    assert.equal(res.aiAccess.state, "coach_limit");
+    assert.equal(res.aiAccess.feature, "coach");
+    assert.equal(res.aiAccess.mode, "granted");
+    assert.equal(res.aiAccess.limit, 10);
+    assert.equal(res.aiAccess.used, 10);
+    assert.ok(Date.parse(res.aiAccess.resetsAt) > Date.now(), "resetsAt is in the future");
+    assert.match(res.error, /^You've used today's 10 coach messages\. More open up in about \d+ hours; lessons, practice and review keep working\.$/);
+    assert.equal(res.error, coachLimitMessage(10, res.error.match(/up (.*);/)[1]));
+    for (const k of ["upgrade", "allowance", "aiPaused"]) assert.equal(res[k], undefined, `no plan sheet key ${k}`);
+    assert.equal(modelCalls, before, "no model call past the limit");
+    assert.equal(await coachCounted(u), 10, "the refused message is not counted");
+    // Regenerate is still limited preview: the pilot count opens only the coach.
+    assert.equal((await json(await regen(u), 403)).aiAccess.state, "limited_preview");
+  });
+
+  test("a failed reply gives the use back", async () => {
+    pilot("10");
+    const u = await newUser();
+    for (let i = 0; i < 9; i++) assert.equal((await chatAs(u)).status, 200);
+    __setClientForTest({ messages: { async create() { throw new Error("down"); }, async parse() { throw new Error("down"); } } });
+    try {
+      assert.notEqual((await chatAs(u)).status, 200);
+    } finally {
+      __setClientForTest(fake);
+    }
+    assert.equal(await coachCounted(u), 9, "released");
+    assert.equal((await chatAs(u)).status, 200, "the tenth still passes");
+    assert.equal((await chatAs(u)).status, 429);
+    assert.equal(await coachCounted(u), 10);
+  });
+
+  test("a replay is never counted twice: a retry with the same id, and two copies sent at once", async () => {
+    pilot("10");
+    const u = await newUser();
+    const id = randomUUID();
+    const first = await json(await chatAs(u, id, "Same question?"));
+    assert.equal(first.replayed, undefined);
+    const again = await json(await chatAs(u, id, "Same question?"));
+    assert.equal(again.replayed, true);
+    assert.equal(await coachCounted(u), 1);
+    const id2 = randomUUID();
+    const calls = modelCalls;
+    const both = await Promise.all([chatAs(u, id2, "Twin question?"), chatAs(u, id2, "Twin question?")]);
+    const bodies = await Promise.all(both.map((r) => r.json() as Promise<any>));
+    assert.deepEqual(both.map((r) => r.status), [200, 200], JSON.stringify(bodies));
+    assert.equal(bodies.filter((b) => b.replayed === true).length, 1, "one copy replays");
+    assert.equal(await coachCounted(u), 2, "the twin counted once");
+    assert.ok(modelCalls - calls <= 2, "one reply (plus its leak judge) paid for");
+  });
+
+  test("owners and granted accounts are not counted", async () => {
+    pilot("10");
+    const g = await grantedUser();
+    for (const who of [g, ownerId]) {
+      const before = await coachCounted(who);
+      for (let i = 0; i < 3; i++) assert.equal((await chatAs(who)).status, 200);
+      assert.equal(await coachCounted(who), before, "uncounted");
+      assert.deepEqual((await json(await call(authMeGet, "/api/auth/me", who))).user.ai, { mode: "granted", full: true, coachPerDay: null });
+    }
+  });
+
+  test("0, unset or invalid keeps the 403 limited preview exactly as before", async () => {
+    for (const v of ["0", "", "ten", "-1"]) {
+      pilot(v);
+      const u = await newUser();
+      const c = await json(await chatAs(u), 403);
+      assert.equal(c.error, COACH_PREVIEW_MESSAGE, v);
+      assert.deepEqual(c.aiAccess, { state: "limited_preview", feature: "coach", mode: "granted", resetsAt: null }, v);
+      assert.equal(await coachCounted(u), 0);
+      assert.equal((await json(await call(authMeGet, "/api/auth/me", u))).user.ai.coachPerDay, null, v);
+    }
+    assert.equal(modelCalls, 0);
+  });
+
+  test("goes away when the mode changes: AI_ACCESS_MODE=all counts nothing and adds no field", async () => {
+    pilot("1");
+    process.env.AI_ACCESS_MODE = "all";
+    const u = await newUser();
+    for (let i = 0; i < 3; i++) assert.equal((await chatAs(u)).status, 200);
+    assert.equal(await coachCounted(u), 0);
+    assert.equal("ai" in (await json(await call(authMeGet, "/api/auth/me", u))).user, false);
+  });
+
+  test("the global ceiling still pauses the coach, with nothing counted", async () => {
+    pilot("10");
+    const u = await newUser();
+    process.env.AI_GLOBAL_DAILY_CEILING_USD = "0.000001";
+    await sharedSpend(0.01);
+    resetGlobalSpendCache();
+    const res = await json(await chatAs(u), 429);
+    assert.equal(res.aiAccess.state, "paused");
+    assert.equal(await coachCounted(u), 0);
+  });
+
+  test("the per-learner daily budget still applies", async () => {
+    pilot("10");
+    process.env.AI_DAILY_BUDGET_USD = "0.000001";
+    const u = await newUser();
+    await query(`insert into ai_calls (user_id, purpose, model, input_tokens, output_tokens, latency_ms, ok) values ($1,'chat','claude-haiku-5-5',0,100000,1,true)`, [u]);
+    const res = await chatAs(u);
+    assert.equal(res.status, 429);
+    assert.equal(((await res.json()) as any).aiAccess, undefined, "the budget's own refusal, not the pilot count");
+    assert.equal(await coachCounted(u), 0);
+  });
+
+  test("AI_PILOT_GRADED_ANSWERS_PER_DAY replaces Free's 3 for a limited learner only", async () => {
+    process.env.AI_ACCESS_MODE = "granted";
+    process.env.AI_PILOT_GRADED_ANSWERS_PER_DAY = "5";
+    const u = await newUser();
+    for (let i = 0; i < 5; i++) assert.equal((await gradeOpen(u)).status, 200, `answer ${i + 1}`);
+    const res = await json(await gradeOpen(u), 429);
+    assert.equal(res.aiAccess.state, "graded_limit");
+    assert.equal(res.aiAccess.limit, 5);
+    assert.match(res.error, /limited preview: 5 a day/);
+    assert.equal(await counted(u), 5);
+    const g = await grantedUser();
+    for (let i = 0; i < 6; i++) assert.equal((await gradeOpen(g)).status, 200);
+    assert.equal(await counted(g), 0, "a granted account is not counted");
   });
 });

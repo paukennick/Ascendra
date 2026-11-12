@@ -17,7 +17,7 @@ import { coachContextForTrack } from "@/lib/coach-context";
 import { guardedReply, haikuLeakJudge, MOCK_IN_PROGRESS_REPLY, openItemsFor, timedMockInProgress } from "@/lib/coach-guard";
 import { loadChatHistory } from "@/lib/chat-history";
 import { requireAiBudget } from "@/lib/ai-budget";
-import { requireAiFeature, requireGlobalCeiling } from "@/lib/ai-access";
+import { consumeCoachMessage, requireAiFeature, requireGlobalCeiling } from "@/lib/ai-access";
 import { learnerProfileBlock, learnerProfileFor } from "@/lib/learner-profile";
 import { consumeAllowance, requireAiAllowance, requireFeature } from "@/lib/entitlements";
 import { flagChatDisputes } from "@/lib/chat-dispute";
@@ -116,6 +116,8 @@ export async function POST(req: Request) {
     // pilot accounts (a 403 { aiAccess: limited_preview }), and the global
     // daily AI ceiling pauses it for everyone but owners (a 429 { aiAccess:
     // paused }). Both return at once, without a read, when unset.
+    // REQ-246: with AI_PILOT_COACH_MESSAGES_PER_DAY above 0 the first lets a
+    // limited learner through, and respond() counts the message instead.
     await requireAiFeature(userId, "coach");
     await requireGlobalCeiling(userId, "coach");
     // Audit 3 H4: per-learner daily AI budget (lib/ai-budget.ts); a 429 with
@@ -139,8 +141,10 @@ export async function POST(req: Request) {
         if (err instanceof RateLimitError) return tooManyRequests(err.message);
         throw err;
       }
-      // Counted now, given back below if no reply is saved.
-      const use = await consumeAllowance(userId, "coach_message", tier);
+      // Counted now, given back below if no reply is saved. REQ-246: a learner
+      // the AI mode limits is counted against the pilot's daily coach count
+      // (a 429 coach_limit at it) instead of the plan count, never both.
+      const use = await consumeCoachMessage(userId, () => consumeAllowance(userId, "coach_message", tier));
       try {
 
         let unitTitle: string | undefined;

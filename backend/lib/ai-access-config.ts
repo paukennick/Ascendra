@@ -71,7 +71,9 @@ export const AI_FEATURES: readonly AiFeature[] = ["coach", "regenerate", "writte
 // What the mode does to one feature for one learner:
 //   billing  -- unchanged: the billing gates (REQ-122) decide, as before
 //   blocked  -- refused with the limited-preview message (403)
-//   counted  -- allowed, counted against Free's daily graded-answer allowance
+//   counted  -- allowed, counted per rolling day: written grading against the
+//               graded-answer allowance; coach (REQ-246) against
+//               AI_PILOT_COACH_MESSAGES_PER_DAY when that is above 0
 //   open     -- allowed, never counted by the mode
 export type AiVerdict = "billing" | "blocked" | "counted" | "open";
 
@@ -85,10 +87,13 @@ export function aiLimited(mode: AiAccessMode, user: AiUserKind, billingOn: boole
   return user !== "paying";
 }
 
-export function aiVerdict(mode: AiAccessMode, user: AiUserKind, feature: AiFeature, billingOn: boolean): AiVerdict {
+// `pilotCoachPerDay` (REQ-246): AI_PILOT_COACH_MESSAGES_PER_DAY; 0 (the
+// default) keeps the coach blocked for a limited learner.
+export function aiVerdict(mode: AiAccessMode, user: AiUserKind, feature: AiFeature, billingOn: boolean, pilotCoachPerDay = 0): AiVerdict {
   if (!aiLimited(mode, user, billingOn)) return "billing";
   switch (feature) {
     case "coach":
+      return pilotCoachPerDay > 0 ? "counted" : "blocked";
     case "regenerate":
       return "blocked";
     case "written_grading":
@@ -96,6 +101,40 @@ export function aiVerdict(mode: AiAccessMode, user: AiUserKind, feature: AiFeatu
     case "shared_lesson":
       return "open";
   }
+}
+
+// ---------------------------------------------------------------------------
+// REQ-246: pilot-only allowances
+// ---------------------------------------------------------------------------
+
+// A whole number of 0 or more, or undefined when unset/empty; NaN when junk.
+function rawCount(v: string | undefined): number | undefined {
+  const raw = v?.trim();
+  if (!raw) return undefined;
+  if (!/^\d+$/.test(raw)) return NaN;
+  const n = Number(raw);
+  return Number.isSafeInteger(n) ? n : NaN;
+}
+
+// Coach messages a limited learner gets per rolling day; 0 = none (default).
+export function pilotCoachMessagesPerDay(env: Env = process.env): number {
+  const n = rawCount(env.AI_PILOT_COACH_MESSAGES_PER_DAY);
+  return n === undefined || Number.isNaN(n) ? 0 : n;
+}
+
+export function aiPilotCoachIsValid(env: Env = process.env): boolean {
+  return !Number.isNaN(rawCount(env.AI_PILOT_COACH_MESSAGES_PER_DAY));
+}
+
+// AI-graded typed answers a limited learner gets per rolling day; null =
+// unset or invalid, so Free's graded-answer allowance applies (default).
+export function pilotGradedAnswersPerDay(env: Env = process.env): number | null {
+  const n = rawCount(env.AI_PILOT_GRADED_ANSWERS_PER_DAY);
+  return n === undefined || Number.isNaN(n) ? null : n;
+}
+
+export function aiPilotGradedIsValid(env: Env = process.env): boolean {
+  return !Number.isNaN(rawCount(env.AI_PILOT_GRADED_ANSWERS_PER_DAY));
 }
 
 // ---------------------------------------------------------------------------
@@ -174,6 +213,11 @@ export function gradedPreviewMessage(limit: number, when: string): string {
   );
 }
 
+// REQ-246: the pilot's daily coach count is used up. No plan or price.
+export function coachLimitMessage(limit: number, when: string): string {
+  return `You've used today's ${limit} coach messages. More open up ${when}; lessons, practice and review keep working.`;
+}
+
 export const GLOBAL_PAUSE_MESSAGE =
   "The AI coach and new lesson versions are paused for today while we keep AI use within its daily limit. " +
   "They come back after midnight UTC. Lessons, practice, grading and review keep working.";
@@ -184,7 +228,7 @@ export const LESSON_PREPARING_MESSAGE =
 
 // The structured part of a refusal, under `aiAccess`, so the app can show the
 // right screen without parsing words.
-export type AiAccessState = "limited_preview" | "graded_limit" | "paused" | "preparing";
+export type AiAccessState = "limited_preview" | "graded_limit" | "coach_limit" | "paused" | "preparing";
 
 export interface AiAccessBody {
   state: AiAccessState;
@@ -206,6 +250,12 @@ export function aiAccessWarnings(env: Env = process.env): string[] {
   }
   if (!aiGlobalCeilingIsValid(env)) {
     out.push("AI_GLOBAL_DAILY_CEILING_USD is not a dollar amount; no global AI ceiling is applied.");
+  }
+  if (!aiPilotCoachIsValid(env)) {
+    out.push("AI_PILOT_COACH_MESSAGES_PER_DAY is not a whole number of 0 or more; treated as 0 (no coach outside the pilot accounts).");
+  }
+  if (!aiPilotGradedIsValid(env)) {
+    out.push("AI_PILOT_GRADED_ANSWERS_PER_DAY is not a whole number of 0 or more; Free's graded-answer allowance applies.");
   }
   if (billingEnabled(env) && aiAccessMode(env) === "granted") {
     out.push("AI_ACCESS_MODE is granted while BILLING_ENABLED is on: paying learners outside the pilot get the Free AI experience. Set AI_ACCESS_MODE=paid at launch.");
