@@ -1,0 +1,1286 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "full-var-stops-database",
+  "title": "Outage: /var is full and the order database has stopped",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@app01:~#",
+      "lines": [
+        {
+          "id": "pgPanic",
+          "text": "08:52 postgres[1187]: PANIC:  could not write to file \"pg_wal/xlogtemp.1187\": No space left on device",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "shopErr",
+          "text": "09:00 shopd[2214]: ERROR database unavailable; checkout answers 500",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "pgReady",
+          "text": "postgres[4120]: LOG:  database system is ready to accept connections",
+          "when": "pgUp",
+          "at": "timeAt(pgStartedAt)"
+        },
+        {
+          "id": "syncErr",
+          "text": "warehouse-sync[3310]: ERROR connection to the order database refused; this morning's orders were not sent to the warehouse",
+          "when": "not isNull(syncFailedAt)",
+          "at": "timeAt(syncFailedAt)",
+          "error": "true"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nginx",
+          "label": "nginx",
+          "spokenLabel": "nginx",
+          "kind": "Web server",
+          "status": "Running; passes checkout to shopd",
+          "tone": "\"up\""
+        },
+        {
+          "id": "shopd",
+          "label": "shopd",
+          "spokenLabel": "shopd, the shop application",
+          "kind": "Application service",
+          "status": "{pgUp ? \"Serving checkout\" : \"Running; checkout answers 500 (no database)\"}",
+          "tone": "pgUp ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "pg",
+          "label": "postgresql",
+          "spokenLabel": "PostgreSQL",
+          "kind": "Order database",
+          "status": "{walDeleted ? \"Will not start: WAL deleted\" : pgUp ? \"Accepting connections\" : \"Stopped since 08:52 (PANIC on a full disk)\"}",
+          "tone": "pgUp ? \"up\" : \"down\""
+        },
+        {
+          "id": "var",
+          "label": "/var (vdb1, 20G)",
+          "spokenLabel": "the /var file system",
+          "kind": "File system",
+          "status": "{freeMb < 1024 ? \"Full: \" : \"Free: \"}{freeMb|0dp} MB available",
+          "tone": "freeMb < 1024 ? \"down\" : \"up\""
+        },
+        {
+          "id": "sync",
+          "label": "warehouse-sync",
+          "spokenLabel": "the warehouse sync job",
+          "kind": "Scheduled job (09:45)",
+          "status": "{not isNull(syncFailedAt) ? \"Failed at 09:45: orders not sent\" : pgUp ? \"Ready for its 09:45 run\" : \"Runs at 09:45; needs the database\"}",
+          "tone": "not isNull(syncFailedAt) ? \"down\" : pgUp ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "proxy",
+          "from": "nginx",
+          "to": "shopd",
+          "label": "Reverse proxy",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "dbConn",
+          "from": "shopd",
+          "to": "pg",
+          "label": "Database connection",
+          "status": "{pgUp ? \"Connected\" : \"Refused\"}",
+          "tone": "pgUp ? \"up\" : \"down\""
+        },
+        {
+          "id": "storage",
+          "from": "pg",
+          "to": "var",
+          "label": "Data and WAL on /var",
+          "status": "{freeMb < 1024 ? \"No space to write\" : \"Writable\"}",
+          "tone": "freeMb < 1024 ? \"down\" : \"up\""
+        },
+        {
+          "id": "export",
+          "from": "sync",
+          "to": "pg",
+          "label": "Order export",
+          "status": "{not isNull(syncFailedAt) ? \"Failed\" : pgUp ? \"Ready\" : \"Waiting for the database\"}",
+          "tone": "not isNull(syncFailedAt) ? \"down\" : pgUp ? \"up\" : \"degraded\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "freeM",
+          "label": "Free on /var",
+          "value": "{freeMb|0dp} MB"
+        },
+        {
+          "id": "startsM",
+          "label": "Failed database starts",
+          "value": "{failedStarts|0dp}"
+        }
+      ]
+    }
+  },
+  "objective": "Diagnosing storage issues: full disks, inode exhaustion, failing drives",
+  "secondaryObjectives": [
+    "systemd service management (systemctl, journalctl)",
+    "Reading and interpreting system logs for root-cause analysis"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA Linux+ (V8), exam XK0-006: domains System Management 23%, Troubleshooting 22%, Services and User Management 20%, Security 18%, Automation, Orchestration, and Scripting 17%; launched 2025-07-15",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/linux/",
+      "note": "Relevant text: Troubleshooting, 'Hardware/storage: Diagnose boot, mount, and repair issues'; 'Fix SELinux, permission, and vulnerability issues'. Read on CompTIA's certification page through a summarizing fetch on 2026-11-11; the XK0-006 objectives PDF was not opened. The course objective titles are the course seed's (2026-11-07)."
+    },
+    {
+      "cite": "Linux man-pages 6.19 (2026-02-08), unlink(2)",
+      "checkedAt": "2026-11-11",
+      "url": "https://man7.org/linux/man-pages/man2/unlink.2.html",
+      "note": "Relevant text: 'If the name was the last link to a file but any processes still have the file open, the file will remain in existence until the last file descriptor referring to it is closed.' Read in primary text on 2026-11-11. Why df counts space that du cannot find, and why restarting the process that holds the file frees it."
+    },
+    {
+      "cite": "lsof(8) manual page (man7.org)",
+      "checkedAt": "2026-11-11",
+      "url": "https://man7.org/linux/man-pages/man8/lsof.8.html",
+      "note": "Relevant text: 'A specification of the form ``+L1'' will select open files that have been unlinked.' Read through a summarizing fetch on 2026-11-11 (the first 100,000 characters; the output column list was not reached, so the column layout shown in the scenario is an authored rendering)."
+    },
+    {
+      "cite": "GNU coreutils 9.11 (April 2026), df(1)",
+      "checkedAt": "2026-11-11",
+      "url": "https://man7.org/linux/man-pages/man1/df.1.html",
+      "note": "Relevant text: df 'displays the amount of space available on the file system containing each file name argument'; -h 'print sizes in powers of 1024 (e.g., 1023M)'; -i 'list inode information instead of block usage'. Read through a summarizing fetch on 2026-11-11."
+    },
+    {
+      "cite": "PostgreSQL 18 Documentation, 27.6.2 Disk Full Failure, and 28.5 WAL Configuration",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.postgresql.org/docs/current/diskusage.html",
+      "note": "Relevant text (27.6.2): 'A filled data disk will not result in data corruption, but it might prevent useful activity from occurring. If the disk holding the WAL files grows full, database server panic and consequent shutdown might occur.' 'If you cannot free up additional space on the disk by deleting other things, you can move some of the database files to other file systems by making use of tablespaces.' (28.5, wal-configuration): 'after a checkpoint, WAL segments preceding the one containing the redo record are no longer needed and can be recycled or removed'; the server removes or recycles them itself. Both read in primary text on 2026-11-11. That deleting segments by hand can remove ones crash recovery still needs is the scenario's reading of 28.5, not a quoted warning; the exact PANIC wording in the scenario's journal lines is an authored rendering."
+    },
+    {
+      "cite": "systemd 262, journald.conf(5)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.freedesktop.org/software/systemd/man/latest/journald.conf.html",
+      "note": "Relevant text: SystemMaxUse= and SystemKeepFree= default to 10% and 15% of the file system, 'but each of the calculated default values is capped to 4G.' Read through a summarizing fetch on 2026-11-11. Why the system journal is not what filled /var here."
+    }
+  ],
+  "brief": {
+    "situation": "You are the on-call Linux administrator at Fernhill Books, a fictional online bookshop. At 09:00 checkout starts answering 500. On app01, /var is a separate 20 GB file system holding PostgreSQL's data and the application logs. A colleague says that at 08:40 they deleted a huge debug log in /var/log/shopd to free space, 'so it should be fine now'. The warehouse sync job reads the order database at 09:45. Find out what is holding the space, bring the database back without losing data, and make sure it does not happen again.",
+    "handover": [
+      "shopd is the shop application, a systemd service. Its log level was raised to debug yesterday for an investigation.",
+      "PostgreSQL's data directory and WAL are under /var/lib/postgresql."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, device or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "syncDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-237)",
+        "checkedAt": "2026-11-11",
+        "note": "How many operator minutes each command or change takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. The warehouse sync runs at 09:45, 45 minutes after the first report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "dfAt": {
+      "type": "time",
+      "init": null
+    },
+    "duAt": {
+      "type": "time",
+      "init": null
+    },
+    "lsofAt": {
+      "type": "time",
+      "init": null
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "journalAt": {
+      "type": "time",
+      "init": null
+    },
+    "levelSeenAt": {
+      "type": "time",
+      "init": null
+    },
+    "released": {
+      "type": "bool",
+      "init": false
+    },
+    "spaceFreedAt": {
+      "type": "time",
+      "init": null
+    },
+    "freeMb": {
+      "type": "number",
+      "init": 0,
+      "unit": "MB",
+      "min": 0,
+      "max": 20480
+    },
+    "pgStartedAt": {
+      "type": "time",
+      "init": null
+    },
+    "failedStarts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "walDeleted": {
+      "type": "bool",
+      "init": false
+    },
+    "logsDeleted": {
+      "type": "bool",
+      "init": false
+    },
+    "debugOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "restartAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "syncFailedAt": {
+      "type": "time",
+      "init": null
+    },
+    "faultsAdded": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "openDeleted",
+        "inodes",
+        "failingDisk"
+      ],
+      "init": "none"
+    },
+    "preventDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "loglevel",
+        "grow",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "pgUp": {
+      "expr": "not isNull(pgStartedAt) and not walDeleted"
+    },
+    "debugFixed": {
+      "expr": "not isNull(debugOffAt) and not isNull(restartAt) and timeAt(restartAt) >= timeAt(debugOffAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "df",
+        "du",
+        "lsof",
+        "pgStatus",
+        "pgJournal",
+        "logLevel",
+        "restartShopd",
+        "startPg",
+        "rmLogs",
+        "rmWal",
+        "debugOff",
+        "curl",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "df": {
+      "label": "df -h /var",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "dfAt",
+          "to": "t"
+        },
+        {
+          "output": "root@app01:~# df -h /var\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/vdb1        20G  {freeMb >= 1024 ? \"1.6G\" : \"20G\"}  {freeMb|0dp}M {freeMb >= 1024 ? \" 8%\" : freeMb > 0 ? \"99%\" : \"100%\"} /var"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "du": {
+      "label": "du -xsh /var/*",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "duAt",
+          "to": "t"
+        },
+        {
+          "output": "root@app01:~# du -xsh /var/*\n42M\t/var/cache\n1.1G\t/var/lib\n{logsDeleted ? \"4.0K\" : \"180M\"}\t/var/log\n12K\t/var/tmp"
+        },
+        {
+          "if": "isNull(spaceFreedAt)",
+          "then": [
+            {
+              "finding": "du finds about 1.3 GB under /var, but df says the 20 GB file system is full: the rest is held by files that are deleted but still open."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "lsof": {
+      "label": "lsof +L1",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "lsofAt",
+          "to": "t"
+        },
+        {
+          "if": "released",
+          "then": [
+            {
+              "output": "root@app01:~# lsof +L1\n(no output: no open file is unlinked)"
+            }
+          ],
+          "else": [
+            {
+              "output": "root@app01:~# lsof +L1\nCOMMAND  PID USER FD TYPE DEVICE    SIZE/OFF NLINK NODE NAME\nshopd   2214 shop 3w  REG  252,17 19756849152     0 1311 /var/log/shopd/debug.log (deleted)"
+            }
+          ]
+        },
+        {
+          "if": "not released",
+          "then": [
+            {
+              "finding": "shopd (PID 2214) still has the deleted /var/log/shopd/debug.log open: 18.4 GB that comes back only when shopd closes it."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "pgStatus": {
+      "label": "systemctl status postgresql",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "statusAt",
+          "to": "t"
+        },
+        {
+          "output": "root@app01:~# systemctl status postgresql\n● postgresql.service - PostgreSQL RDBMS\n     Active: {pgUp ? \"active (running)\" : \"failed (Result: exit-code) since 08:52\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "pgJournal": {
+      "label": "journalctl -u postgresql -n 20",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "journalAt",
+          "to": "t"
+        },
+        {
+          "output": "root@app01:~# journalctl -u postgresql -n 20\n08:52:07 app01 postgres[1187]: PANIC:  could not write to file \"pg_wal/xlogtemp.1187\": No space left on device\n08:52:07 app01 systemd[1]: postgresql.service: Failed with result 'exit-code'.{failedStarts > 0 ? \" Later start attempts failed the same way.\" : \"\"}"
+        },
+        {
+          "finding": "PostgreSQL stopped itself at 08:52 because it could not write WAL to a full disk; nothing points to damaged data."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "logLevel": {
+      "label": "grep LOG_LEVEL /etc/default/shopd",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "levelSeenAt",
+          "to": "t"
+        },
+        {
+          "output": "root@app01:~# grep LOG_LEVEL /etc/default/shopd\n{isNull(debugOffAt) ? \"LOG_LEVEL=debug\" : \"LOG_LEVEL=info\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restartShopd": {
+      "label": "systemctl restart shopd",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "restartAt",
+          "to": "t"
+        },
+        {
+          "output": "root@app01:~# systemctl restart shopd"
+        },
+        {
+          "if": "not released",
+          "then": [
+            {
+              "set": "released",
+              "to": "true"
+            },
+            {
+              "set": "spaceFreedAt",
+              "to": "t"
+            },
+            {
+              "add": "freeMb",
+              "by": "18400"
+            },
+            {
+              "log": "shopd restarted: its old process closed the deleted debug log, and 18.4 GB came back to /var.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "shopd restarted.",
+              "kind": "act"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "startPg": {
+      "label": "systemctl start postgresql",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "pgUp",
+              "then": [
+                {
+                  "output": "root@app01:~# systemctl start postgresql"
+                }
+              ]
+            },
+            {
+              "when": "walDeleted or freeMb < 1024",
+              "then": [
+                {
+                  "add": "failedStarts",
+                  "by": "1"
+                },
+                {
+                  "output": "root@app01:~# systemctl start postgresql\nJob for postgresql.service failed because the control process exited with error code.\nSee \"systemctl status postgresql.service\" and \"journalctl -xeu postgresql.service\" for details."
+                },
+                {
+                  "if": "walDeleted",
+                  "then": [
+                    {
+                      "log": "PostgreSQL will not start: with its WAL segments gone it cannot find a valid checkpoint to recover from.",
+                      "kind": "bad"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "PostgreSQL failed to start again: there is still no room to write WAL.",
+                      "kind": "bad"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "pgStartedAt",
+                  "to": "t"
+                },
+                {
+                  "output": "root@app01:~# systemctl start postgresql"
+                },
+                {
+                  "log": "PostgreSQL started, replayed its WAL and is accepting connections.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "rmLogs": {
+      "label": "rm -rf /var/log/*",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@app01:~# rm -rf /var/log/*"
+        },
+        {
+          "if": "not logsDeleted",
+          "then": [
+            {
+              "set": "logsDeleted",
+              "to": "true"
+            },
+            {
+              "add": "faultsAdded",
+              "by": "1"
+            },
+            {
+              "add": "freeMb",
+              "by": "180"
+            },
+            {
+              "log": "Every log under /var/log is gone, including the system and authentication logs. 180 MB came back; /var is still full.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rmWal": {
+      "label": "rm -f /var/lib/postgresql/16/main/pg_wal/0000*",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@app01:~# rm -f /var/lib/postgresql/16/main/pg_wal/0000*"
+        },
+        {
+          "if": "not walDeleted",
+          "then": [
+            {
+              "set": "walDeleted",
+              "to": "true"
+            },
+            {
+              "add": "freeMb",
+              "by": "1024"
+            },
+            {
+              "log": "PostgreSQL's WAL segments are deleted, including the ones crash recovery needs. 1 GB came back.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "debugOff": {
+      "label": "sed -i s/LOG_LEVEL=debug/LOG_LEVEL=info/ /etc/default/shopd",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(debugOffAt)",
+          "then": [
+            {
+              "set": "debugOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app01:~# sed -i s/LOG_LEVEL=debug/LOG_LEVEL=info/ /etc/default/shopd"
+        },
+        {
+          "log": "shopd's log level is set back to info; it takes effect at shopd's next restart.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "curl": {
+      "label": "curl -sI http://localhost/healthz",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@app01:~# curl -sI http://localhost/healthz\n{pgUp ? \"HTTP/1.1 200 OK\" : \"HTTP/1.1 503 Service Unavailable\"}"
+        },
+        {
+          "if": "pgUp and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 600",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@app01:~# sleep 600"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "openDeleted",
+                  "label": "A deleted debug log still held open by shopd kept /var full"
+                },
+                {
+                  "value": "inodes",
+                  "label": "/var ran out of inodes"
+                },
+                {
+                  "value": "failingDisk",
+                  "label": "A failing disk"
+                }
+              ]
+            },
+            {
+              "id": "prevent",
+              "label": "Prevention",
+              "options": [
+                {
+                  "value": "loglevel",
+                  "label": "shopd back to info level, its log rotated and size-capped"
+                },
+                {
+                  "value": "grow",
+                  "label": "Grow /var and change nothing else"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing needed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "preventDoc",
+          "to": "prevent"
+        },
+        {
+          "log": "Recorded: cause {cause}, prevention {prevent}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-237)",
+        "checkedAt": "2026-11-11",
+        "note": "How many operator minutes each command or change takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "syncFails",
+      "when": "t >= syncDelay and phase == \"incident\" and not pgUp",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "syncFailedAt",
+          "to": "t"
+        },
+        {
+          "log": "09:45: the warehouse sync could not reach the database; this morning's orders were not sent to the warehouse.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: why /var stayed full after the log was deleted, how you got the space back and the database up, and what stops it happening again.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why the space did not come back",
+          "criteria": "Explains that a deleted file stays on disk while a process holds it open (unlink), which is why df and du disagree, and names lsof +L1 as how to find the holder.",
+          "modelAnswer": "Deleting debug.log removed only its name; shopd still had it open, so the 18 GB stayed allocated until the file was closed. df counted it, du could not see it, and lsof +L1 showed shopd holding the deleted file."
+        },
+        {
+          "label": "Recovery without data loss",
+          "criteria": "Frees the space by restarting (or otherwise closing the file in) the holding process, reads why PostgreSQL stopped, then starts it and verifies; never deletes database files or WAL to make room.",
+          "modelAnswer": "I restarted shopd, which closed the file and freed 18 GB, read in the journal that PostgreSQL had stopped on a WAL write to a full disk, started it so it could recover from its WAL, and checked the health endpoint. Deleting WAL to make room would have thrown away what recovery needs."
+        },
+        {
+          "label": "Prevention",
+          "criteria": "Turns debug logging off (and makes it take effect), and caps or rotates the application log; notes that removing a log in use should go through the application or a truncate, not rm.",
+          "modelAnswer": "LOG_LEVEL is back to info and took effect with the restart; the log gets rotation with a size cap. Next time, truncate a live log or rotate it through the application instead of deleting it."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Restored with time to spare before the 09:45 warehouse sync; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-11",
+          "note": "No fault introduced by the fix itself (deleted logs or data)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not pgUp",
+      "class": "harm",
+      "rationale": "Closing with the order database still down leaves checkout broken and the warehouse without orders; it is never a safe outcome.",
+      "source": {
+        "cite": "PostgreSQL 18 Documentation, 27.6.2 Disk Full Failure, and 28.5 WAL Configuration",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.postgresql.org/docs/current/diskusage.html",
+        "note": "Relevant text (27.6.2): 'A filled data disk will not result in data corruption, but it might prevent useful activity from occurring. If the disk holding the WAL files grows full, database server panic and consequent shutdown might occur.' 'If you cannot free up additional space on the disk by deleting other things, you can move some of the database files to other file systems by making use of tablespaces.' (28.5, wal-configuration): 'after a checkpoint, WAL segments preceding the one containing the redo record are no longer needed and can be recycled or removed'; the server removes or recycles them itself. Both read in primary text on 2026-11-11. That deleting segments by hand can remove ones crash recovery still needs is the scenario's reading of 28.5, not a quoted warning; the exact PANIC wording in the scenario's journal lines is an authored rendering."
+      }
+    }
+  },
+  "endings": {
+    "walLost": {
+      "label": "Database WAL deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and walDeleted",
+      "narrative": "PostgreSQL's WAL was deleted to make room. The server cannot recover to a consistent state from what is left, so the orders since the last backup are at risk."
+    },
+    "syncFailed": {
+      "label": "The outage reached the warehouse",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(syncFailedAt)",
+      "narrative": "The database was still down at 09:45, so the warehouse sync failed and this morning's orders did not ship on time."
+    },
+    "stillDown": {
+      "label": "Closed with the database down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not pgUp",
+      "narrative": "The outage was closed while PostgreSQL was still stopped and checkout still answered 500."
+    },
+    "restored": {
+      "label": "Restored cleanly",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and pgUp and timeAt(pgStartedAt) <= restoreWindow and faultsAdded <= newFaults and not isNull(lsofAt) and debugFixed and not isNull(verifiedAt)",
+      "narrative": "The deleted log's space came back, the database recovered on its own WAL, checkout works, and the debug logging that caused it is off."
+    },
+    "restoredGaps": {
+      "label": "Restored, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Checkout works again, but the restore was late, lucky, left the debug logging on, or cost the server its logs."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "walLost",
+    "syncFailed",
+    "stillDown",
+    "restored",
+    "restoredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "foundHolder",
+        "label": "Found the process holding the deleted file before freeing the space",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(lsofAt) and (isNull(spaceFreedAt) or timeAt(lsofAt) <= timeAt(spaceFreedAt))",
+            "score": "met",
+            "why": "lsof +L1 showed shopd holding the deleted 18 GB debug log."
+          },
+          {
+            "when": "not isNull(dfAt) and not isNull(duAt)",
+            "score": "partial",
+            "why": "df and du disagreed, but the process holding the space was never named."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The space was never traced to the deleted, still-open log."
+          }
+        ]
+      },
+      {
+        "id": "noDestruction",
+        "label": "Freed space without deleting data, WAL or logs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "walDeleted",
+            "score": "missed",
+            "why": "PostgreSQL's WAL was deleted."
+          },
+          {
+            "when": "logsDeleted",
+            "score": "partial",
+            "why": "Every log under /var/log was deleted: 180 MB, and the evidence, gone."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Nothing was deleted to make room."
+          }
+        ]
+      },
+      {
+        "id": "restoredFast",
+        "label": "Database back within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "pgUp and timeAt(pgStartedAt) <= restoreWindow",
+            "score": "met",
+            "why": "Back {timeAt(pgStartedAt) / 60|0dp} min after the report."
+          },
+          {
+            "when": "pgUp",
+            "score": "partial",
+            "why": "Back, but {timeAt(pgStartedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The database never came back."
+          }
+        ]
+      },
+      {
+        "id": "readLogs",
+        "label": "Read why PostgreSQL stopped before starting it",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(journalAt) and (isNull(pgStartedAt) or timeAt(journalAt) <= timeAt(pgStartedAt)) and failedStarts == 0",
+            "score": "met",
+            "why": "The journal showed the PANIC on a full disk first."
+          },
+          {
+            "when": "not isNull(journalAt)",
+            "score": "partial",
+            "why": "The journal was read only after start attempts."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "PostgreSQL's journal was never read."
+          }
+        ]
+      },
+      {
+        "id": "prevention",
+        "label": "Turned debug logging off so it took effect",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "debugFixed",
+            "score": "met",
+            "why": "Back at info level, applied by the restart."
+          },
+          {
+            "when": "not isNull(debugOffAt)",
+            "score": "partial",
+            "why": "Changed in the file but shopd was not restarted after it, so it is still logging at debug."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "shopd is still logging at debug and will fill /var again."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Verified checkout through the health check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The health check answered 200."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked that the service answers."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the prevention accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"openDeleted\" and preventDoc == \"loglevel\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"openDeleted\"",
+            "score": "partial",
+            "why": "The cause is right; the prevention is not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, recovery and prevention",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToRestore",
+        "label": "Minutes until the database was back",
+        "value": "pgUp ? timeAt(pgStartedAt) / 60 : -1",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "failedStartsK",
+        "label": "Failed database start attempts",
+        "value": "failedStarts",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "faultsK",
+        "label": "Faults the fix introduced",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "df shows /var at 100%; du finds only 1.3 GB, so the space is held by a deleted file that is still open."
+      },
+      {
+        "at": "5-10 min",
+        "text": "lsof +L1 names shopd holding the deleted debug.log; journalctl shows PostgreSQL stopped on a WAL write to a full disk, not on damage."
+      },
+      {
+        "at": "10-15 min",
+        "text": "Set LOG_LEVEL back to info, restart shopd (the space comes back and the new level takes effect), start PostgreSQL, check the health endpoint."
+      },
+      {
+        "at": "After",
+        "text": "Record the deleted-but-open log as the cause, and a log level and rotation cap as the prevention."
+      }
+    ],
+    "debrief": {
+      "restored": {
+        "headline": "Good: restored cleanly",
+        "body": "You traced the full disk to a deleted file still held open, freed it by restarting its process, let PostgreSQL recover on its own WAL and turned off what caused it."
+      },
+      "restoredGaps": {
+        "headline": "Restored, with gaps",
+        "body": "Checkout works. The criteria show what it cost: time, a lucky guess instead of lsof, logs deleted on the way, or debug logging still on."
+      },
+      "walLost": {
+        "headline": "WAL deleted",
+        "body": "PostgreSQL removes old WAL itself after a checkpoint; the segments left are what it needs to recover. Free space elsewhere, here by closing the deleted log."
+      },
+      "syncFailed": {
+        "headline": "The outage reached the warehouse",
+        "body": "The database was still down at 09:45. df and du disagreeing pointed at a deleted, open file within minutes; lsof +L1 names it."
+      },
+      "stillDown": {
+        "headline": "Closed too soon",
+        "body": "Checkout was still failing. Free the space, start the database and check the service before you close."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "/var at 100% with du finding only 1.3 GB means space held by a deleted file that is still open (unlink keeps the file until the last descriptor closes). lsof +L1 names shopd holding the deleted debug.log; the journal shows PostgreSQL stopped on a WAL write to the full disk. Set the log level back to info, restart shopd so the file is closed and the level applies, start PostgreSQL so it recovers from its WAL, and verify with the health check. Never delete WAL or the logs to make room."
+  }
+}

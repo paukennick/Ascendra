@@ -127,6 +127,15 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("BSNRN", "assisted-living-norovirus-outbreak"),
   entry("BSNRN", "charge-nurse-short-staffed-shift"),
   // ---- end REQ-240 ----
+  // ---- REQ-237: terminal and network screen, Linux+ (LINUXPLUS), Network+
+  // (NETWORKPLUS) and CKA outages. Keep these entries together. ----
+  entry("LINUXPLUS", "full-var-stops-database"),
+  entry("LINUXPLUS", "selinux-denies-moved-site"),
+  entry("NETWORKPLUS", "vlan-missing-from-trunk"),
+  entry("NETWORKPLUS", "branch-dns-route-typo"),
+  entry("CKA", "crashloop-bad-configmap"),
+  entry("CKA", "node-notready-swap-drain"),
+  // ---- end REQ-237 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
