@@ -1,0 +1,1430 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "inferior-stemi-cath-alert",
+  "title": "Chest pressure at dawn",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate on the monitor",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 50,
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              60,
+              50,
+              100
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "monitorOn"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Non-invasive blood pressure, last cycle",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "sub": "at {vAt|clock}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80,
+              70
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "monitorOn"
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain score he reports, 0 to 10",
+          "value": "painNow",
+          "unit": "/10",
+          "announce": {
+            "bands": [
+              4,
+              7
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Aspirin: {aspirinGiven|yesno}. Pads on: {padsOn|yesno}. IV: {ivOn|yesno}. Saline given: {fluid} mL. Nitroglycerin: {nitroGiven|yesno}. Fentanyl: {fentanyl} mcg. Cath lab: {isNull(alertAt) ? \"not activated\" : \"activated\"}.",
+      "banner": [
+        {
+          "when": "isNull(departAt)",
+          "text": "Mr. Kowalski sits on the edge of his bed, grey and sweating, fist on his chest."
+        },
+        {
+          "when": "sbp < 80",
+          "text": "He is pale and drowsy; radial pulse thready."
+        }
+      ]
+    }
+  },
+  "objective": "Manage a STEMI: aspirin, nitrates within their limits, analgesia and destination for reperfusion",
+  "secondaryObjectives": [
+    "Interpret common rhythms on the monitor and identify STEMI on a 12-lead ECG",
+    "Recognize cardiogenic shock and avoid treatments that worsen it"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. Paramedic Examination Specifications (test plan)",
+      "checkedAt": "2026-11-09",
+      "url": "https://www.nremt.org/getmedia/1f27af23-e889-4edc-8041-55d1854d66ed/Paramedic-Test-Plan_1July2024",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-fetched for this scenario. Cardiology & Resuscitation 10-14% of items (identify STEMI on a 12-lead; aspirin, nitrates within their limits, analgesia and a reperfusion destination); graphical items include ECG strips."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Chest Pain/Acute Coronary Syndrome/STEMI",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). 12-lead EKG within 10 minutes for signs or symptoms of ACS, interpreted for STEMI by trained EMS clinicians with or without computer interpretation; advance notification to the receiving hospital for a STEMI; aspirin 162-325 mg chewable; IV access; nitroglycerin 0.4 mg SL every 3-5 minutes if SBP > 100, avoided after a phosphodiesterase inhibitor within 48 hours; care with a marginal BP, ready to respond to hypotension with a fluid bolus; an inferior STEMI with presumed RV involvement does not preclude nitroglycerin but needs hemodynamic monitoring; opiates if pain is unresponsive to nitrates; consider defibrillator pads on high-risk patients; minimize scene time; destination by the local system of care."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Pain Management",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Fentanyl IV 1 mcg/kg as an option for moderate to severe pain, with monitoring of breathing and blood pressure."
+    },
+    {
+      "cite": "Rao SV, et al. 2025 ACC/AHA/ACEP/NAEMSP/SCAI Guideline for the Management of Patients With Acute Coronary Syndromes",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.guidelinecentral.com/insights/management-of-acs-guidelines-spotlight",
+      "note": "Read 2026-11-11 only through a summary (Guideline Central 'guideline spotlight'; the full text was not opened): a 12-lead ECG acquired and interpreted within 10 minutes of first medical contact; EMS transport rather than private vehicle; suspected STEMI taken promptly to a PCI-capable hospital; first medical contact to device 90 minutes or less; oxygen only for SpO2 below 90%."
+    },
+    {
+      "cite": "American Heart Association. Mission: Lifeline EMS Recognition Criteria, 2027 awards (2026 data)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.heart.org/-/media/Files/Professional/Quality-Improvement/Mission-Lifeline/2027/ML-EMS-Recognition-Criteria-2027.pdf",
+      "note": "Read 2026-11-11 (primary PDF): 12-lead ECG within 10 minutes for suspected heart attack; STEMI pre-arrival notification within 10 minutes of the STEMI-positive ECG; EMS first medical contact to PCI within 90 minutes (or to thrombolytics within 60 minutes); stroke measures: LKW documented, glucose evaluated, stroke screen documented, pre-arrival notification (no scene-time threshold); OHCA: call to first compression within 420 seconds."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019 (DOT HS 812 666), with Change Notices 1.0 and 2.0 (2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://ldh.la.gov/assets/oph/ems/2025/EMSEducation/National_EMS_Scope_of_Practice_Model_2019.pdf",
+      "note": "Read 2026-11-11 in a text extraction of the Louisiana copy (the extractor did not keep every table column, so placement was checked against the course's own reading of 2026-11-09 in ems-sources.ts). EMR: CPR and AED, tourniquet and wound packing, naloxone, oral airway, BVM, oxygen; no pulse oximetry, glucose monitoring, epinephrine auto-injector or transport. EMT adds pulse oximetry, glucose monitoring, epinephrine auto-injector, aspirin, oral glucose, CPAP, 12-lead acquisition (not interpretation), transport. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways and a limited list of IV and IM medications including dextrose and glucagon. Paramedic adds 12-lead interpretation, manual defibrillation, intubation and the wider formulary. No newer model was found 2026-11-11 (EMS.gov's page was unavailable; the only other 'update' found is the 2017 change notice adding tourniquets, wound packing and naloxone to EMR and EMT)."
+    }
+  ],
+  "brief": {
+    "situation": "06:10. You are the paramedic on an ALS ambulance with an EMT partner. Mr. Kowalski, 61, about 90 kg, woke at 05:30 with crushing central chest pressure going into his jaw; he is sweating and nauseated. His wife called 911.",
+    "handover": [
+      "Region's STEMI plan (authored for this case): a STEMI identified in the field goes directly to a PCI center with the cath lab activated from the field, if first-contact-to-device can be met within 90 minutes.",
+      "University Hospital (24/7 PCI) is 28 minutes away. Lakeside Community Hospital (no PCI; fibrinolysis, then transfer) is 8 minutes away.",
+      "Full paramedic scope: 12-lead interpretation, IV, aspirin, nitroglycerin, fentanyl, fluids, manual defibrillation."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "First medical contact is 06:10. Scene time, the drive and the hospital's readiness all add up on the clock until the artery is opened.",
+      "Partway through you are asked to explain your decisions in writing. The case ends at the hospital door, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "06:10",
+    "tick": "1s",
+    "maxDuration": "90min",
+    "calendar": "clock"
+  },
+  "params": {
+    "ecgTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Ten electrodes and a 12-lead acquisition: about 1 min."
+      }
+    },
+    "ivTime": {
+      "value": 90,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "IV access: about 90 s."
+      }
+    },
+    "vitalsTime": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A cuff cycle: about 30 s."
+      }
+    },
+    "loadTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Stair chair down one flight, onto the cot and loaded: about 4 min."
+      }
+    },
+    "farDrive": {
+      "value": 1680,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "To University Hospital: about 28 min (authored)."
+      }
+    },
+    "nearDrive": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "To Lakeside: about 8 min (authored)."
+      }
+    },
+    "doorActivated": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Door to device about 25 minutes when the cath lab was activated from the field and the team meets the ambulance (authored hospital time). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "doorCold": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Door to device about 60 minutes when the ED must make the diagnosis and call the team in at dawn (authored hospital time). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "transferTime": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. A STEMI taken to a non-PCI hospital: fibrinolysis and transfer, with device time about 2 hours after arrival if PCI is still needed (authored). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "fmcDevice": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "American Heart Association. Mission: Lifeline EMS Recognition Criteria, 2027 awards (2026 data)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.heart.org/-/media/Files/Professional/Quality-Improvement/Mission-Lifeline/2027/ML-EMS-Recognition-Criteria-2027.pdf",
+        "note": "Read 2026-11-11 (primary PDF): 12-lead ECG within 10 minutes for suspected heart attack; STEMI pre-arrival notification within 10 minutes of the STEMI-positive ECG; EMS first medical contact to PCI within 90 minutes (or to thrombolytics within 60 minutes); stroke measures: LKW documented, glucose evaluated, stroke screen documented, pre-arrival notification (no scene-time threshold); OHCA: call to first compression within 420 seconds."
+      }
+    },
+    "ecgWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "American Heart Association. Mission: Lifeline EMS Recognition Criteria, 2027 awards (2026 data)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.heart.org/-/media/Files/Professional/Quality-Improvement/Mission-Lifeline/2027/ML-EMS-Recognition-Criteria-2027.pdf",
+        "note": "Read 2026-11-11 (primary PDF): 12-lead ECG within 10 minutes for suspected heart attack; STEMI pre-arrival notification within 10 minutes of the STEMI-positive ECG; EMS first medical contact to PCI within 90 minutes (or to thrombolytics within 60 minutes); stroke measures: LKW documented, glucose evaluated, stroke screen documented, pre-arrival notification (no scene-time threshold); OHCA: call to first compression within 420 seconds."
+      }
+    },
+    "alertWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "American Heart Association. Mission: Lifeline EMS Recognition Criteria, 2027 awards (2026 data)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.heart.org/-/media/Files/Professional/Quality-Improvement/Mission-Lifeline/2027/ML-EMS-Recognition-Criteria-2027.pdf",
+        "note": "Read 2026-11-11 (primary PDF): 12-lead ECG within 10 minutes for suspected heart attack; STEMI pre-arrival notification within 10 minutes of the STEMI-positive ECG; EMS first medical contact to PCI within 90 minutes (or to thrombolytics within 60 minutes); stroke measures: LKW documented, glucose evaluated, stroke screen documented, pre-arrival notification (no scene-time threshold); OHCA: call to first compression within 420 seconds."
+      }
+    },
+    "sceneLimit": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Wheels rolling within 15 minutes of contact; NASEMSO says minimize scene time, without a number. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nitroDrop": {
+      "value": 55,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Nitroglycerin 8 hours after tadalafil, in an inferior STEMI with RV involvement: SBP falls about 55 mmHg. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nitroFade": {
+      "value": 0.0006,
+      "unit": "/s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. The combined nitrate and tadalafil vasodilation fades with a time constant of about 28 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bolusGain": {
+      "value": 0.04,
+      "unit": "mmHg/mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Each 250 mL of saline raises SBP about 10 mmHg in a preload-dependent RV infarct. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "vfSbp": {
+      "value": 70,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. SBP below 70 mmHg for 3 minutes in this occluded right coronary artery triggers ventricular fibrillation in this case. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "vfDelay": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Three minutes of profound hypotension before VF. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "monitorOn": {
+      "type": "bool",
+      "init": false
+    },
+    "padsOn": {
+      "type": "bool",
+      "init": false
+    },
+    "ivOn": {
+      "type": "bool",
+      "init": false
+    },
+    "ivPending": {
+      "type": "bool",
+      "init": false
+    },
+    "ecgPending": {
+      "type": "bool",
+      "init": false
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "aspirinGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "nitroGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "askedPde": {
+      "type": "bool",
+      "init": false
+    },
+    "o2On": {
+      "type": "bool",
+      "init": false
+    },
+    "rightSided": {
+      "type": "bool",
+      "init": false
+    },
+    "stemiCalled": {
+      "type": "bool",
+      "init": false
+    },
+    "transmitted": {
+      "type": "bool",
+      "init": false
+    },
+    "crash": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100,
+      "unit": "mmHg"
+    },
+    "fluid": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3000,
+      "unit": "mL"
+    },
+    "fentanyl": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 300,
+      "unit": "mcg"
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "dest": {
+      "type": "enum",
+      "values": [
+        "none",
+        "pci",
+        "near"
+      ],
+      "init": "none"
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "ecgAt": {
+      "type": "time",
+      "init": null
+    },
+    "alertAt": {
+      "type": "time",
+      "init": null
+    },
+    "aspirinAt": {
+      "type": "time",
+      "init": null
+    },
+    "nitroAt": {
+      "type": "time",
+      "init": null
+    },
+    "lowSince": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "sbp": {
+      "expr": "round(clamp(116 - crash + bolusGain * fluid - (fentanyl > 0 ? 4 : 0), 40, 180))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.64)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(sbp < 80 ? 52 : 64 + 2 * sin(t / 37))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "o2On ? 99 : 96",
+      "unit": "%",
+      "precision": 0
+    },
+    "painNow": {
+      "expr": "fentanyl >= 100 ? 3 : (fentanyl >= 50 ? 5 : 8)",
+      "unit": "/10",
+      "precision": 0
+    },
+    "sceneTime": {
+      "expr": "isNull(departAt) ? t : timeAt(departAt) + loadTime"
+    },
+    "deviceAt": {
+      "expr": "isNull(arrivedAt) ? -1 : timeAt(arrivedAt) + (dest == \"near\" ? transferTime : (stemiCalled and not isNull(alertAt) ? doorActivated : doorCold))",
+      "unit": "s"
+    }
+  },
+  "processes": [
+    {
+      "id": "nitroEffect",
+      "update": {
+        "crash": "max(0, crash - crash * nitroFade * dt)"
+      }
+    }
+  ],
+  "phases": {
+    "call": {
+      "label": "On the call",
+      "clock": "running",
+      "actions": [
+        "history",
+        "askPde",
+        "monitor",
+        "vitals",
+        "ecg",
+        "rightLeads",
+        "callStemi",
+        "aspirin",
+        "oxygen",
+        "pads",
+        "iv",
+        "nitro",
+        "bolus",
+        "fentanyl",
+        "transport"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "history": {
+      "label": "OPQRST and SAMPLE",
+      "group": "Assess",
+      "available": "isNull(historyAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(historyAt)",
+          "then": [
+            {
+              "set": "historyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Pressure since 05:30, 8/10, into the jaw, not changed by breathing or position. Nauseated. High blood pressure and cholesterol; takes amlodipine and atorvastatin. No allergies.",
+          "kind": "find"
+        }
+      ]
+    },
+    "askPde": {
+      "label": "Ask: any erectile dysfunction or pulmonary hypertension medicine in the last 48 hours?",
+      "group": "Assess",
+      "available": "not askedPde",
+      "why": "Asked.",
+      "effects": [
+        {
+          "set": "askedPde",
+          "to": "true"
+        },
+        {
+          "log": "He looks at his wife, then says quietly: \"Tadalafil, 20 mg, last night about ten.\" (8 hours ago.)",
+          "kind": "find"
+        }
+      ]
+    },
+    "monitor": {
+      "label": "Monitor: 4-lead, SpO2",
+      "group": "Assess",
+      "available": "not monitorOn",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "monitorOn",
+          "to": "true"
+        },
+        {
+          "log": "Sinus rhythm 64, SpO2 96% on room air."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Cycle the blood pressure",
+      "group": "Assess",
+      "available": "not vPending",
+      "why": "Cycling.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "set": "monitorOn",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Cuff cycling."
+        }
+      ]
+    },
+    "ecg": {
+      "label": "Acquire a 12-lead ECG",
+      "group": "Assess",
+      "available": "not ecgPending",
+      "why": "Acquiring.",
+      "effects": [
+        {
+          "set": "ecgPending",
+          "to": "true"
+        },
+        {
+          "set": "monitorOn",
+          "to": "true"
+        },
+        {
+          "schedule": "ecgT",
+          "after": "ecgTime"
+        },
+        {
+          "log": "Ten electrodes on; acquiring."
+        }
+      ]
+    },
+    "rightLeads": {
+      "label": "Right-sided lead V4R",
+      "group": "Assess",
+      "available": "not isNull(ecgAt) and not rightSided",
+      "why": "Needs the 12-lead first, or done.",
+      "effects": [
+        {
+          "set": "rightSided",
+          "to": "true"
+        },
+        {
+          "log": "1.5 mm ST elevation in V4R: right ventricular involvement. Preload-dependent: nitrates and morphine can drop his pressure.",
+          "kind": "find"
+        }
+      ]
+    },
+    "callStemi": {
+      "label": "Call it: transmit and activate the cath lab at a PCI center",
+      "group": "Treat",
+      "available": "not isNull(ecgAt) and not stemiCalled",
+      "why": "Needs a 12-lead first, or already activated.",
+      "effects": [
+        {
+          "set": "stemiCalled",
+          "to": "true"
+        },
+        {
+          "set": "transmitted",
+          "to": "true"
+        },
+        {
+          "if": "isNull(alertAt)",
+          "then": [
+            {
+              "set": "alertAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "12-lead transmitted. University's cardiologist confirms: inferior STEMI, cath lab activated, team called in.",
+          "kind": "good"
+        }
+      ]
+    },
+    "aspirin": {
+      "label": "Aspirin 324 mg, chewed",
+      "group": "Treat",
+      "available": "not aspirinGiven",
+      "why": "Given.",
+      "effects": [
+        {
+          "set": "aspirinGiven",
+          "to": "true"
+        },
+        {
+          "if": "isNull(aspirinAt)",
+          "then": [
+            {
+              "set": "aspirinAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Four 81 mg chewable aspirin."
+        }
+      ]
+    },
+    "oxygen": {
+      "label": "Oxygen by non-rebreather mask",
+      "group": "Treat",
+      "available": "not o2On",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "o2On",
+          "to": "true"
+        },
+        {
+          "log": "Non-rebreather on; his saturation was 96%."
+        }
+      ]
+    },
+    "pads": {
+      "label": "Defibrillator pads on",
+      "group": "Treat",
+      "available": "not padsOn",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "padsOn",
+          "to": "true"
+        },
+        {
+          "log": "Pads on, anterior-posterior."
+        }
+      ]
+    },
+    "iv": {
+      "label": "IV access, 18 gauge",
+      "group": "Treat",
+      "available": "not ivOn and not ivPending",
+      "why": "In or in progress.",
+      "effects": [
+        {
+          "set": "ivPending",
+          "to": "true"
+        },
+        {
+          "schedule": "ivT",
+          "after": "ivTime"
+        },
+        {
+          "log": "Starting an IV (about 90 s)."
+        }
+      ]
+    },
+    "nitro": {
+      "label": "Nitroglycerin 0.4 mg sublingual",
+      "group": "Treat",
+      "available": "not nitroGiven",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "nitroGiven",
+          "to": "true"
+        },
+        {
+          "if": "isNull(nitroAt)",
+          "then": [
+            {
+              "set": "nitroAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "crash",
+          "to": "crash + nitroDrop"
+        },
+        {
+          "log": "Nitroglycerin under the tongue. Within two minutes he is grey and drowsy.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Normal saline 250 mL bolus",
+      "group": "Treat",
+      "available": "ivOn and fluid < 2000",
+      "why": "Needs an IV.",
+      "effects": [
+        {
+          "add": "fluid",
+          "by": "250"
+        },
+        {
+          "log": "250 mL saline in."
+        }
+      ]
+    },
+    "fentanyl": {
+      "label": "Fentanyl 50 mcg IV (about 0.5 mcg/kg), repeat once if needed",
+      "group": "Treat",
+      "available": "ivOn and fentanyl < 100 and sbp >= 90",
+      "why": "Needs an IV and an SBP of at least 90, and at most two doses.",
+      "effects": [
+        {
+          "add": "fentanyl",
+          "by": "50"
+        },
+        {
+          "log": "Fentanyl 50 mcg IV; breathing and pressure watched."
+        }
+      ]
+    },
+    "transport": {
+      "label": "Load and go",
+      "group": "Transport",
+      "available": "isNull(departAt)",
+      "why": "Already on the way.",
+      "params": [
+        {
+          "id": "where",
+          "kind": "choice",
+          "label": "Destination",
+          "options": [
+            {
+              "value": "pci",
+              "label": "University Hospital, 24/7 PCI, 28 min"
+            },
+            {
+              "value": "near",
+              "label": "Lakeside Community Hospital, no PCI, 8 min"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "dest",
+          "to": "where"
+        },
+        {
+          "schedule": "arriveT",
+          "after": "loadTime + (where == \"pci\" ? farDrive : nearDrive)"
+        },
+        {
+          "log": "Loading (about 4 min), then to {where == \"pci\" ? \"University\" : \"Lakeside\"}."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "ecgT": {
+      "label": "the 12-lead",
+      "wait": {
+        "skipLabel": "the 12-lead (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 1 min."
+      },
+      "effects": [
+        {
+          "set": "ecgPending",
+          "to": "false"
+        },
+        {
+          "if": "isNull(ecgAt)",
+          "then": [
+            {
+              "set": "ecgAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "12-lead: sinus 64. ST elevation 3 mm in II, III and aVF (III more than II); ST depression in I and aVL. Computer read: ***ACUTE MI***.",
+          "kind": "find"
+        }
+      ]
+    },
+    "ivT": {
+      "label": "the IV",
+      "wait": {
+        "skipLabel": "the IV (about 90 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 90 s."
+      },
+      "effects": [
+        {
+          "set": "ivPending",
+          "to": "false"
+        },
+        {
+          "set": "ivOn",
+          "to": "true"
+        },
+        {
+          "log": "IV in."
+        }
+      ]
+    },
+    "vitalsT": {
+      "label": "the cuff",
+      "wait": {
+        "skipLabel": "the blood pressure (about 30 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 30 s."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "vSbp",
+          "to": "sbp"
+        },
+        {
+          "set": "vDbp",
+          "to": "dbp"
+        },
+        {
+          "log": "BP {sbp}/{dbp}.",
+          "kind": "find"
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival at the hospital"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Load and drive."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the hospital.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "low",
+      "when": "sbp < vfSbp",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lowSince",
+          "to": "t"
+        },
+        {
+          "log": "BP alarm: systolic below 70.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "recovered",
+      "when": "sbp >= vfSbp and not isNull(lowSince)",
+      "mode": "edge",
+      "effects": [
+        {
+          "set": "lowSince",
+          "to": "null"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(departAt) or t >= 600",
+      "question": "What did the 12-lead show and what did you do with it, and why give or withhold nitroglycerin?",
+      "parts": [
+        {
+          "label": "ECG and the system",
+          "criteria": "12-lead within 10 minutes of contact; ST elevation in II, III, aVF with reciprocal depression in I and aVL is an inferior STEMI; transmit and activate the cath lab at a PCI center within 10 minutes of the ECG; go to the PCI center (28 minutes) because first contact to device can still be under 90 minutes, which the non-PCI hospital cannot offer.",
+          "modelAnswer": "The 12-lead at a few minutes showed ST elevation in II, III and aVF with reciprocal depression in I and aVL: an inferior STEMI. I transmitted it and activated the cath lab at University right away, and went there directly, since first contact to device stays under 90 minutes; Lakeside would mean lytics and a transfer."
+        },
+        {
+          "label": "Nitrates and pain",
+          "criteria": "Ask about phosphodiesterase inhibitors; tadalafil 8 hours ago means no nitrates (within 48 hours), and RV involvement adds risk; aspirin 162-325 mg chewed; oxygen only if hypoxic; pads on; IV; opioid analgesia (fentanyl) instead, watching the pressure; treat hypotension with fluid boluses.",
+          "modelAnswer": "He took tadalafil 8 hours ago, so nitroglycerin is contraindicated, and the inferior STEMI with V4R elevation makes him preload dependent anyway. Aspirin 324 chewed, pads on, IV, no oxygen at 96%, and fentanyl for the pain while watching his pressure; if it falls, small saline boluses."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(arrivedAt) and dest == \"near\"",
+      "class": "recovered",
+      "rationale": "He arrives alive at a hospital that must give a fibrinolytic and transfer him; the 90-minute first-contact-to-device goal is lost. This case calls it recovered.",
+      "source": {
+        "cite": "Rao SV, et al. 2025 ACC/AHA/ACEP/NAEMSP/SCAI Guideline for the Management of Patients With Acute Coronary Syndromes",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.guidelinecentral.com/insights/management-of-acs-guidelines-spotlight",
+        "note": "Read 2026-11-11 only through a summary (Guideline Central 'guideline spotlight'; the full text was not opened): a 12-lead ECG acquired and interpreted within 10 minutes of first medical contact; EMS transport rather than private vehicle; suspected STEMI taken promptly to a PCI-capable hospital; first medical contact to device 90 minutes or less; oxygen only for SpO2 below 90%."
+      }
+    }
+  },
+  "endings": {
+    "vf": {
+      "label": "Ventricular fibrillation",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(lowSince) and t >= timeAt(lowSince) + vfDelay",
+      "narrative": "{t|clock}: after minutes of profound hypotension his rhythm degenerates to ventricular fibrillation. Shocked{padsOn ? \" through the pads already on\" : \" once pads are placed\"}, but the occluded artery and the low pressure make this a fight for his life."
+    },
+    "cathLab": {
+      "label": "Straight to the cath lab",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and dest == \"pci\" and stemiCalled and not nitroGiven and aspirinGiven and timeAt(ecgAt) <= ecgWindow and timeAt(alertAt) - timeAt(ecgAt) <= alertWindow and deviceAt <= fmcDevice and sceneTime <= sceneLimit",
+      "narrative": "{timeAt(arrivedAt)|clock}: the cath team meets you at the door and takes him straight to the lab; estimated first contact to device {deviceAt|duration}."
+    },
+    "pciGaps": {
+      "label": "At the PCI center, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and dest == \"pci\"",
+      "narrative": "{timeAt(arrivedAt)|clock}: he reaches the PCI center. Estimated first contact to device {deviceAt|duration}; the route cost time or safety."
+    },
+    "nonPci": {
+      "label": "At a hospital without PCI",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and dest == \"near\"",
+      "narrative": "{timeAt(arrivedAt)|clock}: Lakeside gives a fibrinolytic and arranges transfer to University; device time will be about two hours away."
+    },
+    "time_up": {
+      "label": "90 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Ninety minutes passed."
+    }
+  },
+  "endingOrder": [
+    "vf",
+    "cathLab",
+    "pciGaps",
+    "nonPci"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "ecg10",
+        "label": "12-lead within 10 minutes of first contact",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(ecgAt)",
+            "score": "missed",
+            "why": "No 12-lead."
+          },
+          {
+            "when": "timeAt(ecgAt) <= ecgWindow",
+            "score": "met",
+            "why": "12-lead at {timeAt(ecgAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "12-lead only at {timeAt(ecgAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "alert",
+        "label": "STEMI called and the cath lab activated within 10 minutes of the ECG",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not stemiCalled",
+            "score": "missed",
+            "why": "The STEMI was never called from the field."
+          },
+          {
+            "when": "timeAt(alertAt) - timeAt(ecgAt) <= alertWindow",
+            "score": "met",
+            "why": "Activated at {timeAt(alertAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Activated at {timeAt(alertAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "nitro",
+        "label": "No nitrate after a phosphodiesterase inhibitor",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "nitroGiven and askedPde",
+            "score": "missed",
+            "why": "Nitroglycerin given knowing he took tadalafil 8 hours ago."
+          },
+          {
+            "when": "nitroGiven",
+            "score": "missed",
+            "why": "Nitroglycerin given without asking about phosphodiesterase inhibitors."
+          },
+          {
+            "when": "askedPde",
+            "score": "met",
+            "why": "Asked, and withheld nitrates."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "No nitrate given, but the question was never asked."
+          }
+        ]
+      },
+      {
+        "id": "destination",
+        "label": "Directly to the PCI center",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dest == \"pci\" and deviceAt <= fmcDevice",
+            "score": "met",
+            "why": "University; estimated first contact to device {deviceAt|duration}."
+          },
+          {
+            "when": "dest == \"pci\"",
+            "score": "partial",
+            "why": "University, but first contact to device about {deviceAt|duration}."
+          },
+          {
+            "when": "dest == \"near\"",
+            "score": "missed",
+            "why": "A non-PCI hospital: fibrinolysis and transfer."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No destination."
+          }
+        ]
+      },
+      {
+        "id": "aspirin",
+        "label": "Aspirin chewed",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "aspirinGiven",
+            "score": "met",
+            "why": "Aspirin 324 mg."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No aspirin."
+          }
+        ]
+      },
+      {
+        "id": "safety",
+        "label": "Pads on, IV, oxygen only if hypoxic",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "padsOn and ivOn and not o2On",
+            "score": "met",
+            "why": "Pads, IV, no oxygen at 96%."
+          },
+          {
+            "when": "padsOn or ivOn",
+            "score": "partial",
+            "why": "Pads or IV missing, or oxygen at a normal saturation."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No pads and no IV."
+          }
+        ]
+      },
+      {
+        "id": "pain",
+        "label": "Pain treated with an opioid, not a nitrate",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "fentanyl > 0 and not nitroGiven",
+            "score": "met",
+            "why": "Fentanyl {fentanyl} mcg; pain {painNow}/10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Pain left at {painNow}/10, or a nitrate used."
+          }
+        ]
+      },
+      {
+        "id": "scene",
+        "label": "Off the scene within 15 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(departAt) and sceneTime <= sceneLimit",
+            "score": "met",
+            "why": "Scene time {sceneTime|duration}."
+          },
+          {
+            "when": "not isNull(departAt)",
+            "score": "partial",
+            "why": "Scene time {sceneTime|duration}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never left."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: the ECG, the system and the nitrate decision",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toEcg",
+        "label": "First contact to 12-lead",
+        "value": "isNull(ecgAt) ? -1 : timeAt(ecgAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "ecgAlert",
+        "label": "12-lead to cath lab activation",
+        "value": "isNull(alertAt) or isNull(ecgAt) ? -1 : timeAt(alertAt) - timeAt(ecgAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "sceneK",
+        "label": "Scene time",
+        "value": "isNull(departAt) ? -1 : sceneTime",
+        "format": "duration",
+        "expert": "under 12 min"
+      },
+      {
+        "id": "fmcK",
+        "label": "Estimated first contact to device",
+        "value": "deviceAt",
+        "format": "duration",
+        "expert": "under 90 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "06:10",
+        "text": "Monitor and 12-lead at once while your partner gets the history. Inferior STEMI with reciprocal changes."
+      },
+      {
+        "at": "06:12",
+        "text": "Transmit and activate University's cath lab. Aspirin 324 chewed. Ask about PDE inhibitors: tadalafil 8 hours ago, so no nitroglycerin. V4R: RV involvement."
+      },
+      {
+        "at": "06:13",
+        "text": "Pads on, IV, BP 116/74; no oxygen at 96%. Fentanyl 50 mcg for the pain, watching the pressure."
+      },
+      {
+        "at": "~06:17",
+        "text": "Load and go to University (28 min); fentanyl repeat if needed; saline 250 mL if the pressure falls. First contact to device about 65 minutes."
+      }
+    ],
+    "debrief": {
+      "vf": {
+        "headline": "VF after a pressure crash",
+        "body": "Nitroglycerin within 48 hours of tadalafil, in a preload-dependent inferior STEMI, can collapse the pressure. Ask the question, withhold the nitrate, and answer any fall with saline boluses."
+      },
+      "cathLab": {
+        "headline": "Straight to the cath lab",
+        "body": "A fast 12-lead, a field activation, aspirin, the nitrate withheld for the right reason, pain treated, a short scene and the PCI center: the system of care working as designed."
+      },
+      "pciGaps": {
+        "headline": "PCI center, with gaps",
+        "body": "Check the 12-lead time, whether the cath lab was activated from the field, the scene time, and the nitrate decision."
+      },
+      "nonPci": {
+        "headline": "No PCI at the door",
+        "body": "With first contact to device achievable within 90 minutes at University, a field-identified STEMI goes there directly with the cath lab activated."
+      },
+      "time_up": {
+        "headline": "No hospital",
+        "body": "Ninety minutes passed."
+      }
+    },
+    "modelReasoning": "Chest pressure with diaphoresis needs a 12-lead within 10 minutes of first contact. ST elevation in II, III and aVF with reciprocal depression in I and aVL is an inferior STEMI: transmit and activate the cath lab at a PCI center within 10 minutes of the ECG, and go there directly when first contact to device can be kept under 90 minutes. Aspirin 162-325 mg chewed; oxygen only if hypoxic; pads on; IV. Always ask about phosphodiesterase inhibitors: tadalafil within 48 hours rules out nitrates, and RV involvement (V4R) makes him preload dependent. Treat pain with an opioid such as fentanyl while watching the pressure, and treat hypotension with small saline boluses. Keep the scene short."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Cath lab activated",
+      "when": "stemiCalled"
+    }
+  ],
+  "teaching": {
+    "leads": {
+      "during": "ecgT",
+      "ask": "While the 12-lead prints: which pattern means an inferior STEMI?",
+      "choices": [
+        {
+          "id": "inferior",
+          "label": "ST elevation in II, III, aVF with depression in I and aVL"
+        },
+        {
+          "id": "anterior",
+          "label": "ST elevation in V1-V4"
+        },
+        {
+          "id": "lateral",
+          "label": "ST elevation in I, aVL, V5-V6"
+        }
+      ],
+      "expect": "inferior",
+      "explain": "II, III and aVF look at the inferior wall; reciprocal depression in I and aVL supports the diagnosis. III higher than II suggests the right coronary artery, often with RV involvement.",
+      "source": {
+        "cite": "National Registry of EMTs. Paramedic Examination Specifications (test plan)",
+        "checkedAt": "2026-11-09",
+        "url": "https://www.nremt.org/getmedia/1f27af23-e889-4edc-8041-55d1854d66ed/Paramedic-Test-Plan_1July2024",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-fetched for this scenario. Cardiology & Resuscitation 10-14% of items (identify STEMI on a 12-lead; aspirin, nitrates within their limits, analgesia and a reperfusion destination); graphical items include ECG strips."
+      }
+    },
+    "pressure": {
+      "during": "arriveT",
+      "ask": "On the way: his pressure starts to drift down. What do you do first?",
+      "choices": [
+        {
+          "id": "fluid",
+          "label": "A 250 mL saline bolus and recheck"
+        },
+        {
+          "id": "nitro",
+          "label": "Nitroglycerin to ease the heart's work"
+        },
+        {
+          "id": "morphine",
+          "label": "More opioid to calm him"
+        }
+      ],
+      "expect": "fluid",
+      "explain": "NASEMSO: be ready to respond to hypotension with a fluid bolus. An RV infarct is preload dependent; nitrates and more opioid lower preload further.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Chest Pain/Acute Coronary Syndrome/STEMI",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). 12-lead EKG within 10 minutes for signs or symptoms of ACS, interpreted for STEMI by trained EMS clinicians with or without computer interpretation; advance notification to the receiving hospital for a STEMI; aspirin 162-325 mg chewable; IV access; nitroglycerin 0.4 mg SL every 3-5 minutes if SBP > 100, avoided after a phosphodiesterase inhibitor within 48 hours; care with a marginal BP, ready to respond to hypotension with a fluid bolus; an inferior STEMI with presumed RV involvement does not preclude nitroglycerin but needs hemodynamic monitoring; opiates if pain is unresponsive to nitrates; consider defibrillator pads on high-risk patients; minimize scene time; destination by the local system of care."
+      }
+    }
+  }
+}
