@@ -18,16 +18,25 @@ export interface DocumentEntry {
   file: string; // the source: <slug>.sim.json, or <slug>.band.json for a band
   golden: string | null;
   kind: "scenario" | "band";
+  // REQ-236: where the content came from, written to sim_versions.source. A
+  // document written by `npm run sims:generate` (REQ-230) and registered by
+  // hand is "generated" (entry(course, slug, { source: "generated" }), as
+  // its .register.md says); everything else is "authored".
+  source: "authored" | "generated";
+}
+
+export interface EntryOptions {
+  source?: "authored" | "generated";
 }
 
 const ROOT = join(__dirname, "..", "..", "supabase", "seed", "sims");
 
-function entry(course: string, slug: string): DocumentEntry {
-  return { course, slug, file: join(ROOT, course, `${slug}.sim.json`), golden: join(ROOT, course, `${slug}.golden.json`), kind: "scenario" };
+function entry(course: string, slug: string, opts: EntryOptions = {}): DocumentEntry {
+  return { course, slug, file: join(ROOT, course, `${slug}.sim.json`), golden: join(ROOT, course, `${slug}.golden.json`), kind: "scenario", source: opts.source ?? "authored" };
 }
 
-function band(course: string, slug: string): DocumentEntry {
-  return { course, slug, file: join(ROOT, course, `${slug}.band.json`), golden: join(ROOT, course, `${slug}.golden.json`), kind: "band" };
+function band(course: string, slug: string, opts: EntryOptions = {}): DocumentEntry {
+  return { course, slug, file: join(ROOT, course, `${slug}.band.json`), golden: join(ROOT, course, `${slug}.golden.json`), kind: "band", source: opts.source ?? "authored" };
 }
 
 // Phase 1a step 5: the prototype ports. Tamponade after CABG (now hosting the

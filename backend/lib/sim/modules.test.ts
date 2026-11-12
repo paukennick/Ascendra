@@ -20,6 +20,7 @@ const FIXTURE: DocumentEntry = {
   file: join(__dirname, "fixtures", "code-vf-fixture.sim.json"),
   golden: join(__dirname, "fixtures", "code-vf-fixture.golden.json"),
   kind: "scenario",
+  source: "authored",
 };
 
 function fixtureSource(): Record<string, unknown> {

@@ -206,10 +206,10 @@ export function registerNote(course: string, slug: string, outDir: string): stri
     "Then add this line to ALL_DOCUMENTS in lib/sim/documents.ts:",
     "",
     "```",
-    `  entry("${course}", "${slug}"),`,
+    `  entry("${course}", "${slug}", { source: "generated" }),`,
     "```",
     "",
-    "and run `npm run sims:lint`, `npm test` and `npm run sim:cross-runtime -- engine-print`. It seeds as needs_expert_review.",
+    "and run `npm run sims:lint`, `npm test` and `npm run sim:cross-runtime -- engine-print`. It seeds as needs_expert_review with source 'generated' (REQ-236).",
     "",
   ].join("\n");
 }

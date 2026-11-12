@@ -245,7 +245,7 @@ describe("the end-to-end pipeline (mocked model)", () => {
       const meta: RunMeta = { at: "2026-11-11T12:00:00.000Z", course: "EPPP", objective: CTX.objective, unitTitle: CTX.unitTitle, screen: "session", idea: null, selection: TARGET, allowUnselected: false, writerModel: "claude-sonnet-5-5", checkModel: "claude-sonnet-5-5", maxUsd: 10 };
       const w = writeOutputs(r, meta, out);
       assert.deepEqual(readdirSync(join(out, "ready", "EPPP")).sort(), ["gen-test-files.golden.json", "gen-test-files.register.md", "gen-test-files.sim.json"]);
-      assert.match(readFileSync(join(out, "ready", "EPPP", "gen-test-files.register.md"), "utf8"), /entry\("EPPP", "gen-test-files"\)/);
+      assert.match(readFileSync(join(out, "ready", "EPPP", "gen-test-files.register.md"), "utf8"), /entry\("EPPP", "gen-test-files", \{ source: "generated" \}\)/);
       const report = JSON.parse(readFileSync(w.report, "utf8"));
       assert.equal(report.outcome, "ready");
       assert.deepEqual(report.cost.calls.map((c: { purpose: string }) => c.purpose), ["write", "fact_check"]);

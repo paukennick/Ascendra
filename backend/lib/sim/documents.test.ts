@@ -6,7 +6,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ALL_DOCUMENTS, loadDocument } from "./documents.ts";
+import { ALL_DOCUMENTS, bandEntry, documentEntry, loadDocument } from "./documents.ts";
 import { checkDocument } from "./lint.ts";
 import { addMonths, canonicalJson, clientDocument, earliestRecheck } from "./content-hash.ts";
 import type { ScenarioDoc } from "./engine/v1/types.ts";
@@ -93,4 +93,18 @@ describe("source re-check dates are real calendar dates", () => {
       }
     });
   }
+});
+
+// REQ-236: a registration entry says whether the generator wrote the sim; the
+// seed writes it to sim_versions.source. Every sim registered so far was
+// written by a person.
+describe("registration source", () => {
+  test("entries default to authored and can be marked generated", () => {
+    assert.equal(documentEntry("EPPP", "x").source, "authored");
+    assert.equal(documentEntry("EPPP", "x", { source: "generated" }).source, "generated");
+    assert.equal(bandEntry("SECPLUSV8", "y", { source: "generated" }).source, "generated");
+  });
+  test("every sim registered today is authored", () => {
+    for (const e of ALL_DOCUMENTS) assert.equal(e.source, "authored", `${e.course}/${e.slug}`);
+  });
 });

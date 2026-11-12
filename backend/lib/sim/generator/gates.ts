@@ -266,7 +266,7 @@ export function runDeterministicGates(reply: WriterReply, input: GateInput): Det
 
   const dir = mkdtempSync(join(tmpdir(), "sim-draft-"));
   try {
-    const entry: DocumentEntry = { course: input.ctx.course, slug: doc.slug, file: join(dir, `${doc.slug}.sim.json`), golden: join(dir, `${doc.slug}.golden.json`), kind: "scenario" };
+    const entry: DocumentEntry = { course: input.ctx.course, slug: doc.slug, file: join(dir, `${doc.slug}.sim.json`), golden: join(dir, `${doc.slug}.golden.json`), kind: "scenario", source: "generated" };
     writeFileSync(entry.file, JSON.stringify(doc));
     writeFileSync(entry.golden!, JSON.stringify(golden));
     // searchNodes 0: the search runs once, in the reachable gate below.
