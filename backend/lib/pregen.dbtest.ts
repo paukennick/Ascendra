@@ -41,7 +41,7 @@ import {
   type Ctx,
   type RetryWriter,
 } from "./pregen";
-import { claudeGenerator, loadObjective } from "./lesson-generation";
+import { claudeGenerator, loadObjective, PRACTICE_OUTPUT_TOKENS, PRACTICE_THINKING_BUDGET_TOKENS } from "./lesson-generation";
 import { CONTENT_LIMITS, fixFor, lessonPracticeLint } from "./content-validator";
 import { ITEM_WRITING_RULES } from "./prompts";
 import { BudgetError, batchRequestUpperUsd, batchUsageUsd, factCheckUpperUsd, parseRequestId, requestIds } from "../scripts/pregenerate-lib";
@@ -359,9 +359,15 @@ describe("FAIL-979: the budget guard", () => {
     assert.equal(s.lessons, 5);
     assert.deepEqual(s.perTrack!.map((t) => [t.track, t.objectives]), [[codeB, 2], [codeA, 3]]);
     const perLesson = s.estimateUpperBoundUsd! / 5;
-    // Upper bound: intro 4000 + practice 6000 output tokens at the batch price ($5/M) alone is $0.05;
-    // the live fact-check at its max_tokens adds more. The old 'typical' figure was $0.0207.
-    assert.ok(perLesson > 0.09 && perLesson < 0.2, String(perLesson));
+    // Upper bound: intro 4000 + practice 10000 output tokens at the batch price ($5/M) alone is $0.07;
+    // the live practice retry and the live fact-check at their max_tokens add more. The old 'typical'
+    // figure was $0.0207.
+    // REQ-251: the practice calls now think, bounded: max_tokens is 6000 for the answer plus
+    // PRACTICE_THINKING_BUDGET_TOKENS (4000), and every practice request is priced at its full
+    // max_tokens, thinking included -- 4000 more output tokens on the batch draft ($0.02) and on the
+    // live retry ($0.04). Worst case with the teaching text at its limit: $0.195 -> $0.255 a lesson.
+    // The limit rises from $0.20 to $0.30 for that reason alone; the bound still counts every token.
+    assert.ok(perLesson > 0.09 && perLesson < 0.3, String(perLesson));
     assert.ok(logs.some((l) => l.includes(codeB) && l.includes("2 lessons")));
   });
 
@@ -904,6 +910,12 @@ describe("REQ-248: the batch practice prompt is the app's, item-writing rules in
     assert.deepEqual(JSON.parse(JSON.stringify(batch.system)), JSON.parse(JSON.stringify(sent.system)), "same system prompt");
     assert.deepEqual(JSON.parse(JSON.stringify(batch.messages)), JSON.parse(JSON.stringify(sent.messages)), "same user message");
     assert.equal(batch.max_tokens, sent.max_tokens);
+    // REQ-251: and the same bounded thinking (no thinking field = adaptive on Sonnet 5.5, effort low).
+    assert.deepEqual(batch.thinking, sent.thinking, "same thinking setting");
+    assert.deepEqual((batch as any).output_config?.effort, sent.output_config?.effort, "same effort");
+    assert.equal(sent.thinking, undefined);
+    assert.equal(sent.output_config?.effort, "low");
+    assert.equal(sent.max_tokens, PRACTICE_OUTPUT_TOKENS + PRACTICE_THINKING_BUDGET_TOKENS);
     assert.ok(JSON.stringify(batch.system).includes(JSON.stringify(ITEM_WRITING_RULES).slice(1, -1)), "the item-writing rules are in the batch request");
     // and the steered retry is the app's: the findings after any other steer
     const steer = fixFor(lessonPracticeLint(practiceBody(ids.b1, LINT) as never))!;

@@ -68,7 +68,7 @@ import {
 } from "../../lib/prompts";
 import { lessonIntroProblems, lessonPracticeProblems, quizItemProblems } from "../../lib/content-validator";
 import { EXAM_FORMATS, validateItemDraft } from "../../lib/exam-formats";
-import { loadObjective } from "../../lib/lesson-generation";
+import { loadObjective, PRACTICE_CALL } from "../../lib/lesson-generation";
 import { aggregateGrading, gradeOutputProblems, parseGradingCases, type GradingCase } from "./scoring";
 import { mapLimit, briefError, referenceRuns, runGradingEval } from "./runner";
 import { BudgetExceededError, CostTally, installCostTally } from "./cost";
@@ -479,7 +479,8 @@ async function stepGeneration(c: Ctx) {
         const ip = lessonIntroPrompt(common);
         const intro = await callClaudeStructured({ ...call, system: ip.system, messages: [{ role: "user", content: ip.user }], schema: lessonIntroSchema, maxTokens: 4000 });
         const pp = lessonPracticePrompt({ ...common, teach: introFromModel(intro).teach });
-        const practice = await callClaudeStructured({ ...call, system: pp.system, messages: [{ role: "user", content: pp.user }], schema: lessonPracticeSchema, maxTokens: 6000 });
+        // REQ-251: the practice half with the app's bounded thinking.
+        const practice = await callClaudeStructured({ ...call, ...PRACTICE_CALL, system: pp.system, messages: [{ role: "user", content: pp.user }], schema: lessonPracticeSchema });
         return { ...j, problems: [...lessonIntroProblems(introFromModel(intro)), ...lessonPracticeProblems(practice)] };
       }
       if (j.kind === "quiz") {
