@@ -8342,7 +8342,8 @@
       ],
       "risk_notes": [
         "Several physiological sizes and timings are authored teaching-model values marked FLAG in the documents",
-        "The 2022 VTE CPG was read only through a summary"
+        "The 2022 VTE CPG was read only through a summary",
+        "Merged with REQ-231 (security console): the docs section is now docs/sims.md 22.8 (22.7 is the security console); the two parseCaps fixes were merged into REQ-231's (hyphenated types up to 40 characters)."
       ]
     },
     {
@@ -8387,6 +8388,46 @@
         "APA Ethics Code and two StatPearls chapters were read through a fetch tool's summary (apa.org and NCBI refuse scripted downloads)",
         "Course objective for A+ malware removal still summarizes the older seven-step list; V15 lists ten steps",
         "The net use command page was not re-read (404 at its usual URL)"
+      ]
+    },
+    {
+      "id": "REQ-231",
+      "category": "feature",
+      "title": "Sims: security operations console screen type and the first three Security+ incidents",
+      "description": "A security operations console renderer (screen type security-console) behind SIMS_RENDERERS and on by default: alert queue, log and event lines and assets with status that update over sim time, containment actions as scenario action groups, accessibility equal to the bedside, board and session screens, JavaScript only, older apps told to update. Outcome profile security with default thresholds. Three Security+ incidents (a phished account, ransomware on a file server, a leaked cloud key with a new administrator) on SY0-701 objectives in SECPLUS and, as V8 bands, the matching SY0-801 objectives in SECPLUSV8. Learner-paced: the attacker works on the sim clock, which moves by the analyst time each task takes.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/SECPLUS",
+        "backend/supabase/seed/sims/SECPLUSV8",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "security-console renderer behind SIMS_RENDERERS with security-console@1 capability",
+        "accessibility to the bedside board and session standard",
+        "three Security+ incidents with endings in all three classes and golden paths Good Mediocre Bad",
+        "V8 bands on the matching SY0-801 objectives",
+        "no engine stepping change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle",
+        "sims DB tests",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.7",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "Sources read through a summarizing fetch; vendor guidance (Microsoft Learn",
+        "AWS re:Post) used for account and cloud steps; two V8 objective titles do not match the generator selection rule word list"
       ]
     }
   ]

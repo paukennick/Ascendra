@@ -1,4 +1,4 @@
-// REQ-232 (docs/sims.md 8.2, 9.2, 22.7): the PT treatment-session screen type
+// REQ-232 (docs/sims.md 8.2, 9.2, 22.8): the PT treatment-session screen type
 // and the DPT cases. The bindings are validated like the bedside tiles and the
 // client session's; the physical-therapy profile refuses a looser threshold;
 // the patient's vitals move on their own during exertion and recovery (which

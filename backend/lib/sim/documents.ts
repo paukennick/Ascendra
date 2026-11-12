@@ -58,6 +58,15 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("EPPP", "duty-to-protect-threat"),
   entry("EPPP", "diagnostic-intake-mood"),
   // ---- end REQ-225 (EPPP-B) -------------------------------------------
+  // ---- REQ-231: security console incidents, course SECPLUS (SY0-701), and
+  // each as a V8 band (SECPLUSV8, SY0-801: same incident, the V8 objective).
+  entry("SECPLUS", "phish-to-account-takeover"),
+  band("SECPLUSV8", "phish-to-account-takeover-v8"),
+  entry("SECPLUS", "ransomware-file-server"),
+  band("SECPLUSV8", "ransomware-file-server-v8"),
+  entry("SECPLUS", "cloud-iam-backdoor"),
+  band("SECPLUSV8", "cloud-iam-backdoor-v8"),
+  // ---- end REQ-231 ------------------------------------------------------
   // ---- REQ-232: PT treatment-session scenarios, course DPT ------------
   entry("DPT", "icu-early-mobility"),
   entry("DPT", "tka-gait-dvt-red-flag"),

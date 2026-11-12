@@ -262,7 +262,7 @@ export type OutcomeClass = "target" | "recovered" | "harm";
 // 20.2): a session with a client, where the outcome is what the session left
 // the client with (safety, protection, the right diagnosis, the alliance).
 // REQ-232: "physical-therapy" is the treatment-session profile (docs/sims.md
-// 9.2, 22.7): a PT session where the outcome is what the patient was left
+// 9.2, 22.8): a PT session where the outcome is what the patient was left
 // with (the session's goal reached inside the stopping rules, a red flag
 // acted on, no fall, syncope or embolism).
 export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session" | "physical-therapy";
@@ -303,7 +303,10 @@ export interface VitalTile {
 }
 
 export interface ScreenSpec {
-  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data" | "treatment-session";
+  // REQ-231: "security-console" is the security operations console as built
+  // (the design's "security" placeholder stays unused). REQ-232:
+  // "treatment-session" is the PT treatment session.
+  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data" | "security-console" | "treatment-session";
   level?: number;
   bedside?: {
     tiles: VitalTile[];
@@ -333,8 +336,22 @@ export interface ScreenSpec {
     notes?: { id: Id; label: string; text: Template; when?: Expr; alert?: Expr }[];
     record?: { label: string; items: { label: Template; when: Expr }[] };
   };
+  // REQ-231: the security operations console (docs/sims.md 20, 20.1, 22.7),
+  // display-only like the board and the session. The alert queue lists the
+  // alerts whose `when` holds, newest `at` first (sim seconds), each with a
+  // severity, a status in words and `open` (an open alert is spoken at once,
+  // like an alarm). Events are log and telemetry lines shown while `when`
+  // holds, newest first, with the log they came from. Assets are hosts,
+  // accounts and cloud identities with a status in words and a tone
+  // (ok, watch, bad, held) the screen shows as a badge.
+  console?: {
+    alerts: { id: Id; severity: ConsoleSeverity; title: Template; detail?: Template; when: Expr; at: Expr; status: Template; open: Expr }[];
+    events: { id: Id; source: string; text: Template; when: Expr; at: Expr }[];
+    assets: { id: Id; label: string; spokenLabel: string; kind: string; status: Template; tone: Expr }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
   // REQ-232: the physical therapy treatment session (docs/sims.md 8.2, 20,
-  // 22.7), display-only like the board and the client session. The patient's
+  // 22.8), display-only like the board and the client session. The patient's
   // name and presentation (a template over state); the vitals, read as the
   // bedside tiles are (HR, BP, SpO2, RPE, pain); what the patient is doing and
   // how they move now (`activity`); the tests and measures taken so far, each
@@ -351,6 +368,9 @@ export interface ScreenSpec {
     rules: { id: Id; label: string; text: Template; met: Expr }[];
   };
 }
+
+export type ConsoleSeverity = "critical" | "high" | "medium" | "low";
+export type ConsoleTone = "ok" | "watch" | "bad" | "held";
 
 export type CriterionScore = "met" | "partial" | "missed";
 // REQ-190: a criterion row may also score "na" (not applicable), left out of

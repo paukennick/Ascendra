@@ -12,6 +12,8 @@ import { capsHeaders } from "@/sim/runtime/caps.ts";
 import { alarmTexts, runView, sessionAlarmTexts, sessionNews, treatmentAlarmTexts, treatmentNews, vitalsSentence, type SessionView, type TreatmentView } from "@/sim/runtime/view.ts";
 import { announce, newAnnouncer } from "@/sim/runtime/announcer.ts";
 import { useSimRun } from "@/sim/useSimRun";
+import { ConsolePanel } from "@/sim/ConsolePanel";
+import { consoleAlarmTexts, consoleNews, consoleSentence, type ConsoleView } from "@/sim/runtime/consoleView.ts";
 import { ReportProblem } from "@/components/ReportProblem";
 import { localHash } from "@/sim/runtime/session.ts";
 import { ActionBar, ChapterCard, DebriefView, EventLog, LaunchCard, PaceControl, PromptCard, ReasoningCard, SessionPanel, SkipOffer, TeachingCard, TopologyPanel, TreatmentPanel, VitalsPanel, WaitsRow, sessionSentence, treatmentSentence } from "@/sim/SimPanels";
@@ -55,6 +57,8 @@ export default function SimScreen() {
   const announcer = useRef(newAnnouncer());
   // REQ-225: the client session as last announced, to speak what changed.
   const lastSession = useRef<SessionView | null>(null);
+  // REQ-231: the security console as last announced, to speak what changed.
+  const lastConsole = useRef<ConsoleView | null>(null);
   // REQ-232: the treatment session as last announced, likewise.
   const lastTreatment = useRef<TreatmentView | null>(null);
   // REQ-209: the launch card's pick; the scenario's default pace until changed.
@@ -79,10 +83,11 @@ export default function SimScreen() {
   // Screen-reader announcements: alarms at once, news at most every 10 s.
   useEffect(() => {
     if (!view || !s) return;
-    const news = [...sessionNews(lastSession.current, view.session), ...treatmentNews(lastTreatment.current, view.treatment)];
+    const news = [...sessionNews(lastSession.current, view.session), ...consoleNews(lastConsole.current, view.console), ...treatmentNews(lastTreatment.current, view.treatment)];
     lastSession.current = view.session;
+    lastConsole.current = view.console;
     lastTreatment.current = view.treatment;
-    const r = announce(announcer.current, { alarms: [...alarmTexts(view.tiles), ...sessionAlarmTexts(view.session), ...treatmentAlarmTexts(view.treatment)], log: s.run.log, nowMs: Date.now(), typing: !!view.reasoning, news });
+    const r = announce(announcer.current, { alarms: [...alarmTexts(view.tiles), ...sessionAlarmTexts(view.session), ...consoleAlarmTexts(view.console), ...treatmentAlarmTexts(view.treatment)], log: s.run.log, nowMs: Date.now(), typing: !!view.reasoning, news });
     announcer.current = r.state;
     for (const a of r.out) AccessibilityInfo.announceForAccessibility(a.text);
   });
@@ -204,6 +209,7 @@ export default function SimScreen() {
           <SessionPanel v={view.session} said={view.finding} onRead={() => view.session && AccessibilityInfo.announceForAccessibility(sessionSentence(view.session, view.finding))} />
           {view.infusions ? <Muted>{view.infusions}</Muted> : null}
           <TopologyPanel zones={view.board.zones} meters={view.board.meters} />
+          <ConsolePanel v={view.console} onRead={() => view.console && AccessibilityInfo.announceForAccessibility(consoleSentence(view.console))} />
 
           {view.prompt ? <PromptCard prompt={view.prompt} onChoose={(c) => sim.command({ type: "choose", prompt: view.prompt!.id, choice: c })} /> : null}
           {view.reasoning ? (
@@ -219,7 +225,7 @@ export default function SimScreen() {
 
           {sim.calm && running && !sim.paused && !chapter ? <SkipOffer offer={sim.calm} disabled={!running} onSkip={() => void sim.skipTo(sim.calm!.wait, { calm: true })} /> : null}
           {teach || feedback ? <TeachingCard offer={teach} feedback={feedback} onAnswer={(c) => sim.answerTeach(teach!.id, c)} onDismiss={sim.dismissTeach} /> : null}
-          <WaitsRow run={s.run} waits={view.waits} turns={turns} plain={!!view.session} disabled={!running || (!turns && sim.paused) || !!chapter} onSkip={(w) => void sim.skipTo(w)} />
+          <WaitsRow run={s.run} waits={view.waits} turns={turns} plain={!!view.session || !!view.console} disabled={!running || (!turns && sim.paused) || !!chapter} onSkip={(w) => void sim.skipTo(w)} />
           {view.mode === "running" && sim.paused && !view.blocked ? <Muted>Run the clock to act. Pause any time; pausing is never scored.</Muted> : null}
           <ActionBar run={s.run} groups={view.groups} onCommand={sim.command} disabled={!running || view.blocked || launching || !!chapter || (view.mode === "running" && sim.paused)} />
           {view.outputs.map((o) => <Card key={o.key}><Body>{o.text}</Body></Card>)}

@@ -9,6 +9,7 @@ import { evaluate } from "../engine/v1/eval.ts";
 import { parseCached } from "../engine/v1/parser.ts";
 import type { Action, ActionParam, ScreenSpec, VitalTile, WaitInfo } from "../engine/v1/types.ts";
 import { isTapPadParam } from "./tapPad.ts";
+import { consoleView, type ConsoleView } from "./consoleView.ts";
 
 type Tile = VitalTile;
 
@@ -224,7 +225,7 @@ export function sessionNews(prev: SessionView | null, next: SessionView | null):
   return out;
 }
 
-// REQ-232 (docs/sims.md 8.2, 13, 22.7): the physical therapy treatment
+// REQ-232 (docs/sims.md 8.2, 13, 22.8): the physical therapy treatment
 // session. The vitals are the tiles above; this is the rest of the patient:
 // the presentation, what they are doing and how they move now, the tests and
 // measures taken (a flagged one is a red flag, spoken at once), the
@@ -366,6 +367,7 @@ export interface RunView {
   tiles: TileView[];
   board: ReturnType<typeof boardViews>;
   session: SessionView | null;
+  console: ConsoleView | null; // REQ-231: the security operations console
   treatment: TreatmentView | null;
   groups: { group: string; actions: ActionView[] }[];
   waits: WaitInfo[];
@@ -396,6 +398,7 @@ export function runView(run: Run, logLimit = 60): RunView {
     tiles: tileViews(run),
     board: boardViews(run),
     session: sessionView(run),
+    console: consoleView(run),
     treatment: treatmentView(run),
     groups: groupActions(actionViews(run)),
     waits: waits(run),

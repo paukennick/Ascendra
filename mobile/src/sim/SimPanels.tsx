@@ -198,7 +198,7 @@ export function SessionPanel({ v, said, onRead }: { v: SessionView | null; said:
   );
 }
 
-// REQ-232 (docs/sims.md 8.2, 13, 22.7): the PT treatment session, beside the
+// REQ-232 (docs/sims.md 8.2, 13, 22.8): the PT treatment session, beside the
 // vitals (VitalsPanel). The patient's name and presentation, what they are
 // doing now and how they move, the stopping and escalation rules (always
 // shown; a rule met now gets a border and the words "Met now", never colour

@@ -1,4 +1,4 @@
-// REQ-232 (docs/sims.md 12, 22.7): the DPT treatment sessions against a real
+// REQ-232 (docs/sims.md 12, 22.8): the DPT treatment sessions against a real
 // Postgres with every migration applied. A stand-in course (its own code, the
 // three DPT objective titles, the physical-therapy subcategory) is created
 // here, so the test needs no catalog seed: the seed resolves each document by
