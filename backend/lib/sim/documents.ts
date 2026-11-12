@@ -101,6 +101,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("ADNRN", "pca-oversedation-naloxone"),
   entry("ADNRN", "heart-failure-pulmonary-edema"),
   entry("BSNRN", "assisted-living-norovirus-outbreak"),
+  entry("BSNRN", "charge-nurse-short-staffed-shift"),
   // ---- end REQ-240 ----
 ];
 
