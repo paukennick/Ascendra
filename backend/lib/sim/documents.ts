@@ -98,6 +98,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // four NREMT courses, two each, within each level's scope of practice.
   // Keep these entries together. ----
   entry("NREMTEMR", "unresponsive-adult-cpr-aed"),
+  entry("NREMTEMR", "thigh-bleed-tourniquet"),
   // ---- end REQ-241 ----
 ];
 
