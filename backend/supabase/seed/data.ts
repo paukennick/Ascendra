@@ -147,6 +147,10 @@ export interface SeedTrack {
   credential?: SeedCredential;
   sourceUrl?: string;
   sourceVerifiedAt?: string; // ISO timestamp
+  // The seed writes both dates with coalesce (seed-lib.ts): a value can be
+  // set but never cleared. To end a review, set a later contentReviewDueAt;
+  // deleting the line leaves the old date in the database and the course
+  // shows "Review due" for good (FAIL-1540, DP-300).
   contentReviewDueAt?: string; // ISO timestamp
   // REQ-142: what a course with no exam is built on, so the currency report
   // dates it instead of listing it as a course with no outline. Seed-only (no
@@ -1109,6 +1113,90 @@ export const SECPLUSV8_TRACK: SeedTrack = {
 };
 
 // ---------------------------------------------------------------------------
+// REQ-244: the Python and JavaScript courses verified against their language
+// references on 2026-11-11. Every page below was read in full that day at its
+// own URL (no summaries). Each unit's objectives, gate and key facts were
+// compared with them: nothing teaches a removed or outdated feature as
+// current, so no objective changed. What a lesson writer would otherwise get
+// wrong from memory of an older version is pinned as the unit's keyValues
+// (lib/current-facts.ts gives them to the writer and the fact-checker).
+//
+// Review date: no technology_aligned course recorded one before this, so
+// contentReviewDueAt is left unset pending Nick's decision (REQ-244 report:
+// tie it to the next language release -- Python 3.16 is scheduled for
+// 2027-10-06, ECMAScript 2027 is due June 2027 -- or the 12-month default).
+// The curriculum source still comes due through the currency report at
+// checkedAt + 12 months (COURSE_RECHECK_MONTHS).
+// ---------------------------------------------------------------------------
+const LANG_CHECKED = "2026-11-11";
+const LANG_VERIFIED_AT = "2026-11-11T00:00:00Z";
+const langRef = (title: string, url: string, keyValues?: string[]): UnitSource =>
+  keyValues ? { title, url, kind: "reference", checkedAt: LANG_CHECKED, keyValues } : { title, url, kind: "reference", checkedAt: LANG_CHECKED };
+
+const PY = {
+  versions: langRef("Status of Python versions (Python Developer's Guide)", "https://devguide.python.org/versions/", [
+    "Python 3.15 is the newest feature release (3.15.0 released 2026-10-09; 3.15.2, released 2026-10-25, is the current release on python.org/downloads)",
+    "3.14 and 3.15 are the bugfix branches; 3.11, 3.12 and 3.13 get security fixes only; 3.10 reached end of life on 2026-10-01",
+    "Python 3.16 is scheduled for 2027-10-06 (PEP 826)",
+  ]),
+  docs: langRef("The Python documentation (Python 3.15.2)", "https://docs.python.org/3/"),
+  controlFlow: langRef("The Python Tutorial: More Control Flow Tools", "https://docs.python.org/3/tutorial/controlflow.html"),
+  glossary: langRef("Python glossary: parameter, global interpreter lock", "https://docs.python.org/3/glossary.html", [
+    "There are five kinds of parameter: positional-or-keyword, positional-only (before a / in the parameter list), keyword-only (after * or *args), var-positional (*args) and var-keyword (**kwargs)",
+  ]),
+  sys: langRef("sys: getrecursionlimit and setrecursionlimit", "https://docs.python.org/3/library/sys.html", [
+    "The recursion limit is read with sys.getrecursionlimit() and changed with sys.setrecursionlimit(); the highest possible limit is platform-dependent",
+  ]),
+  dataStructures: langRef("The Python Tutorial: Data Structures", "https://docs.python.org/3/tutorial/datastructures.html"),
+  whatsNew315: langRef("What's new in Python 3.15", "https://docs.python.org/3/whatsnew/3.15.html", [
+    "New in 3.15 only: a built-in frozendict (PEP 814), immutable and hashable when its keys and values are, not a subclass of dict",
+    "New in 3.15 only: * and ** unpacking inside comprehensions and generator expressions (PEP 798), e.g. [*L for L in lists]; on 3.14 and earlier write the nested comprehension or itertools.chain",
+  ]),
+  inputOutput: langRef("The Python Tutorial: Input and Output (reading and writing files)", "https://docs.python.org/3/tutorial/inputoutput.html"),
+  open: langRef("Built-in functions: open()", "https://docs.python.org/3/library/functions.html#open", [
+    "Since Python 3.15 (PEP 686) text files opened without an encoding argument use UTF-8 regardless of the system locale; on 3.14 and earlier the default was the locale encoding",
+    "Pass encoding=\"utf-8\" explicitly for code that must behave the same on every supported version; encoding=\"locale\" asks for the locale encoding; PYTHONUTF8=0 or -X utf8=0 restores the old default",
+  ]),
+  errors: langRef("The Python Tutorial: Errors and Exceptions", "https://docs.python.org/3/tutorial/errors.html", [
+    "Since Python 3.14 (PEP 765) a return, break or continue that leaves a finally block raises a SyntaxWarning: it silently discards the exception or return value from the try block",
+    "Since Python 3.14 (PEP 758) several exception types may be listed without parentheses (except TimeoutError, ConnectionRefusedError:) only when there is no as clause; the parenthesized tuple form works on every version",
+  ]),
+  classes: langRef("The Python Tutorial: Classes", "https://docs.python.org/3/tutorial/classes.html", [
+    "A name with two leading underscores (at most one trailing) inside a class is name-mangled to _ClassName__name; it is a convention against accidental clashes, not access control",
+  ]),
+  modules: langRef("The Python Tutorial: Modules and packages", "https://docs.python.org/3/tutorial/modules.html"),
+  venv: langRef("The Python Tutorial: Virtual Environments and Packages", "https://docs.python.org/3/tutorial/venv.html", [
+    "Create an environment with python -m venv <dir> and install into it with python -m pip install",
+    "New in 3.15 only: explicit lazy imports with the lazy soft keyword (lazy import json, PEP 810) defer loading until first use; a plain import statement is unchanged",
+  ]),
+  functools: langRef("functools: higher-order functions", "https://docs.python.org/3/library/functools.html", [
+    "reduce lives in functools (from functools import reduce); it is not a built-in in Python 3",
+  ]),
+  itertools: langRef("itertools: functions creating iterators", "https://docs.python.org/3/library/itertools.html"),
+  typing: langRef("typing: support for type hints", "https://docs.python.org/3/library/typing.html"),
+  whatsNew314: langRef("What's new in Python 3.14", "https://docs.python.org/3.14/whatsnew/3.14.html", [
+    "Since Python 3.14 (PEP 649, PEP 749) annotations are evaluated lazily, only when something asks for them, unless from __future__ import annotations is used",
+  ]),
+  pdb: langRef("pdb: the Python debugger", "https://docs.python.org/3/library/pdb.html", [
+    "Call the built-in breakpoint() to stop in pdb at that line",
+  ]),
+  pep8: langRef("PEP 8: Style Guide for Python Code", "https://peps.python.org/pep-0008/"),
+  pytest: langRef("pytest documentation", "https://docs.pytest.org/en/stable/"),
+  freeThreading: langRef("Python support for free threading (HOWTO)", "https://docs.python.org/3/howto/free-threading-python.html", [
+    "The standard CPython build has a global interpreter lock: only one thread runs Python bytecode at a time, though the GIL is released during I/O and by some extensions in heavy computation",
+    "The free-threaded build (GIL disabled) has existed since 3.13 and has been officially supported but optional since 3.14 (PEP 779); it is a separate build, not the default, and some extension modules re-enable the GIL",
+  ]),
+  asyncio: langRef("asyncio: asynchronous I/O", "https://docs.python.org/3/library/asyncio.html", [
+    "Start a program's top-level coroutine with asyncio.run(main())",
+    "The asyncio event-loop policy system (get_event_loop_policy, set_event_loop_policy and the policy classes) is deprecated and scheduled for removal in 3.16; choose a loop with asyncio.run(..., loop_factory=...) instead",
+  ]),
+  profiling: langRef("What's new in Python 3.15: PEP 799 profiling package", "https://docs.python.org/3/whatsnew/3.15.html#pep-799-a-dedicated-profiling-package", [
+    "In Python 3.15 the deterministic profiler is profiling.tracing (relocated from cProfile, PEP 799); cProfile remains as an alias, and is the name that works on 3.14 and earlier",
+    "The pure-Python profile module is deprecated in 3.15 and scheduled for removal in 3.17; do not teach it as the profiler to use",
+  ]),
+};
+
+// ---------------------------------------------------------------------------
 // Python: intro -> intermediate -> advanced progression, one language track.
 // ---------------------------------------------------------------------------
 export const PYTHON_TRACK: SeedTrack = {
@@ -1120,20 +1208,26 @@ export const PYTHON_TRACK: SeedTrack = {
   subcategorySlug: "programming-languages",
   // REQ-142: no exam; built on the language itself. Python 3.15 is the newest
   // feature release (3.15.0 on 2026-10-09; docs.python.org shows "Python
-  // 3.15.2 documentation", python.org/downloads, read 2026-11-08). Nothing in
-  // the units below depends on a 3.15-only feature.
+  // 3.15.2 documentation", python.org/downloads, first read 2026-11-08).
+  // Nothing in the units below depends on a 3.15-only feature.
+  // REQ-244: re-read 2026-11-11 (the docs, the devguide's version table and
+  // python.org/downloads still say what is recorded here) and every unit
+  // compared with the pages in its sources.
+  freshnessModel: "technology_aligned",
+  sourceVerifiedAt: LANG_VERIFIED_AT,
   curriculum: {
     kind: "language_reference",
     name: "The Python documentation (docs.python.org)",
     version: "Python 3.15",
     url: "https://docs.python.org/3/",
-    checkedAt: "2026-11-08",
+    checkedAt: LANG_CHECKED,
   },
   units: [
     {
       title: "Syntax, variables & control flow",
       rangeLabel: "Week 1",
       gate: "Given an unfamiliar short Python script, trace its execution by hand and predict its output, including any conditional branches or loop iterations.",
+      sources: [PY.versions, PY.docs, PY.controlFlow],
       objectives: [
         "Variables, dynamic typing, and Python's core built-in types (int, float, str, bool, None)",
         "Operators: arithmetic, comparison, logical, and operator precedence",
@@ -1147,6 +1241,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Functions & scope",
       rangeLabel: "Week 2",
       gate: "Write a function with default and keyword arguments, explain what its scope can and cannot see, and predict the behavior of a mutable-default-argument bug.",
+      sources: [PY.glossary, PY.sys, PY.controlFlow],
       objectives: [
         "Defining functions: positional, keyword, default, and *args/**kwargs parameters",
         "Return values vs. side effects; functions that implicitly return None",
@@ -1160,6 +1255,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Core data structures",
       rangeLabel: "Week 3",
       gate: "Given a data-shape problem, choose the correct built-in container (list/tuple/dict/set), justify the choice, and write the comprehension that builds it in one line.",
+      sources: [PY.dataStructures, PY.whatsNew315],
       objectives: [
         "Lists: indexing, slicing, mutation, and common methods",
         "Tuples and immutability; when to prefer a tuple over a list",
@@ -1173,6 +1269,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Strings, files & error handling",
       rangeLabel: "Week 4",
       gate: "Given a program that must read a file and may fail, write correct exception handling that fails safely, and explain which exception type it should catch and why.",
+      sources: [PY.inputOutput, PY.open, PY.errors],
       objectives: [
         "String methods: splitting, joining, formatting, searching",
         "Reading and writing text files; the with statement and context managers",
@@ -1185,6 +1282,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Object-oriented programming",
       rangeLabel: "Week 5",
       gate: "Design a small class hierarchy for a stated problem, correctly use inheritance vs. composition, and explain what each dunder method you used actually does.",
+      sources: [PY.classes],
       objectives: [
         "Classes, instances, attributes, and methods",
         "__init__, self, and instance vs. class attributes",
@@ -1198,6 +1296,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Modules, packages & the standard library",
       rangeLabel: "Week 6",
       gate: "Set up an isolated virtual environment for a project, install a real dependency, and explain the difference between a module, a package, and a distributed library.",
+      sources: [PY.modules, PY.venv],
       objectives: [
         "Importing modules and packages; relative vs. absolute imports",
         "Organizing a project into modules and packages with __init__.py",
@@ -1210,6 +1309,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Functional patterns & iterators",
       rangeLabel: "Week 7",
       gate: "Given a data-processing task, write it as a generator pipeline instead of loading everything into memory, and explain why that matters at scale.",
+      sources: [PY.functools, PY.itertools, PY.glossary],
       objectives: [
         "Iterators and the iterator protocol (__iter__, __next__)",
         "Generators and yield; generator expressions",
@@ -1223,6 +1323,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Testing, debugging & typing",
       rangeLabel: "Week 8",
       gate: "Given a small buggy module, write a failing test that reproduces the bug, fix the bug, and add type hints that would have caught the class of error statically.",
+      sources: [PY.pytest, PY.pdb, PY.typing, PY.whatsNew314, PY.pep8],
       objectives: [
         "Writing unit tests with pytest: assertions, fixtures, parametrization",
         "Debugging techniques: reading tracebacks, using a debugger, print-driven debugging tradeoffs",
@@ -1234,6 +1335,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Concurrency, performance & a capstone project",
       rangeLabel: "Week 9",
       gate: "Explain when threading, multiprocessing, or asyncio is the right tool for a stated I/O-bound or CPU-bound problem, and justify your choice against the alternatives.",
+      sources: [PY.freeThreading, PY.asyncio, PY.profiling],
       objectives: [
         "The Global Interpreter Lock (GIL) and what it does and doesn't limit",
         "Threading for I/O-bound work vs. multiprocessing for CPU-bound work",
@@ -1244,6 +1346,59 @@ export const PYTHON_TRACK: SeedTrack = {
       ],
     },
   ],
+};
+
+const MDN = "https://developer.mozilla.org/en-US/docs/";
+const JS = {
+  ecma262: langRef("ECMA-262 ECMAScript Language Specification (Ecma International)", "https://ecma-international.org/publications-and-standards/standards/ecma-262/", [
+    "The current edition is ECMA-262 17th edition, ECMAScript 2026, June 2026; a new edition is published every June",
+  ]),
+  var: langRef("MDN: var", `${MDN}Web/JavaScript/Reference/Statements/var`, [
+    "A var declaration is hoisted to the top of its function or script but its initialization is not: before the assignment runs the variable is undefined",
+  ]),
+  equality: langRef("MDN: Equality comparisons and sameness", `${MDN}Web/JavaScript/Guide/Equality_comparisons_and_sameness`),
+  arrow: langRef("MDN: Arrow function expressions", `${MDN}Web/JavaScript/Reference/Functions/Arrow_functions`, [
+    "Arrow functions have no own this, arguments or super binding (they use the enclosing scope's) and should not be used as methods",
+  ]),
+  thisRef: langRef("MDN: this", `${MDN}Web/JavaScript/Reference/Operators/this`),
+  let: langRef("MDN: let", `${MDN}Web/JavaScript/Reference/Statements/let`, [
+    "let, const and class bindings are in a temporal dead zone from the start of the block until the declaration runs; reading them earlier throws a ReferenceError",
+  ]),
+  closures: langRef("MDN: Closures", `${MDN}Web/JavaScript/Guide/Closures`),
+  structuredClone: langRef("MDN: structuredClone()", `${MDN}Web/API/Window/structuredClone`, [
+    "structuredClone(value) makes a deep copy with the structured clone algorithm and is Baseline (widely available); spread and Object.assign copy only one level",
+  ]),
+  events: langRef("MDN: Introduction to events", `${MDN}Learn_web_development/Core/Scripting/Events`),
+  preventDefault: langRef("MDN: Event.preventDefault()", `${MDN}Web/API/Event/preventDefault`),
+  executionModel: langRef("MDN: JavaScript execution model (job queue and event loop)", `${MDN}Web/JavaScript/Reference/Execution_model`, [
+    "A completed asynchronous action (a promise then() handler, a setTimeout callback, an event handler) runs as a job from the queue once the call stack is empty; HTML event loops split jobs into tasks and microtasks, and the microtask queue is drained before the next task is taken",
+  ]),
+  promise: langRef("MDN: Promise", `${MDN}Web/JavaScript/Reference/Global_Objects/Promise`),
+  fetch: langRef("MDN: Using the Fetch API", `${MDN}Web/API/Fetch_API/Using_Fetch`, [
+    "fetch() rejects on errors such as a network failure or a bad scheme, but an HTTP error status such as 404 still fulfills with a Response, so check response.ok (true for 200-299) or response.status before reading the body",
+  ]),
+  modules: langRef("MDN: JavaScript modules", `${MDN}Web/JavaScript/Guide/Modules`, [
+    "In the browser load a module with <script type=\"module\">; in Node.js use the .mjs extension or \"type\": \"module\" in the nearest package.json",
+  ]),
+  classes: langRef("MDN: Classes", `${MDN}Web/JavaScript/Reference/Classes`),
+  finished: langRef("TC39 finished proposals", "https://github.com/tc39/proposals/blob/main/finished-proposals.md", [
+    "Temporal and explicit resource management (using declarations) are finished proposals listed for ECMAScript 2027, not part of ECMAScript 2026; say which engines support them before relying on them",
+  ]),
+  prototypes: langRef("MDN: Inheritance and the prototype chain", `${MDN}Web/JavaScript/Guide/Inheritance_and_the_prototype_chain`, [
+    "Read and set an object's prototype with Object.getPrototypeOf / Object.setPrototypeOf, or create one with Object.create; MDN describes the __proto__ accessor as non-standard, so new code should not use it",
+  ]),
+  jest: langRef("Jest: Getting Started", "https://jestjs.io/docs/getting-started"),
+  nodeTest: langRef("Node.js API: test runner (node:test)", "https://nodejs.org/api/test.html", [
+    "Node.js has a built-in test runner, node:test, stable since Node.js 20",
+  ]),
+  nodeReleases: langRef("Node.js releases", "https://nodejs.org/en/about/previous-releases", [
+    "Node.js 26 is the Active LTS line (LTS since 2026-10-28); 24 and 22 are in maintenance (22 ends 2027-04-30); 20 reached end of life on 2026-04-30",
+    "Production applications should use Active LTS or Maintenance LTS releases; from Node.js 27 there is one major release a year and every major becomes LTS",
+  ]),
+  nodeModules: langRef("Node.js API: CommonJS modules", "https://nodejs.org/api/modules.html", [
+    "require() can load an ES module (no longer experimental as of Node.js 25.4.0) only if that module is fully synchronous, with no top-level await",
+  ]),
+  nodeEsm: langRef("Node.js API: ECMAScript modules", "https://nodejs.org/api/esm.html"),
 };
 
 // ---------------------------------------------------------------------------
@@ -1258,19 +1413,23 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
   subcategorySlug: "programming-languages",
   // REQ-142: no exam; built on the language standard. ECMA-262 17th edition,
   // ECMAScript 2026, June 2026, is the current edition on Ecma's page (read
-  // 2026-11-08).
+  // 2026-11-08). REQ-244: re-read 2026-11-11, still the current edition, and
+  // every unit compared with the MDN, TC39 and Node.js pages in its sources.
+  freshnessModel: "technology_aligned",
+  sourceVerifiedAt: LANG_VERIFIED_AT,
   curriculum: {
     kind: "language_reference",
     name: "ECMA-262 ECMAScript Language Specification",
     version: "ECMAScript 2026 (17th edition, June 2026)",
     url: "https://ecma-international.org/publications-and-standards/standards/ecma-262/",
-    checkedAt: "2026-11-08",
+    checkedAt: LANG_CHECKED,
   },
   units: [
     {
       title: "Syntax, variables & control flow",
       rangeLabel: "Week 1",
       gate: "Given an unfamiliar short JS snippet using var, let, and const, predict its output and explain any hoisting or scoping surprise it contains.",
+      sources: [JS.ecma262, JS.var, JS.equality],
       objectives: [
         "Variables: var vs. let vs. const, and why hoisting makes var risky",
         "Primitive types, typeof, and type coercion pitfalls (== vs. ===)",
@@ -1283,6 +1442,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "Functions & scope",
       rangeLabel: "Week 2",
       gate: "Write both a function declaration and an equivalent arrow function for a stated task, and explain a concrete case where the difference in `this` binding would matter.",
+      sources: [JS.arrow, JS.thisRef, JS.let, JS.closures],
       objectives: [
         "Function declarations vs. function expressions vs. arrow functions",
         "Parameters: default values, rest parameters",
@@ -1295,6 +1455,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "Objects & arrays",
       rangeLabel: "Week 3",
       gate: "Given a nested object and array of data, write a transformation using destructuring, spread, and array methods (map/filter/reduce) without a manual for-loop.",
+      sources: [JS.structuredClone],
       objectives: [
         "Object literals, property access, and shorthand syntax",
         "Array methods: map, filter, reduce, find, some, every",
@@ -1307,6 +1468,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "The DOM & events",
       rangeLabel: "Week 4",
       gate: "Given a page layout, write vanilla JS that selects the right elements, updates the DOM in response to a user event, and avoids common event-handling bugs (e.g. missing preventDefault).",
+      sources: [JS.events, JS.preventDefault],
       objectives: [
         "Selecting and traversing the DOM (querySelector, closest, parent/child access)",
         "Creating, modifying, and removing DOM nodes",
@@ -1319,6 +1481,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "Asynchronous JavaScript",
       rangeLabel: "Week 5",
       gate: "Given a sequence of dependent network calls, write it correctly with async/await including error handling, and explain what the event loop is doing while it waits.",
+      sources: [JS.executionModel, JS.promise, JS.fetch],
       objectives: [
         "The event loop, call stack, and task queue (conceptual model)",
         "Callbacks and callback hell -- what async/await actually replaces",
@@ -1331,6 +1494,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "ES6+ features & modules",
       rangeLabel: "Week 6",
       gate: "Refactor a script that uses global variables and string concatenation into ES modules with template literals and proper imports/exports.",
+      sources: [JS.modules, JS.classes, JS.finished],
       objectives: [
         "Template literals and tagged templates",
         "ES modules: import/export, default vs. named exports",
@@ -1343,6 +1507,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "Prototypes, higher-order functions & patterns",
       rangeLabel: "Week 7",
       gate: "Explain the prototype chain for a given object, predict a property lookup, and rewrite a repeated pattern using a higher-order function.",
+      sources: [JS.prototypes],
       objectives: [
         "The prototype chain and how method lookup actually works",
         "Object.create and prototypal inheritance vs. classical inheritance",
@@ -1355,6 +1520,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "Testing & tooling",
       rangeLabel: "Week 8",
       gate: "Given a small buggy function, write a failing Jest test that reproduces the bug, fix it, and explain what a linter/bundler in your toolchain would have caught earlier.",
+      sources: [JS.jest, JS.nodeTest],
       objectives: [
         "Writing unit tests with Jest: assertions, mocks, test structure",
         "Debugging in browser devtools and Node (breakpoints, console techniques)",
@@ -1367,6 +1533,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "Node.js & building a small API",
       rangeLabel: "Week 9",
       gate: "Build a minimal Node HTTP/Express endpoint that accepts a request, validates input, and returns JSON -- and explain what happens if two requests arrive concurrently.",
+      sources: [JS.nodeReleases, JS.nodeModules, JS.nodeEsm],
       objectives: [
         "Node.js runtime basics: modules, the require/import system, npm scripts",
         "Building a simple HTTP server or Express route",
