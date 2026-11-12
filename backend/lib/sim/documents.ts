@@ -103,6 +103,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("SECURITYX", "federation-token-forgery"),
   entry("SECURITYX", "ot-segmentation-breach"),
   entry("SECAIPLUS", "agent-indirect-prompt-injection"),
+  entry("SECAIPLUS", "rag-assistant-data-leak"),
   // ---- end REQ-238 ----
 ];
 
