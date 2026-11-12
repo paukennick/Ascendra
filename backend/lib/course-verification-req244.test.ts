@@ -5,6 +5,8 @@ import assert from "node:assert/strict";
 import { CATALOG_TRACKS } from "../supabase/seed/catalog";
 import { JAVASCRIPT_TRACK, PYTHON_TRACK, type SeedTrack } from "../supabase/seed/data";
 import { AZURE_DP300_TRACK } from "../supabase/seed/tracks/azure";
+import { GCP_DEVOPS_TRACK } from "../supabase/seed/tracks/gcp";
+import { activeUnits } from "../supabase/seed/catalog";
 import { DP300_LABS } from "../supabase/seed/labs/microsoft-dp300";
 import { courseOutlineProblems, dayOf } from "./content-currency";
 import { currentFactsBlock } from "./current-facts";
@@ -46,6 +48,44 @@ describe("FAIL-1540: DP-300 stuck at Review due after its review line was delete
     });
     assert.equal(AZURE_DP300_TRACK.units.reduce((n, u) => n + (u.weight ?? 0), 0), 100);
     assert.ok(AZURE_DP300_TRACK.units[1].objectives.includes("Implementing Always Encrypted with secure enclaves"));
+  });
+});
+
+// FAIL-1540 / FAIL-1541: the seed writes content_review_due_at with
+// coalesce, so a review date can only move forward through the seed. These
+// are the courses whose seed once stored one that a later commit deleted;
+// the value is the date production still holds. Each must keep a later one,
+// or production shows "Review due" from that date for good. Add a course
+// here whenever its contentReviewDueAt line is removed or moved earlier.
+const STORED_REVIEW_DUE: Record<string, string> = {
+  DP300: "2026-10-27T00:00:00Z",
+  GCPDEVOPS: "2026-11-23T00:00:00Z",
+};
+
+describe("FAIL-1541: review dates stored in production only move forward", () => {
+  test("every course with a stored review date keeps a later contentReviewDueAt", () => {
+    for (const [code, stored] of Object.entries(STORED_REVIEW_DUE)) {
+      const t = CATALOG_TRACKS.find((x) => x.code === code);
+      assert.ok(t, `${code} is in the catalog`);
+      assert.ok(Number.isFinite(time(t!.contentReviewDueAt)), `${code} must set contentReviewDueAt: deleting it cannot clear ${stored}`);
+      assert.ok(time(t!.contentReviewDueAt) > time(stored), `${code}: ${t!.contentReviewDueAt} is not later than the stored ${stored}`);
+      assert.ok(time(t!.contentReviewDueAt) > time(t!.sourceVerifiedAt), `${code}: review after its check`);
+    }
+  });
+  test("GCP DevOps re-verified 2026-11-11 against the guide live on 2026-11-23, review in 12 months", () => {
+    assert.equal(dayOf(GCP_DEVOPS_TRACK.sourceVerifiedAt), "2026-11-11");
+    assert.equal(dayOf(GCP_DEVOPS_TRACK.credential?.lastVendorVerifiedAt), "2026-11-11");
+    assert.equal(dayOf(GCP_DEVOPS_TRACK.contentReviewDueAt), "2027-11-11");
+    assert.equal(GCP_DEVOPS_TRACK.credential?.objectivesRevision, "Exam guide live on November 23, 2026");
+    const live = activeUnits(GCP_DEVOPS_TRACK);
+    assert.deepEqual(live.map((u) => u.objectives.length), [25, 14, 10, 20, 10]);
+    assert.deepEqual(live.map((u) => u.weight), [18, 30, 18, 22, 12]);
+  });
+  test("FAIL-1542: GCP DevOps exam facts say what the certification page says", () => {
+    const c = GCP_DEVOPS_TRACK.credential!;
+    assert.match(c.recommendedExperience ?? "", /1\+ years designing and managing production systems using Google Cloud/);
+    assert.equal(c.questionFormat, "50-60 multiple choice questions");
+    assert.equal(c.durationMinutes, 120);
   });
 });
 
