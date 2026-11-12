@@ -15957,6 +15957,148 @@
       "prevention_rules": [],
       "prevention_notes": "A course objective that names an outline's steps is retitled in place by position, never moved or appended, so learner rows stay (REQ-102, FAIL-893).",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1520",
+      "date": "2026-11-11",
+      "title": "EMR CPR case: asystole ending read a rhythm no effect ever set",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "sims:lint: ERROR endings.asystole: reached by no golden path; the gasps path ended cprHandoff although viability had fallen far below the asystole threshold",
+      "how_detected": "sims:lint reachability check while authoring",
+      "root_cause": "The ending tested rhythm == asystole, but nothing moved the rhythm there: the author defined the threshold param and the ending, not the transition between them. An ending over a state needs the effect that produces that state.",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTEMR/unresponsive-adult-cpr-aed.sim.json"
+      ],
+      "fix_summary": "Added the fade trigger (VF below asystoleAt becomes asystole, interrupts skips, logs).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/supabase/seed/sims/NREMTEMR/unresponsive-adult-cpr-aed.golden.json (gasps path ends asystole); npm run sims:lint"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The linter's ending reachability rule caught it; new cases keep every ending reached by a golden path (docs/sims.md 22.14).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1521",
+      "date": "2026-11-11",
+      "title": "EMR CPR case: AED analysis gated on the hidden rhythm",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Golden driver: analyze rejected (action not available) at the AED's 2-minute check after a converting shock, so the rescuer could not reanalyze and find the pulse",
+      "how_detected": "golden driver (npm run sim:golden -- steps emr-cpr)",
+      "root_cause": "The action's availability read inArrest (the true rhythm), which the rescuer cannot know until the AED analyzes or a pulse is felt; availability must read what the learner can know (arrestBelieved).",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTEMR/unresponsive-adult-cpr-aed.sim.json"
+      ],
+      "fix_summary": "analyze is available while arrestBelieved (no pulse found yet).",
+      "fix_commits": [],
+      "regression_tests": [
+        "unresponsive-adult-cpr-aed.golden.json expert and slowAed paths analyze after conversion"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Action availability reads only state the learner has observed, never hidden truth (docs/sims.md 22.14).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1522",
+      "date": "2026-11-11",
+      "title": "EMR bleed case: timer with-fields read as bare names",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims:lint: unknown name site in timers.tqT cases",
+      "how_detected": "sims:lint",
+      "root_cause": "A schedule's with values are bound inside the timer as timer.with.<field>, not as bare names; the form field names were reused from the action.",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTEMR/thigh-bleed-tourniquet.sim.json"
+      ],
+      "fix_summary": "Cases read timer.with.site and timer.with.tight.",
+      "fix_commits": [],
+      "regression_tests": [
+        "thigh-bleed-tourniquet.golden.json snugFirst and wrongSite paths exercise both branches"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The linter rejects unknown names; documented in 22.14.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1523",
+      "date": "2026-11-11",
+      "title": "EMS cases: reasoning moments opened mid-step or on the tick a terminal ending fired",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Golden driver: startCpr and flat rejected (clock blocked by a reasoning moment) right after a shock or the first epinephrine dose; a reason command sent after the run had ended when the moment and the asystole ending fell on the same tick",
+      "how_detected": "golden driver while authoring",
+      "root_cause": "Triggers keyed to the first shock and first dose stopped the clock in the middle of a time-critical sequence, and a t >= 300 trigger coincided with the ending tick. A written moment belongs at a natural pause.",
+      "requirement": "REQ-241",
+      "affected": [
+        "unresponsive-adult-cpr-aed.sim.json",
+        "anaphylaxis-epinephrine.sim.json"
+      ],
+      "fix_summary": "CPR: pulse found or t >= 240; anaphylaxis: departure or t >= 420; ems-helpers act() answers an open moment before the next action.",
+      "fix_commits": [],
+      "regression_tests": [
+        "all six goldens of both cases"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Open reasoning moments at pauses (departure, pulse found, crew arrival), not on a treatment step (22.14).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1524",
+      "date": "2026-11-11",
+      "title": "EMS cases: model constants left the target or a harm ending unreachable",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "sims:lint: anaphylaxis target class reached by no path (the repeat dose came after arrival); STEMI vf ending reached by no path (the nitrate drop faded above 70 mmHg before the 3-minute VF delay)",
+      "how_detected": "sims:lint outcome-class and ending reachability rules",
+      "root_cause": "Authored rates were chosen before the timeline (scene, load, drive) was fixed; the outcome depends on rates and times together, so they must be tuned against the golden paths.",
+      "requirement": "REQ-241",
+      "affected": [
+        "anaphylaxis-epinephrine.sim.json (riseRate",
+        "epiPotency",
+        "epiTau)",
+        "inferior-stemi-cath-alert.sim.json (nitroFade)"
+      ],
+      "fix_summary": "Retuned and FLAG-noted: anaphylaxis 0.05/min rise, 0.15/min potency, 300 s wane; nitrate fade 0.0006/s.",
+      "fix_commits": [],
+      "regression_tests": [
+        "anaphylaxis-epinephrine.golden.json expert (target) and noRepeat; inferior-stemi-cath-alert.golden.json nitroCrash (vf)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Lint reachability rules; tune authored rates against the full scene-to-door timeline (22.14).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1525",
+      "date": "2026-11-11",
+      "title": "EMS hemorrhagic shock case committed with British spellings",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Narrative said 'theatre' and a trigger was named twoLitres in commit d45f572",
+      "how_detected": "review before the full test run",
+      "root_cause": "Author habit; the spelling check runs in npm test, which was run after the per-sim commits.",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTAEMT/hemorrhagic-shock-fluids.sim.json"
+      ],
+      "fix_summary": "operating room; twoLiters.",
+      "fix_commits": [],
+      "regression_tests": [
+        "lib/us-spelling.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the spelling test with the per-sim checks, not only at the end.",
+      "recurrence_of": ""
     }
   ]
 }
