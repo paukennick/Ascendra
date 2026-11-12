@@ -15959,97 +15959,168 @@
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-1440",
+      "id": "FAIL-1520",
       "date": "2026-11-11",
-      "title": "A backslash escape in a sim document string renders as a letter, not a line break",
+      "title": "EMR CPR case: asystole ending read a rhythm no effect ever set",
       "status": "fixed",
       "severity": "medium",
-      "symptom": "While authoring the terminal sims, output templates written with \\n inside a template slot's string literal would have rendered the letter n where a line break was meant (and a visible backslash outside a slot).",
-      "how_detected": "review",
-      "root_cause": "The expression parser keeps the character after a backslash and drops the backslash; templates have no backslash escapes at all. Nothing checked for them, and JSON written from a generator easily double-escapes a line break.",
-      "requirement": "REQ-237",
+      "symptom": "sims:lint: ERROR endings.asystole: reached by no golden path; the gasps path ended cprHandoff although viability had fallen far below the asystole threshold",
+      "how_detected": "sims:lint reachability check while authoring",
+      "root_cause": "The ending tested rhythm == asystole, but nothing moved the rhythm there: the author defined the threshold param and the ending, not the transition between them. An ending over a state needs the effect that produces that state.",
+      "requirement": "REQ-241",
       "affected": [
-        "backend/lib/sim/lint.ts",
-        "backend/supabase/seed/sims"
+        "backend/supabase/seed/sims/NREMTEMR/unresponsive-adult-cpr-aed.sim.json"
       ],
-      "fix_summary": "New lint rule backslashEscapeProblems (sims:lint and the generator lint gate through checkDocument) errors on a backslash before n, r, t, a quote or a backslash in any document string; the sims use real line breaks.",
+      "fix_summary": "Added the fade trigger (VF below asystoleAt becomes asystole, interrupts skips, logs).",
       "fix_commits": [],
       "regression_tests": [
-        "backend/lib/sim/terminal.test.ts"
+        "backend/supabase/seed/sims/NREMTEMR/unresponsive-adult-cpr-aed.golden.json (gasps path ends asystole); npm run sims:lint"
       ],
       "no_test_reason": "",
-      "prevention_rules": [
-        "backend/lib/sim/lint.ts"
-      ],
-      "prevention_notes": "docs/sims.md 22.10 finding 2",
+      "prevention_rules": [],
+      "prevention_notes": "The linter's ending reachability rule caught it; new cases keep every ending reached by a golden path (docs/sims.md 22.14).",
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-1441",
+      "id": "FAIL-1521",
       "date": "2026-11-11",
-      "title": "Terminal transcript put a command's output before a line that appeared at the same minute",
+      "title": "EMR CPR case: AED analysis gated on the hidden rhythm",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Golden driver: analyze rejected (action not available) at the AED's 2-minute check after a converting shock, so the rescuer could not reanalyze and find the pulse",
+      "how_detected": "golden driver (npm run sim:golden -- steps emr-cpr)",
+      "root_cause": "The action's availability read inArrest (the true rhythm), which the rescuer cannot know until the AED analyzes or a pulse is felt; availability must read what the learner can know (arrestBelieved).",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTEMR/unresponsive-adult-cpr-aed.sim.json"
+      ],
+      "fix_summary": "analyze is available while arrestBelieved (no pulse found yet).",
+      "fix_commits": [],
+      "regression_tests": [
+        "unresponsive-adult-cpr-aed.golden.json expert and slowAed paths analyze after conversion"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Action availability reads only state the learner has observed, never hidden truth (docs/sims.md 22.14).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1522",
+      "date": "2026-11-11",
+      "title": "EMR bleed case: timer with-fields read as bare names",
       "status": "fixed",
       "severity": "low",
-      "symptom": "terminal.test.ts: Read the terminal said the latest output was the 09:00 shopd error line, though df had just run at 09:00.",
-      "how_detected": "test",
-      "root_cause": "The first transcript sort broke ties at the same sim time by putting every command output before every timed line; a line that appears on its own happens as the minute begins, so a command run in that minute prints after it.",
-      "requirement": "REQ-237",
+      "symptom": "sims:lint: unknown name site in timers.tqT cases",
+      "how_detected": "sims:lint",
+      "root_cause": "A schedule's with values are bound inside the timer as timer.with.<field>, not as bare names; the form field names were reused from the action.",
+      "requirement": "REQ-241",
       "affected": [
-        "mobile/src/sim/runtime/terminalView.ts"
+        "backend/supabase/seed/sims/NREMTEMR/thigh-bleed-tourniquet.sim.json"
       ],
-      "fix_summary": "Ties order the timed lines first (authored order), then command output in print order.",
+      "fix_summary": "Cases read timer.with.site and timer.with.tight.",
       "fix_commits": [],
       "regression_tests": [
-        "mobile/src/sim/terminal.test.ts"
+        "thigh-bleed-tourniquet.golden.json snugFirst and wrongSite paths exercise both branches"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "docs/sims.md 22.10 (transcript order)",
+      "prevention_notes": "The linter rejects unknown names; documented in 22.14.",
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-1442",
+      "id": "FAIL-1523",
       "date": "2026-11-11",
-      "title": "A command refused because its device was unreachable said to wait for the running command",
+      "title": "EMS cases: reasoning moments opened mid-step or on the tick a terminal ending fired",
       "status": "fixed",
       "severity": "low",
-      "symptom": "terminal.test.ts: after the bare allowed-vlan list dropped the management VLAN, the command line answered 'Wait for the running command to finish' for ACC-SW2 commands.",
-      "how_detected": "test",
-      "root_cause": "The builder gave every gated command the generic busy reason; the console-only state needed its own why, since the screen shows the action's why to say why a command will not run.",
-      "requirement": "REQ-237",
+      "symptom": "Golden driver: startCpr and flat rejected (clock blocked by a reasoning moment) right after a shock or the first epinephrine dose; a reason command sent after the run had ended when the moment and the asystole ending fell on the same tick",
+      "how_detected": "golden driver while authoring",
+      "root_cause": "Triggers keyed to the first shock and first dose stopped the clock in the middle of a time-critical sequence, and a t >= 300 trigger coincided with the ending tick. A written moment belongs at a natural pause.",
+      "requirement": "REQ-241",
       "affected": [
-        "backend/supabase/seed/sims/NETWORKPLUS/vlan-missing-from-trunk.sim.json"
+        "unresponsive-adult-cpr-aed.sim.json",
+        "anaphylaxis-epinephrine.sim.json"
       ],
-      "fix_summary": "Every ACC-SW2 command carries a why that names both reasons (the management VLAN is off the uplink, or a command is running).",
+      "fix_summary": "CPR: pulse found or t >= 240; anaphylaxis: departure or t >= 420; ems-helpers act() answers an open moment before the next action.",
       "fix_commits": [],
       "regression_tests": [
-        "mobile/src/sim/terminal.test.ts"
+        "all six goldens of both cases"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "docs/sims.md 22.10 finding 3",
+      "prevention_notes": "Open reasoning moments at pauses (departure, pulse found, crew arrival), not on a treatment step (22.14).",
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-1500",
+      "id": "FAIL-1524",
       "date": "2026-11-11",
-      "title": "Lint warns 'never available' for an action used right after the timer or trigger that unlocked it",
-      "status": "open",
-      "severity": "low",
-      "symptom": "sims:lint warned 'actions.furosemide: never available in any golden path' (ADNRN/heart-failure-pulmonary-edema) and 'actions.supportSam: never available in any golden path' (BSNRN/charge-nurse-short-staffed-shift), although golden paths sent those actions and the engine accepted them.",
-      "how_detected": "the generator-gate check script on the wave-2 documents (lint output)",
-      "root_cause": "replayGoldenPath (engine/v1/validate.ts) samples availability only at command boundaries after each command (noteBoundary). An action that becomes available when a timer or trigger fires during the ticks advanced before the next command, and is that next command, is never sampled as available.",
-      "requirement": "REQ-240",
+      "title": "EMS cases: model constants left the target or a harm ending unreachable",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "sims:lint: anaphylaxis target class reached by no path (the repeat dose came after arrival); STEMI vf ending reached by no path (the nitrate drop faded above 70 mmHg before the 3-minute VF delay)",
+      "how_detected": "sims:lint outcome-class and ending reachability rules",
+      "root_cause": "Authored rates were chosen before the timeline (scene, load, drive) was fixed; the outcome depends on rates and times together, so they must be tuned against the golden paths.",
+      "requirement": "REQ-241",
       "affected": [
-        "backend/lib/sim/engine/v1/validate.ts",
-        "mobile/src/sim/engine/v1/validate.ts"
+        "anaphylaxis-epinephrine.sim.json (riseRate",
+        "epiPotency",
+        "epiTau)",
+        "inferior-stemi-cath-alert.sim.json (nitroFade)"
       ],
-      "fix_summary": "Not fixed: the change is in the engine folder, out of scope for REQ-240 (no engine changes). Worked around in the two goldens by sending one repeatable command (note, followUp) before the newly available action. Proposed fix: also sample availability just before each command is applied (after the tick loop).",
+      "fix_summary": "Retuned and FLAG-noted: anaphylaxis 0.05/min rise, 0.15/min potency, 300 s wane; nitrate fade 0.0006/s.",
       "fix_commits": [],
-      "regression_tests": [],
-      "no_test_reason": "Open; a regression test belongs with the validate.ts fix (a fixture whose only use of an action is right after the timer that unlocks it should not warn).",
+      "regression_tests": [
+        "anaphylaxis-epinephrine.golden.json expert (target) and noRepeat; inferior-stemi-cath-alert.golden.json nitroCrash (vf)"
+      ],
+      "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "docs/sims.md 22.13 records the workaround for authors until validate.ts samples availability before each command.",
+      "prevention_notes": "Lint reachability rules; tune authored rates against the full scene-to-door timeline (22.14).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1525",
+      "date": "2026-11-11",
+      "title": "EMS hemorrhagic shock case committed with British spellings",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Narrative said 'theatre' and a trigger was named twoLitres in commit d45f572",
+      "how_detected": "review before the full test run",
+      "root_cause": "Author habit; the spelling check runs in npm test, which was run after the per-sim commits.",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTAEMT/hemorrhagic-shock-fluids.sim.json"
+      ],
+      "fix_summary": "operating room; twoLiters.",
+      "fix_commits": [],
+      "regression_tests": [
+        "lib/us-spelling.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the spelling test with the per-sim checks, not only at the end.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1526",
+      "date": "2026-11-11",
+      "title": "Infant case: server-only debrief text repeated the client's time_up narrative",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts: NREMTPARAMEDIC/infant-respiratory-failure: server-only text reaches the client: Forty-five minutes passed.",
+      "how_detected": "backend npm test (lib/sim/documents.test.ts)",
+      "root_cause": "The time_up debrief body (server-only) was word for word the time_up narrative (sent to the app), so the leak check could not tell the server-only copy had stayed on the server.",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTPARAMEDIC/infant-respiratory-failure.sim.json"
+      ],
+      "fix_summary": "Reworded the debrief body.",
+      "fix_commits": [],
+      "regression_tests": [
+        "lib/sim/documents.test.ts client document leaks nothing server-only"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Debrief bodies are never copies of ending narratives (docs/sims.md 22.14).",
       "recurrence_of": ""
     },
     {
@@ -16185,6 +16256,172 @@
       ],
       "prevention_notes": "documented with FAIL-1360's turns-phase ordering note; no lint rule",
       "recurrence_of": "FAIL-1360"
+    },
+    {
+      "id": "FAIL-1500",
+      "date": "2026-11-11",
+      "title": "Lint warns 'never available' for an action used right after the timer or trigger that unlocked it",
+      "status": "open",
+      "severity": "low",
+      "symptom": "sims:lint warned 'actions.furosemide: never available in any golden path' (ADNRN/heart-failure-pulmonary-edema) and 'actions.supportSam: never available in any golden path' (BSNRN/charge-nurse-short-staffed-shift), although golden paths sent those actions and the engine accepted them.",
+      "how_detected": "the generator-gate check script on the wave-2 documents (lint output)",
+      "root_cause": "replayGoldenPath (engine/v1/validate.ts) samples availability only at command boundaries after each command (noteBoundary). An action that becomes available when a timer or trigger fires during the ticks advanced before the next command, and is that next command, is never sampled as available.",
+      "requirement": "REQ-240",
+      "affected": [
+        "backend/lib/sim/engine/v1/validate.ts",
+        "mobile/src/sim/engine/v1/validate.ts"
+      ],
+      "fix_summary": "Not fixed: the change is in the engine folder, out of scope for REQ-240 (no engine changes). Worked around in the two goldens by sending one repeatable command (note, followUp) before the newly available action. Proposed fix: also sample availability just before each command is applied (after the tick loop).",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Open; a regression test belongs with the validate.ts fix (a fixture whose only use of an action is right after the timer that unlocks it should not warn).",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.13 records the workaround for authors until validate.ts samples availability before each command.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1480",
+      "date": "2026-11-11",
+      "title": "Sim authoring: an after-session action placed after the one that satisfies an ending can never run",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "npm run sim:golden -- steps nce-substance: 'sendReport ... rejected: run has ended' -- the first draft of the NCE substance case had 'send the report to the court' as a separate after-session action following 'document'",
+      "how_detected": "the golden-path builder (scripts/sim-golden/steps.ts) refused the command",
+      "root_cause": "Every ending's condition starts with 'documented', so the document action ends the run at once; any action meant to come after it is dead. sims:lint checks reachability of endings and states, not whether an available action can still be taken once the run has ended, so the dead action passed lint.",
+      "requirement": "REQ-239",
+      "affected": [
+        "backend/supabase/seed/sims/NCE/nce-substance-use-screen.sim.json"
+      ],
+      "fix_summary": "The court decision is a field of the documentation form (release / all / hold), so it is taken with the record; breach and reportSent are set there.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/scripts/sim-golden/nce-substance.steps.ts",
+        "backend/supabase/seed/sims/NCE/nce-substance-use-screen.golden.json",
+        "backend/lib/sim/nbcc-session.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.12 finding 2: put every after-session decision into the action that satisfies the ending (or gate the ending on it). The goldens' builder fails on a dead command, and every NBCC golden path ends with the documenting action.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1481",
+      "date": "2026-11-11",
+      "title": "Duplicate-check pin: the EPPP and NCMHCE suicide sessions share C-SSRS and safety-plan moves (score 0.329 over the 0.30 pin)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim/generator/generator.test.ts 'seeded documents on different cases sit well below the threshold': highest seeded pair 0.329 (EPPP/suicide-risk-safety-plan vs NCMHCE/ncmhce-suicide-safety-plan: decisions 0.64, story 0.01)",
+      "how_detected": "backend npm test",
+      "root_cause": "The test pinned every seeded pair below DUPLICATE_THRESHOLD - 0.2. Two suicide-risk sessions in different courses legitimately share the same protocol moves (C-SSRS questions, Stanley-Brown steps), which the decisions measure counts, while their stories are unrelated. The duplicate gate itself only compares sims on the same objective, so it never compares these two.",
+      "requirement": "REQ-239",
+      "affected": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "fix_summary": "The pin is DUPLICATE_THRESHOLD - 0.15 with the reason in a comment; DUPLICATE_THRESHOLD (0.5) is unchanged.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts::duplicate check"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.12 names the pair; a sim on the same objective that reuses the moves and the story is still a duplicate.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1482",
+      "date": "2026-11-11",
+      "title": "Five NBCC lab steps were graded by an interactive part alone",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/lab-interactive.test.ts 'clinical and fitness labs keep a written part in every step': NCE/nce-values-countertransference step 2 (and NCMHCE steps in five labs with only a match, order or select part)",
+      "how_detected": "backend npm test",
+      "root_cause": "The labs were authored against lib/labs-nbcc.test.ts and labs.test.ts; the rule that every clinical lab step keeps a written part lives in lib/lab-interactive.test.ts, which I did not run before committing the lab sets.",
+      "requirement": "REQ-239",
+      "affected": [
+        "backend/supabase/seed/labs/nbcc-nce.ts",
+        "backend/supabase/seed/labs/nbcc-ncmhce.ts"
+      ],
+      "fix_summary": "Each of those steps now has a written part beside the interactive one (what the attributes did; whether the PTSD picture is complete; why end as planned; warning signs in her words; the first words in a crisis; what to say to Sam).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lab-interactive.test.ts::clinical and fitness labs keep a written part in every step (no quiz replaces clinical reasoning)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the whole backend npm test, not only the set's own test file, before committing a lab set; docs/labs.md authoring step 7 already says so.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1440",
+      "date": "2026-11-11",
+      "title": "A backslash escape in a sim document string renders as a letter, not a line break",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "While authoring the terminal sims, output templates written with \\n inside a template slot's string literal would have rendered the letter n where a line break was meant (and a visible backslash outside a slot).",
+      "how_detected": "review",
+      "root_cause": "The expression parser keeps the character after a backslash and drops the backslash; templates have no backslash escapes at all. Nothing checked for them, and JSON written from a generator easily double-escapes a line break.",
+      "requirement": "REQ-237",
+      "affected": [
+        "backend/lib/sim/lint.ts",
+        "backend/supabase/seed/sims"
+      ],
+      "fix_summary": "New lint rule backslashEscapeProblems (sims:lint and the generator lint gate through checkDocument) errors on a backslash before n, r, t, a quote or a backslash in any document string; the sims use real line breaks.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/terminal.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "backend/lib/sim/lint.ts"
+      ],
+      "prevention_notes": "docs/sims.md 22.10 finding 2",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1441",
+      "date": "2026-11-11",
+      "title": "Terminal transcript put a command's output before a line that appeared at the same minute",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "terminal.test.ts: Read the terminal said the latest output was the 09:00 shopd error line, though df had just run at 09:00.",
+      "how_detected": "test",
+      "root_cause": "The first transcript sort broke ties at the same sim time by putting every command output before every timed line; a line that appears on its own happens as the minute begins, so a command run in that minute prints after it.",
+      "requirement": "REQ-237",
+      "affected": [
+        "mobile/src/sim/runtime/terminalView.ts"
+      ],
+      "fix_summary": "Ties order the timed lines first (authored order), then command output in print order.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/sim/terminal.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.10 (transcript order)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1442",
+      "date": "2026-11-11",
+      "title": "A command refused because its device was unreachable said to wait for the running command",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "terminal.test.ts: after the bare allowed-vlan list dropped the management VLAN, the command line answered 'Wait for the running command to finish' for ACC-SW2 commands.",
+      "how_detected": "test",
+      "root_cause": "The builder gave every gated command the generic busy reason; the console-only state needed its own why, since the screen shows the action's why to say why a command will not run.",
+      "requirement": "REQ-237",
+      "affected": [
+        "backend/supabase/seed/sims/NETWORKPLUS/vlan-missing-from-trunk.sim.json"
+      ],
+      "fix_summary": "Every ACC-SW2 command carries a why that names both reasons (the management VLAN is off the uplink, or a command is running).",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/sim/terminal.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.10 finding 3",
+      "recurrence_of": ""
     }
   ]
 }

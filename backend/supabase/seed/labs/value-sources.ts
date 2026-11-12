@@ -409,6 +409,32 @@ const ROBINSON_NERVE_INJURY_2000 = source("https://pubmed.ncbi.nlm.nih.gov/10842
 const NO_VALUE = "Quotes no clinical threshold, dose or target (recognition, priorities, communication or ethics).";
 const CASE_DATA = "Its numbers are the fictional patient's own readings, not a threshold or dose the lab teaches.";
 
+// --- REQ-239 (2026-11-11): NCE and NCMHCE -------------------------------------
+// Every page below was read on 2026-11-11 at the URL given, unless noted.
+const R239 = "2026-11-11";
+// ACA Code of Ethics (2014), the PDF: A.1.b records, A.1.c plans made and
+// revised jointly, A.2.a informed consent (in writing and verbally, ongoing),
+// A.4.b personal values, A.5.c 5 years for former clients, A.5.e no personal
+// virtual relationship with a current client, A.6.b-e boundary extensions,
+// role changes and nonprofessional relationships, A.10.e bartering, A.10.f
+// gifts, A.11.a-d competence, values, termination and transfer, A.12
+// abandonment, B.2.a serious and foreseeable harm, B.6.b and B.6.g records,
+// C.2.a competence, E.5.b-c culture in diagnosis, H.6.a separate online
+// presence. counseling.org/resources/ethics (same day): the 2014 Code
+// "remains the current version" until the Board adopts a revision; recheck
+// by 2027-02-01.
+const ACA_CODE_2014 = source("https://www.counseling.org/docs/default-source/default-document-library/ethics/2014-aca-code-of-ethics.pdf", "reference", R239, "2027-02-01");
+// VA National Center for PTSD, "PTSD and DSM-5" (updated 2026-09-28):
+// symptoms for more than one month; 1 intrusion, 1 avoidance, 2 cognition and
+// mood, 2 arousal; "unchanged in DSM-5-TR (2022)".
+const VA_PTSD_DSM5 = source("https://www.ptsd.va.gov/professional/treat/essentials/dsm5_ptsd.asp", "clinical_guideline", R239);
+// SAMHSA 988 page (modified 2025-11-13): "Call or Text 988".
+const SAMHSA_988 = source("https://www.samhsa.gov/mental-health/988", "reference", R239);
+// ASAM, About the ASAM Criteria: the Fourth Edition was released in 2023;
+// six dimensions (the page does not name them; the labs do not attribute
+// specific names or level numbers to ASAM).
+const ASAM_CRITERIA = source("https://www.asam.org/asam-criteria/about-the-asam-criteria", "reference", R239);
+
 export const VALUE_SOURCES: Record<string, ValueSources> = {
   CCRNADULT: {
     "post-cabg-tamponade": [STS_RESUSCITATION_2017, AHA_CARDIOGENIC_SHOCK_2017],
@@ -858,6 +884,35 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "pta-gi-bleed-signs": { none: NO_VALUE },
     "pta-pelvic-floor-coaching": { none: "Hold times follow the PT's plan in the case, not a standard." },
     "pta-berg-administer-report": [BERG_SRALAB],
+  },
+  // REQ-239 (2026-11-11): NCE and NCMHCE.
+  NCE: {
+    "nce-informed-consent-first-session": [ACA_CODE_2014],
+    "nce-boundary-gift-and-social-media": [ACA_CODE_2014],
+    "nce-mental-status-exam-write-up": { none: "Records observations in standard mental status domains; quotes no threshold or score." },
+    "nce-differential-panic-or-medical": { none: "Applies the DSM-5-TR rule that a substance or medical condition is ruled out first, as a concept; quotes no criterion count, duration or dose." },
+    "nce-grief-or-depression": { none: CONCEPTS_ONLY },
+    "nce-partner-violence-screening": { none: "Child-abuse reporting rules vary by state; the lab names none and quotes no statute or threshold." },
+    "nce-anxiety-ocd-phobia-sort": { none: CONCEPTS_ONLY },
+    "nce-measurable-goals": [ACA_CODE_2014],
+    "nce-change-talk-and-oars": { none: CONCEPTS_ONLY },
+    "nce-group-stage-interventions": { none: CONCEPTS_ONLY },
+    "nce-thought-record-distortions": { none: CONCEPTS_ONLY },
+    "nce-values-countertransference": [ACA_CODE_2014],
+  },
+  NCMHCE: {
+    "ncmhce-competence-and-referral": [ACA_CODE_2014, SAMHSA_988],
+    "ncmhce-write-a-dap-note": [ACA_CODE_2014],
+    "ncmhce-cultural-formulation": [ACA_CODE_2014],
+    "ncmhce-level-of-care": [ASAM_CRITERIA],
+    "ncmhce-trauma-acute-or-ptsd": [VA_PTSD_DSM5],
+    "ncmhce-first-episode-psychosis": [SAMHSA_988],
+    "ncmhce-revise-the-plan": [ACA_CODE_2014],
+    "ncmhce-termination-and-follow-up": [ACA_CODE_2014, SAMHSA_988],
+    "ncmhce-crisis-intervention": [SAMHSA_988],
+    "ncmhce-family-triangulation": { none: CONCEPTS_ONLY },
+    "ncmhce-cultural-humility": [ACA_CODE_2014],
+    "ncmhce-alliance-rupture": { none: CONCEPTS_ONLY },
   },
 };
 

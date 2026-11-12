@@ -1,0 +1,1743 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "thigh-bleed-tourniquet",
+  "title": "Table saw kickback",
+  "screen": {
+    "type": "bedside",
+    "level": 1,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Radial pulse, last counted",
+          "value": "vHr",
+          "unit": "/min",
+          "sub": "at {vAt|clock}",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120,
+              140
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure by cuff, last taken",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Breaths per minute, last counted",
+          "value": "vRr",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              20,
+              30
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "loss",
+          "label": "Blood on the floor",
+          "spokenLabel": "Your estimate of the blood he has lost (a sim aid)",
+          "value": "lostShown",
+          "unit": "mL",
+          "alarm": {
+            "high": 1500
+          },
+          "announce": {
+            "bands": [
+              750,
+              1500,
+              2000
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "infusions": "Bleeding: {bleedWord}. Pressure held by: {pressureBy}. Tourniquets: {tqCount}{tqTimed ? \", time written on it\" : \"\"}.",
+      "banner": [
+        {
+          "when": "sawOn",
+          "text": "The table saw is still running beside him."
+        },
+        {
+          "when": "not isNull(crewAt)",
+          "text": "{crewName} is here."
+        }
+      ]
+    }
+  },
+  "objective": "Control life-threatening external bleeding with direct pressure, a tourniquet or wound packing",
+  "secondaryObjectives": [
+    "Keep a patient in shock warm and positioned, and prepare for a rapid handover",
+    "Recognize scene hazards and decide whether to enter, wait or withdraw",
+    "Hand over care to the transporting crew with a concise report"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. EMR Examination Specifications (test plan)",
+      "checkedAt": "2026-11-09",
+      "url": "https://nremt.org/getmedia/4657d30a-a955-43af-aa8f-a92388f0d9f4/EMR-Test-Plan_Public",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-fetched for this scenario. Scene Size-up and Safety 19-23% of items; Patient Treatment and Transport 20-24% (bleeding control, shock care, handover to the transporting crew)."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Extremity Trauma/External Hemorrhage Management",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Expose the wound and apply direct pressure; if that fails or is impractical, a commercial tourniquet 2-3 inches proximal to the wound, not over a joint, tightened until the bleeding stops and the distal pulse is gone; if bleeding continues, a second tourniquet proximal to the first (for thigh wounds consider two side by side); mark the time prominently; do not loosen a tourniquet to relieve pain; do not cover it."
+    },
+    {
+      "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): General Trauma Management",
+      "checkedAt": "2026-11-11",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Avoid and treat hypothermia (remove wet clothing, cover the patient); major hemorrhage needs rapid surgical care and minimal scene time."
+    },
+    {
+      "cite": "American College of Surgeons Committee on Trauma, with NAEMSP and partners. National Guideline for the Field Triage of Injured Patients (2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.facs.org/media/2zdltley/field-triage-handout-vfinal-revise.pdf",
+      "note": "Read 2026-11-11 in ACS's handout (primary): red criteria include active bleeding requiring a tourniquet or wound packing with continuous pressure, SBP < 90 or HR > SBP at age 10-64, motor GCS < 6, RR < 10 or > 29, room-air SpO2 < 90%; any red criterion: the highest-level trauma center available in the regional system; yellow (mechanism such as rider separated from a vehicle with significant impact): a trauma center, not necessarily the highest level."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019 (DOT HS 812 666), with Change Notices 1.0 and 2.0 (2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://ldh.la.gov/assets/oph/ems/2025/EMSEducation/National_EMS_Scope_of_Practice_Model_2019.pdf",
+      "note": "Read 2026-11-11 in a text extraction of the Louisiana copy (the extractor did not keep every table column, so placement was checked against the course's own reading of 2026-11-09 in ems-sources.ts). EMR: CPR and AED, tourniquet and wound packing, naloxone, oral airway, BVM, oxygen; no pulse oximetry, glucose monitoring, epinephrine auto-injector or transport. EMT adds pulse oximetry, glucose monitoring, epinephrine auto-injector, aspirin, oral glucose, CPAP, 12-lead acquisition (not interpretation), transport. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways and a limited list of IV and IM medications including dextrose and glucagon. Paramedic adds 12-lead interpretation, manual defibrillation, intubation and the wider formulary. No newer model was found 2026-11-11 (EMS.gov's page was unavailable; the only other 'update' found is the 2017 change notice adding tourniquets, wound packing and naloxone to EMR and EMT)."
+    },
+    {
+      "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage (I under 15%, II 15-30%, III 31-40%, IV over 40% of blood volume); adult blood volume about 7% of body weight",
+      "checkedAt": "2026-11-10",
+      "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+      "note": "FLAG: not re-read for this scenario; relayed from the CCRN bleeding case (bleeding-after-whipple, 2026-11-10, through OpenAnesthesia's page). The heart-rate and blood-pressure anchors are the classic table, a teaching simplification."
+    }
+  ],
+  "brief": {
+    "situation": "15:10. You are an EMR in a quick-response vehicle, first on scene at a cabinet shop. A board kicked back off the table saw and gashed a 34-year-old man's left thigh, mid-thigh on the front. He is sitting on the floor next to the saw, pressing the wound with both hands; bright red blood is pulsing between his fingers.",
+    "handover": [
+      "A coworker called 911 and is standing by, shaken but willing to help. A BLS ambulance is about 10 minutes out.",
+      "Your kit: gloves and eye protection, gauze, pressure bandages, two commercial tourniquets, a marker, blankets. You can take a manual blood pressure, pulse and breathing rate.",
+      "As an EMR you do not transport and give no IV fluids: stop the bleeding, treat for shock, and hand over."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Blood loss keeps adding up until the bleeding is controlled. Your hands can do one thing at a time; give the coworker clear jobs.",
+      "Partway through you are asked to explain your decisions in writing. The case ends when the ambulance crew takes over, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "15:10",
+    "tick": "1s",
+    "maxDuration": "20min",
+    "calendar": "clock"
+  },
+  "params": {
+    "arterialRate": {
+      "value": 250,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. An open thigh wound with a cut branch artery bleeding about 250 mL/min uncontrolled. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "pressureRate": {
+      "value": 60,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Firm direct pressure on gauze slows it to about 60 mL/min but does not stop it. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bandageRate": {
+      "value": 150,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. A pressure bandage on a pulsing arterial wound soaks through: about 150 mL/min. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "venousRate": {
+      "value": 300,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. A loose 'venous' tourniquet traps venous return while arterial flow continues: worse than none, about 300 mL/min. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "oozeRate": {
+      "value": 30,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. One correctly placed thigh tourniquet still lets about 30 mL/min through (thick thigh); NASEMSO advises a second above the first if bleeding continues. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lostStart": {
+      "value": 300,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Blood already on the floor when you arrive. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "classTwo": {
+      "value": 840,
+      "unit": "mL",
+      "source": {
+        "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage (I under 15%, II 15-30%, III 31-40%, IV over 40% of blood volume); adult blood volume about 7% of body weight",
+        "checkedAt": "2026-11-10",
+        "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+        "note": "FLAG: not re-read for this scenario; relayed from the CCRN bleeding case (bleeding-after-whipple, 2026-11-10, through OpenAnesthesia's page). The heart-rate and blood-pressure anchors are the classic table, a teaching simplification."
+      }
+    },
+    "classThree": {
+      "value": 1680,
+      "unit": "mL",
+      "source": {
+        "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage (I under 15%, II 15-30%, III 31-40%, IV over 40% of blood volume); adult blood volume about 7% of body weight",
+        "checkedAt": "2026-11-10",
+        "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+        "note": "FLAG: not re-read for this scenario; relayed from the CCRN bleeding case (bleeding-after-whipple, 2026-11-10, through OpenAnesthesia's page). The heart-rate and blood-pressure anchors are the classic table, a teaching simplification."
+      }
+    },
+    "collapseLoss": {
+      "value": 2240,
+      "unit": "mL",
+      "source": {
+        "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage (I under 15%, II 15-30%, III 31-40%, IV over 40% of blood volume); adult blood volume about 7% of body weight",
+        "checkedAt": "2026-11-10",
+        "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+        "note": "FLAG: not re-read for this scenario; relayed from the CCRN bleeding case (bleeding-after-whipple, 2026-11-10, through OpenAnesthesia's page). The heart-rate and blood-pressure anchors are the classic table, a teaching simplification."
+      }
+    },
+    "targetLoss": {
+      "value": 1000,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Handed over with less than about 1 L lost: class II at most, with a correct tourniquet and shock care. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "tqTime": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Applying a commercial tourniquet over the trouser leg-free skin and turning the windlass: about 30 s."
+      }
+    },
+    "tq2Time": {
+      "value": 20,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A second tourniquet just above the first: about 20 s."
+      }
+    },
+    "vitalsTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Pulse, breathing rate and a manual blood pressure: about 1 min."
+      }
+    },
+    "controlWindow": {
+      "value": 90,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: stands in for a number no guideline gives. Bleeding stopped within 90 s of reaching him. The guidance says to act at once; survival is markedly better when the tourniquet goes on before shock develops (NASEMSO), without a number. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "crewEta": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "BLS ambulance about 10 min after you arrive (authored)."
+      }
+    },
+    "alsEta": {
+      "value": 420,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Paramedic intercept about 7 min from the request (authored)."
+      }
+    },
+    "handoffGrace": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The crew takes over within 2 min whether or not you report."
+      }
+    }
+  },
+  "state": {
+    "lost": {
+      "type": "number",
+      "init": "lostStart",
+      "min": 0,
+      "max": 6000,
+      "unit": "mL"
+    },
+    "pressureBy": {
+      "type": "enum",
+      "values": [
+        "nobody",
+        "you",
+        "the coworker"
+      ],
+      "init": "nobody"
+    },
+    "tq1": {
+      "type": "enum",
+      "values": [
+        "none",
+        "good",
+        "loose",
+        "wrongSite"
+      ],
+      "init": "none"
+    },
+    "tq2Good": {
+      "type": "bool",
+      "init": false
+    },
+    "bandaged": {
+      "type": "bool",
+      "init": false
+    },
+    "tqTimed": {
+      "type": "bool",
+      "init": false
+    },
+    "warm": {
+      "type": "bool",
+      "init": false
+    },
+    "flat": {
+      "type": "bool",
+      "init": false
+    },
+    "waterGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "loosened": {
+      "type": "bool",
+      "init": false
+    },
+    "applying": {
+      "type": "bool",
+      "init": false
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "hazardHit": {
+      "type": "bool",
+      "init": false
+    },
+    "handoffFull": {
+      "type": "bool",
+      "init": false
+    },
+    "tqCount": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "sawOn": {
+      "type": "bool",
+      "init": false
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vHr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 220,
+      "unit": "/min"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "vRr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 60,
+      "unit": "/min"
+    },
+    "powerAt": {
+      "type": "time",
+      "init": null
+    },
+    "ppeAt": {
+      "type": "time",
+      "init": null
+    },
+    "contactAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressureAt": {
+      "type": "time",
+      "init": null
+    },
+    "tqAt": {
+      "type": "time",
+      "init": null
+    },
+    "controlledAt": {
+      "type": "time",
+      "init": null
+    },
+    "warmAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "alsAt": {
+      "type": "time",
+      "init": null
+    },
+    "crewAt": {
+      "type": "time",
+      "init": null
+    },
+    "handoffAt": {
+      "type": "time",
+      "init": null
+    },
+    "loosenAt": {
+      "type": "time",
+      "init": null
+    },
+    "mostlyAt": {
+      "type": "time",
+      "init": null
+    },
+    "crewName": {
+      "type": "enum",
+      "values": [
+        "Nobody",
+        "The BLS crew",
+        "The paramedic crew"
+      ],
+      "init": "Nobody"
+    }
+  },
+  "derived": {
+    "rate": {
+      "expr": "tq1 == \"good\" ? (tq2Good ? 0 : oozeRate) : (tq1 == \"loose\" ? venousRate : (pressureBy != \"nobody\" ? pressureRate : (bandaged ? bandageRate : arterialRate)))",
+      "unit": "mL/min"
+    },
+    "controlled": {
+      "expr": "rate == 0"
+    },
+    "mostly": {
+      "expr": "rate <= oozeRate"
+    },
+    "bleedWord": {
+      "expr": "rate == 0 ? \"stopped\" : (rate <= oozeRate ? \"oozing past the tourniquet\" : (rate <= pressureRate ? \"slowed under pressure\" : \"pulsing, uncontrolled\"))"
+    },
+    "frac": {
+      "expr": "clamp((lost - 500) / (collapseLoss - 500), 0, 1)"
+    },
+    "hr": {
+      "expr": "round(84 + 60 * frac + 2 * sin(t / 23))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(132 - 62 * clamp((lost - classTwo) / (collapseLoss - classTwo), 0, 1))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(84 - 34 * clamp((lost - classTwo) / (collapseLoss - classTwo), 0, 1))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(16 + 14 * frac)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "lostShown": {
+      "expr": "round(lost / 50) * 50",
+      "unit": "mL",
+      "precision": 0
+    },
+    "crewHere": {
+      "expr": "not isNull(crewAt)"
+    },
+    "youFree": {
+      "expr": "pressureBy != \"you\" and not applying and not vPending and not isNull(contactAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "bleed",
+      "update": {
+        "lost": "lost + rate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "scene": {
+      "label": "In the shop",
+      "clock": "running",
+      "actions": [
+        "power",
+        "ppe",
+        "contact",
+        "pressure",
+        "coworker",
+        "bandage",
+        "tourniquet",
+        "tighten",
+        "second",
+        "markTime",
+        "loosen",
+        "shockCare",
+        "water",
+        "vitals",
+        "requestAls",
+        "handoff"
+      ]
+    }
+  },
+  "initialPhase": "scene",
+  "actions": {
+    "power": {
+      "label": "Switch the saw off at the wall",
+      "group": "Scene",
+      "available": "sawOn",
+      "why": "It is off.",
+      "effects": [
+        {
+          "set": "sawOn",
+          "to": "false"
+        },
+        {
+          "if": "isNull(powerAt)",
+          "then": [
+            {
+              "set": "powerAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The blade spins down. Scene safe."
+        }
+      ]
+    },
+    "ppe": {
+      "label": "Gloves and eye protection on",
+      "group": "Scene",
+      "available": "isNull(ppeAt)",
+      "why": "Already on.",
+      "effects": [
+        {
+          "if": "isNull(ppeAt)",
+          "then": [
+            {
+              "set": "ppeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Gloves and glasses on."
+        }
+      ]
+    },
+    "contact": {
+      "label": "Kneel beside him",
+      "group": "Scene",
+      "available": "isNull(contactAt)",
+      "why": "You are with him.",
+      "effects": [
+        {
+          "if": "isNull(contactAt)",
+          "then": [
+            {
+              "set": "contactAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "sawOn",
+          "then": [
+            {
+              "set": "hazardHit",
+              "to": "true"
+            },
+            {
+              "log": "Your sleeve brushes the moving blade guard: the saw is still running inches from you both.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "log": "He is pale and frightened: \"It won't stop!\"",
+          "kind": "find"
+        }
+      ]
+    },
+    "pressure": {
+      "label": "Expose the wound and press hard with gauze (you)",
+      "group": "Bleeding",
+      "available": "not isNull(contactAt) and pressureBy != \"you\" and not applying",
+      "why": "Kneel beside him first, or your hands are busy.",
+      "effects": [
+        {
+          "set": "pressureBy",
+          "to": "\"you\""
+        },
+        {
+          "if": "isNull(pressureAt)",
+          "then": [
+            {
+              "set": "pressureAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Trouser leg cut away; both hands on a wad of gauze. The spurting slows to a steady flow."
+        }
+      ]
+    },
+    "coworker": {
+      "label": "Coworker: put gloves on and press here with both hands",
+      "group": "Bleeding",
+      "available": "pressureBy == \"you\"",
+      "why": "Only to take over pressure you are holding.",
+      "effects": [
+        {
+          "set": "pressureBy",
+          "to": "\"the coworker\""
+        },
+        {
+          "log": "The coworker takes over the pressure. Your hands are free."
+        }
+      ]
+    },
+    "bandage": {
+      "label": "Wrap a pressure bandage and raise the leg",
+      "group": "Bleeding",
+      "available": "not isNull(contactAt) and not bandaged",
+      "why": "Kneel beside him first, or already wrapped.",
+      "effects": [
+        {
+          "set": "bandaged",
+          "to": "true"
+        },
+        {
+          "if": "pressureBy == \"you\"",
+          "then": [
+            {
+              "set": "pressureBy",
+              "to": "\"nobody\""
+            }
+          ]
+        },
+        {
+          "log": "The bandage reddens within seconds and soaks through.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "tourniquet": {
+      "label": "Apply a commercial tourniquet",
+      "group": "Bleeding",
+      "available": "tq1 == \"none\" and not isNull(contactAt) and not applying",
+      "why": "Kneel beside him first, or one is already on.",
+      "params": [
+        {
+          "id": "tqForm",
+          "kind": "form",
+          "label": "Tourniquet",
+          "fields": [
+            {
+              "id": "site",
+              "label": "Where",
+              "options": [
+                {
+                  "value": "above",
+                  "label": "On the thigh 2-3 inches above the wound, not over a joint"
+                },
+                {
+                  "value": "over",
+                  "label": "Directly over the wound"
+                },
+                {
+                  "value": "knee",
+                  "label": "Below the wound, just above the knee"
+                }
+              ]
+            },
+            {
+              "id": "tight",
+              "label": "How tight",
+              "options": [
+                {
+                  "value": "stop",
+                  "label": "Until the bleeding stops and the foot pulse is gone"
+                },
+                {
+                  "value": "snug",
+                  "label": "Snug, so it doesn't hurt too much"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "applying",
+          "to": "true"
+        },
+        {
+          "if": "isNull(tqAt)",
+          "then": [
+            {
+              "set": "tqAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "pressureBy == \"you\"",
+          "then": [
+            {
+              "set": "pressureBy",
+              "to": "\"nobody\""
+            },
+            {
+              "log": "You let go of the wound to apply it: nobody is pressing now.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "schedule": "tqT",
+          "after": "tqTime",
+          "with": {
+            "site": "site",
+            "tight": "tight"
+          }
+        },
+        {
+          "log": "Tourniquet strap around the thigh; turning the windlass."
+        }
+      ]
+    },
+    "tighten": {
+      "label": "Turn the windlass further until the bleeding stops",
+      "group": "Bleeding",
+      "available": "tq1 == \"loose\"",
+      "why": "Only for a tourniquet that is too loose.",
+      "effects": [
+        {
+          "set": "tq1",
+          "to": "\"good\""
+        },
+        {
+          "if": "isNull(mostlyAt)",
+          "then": [
+            {
+              "set": "mostlyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Two more turns. He cries out; the pulsing stops and the foot pulse is gone; a slow ooze remains.",
+          "kind": "good"
+        }
+      ]
+    },
+    "second": {
+      "label": "Second tourniquet just above the first",
+      "group": "Bleeding",
+      "available": "tq1 == \"good\" and not tq2Good and not applying",
+      "why": "Only after a correct first tourniquet that still lets blood through.",
+      "effects": [
+        {
+          "set": "applying",
+          "to": "true"
+        },
+        {
+          "schedule": "tq2T",
+          "after": "tq2Time"
+        },
+        {
+          "log": "Second tourniquet above the first."
+        }
+      ]
+    },
+    "markTime": {
+      "label": "Write the time on the tourniquet and leave it uncovered",
+      "group": "Bleeding",
+      "available": "tqCount > 0 and not tqTimed",
+      "why": "No tourniquet on yet, or already marked.",
+      "effects": [
+        {
+          "set": "tqTimed",
+          "to": "true"
+        },
+        {
+          "log": "'TQ {timeAt(tqAt)|clock}' written on the strap and on his forehead."
+        }
+      ]
+    },
+    "loosen": {
+      "label": "He begs you: loosen the tourniquet a little",
+      "group": "Bleeding",
+      "available": "tq1 == \"good\" and not loosened",
+      "why": "Only with a tight tourniquet on.",
+      "effects": [
+        {
+          "set": "loosened",
+          "to": "true"
+        },
+        {
+          "if": "isNull(loosenAt)",
+          "then": [
+            {
+              "set": "loosenAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "tq1",
+          "to": "\"loose\""
+        },
+        {
+          "set": "tq2Good",
+          "to": "false"
+        },
+        {
+          "log": "You ease the windlass. The thigh darkens and blood wells up again around the tourniquet.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "shockCare": {
+      "label": "Lay him flat and cover him with a blanket",
+      "group": "Shock",
+      "available": "not warm and youFree",
+      "why": "Your hands are busy, or he is already covered.",
+      "effects": [
+        {
+          "set": "warm",
+          "to": "true"
+        },
+        {
+          "set": "flat",
+          "to": "true"
+        },
+        {
+          "if": "isNull(warmAt)",
+          "then": [
+            {
+              "set": "warmAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Flat on a blanket, another over him; the tourniquet left in view."
+        }
+      ]
+    },
+    "water": {
+      "label": "He is thirsty: give him a cup of water",
+      "group": "Shock",
+      "available": "not waterGiven and not isNull(contactAt)",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "waterGiven",
+          "to": "true"
+        },
+        {
+          "log": "He gulps it, then retches. Nothing by mouth for a patient who may need surgery and an airway.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Pulse, breathing and a manual blood pressure",
+      "group": "Assess",
+      "available": "youFree",
+      "why": "Your hands are busy.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Cuff on the right arm."
+        }
+      ]
+    },
+    "requestAls": {
+      "label": "Radio: arterial bleed, tourniquet, signs of shock; request paramedics",
+      "group": "Call",
+      "available": "isNull(alsAt)",
+      "why": "Already requested.",
+      "effects": [
+        {
+          "if": "isNull(alsAt)",
+          "then": [
+            {
+              "set": "alsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "alsT",
+          "after": "alsEta"
+        },
+        {
+          "log": "Dispatch: \"Copy. Medic 4 responding.\"",
+          "kind": "sys"
+        }
+      ]
+    },
+    "handoff": {
+      "label": "Hand over to the crew",
+      "group": "Call",
+      "available": "crewHere and isNull(handoffAt)",
+      "why": "No crew yet.",
+      "params": [
+        {
+          "id": "report",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "full",
+              "label": "Arterial thigh bleed, tourniquet time, second tourniquet, estimated loss, vital-sign trend, nothing by mouth"
+            },
+            {
+              "value": "vague",
+              "label": "\"Cut his leg on the saw, we stopped the bleeding.\""
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(handoffAt)",
+          "then": [
+            {
+              "set": "handoffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "handoffFull",
+          "to": "report == \"full\""
+        },
+        {
+          "log": "You hand over."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "tqT": {
+      "label": "the tourniquet",
+      "wait": {
+        "skipLabel": "the tourniquet tightened (about 30 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 30 s."
+      },
+      "effects": [
+        {
+          "set": "applying",
+          "to": "false"
+        },
+        {
+          "add": "tqCount",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "timer.with.site == \"above\" and timer.with.tight == \"stop\"",
+              "then": [
+                {
+                  "set": "tq1",
+                  "to": "\"good\""
+                },
+                {
+                  "if": "isNull(mostlyAt)",
+                  "then": [
+                    {
+                      "set": "mostlyAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "The pulsing stops; the foot pulse is gone. A slow ooze still seeps from the wound.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "timer.with.site == \"above\"",
+              "then": [
+                {
+                  "set": "tq1",
+                  "to": "\"loose\""
+                },
+                {
+                  "log": "The leg below swells and darkens and the wound bleeds faster: a tourniquet only snug blocks the veins, not the artery.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "tq1",
+                  "to": "\"wrongSite\""
+                },
+                {
+                  "log": "It does nothing to the pulsing: over a wound or below it, a tourniquet cannot compress the artery feeding it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "with": {
+        "site": {
+          "type": "enum",
+          "values": [
+            "above",
+            "over",
+            "knee"
+          ]
+        },
+        "tight": {
+          "type": "enum",
+          "values": [
+            "stop",
+            "snug"
+          ]
+        }
+      }
+    },
+    "tq2T": {
+      "label": "the second tourniquet",
+      "wait": {
+        "skipLabel": "the second tourniquet (about 20 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 20 s."
+      },
+      "effects": [
+        {
+          "set": "applying",
+          "to": "false"
+        },
+        {
+          "set": "tq2Good",
+          "to": "true"
+        },
+        {
+          "add": "tqCount",
+          "by": "1"
+        },
+        {
+          "if": "isNull(controlledAt)",
+          "then": [
+            {
+              "set": "controlledAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The ooze stops. Bleeding controlled.",
+          "kind": "good"
+        }
+      ]
+    },
+    "vitalsT": {
+      "label": "vital signs",
+      "wait": {
+        "skipLabel": "the vital signs (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 1 min."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "vHr",
+          "to": "hr"
+        },
+        {
+          "set": "vSbp",
+          "to": "sbp"
+        },
+        {
+          "set": "vDbp",
+          "to": "dbp"
+        },
+        {
+          "set": "vRr",
+          "to": "rr"
+        },
+        {
+          "log": "Pulse {hr}, BP {sbp}/{dbp}, RR {rr}; skin pale and cool.",
+          "kind": "find"
+        }
+      ]
+    },
+    "alsT": {
+      "label": "the paramedics",
+      "wait": {
+        "skipLabel": "the paramedics (about 7 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 7 min."
+      },
+      "effects": [
+        {
+          "if": "isNull(crewAt)",
+          "then": [
+            {
+              "set": "crewName",
+              "to": "\"The paramedic crew\""
+            }
+          ]
+        },
+        {
+          "if": "isNull(crewAt)",
+          "then": [
+            {
+              "set": "crewAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Medic 4's paramedics arrive.",
+          "kind": "good"
+        }
+      ]
+    },
+    "crewT": {
+      "label": "the BLS ambulance",
+      "wait": {
+        "skipLabel": "the BLS ambulance (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 10 min."
+      },
+      "effects": [
+        {
+          "if": "isNull(crewAt)",
+          "then": [
+            {
+              "set": "crewName",
+              "to": "\"The BLS crew\""
+            }
+          ]
+        },
+        {
+          "if": "isNull(crewAt)",
+          "then": [
+            {
+              "set": "crewAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The BLS ambulance arrives.",
+          "kind": "good"
+        }
+      ]
+    },
+    "graceT": {
+      "label": "the crew taking over",
+      "wait": {
+        "skipLabel": "the crew taking over"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Within 2 min."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "sawOn",
+          "to": "true"
+        },
+        {
+          "schedule": "crewT",
+          "after": "crewEta"
+        }
+      ]
+    },
+    {
+      "id": "dizzy",
+      "when": "lost >= classThree",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "He is grey and confused, asking the same question twice.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "crew",
+      "when": "crewHere",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "schedule": "graceT",
+          "after": "handoffGrace"
+        },
+        {
+          "log": "{crewName} is ready for your report.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(controlledAt) or t >= 180",
+      "question": "Why a tourniquet here rather than a bigger dressing, and how did you place and check it?",
+      "parts": [
+        {
+          "label": "Choosing the tourniquet",
+          "criteria": "Pulsing bright red bleeding from a limb is life-threatening; direct pressure first and at once, then a commercial tourniquet when pressure does not control it; a pressure dressing soaks through and wastes time.",
+          "modelAnswer": "Bright red, pulsing blood from the thigh is arterial and life-threatening. Press hard at once, then put on a tourniquet because pressure alone did not stop it. A pressure bandage just soaks through."
+        },
+        {
+          "label": "Placement and checks",
+          "criteria": "2-3 inches above the wound, not over a joint, tightened until bleeding stops and the distal pulse is gone; a second above the first if it still bleeds; time written; not loosened for pain; then flat, warm, nothing by mouth.",
+          "modelAnswer": "On the thigh 2-3 inches above the wound, not over the knee, tightened until the bleeding stops and the foot pulse is gone; a second one above it when it still oozed. Time written on it, left in view, never loosened for pain. Then flat, warm, nothing to drink."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "crewHere and not mostly",
+      "class": "harm",
+      "rationale": "A crew arriving to a limb still bleeding after 7-10 minutes means the treatment that saves this patient was never completed; this case calls it harm.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Extremity Trauma/External Hemorrhage Management",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Expose the wound and apply direct pressure; if that fails or is impractical, a commercial tourniquet 2-3 inches proximal to the wound, not over a joint, tightened until the bleeding stops and the distal pulse is gone; if bleeding continues, a second tourniquet proximal to the first (for thigh wounds consider two side by side); mark the time prominently; do not loosen a tourniquet to relieve pain; do not cover it."
+      }
+    }
+  },
+  "endings": {
+    "collapse": {
+      "label": "He bled into shock and collapsed",
+      "class": "harm",
+      "when": "lost >= collapseLoss",
+      "terminal": true,
+      "narrative": "{t|clock}: he goes limp, pulse thready at {hr}. He has lost about {lostShown} mL: class IV hemorrhage."
+    },
+    "stillBleeding": {
+      "label": "The crew arrives to a limb still bleeding",
+      "class": "harm",
+      "terminal": true,
+      "when": "crewHere and not mostly and (not isNull(handoffAt) or t >= timeAt(crewAt) + handoffGrace)",
+      "narrative": "{crewName} finds the thigh still bleeding ({bleedWord}) and about {lostShown} mL lost."
+    },
+    "controlledHandoff": {
+      "label": "Bleeding stopped early; clean handoff",
+      "class": "target",
+      "terminal": true,
+      "when": "crewHere and controlled and not isNull(handoffAt) and handoffFull and lost < targetLoss and not hazardHit and not isNull(ppeAt) and not loosened and timeAt(controlledAt) - timeAt(contactAt) <= controlWindow",
+      "narrative": "{timeAt(handoffAt)|clock}: {crewName} takes over a man with a timed tourniquet, about {lostShown} mL lost, warm and flat, with a clear report."
+    },
+    "controlledGaps": {
+      "label": "Bleeding controlled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "crewHere and mostly and (not isNull(handoffAt) or t >= timeAt(crewAt) + handoffGrace)",
+      "narrative": "{crewName} takes over with the bleeding stopped and about {lostShown} mL lost, but the route had gaps: scene safety, delay, a loosened tourniquet or a thin report."
+    },
+    "time_up": {
+      "label": "20 minutes on scene",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Twenty minutes and no handover."
+    }
+  },
+  "endingOrder": [
+    "collapse",
+    "stillBleeding",
+    "controlledHandoff",
+    "controlledGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "scene",
+        "label": "Scene made safe and gloves on before touching him",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "hazardHit",
+            "score": "missed",
+            "why": "Knelt beside a running saw."
+          },
+          {
+            "when": "isNull(ppeAt) or (not isNull(contactAt) and timeAt(ppeAt) > timeAt(contactAt))",
+            "score": "partial",
+            "why": "The saw was off, but gloves went on late or never."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Saw off, gloves and eye protection on first."
+          }
+        ]
+      },
+      {
+        "id": "control",
+        "label": "Bleeding stopped within 90 s of reaching him",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(controlledAt) and timeAt(controlledAt) - timeAt(contactAt) <= controlWindow",
+            "score": "met",
+            "why": "Stopped {timeAt(controlledAt) - timeAt(contactAt)} s after reaching him."
+          },
+          {
+            "when": "not isNull(mostlyAt) and timeAt(mostlyAt) - timeAt(contactAt) <= controlWindow",
+            "score": "partial",
+            "why": "One tourniquet slowed it to an ooze within 90 s, but the bleeding never fully stopped."
+          },
+          {
+            "when": "isNull(controlledAt)",
+            "score": "missed",
+            "why": "The bleeding was never stopped."
+          },
+          {
+            "when": "timeAt(controlledAt) - timeAt(contactAt) <= controlWindow * 3",
+            "score": "partial",
+            "why": "Stopped {timeAt(controlledAt) - timeAt(contactAt)} s after reaching him."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Stopped only {timeAt(controlledAt) - timeAt(contactAt)} s after reaching him."
+          }
+        ]
+      },
+      {
+        "id": "tqRight",
+        "label": "Tourniquet placed, tightened and kept right",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "loosened",
+            "score": "missed",
+            "why": "Loosened for pain: the bleeding restarted."
+          },
+          {
+            "when": "tq1 == \"wrongSite\"",
+            "score": "missed",
+            "why": "Placed over or below the wound, where it cannot work."
+          },
+          {
+            "when": "tq1 == \"none\"",
+            "score": "missed",
+            "why": "No tourniquet on a pulsing thigh wound."
+          },
+          {
+            "when": "tq1 == \"good\" and tq2Good and tqTimed",
+            "score": "met",
+            "why": "Above the wound, tight, a second above it, time written."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "On, but too loose at first, no second tourniquet, or no time written."
+          }
+        ]
+      },
+      {
+        "id": "pressureFirst",
+        "label": "Direct pressure at once, held while the tourniquet went on",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(pressureAt)",
+            "score": "missed",
+            "why": "No direct pressure."
+          },
+          {
+            "when": "timeAt(pressureAt) - timeAt(contactAt) <= 10 and pressureBy == \"the coworker\"",
+            "score": "met",
+            "why": "Pressure within seconds, then handed to the coworker."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Pressure late, or let go while applying the tourniquet."
+          }
+        ]
+      },
+      {
+        "id": "shock",
+        "label": "Treated for shock: flat, warm, nothing by mouth",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "waterGiven",
+            "score": "missed",
+            "why": "Gave water."
+          },
+          {
+            "when": "warm",
+            "score": "met",
+            "why": "Flat and covered."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not covered or positioned."
+          }
+        ]
+      },
+      {
+        "id": "als",
+        "label": "Asked for paramedics",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(alsAt)",
+            "score": "met",
+            "why": "Paramedics requested at {timeAt(alsAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Paramedics never requested; a tourniquet case meets the red field-triage criteria."
+          }
+        ]
+      },
+      {
+        "id": "handoff",
+        "label": "Handoff with the tourniquet time",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "handoffFull",
+            "score": "met",
+            "why": "Tourniquet time, loss, trend."
+          },
+          {
+            "when": "not isNull(handoffAt)",
+            "score": "partial",
+            "why": "No tourniquet time or loss estimate."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No report."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: choosing and placing the tourniquet",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toPressure",
+        "label": "Reaching him to direct pressure",
+        "value": "isNull(pressureAt) or isNull(contactAt) ? -1 : timeAt(pressureAt) - timeAt(contactAt)",
+        "format": "duration",
+        "expert": "under 5 s"
+      },
+      {
+        "id": "toControl",
+        "label": "Reaching him to bleeding stopped",
+        "value": "isNull(controlledAt) or isNull(contactAt) ? -1 : timeAt(controlledAt) - timeAt(contactAt)",
+        "format": "duration",
+        "expert": "under 1 min"
+      },
+      {
+        "id": "loss",
+        "label": "Estimated blood loss at handover (mL)",
+        "value": "lostShown",
+        "format": "number",
+        "expert": "under 500"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:10",
+        "text": "Saw off at the wall, gloves and glasses on, kneel beside him. Hard direct pressure with gauze at once."
+      },
+      {
+        "at": "15:10:05",
+        "text": "Coworker takes over the pressure; tourniquet 2-3 inches above the wound, tightened until the pulsing stops and the foot pulse is gone."
+      },
+      {
+        "at": "15:10:40",
+        "text": "Still oozing: second tourniquet above the first. Time written, left uncovered. Radio for paramedics."
+      },
+      {
+        "at": "15:11",
+        "text": "Flat, blankets, nothing by mouth. Vital signs. He asks you to loosen it: no."
+      },
+      {
+        "at": "~15:17",
+        "text": "Hand over: tourniquet time, second tourniquet, estimated loss, vital-sign trend."
+      }
+    ],
+    "debrief": {
+      "collapse": {
+        "headline": "He bled into class IV shock",
+        "body": "Pulsing bleeding from the thigh can empty a patient in minutes. Look at how long the wound went without firm pressure and how long until a correctly placed tourniquet."
+      },
+      "stillBleeding": {
+        "headline": "Still bleeding when the crew came",
+        "body": "A pressure bandage soaks through, and a tourniquet over or below the wound, or only snug, cannot stop arterial flow. Above the wound, tight until the bleeding and the distal pulse stop, a second if needed."
+      },
+      "controlledHandoff": {
+        "headline": "Bleeding stopped early, clean handoff",
+        "body": "Safe scene, pressure at once, a correct tourniquet within seconds and a second when it oozed, time written, shock care and a complete report: the expert path."
+      },
+      "controlledGaps": {
+        "headline": "Stopped, with gaps",
+        "body": "The bleeding stopped, but check the timeline: the running saw, gloves, the delay before control, a loosened tourniquet, or a report without the tourniquet time."
+      },
+      "time_up": {
+        "headline": "No handover",
+        "body": "Twenty minutes passed without a handover."
+      }
+    },
+    "modelReasoning": "Make the scene safe first (switch the saw off, gloves and eye protection). Bright red pulsing blood from the thigh is life-threatening: press hard at once, hand the pressure to a helper, and apply a commercial tourniquet 2-3 inches above the wound, not over a joint, tightened until the bleeding stops and the distal pulse is gone. If it still oozes, a second tourniquet above the first. Write the time on it, leave it uncovered, never loosen it for pain. Then treat for shock: flat, warm, nothing by mouth. Ask for paramedics (a tourniquet is a red field-triage criterion) and hand over with the tourniquet time, the estimated loss and the vital-sign trend."
+  },
+  "chapters": [
+    {
+      "id": "stopped",
+      "label": "Bleeding controlled",
+      "when": "controlled"
+    }
+  ],
+  "teaching": {
+    "pulse": {
+      "during": "tqT",
+      "ask": "While you turn the windlass: how will you know it is tight enough?",
+      "choices": [
+        {
+          "id": "stop",
+          "label": "The bleeding stops and the pulse below it is gone"
+        },
+        {
+          "id": "pain",
+          "label": "He says it hurts"
+        },
+        {
+          "id": "pale",
+          "label": "The skin under it turns white"
+        }
+      ],
+      "expect": "stop",
+      "explain": "Tighten until the bleeding stops and the distal pulse is gone. Pain is expected and is not the end point; a tourniquet only snug blocks the veins and makes bleeding worse.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Extremity Trauma/External Hemorrhage Management",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Expose the wound and apply direct pressure; if that fails or is impractical, a commercial tourniquet 2-3 inches proximal to the wound, not over a joint, tightened until the bleeding stops and the distal pulse is gone; if bleeding continues, a second tourniquet proximal to the first (for thigh wounds consider two side by side); mark the time prominently; do not loosen a tourniquet to relieve pain; do not cover it."
+      }
+    },
+    "crewWait": {
+      "during": "crewT",
+      "when": "tq1 != \"none\"",
+      "ask": "While the ambulance comes: he begs you to loosen it because it hurts. What do you do?",
+      "choices": [
+        {
+          "id": "keep",
+          "label": "Leave it tight, explain why, and tell the crew he needs pain relief"
+        },
+        {
+          "id": "ease",
+          "label": "Loosen it a little every few minutes"
+        },
+        {
+          "id": "remove",
+          "label": "Take it off now the bleeding has stopped"
+        }
+      ],
+      "expect": "keep",
+      "explain": "Never loosen a tourniquet to relieve pain; pain is treated with analgesics by the transporting crew. Loosening restarts the bleeding.",
+      "source": {
+        "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Extremity Trauma/External Hemorrhage Management",
+        "checkedAt": "2026-11-11",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-11 in full text (the copy Iowa HHS hosts, https://hhs.iowa.gov/media/198/download; NASEMSO refused the PDF on 2026-11-09). Still the current version (no Version 4 found 2026-11-11). Expose the wound and apply direct pressure; if that fails or is impractical, a commercial tourniquet 2-3 inches proximal to the wound, not over a joint, tightened until the bleeding stops and the distal pulse is gone; if bleeding continues, a second tourniquet proximal to the first (for thigh wounds consider two side by side); mark the time prominently; do not loosen a tourniquet to relieve pain; do not cover it."
+      }
+    }
+  }
+}

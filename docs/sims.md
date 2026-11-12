@@ -4836,3 +4836,159 @@ value without a restart (not modeled; the documented restart is required).
    (busy, or the device unreachable) names both.
 4. **The infrastructure thresholds were drafts** with an empty profile; they
    are now defaults (display and lint only, no engine minor).
+
+### 22.12 NCE and NCMHCE client sessions (REQ-239)
+
+Five more cases on the client `session` screen (22.5), for the two NBCC
+counseling courses (`backend/supabase/seed/tracks/nbcc.ts`, Mental Health >
+counseling licensure, so the 18+ confirmation and the study notice apply
+through the category). Same profile (`clinical-session`), same pacing
+(learner-paced `turns`, no running phase, so no pace or skip offer), same
+engine (1.2, an explicit `endingOrder`), no engine or renderer change.
+Registered as authored entries in one block at the end of `ALL_DOCUMENTS`;
+`NBCC_SESSION_DOCUMENTS` and `NBCC_OBJECTIVES` (lib/sim/documents.ts) list
+them for the tests, and the course seed exports the same titles
+(`NCE_SIM_OBJECTIVES`, `NCMHCE_SIM_OBJECTIVES`).
+
+| Course | Slug | Objective (exact title) | Core of the case |
+|---|---|---|---|
+| NCE | `nce-boundary-dual-relationship` | Manage boundaries and multiple relationships under the ACA Code of Ethics | A current client's friend request (prohibited, ACA A.5.e), her coaching your child's soccer team in a small town (an unavoidable overlap managed with consent, A.6.a) and her wedding invitation (a boundary extension to weigh, consult on and document first, A.6.b-c); a transfer 50 miles away is the recovered ending |
+| NCE | `nce-substance-use-screen` | Screen for substance use and match the client to a level of care | A court-referred DUI assessment: limits and a written release before anything goes to the court (B.6.g), the AUDIT (24; 15 or more suggests likely dependence on the authors' site), withdrawal history (needs trust), a borrowed sedative, 7 of 11 criteria (severe), a medical withdrawal evaluation before intensive outpatient |
+| NCMHCE | `ncmhce-intake-ptsd-alcohol` | Conduct an intake and reach a DSM-5-TR diagnosis in a counseling case | 'Panic attacks' that are cued by reminders of an assault: a gentle trauma question once trust is there, the four PTSD clusters for more than a month (VA), a co-occurring mild alcohol use disorder (3 of 11), medical rule-outs, a suicide screen; pressing for detail costs the alliance |
+| NCMHCE | `ncmhce-suicide-safety-plan` | Assess suicide risk and build a safety plan in a counseling session | A late-night voicemail: a direct question early, the C-SSRS follow-ups including a past attempt, pills in the nightstand moved out today, a six-step Stanley-Brown plan, her roommate involved with consent, 988, a call tomorrow; elevated, not imminent |
+| NCMHCE | `ncmhce-trauma-treatment-plan` | Build a trauma-informed treatment plan with the client | Two sessions three weeks apart, as an NCMHCE case runs: session 1 builds the plan with SAMHSA's principles (grounding first, no forced retelling, transparency, his choice of a recommended trauma-focused therapy, goals in his words, peer support, a measure); session 2, after the anniversary, reassesses risk early and revises the plan with him |
+
+Each has one written-reasoning moment, endings in all three classes, four
+critical criteria, KPIs with expert values, an expert path, a debrief per
+ending, one unscored prediction as a decision card (22.5 finding 3), and six
+golden paths (Good, Mediocre, Bad; every ending but `time_up` and every
+criterion both met and missed), built by
+`npm run sim:golden -- steps nce-boundary|nce-substance|ncmhce-intake|ncmhce-suicide|ncmhce-trauma`.
+Checked by `lib/sim/nbcc-session.test.ts` and, against a seeded database,
+`lib/nbcc-mental-health.dbtest.ts` (the gate, the seeded sims, and each
+expert path through the routes to a Good attempt).
+
+**Sources** (on each document): the NBCC outlines (read 2026-11-11), the ACA
+Code of Ethics (2014; current per counseling.org, read 2026-11-11, a revision
+pending Board adoption), the C-SSRS screen (re-read 2026-11-11), the VA
+National Center for PTSD criteria page (updated 2026-09-28), NIAAA's DSM-5
+comparison page (the 11 criteria and severity counts; DSM-5, so that they
+carry into DSM-5-TR is an inference), auditscreen.org's AUDIT scoring bands,
+the ASAM Criteria page (fourth edition, 2023; no dimension names or level
+numbers are attributed to it), SAMHSA's trauma-informed approaches page (five
+principles, updated 2026-02-08; the 2014 concept paper refused access) and
+988 page. Read only through earlier batches, not re-read: the Stanley-Brown
+SPRC summary and psychiatry.org's DSM page (2026-11-10, EPPP) and the APA
+PTSD guideline abstract (2026-11-11, EPPP labs). The DSM-5-TR itself was not
+read; no criteria text is reproduced.
+
+**Findings** (recorded, not worked around):
+
+1. **A two-session case on one clock.** The trauma case runs session 1 and
+   session 2 as two `turns` phases; ending session 1 (or its hour) sets
+   `s2At` and moves on, and session 2's hour uses `since(s2At)`. The three
+   weeks between them are not simulated, so `t` and the "session minutes"
+   KPI count both hours back to back. No engine change was needed.
+2. **Anything after the action that satisfies an ending never runs.** The
+   first draft of the substance case had "send the report" after "document";
+   documenting ended the run, so the report could never be sent, and the
+   linter did not flag it (it checks reachability of states, not of actions
+   after the run ends). The golden builder caught it ("run has ended"); the
+   court decision is now a field of the documentation form. Recorded as
+   FAIL-1480.
+3. **The sims list is not behind the 18+ gate.** `GET /api/sims?trackId=`
+   names a mental health course's sims (titles only) without the
+   confirmation; starting one is refused (403 `mature_content_required`), as
+   are opening the course and its labs. REQ-224 gates the course, teaching
+   and start routes, so this is as designed; listed for Nick in case titles
+   should be hidden too.
+4. **Shared protocol, different cases.** The NCMHCE and EPPP suicide
+   sessions share the C-SSRS questions and the Stanley-Brown steps as moves
+   (decisions 0.64) under unrelated stories (0.01): similarity 0.33, the
+   highest seeded pair. They are on different objectives, which the
+   duplicate gate never compares; the generator test's pin now allows 0.15
+   below the 0.5 threshold instead of 0.2 (FAIL-1481).
+5. **`time_up`** stays unreached in all five (every slow path ends in an
+   earlier ending), so the linter's `time_up` warning remains, as for the
+   EPPP cases.
+
+### 22.14 EMS bedside wave 2: NREMT EMR, EMT, AEMT and Paramedic (REQ-241)
+
+Eight prehospital cases on the existing bedside renderer and engine 1.2, two
+for each NREMT course; no engine, renderer, schema or migration change. Each
+declares engine minor 2 and `endingOrder`, has endings in all three outcome
+classes, three or four critical criteria (the target ending reads them), KPIs,
+an expert path, a debrief per ending, one reasoning moment, two or three
+sourced teaching prompts written in jsonb key order (22.9, FAIL-1362), a
+chapter, and six golden paths built by `npm run sim:golden -- steps <name>`
+(`scripts/sim-golden/<name>.steps.ts`, helpers in `ems-helpers.ts`). Every
+case runs in one `running` phase; the EMS courses sit under
+`healthcare-nursing`, so study pace (3x) is the default. None has a focused
+start: each patient needs action from the first second.
+
+**The prehospital setting on the bedside screen.** The tiles are what that
+level can measure: an EMR has no pulse oximeter (pulse, manual blood pressure
+and breathing only; the CPR case shows a CPR-feedback compression fraction and
+the bleed case an estimated blood loss, both labeled as sim aids), an EMT adds
+pulse oximetry and glucose, an AEMT adds capnography, and a paramedic has the
+monitor with ECG and pleth waveforms. **Scene time and transport are on the
+clock**: "Load and go" schedules loading and the drive by destination, care
+continues during the drive (repeat epinephrine, boluses, ventilation), and the
+case ends at the hospital door or when the transporting crew takes over (EMR).
+Destinations are a choice whose consequence is an ending (a center that cannot
+finish the job is `recovered`), and scene time is a KPI and, where a guideline
+gives a goal, a criterion.
+
+**Scope of practice** follows the National EMS Scope of Practice Model 2019
+with Change Notices 1.0 and 2.0 (no newer model was found on 2026-11-11):
+the EMR transports nothing and gives no epinephrine; the EMT gives the
+auto-injector, aspirin and glucose but no IV; the AEMT gives IV fluids, D10 and
+glucagon but no TXA, nitrates by IV or 12-lead interpretation; the paramedic
+interprets the 12-lead and gives fentanyl. Out-of-scope or harmful options are
+offered as traps (a pressure bandage on an arterial bleed, aspirin or blood
+pressure pills by mouth in a stroke, oral glucose to a man who cannot swallow,
+nitroglycerin after tadalafil, an infant intubation attempt while BVM works).
+
+| Course / slug | Objective (exact title, abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| NREMTEMR/unresponsive-adult-cpr-aed | Recognize cardiac arrest and perform high-quality CPR with an AED | agonal gasps recognized, compressions within 30 s; first shock within 3 min; compression fraction >= 60% and compressions back within 10 s of a shock | emr-cpr |
+| NREMTEMR/thigh-bleed-tourniquet | Control life-threatening external bleeding ... | saw off and gloves before contact; bleeding stopped within 90 s; tourniquet above the wound, tight, a second, timed, never loosened | emr-bleed |
+| NREMTEMT/anaphylaxis-epinephrine | Treat anaphylaxis with intramuscular epinephrine ... | 0.3 mg IM thigh within 5 min; repeat within 5 min of hypoperfusion returning; flat, never walked | emt-anaph |
+| NREMTEMT/stroke-scale-destination | Recognize a possible stroke with a validated prehospital stroke scale ... | glucose before leaving; last known well 07:30 from its source; suspected LVO to the thrombectomy center; scene <= 15 min with a stroke alert | emt-stroke |
+| NREMTAEMT/hypoglycemia-iv-dextrose | Treat hypoglycemia in a patient who cannot swallow ... | airway first, nothing by mouth; glucose within 3 min; D10 within 10 min in 10 g steps with rechecks; transport after an informed conversation (a decision card) | aemt-hypo |
+| NREMTAEMT/hemorrhagic-shock-fluids | Resuscitate hemorrhagic shock with hemorrhage control and IV fluids to a target blood pressure | tourniquet first within 90 s; scene <= 10 min; 500 mL boluses to SBP about 90 within 2 L; Level I center for red criteria | aemt-shock |
+| NREMTPARAMEDIC/inferior-stemi-cath-alert | Manage a STEMI: aspirin, nitrates within their limits, analgesia and destination for reperfusion | 12-lead within 10 min; cath lab activated within 10 min of it; no nitrate after a PDE inhibitor; PCI center | medic-stemi |
+| NREMTPARAMEDIC/infant-respiratory-failure | Assess and manage respiratory distress in infants and children, including croup and bronchiolitis | BVM for impending failure before apnea; 20-30/min; no intubation attempt while BVM works | medic-peds |
+
+**Sources** are on each document. Read 2026-11-11 in primary text: AHA 2025
+Part 7 (adult BLS) and Part 8 (PALS) on cpr.heart.org; the NASEMSO National
+Model EMS Clinical Guidelines v3.0 (March 2022) in full (Iowa HHS's copy:
+anaphylaxis, hypoglycemia, stroke, ACS/STEMI, general trauma, external
+hemorrhage, pediatric respiratory distress, cardiac arrest, universal care,
+refusals, pain); the ACS-COT/NAEMSP 2021 field triage handout; the Mission:
+Lifeline EMS recognition criteria for 2027; the 2019 Scope of Practice Model
+(a text extraction of a state copy, table placement cross-checked with the
+course's 2026-11-09 reading). Read only through summaries: the 2025
+ACC/AHA/ACEP/NAEMSP/SCAI ACS guideline and the 2026 AHA/ASA stroke guideline
+(Guideline Central). Relayed from the course seed and not re-read: the NREMT
+test plans (2026-11-09) and AHA Part 6's infant rescue-breathing rate
+(2026-11-09); the ATLS class anchors from the CCRN bleeding case (2026-11-10,
+FLAG). Authored teaching-model numbers say so, and those standing in for a
+number no guideline gives carry `FLAG` (viability loss without CPR and the
+shock threshold; arterial and ooze rates; epinephrine potency and wane;
+the glucose fall and rise per gram; the splenic bleed rate and dilution; the
+nitrate-tadalafil drop; infant fatigue and desaturation rates; every hospital
+door-to-device time and every drive time).
+
+**Findings while authoring** (FAIL-1520 to FAIL-1526; caught by the linter,
+the golden driver or review while authoring; none is in engine code):
+an ending that read a state no effect ever set (asystole), an AED action gated
+on the hidden rhythm instead of what the rescuer can know, timer `with`
+fields read as bare names instead of `timer.with.<field>`, reasoning moments
+that opened in the middle of a resuscitation step or on the tick a terminal
+ending fired, model constants that left the target or a harm ending
+unreachable until tuned against the goldens, British spellings in one
+narrative, and a server-only debrief body that repeated a client narrative
+word for word (the leak test in `lib/sim/documents.test.ts` caught it). `time_up` is reached by no golden path in any of the eight (every
+slow path ends earlier), so the linter's warning remains, as in the CCRN
+cases.

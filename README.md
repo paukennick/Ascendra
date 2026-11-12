@@ -26,7 +26,7 @@ Ascendra runs on iPhone, Android and the web.
 
 ## Who it's for
 
-Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **116 courses**:
+Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **118 courses**:
 
 - **IT and cloud (65):** 18 CompTIA, 15 Kubernetes and CNCF, 11 AWS, 11 Google Cloud and 10 Microsoft Azure certifications
 - **Physical therapy (14):** NPTE-PT, NPTE-PTA, the DPT pathway, the ABPTS specialist certifications and a PT school prerequisites refresher
@@ -35,7 +35,7 @@ Learners preparing for a specific exam who want to know whether they're actually
 - **Fitness (6):** NASM, ACE, ACSM, NSCA (CPT and CSCS) and NCCPT personal trainer certifications
 - **Emergency medical services (4):** NREMT Emergency Medical Responder, EMT, Advanced EMT and Paramedic
 - **Software development (4):** Python, JavaScript, Computer Science Degree Foundations and MSCS foundations
-- **Mental health (1):** the EPPP (psychology licensure), behind a one-time 18+ confirmation
+- **Mental health (3):** the EPPP (psychology licensure) and the NCE and NCMHCE (counselor licensure), behind a one-time 18+ confirmation
 
 Exam-prep courses are named "Prep for the <official exam name> Exam"; Ascendra is not the exam body. Certification courses carry the exam's own domain weights, so you spend your time where the exam does.
 
@@ -55,13 +55,14 @@ Every course runs the same loop. You learn a topic, practice it with help, prove
 
 **Practice exams.** A 10-question timed sprint, or a full mock exam with the real exam's length, domain weights and time limit. You can take it untimed if you'd rather.
 
-**Hands-on labs.** Build labs ask you to produce something real, such as an IAM policy, a work breakdown structure or an SBAR handoff. Case labs walk a fictional case through two to four steps. Every part is scored met, partly there or not yet, with the model answer beside yours. Some parts are graded on the spot: put steps in order, match pairs, tap the problem lines in a log or config, type a command, or give a number within a tolerance. There are 1,263 labs across the catalog.
+**Hands-on labs.** Build labs ask you to produce something real, such as an IAM policy, a work breakdown structure or an SBAR handoff. Case labs walk a fictional case through two to four steps. Every part is scored met, partly there or not yet, with the model answer beside yours. Some parts are graded on the spot: put steps in order, match pairs, tap the problem lines in a log or config, type a command, or give a number within a tolerance. There are 1,287 labs across the catalog.
 
 **Simulations.** Some courses have sims: a scenario that runs on a clock, reacts to what you do, and ends with a score for the outcome and your process plus a debrief. Today there are sims in seven courses:
 
 - **CCRN (Adult):** five bedside cases on a patient monitor, including tamponade after heart surgery, sepsis, diabetic ketoacidosis, stroke and bleeding after surgery
 - **Certified Nursing Assistant:** a resident who chokes at lunch and a resident found on the floor
 - **EPPP:** three sessions where you lead a fictional client through a suicide risk assessment, a duty-to-protect decision and a diagnostic intake
+- **NCE and NCMHCE:** five counseling sessions: boundaries in a small town and a court-referred substance use assessment (NCE); a diagnostic intake, a suicide risk assessment with a safety plan, and a trauma-informed treatment plan built and then revised over two sessions, as NCMHCE cases run (NCMHCE)
 - **AWS Solutions Architect Associate, and Professional:** TicketBurst launch day on a design board, with a harder version in the Professional course
 - **CompTIA Security+ (SY0-701 and V8):** three incidents on a security operations console: a phished account, ransomware on a file server and a leaked cloud key
 - **CompTIA Linux+, CompTIA Network+ and CKA:** two outages each on a terminal and network screen, where you run commands from a fixed set and watch a map of hosts, switches or cluster nodes: a full disk that stops a database, an SELinux denial after a move, a VLAN missing from a trunk, a DNS failure worked with the troubleshooting method, a crash-looping rollout and a NotReady node with a drain
