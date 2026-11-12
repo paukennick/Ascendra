@@ -1,0 +1,1195 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "fraud-model-drift",
+  "title": "The fraud model that went quiet",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "endpoint",
+          "label": "Endpoint fraud-score-prod (us-east-2)",
+          "spokenLabel": "Production endpoint fraud-score-prod in us-east-2",
+          "items": [
+            {
+              "label": "Production variant: model v7",
+              "when": "live == \"v7\""
+            },
+            {
+              "label": "Production variant: model v8",
+              "when": "live != \"v7\""
+            },
+            {
+              "label": "Shadow variant: model v8 (copies of live requests)",
+              "when": "deploy == \"shadow\" and live == \"v7\""
+            },
+            {
+              "label": "Data capture to S3: on",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "monitor",
+          "label": "Monitoring",
+          "spokenLabel": "Monitoring",
+          "items": [
+            {
+              "label": "Data-quality schedule: hourly",
+              "when": "true"
+            },
+            {
+              "label": "Baseline: {baseline == \"training\" ? \"v7 training dataset\" : \"last 7 days of production traffic\"}",
+              "when": "true"
+            },
+            {
+              "label": "Drift alarms to the ML on-call",
+              "when": "alarmOn"
+            }
+          ]
+        },
+        {
+          "id": "pipeline",
+          "label": "Training and registry",
+          "spokenLabel": "Training pipeline and model registry",
+          "items": [
+            {
+              "label": "Model registry: v7 (approved)",
+              "when": "true"
+            },
+            {
+              "label": "Model registry: v8 ({v8 == \"good\" ? \"15 months, mature labels\" : \"last 30 days only\"})",
+              "when": "v8 != \"none\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "recall",
+          "label": "Fraud caught (recall)",
+          "value": "{recallNow|2dp}"
+        },
+        {
+          "id": "loss",
+          "label": "Fraud losses a week (projected)",
+          "value": "{weeklyLoss|usd}"
+        },
+        {
+          "id": "target",
+          "label": "Losses target a week",
+          "value": "{lossTarget|usd}"
+        }
+      ]
+    }
+  },
+  "objective": "Creating performance baselines and implementing drift detection",
+  "secondaryObjectives": [
+    "Detecting changes in data distribution that degrade model performance",
+    "Building and integrating mechanisms to retrain models",
+    "Comparing a shadow variant against the production variant"
+  ],
+  "sources": [
+    {
+      "cite": "Ascendra AWSMLA course catalog (backend/supabase/seed/tracks/aws.ts), built from the exam guide",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/machine-learning-engineer-associate-02/machine-learning-engineer-associate-02.html",
+      "note": "The objective and secondary objectives are the course's own titles, from the MLA-C02 outline at the course's source URL. Not re-fetched for this scenario."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Data quality (Model Monitor)",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-data-quality.html",
+      "note": "Read 2026-11-11: the baseline job 'computes baseline schema constraints and statistics for each feature' from 'an input dataset that you provide' (Deequ on Spark); monitoring jobs compare captured data with it. Also: 'Amazon SageMaker Model Monitor is no longer open to new customers. Existing customers can continue to use the service as normal.' The scenario's team is an existing customer."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Model Monitor availability change",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-availability-change.html",
+      "note": "Read 2026-11-11: no longer open to new customers; existing customers continue as normal; the replacement for new teams is the open-source SageMaker AI monitoring solutions with Amazon QuickSight and Amazon CloudWatch (for lightweight data quality, CloudWatch custom metrics with anomaly detection alarms). The page gives no date for the change."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Schedule expressions for monitoring",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-schedule-expression.html",
+      "note": "Read 2026-11-11: 'Hourly: cron(0 * ? * * *)'; 'SageMaker AI only supports hourly integer rates between 1 hour and 24 hours'; there 'could be a delay of 0-20 minutes from the actual requested time to run the execution'."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: CloudWatch metrics for Model Monitor",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-interpreting-cloudwatch.html",
+      "note": "Read 2026-11-11: when emit_metrics is Enabled in the baseline constraints file, each feature gets metrics including feature_baseline_drift_{feature_name} in /aws/sagemaker/Endpoints/data-metric (EndpointName and ScheduleName dimensions)."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Model quality monitoring",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-model-quality.html",
+      "note": "Read 2026-11-11: model quality jobs compare predictions 'with the actual Ground Truth labels', merging captured data 'with actual labels that you store in an Amazon S3 bucket'. The page says nothing about how late labels arrive; the 30-60 day chargeback delay is scenario data."
+    },
+    {
+      "cite": "AWS. SageMaker AI Developer Guide: Shadow tests",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/shadow-tests.html",
+      "note": "Read 2026-11-11: SageMaker 'routes a copy of the inference requests to it in real time within the same endpoint. Only the responses of the production variant are returned to the calling application'; shadow responses can be logged 'for offline comparison'."
+    }
+  ],
+  "brief": {
+    "situation": "Monday 09:00. You are the ML engineer for a card issuer's fraud-scoring model, a SageMaker AI real-time endpoint in us-east-2 (Ohio). The fraud desk says chargebacks are climbing, but the drift monitor has reported no violations for weeks. Six weeks ago the issuer started accepting instant-pay wallet transactions.",
+    "handover": [
+      "Model v7 has served since launch 14 months ago. Data capture is on; an hourly data-quality schedule compares captured requests with a baseline.",
+      "Fraud labels come from chargebacks, which arrive 30 to 60 days after a transaction.",
+      "The fraud desk's target: losses under $90,000 a week. About $400,000 of fraud is attempted a week."
+    ],
+    "howItWorks": [
+      "Learner-paced: nothing moves until you act. Investigate, change the monitoring and the model, then run the week.",
+      "The board shows what is serving and what is watching it; the meters show recall and the projected weekly losses.",
+      "Before you run the week you are asked what caused the miss and what you changed. The debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-08T09:00",
+    "tick": "1min",
+    "maxDuration": "8d",
+    "calendar": "date"
+  },
+  "params": {
+    "fraudWeek": {
+      "value": 400000,
+      "unit": "$",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Fraud attempted a week, in dollars."
+      }
+    },
+    "lossTarget": {
+      "value": 90000,
+      "unit": "$",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The fraud desk's target for losses a week."
+      }
+    },
+    "recallV7": {
+      "value": 0.61,
+      "unit": "ratio",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "v7 recall on the last fully labeled month (it was 0.84 at launch)."
+      }
+    },
+    "recallGood": {
+      "value": 0.83,
+      "unit": "ratio",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "v8 trained on 15 months with the immature last 60 days held out, measured by the fraud desk's confirmed cases."
+      }
+    },
+    "recallBad": {
+      "value": 0.55,
+      "unit": "ratio",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "v8 trained on the last 30 days only: recent fraud is still labeled legitimate because chargebacks have not arrived, so it learns to pass wallet fraud."
+      }
+    },
+    "monitorPeriod": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "AWS. SageMaker AI Developer Guide: Schedule expressions for monitoring",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-schedule-expression.html",
+        "note": "Read 2026-11-11: 'Hourly: cron(0 * ? * * *)'; 'SageMaker AI only supports hourly integer rates between 1 hour and 24 hours'; there 'could be a delay of 0-20 minutes from the actual requested time to run the execution'."
+      }
+    },
+    "dayWait": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step of the week."
+      }
+    }
+  },
+  "state": {
+    "monitorAt": {
+      "type": "time",
+      "init": null
+    },
+    "compareAt": {
+      "type": "time",
+      "init": null
+    },
+    "labelsAt": {
+      "type": "time",
+      "init": null
+    },
+    "registryAt": {
+      "type": "time",
+      "init": null
+    },
+    "baseline": {
+      "type": "enum",
+      "values": [
+        "recent",
+        "training"
+      ],
+      "init": "recent"
+    },
+    "alarmOn": {
+      "type": "bool",
+      "init": false
+    },
+    "v8": {
+      "type": "enum",
+      "values": [
+        "none",
+        "good",
+        "bad"
+      ],
+      "init": "none"
+    },
+    "deploy": {
+      "type": "enum",
+      "values": [
+        "none",
+        "shadow",
+        "replace"
+      ],
+      "init": "none"
+    },
+    "live": {
+      "type": "enum",
+      "values": [
+        "v7",
+        "v8good",
+        "v8bad"
+      ],
+      "init": "v7"
+    },
+    "whyAnswer": {
+      "type": "enum",
+      "values": [
+        "none",
+        "right",
+        "wrong"
+      ],
+      "init": "none"
+    },
+    "driftCaught": {
+      "type": "bool",
+      "init": false
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedBlind": {
+      "type": "bool",
+      "init": false
+    },
+    "changes": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "weekStarted": {
+      "type": "bool",
+      "init": false
+    },
+    "weekDone": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "recallNow": {
+      "expr": "live == \"v7\" ? recallV7 : (live == \"v8good\" ? recallGood : recallBad)",
+      "unit": "ratio",
+      "precision": 2
+    },
+    "weeklyLoss": {
+      "expr": "round(fraudWeek * (1 - recallNow))",
+      "unit": "$",
+      "precision": 0
+    },
+    "investigated": {
+      "expr": "not isNull(compareAt) and not isNull(labelsAt)"
+    },
+    "investigatedFirst": {
+      "expr": "investigated and not changedBlind"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Investigate and change",
+      "clock": "turns",
+      "actions": [
+        "monitorReport",
+        "compareTraining",
+        "labelsCheck",
+        "registry",
+        "rebaseline",
+        "retrain",
+        "deployV8",
+        "driftAlarm",
+        "runWeek"
+      ]
+    },
+    "week": {
+      "label": "The week",
+      "clock": "turns",
+      "actions": []
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "monitorReport": {
+      "label": "Open the latest data-quality monitoring report",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(monitorAt)",
+          "then": [
+            {
+              "set": "monitorAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Schedule fraud-score-prod-dq, hourly. Last 7 days: 0 constraint violations. Baseline job: run 2027-02-08 on the last 7 days of captured production traffic (re-run then because of 'noisy' alerts)."
+        },
+        {
+          "log": "Monitor: no violations, but its baseline was rebuilt last month from production traffic.",
+          "kind": "find"
+        }
+      ]
+    },
+    "compareTraining": {
+      "label": "Compare captured traffic with the v7 training-set statistics",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(compareAt)",
+          "then": [
+            {
+              "set": "compareAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Last 7 days of captured requests against v7's training data: merchant_category WALLET is 18% of requests and never appears in training; txn_amount mean $212 against $96; device_age_days is present in 82% of requests against 99.6%."
+        },
+        {
+          "log": "Against the training data the inputs have clearly shifted, led by wallet transactions.",
+          "kind": "find"
+        },
+        {
+          "if": "whyAnswer == \"none\"",
+          "then": [
+            {
+              "prompt": "whyQ"
+            }
+          ]
+        }
+      ]
+    },
+    "labelsCheck": {
+      "label": "Check model quality against labeled outcomes",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(labelsAt)",
+          "then": [
+            {
+              "set": "labelsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Chargeback labels arrive 30 to 60 days after a transaction. Last fully labeled month: recall 0.61, precision 0.71. At v7's launch: recall 0.84, precision 0.73. The last 60 days are not fully labeled yet."
+        },
+        {
+          "log": "Quality: recall fell from 0.84 to 0.61; the last 60 days' labels are still arriving.",
+          "kind": "find"
+        }
+      ]
+    },
+    "registry": {
+      "label": "Check the model registry and the training pipeline",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(registryAt)",
+          "then": [
+            {
+              "set": "registryAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Model registry: v7 approved 14 months ago, trained on data ending 15 months ago. A SageMaker AI pipeline can retrain, evaluate and register a new version; it runs only when started by hand."
+        },
+        {
+          "log": "Registry: v7 has never been retrained.",
+          "kind": "find"
+        }
+      ]
+    },
+    "rebaseline": {
+      "label": "Re-run the data-quality baseline",
+      "group": "Change",
+      "available": "baseline != \"training\"",
+      "why": "The baseline is already the training dataset.",
+      "params": [
+        {
+          "id": "src",
+          "kind": "choice",
+          "label": "Baseline dataset",
+          "options": [
+            {
+              "value": "training",
+              "label": "The v7 training dataset (the data the model learned from)"
+            },
+            {
+              "value": "yesterday",
+              "label": "Yesterday's production traffic"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "src == \"training\"",
+              "then": [
+                {
+                  "set": "baseline",
+                  "to": "\"training\""
+                },
+                {
+                  "log": "Baseline rebuilt from v7's training dataset, with emit_metrics on. The next hourly run reports violations on merchant_category, txn_amount and device_age_days."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Baseline rebuilt from yesterday's production traffic. The next hourly run reports no violations: the baseline now contains the drift.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "retrain": {
+      "label": "Retrain with the pipeline and register v8",
+      "group": "Change",
+      "available": "v8 == \"none\"",
+      "why": "v8 is already registered.",
+      "params": [
+        {
+          "id": "data",
+          "kind": "choice",
+          "label": "Training data",
+          "options": [
+            {
+              "value": "mature",
+              "label": "The last 15 months, holding out the last 60 days whose chargeback labels are still arriving"
+            },
+            {
+              "value": "recent30",
+              "label": "Only the last 30 days, to match today's traffic"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "data == \"mature\"",
+              "then": [
+                {
+                  "set": "v8",
+                  "to": "\"good\""
+                },
+                {
+                  "log": "Training on the last 15 months, the last 60 days held out of training because their labels are incomplete. v8 registered: holdout recall 0.83 on the mature months."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "v8",
+                  "to": "\"bad\""
+                },
+                {
+                  "log": "Training on the last 30 days only. v8 registered: holdout recall 0.88 on a holdout drawn from the same 30 days.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "deployV8": {
+      "label": "Deploy v8",
+      "group": "Change",
+      "available": "v8 != \"none\" and deploy == \"none\"",
+      "why": "Register v8 first, or it is already deployed.",
+      "params": [
+        {
+          "id": "mode",
+          "kind": "choice",
+          "label": "How",
+          "options": [
+            {
+              "value": "shadow",
+              "label": "As a shadow variant beside v7, then promote if it wins"
+            },
+            {
+              "value": "replace",
+              "label": "Replace v7 in production now"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "mode == \"shadow\"",
+              "then": [
+                {
+                  "set": "deploy",
+                  "to": "\"shadow\""
+                },
+                {
+                  "log": "v8 added as a shadow variant: it scores a copy of every live request and its answers are logged for comparison; v7 still answers. Promote on Thursday if v8 wins the fraud desk's review."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "deploy",
+                  "to": "\"replace\""
+                },
+                {
+                  "set": "live",
+                  "to": "v8 == \"good\" ? \"v8good\" : \"v8bad\""
+                },
+                {
+                  "log": "v8 replaced v7 as the production variant.",
+                  "kind": "sys"
+                },
+                {
+                  "if": "live == \"v8bad\"",
+                  "then": [
+                    {
+                      "log": "Within hours the fraud desk sees confirmed wallet fraud passing that v7 used to flag.",
+                      "kind": "bad"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "driftAlarm": {
+      "label": "CloudWatch alarms on feature drift to the ML on-call",
+      "group": "Monitor",
+      "available": "not alarmOn",
+      "why": "Already set.",
+      "effects": [
+        {
+          "set": "alarmOn",
+          "to": "true"
+        },
+        {
+          "log": "Alarms on feature_baseline_drift for merchant_category, txn_amount and device_age_days, to the ML on-call's SNS topic."
+        }
+      ]
+    },
+    "runWeek": {
+      "label": "Close the change window and run the week",
+      "group": "Run",
+      "available": "true",
+      "why": "Not available now.",
+      "effects": [
+        {
+          "set": "weekStarted",
+          "to": "true"
+        },
+        {
+          "reason": "plan"
+        },
+        {
+          "phase": "week"
+        },
+        {
+          "schedule": "dayT",
+          "after": "dayWait",
+          "with": {
+            "d": "1"
+          }
+        },
+        {
+          "log": "Change window closed. Serving: {live}. Projected losses {weeklyLoss|usd} a week.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "prompts": {
+    "whyQ": {
+      "title": "Why no violations?",
+      "context": "The inputs have shifted this far, yet the hourly monitor reported nothing for weeks. Why?",
+      "choices": [
+        {
+          "id": "right",
+          "label": "Its baseline was rebuilt from production traffic that had already drifted, so the drift became 'normal'",
+          "effects": [
+            {
+              "set": "whyAnswer",
+              "to": "\"right\""
+            }
+          ],
+          "feedback": "Right. A baseline should come from data the model is known to be good on, usually its training set; rebuilding it from recent traffic hides the drift."
+        },
+        {
+          "id": "wrong",
+          "label": "Data-quality monitoring cannot see a new category value",
+          "effects": [
+            {
+              "set": "whyAnswer",
+              "to": "\"wrong\""
+            }
+          ],
+          "feedback": "No. A new value or a shifted distribution is exactly what the comparison catches, against the right baseline."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "dayT": {
+      "label": "the next day",
+      "wait": {
+        "skipLabel": "the next day"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "d": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step; the shadow comparison is reviewed on Thursday."
+      },
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "timer.with.d == 1",
+              "then": [
+                {
+                  "if": "deploy == \"shadow\" and live == \"v7\"",
+                  "then": [
+                    {
+                      "log": "Tuesday: v8 is scoring copies of live requests in shadow; latency within a few milliseconds of v7.",
+                      "kind": "sys"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "Tuesday: fraud losses running at about {round(weeklyLoss / 7)|usd} a day.",
+                      "kind": "sys"
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "2"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "timer.with.d == 2",
+              "then": [
+                {
+                  "log": "Wednesday: a holiday promotion doubles wallet traffic for the day.",
+                  "kind": "alarm"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "alarmOn and baseline == \"training\"",
+                      "then": [
+                        {
+                          "set": "driftCaught",
+                          "to": "true"
+                        },
+                        {
+                          "log": "The next hourly monitoring run breaches the drift constraints and the alarm pages the ML on-call within the hour.",
+                          "kind": "good"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "alarmOn",
+                      "then": [
+                        {
+                          "log": "The alarm stays quiet: the baseline already contains wallet traffic.",
+                          "kind": "bad"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "Nothing alerts; nobody is watching the drift metrics.",
+                          "kind": "sys"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "3"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "if": "deploy == \"shadow\" and live == \"v7\"",
+                  "then": [
+                    {
+                      "cases": [
+                        {
+                          "when": "v8 == \"good\"",
+                          "then": [
+                            {
+                              "set": "live",
+                              "to": "\"v8good\""
+                            },
+                            {
+                              "log": "Thursday: the fraud desk's review of the shadow week shows v8 flags the confirmed wallet fraud v7 missed, at the same false-decline rate. v8 promoted to production.",
+                              "kind": "good"
+                            }
+                          ]
+                        },
+                        {
+                          "when": "true",
+                          "then": [
+                            {
+                              "log": "Thursday: the fraud desk's review shows v8 passing confirmed wallet fraud that v7 flags. v8 is not promoted; v7 keeps serving.",
+                              "kind": "sys"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "set": "weekDone",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "plan": {
+      "question": "Before you run the week: why did the monitor miss the drift, what did you change, and how are you making sure a new model is better before it serves?",
+      "parts": [
+        {
+          "label": "The cause",
+          "criteria": "Names data drift (wallet transactions, shifted amounts) as the cause of the recall drop; explains the silent monitor by a baseline rebuilt from drifted production traffic; rebuilds the baseline from the training data.",
+          "modelAnswer": "Wallet transactions are 18% of traffic and never appeared in training, so recall fell from 0.84 to 0.61. The monitor stayed quiet because its baseline was rebuilt from recent production traffic, which already contained the drift. The baseline now comes from the training set, with drift alarms to the on-call."
+        },
+        {
+          "label": "The fix and the check",
+          "criteria": "Retrains on enough history with labels that are complete, holding out the recent weeks whose chargebacks have not arrived; tests the new model as a shadow variant before promoting it.",
+          "modelAnswer": "Retrain on 15 months but leave out the last 60 days, whose fraud is still labeled legitimate. Run v8 as a shadow beside v7 and promote it only if the fraud desk's confirmed cases show it catches more without more false declines."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "availabilityTarget": {
+        "value": 99.9,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Stated SLA over the month by the error-budget method."
+        }
+      },
+      "availabilityRecovered": {
+        "value": 99.85,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "A small miss."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "weekDone and weeklyLoss > lossTarget",
+      "class": "recovered",
+      "rationale": "Nothing got worse, but losses stay at the drifted model's rate: a miss, recovered, never target.",
+      "source": {
+        "cite": "docs/sims.md 3.1 (cloud)",
+        "checkedAt": "2026-11-11",
+        "note": "As in the TicketBurst and NAT cases: a cost miss is recovered or harm by the cost rule, never target."
+      }
+    }
+  },
+  "endings": {
+    "worse": {
+      "label": "A worse model shipped",
+      "class": "harm",
+      "when": "live == \"v8bad\"",
+      "terminal": true,
+      "narrative": "v8 replaced v7 and passes wallet fraud v7 used to flag: recall {recallNow|2dp}, losses about {weeklyLoss|usd} a week."
+    },
+    "fixed": {
+      "label": "Drift caught and fixed safely",
+      "class": "target",
+      "when": "weekDone and live == \"v8good\" and deploy == \"shadow\" and investigatedFirst and baseline == \"training\"",
+      "terminal": true,
+      "narrative": "Thursday: v8 serves after winning its shadow week, recall {recallNow|2dp}, losses about {weeklyLoss|usd} a week, and the monitor now measures against the training data."
+    },
+    "partly": {
+      "label": "Better, by a rougher route",
+      "class": "recovered",
+      "when": "weekDone",
+      "terminal": true,
+      "narrative": "Thursday: serving {live}, recall {recallNow|2dp}, losses about {weeklyLoss|usd} a week. Part of the fix landed, but something was missed: the evidence first, the baseline, the training labels or the shadow test."
+    },
+    "time_up": {
+      "label": "The week ran out",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The week ended without a decision."
+    }
+  },
+  "endingOrder": [
+    "worse",
+    "fixed",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "investigate",
+        "label": "Confirmed the drift and the label delay with data before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "investigatedFirst",
+            "score": "met",
+            "why": "Compared traffic with training statistics and checked labeled quality first."
+          },
+          {
+            "when": "investigated",
+            "score": "partial",
+            "why": "Looked at the data, but after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without confirming the cause."
+          }
+        ]
+      },
+      {
+        "id": "baseline",
+        "label": "Baseline rebuilt from known-good data (the training set)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "baseline == \"training\"",
+            "score": "met",
+            "why": "The monitor now compares against the data v7 learned from."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The baseline still contains the drift, so the monitor stays blind."
+          }
+        ]
+      },
+      {
+        "id": "labels",
+        "label": "Retrained only on mature labels",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "v8 == \"good\"",
+            "score": "met",
+            "why": "15 months, with the last 60 days held out."
+          },
+          {
+            "when": "v8 == \"bad\"",
+            "score": "missed",
+            "why": "Trained on 30 days whose fraud is still labeled legitimate."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No retraining: v7 keeps serving at 0.61 recall."
+          }
+        ]
+      },
+      {
+        "id": "shadow",
+        "label": "New model proven in shadow before it served",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "deploy == \"shadow\"",
+            "score": "met",
+            "why": "v8 scored copies of live traffic beside v7 first."
+          },
+          {
+            "when": "deploy == \"replace\"",
+            "score": "missed",
+            "why": "v8 replaced v7 without a live comparison."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No new model was deployed."
+          }
+        ]
+      },
+      {
+        "id": "alarm",
+        "label": "Drift alarms that page someone",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "alarmOn and baseline == \"training\"",
+            "score": "met",
+            "why": "Alarms on the drift metrics, against the right baseline."
+          },
+          {
+            "when": "alarmOn",
+            "score": "partial",
+            "why": "Alarms set, but against a baseline that hides the drift."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No drift alarm."
+          }
+        ]
+      },
+      {
+        "id": "why",
+        "label": "Knew why the monitor stayed quiet",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "whyAnswer == \"right\"",
+            "score": "met",
+            "why": "A baseline built from drifted traffic."
+          },
+          {
+            "when": "whyAnswer == \"wrong\"",
+            "score": "missed",
+            "why": "Blamed the monitor's abilities, not its baseline."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "Not asked."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: the cause, the fix and the check before serving",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "recall",
+        "label": "Recall on fraud (serving model)",
+        "value": "recallNow",
+        "format": "number",
+        "expert": "0.83"
+      },
+      {
+        "id": "loss",
+        "label": "Projected fraud losses a week",
+        "value": "weeklyLoss",
+        "format": "usd",
+        "expert": "about $68,000"
+      },
+      {
+        "id": "changes",
+        "label": "Changes made",
+        "value": "changes",
+        "format": "number",
+        "expert": "3"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Monday 09:00",
+        "text": "Monitoring report (quiet), then the evidence: traffic against training statistics (wallet transactions are new) and labeled quality (recall 0.61, labels 30-60 days late)."
+      },
+      {
+        "at": "Monday 09:30",
+        "text": "Rebuild the baseline from the training data and alarm on the drift metrics. Retrain on 15 months, holding out the last 60 days whose labels are incomplete."
+      },
+      {
+        "at": "Monday 10:00",
+        "text": "Deploy v8 as a shadow variant; promote on Thursday after the fraud desk confirms it catches more. The trade-off: three more days at v7's losses for the certainty that v8 is better."
+      }
+    ],
+    "debrief": {
+      "worse": {
+        "headline": "A worse model shipped",
+        "body": "The newest data looks most like today's traffic, but its fraud is still labeled legitimate until chargebacks arrive. Trained on it, v8 learned to pass wallet fraud, and replacing v7 without a shadow test put it straight into production."
+      },
+      "fixed": {
+        "headline": "Drift caught and fixed safely",
+        "body": "You confirmed the drift and the label delay first, fixed the monitor's baseline, retrained on mature labels and proved v8 in shadow before it served. That is the expert path."
+      },
+      "partly": {
+        "headline": "Better, by a rougher route",
+        "body": "Check whether you looked at the evidence before changing things, whether the baseline is the training set, whether v8's labels were mature, and whether v8 ran in shadow before serving."
+      },
+      "time_up": {
+        "headline": "No decision",
+        "body": "The model keeps missing wallet fraud while nothing changes."
+      }
+    },
+    "modelReasoning": "A monitor compares live inputs with a baseline, so the baseline must come from data the model is known to be good on, normally its training set. Rebuilt from recent production traffic, it absorbs the drift and reports nothing. Here wallet transactions are new to the model and recall fell from 0.84 to 0.61. Ground-truth labels for fraud come from chargebacks 30 to 60 days late, so the newest data is mislabeled: retrain on a long window and hold the immature weeks out. Then test the new model as a shadow variant, which scores copies of live requests without answering them, and promote it only when confirmed cases show it is better. Model Monitor is closed to new customers; a new team builds the same check with the open-source SageMaker AI monitoring solutions and CloudWatch."
+  }
+}
