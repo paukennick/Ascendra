@@ -130,6 +130,9 @@ export interface Summary {
   failed?: number;
   skipped?: number;
   failedBy?: Record<string, number>;
+  // Which content-check problems failed lessons, as message kinds with quoted
+  // text and numbers removed (problemKind): no lesson text in the log.
+  problemKinds?: Record<string, number>;
   stoppedForBudget?: boolean;
   // REQ-235: the one steered retry of a held half (live, `pregen_retry`).
   retried?: number;
@@ -426,6 +429,18 @@ function category(reason: string): string {
   return reason.replace(/:.*$/s, "").replace(/\s+/g, " ").trim().slice(0, 40) || "unknown";
 }
 
+// A content-check problem as a kind, safe for the public log and summary:
+// quoted text (an option, a cue word) and numbers are removed, so only the
+// validator's own wording is left. "Solo question option 3 is too long." ->
+// "Solo question option N is too long."
+export function problemKind(message: string): string {
+  return message.replace(/"[^"]*"/g, '"…"').replace(/\d+(\.\d+)?/g, "N").slice(0, 140);
+}
+
+function countKinds(into: Record<string, number>, problems: string[]): void {
+  for (const k of new Set(problems.map(problemKind))) into[k] = (into[k] ?? 0) + 1;
+}
+
 function tally(failed: { reason: string }[]): Record<string, number> {
   const out: Record<string, number> = {};
   for (const f of failed) out[category(f.reason)] = (out[category(f.reason)] ?? 0) + 1;
@@ -610,6 +625,7 @@ async function collectIntro(
   const intros = new Map<string, LessonIntroContent>();
   let held = 0;
   const liveFailed = [...failed];
+  const problemKinds: Record<string, number> = {};
   // Still wanted: no lesson since, active, listed, not authored -- in priority order.
   const rows = await selectCandidates({ tracks: opts.tracks, ids: [...rawIntros.keys()] });
   const skipped = rawIntros.size - rows.length;
@@ -622,7 +638,9 @@ async function collectIntro(
       for (const r of rows) {
         const id = r.objective_id;
         const intro = introFromModel(rawIntros.get(id) as never);
-        if (lessonIntroProblems(intro).length) {
+        const introProblems = lessonIntroProblems(intro);
+        if (introProblems.length) {
+          countKinds(problemKinds, introProblems);
           liveFailed.push({ objectiveId: id, reason: "content check" });
           continue;
         }
@@ -702,6 +720,7 @@ async function collectIntro(
     failed: liveFailed.length,
     skipped: skipped + dropped,
     failedBy: tally(liveFailed),
+    problemKinds,
     retried: r235.retried,
     saved: r235.saved,
     savedAfterRetry: r235.saved,
@@ -776,6 +795,7 @@ async function collectPractice(
   let heldAfterRetry = 0;
   let notRetried = 0;
   const liveFailed = [...myFailed];
+  const problemKinds: Record<string, number> = {};
   const factUpper = factCheckUpperUsd(model);
   const cap = opts.maxUsd;
   const { t, restore } = opts.dryRun ? { t: { usd: 0, calls: 0 }, restore: () => {} } : installTally();
@@ -800,6 +820,7 @@ async function collectPractice(
         const intro = introFromModel(l.intro);
         const problems = [...lessonIntroProblems(intro), ...lessonPracticeProblems(l.practice)];
         if (problems.length) {
+          countKinds(problemKinds, problems);
           liveFailed.push({ objectiveId: l.objectiveId, reason: "content check" });
           continue;
         }
@@ -858,6 +879,7 @@ async function collectPractice(
   summary.failed = liveFailed.length;
   summary.skipped = skipped;
   summary.failedBy = tally(liveFailed);
+  summary.problemKinds = problemKinds;
   summary.stoppedForBudget = stopped;
   Object.assign(summary, { retried, savedAfterRetry, heldAfterRetry, notRetriedForBudget: notRetried } satisfies Partial<Summary>);
   summary.actualUsd = { batch: round4(practiceUsd + introUsd), factCheck: round4(t.usd), total: round4(practiceUsd + introUsd + t.usd) };
@@ -866,6 +888,8 @@ async function collectPractice(
   if (retried || notRetried)
     ctx.log(`Held practice halves retried once, steered: ${retried} retried, ${savedAfterRetry} saved after the retry, ${heldAfterRetry} held again, ${notRetried} not retried (budget).`);
   if (stopped) ctx.log(`Stopped early: the next fact-check could pass --max-usd. Run collect again with a larger --max-usd to finish, or leave the rest to first visits.`);
+  const kinds = Object.entries(problemKinds).sort((a, b) => b[1] - a[1]).slice(0, 15);
+  if (kinds.length) ctx.log(`Content-check problems (lessons with each): ${kinds.map(([k, n]) => `${n} x ${k}`).join(" | ")}`);
   const f = summary.failedBy;
   if (Object.keys(f).length) ctx.log(`Failed by cause: ${Object.entries(f).map(([k, n]) => `${k} ${n}`).join(", ")}. Failed and held lessons are simply still missing; the app generates them on first visit, or run submit again.`);
   ctx.log(`Actual cost: batches ${usd(summary.actualUsd.batch)} + live fact-checks ${usd(summary.actualUsd.factCheck)} = ${usd(summary.actualUsd.total)}`);
