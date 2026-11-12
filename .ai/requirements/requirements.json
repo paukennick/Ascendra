@@ -8598,45 +8598,45 @@
       ]
     },
     {
-      "id": "REQ-240",
-      "category": "content",
-      "title": "Bedside sims wave 2 (nursing): LPN/VN, ADN-RN and BSN-RN baseline sims",
-      "description": "Nick's sims wave 2 (2026-11-11): two baseline bedside sims each for LPNVN, ADNRN and BSNRN. LPNVN/ltc-pressure-injury-infection (an infected sacral pressure injury in long-term care) and ltc-insulin-hypoglycemia (hypoglycemia at insulin peak with poor intake); ADNRN/pca-oversedation-naloxone (PCA oversedation reversed with titrated naloxone, plan changed on evaluation) and heart-failure-pulmonary-edema (acute decompensated heart failure after IV saline); BSNRN/assisted-living-norovirus-outbreak (public health nurse, community diagnosis, learner-paced over 12 days) and charge-nurse-short-staffed-shift (assignment, delegation, conflict and staff development). Engine 1.2 with endingOrder; endings in all three classes, 4 critical criteria inside target, KPIs, expert path, debrief per ending, 5-6 golden paths; teaching keys in jsonb order (FAIL-1362); running cases at study pace (3x), the outbreak learner-paced. Literature read 2026-11-11 and dated on each document; authored teaching values flagged. No engine, renderer, schema or migration change.",
+      "id": "REQ-237",
+      "category": "feature",
+      "title": "Sims: terminal and network screen type and the first Linux+, Network+ and CKA outages",
+      "description": "A terminal and network renderer (screen type terminal) behind SIMS_RENDERERS and on by default: a command line over a bounded command set (no free shell; commands are the phase's actions with arguments chosen from lists), the output each command prints over sim time with log lines that appear on their own, and a map of hosts, devices or cluster nodes and the links between them with a status in words. Outcome profile infrastructure gets its defaults. Two outages each for Linux+ (LINUXPLUS), Network+ (NETWORKPLUS) and CKA on catalog objectives that meet the selection rule. Learner-paced: each command costs operator minutes.",
       "priority": "high",
       "status": "completed",
       "minimum_access_scope": [
-        "backend/supabase/seed/sims/LPNVN/",
-        "backend/supabase/seed/sims/ADNRN/",
-        "backend/supabase/seed/sims/BSNRN/",
-        "backend/lib/sim/documents.ts",
-        "backend/scripts/sim-golden/",
-        "docs/sims.md",
-        "CHANGELOG.md"
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/LINUXPLUS",
+        "backend/supabase/seed/sims/NETWORKPLUS",
+        "backend/supabase/seed/sims/CKA",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
       ],
       "acceptance_criteria": [
-        "each scenario lints with zero errors and replays its goldens",
-        "every outcome class is reachable and every criterion is both met and missed",
-        "every objective title exists in its course catalog",
-        "golden paths end the same in written reversed and jsonb key order",
-        "the generator's deterministic gates (key order reachability server and bundle replay sources duplicate) pass on each document",
-        "running clinical sims are paced (study pace by default)"
+        "terminal renderer behind SIMS_RENDERERS with terminal@1 capability",
+        "accessibility to the console standard: output polite and rate-limited and errors spoken at once and Read the terminal and 48 dp and web keyboard order",
+        "six outages with endings in all three classes and 3-4 critical criteria and 5-6 golden paths and endingOrder",
+        "learner-paced",
+        "no engine stepping change and no engine minor"
       ],
       "validation_required": [
+        "backend npm test",
         "npm run sims:lint",
-        "backend npm test (storage-order and objectives tests included)",
-        "sim:cross-runtime and the engine-bundle replay",
-        "sims dbtests on a throwaway Postgres",
+        "cross-runtime fixture and engine bundle",
+        "sims DB tests",
+        "mobile tsc and npm test",
         "omni gate"
       ],
       "documentation_required": [
-        "docs/sims.md",
-        "CHANGELOG.md"
+        "docs/sims.md 22.10",
+        "CHANGELOG"
       ],
       "risk_notes": [
-        "the 2022 AHA/ACC/HFSA HF guideline and the ASPMN 2020 revisions were read only through summaries",
-        "authored teaching-model numbers are flagged in their source notes",
-        "two objectives (LPN hypoglycemia and ADN opioid) are the nearest titles that pass the keyword selection screen rather than the most specific titles",
-        "new document hashes enter expert review"
+        "Command output layouts (IOS show output; kubectl tables; journal lines; httpd AH00035) are authored renderings in the tools' style; the facts they carry are sourced",
+        "The CompTIA objectives PDFs were not reachable; the certification pages and the N10-009 comparison flyer were read through summaries",
+        "Whether a crash-looping container picks up a fixed ConfigMap value on its own next restart is not modeled (FLAG)"
       ]
     },
     {
@@ -8680,6 +8680,48 @@
         "SageMaker Model Monitor is closed to new customers (scenario team is an existing customer)",
         "authored teaching-model numbers are flagged",
         "new documents enter expert review"
+      ]
+    },
+    {
+      "id": "REQ-240",
+      "category": "content",
+      "title": "Bedside sims wave 2 (nursing): LPN/VN, ADN-RN and BSN-RN baseline sims",
+      "description": "Nick's sims wave 2 (2026-11-11): two baseline bedside sims each for LPNVN, ADNRN and BSNRN. LPNVN/ltc-pressure-injury-infection (an infected sacral pressure injury in long-term care) and ltc-insulin-hypoglycemia (hypoglycemia at insulin peak with poor intake); ADNRN/pca-oversedation-naloxone (PCA oversedation reversed with titrated naloxone, plan changed on evaluation) and heart-failure-pulmonary-edema (acute decompensated heart failure after IV saline); BSNRN/assisted-living-norovirus-outbreak (public health nurse, community diagnosis, learner-paced over 12 days) and charge-nurse-short-staffed-shift (assignment, delegation, conflict and staff development). Engine 1.2 with endingOrder; endings in all three classes, 4 critical criteria inside target, KPIs, expert path, debrief per ending, 5-6 golden paths; teaching keys in jsonb order (FAIL-1362); running cases at study pace (3x), the outbreak learner-paced. Literature read 2026-11-11 and dated on each document; authored teaching values flagged. No engine, renderer, schema or migration change.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/LPNVN/",
+        "backend/supabase/seed/sims/ADNRN/",
+        "backend/supabase/seed/sims/BSNRN/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "every objective title exists in its course catalog",
+        "golden paths end the same in written reversed and jsonb key order",
+        "the generator's deterministic gates (key order reachability server and bundle replay sources duplicate) pass on each document",
+        "running clinical sims are paced (study pace by default)"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test (storage-order and objectives tests included)",
+        "sim:cross-runtime and the engine-bundle replay",
+        "sims dbtests on a throwaway Postgres",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "the 2022 AHA/ACC/HFSA HF guideline and the ASPMN 2020 revisions were read only through summaries",
+        "authored teaching-model numbers are flagged in their source notes",
+        "two objectives (LPN hypoglycemia and ADN opioid) are the nearest titles that pass the keyword selection screen rather than the most specific titles",
+        "new document hashes enter expert review"
       ]
     },
     {

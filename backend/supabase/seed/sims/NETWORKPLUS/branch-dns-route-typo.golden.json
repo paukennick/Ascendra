@@ -1,0 +1,1215 @@
+{
+  "slug": "branch-dns-route-typo",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Questions users, reads the change calendar, theory, nslookup/tracert/route table, approved change, add route, remove typo, save, verify with users",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "askUsers",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "changeLog",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "pingIp",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "nslookup",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 7,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "stateTheory",
+          "params": {
+            "which": "route"
+          },
+          "seq": 9,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 8,
+          "seq": 10,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "tracert",
+          "seq": 11,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 10,
+          "seq": 12,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "showRoute",
+          "seq": 13,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "showTunnel",
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 12,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "approve",
+          "seq": 17,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 15,
+          "seq": 18,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "configRoute",
+          "params": {
+            "line": "add"
+          },
+          "seq": 19,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 17,
+          "seq": 20,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "configRoute",
+          "params": {
+            "line": "noTypo"
+          },
+          "seq": 21,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 19,
+          "seq": 22,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "save",
+          "seq": 23,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 20,
+          "seq": 24,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "nslookup",
+          "seq": 25,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 21,
+          "seq": 26,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "confirmUsers",
+          "seq": 27,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 24,
+          "seq": 28,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 29,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 30,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "routeTypo",
+            "lesson": "review"
+          },
+          "seq": 31,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "identify": "met",
+          "testTheory": "met",
+          "restored": "met",
+          "noNewFault": "met",
+          "planned": "met",
+          "cleanSaved": "met",
+          "verifiedUsers": "met",
+          "documentedC": "met"
+        },
+        "kpis": {
+          "minToFix": 15,
+          "faultsK": 0
+        },
+        "stateHash": "a16b39f5f637693d"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "publicResolver",
+      "title": "Hands out a public resolver first (internet names only), then finds the route, fixes it and puts HQ DNS back; no approval, typo left",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "askUsers",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nslookup",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "dhcpDns",
+          "params": {
+            "dns": "public"
+          },
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "nslookup",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 7,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "showRoute",
+          "seq": 9,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 8,
+          "seq": 10,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "stateTheory",
+          "params": {
+            "which": "route"
+          },
+          "seq": 11,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 9,
+          "seq": 12,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "configRoute",
+          "params": {
+            "line": "add"
+          },
+          "seq": 13,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "dhcpDns",
+          "params": {
+            "dns": "hq"
+          },
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 13,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "save",
+          "seq": 17,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 14,
+          "seq": 18,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "nslookup",
+          "seq": 19,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 15,
+          "seq": 20,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "confirmUsers",
+          "seq": 21,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 18,
+          "seq": 22,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 23,
+          "tick": 18
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 24,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "routeTypo",
+            "lesson": "nothing"
+          },
+          "seq": 25,
+          "tick": 18
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 61,
+        "criteria": {
+          "identify": "partial",
+          "testTheory": "partial",
+          "restored": "met",
+          "noNewFault": "met",
+          "planned": "missed",
+          "cleanSaved": "partial",
+          "verifiedUsers": "met",
+          "documentedC": "partial"
+        },
+        "kpis": {
+          "minToFix": 9,
+          "faultsK": 0
+        },
+        "stateHash": "1d02ddea95ccd80b"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "defaultRoute",
+      "title": "Blames the ISP and adds a default route into the tunnel: card payments fail; backs it out and fixes the route",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "askUsers",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "showRoute",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "stateTheory",
+          "params": {
+            "which": "isp"
+          },
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "configRoute",
+          "params": {
+            "line": "defTunnel"
+          },
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 7,
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "confirmUsers",
+          "seq": 9,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 10,
+          "seq": 10,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "configRoute",
+          "params": {
+            "line": "noDefTunnel"
+          },
+          "seq": 11,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 12,
+          "seq": 12,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "configRoute",
+          "params": {
+            "line": "add"
+          },
+          "seq": 13,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 14,
+          "seq": 14,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "save",
+          "seq": 15,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 15,
+          "seq": 16,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "confirmUsers",
+          "seq": 17,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 18,
+          "seq": 18,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 19,
+          "tick": 18
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 20,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "routeTypo",
+            "lesson": "review"
+          },
+          "seq": 21,
+          "tick": 18
+        }
+      ],
+      "expect": {
+        "ending": "branchOffline",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "identify": "partial",
+          "testTheory": "partial",
+          "restored": "met",
+          "noNewFault": "missed",
+          "planned": "missed",
+          "cleanSaved": "partial",
+          "verifiedUsers": "met",
+          "documentedC": "met"
+        },
+        "kpis": {
+          "minToFix": 12,
+          "faultsK": 1
+        },
+        "stateHash": "d5e27a1c01db01af"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "slowClaims",
+      "title": "Suspects the HQ DNS server and waits on HQ: the 09:45 claims upload fails, then reads the route table and fixes it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "askUsers",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pingIp",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "nslookup",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "pingDns",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 6,
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "stateTheory",
+          "params": {
+            "which": "dnsDown"
+          },
+          "seq": 9,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 7,
+          "seq": 10,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 17,
+          "seq": 12,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 27,
+          "seq": 14,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 37,
+          "seq": 16,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 47,
+          "seq": 18,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 47
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 57,
+          "seq": 20,
+          "tick": 47
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 57
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 67,
+          "seq": 22,
+          "tick": 57
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 67,
+          "seq": 23,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "changeLog",
+          "seq": 24,
+          "tick": 67
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 69,
+          "seq": 25,
+          "tick": 67
+        },
+        {
+          "type": "act",
+          "action": "showRoute",
+          "seq": 26,
+          "tick": 69
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 70,
+          "seq": 27,
+          "tick": 69
+        },
+        {
+          "type": "act",
+          "action": "approve",
+          "seq": 28,
+          "tick": 70
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 73,
+          "seq": 29,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "configRoute",
+          "params": {
+            "line": "add"
+          },
+          "seq": 30,
+          "tick": 73
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 15,
+          "to": 75,
+          "seq": 31,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "configRoute",
+          "params": {
+            "line": "noTypo"
+          },
+          "seq": 32,
+          "tick": 75
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 16,
+          "to": 77,
+          "seq": 33,
+          "tick": 75
+        },
+        {
+          "type": "act",
+          "action": "save",
+          "seq": 34,
+          "tick": 77
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 17,
+          "to": 78,
+          "seq": 35,
+          "tick": 77
+        },
+        {
+          "type": "act",
+          "action": "confirmUsers",
+          "seq": 36,
+          "tick": 78
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 18,
+          "to": 81,
+          "seq": 37,
+          "tick": 78
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 38,
+          "tick": 81
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 39,
+          "tick": 81
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "routeTypo",
+            "lesson": "review"
+          },
+          "seq": 40,
+          "tick": 81
+        }
+      ],
+      "expect": {
+        "ending": "claimsMissed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 83,
+        "criteria": {
+          "identify": "met",
+          "testTheory": "partial",
+          "restored": "partial",
+          "noNewFault": "met",
+          "planned": "met",
+          "cleanSaved": "met",
+          "verifiedUsers": "met",
+          "documentedC": "met"
+        },
+        "kpis": {
+          "minToFix": 73,
+          "faultsK": 0
+        },
+        "stateHash": "f72c675530b5fff0"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "skipsSteps",
+      "title": "Reads the change calendar and the route table, adds the right route at once; no typo removal, no save, checks with nslookup only",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "changeLog",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "showRoute",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "stateTheory",
+          "params": {
+            "which": "route"
+          },
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "configRoute",
+          "params": {
+            "line": "add"
+          },
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 6,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "nslookup",
+          "seq": 9,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 7,
+          "seq": 10,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 11,
+          "tick": 7
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "routeTypo",
+            "lesson": "nothing"
+          },
+          "seq": 13,
+          "tick": 7
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "identify": "partial",
+          "testTheory": "met",
+          "restored": "met",
+          "noNewFault": "met",
+          "planned": "missed",
+          "cleanSaved": "missed",
+          "verifiedUsers": "partial",
+          "documentedC": "partial"
+        },
+        "kpis": {
+          "minToFix": 4,
+          "faultsK": 0
+        },
+        "stateHash": "7c275988ec48bfec"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "closeEarly",
+      "title": "One nslookup times out; closes blaming the HQ DNS server",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "nslookup",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stateTheory",
+          "params": {
+            "which": "dnsDown"
+          },
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "dnsDown",
+            "lesson": "nothing"
+          },
+          "seq": 7,
+          "tick": 2
+        }
+      ],
+      "expect": {
+        "ending": "stillBroken",
+        "class": "harm",
+        "rating": "bad",
+        "score": 11,
+        "criteria": {
+          "identify": "missed",
+          "testTheory": "missed",
+          "restored": "missed",
+          "noNewFault": "met",
+          "planned": "missed",
+          "cleanSaved": "missed",
+          "verifiedUsers": "missed",
+          "documentedC": "missed"
+        },
+        "kpis": {
+          "minToFix": -1,
+          "faultsK": 0
+        },
+        "stateHash": "47b44084e255bcfb"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

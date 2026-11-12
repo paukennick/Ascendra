@@ -1,0 +1,1521 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "branch-dns-route-typo",
+  "title": "Outage: 'the internet is down' at the Riverside branch",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "tech@branch-pc:~$",
+      "lines": [
+        {
+          "id": "report",
+          "text": "08:45 help desk: Riverside branch says 'the internet is down'; 14 users",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "cardsLine",
+          "text": "payments: Riverside card terminals cannot reach the processor",
+          "when": "not isNull(cardsDownAt)",
+          "at": "timeAt(cardsDownAt)",
+          "error": "true"
+        },
+        {
+          "id": "claimsLine",
+          "text": "09:45 claims: Riverside's daily claims upload to HQ failed",
+          "when": "not isNull(claimsMissedAt)",
+          "at": "timeAt(claimsMissedAt)",
+          "error": "true"
+        },
+        {
+          "id": "okLine",
+          "text": "dns1: queries from 10.30.1.0/24 answered again",
+          "when": "intranetNames",
+          "at": "timeAt(routeFixedAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "pcs",
+          "label": "Branch PCs",
+          "spokenLabel": "branch PCs",
+          "kind": "Clients, 10.30.1.0/24, DNS 10.20.10.53",
+          "status": "{intranetNames ? \"Names resolve\" : publicDns ? \"Internet names only (public resolver)\" : \"No name resolves\"}",
+          "tone": "intranetNames ? \"up\" : publicDns ? \"degraded\" : \"down\""
+        },
+        {
+          "id": "br1",
+          "label": "BR1",
+          "spokenLabel": "branch router BR1",
+          "kind": "Branch router",
+          "status": "{isNull(routeFixedAt) ? \"No route to 10.20.0.0/16 (has 10.2.0.0/16)\" : \"Route to 10.20.0.0/16 via Tunnel1\"}{defaultViaTunnel ? \"; second default route via Tunnel1\" : \"\"}{changedSinceSave ? \"; unsaved changes\" : \"\"}",
+          "tone": "defaultViaTunnel ? \"down\" : isNull(routeFixedAt) ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "isp",
+          "label": "ISP 203.0.113.1",
+          "spokenLabel": "the ISP",
+          "kind": "Internet uplink",
+          "status": "Up",
+          "tone": "\"up\""
+        },
+        {
+          "id": "dns",
+          "label": "dns1 10.20.10.53",
+          "spokenLabel": "the HQ DNS server",
+          "kind": "DNS server at HQ",
+          "status": "Answering HQ queries",
+          "tone": "\"up\""
+        },
+        {
+          "id": "cards",
+          "label": "Card terminals",
+          "spokenLabel": "the card terminals",
+          "kind": "Payments over the internet",
+          "status": "{not isNull(cardsDownAt) ? (cardsOk ? \"Back, after an outage\" : \"Cannot reach the processor\") : \"Working\"}",
+          "tone": "cardsOk ? \"up\" : \"down\""
+        },
+        {
+          "id": "claims",
+          "label": "Claims upload 09:45",
+          "spokenLabel": "the 09:45 claims upload",
+          "kind": "Daily upload to HQ",
+          "status": "{not isNull(claimsMissedAt) ? \"Failed\" : intranetNames ? \"Ready\" : \"Needs HQ names\"}",
+          "tone": "not isNull(claimsMissedAt) ? \"down\" : intranetNames ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "tunnel",
+          "from": "br1",
+          "to": "dns",
+          "label": "VPN Tunnel1 to HQ",
+          "status": "{isNull(routeFixedAt) ? \"Up, but nothing routed into it for 10.20.0.0/16\" : \"Up, carrying HQ traffic\"}",
+          "tone": "isNull(routeFixedAt) ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "wan",
+          "from": "br1",
+          "to": "isp",
+          "label": "Internet uplink",
+          "status": "Up",
+          "tone": "\"up\""
+        },
+        {
+          "id": "lan",
+          "from": "pcs",
+          "to": "br1",
+          "label": "Branch LAN",
+          "status": "Up",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "stepM",
+          "label": "Methodology so far",
+          "value": "{isNull(askedAt) ? \"\" : \"users questioned; \"}{isNull(changeLogAt) ? \"\" : \"changes checked; \"}{theory == \"none\" ? \"\" : \"theory stated; \"}{isNull(approvedAt) ? \"\" : \"plan approved; \"}{isNull(usersConfirmedAt) ? \"\" : \"users confirmed\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Applying a consistent troubleshooting methodology from problem identification through documentation",
+  "secondaryObjectives": [
+    "Diagnosing network service issues: switching, routing, and address pool exhaustion",
+    "Using troubleshooting tools and protocols: protocol analyzers, CLI tools, cable testers, and Wi-Fi analyzers"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA Network+ (V9), exam N10-009: domains Networking concepts 23%, Network implementation 20%, Network operations 19%, Network security 14%, Network troubleshooting 24%; launched 2024-06-20",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/network/",
+      "note": "Relevant text: troubleshooting covers 'identifying the problem, establishing a theory, testing, planning, and implementing a solution,' 'verifying functionality, and documenting findings'; network services issues include 'switching issues (STP, VLAN assignment, ACLs), routing issues (routing table and default routes)'. Objective titles 5.1 'Explain the troubleshooting methodology', 5.3 'Given a scenario, troubleshoot common issues with network services', 5.5 'Given a scenario, use the appropriate tool or protocol to solve networking issues' read in CompTIA's N10-009 objectives comparison flyer (April 2024, partners.comptia.org). Both read through summarizing fetches on 2026-11-11; the objectives PDF itself was not reachable. The course objective titles are the course seed's (2026-11-07)."
+    },
+    {
+      "cite": "Pearson IT Certification, CompTIA Network+ N10-009 Cert Guide, chapter mapped to objective 5.1 'Explain the troubleshooting methodology' (O'Reilly Learning preview)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.oreilly.com/library/view/comptia-network-n10-009/9780135367919/ch21.xhtml",
+      "note": "Relevant text (the objective's steps as the guide lists them): 1 'Identify the problem' (gather information, question users, identify symptoms, 'Determine if anything has changed', duplicate the problem, approach multiple problems individually); 2 'Establish a theory of probable cause' (question the obvious; top-to-bottom/bottom-to-top OSI, divide and conquer); 3 'Test the theory to determine the cause' ('If theory is not confirmed, establish a new theory or escalate'); step 4 'Establish a plan of action ...' was cut off in the preview. Read through a summarizing fetch on 2026-11-11 (the first four steps only). Steps 5-7 (implement, verify full functionality, document) are taken from CompTIA's own page wording (see the Network+ source)."
+    },
+    {
+      "cite": "Cisco IOS command reference, ip route",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.cisco.com/E-Learning/bulk/public/tac/cim/cib/using_cisco_ios_software/cmdrefs/ip_route.htm",
+      "note": "Relevant text: 'ip route prefix mask {address | interface} [distance] [tag tag] [permanent]'; prefix 'IP route prefix for the destination'; mask 'Prefix mask for the destination'; interface 'Network interface to use'; 'no ip route prefix mask'. Read through a summarizing fetch on 2026-11-11. That two static default routes of equal distance share traffic is the scenario's teaching model (FLAG: not read in this source); the show output layouts are authored renderings."
+    },
+    {
+      "cite": "IETF RFC 1812, Requirements for IP Version 4 Routers, 2.2.5.2",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc1812",
+      "note": "Relevant text: 'Routers must use the most specific matching route (the longest matching network prefix) when forwarding traffic.' Read through a summarizing fetch on 2026-11-11. Why traffic to 10.20.10.53 follows the default route once the 10.20.0.0/16 route is missing."
+    },
+    {
+      "cite": "Microsoft Learn, nslookup (Windows commands), updated 2026-10-21",
+      "checkedAt": "2026-11-11",
+      "url": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/nslookup",
+      "note": "Relevant text: 'timed out: The server didn't respond to a request after a certain amount of time and a certain number of retries'; 'Nonexistent domain: The computer or DNS domain name doesn't exist.' Read through a summarizing fetch on 2026-11-11. The exact nslookup and tracert output in the scenario is an authored rendering."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network technician for Larkspur Insurance (fictional). At 08:45 the Riverside branch calls: 'the internet is down.' Branch PCs use the HQ DNS server 10.20.10.53 across a VPN tunnel on the branch router BR1; internet traffic leaves BR1 straight to the ISP. The branch uploads the day's claims to HQ at 09:45, and its card terminals use the internet. Work it with the troubleshooting methodology, from identifying the problem to documenting it.",
+    "handover": [
+      "BR1: default route to the ISP 203.0.113.1; HQ (10.20.0.0/16) is reached through Tunnel1.",
+      "Changes to BR1 go through a change ticket; emergency changes can be approved by phone."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, device or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "08:45",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "claimsDelay": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-237)",
+        "checkedAt": "2026-11-11",
+        "note": "How many operator minutes each command or change takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. The claims upload runs at 09:45, 60 minutes after the call."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "askedAt": {
+      "type": "time",
+      "init": null
+    },
+    "changeLogAt": {
+      "type": "time",
+      "init": null
+    },
+    "pingIpAt": {
+      "type": "time",
+      "init": null
+    },
+    "nslookupAt": {
+      "type": "time",
+      "init": null
+    },
+    "pingDnsAt": {
+      "type": "time",
+      "init": null
+    },
+    "tracertAt": {
+      "type": "time",
+      "init": null
+    },
+    "routeAt": {
+      "type": "time",
+      "init": null
+    },
+    "tunnelAt": {
+      "type": "time",
+      "init": null
+    },
+    "theory": {
+      "type": "enum",
+      "values": [
+        "none",
+        "route",
+        "dnsDown",
+        "isp"
+      ],
+      "init": "none"
+    },
+    "theoryAt": {
+      "type": "time",
+      "init": null
+    },
+    "approvedAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "routeFixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "typoRemoved": {
+      "type": "bool",
+      "init": false
+    },
+    "publicDns": {
+      "type": "bool",
+      "init": false
+    },
+    "defaultViaTunnel": {
+      "type": "bool",
+      "init": false
+    },
+    "reloadAt": {
+      "type": "time",
+      "init": null
+    },
+    "cardsDownAt": {
+      "type": "time",
+      "init": null
+    },
+    "saved": {
+      "type": "bool",
+      "init": false
+    },
+    "changedSinceSave": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "usersConfirmedAt": {
+      "type": "time",
+      "init": null
+    },
+    "claimsMissedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "routeTypo",
+        "dnsDown",
+        "isp"
+      ],
+      "init": "none"
+    },
+    "lessonDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "review",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "intranetNames": {
+      "expr": "not isNull(routeFixedAt) and not publicDns"
+    },
+    "cardsOk": {
+      "expr": "not defaultViaTunnel"
+    },
+    "faultsAdded": {
+      "expr": "(publicDns ? 1 : 0) + (defaultViaTunnel ? 1 : 0) + (isNull(cardsDownAt) ? 0 : 1)"
+    },
+    "evidenceFirst": {
+      "expr": "(not isNull(routeAt) or not isNull(tracertAt)) and (isNull(firstChangeAt) or min(isNull(routeAt) ? 99999 : timeAt(routeAt), isNull(tracertAt) ? 99999 : timeAt(tracertAt)) <= timeAt(firstChangeAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "askUsers",
+        "changeLog",
+        "pingIp",
+        "nslookup",
+        "pingDns",
+        "tracert",
+        "showRoute",
+        "showTunnel",
+        "showRunRoutes",
+        "stateTheory",
+        "approve",
+        "configRoute",
+        "dhcpDns",
+        "save",
+        "reload",
+        "confirmUsers",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "askUsers": {
+      "label": "question users: what fails, since when, what still works",
+      "group": "Identify",
+      "available": "not busy and (isNull(askedAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "askedAt",
+          "to": "t"
+        },
+        {
+          "output": "tech@branch-pc:~$ call the branch\nSince 08:30 no website opens by name, and the intranet neither. One user says a vendor site opened when she typed its IP address. The card terminals work."
+        },
+        {
+          "finding": "Names fail but an address works: suspect name resolution, not the internet link."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "changeLog": {
+      "label": "check the change calendar for BR1",
+      "group": "Identify",
+      "available": "not busy and (isNull(changeLogAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "changeLogAt",
+          "to": "t"
+        },
+        {
+          "output": "tech@branch-pc:~$ open the change calendar\nCHG-1182, last night 22:00, BR1: replace the static routes to HQ with one summary route 10.20.0.0/16 via Tunnel1. Implemented and saved by the night shift; no peer review."
+        },
+        {
+          "finding": "Something did change: BR1's routes to HQ, last night."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "pingIp": {
+      "label": "ping 198.51.100.10",
+      "group": "Test",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "pingIpAt",
+          "to": "t"
+        },
+        {
+          "output": "C:\\> ping 198.51.100.10\n{cardsOk ? \"Reply from 198.51.100.10: bytes=32 time=14ms TTL=56 (4 of 4)\" : \"Request timed out. (2 of 4 lost)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "nslookup": {
+      "label": "nslookup intranet.larkspur.example",
+      "group": "Test",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "nslookupAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "intranetNames",
+              "then": [
+                {
+                  "output": "C:\\> nslookup intranet.larkspur.example\nServer:  dns1.larkspur.example\nAddress:  10.20.10.53\n\nName:    intranet.larkspur.example\nAddress:  10.20.30.15"
+                },
+                {
+                  "if": "isNull(verifiedAt)",
+                  "then": [
+                    {
+                      "set": "verifiedAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "publicDns",
+              "then": [
+                {
+                  "output": "C:\\> nslookup intranet.larkspur.example\nServer:  resolver.example\nAddress:  192.0.2.53\n\n*** resolver.example can't find intranet.larkspur.example: Non-existent domain"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "C:\\> nslookup intranet.larkspur.example\nDNS request timed out.\n    timeout was 2 seconds.\nServer:  UnKnown\nAddress:  10.20.10.53\n\n*** Request to UnKnown timed-out"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "pingDns": {
+      "label": "ping 10.20.10.53",
+      "group": "Test",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "pingDnsAt",
+          "to": "t"
+        },
+        {
+          "output": "C:\\> ping 10.20.10.53\n{isNull(routeFixedAt) ? \"Request timed out. (4 of 4 lost)\" : \"Reply from 10.20.10.53: bytes=32 time=19ms TTL=126 (4 of 4)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "tracert": {
+      "label": "tracert -d 10.20.10.53",
+      "group": "Test",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "tracertAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(routeFixedAt)",
+          "then": [
+            {
+              "output": "C:\\> tracert -d 10.20.10.53\n  1    <1 ms    <1 ms    <1 ms  10.30.1.1\n  2     9 ms     8 ms     9 ms  203.0.113.1\n  3     *        *        *     Request timed out."
+            },
+            {
+              "finding": "Traffic for the HQ DNS server leaves BR1 toward the ISP, not into the tunnel."
+            }
+          ],
+          "else": [
+            {
+              "output": "C:\\> tracert -d 10.20.10.53\n  1    <1 ms    <1 ms    <1 ms  10.30.1.1\n  2    18 ms    18 ms    19 ms  172.16.0.1\n  3    19 ms    19 ms    19 ms  10.20.10.53"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "showRoute": {
+      "label": "BR1# show ip route",
+      "group": "Test",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "routeAt",
+          "to": "t"
+        },
+        {
+          "output": "BR1# show ip route\nGateway of last resort is 203.0.113.1 to network 0.0.0.0\n\nS*    0.0.0.0/0 [1/0] via 203.0.113.1{defaultViaTunnel ? \"\n                [1/0] via Tunnel1\" : \"\"}{typoRemoved ? \"\" : \"\nS     10.2.0.0/16 is directly connected, Tunnel1\"}{isNull(routeFixedAt) ? \"\" : \"\nS     10.20.0.0/16 is directly connected, Tunnel1\"}\nC     10.30.1.0/24 is directly connected, GigabitEthernet0/1\nC     172.16.0.0/30 is directly connected, Tunnel1"
+        },
+        {
+          "if": "isNull(routeFixedAt)",
+          "then": [
+            {
+              "finding": "BR1 has a route for 10.2.0.0/16, not 10.20.0.0/16: last night's summary has a typo, so 10.20.10.53 matches only the default route to the ISP."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "showTunnel": {
+      "label": "BR1# show interfaces tunnel 1",
+      "group": "Test",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "tunnelAt",
+          "to": "t"
+        },
+        {
+          "output": "BR1# show interfaces tunnel 1\nTunnel1 is up, line protocol is up\n  Tunnel source 203.0.113.2, destination 198.51.100.1"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "showRunRoutes": {
+      "label": "BR1# show running-config | include ip route",
+      "group": "Test",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "BR1# show running-config | include ip route\nip route 0.0.0.0 0.0.0.0 203.0.113.1{defaultViaTunnel ? \"\nip route 0.0.0.0 0.0.0.0 Tunnel1\" : \"\"}{typoRemoved ? \"\" : \"\nip route 10.2.0.0 255.255.0.0 Tunnel1\"}{isNull(routeFixedAt) ? \"\" : \"\nip route 10.20.0.0 255.255.0.0 Tunnel1\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "stateTheory": {
+      "label": "state a theory of probable cause",
+      "group": "Theory",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "params": [
+        {
+          "id": "which",
+          "kind": "choice",
+          "label": "Theory",
+          "options": [
+            {
+              "value": "route",
+              "label": "Last night's route change broke the path to the HQ DNS server"
+            },
+            {
+              "value": "dnsDown",
+              "label": "The HQ DNS server is down"
+            },
+            {
+              "value": "isp",
+              "label": "The ISP is having an outage"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "theory",
+          "to": "which"
+        },
+        {
+          "set": "theoryAt",
+          "to": "t"
+        },
+        {
+          "output": "tech@branch-pc:~$ note theory\n{which == \"route\" ? \"Theory: last night's route change broke the path to the HQ DNS server.\" : which == \"dnsDown\" ? \"Theory: the HQ DNS server is down.\" : \"Theory: the ISP is having an outage.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "approve": {
+      "label": "get the emergency change approved (plan, effects, rollback)",
+      "group": "Plan",
+      "available": "not busy and (isNull(approvedAt))",
+      "why": "Approved.",
+      "effects": [
+        {
+          "set": "approvedAt",
+          "to": "t"
+        },
+        {
+          "output": "tech@branch-pc:~$ call the change manager\nEmergency change CHG-1190 approved: add 10.20.0.0/16 via Tunnel1, remove the 10.2.0.0/16 typo, save; rollback is the reverse. No effect expected on the internet path."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "configRoute": {
+      "label": "BR1(config)#",
+      "group": "Implement",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "params": [
+        {
+          "id": "line",
+          "kind": "choice",
+          "label": "Configuration line",
+          "options": [
+            {
+              "value": "add",
+              "label": "ip route 10.20.0.0 255.255.0.0 Tunnel1"
+            },
+            {
+              "value": "noTypo",
+              "label": "no ip route 10.2.0.0 255.255.0.0 Tunnel1"
+            },
+            {
+              "value": "defTunnel",
+              "label": "ip route 0.0.0.0 0.0.0.0 Tunnel1"
+            },
+            {
+              "value": "noDefTunnel",
+              "label": "no ip route 0.0.0.0 0.0.0.0 Tunnel1"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "changedSinceSave",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "line == \"add\"",
+              "then": [
+                {
+                  "if": "isNull(routeFixedAt)",
+                  "then": [
+                    {
+                      "set": "routeFixedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "output": "BR1(config)# ip route 10.20.0.0 255.255.0.0 Tunnel1"
+                },
+                {
+                  "log": "BR1 routes 10.20.0.0/16 into the tunnel again.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "line == \"noTypo\"",
+              "then": [
+                {
+                  "set": "typoRemoved",
+                  "to": "true"
+                },
+                {
+                  "output": "BR1(config)# no ip route 10.2.0.0 255.255.0.0 Tunnel1"
+                }
+              ]
+            },
+            {
+              "when": "line == \"defTunnel\"",
+              "then": [
+                {
+                  "set": "defaultViaTunnel",
+                  "to": "true"
+                },
+                {
+                  "if": "isNull(cardsDownAt)",
+                  "then": [
+                    {
+                      "set": "cardsDownAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "output": "BR1(config)# ip route 0.0.0.0 0.0.0.0 Tunnel1"
+                },
+                {
+                  "log": "A second default route via Tunnel1: about half the internet flows now go to HQ, whose firewall drops them. The card terminals lose the processor.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "defaultViaTunnel",
+                  "to": "false"
+                },
+                {
+                  "output": "BR1(config)# no ip route 0.0.0.0 0.0.0.0 Tunnel1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "dhcpDns": {
+      "label": "BR1(dhcp-config)#",
+      "group": "Implement",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "params": [
+        {
+          "id": "dns",
+          "kind": "choice",
+          "label": "DNS server handed out",
+          "options": [
+            {
+              "value": "public",
+              "label": "dns-server 192.0.2.53"
+            },
+            {
+              "value": "hq",
+              "label": "dns-server 10.20.10.53"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "changedSinceSave",
+          "to": "true"
+        },
+        {
+          "if": "dns == \"public\"",
+          "then": [
+            {
+              "set": "publicDns",
+              "to": "true"
+            },
+            {
+              "output": "BR1(dhcp-config)# dns-server 192.0.2.53"
+            },
+            {
+              "log": "Branch PCs will use a public resolver as they renew: internet names work, HQ names do not, and internal lookups now leave the company.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "set": "publicDns",
+              "to": "false"
+            },
+            {
+              "output": "BR1(dhcp-config)# dns-server 10.20.10.53"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "save": {
+      "label": "BR1# copy running-config startup-config",
+      "group": "Implement",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "saved",
+          "to": "true"
+        },
+        {
+          "set": "changedSinceSave",
+          "to": "false"
+        },
+        {
+          "output": "BR1# copy running-config startup-config\nBuilding configuration...\n[OK]"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "reload": {
+      "label": "BR1# reload",
+      "group": "Implement",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(reloadAt)",
+          "then": [
+            {
+              "set": "reloadAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(cardsDownAt)",
+          "then": [
+            {
+              "set": "cardsDownAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "BR1# reload\nProceed with reload? [confirm]"
+        },
+        {
+          "log": "BR1 rebooted: the whole branch, card terminals included, was offline for 8 minutes. Last night's typo was saved, so it came back unchanged.",
+          "kind": "alarm"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "confirmUsers": {
+      "label": "ask users to confirm websites and the intranet work",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "tech@branch-pc:~$ call the branch\n{intranetNames and cardsOk ? \"Websites, the intranet and the card terminals all work.\" : intranetNames ? \"Names work, but card payments are failing.\" : publicDns ? \"Websites open, but the intranet still does not.\" : \"Still nothing opens by name.\"}"
+        },
+        {
+          "if": "intranetNames and cardsOk and isNull(usersConfirmedAt)",
+          "then": [
+            {
+              "set": "usersConfirmedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 600",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "tech@branch-pc:~$ sleep 600"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "routeTypo",
+                  "label": "A typo in last night's summary route (10.2.0.0/16 for 10.20.0.0/16) sent DNS traffic to the ISP"
+                },
+                {
+                  "value": "dnsDown",
+                  "label": "The HQ DNS server was down"
+                },
+                {
+                  "value": "isp",
+                  "label": "An ISP outage"
+                }
+              ]
+            },
+            {
+              "id": "lesson",
+              "label": "Lesson learned",
+              "options": [
+                {
+                  "value": "review",
+                  "label": "Peer review and a test step for route changes"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing to change"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "lessonDoc",
+          "to": "lesson"
+        },
+        {
+          "log": "Recorded: cause {cause}, lesson {lesson}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-237)",
+        "checkedAt": "2026-11-11",
+        "note": "How many operator minutes each command or change takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "claims",
+      "when": "t >= claimsDelay and phase == \"incident\" and not intranetNames",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "claimsMissedAt",
+          "to": "t"
+        },
+        {
+          "log": "09:45: the branch's claims upload to HQ failed.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: walk the methodology. What you identified, the theory you formed and how you tested it, what you changed and how you verified it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Identify and theorize",
+          "criteria": "Questions users (names fail, an IP works) and checks what changed (last night's route change); forms the theory that the path to the HQ DNS server is broken, not the internet.",
+          "modelAnswer": "Users said names failed but an address worked, which points at DNS, and the change calendar showed last night's change to BR1's routes to HQ. My theory: the route change broke the path to the HQ DNS server."
+        },
+        {
+          "label": "Test",
+          "criteria": "Confirms with tracert (DNS traffic leaving to the ISP) and show ip route (10.2.0.0/16 instead of 10.20.0.0/16, longest match falls to the default).",
+          "modelAnswer": "tracert to 10.20.10.53 went to the ISP, and show ip route had 10.2.0.0/16, so 10.20.10.53 matched only the default route."
+        },
+        {
+          "label": "Implement, verify, document",
+          "criteria": "Gets the change approved, adds the correct route and removes the typo, saves, verifies with nslookup and the users, and records the cause and a preventive measure (peer review); rejects the public-resolver workaround and a reload.",
+          "modelAnswer": "With an emergency change approved, I added 10.20.0.0/16 via Tunnel1, removed the typo and saved. nslookup answered and the users confirmed the intranet and payments. A public resolver would hide HQ names, and a reload would just reload the saved typo."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 45 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Fixed with time to spare before the 09:45 claims upload; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-11",
+          "note": "No second fault: a public resolver left handed out, a second default route, or the branch taken offline."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not intranetNames",
+      "class": "harm",
+      "rationale": "Closing while branch PCs cannot resolve HQ names leaves the branch unable to work with HQ; it is never a safe outcome.",
+      "source": {
+        "cite": "Pearson IT Certification, CompTIA Network+ N10-009 Cert Guide, chapter mapped to objective 5.1 'Explain the troubleshooting methodology' (O'Reilly Learning preview)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.oreilly.com/library/view/comptia-network-n10-009/9780135367919/ch21.xhtml",
+        "note": "Relevant text (the objective's steps as the guide lists them): 1 'Identify the problem' (gather information, question users, identify symptoms, 'Determine if anything has changed', duplicate the problem, approach multiple problems individually); 2 'Establish a theory of probable cause' (question the obvious; top-to-bottom/bottom-to-top OSI, divide and conquer); 3 'Test the theory to determine the cause' ('If theory is not confirmed, establish a new theory or escalate'); step 4 'Establish a plan of action ...' was cut off in the preview. Read through a summarizing fetch on 2026-11-11 (the first four steps only). Steps 5-7 (implement, verify full functionality, document) are taken from CompTIA's own page wording (see the Network+ source)."
+      }
+    }
+  },
+  "endings": {
+    "branchOffline": {
+      "label": "The fix took the card terminals down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(cardsDownAt)",
+      "narrative": "A change made on a guess took the branch's card payments down: {isNull(reloadAt) ? \"a second default route sent half the internet traffic to HQ\" : \"a reload took the whole branch offline\"}."
+    },
+    "claimsMissed": {
+      "label": "The outage cost the claims upload",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(claimsMissedAt)",
+      "narrative": "HQ names still failed at 09:45, so the day's claims did not reach HQ."
+    },
+    "stillBroken": {
+      "label": "Closed with names still failing",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not intranetNames",
+      "narrative": "The outage was closed while branch PCs still could not resolve HQ names."
+    },
+    "fixed": {
+      "label": "Fixed by the method",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and intranetNames and timeAt(routeFixedAt) <= restoreWindow and faultsAdded <= newFaults and typoRemoved and saved and not changedSinceSave and not isNull(usersConfirmedAt) and not isNull(askedAt) and not isNull(changeLogAt) and theory == \"route\" and evidenceFirst",
+      "narrative": "You found what changed, tested the theory, fixed the route with approval, saved it, confirmed with the users and recorded the lesson."
+    },
+    "fixedGaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Names work again, but steps of the method were skipped, the change was not saved or cleaned up, or a workaround came first."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "branchOffline",
+    "claimsMissed",
+    "stillBroken",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "identify",
+        "label": "Identified the problem: questioned users and checked what changed before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(askedAt) and not isNull(changeLogAt) and (isNull(firstChangeAt) or max(timeAt(askedAt), timeAt(changeLogAt)) <= timeAt(firstChangeAt))",
+            "score": "met",
+            "why": "Users questioned and the change calendar read first."
+          },
+          {
+            "when": "not isNull(askedAt) or not isNull(changeLogAt)",
+            "score": "partial",
+            "why": "Only part of the identify step was done before a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither the users nor the change calendar were consulted."
+          }
+        ]
+      },
+      {
+        "id": "testTheory",
+        "label": "Stated the right theory and tested it (tracert or the routing table) before implementing",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "theory == \"route\" and evidenceFirst",
+            "score": "met",
+            "why": "The theory was confirmed before the change."
+          },
+          {
+            "when": "theory == \"route\" or not isNull(routeAt) or not isNull(tracertAt)",
+            "score": "partial",
+            "why": "The theory or the test came late or alone."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changes were made without a tested theory."
+          }
+        ]
+      },
+      {
+        "id": "restored",
+        "label": "HQ names resolving within 45 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "intranetNames and timeAt(routeFixedAt) <= restoreWindow",
+            "score": "met",
+            "why": "Route fixed {timeAt(routeFixedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "intranetNames",
+            "score": "partial",
+            "why": "Fixed, but {timeAt(routeFixedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "HQ names still fail."
+          }
+        ]
+      },
+      {
+        "id": "noNewFault",
+        "label": "Introduced no new fault",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(cardsDownAt) and faultsAdded == 0 and not publicDns",
+            "score": "met",
+            "why": "Nothing else broke."
+          },
+          {
+            "when": "isNull(cardsDownAt) and faultsAdded == 0",
+            "score": "partial",
+            "why": "A workaround was put in and taken out again."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{not isNull(cardsDownAt) ? \"The card terminals went down.\" : \"A public resolver is still handed out.\"}"
+          }
+        ]
+      },
+      {
+        "id": "planned",
+        "label": "Got the change approved before implementing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(approvedAt) and not isNull(firstChangeAt) and timeAt(approvedAt) <= timeAt(firstChangeAt)",
+            "score": "met",
+            "why": "Emergency change approved with a rollback."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed BR1 without an approved plan."
+          }
+        ]
+      },
+      {
+        "id": "cleanSaved",
+        "label": "Removed the typo route and saved",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "typoRemoved and saved and not changedSinceSave",
+            "score": "met",
+            "why": "Clean and saved."
+          },
+          {
+            "when": "saved and not changedSinceSave",
+            "score": "partial",
+            "why": "Saved, with the typo route still in the configuration."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The fix is not saved."
+          }
+        ]
+      },
+      {
+        "id": "verifiedUsers",
+        "label": "Verified full functionality with the users",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(usersConfirmedAt)",
+            "score": "met",
+            "why": "The branch confirmed names, the intranet and payments."
+          },
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "nslookup answered, but no one asked the users."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing was verified."
+          }
+        ]
+      },
+      {
+        "id": "documentedC",
+        "label": "Documented the cause and a lesson learned",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"routeTypo\" and lessonDoc == \"review\"",
+            "score": "met",
+            "why": "Cause and preventive measure recorded."
+          },
+          {
+            "when": "causeDoc == \"routeTypo\"",
+            "score": "partial",
+            "why": "The cause is right; no lesson recorded."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written methodology",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToFix",
+        "label": "Minutes until HQ names resolved",
+        "value": "intranetNames ? timeAt(routeFixedAt) / 60 : -1",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "faultsK",
+        "label": "Faults the fix introduced",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "Question users: names fail, an IP works, payments work. Check the change calendar: last night's route change on BR1."
+      },
+      {
+        "at": "5-10 min",
+        "text": "Theory: the change broke the path to the HQ DNS server. Test: nslookup times out, tracert leaves via the ISP, show ip route has 10.2.0.0/16."
+      },
+      {
+        "at": "10-18 min",
+        "text": "Get the emergency change approved, add 10.20.0.0/16 via Tunnel1, remove the typo, save, nslookup, ask the users."
+      },
+      {
+        "at": "After",
+        "text": "Document the typo as the cause and peer review for route changes as the lesson."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: fixed by the method",
+        "body": "Every step of the methodology did its job: what changed pointed at BR1, the test proved the typo, and the users confirmed the fix."
+      },
+      "fixedGaps": {
+        "headline": "Fixed, with gaps",
+        "body": "Names work again. The criteria show which steps were skipped or came late."
+      },
+      "branchOffline": {
+        "headline": "A guess took payments down",
+        "body": "Testing the theory first (tracert, show ip route) shows one missing route; nothing about the internet path needed changing."
+      },
+      "claimsMissed": {
+        "headline": "The outage reached the claims upload",
+        "body": "Asking what changed points at BR1 in two minutes. The upload needed HQ names by 09:45."
+      },
+      "stillBroken": {
+        "headline": "Closed too soon",
+        "body": "Branch PCs still could not resolve HQ names. Verify full functionality before you document."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Identify: users say names fail but an IP works; the change calendar shows last night's route change on BR1. Theory: the path to the HQ DNS server is broken. Test: nslookup times out, tracert to 10.20.10.53 leaves via the ISP, show ip route has 10.2.0.0/16 instead of 10.20.0.0/16, so the longest match is the default route. Plan: emergency change with rollback. Implement: add the right route, remove the typo, save. Verify: nslookup and the users. Document: the typo as the cause, peer review as the lesson. A public resolver or a reload are not fixes."
+  }
+}
