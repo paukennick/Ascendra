@@ -16522,6 +16522,76 @@
       "prevention_rules": [],
       "prevention_notes": "Test requires each gap's covering reference; future course reviews compare every objective with the cited table of contents",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1540",
+      "date": "2026-11-11",
+      "title": "DP-300 stuck at Review due after its review-date line was deleted",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Production showed DP-300 as Review due since 2026-10-27 although the course was re-verified on 2026-11-09 (sourceVerifiedAt 2026-11-09 in the seed).",
+      "how_detected": "Production freshness state read 2026-11-12 (REQ-244 brief); traced through git history (commit b5c4cf7) and seed-lib.ts",
+      "root_cause": "The 2026-11-09 audit fix removed contentReviewDueAt: 2026-10-27 from the seed, expecting the review to end. The seed writes content_review_due_at with coalesce(new, existing), so a missing value keeps the stored date; review_due stays true for good. Nothing documented that the field cannot be cleared by deleting it.",
+      "requirement": "REQ-244",
+      "affected": [
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/seed-lib.ts"
+      ],
+      "fix_summary": "DP-300 re-verified 2026-11-11 and given contentReviewDueAt 2027-11-11 (12-month exam-outline default), which replaces the stale stored date on the next seed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/course-verification-req244.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "SeedTrack.contentReviewDueAt now says a later date ends a review and deleting the line does not; the regression test checks DP-300 sets one and that every course reviews after its check. GCP DevOps had the same deletion (2026-11-23) and is reported for its owner.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1541",
+      "date": "2026-11-11",
+      "title": "GCP DevOps would stick at Review due from 2026-11-23 after its review-date line was deleted",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Same bug as FAIL-1540: commit b5c4cf7 deleted contentReviewDueAt 2026-11-23 from GCPDEVOPS; production keeps that stored date and would show the course as Review due from 2026-11-23 although it was re-authored to the new guide.",
+      "how_detected": "REQ-244 git-history review of every removed contentReviewDueAt line (git log -S)",
+      "root_cause": "The seed writes content_review_due_at with coalesce(new, existing), so removing the line cannot clear a stored date. The 2026-11-09 audit removed two such lines (DP300, GCPDEVOPS) expecting the review to end.",
+      "requirement": "REQ-244",
+      "affected": [
+        "backend/supabase/seed/tracks/gcp.ts"
+      ],
+      "fix_summary": "GCPDEVOPS re-verified 2026-11-11 against the guide live on 2026-11-23 and given contentReviewDueAt 2027-11-11, which replaces the stored date on the next seed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/course-verification-req244.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "STORED_REVIEW_DUE in the REQ-244 test pins every course with a stored review date to a later one; docs/source-reliability-standard.md and the SeedTrack.contentReviewDueAt comment say a review date only moves forward through the seed.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1542",
+      "date": "2026-11-11",
+      "title": "GCP DevOps exam facts drifted from the certification page",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The course said recommended experience was 1+ year designing and managing solutions, and the format was multiple choice and multiple select; the certification page (read 2026-11-11) says 1+ years designing and managing production systems, and 50-60 multiple choice questions.",
+      "how_detected": "REQ-244 re-check of the certification page",
+      "root_cause": "The exam-fact fields were written from a shared Google Cloud template and not re-read against this exam's page when the course moved to the 2026-11-23 guide.",
+      "requirement": "REQ-244",
+      "affected": [
+        "backend/supabase/seed/tracks/gcp.ts"
+      ],
+      "fix_summary": "recommendedExperience and questionFormat now word the page as printed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/course-verification-req244.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Re-checks compare the credential block's exam facts with the certification page, not only the outline; the regression test pins the wording.",
+      "recurrence_of": ""
     }
   ]
 }

@@ -93,6 +93,18 @@ What to record (2026-11-08):
   version the objectives follow, leave the verified date at the last full
   read, and set `contentReviewDueAt` to the change date (DP-300, Google
   Cloud DevOps).
+- **A review date only moves forward through the seed** (REQ-244,
+  FAIL-1540, FAIL-1541). The seed writes `sourceVerifiedAt` and
+  `contentReviewDueAt` with `coalesce`: a value can be set but never
+  cleared. When a re-check ends a review, set a later `contentReviewDueAt`
+  (by default the check date plus 12 months); never delete the line. A
+  deleted line leaves the old date in the database and the course shows
+  "Review due" for good, as DP-300 (2026-10-27) and Google Cloud DevOps
+  (2026-11-23) would have after the 2026-11-09 audit removed theirs. A
+  course whose stored date was removed is pinned in
+  `backend/lib/course-verification-req244.test.ts` (`STORED_REVIEW_DUE`) so
+  it keeps a later one; add a course there if its line is ever removed or
+  moved earlier.
 - **A course with no exam** records `curriculum` on its seed track: the
   language's official reference, the school's published degree plan, or
   `self_defined` for a syllabus the course writes itself.
