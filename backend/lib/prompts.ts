@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { CoachContext } from "@/lib/coach-context";
+import { ABSOLUTE_WORDS, KEY_LENGTH_RATIO, KEY_LENGTH_SLACK_CHARS } from "@/lib/item-style";
 
 // Prompt-building helpers, adapted from the governing rules baked into
 // mscs-coach.html and security-plus-coach.html (Claude Artifact apps this
@@ -34,15 +35,45 @@ export const INCLUSIVE_RULES = `- Inclusive by default: address the learner as "
 // bank. Before this only the exam-item prompt had any of them, so a lesson
 // or review item could be guessed from its wording or have two defensible
 // answers, and mastery evidence was weaker than it looked.
+//
+// REQ-251: the 2026-11-12 pre-generation trial (25 DPT objectives) had style
+// findings on 22 of 25 first drafts -- a right answer much longer than the
+// others, and absolute cue words in wrong options -- although the rules below
+// already forbade both. They said it without a number ("parallel in length",
+// "never the longest") and named four of the eight cue words the check uses
+// (lib/item-style.ts), while "exactly one defensible answer" and the
+// free-response framing pull the other way: the easiest way to make one
+// answer defensible is to qualify the key and make the distractors absolute.
+// The rules now state the check's own thresholds and word list, say where a
+// qualification goes instead, and end with a check to run on each option set.
+export const OPTION_LENGTH_RULE =
+  `the right answer is at most ${KEY_LENGTH_RATIO} times the average length of the wrong options, or at most ` +
+  `${KEY_LENGTH_SLACK_CHARS} characters longer than that average, whichever allows more -- and aim for at least ` +
+  `one wrong option as long as the right one, so the right answer is not the longest`;
+export const CUE_WORD_RULE =
+  `no wrong option uses ${ABSOLUTE_WORDS.join(", ")} (unless the question itself uses that word); ` +
+  `make a wrong option wrong through its content -- a wrong value, step, condition or cause -- not an absolute`;
+
 export const ITEM_WRITING_RULES = `Item-writing rules for every question with options:
 - Exactly one defensible answer (or exactly the stated number for "choose two/three"); a subject expert
   would accept no other option.
 - No "all of the above" / "none of the above"; no NOT / EXCEPT / LEAST stems.
 - Options are parallel in length, grammar and detail: the right answer is never the longest or the
-  only precise one, and wording repeated from the stem is not a giveaway.
-- No absolute cue words (always, never, only, all) that let an option be ruled out on wording alone.
+  only precise one, and wording repeated from the stem is not a giveaway. Length is checked in
+  characters: ${OPTION_LENGTH_RULE}.
+- Keep the right answer as short as the wrong ones: an option is a short answer, not a full model
+  answer. Put qualifications and the reasoning in the explanation, not in the option.
+- No absolute cue words that let an option be ruled out on wording alone: ${CUE_WORD_RULE}.
 - Distractors are real misconceptions or near-misses, plausible to someone who has not mastered it.
-- Vary the position of the right answer.`;
+- Vary the position of the right answer.
+- Example of the length and cue rules (format only, not your subject; * marks the right answer):
+  Bad:  *"It encrypts traffic between client and server once the certificate chain validates" /
+        "It always blocks unknown ports" / "It compresses data" / "It logs events"
+  Good: *"It encrypts traffic between client and server" / "It encrypts files stored on the server" /
+        "It blocks ports the server does not use" / "It records each client request in a server log"
+- Before you write each set of options, decide how long the right answer will be and write the wrong
+  ones to match. Then check the set: find the longest option -- if it is the right one, shorten it or
+  add plausible detail to a wrong one -- and scan every wrong option for the cue words above.`;
 
 // REQ-114: the two fields every generation schema carries (H1). Optional in
 // the TypeScript type that readers use (a local model or an older cache may
@@ -610,10 +641,13 @@ Produce ONLY a JSON object, no markdown fence:
 // text it is testing when the caller passes it (\`teach\`). Choices are
 // shuffled per learner when served (lib/choice-order.ts), so the stored
 // position of the right answer no longer matters to the learner.
+// REQ-251: the schema description is what the model reads where it writes
+// the options (structured output), so it carries the checked numbers too.
 const CHOICE_RULES =
   "Exactly 4 options for the same question: one correct, three that reflect real misconceptions or near-misses a " +
   "learner at this level would plausibly hold, never silly filler. Keep all four similar in length and detail so " +
-  "the longest or most specific option is not a giveaway, and never use 'all of the above' or 'none of the above'.";
+  "the longest or most specific option is not a giveaway, and never use 'all of the above' or 'none of the above'. " +
+  `Checked: ${OPTION_LENGTH_RULE}; ${CUE_WORD_RULE}. Options are short answers; qualifications go in the explanations.`;
 const FEEDBACK_RULES =
   "Exactly 4 short explanations, one per option in the same order as the options. For a wrong option, name the " +
   "specific misconception behind it and why it fails in this case. For the right option, say why it is right. One " +
@@ -739,11 +773,11 @@ Objective: ${params.objectiveTitle}${taught}${avoidPreviousBlock(params.avoid)}$
 Produce ONLY a JSON object with exactly these fields, no prose outside the JSON, no markdown fence:
 {
   "fadeProblem": "a SECOND example, a different instance of the same idea, partly worked, leaving the deciding reasoning step (not a label) for the learner — state exactly and unambiguously what they must work out (free-response phrasing)",
-  "fadeChoices": ["exactly 4 plausible options for that same step — one correct, three real misconceptions/near-misses, similar in length, never silly filler"],
+  "fadeChoices": ["exactly 4 plausible options for that same step — one correct, three real misconceptions/near-misses, never silly filler; ${OPTION_LENGTH_RULE}; ${CUE_WORD_RULE}"],
   "fadeCorrectIndex": "<0-3: index of the correct choice; vary its position>",
   "fadeWhy": "one short sentence on why the correct choice is correct",
   "soloCheck": "a THIRD, standalone applied question or small problem, same scope as the objective, for the learner to solve entirely alone with no scaffolding (free-response phrasing)",
-  "soloChoices": ["same rules as fadeChoices, for soloCheck"],
+  "soloChoices": ["exactly 4 options for soloCheck, same rules as fadeChoices: ${OPTION_LENGTH_RULE}; ${CUE_WORD_RULE}"],
   "soloCorrectIndex": "<0-3: index of the correct choice; vary its position>",
   "soloWhy": "one short sentence",
   "fadeOptionReasons": ["exactly 4 entries, ONE short sentence each, same order as fadeChoices: why the correct one is right; for each wrong one, the misconception it reflects and why it fails"],
@@ -1269,7 +1303,7 @@ export const coachQuizSchema = z.object({
   choices: z
     .array(z.string())
     .length(4)
-    .describe("Exactly 4 options: one correct, three real misconceptions or near-misses, never filler."),
+    .describe(`Exactly 4 options: one correct, three real misconceptions or near-misses, never filler. Checked: ${OPTION_LENGTH_RULE}; ${CUE_WORD_RULE}.`),
   correctIndex: z.number().int().min(0).max(3).describe("Index into choices of the correct option."),
   hints: z
     .array(z.string())
@@ -1309,7 +1343,7 @@ Objective: ${params.objectiveTitle}
 Produce ONLY a JSON object, no markdown fence:
 {
   "question": "one short retrieval question on this objective",
-  "choices": ["exactly 4 options: one correct, three real misconceptions"],
+  "choices": ["exactly 4 options: one correct, three real misconceptions; ${OPTION_LENGTH_RULE}; ${CUE_WORD_RULE}"],
   "correctIndex": "<0-3: index of the correct choice; vary its position>",
   "hints": ["hint 1: the key idea to recall, no answer", "hint 2: sharper, may rule out one wrong option, still no answer"],
   "explanation": "2-3 sentences: why the correct option is right, and the misconception behind the most tempting wrong one",

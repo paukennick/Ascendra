@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 import { queryOne } from "@/lib/db";
 import { UserFacingError } from "@/lib/http";
 import { presentationOrder, presentationSeed, shuffleForPresentation } from "@/lib/choice-order";
-import { callClaudeStructured, getModel } from "@/lib/anthropic";
+import { callClaudeStructured, getModel, type CallOptions } from "@/lib/anthropic";
+import { AiResponseError } from "@/lib/ai-calls";
 import { fixFor, generateValid, lessonIntroProblems, lessonPracticeHardProblems, lessonPracticeLint, shufflePractice } from "@/lib/content-validator";
 import { coachContextForObjective, type CoachContext } from "@/lib/coach-context";
 import {
@@ -215,11 +216,80 @@ export interface GenerateMeta {
   introSteer?: string;
 }
 
-// Lessons: Sonnet, effort "medium", thinking off. See lib/anthropic.ts
-// (modelParams) for why thinking is off -- adaptive thinking ate the
-// max_tokens budget on a verbose real objective (no text block at all,
-// stop_reason max_tokens, blocks=[thinking]). This is content generation
-// against a fixed schema, not a reasoning task.
+// Lessons: Sonnet. The teaching text (intro): effort "medium", thinking off.
+// See lib/anthropic.ts (modelParams) for why thinking was turned off --
+// adaptive thinking ate the max_tokens budget on a verbose real objective (no
+// text block at all, stop_reason max_tokens, blocks=[thinking]; FAIL-008).
+//
+// REQ-251 (Nick, 2026-11-12: "Let the model think"): the practice half
+// thinks, bounded. Its options must meet exact length and cue-word rules
+// (lib/item-style.ts), and with thinking off the model cannot check an option
+// set before writing it: the 2026-11-12 trial had style findings on 22 of 25
+// first drafts. The 5.5 models take no thinking-only budget (budget_tokens is
+// a 400), so the bound is the two levers the API has (lib/anthropic.ts):
+//  - effort "low" ("Claude minimizes thinking"), a soft limit; and
+//  - max_tokens = PRACTICE_OUTPUT_TOKENS + PRACTICE_THINKING_BUDGET_TOKENS,
+//    the hard cap: the answer keeps its whole 6,000 (a practice answer is
+//    about 4,800 output tokens today) however much of the allowance thinking
+//    uses, so FAIL-008's shared, answer-sized ceiling cannot recur.
+// If thinking still runs past its allowance and the reply stops on
+// max_tokens, the live writer asks once more with thinking off
+// (PRACTICE_NO_THINKING_CALL, the configuration that ran before REQ-251), so
+// a learner never gets FAIL-008 back as a failed lesson.
+// The teaching text stays thinking off: it has no length or cue-word rules
+// to check, and its first drafts were not the problem the trial found.
+//
+// One definition for every practice writer: the app's generator, its
+// steered retry (generateValid's second attempt), pre-generation's batch
+// request (lib/pregen.ts practiceParams) and its live retry
+// (liveRetryWriter), and the live eval -- the parity DB test
+// (lib/pregen.dbtest.ts) pins that batch and live send the same.
+
+// The answer's own room: the most a practice reply's JSON may take.
+export const PRACTICE_OUTPUT_TOKENS = 6000;
+// Thinking allowance for one practice call, added to max_tokens on top of
+// PRACTICE_OUTPUT_TOKENS (never taken out of it). 4,000 is the app's general
+// thinking headroom (THINKING_HEADROOM_TOKENS) and, at effort "low", well over
+// what checking a few option sets needs; it is also the planning figure for
+// cost (lib/pregen.ts prices every request at its full max_tokens). Raising it
+// raises every practice call's cost ceiling: $0.01 per 1,000 tokens live on
+// Sonnet 5.5, half that in a batch.
+export const PRACTICE_THINKING_BUDGET_TOKENS = 4000;
+
+export const PRACTICE_CALL = {
+  maxTokens: PRACTICE_OUTPUT_TOKENS,
+  thinkingBudgetTokens: PRACTICE_THINKING_BUDGET_TOKENS,
+  effort: "low",
+  thinking: "default",
+} as const satisfies Pick<CallOptions, "maxTokens" | "thinkingBudgetTokens" | "effort" | "thinking">;
+
+// The fallback when a thinking practice call stopped on max_tokens: the
+// pre-REQ-251 configuration, which never thinks.
+export const PRACTICE_NO_THINKING_CALL = {
+  maxTokens: PRACTICE_OUTPUT_TOKENS,
+  effort: "medium",
+  thinking: "off",
+} as const satisfies Pick<CallOptions, "maxTokens" | "effort" | "thinking">;
+
+// A structured call whose reply ran out of max_tokens (no text, or JSON cut
+// off): lib/anthropic.ts callClaudeStructured puts the stop reason in the
+// message of both errors.
+export function stoppedAtMaxTokens(err: unknown): boolean {
+  return err instanceof AiResponseError && /stop_reason=max_tokens\b/.test(err.message);
+}
+
+// One practice draft: with bounded thinking, then -- only if that reply ran
+// out of max_tokens -- once more without thinking. Both calls go through the
+// spend gate on their own (each reserves its own max_tokens).
+export async function writePracticeDraft<T>(call: (cfg: typeof PRACTICE_CALL | typeof PRACTICE_NO_THINKING_CALL) => Promise<T>): Promise<T> {
+  try {
+    return await call(PRACTICE_CALL);
+  } catch (err) {
+    if (!stoppedAtMaxTokens(err)) throw err;
+    console.warn("[lesson-generation] practice draft stopped at max_tokens with thinking on; writing it again with thinking off");
+    return call(PRACTICE_NO_THINKING_CALL);
+  }
+}
 // REQ-187: a retry after failed content checks is told what failed (the
 // distractor lint, lib/content-validator.ts), and the stored answer position
 // of both checks is shuffled.
@@ -264,17 +334,17 @@ export const claudeGenerator: LessonGenerator = {
         steer,
         verify: wantsVerification(objRow.ctx),
       });
-      return callClaudeStructured({
-        system,
-        messages: [{ role: "user", content: user }],
-        schema: lessonPracticeSchema,
-        maxTokens: 6000,
-        model: getModel(),
-        effort: "medium",
-        thinking: "off",
-        purpose: "lesson_practice",
-        userId: meta?.userId ?? null,
-      });
+      return writePracticeDraft((cfg) =>
+        callClaudeStructured({
+          system,
+          messages: [{ role: "user", content: user }],
+          schema: lessonPracticeSchema,
+          ...cfg,
+          model: getModel(),
+          purpose: "lesson_practice",
+          userId: meta?.userId ?? null,
+        })
+      );
     }, lessonPracticeHardProblems, undefined, lessonPracticeLint);
     return shufflePractice(made);
   },
