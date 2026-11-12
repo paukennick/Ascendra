@@ -79,7 +79,8 @@ describe("pregenerate", () => {
     assert.equal(parseArgs([]).mode, "estimate");
     const e = parseArgs(["--tracks", "SY0-701, saa-c03", "--limit", "200"]);
     assert.deepEqual([e.mode, e.tracks, e.limit, e.maxUsd, e.dryRun], ["estimate", ["SY0-701", "SAA-C03"], 200, null, false]);
-    assert.equal(parseArgs(["--submit", "--tracks", "DPT", "--max-usd", "50"]).mode, "submit");
+    // REQ-248: a submit without --limit also needs --confirm-full-run (lib/pregen-style-retry.test.ts)
+    assert.equal(parseArgs(["--submit", "--tracks", "DPT", "--max-usd", "50", "--limit", "25"]).mode, "submit");
     assert.equal(parseArgs(["--collect", "msgbatch_01AbC"]).batchId, "msgbatch_01AbC");
     assert.throws(() => parseArgs(["--collect"]));
     assert.throws(() => parseArgs(["--limit", "-3"]));
@@ -226,6 +227,13 @@ describe("the workflow (REQ-208)", () => {
     for (const input of ["mode", "tracks", "limit", "batch_id", "max_usd"]) assert.match(code, new RegExp(`^      ${input}:`, "m"), input);
     assert.match(code, /options: \[estimate, submit, collect\]/);
     assert.match(code, /max_usd:[\s\S]*?default: "110"/);
+  });
+
+  test("REQ-248 (FAIL-1603): a submit with limit blank needs confirm_full_run, checked before anything is installed, and passed on", () => {
+    assert.match(code, /^      confirm_full_run:\n        description: .*\n        type: boolean\n        default: false/m);
+    const guard = code.indexOf('[ -z "$LIMIT" ] && [ "$CONFIRM_FULL_RUN" != "true" ]');
+    assert.ok(guard > 0 && guard < code.indexOf("npm ci"), "refused before npm ci");
+    assert.match(code, /"\$CONFIRM_FULL_RUN" = "true" \]; then set -- "\$@" --confirm-full-run/);
   });
 
   test("refuses to start when either secret is missing", () => {

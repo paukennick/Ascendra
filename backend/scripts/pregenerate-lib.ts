@@ -31,6 +31,8 @@ export function estimateCost(lessons: number) {
 //   - the fact-check that runs when a lesson is saved is NOT discounted (it is
 //     a live call) and is priced at its max_tokens too, thinking headroom
 //     included (the checker thinks);
+//   - REQ-248: one live steered retry of the practice half per lesson (style
+//     findings, lib/pregen.ts styleRetry), at the live price, no discount;
 //   - prices come from lib/ai-pricing.ts for the model in use (an unknown or
 //     4.5 id is priced as Sonnet 5.5, the dearest).
 // ---------------------------------------------------------------------------
@@ -316,6 +318,9 @@ export interface PregenArgs {
   allowConcurrent: boolean;
   // write a counts-only JSON summary here
   summaryPath?: string;
+  // REQ-248 (FAIL-1603): a submit without --limit is a full run; it must be
+  // asked for in so many words, after a trial (docs/operations-runbook.md).
+  confirmFullRun: boolean;
 }
 
 const BATCH_ID = /^msgbatch_[A-Za-z0-9]+$/;
@@ -323,7 +328,7 @@ const BATCH_ID = /^msgbatch_[A-Za-z0-9]+$/;
 const TRACK_CODE = /^[A-Za-z0-9_-]{1,40}$/;
 
 export function parseArgs(argv: string[]): PregenArgs {
-  const out: PregenArgs = { mode: "estimate", tracks: [], limit: null, maxUsd: null, dryRun: false, allowConcurrent: false };
+  const out: PregenArgs = { mode: "estimate", tracks: [], limit: null, maxUsd: null, dryRun: false, allowConcurrent: false, confirmFullRun: false };
   const value = (i: number, flag: string) => {
     const v = argv[i];
     if (v === undefined || v.startsWith("--")) throw new Error(`${flag} needs a value`);
@@ -355,12 +360,20 @@ export function parseArgs(argv: string[]): PregenArgs {
       out.maxUsd = n;
     } else if (a === "--dry-run") out.dryRun = true;
     else if (a === "--allow-concurrent") out.allowConcurrent = true;
+    else if (a === "--confirm-full-run") out.confirmFullRun = true;
     else if (a === "--summary") out.summaryPath = value(++i, a);
     else throw new Error(`Unknown option ${a}`);
   }
   if (out.mode === "submit") {
     if (!out.tracks.length) throw new Error("--submit needs --tracks (in priority order); it never submits the whole catalog");
     if (out.maxUsd === null) throw new Error("--submit needs --max-usd");
+    // REQ-248 (FAIL-1603): the 2026-11-12 trial saved 4 of 25. A full run is
+    // sent only after a trial (--limit) has been collected and looked at.
+    if (out.limit === null && !out.dryRun && !out.confirmFullRun) {
+      throw new Error(
+        "--submit without --limit is a full run: run a trial first (--limit 25), collect it, check that most lessons were saved, then submit again with --confirm-full-run. Nothing was sent."
+      );
+    }
   }
   if (out.mode !== "collect" && out.introBatchId) throw new Error("--intro-batch is only for --collect");
   return out;
