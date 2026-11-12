@@ -36,6 +36,7 @@ import { isNotFound } from "@/lib/notFound";
 import { LoadError } from "@/components/LoadError";
 import { HOME } from "@/lib/goBack";
 import { useGoBack } from "@/lib/useGoBack";
+import { CourseLevelPanel } from "@/components/CourseLevelPanel";
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
@@ -172,6 +173,9 @@ export default function CourseDashboard() {
             </View>
             <FavoriteButton active={!!track.is_favorite} onPress={toggleFavorite} />
           </View>
+
+          {/* REQ-252: the per-course goal question and level (asked once), then the level chip. */}
+          <CourseLevelPanel trackId={trackId} />
 
           <Card elevated style={{ borderColor: colors.accent }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>

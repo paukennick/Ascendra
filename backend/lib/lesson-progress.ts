@@ -86,11 +86,16 @@ export interface TeachState {
   explain: string;
   explainDone: boolean;
   guessMatch: "close" | "partial" | "off" | null;
+  // REQ-252: the one-tap hunch's source, or "no_idea"; and whether the
+  // learner took "Try again" after a missed Solo check. Both absent unless set.
+  hunch?: "guided" | "lesson" | "no_idea";
+  soloRetried?: boolean;
 }
 
 const MAX_CARDS = 10;
 const MAX_EXPLAIN = 2000;
 const GUESS_MATCHES = ["close", "partial", "off"];
+const HUNCHES = ["guided", "lesson", "no_idea"];
 
 export function sanitizeTeach(v: unknown): TeachState | undefined {
   if (!v || typeof v !== "object") return undefined;
@@ -100,6 +105,8 @@ export function sanitizeTeach(v: unknown): TeachState | undefined {
     explain: text(o.explain, MAX_EXPLAIN) ?? "",
     explainDone: o.explainDone === true,
     guessMatch: typeof o.guessMatch === "string" && GUESS_MATCHES.includes(o.guessMatch) ? (o.guessMatch as TeachState["guessMatch"]) : null,
+    ...(typeof o.hunch === "string" && HUNCHES.includes(o.hunch) ? { hunch: o.hunch as TeachState["hunch"] } : {}),
+    ...(o.soloRetried === true ? { soloRetried: true } : {}),
   };
 }
 
