@@ -102,6 +102,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AWSMLA", "loan-data-bias"),
   entry("AWSCLF", "data-transfer-surprise"),
   entry("AWSCLF", "leaked-access-key"),
+  entry("AWSDVA", "canary-rollback-dlq"),
   // ---- end REQ-242 ----
 ];
 
