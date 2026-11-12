@@ -8560,6 +8560,42 @@
         "no live API run yet: request shapes and real cost unverified until the key exists",
         "generated sims seed as source authored until the seed is taught origin generated"
       ]
+    },
+    {
+      "id": "REQ-236",
+      "category": "content",
+      "title": "Wave 1 follow-ups: generated sims marked 'generated', schedule time-unit lint rule, A+ Core 2 malware-removal objective",
+      "description": "Nick approved three follow-ups (2026-11-11). (1) A registration entry in lib/sim/documents.ts can mark a sim generated (entry(course, slug, { source: 'generated' })); the seed writes it to sim_versions.source, correcting a changed marking in place on an unchanged hash; the generator's .register.md emits the generated form; every existing sim stays authored. (2) Lint error (lib/sim/lint.ts secondsUnitProblems, lint layer only, no engine change or minor) when a param, state variable or derived value with a time unit other than seconds is read where the engine reads sim seconds: an expression schedule.after, a console alert or event at, and a template slot, table column or KPI with a seconds format. (3) A+ Core 2 objective 'Best-practice malware removal procedure' retitled in place (same index and row id; seed-lib invalidates the old title's lessons and items, FAIL-893) to the ten steps of 220-1202 V15 objective 2.6 (CompTIA objectives document version 4.0, read in full 2026-11-11); the malware lab's objective title updated with it. No migration.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim/",
+        "backend/supabase/seed/",
+        "backend/lib/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a generated entry seeds with source generated and an authored one stays authored (lib/sims-source.dbtest.ts)",
+        "every registered sim is authored (lib/sim/documents.test.ts)",
+        "register.md emits the generated entry (lib/sim/generator/generator.test.ts)",
+        "a minutes param in schedule.after / console at / seconds format is a lint error and no seeded sim fails (lib/sim/seconds-units.test.ts; npm run sims:lint)",
+        "the A+ objective keeps its row and mastery across a re-seed with the new text (lib/aplus-malware-objective.dbtest.ts)"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run sims:lint",
+        "relevant dbtests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 12.2 and 22.7",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "A time-unit param converted inside the expression (x * 60) is also an error: the rule asks for seconds rather than guessing at conversions",
+        "The objective title paraphrases the ten V15 step names (short procedural phrases) rather than quoting the copyrighted outline"
+      ]
     }
   ]
 }

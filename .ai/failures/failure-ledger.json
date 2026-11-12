@@ -15536,11 +15536,12 @@
       "fix_commits": [],
       "regression_tests": [
         "backend/lib/sim/documents.test.ts",
-        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json"
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json",
+        "backend/lib/sim/seconds-units.test.ts"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "docs/sims.md 22.7 records it. A linter rule (a param used in schedule.after must have unit s) would prevent it; not added here because it would change engine/v1/validate.ts, which this wave leaves alone.",
+      "prevention_notes": "docs/sims.md 22.7 records it. REQ-236 (FAIL-1420) added the lint rule: a param with a non-second time unit read where the engine reads seconds (schedule.after and others) is an error (lib/sim/lint.ts secondsUnitProblems).",
       "recurrence_of": ""
     },
     {
@@ -15881,6 +15882,80 @@
         ".ai/checklists/pre-completion.md"
       ],
       "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1420",
+      "date": "2026-11-11",
+      "title": "Linter let a non-second time unit be read as seconds (schedule.after and other seconds reads)",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "FAIL-1361: the NAT gateway draft's dayWait 1440 with unit min, given to schedule.after, advanced 24 minutes; sims:lint passed it.",
+      "how_detected": "golden output during REQ-233 authoring (FAIL-1361); rule approved by Nick 2026-11-11",
+      "root_cause": "The engine reads schedule.after expressions, console alert/event at, and seconds formats (clock, time, duration, min, date...) as sim seconds; a param's unit is display and lint metadata only, and no lint rule compared the two. Only rates times dt had a heuristic warning.",
+      "requirement": "REQ-236",
+      "affected": [
+        "backend/lib/sim/lint.ts"
+      ],
+      "fix_summary": "secondsUnitProblems in lib/sim/lint.ts (run by checkDocument, so sims:lint, the seeded-documents test and the generator's lint gate): an error when a param, state variable or derived value whose unit is a time unit other than seconds is read in one of those places. Lint layer only; engine and minor unchanged. All 30 seeded documents pass.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/seconds-units.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.7 now records the rule; store durations in seconds with unit s and display with |min or |duration.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1421",
+      "date": "2026-11-11",
+      "title": "Generated sims would seed as 'authored'",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims-seed.ts wrote source 'authored' for every registered sim, so a sim written by sims:generate and registered by hand could not be told apart from an authored one in sim_versions (docs/sims.md 12.2 open question).",
+      "how_detected": "review of REQ-230 (docs/sims.md 12.2 open question)",
+      "root_cause": "DocumentEntry carried no provenance and the seed hard-coded the literal 'authored', although sim_versions.source allows 'generated' since 062.",
+      "requirement": "REQ-236",
+      "affected": [
+        "backend/lib/sim/documents.ts",
+        "backend/supabase/seed/sims-seed.ts",
+        "backend/lib/sim/generator/pipeline.ts"
+      ],
+      "fix_summary": "DocumentEntry.source ('authored' default; entry()/band() take { source: 'generated' }); the seed writes it on insert and corrects it in place on an unchanged hash; .register.md emits the generated form.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sims-source.dbtest.ts",
+        "backend/lib/sim/documents.test.ts",
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 12.2 documents the option; documents.test.ts pins every current sim as authored so a generated one has to be marked on purpose.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1422",
+      "date": "2026-11-11",
+      "title": "A+ Core 2 malware-removal objective summarized CompTIA's older seven-step list",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The APLUS_CORE2 objective title listed the older procedure (no 'update anti-malware', no scan and removal techniques, no reimage/reinstall, System Restore not limited to Windows Home) while 220-1202 V15 objective 2.6 lists ten steps; the REQ-234 lab taught V15 and recorded the gap.",
+      "how_detected": "REQ-234 lab authoring (recorded in labs/comptia-aplus-core2.ts)",
+      "root_cause": "The objective was written from the earlier exam's procedure and not re-read when the track was aligned to V15; REQ-234 left the title alone to avoid touching the catalog in a labs change.",
+      "requirement": "REQ-236",
+      "affected": [
+        "backend/supabase/seed/tracks/comptia.ts",
+        "backend/supabase/seed/labs/comptia-aplus-core2.ts"
+      ],
+      "fix_summary": "Retitled in place at the same index (same row id; mastery and attempts kept; seed-lib invalidates the old title's lessons and pulls its items, FAIL-893) to the ten V15 steps, read in CompTIA's objectives document version 4.0 on 2026-11-11; the lab's objective title updated with it.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/aplus-malware-objective.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A course objective that names an outline's steps is retitled in place by position, never moved or appended, so learner rows stay (REQ-102, FAIL-893).",
       "recurrence_of": ""
     }
   ]

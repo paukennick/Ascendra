@@ -2967,11 +2967,15 @@ it has with that reason.
 `<slug>.golden.json` (status `draft`) in the output folder (default
 `backend/sim-drafts/`, git-ignored), with `<slug>.register.md`: the two
 `mv` lines into `backend/supabase/seed/sims/<COURSE>/`, the
-`entry("<COURSE>", "<slug>")` line for `ALL_DOCUMENTS` in
-`lib/sim/documents.ts`, and the checks to run. The script never edits
-`documents.ts`. Registered, it seeds like an authored sim as
-`needs_expert_review` (open question for Nick: mark it `source 'generated'`,
-which the table allows; the seed writes `'authored'` today).
+`entry("<COURSE>", "<slug>", { source: "generated" })` line for
+`ALL_DOCUMENTS` in `lib/sim/documents.ts`, and the checks to run. The script
+never edits `documents.ts`. Registered, it seeds as `needs_expert_review`
+with `sim_versions.source = 'generated'` (Nick approved, REQ-236): the
+`source` option on `entry()` (or `band()`) is what the seed writes, and an
+entry without it is `'authored'`. A marking changed on unchanged content is
+corrected in place on the same version row, like re-checked source dates (no
+new version, review kept). Every sim registered before REQ-236 is authored
+(`lib/sim/documents.test.ts`; `lib/sims-source.dbtest.ts` seeds one of each).
 
 **Duplicate check** (`lib/sim/generator/similarity.ts`). Two Jaccard indexes
 (shared divided by either): the story (three-word runs of the title,
@@ -4461,8 +4465,18 @@ first minute.
   "changed first"; the board case orders them with a flag set by the change
   actions instead. And a `schedule.after` given a param is read in seconds
   whatever the param's `unit` says: a "1440 min" day became 24 minutes. The
-  linter checks neither; the goldens (`guessFirst`, and every path's final
-  tick) pin both.
+  linter does not check the first; the goldens (`guessFirst`, and every
+  path's final tick) pin both. Since REQ-236 the second is a lint error
+  (`secondsUnitProblems`, lib/sim/lint.ts, run by `sims:lint` and the
+  generator's lint gate): a param, state variable or derived value whose unit
+  is a time unit other than seconds (ms, min, h, d, wk and their spellings)
+  may not be read where the engine reads sim seconds, which is an expression
+  `schedule.after`, a console alert's or event's `at`, and a template slot,
+  table column or KPI with a seconds format (clock, clocks, date, dateShort,
+  datetime, time, duration, min). Store it in seconds with unit `s` and show
+  it with `|min` or `|duration`. A rate (mL/min) is not a duration and is
+  not checked (the engine's dt warning covers rates). Lint only: the engine
+  and its minor are unchanged.
 - **Teaching key order (FAIL-1362, an instance of the open FAIL-1250).** Two
   teaching prompts due at once are offered in the teaching map's key order,
   which jsonb does not keep, so three goldens recorded in file order failed
