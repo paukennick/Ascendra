@@ -79,7 +79,17 @@ export function useKeyTerms(objectiveId: string) {
   return { view: keyTermsView(state), ensure, retry: load };
 }
 
-export function KeyTermsButton({ objectiveId, initiallyOpen = false }: { objectiveId: string; initiallyOpen?: boolean }) {
+export function KeyTermsButton({
+  objectiveId,
+  initiallyOpen = false,
+  onOpenChange,
+}: {
+  objectiveId: string;
+  initiallyOpen?: boolean;
+  // REQ-252: told when the sheet opens and closes, so the lesson can log
+  // key_terms_opened / key_terms_closed (with how long it stayed open).
+  onOpenChange?: (open: boolean) => void;
+}) {
   const [open, setOpen] = useState(false);
   const { view, ensure, retry } = useKeyTerms(objectiveId);
   const openedOnce = useRef(false);
@@ -89,12 +99,18 @@ export function KeyTermsButton({ objectiveId, initiallyOpen = false }: { objecti
       openedOnce.current = true;
       ensure();
       setOpen(true);
+      onOpenChange?.(true);
     }
-  }, [initiallyOpen, ensure]);
+  }, [initiallyOpen, ensure, onOpenChange]);
 
   const show = () => {
     ensure();
     setOpen(true);
+    onOpenChange?.(true);
+  };
+  const hide = () => {
+    setOpen(false);
+    onOpenChange?.(false);
   };
 
   return (
@@ -110,7 +126,7 @@ export function KeyTermsButton({ objectiveId, initiallyOpen = false }: { objecti
         <Feather name="bookmark" size={16} color={colors.link} />
         <Text style={styles.buttonText}>{KEY_TERMS_LABEL}</Text>
       </Pressable>
-      <KeyTermsSheet visible={open} onClose={() => setOpen(false)} view={view} onRetry={retry} />
+      <KeyTermsSheet visible={open} onClose={hide} view={view} onRetry={retry} />
     </>
   );
 }

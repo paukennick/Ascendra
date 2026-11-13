@@ -190,9 +190,15 @@ export function suggestionFor(goal: CourseGoal | null, state: Pick<LevelState, "
 // The short notice after an automatic move up (never silent; Undo beside it).
 // It names the unit and the evidence; with the level-aware flow on, what
 // changes in its lessons.
+// The server's thresholds (backend/lib/learner-level-rules.ts
+// LEVEL_UP_WINDOW and LEVEL_UP_MIN_FIRST_TRY_CORRECT), mirrored for the
+// notice's wording; a test in each package pins the same numbers.
+export const LEVEL_UP_WINDOW = 5;
+export const LEVEL_UP_MIN_FIRST_TRY_CORRECT = 4;
+
 export function levelChangeNotice(change: LevelChange, flow: boolean): string {
   const where = change.unitTitle ? `"${change.unitTitle}"` : "this unit";
-  const base = `You got 4 of your last 5 solo checks in ${where} right on the first try without a hint, so it's now ${LEVEL_NAMES[change.toLevel]}.`;
+  const base = `You got ${LEVEL_UP_MIN_FIRST_TRY_CORRECT} of your last ${LEVEL_UP_WINDOW} solo checks in ${where} right on the first try without a hint, so it's now ${LEVEL_NAMES[change.toLevel]}.`;
   if (!flow) return base;
   if (change.toLevel === "experienced") return `${base} Guided practice is optional there now.`;
   if (change.toLevel === "some") return `${base} Its lessons now start with a typed guess.`;
@@ -206,17 +212,27 @@ export function levelChangeNotice(change: LevelChange, flow: boolean): string {
 // ---------------------------------------------------------------------------
 export interface LessonFlow {
   oneTapHunch: boolean;
+  // REQ-253's Key terms sheet opened once at the start of the lesson
+  // (Nick, 2026-11-12: a constant reference, opened once for New learners).
+  keyTermsFirst: boolean;
   fullExampleFirst: boolean;
   offerSkipGuided: boolean;
 }
 
-export const STANDARD_FLOW: LessonFlow = { oneTapHunch: false, fullExampleFirst: false, offerSkipGuided: false };
+export const STANDARD_FLOW: LessonFlow = { oneTapHunch: false, keyTermsFirst: false, fullExampleFirst: false, offerSkipGuided: false };
 
 export function lessonFlowFor(level: Level | null, flowOn: boolean): LessonFlow {
   if (!flowOn || !level) return STANDARD_FLOW;
-  if (level === "new") return { oneTapHunch: true, fullExampleFirst: true, offerSkipGuided: false };
-  if (level === "experienced") return { oneTapHunch: false, fullExampleFirst: false, offerSkipGuided: true };
+  if (level === "new") return { oneTapHunch: true, keyTermsFirst: true, fullExampleFirst: true, offerSkipGuided: false };
+  if (level === "experienced") return { oneTapHunch: false, keyTermsFirst: false, fullExampleFirst: false, offerSkipGuided: true };
   return STANDARD_FLOW;
+}
+
+// Opened once at the START of a lesson: only on the first step (a lesson
+// resumed at a later step does not open it again), and not while the level
+// is still unknown.
+export function openKeyTermsAtStart(flow: LessonFlow, step: string): boolean {
+  return flow.keyTermsFirst && step === "guess";
 }
 
 // The Guided suggestion with the level applied on top of fadingPlan

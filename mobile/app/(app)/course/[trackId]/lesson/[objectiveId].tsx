@@ -99,6 +99,7 @@ import { followUpDraftKey, guessDraftKey } from "@/lib/drafts";
 // JavaScript in phase 1) and the progress signals for newer learners.
 import {
   FULL_EXAMPLE_LEVEL_NOTE,
+  openKeyTermsAtStart,
   SKIP_GUIDED_LEVEL_NOTE,
   STANDARD_FLOW,
   beforeAfter,
@@ -312,6 +313,24 @@ export default function LessonFlow() {
         .catch(() => {});
     },
     [objectiveId, levelState?.effective, flowOn]
+  );
+  // REQ-252 / REQ-253: the Key terms sheet opened and closed, with how long
+  // it stayed open. Every opening is counted (a numbered once-key).
+  const keyTermsOpenedAt = useRef<number | null>(null);
+  const keyTermsOpens = useRef(0);
+  const onKeyTermsOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        keyTermsOpens.current += 1;
+        keyTermsOpenedAt.current = Date.now();
+        logLessonEvent("key_terms_opened", {}, `key_terms_opened:${keyTermsOpens.current}`);
+      } else if (keyTermsOpenedAt.current !== null) {
+        const seconds = Math.round((Date.now() - keyTermsOpenedAt.current) / 1000);
+        keyTermsOpenedAt.current = null;
+        logLessonEvent("key_terms_closed", { seconds }, `key_terms_closed:${keyTermsOpens.current}`);
+      }
+    },
+    [logLessonEvent]
   );
   const guessSeconds = () => (guessShownAt.current ? Math.round((Date.now() - guessShownAt.current) / 1000) : undefined);
 
@@ -789,8 +808,16 @@ export default function LessonFlow() {
     <Screen scrollRef={scrollRef}>
       <Stack.Screen options={headerOptions} />
       <StepHeader step={step} steps={stepsFor(labPrompt)} guidedSkipped={guidedSkipped} />
-      {/* REQ-253: Key terms, a constant reference at every step. */}
-      <KeyTermsButton objectiveId={objectiveId} />
+      {/* REQ-253: Key terms, a constant reference at every step. REQ-252:
+          New learners in a pilot course see it opened once at the start of
+          the lesson; opening and closing it are logged. Keyed by objective so
+          the next lesson starts fresh. */}
+      <KeyTermsButton
+        key={objectiveId}
+        objectiveId={objectiveId}
+        initiallyOpen={openKeyTermsAtStart(flow, step)}
+        onOpenChange={onKeyTermsOpenChange}
+      />
       {/* REQ-250: says the learner may leave; the header has the way out. */}
       {showLeaveNote(step) ? <Muted style={styles.leaveNote}>{LEAVE_NOTE}</Muted> : null}
       {/* REQ-252: the learner's level for this unit (pilot courses), one tap
@@ -798,12 +825,6 @@ export default function LessonFlow() {
       {levelState && flowOn ? (
         <View style={styles.levelRow}>
           <LevelChip level={levelState.effective} onPress={openLevelSettings} />
-          {/* PRIMERS SLOT (REQ-252, feature/primers, migration 079): the
-              "Key terms" button goes here, beside the level chip, so it is
-              reachable on every step. New learners (flow.oneTapHunch, i.e.
-              levelState.effective === "new" with the flow on) see it opened
-              once at the start. Log key_terms_opened / key_terms_closed
-              (with { seconds }) through logLessonEvent. */}
         </View>
       ) : null}
       {flow.oneTapHunch && step !== "guess" && step !== "done" ? (

@@ -19,7 +19,10 @@ import {
   ladderAnnouncement,
   ladderFor,
   lessonFlowFor,
+  openKeyTermsAtStart,
   levelChangeNotice,
+  LEVEL_UP_MIN_FIRST_TRY_CORRECT,
+  LEVEL_UP_WINDOW,
   levelFadingPlan,
   levelMeaning,
   parseLevelState,
@@ -101,9 +104,18 @@ describe("level-aware lesson flow", () => {
     assert.deepEqual(lessonFlowFor(null, true), STANDARD_FLOW);
   });
   test("New: one-tap hunch and the full worked example; Experienced: skip offered; Some: unchanged", () => {
-    assert.deepEqual(lessonFlowFor("new", true), { oneTapHunch: true, fullExampleFirst: true, offerSkipGuided: false });
-    assert.deepEqual(lessonFlowFor("experienced", true), { oneTapHunch: false, fullExampleFirst: false, offerSkipGuided: true });
+    assert.deepEqual(lessonFlowFor("new", true), { oneTapHunch: true, keyTermsFirst: true, fullExampleFirst: true, offerSkipGuided: false });
+    assert.deepEqual(lessonFlowFor("experienced", true), { oneTapHunch: false, keyTermsFirst: false, fullExampleFirst: false, offerSkipGuided: true });
     assert.deepEqual(lessonFlowFor("some", true), STANDARD_FLOW);
+  });
+  test("Key terms opens once at the start for New only (REQ-253's initiallyOpen)", () => {
+    assert.equal(openKeyTermsAtStart(lessonFlowFor("new", true), "guess"), true);
+    // A lesson resumed past the first step does not pop it open again.
+    assert.equal(openKeyTermsAtStart(lessonFlowFor("new", true), "teach"), false);
+    assert.equal(openKeyTermsAtStart(lessonFlowFor("new", false), "guess"), false);
+    assert.equal(openKeyTermsAtStart(lessonFlowFor("some", true), "guess"), false);
+    assert.equal(openKeyTermsAtStart(lessonFlowFor("experienced", true), "guess"), false);
+    assert.equal(openKeyTermsAtStart(STANDARD_FLOW, "guess"), false);
   });
   test("the Guided plan by level, and today's rule otherwise", () => {
     const signals = { guessed: true, guessMatch: "close" as const, history: "strong" as const };
@@ -251,5 +263,18 @@ describe("comeback credit", () => {
     assert.equal(comebackLine({ title, guided: graded("incorrect"), solo: graded("incorrect"), soloRetried: false }), null);
     const src = readFileSync(join(import.meta.dirname, "learnerLevel.ts"), "utf8");
     assert.ok(!/great job|well done|awesome|amazing|confetti|points|leaderboard/i.test(src.replace(/No points, confetti or leaderboards\./, "")));
+  });
+});
+
+describe("level-up thresholds", () => {
+  test("the notice's numbers are the server's named constants", () => {
+    const rules = readFileSync(new URL("../../../backend/lib/learner-level-rules.ts", import.meta.url), "utf8");
+    assert.match(rules, new RegExp(`export const LEVEL_UP_WINDOW = ${LEVEL_UP_WINDOW};`));
+    assert.match(rules, new RegExp(`export const LEVEL_UP_MIN_FIRST_TRY_CORRECT = ${LEVEL_UP_MIN_FIRST_TRY_CORRECT};`));
+    const text = levelChangeNotice(
+      { id: "c", unitId: "u", unitTitle: "Basics", fromLevel: "new", toLevel: "some", reason: "mastery", createdAt: "" },
+      false
+    );
+    assert.match(text, new RegExp(`${LEVEL_UP_MIN_FIRST_TRY_CORRECT} of your last ${LEVEL_UP_WINDOW}`));
   });
 });

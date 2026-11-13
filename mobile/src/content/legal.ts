@@ -476,7 +476,7 @@ export const FAQ: LegalDoc = {
     {
       title: "What does my level change?",
       body: [
-        "Each course has a level — New, Some background or Experienced — that you choose when you start it and can change any time from the level chip (“Level: New · change”) or the course page. A unit can have its own level. In the Python and JavaScript courses, New starts each lesson with a one-tap hunch (or “No idea yet”) and shows the full worked example before guided practice, with a progress ladder (Seen, Understood, Practiced, Mastered, Kept) that fills as you go; Experienced offers to skip guided practice; Some background is the standard lesson. Other courses save your level for when they get the same changes.",
+        "Each course has a level — New, Some background or Experienced — that you choose when you start it and can change any time from the level chip (“Level: New · change”) or the course page. A unit can have its own level. In the Python and JavaScript courses, New opens each lesson with its Key terms list (close it any time; the Key terms button stays there) and a one-tap hunch (or “No idea yet”) and shows the full worked example before guided practice, with a progress ladder (Seen, Understood, Practiced, Mastered, Kept) that fills as you go; Experienced offers to skip guided practice; Some background is the standard lesson. Other courses save your level for when they get the same changes.",
         "When 4 of your last 5 solo checks in a unit are right on the first try without a hint, that unit moves up one level and you see a note with Undo. Your level never changes the solo check or what counts toward mastery.",
       ],
     },
