@@ -92,7 +92,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // tracks (lib/level-flow-tracks.test.ts); change both together.
     id: "2026-11-12-d",
     date: "2026-11-12",
-    covers: ["REQ-249", "REQ-250", "REQ-251", "REQ-252", "REQ-253", "REQ-255", "REQ-256", "REQ-257"],
+    covers: ["REQ-249", "REQ-250", "REQ-251", "REQ-252", "REQ-253", "REQ-255", "REQ-256", "REQ-257", "REQ-258"],
     title: "Lessons that meet you at your level",
     items: [
       {
@@ -106,8 +106,8 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         icon: "trending-up",
         headline: "Lessons shaped by your level",
         body:
-          "In Python, JavaScript, DPT, PT prerequisites, CCRN and AWS Solutions Architect, New learners get " +
-          "a quick hunch and the full worked example first. Experienced learners can skip guided practice.",
+          "In Python, JavaScript, DPT, PT prerequisites, CCRN, AWS SAA and MLA, Security+ and CNA, New learners " +
+          "get a quick hunch and the full worked example first. Experienced learners can skip guided practice.",
       },
       {
         icon: "book-open",

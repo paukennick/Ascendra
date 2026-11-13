@@ -20,5 +20,5 @@ function flowCodes(): string[] {
 }
 
 test("level-aware lessons are on for exactly the courses Nick switched on", () => {
-  assert.deepEqual(flowCodes(), ["AWSSAA", "CCRNADULT", "DPT", "JAVASCRIPT", "PTPREREQ", "PYTHON"]);
+  assert.deepEqual(flowCodes(), ["AWSMLA", "AWSSAA", "CCRNADULT", "CNA", "DPT", "JAVASCRIPT", "PTPREREQ", "PYTHON", "SECPLUS"]);
 });

@@ -1345,6 +1345,8 @@ const AACN_PROVIDER = {
 // ---------------------------------------------------------------------------
 export const CNA_TRACK: SeedTrack = {
   code: "CNA",
+  // REQ-258 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
+  levelFlow: true,
   title: "Certified Nursing Assistant Coach",
   description:
     "Nurse aide training built on the federal requirements at 42 CFR 483.152 -- the sixteen hours that must come before you ever touch a resident, then basic nursing and personal care skills, cognition, restorative services and residents' rights.",

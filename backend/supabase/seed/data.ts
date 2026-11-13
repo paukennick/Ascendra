@@ -170,7 +170,8 @@ export interface SeedTrack {
   // REQ-252 (migration 078): switch on the level-aware lesson flow (the
   // one-tap hunch and full worked example for New learners, "Skip guided"
   // offered to Experienced ones). Python and JavaScript (phase 1), then DPT, PTPREREQ,
-  // CCRNADULT and AWSSAA (REQ-257) as their Key terms were written. The
+  // CCRNADULT and AWSSAA (REQ-257), then AWSMLA, SECPLUS and CNA (REQ-258), as
+  // their Key terms were written. The
   // seed sets subject_tracks.level_flow and never clears it.
   levelFlow?: boolean;
   disclaimerKey?: string;
@@ -670,6 +671,8 @@ export const SECPLUS_UNIT_SOURCES: Record<string, UnitSource[]> = {
 const SECPLUS_BCDR_MOVED_AT = "2026-11-11T00:00:00Z";
 export const SECPLUS_TRACK: SeedTrack = {
   code: "SECPLUS",
+  // REQ-258 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
+  levelFlow: true,
   title: "Prep for CompTIA Security+",
   description:
     "CompTIA Security+ SY0-701 exam prep across 5 weighted domains, with PBQ scenario drilling. SY0-701 can be booked in English until 2027-06-11 (Japanese, Portuguese, Spanish and Thai until 2027-08-13); for SY0-801 (from 2026-11-17) take Prep for CompTIA Security+ (V8).",
