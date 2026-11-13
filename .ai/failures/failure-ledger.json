@@ -17059,6 +17059,56 @@
       ],
       "prevention_notes": "",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1761",
+      "date": "2026-11-12",
+      "title": "Pre-generation problem kinds leaked option text when an option held quotes",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The public pregen log showed option text (ERROR: disk full) inside a duplicate-option problem kind on 2026-11-12.",
+      "how_detected": "Pre-generation problem-kind log (REQ-247) on the 2026-11-12 Python/JavaScript run.",
+      "root_cause": "problemKind removed quoted spans pairwise, so quotes inside an option split the pairs and left text between them.",
+      "requirement": "REQ-254",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "problemKind replaces everything from the first quote to the last.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen-problem-kinds.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "Content checks that normalize text must not erase distinctions that carry meaning in code."
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1762",
+      "date": "2026-11-12",
+      "title": "Duplicate-option check failed string-literal and concatenation options",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A JavaScript lesson failed pre-generation on 2026-11-12: \"ERROR: disk full\" vs \"ERROR, disk full\", and a+b+c variants, counted as duplicates.",
+      "how_detected": "Pre-generation problem-kind log (REQ-247) on the 2026-11-12 Python/JavaScript run.",
+      "root_cause": "CODE_LIKE (FAIL-1760) didn't count double quotes or + as code, so those options got the loose punctuation-stripping comparison.",
+      "requirement": "REQ-254",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "Double quote and + added to CODE_LIKE.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/code-option-duplicates.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "Content checks that normalize text must not erase distinctions that carry meaning in code."
+      ],
+      "prevention_notes": "",
+      "recurrence_of": "FAIL-1760"
     }
   ]
 }
