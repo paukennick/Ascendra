@@ -9368,6 +9368,56 @@
         "Visual layout of the sheet and card not checked in a browser or device",
         "Skip for now counts as asked (decision for Nick)"
       ]
+    },
+    {
+      "id": "REQ-256",
+      "category": "feature",
+      "title": "Learner levels follow-ups: suggest moving a unit down, stop the lesson goal card after two ignored showings, watch the goal question's drop-off",
+      "description": "Nick 2026-11-12 approved all recommended fixes. (1) The downward counterpart to REQ-252's automatic move up, as a suggestion only: at the level check after a solo answer, when nothing moved up, on a course with level_flow and for an app that sends suggest true, if 3 of the last 5 first-try solo answers in the unit were missed (incorrect or partial) or every one of at least 3 recent typed guesses was off (guess_matched, the model's guessMatch), the done screen asks This unit seems tougher than expected. Want more step-by-step help here? Yes moves that unit down one level (never below New) recorded in learner_level_changes with reason suggested so Undo puts it back; Not now snoozes it for the unit for a week; at most one suggestion per unit per week. Named constants LEVEL_DOWN_WINDOW 5, LEVEL_DOWN_MIN_MISSED 3, LEVEL_DOWN_MIN_GUESSES 3, LEVEL_DOWN_SNOOZE_DAYS 7 mirrored on mobile and pinned by tests. (2) REQ-255's lesson goal card is counted on the server per lesson (goal_card_shown); after GOAL_CARD_MAX_SHOWINGS 2 lessons unanswered it is recorded dismissed like Not now (course_goal_set outcome dismissed via lesson reason auto) and not shown again. (3) A read-only query in docs/learner-levels.md and npm run metrics for the share of Start-course sheets not followed by a lesson start and the skip and dismiss rates by via, from course_goal_set only. Migration 080 (event names and the suggested reason).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/080_level_down_suggestions.sql",
+        "backend/lib/learner-level-rules.ts",
+        "backend/lib/learner-level.ts",
+        "backend/lib/events.ts",
+        "backend/lib/metrics.ts",
+        "backend/scripts/metrics.ts",
+        "backend/app/api/courses/[id]/level",
+        "backend/app/api/objectives/[id]/guess-feedback/route.ts",
+        "mobile/src/lib/learnerLevel.ts",
+        "mobile/src/components/LearnerLevel.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "acceptance_criteria": [
+        "The move-down suggestion appears only after 3 of the last 5 first tries missed or every guess off and never moves the level by itself",
+        "Yes moves the unit down one level with a suggested change that Undo reverses and a double tap moves it once",
+        "Not now snoozes the unit for 7 days and at most one suggestion per unit per week",
+        "Never below New and only on level_flow courses and only for apps that send suggest true",
+        "The lesson goal card is shown in at most two lessons then recorded dismissed with via lesson and reason auto",
+        "The goal question query is documented and npm run metrics prints it",
+        "No model call is added and no answer or guess text is stored"
+      ],
+      "validation_required": [
+        "backend lib/learner-level-down.test.ts",
+        "backend lib/learner-level-down.dbtest.ts and lib/learner-level.dbtest.ts and lib/lesson-experience.dbtest.ts against Postgres 16 with migrations through 080 and the seed",
+        "mobile src/lib/levelDown.test.ts and goalEntryPoints.test.ts",
+        "tsc backend and mobile compared with master",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/learner-levels.md",
+        "docs/operations-runbook.md",
+        "docs/deploy-runbook-integration.md",
+        "docs/legal/data-inventory.md",
+        "CHANGELOG.md",
+        "mobile/src/content/legal.ts FAQ About Privacy"
+      ],
+      "risk_notes": [
+        "Migration 080 must be applied before the backend deploy",
+        "REQ-255 builds already installed do not ask the server so they keep showing the goal card until answered",
+        "The privacy text gained detail without a Privacy version bump (same as REQ-252)"
+      ]
     }
   ]
 }

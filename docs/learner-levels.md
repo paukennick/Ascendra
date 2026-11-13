@@ -1,4 +1,4 @@
-# Learner levels (REQ-252, phase 1A)
+# Learner levels (REQ-252, phase 1A; REQ-255, REQ-256)
 
 Built 2026-11-12 from the design "Teaching learners at every level" and
 Nick's decisions of that day (which override the design body). Phase 1A is
@@ -32,7 +32,17 @@ per-course switch, on for Python and JavaScript only.
     count as asked, so no later lesson shows it. The open lesson keeps the
     level it started with (a change mid-way would swap the guess step under
     the learner); the answer applies from the next lesson. A card the
-    learner neither answers nor dismisses shows again in the next lesson.
+    learner neither answers nor dismisses shows again in the next lesson,
+    **at most in two lessons (REQ-256):** before showing it the lesson asks
+    `POST /api/courses/:id/level/goal-card { objectiveId }`, which counts
+    the lessons it was shown in on the server (`goal_card_shown`, once per
+    lesson, so reopening the same lesson, a restart or cleared app storage
+    does not add or reset a showing). In the third lesson it is recorded
+    dismissed exactly as "Not now" is (`answered_at` set; `course_goal_set`
+    outcome dismissed, via lesson) with `reason: "auto"`, and not shown.
+    Nothing shows until the server answers; a failed ask shows the card as
+    before. REQ-255 builds still installed don't ask, so they keep showing
+    it until it is answered or dismissed.
   - **"Asked"** is `learner_course_profiles.answered_at` (`answered` in the
     level state): set by an answer, a skip or a dismiss anywhere.
 - **Course page:** a change point, never the main ask: "Why you're taking
@@ -62,6 +72,25 @@ per-course switch, on for Python and JavaScript only.
   without a hint, the unit moves up one level and a notice with OK and Undo
   appears on the done screen, and on the course page and level settings
   until acknowledged. Nothing moves down on its own.
+- **Suggested move down, pilot courses only (REQ-256, Nick 2026-11-12):**
+  at the same moment (the done screen's level check, when nothing moved
+  up), if the unit's recent answers show it is tougher than expected, the
+  done screen asks: "“<unit>” seems tougher than expected. Want more
+  step-by-step help there?", says what the lower level changes, that the
+  solo check and mastery bar stay the same and that it can be switched
+  back, and offers **Yes, more help** and **Not now**.
+  - **Yes** moves that unit down one level (never below New): the unit's
+    own level, source `self`, recorded in `learner_level_changes` with
+    reason `suggested` and the unit's prior level, so the **Undo** shown
+    right after puts it back exactly (the same Undo route as automatic
+    changes). It is already seen, so it is never a course-page notice.
+  - **Not now** snoozes it for that unit for a week.
+  - At most one suggestion per unit per week (counted from the latest
+    suggestion or Not now), so a suggestion left unanswered also waits a
+    week. Only on courses with `level_flow`: elsewhere lessons are the same
+    at every level and "more step-by-step help" would not be true. Only for
+    builds that send `suggest: true`; older builds get no suggestion and
+    nothing is recorded for them.
 
 Other courses: the goal and level are asked (in the same places) and
 saved, and the level can move up; lessons are unchanged until `level_flow`
@@ -78,10 +107,25 @@ is switched on. The goal sets the starting level on every course.
 | `DEFAULT_LEVEL` | some | with neither answer |
 | `LEVEL_UP_WINDOW` | 5 | first-try solo answers looked at, newest first, one per objective |
 | `LEVEL_UP_MIN_FIRST_TRY_CORRECT` | 4 | correct and not assisted (no hint) |
+| `LEVEL_DOWN_WINDOW` | 5 | first-try solo answers, and typed guesses, looked at for the move-down suggestion (newest first, one per objective) |
+| `LEVEL_DOWN_MIN_MISSED` | 3 | missed first tries (incorrect or partial; a hinted right answer is not a miss) that suggest moving down |
+| `LEVEL_DOWN_MIN_GUESSES` | 3 | "every guess off" needs at least this many typed guesses in the window, all off |
+| `LEVEL_DOWN_SNOOZE_DAYS` | 7 | at most one suggestion per unit in this many days; Not now snoozes for the same |
+| `GOAL_CARD_MAX_SHOWINGS` | 2 | lessons the lesson goal card is shown in before it is recorded dismissed (auto) |
+
+The app mirrors the `LEVEL_DOWN_*` and `GOAL_CARD_MAX_SHOWINGS` numbers in
+`mobile/src/lib/learnerLevel.ts`; `mobile/src/lib/levelDown.test.ts` pins
+them to the server's.
+
+The guesses are the model's `guessMatch` (close / partial / off) on a typed
+guess, recorded by the guess-feedback route as `guess_matched` (the label
+only, never the guess). The one-tap hunch for New has no match, and New
+can't move down anyway.
 
 Only answers given after the last change to that unit's (or the course's)
-level count, so an Undo or the learner's own change is never overridden by
-the evidence it already saw. Undo is refused (409) once a newer change to
+level count, for moving up and for the suggestion down alike, so an Undo or
+the learner's own change is never overridden by the evidence it already
+saw. Undo is refused (409) once a newer change to
 the same unit exists.
 
 ## Mastery ladder
@@ -107,11 +151,61 @@ by the server from fixed keys (`lessonEventDetail`):
 | `lesson_step_reached` | step | drop-off between steps, completion |
 | `guided_skipped` | | Experienced skipping Guided |
 | `key_terms_opened`, `key_terms_closed` | seconds (on close) | whether the primer is opened and how long it stays open |
-| `course_goal_set` | outcome (answered / skipped / dismissed), goal (when answered), via (intake / start / lesson / settings; none from a REQ-252 build) | where the goal gets answered, how often it is put aside; a skip or dismiss is recorded only the first time |
-| `level_changed` | from, to, reason (learner / mastery / undo), scope | how often levels change |
+| `course_goal_set` | outcome (answered / skipped / dismissed), goal (when answered), via (intake / start / lesson / settings; none from a REQ-252 build), reason auto (the lesson card dismissed after two lessons, REQ-256) | where the goal gets answered, how often it is put aside; a skip or dismiss is recorded only the first time |
+| `level_changed` | from, to, reason (learner / mastery / suggested / undo), scope | how often levels change; `suggested` is a Yes to the move-down suggestion |
+| `guess_matched` (080) | match (close / partial / off) | the "every guess off" signal; written by the guess-feedback route |
+| `level_down_suggested` (080) | unit, from, to, why (missed / guesses) | how often the suggestion is shown |
+| `level_down_declined` (080) | unit | Not now; accepted ones are `level_changed` with reason `suggested` |
+| `goal_card_shown` (080) | (objective_id) | lessons the goal card was shown in |
 
 Every lesson event carries the learner's level and whether the flow was on.
 First-try accuracy on Guided and Solo comes from `attempts`, as today.
+
+## Watching the goal question (REQ-256)
+
+Read-only, from the `course_goal_set` events above (no extra tracking).
+`npm run metrics [-- --days 30]` prints it under "Goal question"
+(`backend/lib/metrics.ts` `GOAL_QUESTION_SQL`); to run it by hand, the same
+query (a test keeps the two identical), with `$1` the number of days:
+
+<!-- goal-question-sql -->
+```sql
+with g as (
+  select e.user_id, e.track_id, e.created_at,
+         coalesce(e.detail->>'via', 'none') as via,
+         coalesce(e.detail->>'outcome', 'answered') as outcome,
+         e.detail->>'reason' as reason
+    from learner_events e
+   where e.event = 'course_goal_set'
+     and e.created_at >= now() - make_interval(days => $1)
+)
+select g.via,
+       count(*)::int as total,
+       count(*) filter (where g.outcome = 'answered')::int as answered,
+       count(*) filter (where g.outcome = 'skipped')::int as skipped,
+       count(*) filter (where g.outcome = 'dismissed')::int as dismissed,
+       count(*) filter (where g.outcome = 'dismissed' and g.reason = 'auto')::int as dismissed_auto,
+       count(*) filter (where g.via = 'start' and g.created_at < now() - interval '1 hour')::int as start_settled,
+       count(*) filter (where g.via = 'start' and g.created_at < now() - interval '1 hour' and not exists (
+         select 1 from learner_events l
+          where l.user_id = g.user_id and l.track_id = g.track_id
+            and l.event = 'lesson_started' and l.created_at >= g.created_at))::int as start_no_lesson
+  from g
+ group by g.via
+ order by g.via
+```
+
+- **Start-course drop-off** = `start_no_lesson / start_settled` on the
+  `start` row: sheets answered or skipped more than an hour ago that were
+  not followed by a lesson start (`lesson_started`: a first answer or a
+  saved position) in that course. A sheet closed without a tap writes
+  nothing, so it is not in either number; the real drop-off is at least
+  this.
+- **Skip rate** = `skipped / total`, **dismiss rate** = `dismissed / total`,
+  per `via`; `dismissed_auto` is the part of the dismissals the server
+  recorded after two ignored lesson cards. `none` is a REQ-252 build or an
+  event from before REQ-255 (those have no outcome and were answers).
+- Usage is still test traffic; read every rate with its counts.
 
 ## Hunch options
 

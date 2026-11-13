@@ -17275,6 +17275,60 @@
       "prevention_rules": [],
       "prevention_notes": "Source checks on JSX never use [^>]* to find the end of a tag; slice between known markers and assert the slice is non-empty so a vacuous pass is impossible.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1790",
+      "date": "2026-11-12",
+      "title": "The lesson goal card came back in every lesson for a learner who ignored it",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "REQ-255's LessonGoalCard showed again in each new lesson until the learner answered or tapped Not now, with no upper bound; a learner who ignored it saw it above every lesson in the course.",
+      "how_detected": "review (Nick's approved follow-up, 2026-11-12)",
+      "root_cause": "Asked was only ever set by a learner action (answer, skip, dismiss); nothing counted showings, and a device-side count would reset with cleared storage or a reinstall.",
+      "requirement": "REQ-256",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "backend/lib/learner-level.ts"
+      ],
+      "fix_summary": "The lesson asks POST /api/courses/:id/level/goal-card before showing it; the server records goal_card_shown once per lesson and, after GOAL_CARD_MAX_SHOWINGS (2) lessons, records it dismissed like Not now (via lesson, reason auto) and answers show false.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learner-level-down.dbtest.ts::shown in two lessons",
+        "then recorded dismissed (via lesson",
+        "reason auto) and never shown again",
+        "backend/lib/learner-level-down.test.ts::shown in two lessons",
+        "then recorded dismissed in the third",
+        "mobile/src/lib/levelDown.test.ts::nothing shows until the server answers; a confirmation stays in place"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A prompt shown repeatedly until acted on gets a named cap counted on the server (GOAL_CARD_MAX_SHOWINGS), never only on the device.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1791",
+      "date": "2026-11-12",
+      "title": "A REQ-255 source check pinned the exact goal-card call and failed when the card gained the server count",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "mobile src/lib/goalEntryPoints.test.ts 'the lesson card answers or dismisses through the level API' failed: the lesson no longer contained showsLessonGoalCard(levelState, goalCard).",
+      "how_detected": "test (npm test in mobile)",
+      "root_cause": "The source check matched one literal expression rather than the rule; wrapping the rule (showsCountedGoalCard calls showsLessonGoalCard) changed the text but not the behavior.",
+      "requirement": "REQ-256",
+      "affected": [
+        "mobile/src/lib/goalEntryPoints.test.ts"
+      ],
+      "fix_summary": "Updated the check (not deleted, FAIL-232) to the counted wrapper and added a check that the lesson asks the goal-card route; the wrapper itself is unit tested.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/goalEntryPoints.test.ts::the lesson card answers or dismisses through the level API",
+        "and never blocks the lesson",
+        "mobile/src/lib/levelDown.test.ts::nothing shows until the server answers; a confirmation stays in place"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When a rule a source check pins is wrapped, update the check to the wrapper and unit test the wrapper (FAIL-232: tests written against an older rule are updated, not deleted).",
+      "recurrence_of": ""
     }
   ]
 }

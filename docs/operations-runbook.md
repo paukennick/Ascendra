@@ -415,6 +415,11 @@ retention period (the Privacy Policy says so); decide one if you want one.
 - **Source currency** (REQ-142): `npm run currency:report` lists exam
   outlines and lab sources overdue or due within 60 days
   ([source-reliability-standard.md](source-reliability-standard.md)).
+- **Goal question drop-off** (REQ-256): `npm run metrics -- --days 30`
+  (read-only) ends with "Goal question": the share of Start-course sheets
+  not followed by a lesson start, and the skip and dismiss rates by where
+  the question was asked. The query and how to read it are in
+  [learner-levels.md](learner-levels.md), "Watching the goal question".
 - **`auth_events` retention**: owned by the security branch (daily purge
   cron).
 

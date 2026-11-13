@@ -164,7 +164,7 @@ export const SAME_BAR_NOTE =
   "Your level changes how a lesson gets you there, never what counts: the solo check and the mastery rules are the same for everyone.";
 
 export const AUTO_LEVEL_NOTE =
-  "Your level moves up on its own as your answers show it, one unit at a time. You'll always see a note with Undo.";
+  "Your level moves up on its own as your answers show it, one unit at a time. You'll always see a note with Undo. If a unit seems tougher than expected, we'll ask whether you want more step-by-step help there; it only moves down if you say yes.";
 
 export const CHIP_HINT = "Changes your level for this course or one unit";
 
