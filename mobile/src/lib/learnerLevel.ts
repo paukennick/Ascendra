@@ -567,6 +567,9 @@ export const LEVEL_DOWN_WINDOW = 5;
 export const LEVEL_DOWN_MIN_MISSED = 3;
 export const LEVEL_DOWN_MIN_GUESSES = 3;
 export const LEVEL_DOWN_SNOOZE_DAYS = 7;
+// Nick: "using a hint is partial credit". A right answer that used a hint
+// counts as half a miss toward the suggestion, never toward moving up.
+export const LEVEL_DOWN_HINTED_WEIGHT = 0.5;
 
 export interface LevelDownSuggestion {
   unitId: string;

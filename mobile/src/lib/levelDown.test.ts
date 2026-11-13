@@ -8,6 +8,7 @@ import {
   GOAL_CARD_MAX_SHOWINGS,
   goalCardAllowed,
   showsCountedGoalCard,
+  LEVEL_DOWN_HINTED_WEIGHT,
   LEVEL_DOWN_MIN_GUESSES,
   LEVEL_DOWN_MIN_MISSED,
   LEVEL_DOWN_NOT_NOW,
@@ -32,6 +33,7 @@ describe("mirrored thresholds", () => {
       LEVEL_DOWN_MIN_MISSED,
       LEVEL_DOWN_MIN_GUESSES,
       LEVEL_DOWN_SNOOZE_DAYS,
+      LEVEL_DOWN_HINTED_WEIGHT,
       GOAL_CARD_MAX_SHOWINGS,
     })) {
       assert.match(rules, new RegExp(`export const ${name} = ${v};`), name);

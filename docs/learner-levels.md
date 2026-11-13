@@ -108,7 +108,8 @@ is switched on. The goal sets the starting level on every course.
 | `LEVEL_UP_WINDOW` | 5 | first-try solo answers looked at, newest first, one per objective |
 | `LEVEL_UP_MIN_FIRST_TRY_CORRECT` | 4 | correct and not assisted (no hint) |
 | `LEVEL_DOWN_WINDOW` | 5 | first-try solo answers, and typed guesses, looked at for the move-down suggestion (newest first, one per objective) |
-| `LEVEL_DOWN_MIN_MISSED` | 3 | missed first tries (incorrect or partial; a hinted right answer is not a miss) that suggest moving down |
+| `LEVEL_DOWN_MIN_MISSED` | 3 | weighted misses in the window that suggest moving down: incorrect or partial counts 1, a right answer that used a hint counts `LEVEL_DOWN_HINTED_WEIGHT` |
+| `LEVEL_DOWN_HINTED_WEIGHT` | 0.5 | Nick, 2026-11-12: "using a hint is partial credit". A hinted right answer is half a miss toward the suggestion (2 misses + 2 hinted = 3) and never counts toward moving up |
 | `LEVEL_DOWN_MIN_GUESSES` | 3 | "every guess off" needs at least this many typed guesses in the window, all off |
 | `LEVEL_DOWN_SNOOZE_DAYS` | 7 | at most one suggestion per unit in this many days; Not now snoozes for the same |
 | `GOAL_CARD_MAX_SHOWINGS` | 2 | lessons the lesson goal card is shown in before it is recorded dismissed (auto) |

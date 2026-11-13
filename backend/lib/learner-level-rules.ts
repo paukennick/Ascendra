@@ -151,8 +151,8 @@ export function levelAbove(level: Level): Level | null {
 // The evidence is the same as the move up: the first lesson solo answer on
 // each of the learner's most recent LEVEL_DOWN_WINDOW objectives in the unit,
 // after the unit's last level change. A miss is an incorrect or partial
-// verdict (an assisted right answer is not a miss; an ungraded one is
-// neither). The guesses are the latest typed guess per objective
+// verdict; an assisted (hinted) right answer is half a miss, per Nick:
+// "using a hint is partial credit" (firstTryMissWeight); an ungraded one is neither. The guesses are the latest typed guess per objective
 // (learner_events guess_matched, the model's guessMatch, migration 080) in
 // the same window; "every guess off" needs at least LEVEL_DOWN_MIN_GUESSES of
 // them, so one off guess is never "every guess".
@@ -163,6 +163,8 @@ export const LEVEL_DOWN_WINDOW = 5;
 export const LEVEL_DOWN_MIN_MISSED = 3;
 export const LEVEL_DOWN_MIN_GUESSES = 3;
 export const LEVEL_DOWN_SNOOZE_DAYS = 7;
+// A right answer that used a hint counts as this much of a miss.
+export const LEVEL_DOWN_HINTED_WEIGHT = 0.5;
 
 export type GuessMatch = "close" | "partial" | "off";
 export const GUESS_MATCHES: readonly GuessMatch[] = ["close", "partial", "off"];
@@ -174,13 +176,23 @@ export function firstTryMissed(t: FirstTry): boolean {
   return t.verdict === "incorrect" || t.verdict === "partial";
 }
 
+// Nick (2026-11-12): "Using a hint is partial credit." A right answer that
+// used a hint (assisted) counts as half a miss here; it never counts toward
+// moving up (firstTryStrong). So two misses and two hinted answers in the
+// window reach LEVEL_DOWN_MIN_MISSED.
+export function firstTryMissWeight(t: FirstTry): number {
+  if (firstTryMissed(t)) return 1;
+  if (t.verdict === "correct" && t.assisted) return LEVEL_DOWN_HINTED_WEIGHT;
+  return 0;
+}
+
 export type LevelDownWhy = "missed" | "guesses";
 
 // `recent` and `guesses` are newest first; only the first LEVEL_DOWN_WINDOW
 // of each are read. Misses are checked first (the stronger signal).
 export function meetsLevelDown(recent: FirstTry[], guesses: GuessMatch[]): LevelDownWhy | null {
   const window = recent.slice(0, LEVEL_DOWN_WINDOW);
-  if (window.filter(firstTryMissed).length >= LEVEL_DOWN_MIN_MISSED) return "missed";
+  if (window.reduce((n, t) => n + firstTryMissWeight(t), 0) >= LEVEL_DOWN_MIN_MISSED) return "missed";
   const g = guesses.slice(0, LEVEL_DOWN_WINDOW);
   if (g.length >= LEVEL_DOWN_MIN_GUESSES && g.every((m) => m === "off")) return "guesses";
   return null;

@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   firstTryMissed,
+  firstTryMissWeight,
   GOAL_CARD_MAX_SHOWINGS,
   goalCardDecision,
   isGuessMatch,
@@ -15,6 +16,7 @@ import {
   levelBelow,
   LEVEL_DOWN_MIN_GUESSES,
   LEVEL_DOWN_MIN_MISSED,
+  LEVEL_DOWN_HINTED_WEIGHT,
   LEVEL_DOWN_SNOOZE_DAYS,
   LEVEL_DOWN_WINDOW,
   LEVELS,
@@ -38,6 +40,7 @@ describe("move-down suggestion rule", () => {
     assert.equal(LEVEL_DOWN_MIN_MISSED, 3);
     assert.equal(LEVEL_DOWN_MIN_GUESSES, 3);
     assert.equal(LEVEL_DOWN_SNOOZE_DAYS, 7);
+    assert.equal(LEVEL_DOWN_HINTED_WEIGHT, 0.5);
   });
   test("a miss is incorrect or partial; a hinted right answer or an ungraded one is not", () => {
     assert.equal(firstTryMissed(miss), true);
@@ -45,6 +48,18 @@ describe("move-down suggestion rule", () => {
     assert.equal(firstTryMissed(hinted), false);
     assert.equal(firstTryMissed(right), false);
     assert.equal(firstTryMissed({ verdict: null as unknown as string, assisted: false }), false);
+  });
+  test("a hint is partial credit: a hinted right answer weighs half a miss", () => {
+    assert.equal(firstTryMissWeight(miss), 1);
+    assert.equal(firstTryMissWeight(part), 1);
+    assert.equal(firstTryMissWeight(hinted), 0.5);
+    assert.equal(firstTryMissWeight(right), 0);
+    assert.equal(firstTryMissWeight({ verdict: null as unknown as string, assisted: true }), 0, "ungraded counts for nothing");
+    assert.equal(meetsLevelDown([miss, hinted, miss, hinted, right], []), "missed", "2 misses + 2 hints = 3");
+    assert.equal(meetsLevelDown([miss, hinted, right, hinted, right], []), null, "1 miss + 2 hints = 2");
+    assert.equal(meetsLevelDown([miss, hinted, miss, right, right], []), null, "2 misses + 1 hint = 2.5");
+    assert.equal(meetsLevelDown([hinted, hinted, hinted, hinted, hinted], []), null, "all hinted = 2.5");
+    assert.equal(meetsLevelDown([hinted, hinted, hinted, hinted, hinted, miss], []), null, "the sixth is outside the window");
   });
   test("3 misses in the last 5 suggest; 2 do not", () => {
     assert.equal(meetsLevelDown([miss, right, part, right, miss], []), "missed");
