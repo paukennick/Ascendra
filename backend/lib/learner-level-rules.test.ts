@@ -8,6 +8,9 @@ import {
   DEFAULT_LEVEL,
   effectiveLevel,
   GOAL_LEVEL,
+  GOAL_OUTCOMES,
+  GOAL_VIA,
+  isGoalVia,
   isLessonEvent,
   LESSON_EVENTS,
   lessonEventDetail,
@@ -120,5 +123,30 @@ describe("lesson events", () => {
   test("the largest detail fits 078's 400-byte cap", () => {
     const d = lessonEventDetail({ level: "experienced", flow: false, kind: "no_idea", seconds: 3600, card: 9, step: "solo" });
     assert.ok(Buffer.byteLength(JSON.stringify(d)) < 200);
+  });
+});
+
+// REQ-255: where the goal question is asked, and what became of it.
+describe("goal entry points", () => {
+  test("the places it is asked are a fixed list, and junk is refused", () => {
+    assert.deepEqual([...GOAL_VIA], ["intake", "start", "lesson", "settings"]);
+    for (const v of GOAL_VIA) assert.equal(isGoalVia(v), true);
+    for (const v of ["Intake", "explore", "course", "", null, undefined, 3, { via: "start" }]) assert.equal(isGoalVia(v), false);
+  });
+  test("outcomes are answered, skipped and dismissed", () => {
+    assert.deepEqual([...GOAL_OUTCOMES], ["answered", "skipped", "dismissed"]);
+  });
+  test("the largest course_goal_set detail fits 078's 400-byte cap", () => {
+    const longestGoal = [...COURSE_GOALS].sort((a, b) => b.length - a.length)[0];
+    const longestVia = [...GOAL_VIA].sort((a, b) => b.length - a.length)[0];
+    const d = { outcome: "dismissed", goal: longestGoal, via: longestVia };
+    assert.ok(Buffer.byteLength(JSON.stringify(d)) < 120);
+  });
+  test("the app sends only places the server accepts", () => {
+    const app = readFileSync(join(__dirname, "..", "..", "mobile", "src", "lib", "learnerLevel.ts"), "utf8");
+    const m = /export const GOAL_VIA = \[([^\]]*)\]/.exec(app);
+    assert.ok(m, "mobile/src/lib/learnerLevel.ts declares GOAL_VIA");
+    const appVia = [...m![1].matchAll(/"([a-z_]+)"/g)].map((x) => x[1]);
+    assert.deepEqual(appVia, [...GOAL_VIA]);
   });
 });

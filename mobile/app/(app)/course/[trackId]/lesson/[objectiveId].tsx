@@ -109,12 +109,16 @@ import {
   ladderFor,
   lessonFlowFor,
   levelFadingPlan,
+  lessonGoalDone,
   parseLevelChange,
+  showsLessonGoalCard,
+  type CourseGoal,
+  type LessonGoalCard as LessonGoalCardState,
   parseLevelState,
   type LevelChange,
   type LevelState,
 } from "@/lib/learnerLevel";
-import { DoneProgress, HunchNote, HunchStep, LadderView, LevelChip, LevelNotice } from "@/components/LearnerLevel";
+import { DoneProgress, HunchNote, HunchStep, LadderView, LessonGoalCard, LevelChip, LevelNotice } from "@/components/LearnerLevel";
 
 // REQ-101 (FAIL-093): device copies once written under "anon" are removed
 // the first time a lesson opens in this app run.
@@ -598,6 +602,35 @@ export default function LessonFlow() {
     if (next && unitId) setLevelState({ ...next, effective: next.units.find((u) => u.unitId === unitId)?.level ?? next.courseLevel ?? next.suggestion.level });
     setLevelNotice(null);
   }
+  // REQ-255: the fallback for a course never asked why the learner is taking
+  // it: a one-tap card above the lesson, never in its way. Answering or "Not
+  // now" is saved (both count as asked, so no later lesson shows it). The
+  // lesson already open keeps the level it started with -- a change mid-way
+  // would swap the guess step under the learner -- and the answer applies from
+  // the next lesson.
+  const [goalCard, setGoalCard] = useState<LessonGoalCardState>("ask");
+  const [goalCardDone, setGoalCardDone] = useState<string | null>(null);
+  const [goalCardSaving, setGoalCardSaving] = useState(false);
+  const [goalCardError, setGoalCardError] = useState<string | null>(null);
+  useEffect(() => {
+    setGoalCard("ask");
+    setGoalCardDone(null);
+    setGoalCardError(null);
+  }, [trackId, objectiveId]);
+  async function answerGoalCard(body: Record<string, unknown>, outcome: "saved" | "dismissed") {
+    setGoalCardSaving(true);
+    setGoalCardError(null);
+    try {
+      const next = parseLevelState(await api.put<unknown>(`/api/courses/${trackId}/level`, body));
+      setGoalCard(outcome);
+      setGoalCardDone(lessonGoalDone(outcome, next?.courseLevel ?? null, !!next?.levelFlow));
+      if (next) setLevelState((prev) => (prev ? { ...prev, answered: true, goal: next.goal } : prev));
+    } catch (err) {
+      setGoalCardError(friendlyError(err));
+    } finally {
+      setGoalCardSaving(false);
+    }
+  }
   function openLevelSettings() {
     router.push({ pathname: `/course/${trackId}/level`, params: unitId ? { unitId } : {} });
   }
@@ -826,6 +859,16 @@ export default function LessonFlow() {
         <View style={styles.levelRow}>
           <LevelChip level={levelState.effective} onPress={openLevelSettings} />
         </View>
+      ) : null}
+      {/* REQ-255: why they're taking the course, once, if never asked. */}
+      {levelLoaded && showsLessonGoalCard(levelState, goalCard) ? (
+        <LessonGoalCard
+          done={goalCardDone}
+          saving={goalCardSaving}
+          error={goalCardError}
+          onAnswer={(goal: CourseGoal) => answerGoalCard({ goal, via: "lesson" }, "saved")}
+          onDismiss={() => answerGoalCard({ dismiss: true, via: "lesson" }, "dismissed")}
+        />
       ) : null}
       {flow.oneTapHunch && step !== "guess" && step !== "done" ? (
         <LadderView

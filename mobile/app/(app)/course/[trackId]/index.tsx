@@ -37,7 +37,10 @@ import { LoadError } from "@/components/LoadError";
 import { HOME } from "@/lib/goBack";
 import { useGoBack } from "@/lib/useGoBack";
 import { objectiveRowStatus, SAVED_PLACE_LABEL } from "@/lib/lessonExit";
-import { CourseLevelPanel } from "@/components/CourseLevelPanel";
+import { CourseLevelPanel, useCourseLevel } from "@/components/CourseLevelPanel";
+import { GoalStartSheet } from "@/components/LearnerLevel";
+import { asksAtStart, goalAnswerBody, parseLevelState, type CourseGoal, type Level } from "@/lib/learnerLevel";
+import { friendlyError } from "@/lib/errorMessage";
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
@@ -141,6 +144,44 @@ export default function CourseDashboard() {
   // (src/lib/nextStep.ts). It used to say "Continue studying" from zero and
   // did nothing when the unit it picked listed no objectives.
   const step = nextCourseStep(units);
+
+  // REQ-255: "Start course" on a course never asked about opens a small
+  // sheet with the goal and the starting level; one tap on a reason (or
+  // "Skip for now") saves and opens the first lesson. A failed save on a
+  // reason shows its error in the sheet; a failed skip still starts the
+  // lesson (its card asks again).
+  const level = useCourseLevel(trackId);
+  const [goalSheet, setGoalSheet] = useState(false);
+  const [goalSaving, setGoalSaving] = useState(false);
+  const [goalError, setGoalError] = useState<string | null>(null);
+  function openStep() {
+    if (!step) return;
+    if (step.kind === "review") return router.push("/review");
+    router.push({
+      pathname: `/course/${trackId}/lesson/${step.objectiveId}`,
+      params: { unitId: step.unitId, objectiveTitle: step.objectiveTitle },
+    });
+  }
+  function pressStep() {
+    if (asksAtStart(level.state, step?.kind)) {
+      setGoalError(null);
+      return setGoalSheet(true);
+    }
+    openStep();
+  }
+  async function saveGoal(body: Record<string, unknown>, startAnyway: boolean) {
+    setGoalSaving(true);
+    setGoalError(null);
+    try {
+      level.setState(parseLevelState(await api.put<unknown>(`/api/courses/${trackId}/level`, body)));
+    } catch (err) {
+      setGoalSaving(false);
+      if (!startAnyway) return setGoalError(friendlyError(err));
+    }
+    setGoalSaving(false);
+    setGoalSheet(false);
+    openStep();
+  }
   const vendorLine = track ? vendorDisclaimer(exam, track.track_type) : null;
 
   // REQ-100: readiness from weighted accuracy across every question type,
@@ -175,8 +216,19 @@ export default function CourseDashboard() {
             <FavoriteButton active={!!track.is_favorite} onPress={toggleFavorite} />
           </View>
 
-          {/* REQ-252: the per-course goal question and level (asked once), then the level chip. */}
-          <CourseLevelPanel trackId={trackId} />
+          {/* REQ-252 / REQ-255: why they're taking it with "Change", the level chip, and level notices. */}
+          <CourseLevelPanel trackId={trackId} state={level.state} setState={level.setState} />
+          {level.state ? (
+            <GoalStartSheet
+              state={level.state}
+              visible={goalSheet}
+              saving={goalSaving}
+              error={goalError}
+              onAnswer={(goal: CourseGoal, picked: Level | null) => saveGoal(goalAnswerBody(goal, "start", picked), false)}
+              onSkip={() => saveGoal({ skip: true, via: "start" }, true)}
+              onClose={() => setGoalSheet(false)}
+            />
+          ) : null}
 
           <Card elevated style={{ borderColor: colors.accent }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
@@ -210,14 +262,7 @@ export default function CourseDashboard() {
                 label={step.label}
                 accessibilityLabel={step.a11y}
                 icon={step.kind === "review" ? "rotate-cw" : "play"}
-                onPress={() => {
-                  if (step.kind === "review") router.push("/review");
-                  else
-                    router.push({
-                      pathname: `/course/${trackId}/lesson/${step.objectiveId}`,
-                      params: { unitId: step.unitId, objectiveTitle: step.objectiveTitle },
-                    });
-                }}
+                onPress={pressStep}
               />
             ) : null}
 

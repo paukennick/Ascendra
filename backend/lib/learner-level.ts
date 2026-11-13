@@ -10,6 +10,8 @@ import {
   type AccountExperience,
   type CourseGoal,
   type FirstTry,
+  type GoalOutcome,
+  type GoalVia,
   type Level,
   type SuggestionReason,
 } from "@/lib/learner-level-rules";
@@ -133,7 +135,13 @@ export interface ProfileInput {
   // undefined = leave as it is; null = clear (goal only).
   goal?: CourseGoal | null;
   level?: Level;
+  // "Skip for now" (start sheet, REQ-252 panel) and "Not now" (the lesson
+  // card, REQ-255). Both mark the question asked; they differ only in the
+  // event's outcome.
   skip?: boolean;
+  dismiss?: boolean;
+  // REQ-255: where it was asked, for the event only.
+  via?: GoalVia;
 }
 
 // Locks (creating if needed) the learner's row for this course, so two level
@@ -155,7 +163,8 @@ async function lockProfile(tx: TxClient, userId: string, trackId: string): Promi
 
 // Saves the goal answer and/or the course level. A level the learner picks is
 // 'self'; answering the goal without picking a level stores the suggestion
-// for that goal. Both mark the question answered, as does skip.
+// for that goal. Both mark the question answered, as do skip and dismiss
+// (REQ-255: asked once, wherever it was asked).
 export async function saveCourseProfile(userId: string, trackId: string, input: ProfileInput): Promise<void> {
   await withTransaction(async (tx) => {
     const before = await lockProfile(tx, userId, trackId);
@@ -174,8 +183,17 @@ export async function saveCourseProfile(userId: string, trackId: string, input: 
         where user_id = $1 and track_id = $2`,
       [userId, trackId, goal, level, source]
     );
-    if (input.goal !== undefined && input.goal !== before.goal && goal) {
-      await recordEvent(userId, "course_goal_set", { trackId, detail: { goal } }, (sql, p) => tx.query(sql, p));
+    // REQ-255: answered, skipped or dismissed, and where. A skip or dismiss
+    // is recorded only the first time the question is put aside (a repeat,
+    // or one after an answer, changes nothing and records nothing).
+    let outcome: GoalOutcome | null = null;
+    if (input.goal !== undefined && input.goal !== before.goal && goal) outcome = "answered";
+    else if (!before.answered_at && input.goal === undefined && (input.dismiss || input.skip)) outcome = input.dismiss ? "dismissed" : "skipped";
+    if (outcome) {
+      const detail: Record<string, string> = { outcome };
+      if (outcome === "answered" && goal) detail.goal = goal;
+      if (input.via) detail.via = input.via;
+      await recordEvent(userId, "course_goal_set", { trackId, detail }, (sql, p) => tx.query(sql, p));
     }
     if (level !== before.level) {
       await tx.query(

@@ -1,18 +1,31 @@
 // REQ-252 (levels phase 1A): the pieces of learner levels the lesson screen
 // and the course page show -- the level chip, the one-tap hunch, the mastery
-// ladder, the level-change notice with Undo, the start-of-course goal
-// question, and the progress card on the lesson's done screen. The rules and
+// ladder, the level-change notice with Undo, the goal question (REQ-255: the
+// "Start course" sheet, the first-lesson card and the course page's summary
+// line; the full form in the course's level settings), and the progress card
+// on the lesson's done screen. The rules and
 // wording live in src/lib/learnerLevel.ts.
 import React, { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
+import { SheetModal } from "@/components/SheetModal";
 import { Body, Button, Card, ErrorBanner, H2, LiveAnnouncement, Muted, VerdictBadge } from "@/components/ui";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import {
   AUTO_LEVEL_NOTE,
   CHIP_HINT,
   GOAL_CHOICES,
   GOAL_QUESTION,
+  GOAL_SUMMARY_LABEL,
+  LESSON_GOAL_INTRO,
+  NOT_NOW,
+  SKIP_FOR_NOW,
+  START_SHEET_INTRO,
+  START_SHEET_TITLE,
+  STARTING_LEVEL,
+  goalSummary,
+  startingLevelLine,
   HUNCH_INTRO,
   HUNCH_TITLE,
   JUST_TEACH_ME,
@@ -221,8 +234,8 @@ export function DoneProgress({
   );
 }
 
-// The start-of-course question and the level on one screen (course page and
-// course level settings). `compact` hides the explanations once answered.
+// The goal question and the level on one screen: the course's level
+// settings (REQ-255: the course page no longer holds it).
 export function GoalAndLevelForm({
   state,
   saving,
@@ -274,6 +287,161 @@ export function GoalAndLevelForm({
         <Button label={submitLabel} icon="check" fullWidth={false} loading={saving} onPress={() => onSave(goal, level)} />
         {onSkip ? <Button label="Skip for now" variant="ghost" fullWidth={false} disabled={saving} onPress={onSkip} /> : null}
       </View>
+    </View>
+  );
+}
+
+// REQ-255: one tap on a reason answers the goal question (the start sheet
+// and the lesson card). A plain button per reason, 48 dp, in reading order.
+function GoalButtons({ disabled, onPick }: { disabled: boolean; onPick: (g: CourseGoal) => void }) {
+  return (
+    <View style={{ gap: 6 }} accessibilityRole="list" accessibilityLabel={GOAL_QUESTION}>
+      {GOAL_CHOICES.map((g) => (
+        <Pressable
+          key={g.id}
+          onPress={() => onPick(g.id)}
+          disabled={disabled}
+          accessibilityRole="button"
+          accessibilityLabel={`${GOAL_QUESTION} ${g.label}`}
+          accessibilityState={{ disabled }}
+          style={({ pressed }) => [styles.option, pressed && styles.optionPressed, disabled && { opacity: 0.6 }]}
+        >
+          <Body style={{ flex: 1, fontSize: 14 }}>{g.label}</Body>
+          <Feather name="chevron-right" size={16} color={colors.mutedDim} />
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+// REQ-255: "Start course" on a course never asked about opens this sheet.
+// The starting level is pre-selected from the suggestion and folded into one
+// line ("Change" opens the self-rating); one tap on a reason saves and starts
+// the lesson; "Skip for now" keeps the suggested level and starts it too.
+// Closing the sheet (backdrop, Back) starts nothing and asks nothing.
+export function GoalStartSheet({
+  state,
+  visible,
+  saving,
+  error,
+  onAnswer,
+  onSkip,
+  onClose,
+}: {
+  state: LevelState;
+  visible: boolean;
+  saving: boolean;
+  error: string | null;
+  onAnswer: (goal: CourseGoal, pickedLevel: Level | null) => void;
+  onSkip: () => void;
+  onClose: () => void;
+}) {
+  const reduced = useReducedMotion();
+  const [picked, setPicked] = useState<Level | null>(null);
+  const [ratingOpen, setRatingOpen] = useState(false);
+  if (!visible) return null;
+  const shown = picked ?? state.suggestion.level;
+  return (
+    <SheetModal transparent visible animationType={reduced ? "none" : "slide"} onRequestClose={onClose}>
+      <View style={styles.backdrop}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close without starting" />
+        <View style={styles.sheet} accessibilityViewIsModal>
+          <ScrollView contentContainerStyle={{ gap: spacing.sm }} showsVerticalScrollIndicator={false}>
+            <Text style={styles.sheetTitle} accessibilityRole="header">
+              {START_SHEET_TITLE}
+            </Text>
+            <Muted style={{ fontSize: 13 }}>{START_SHEET_INTRO}</Muted>
+            <Muted style={{ color: colors.text, fontFamily: fonts.bodySemiBold }}>{GOAL_QUESTION}</Muted>
+            <GoalButtons disabled={saving} onPick={(g) => onAnswer(g, picked)} />
+            <View style={styles.levelLine}>
+              <View style={{ flex: 1, minWidth: 160 }}>
+                <Muted style={{ fontSize: 12 }}>{STARTING_LEVEL}</Muted>
+                <Body style={{ fontSize: 14 }}>{startingLevelLine(shown, picked !== null)}</Body>
+              </View>
+              <Button
+                label={ratingOpen ? "Done" : "Change"}
+                accessibilityLabel={ratingOpen ? "Done choosing a starting level" : `Change starting level, now ${LEVEL_NAMES[shown]}`}
+                variant="link"
+                fullWidth={false}
+                disabled={saving}
+                onPress={() => setRatingOpen((o) => !o)}
+              />
+            </View>
+            {ratingOpen ? (
+              <View style={{ gap: 6 }} accessibilityRole="radiogroup" accessibilityLabel={RATING_QUESTION}>
+                <Muted style={{ fontSize: 12 }}>{RATING_QUESTION}</Muted>
+                {ratingChoices(state.trackCode).map((r) => (
+                  <Choice key={r.id} label={r.label} sub={LEVEL_NAMES[r.id]} selected={shown === r.id} onPress={() => setPicked(r.id)} />
+                ))}
+                <Muted style={{ fontSize: 12 }}>{levelMeaning(shown, state.levelFlow)}</Muted>
+              </View>
+            ) : null}
+            {error ? <ErrorBanner message={error} /> : null}
+            <Button label={SKIP_FOR_NOW} accessibilityLabel={`${SKIP_FOR_NOW} and start the lesson`} variant="ghost" disabled={saving} onPress={onSkip} />
+          </ScrollView>
+        </View>
+      </View>
+    </SheetModal>
+  );
+}
+
+// REQ-255: the fallback in the first lesson opened in a course never asked
+// about. Above the lesson, never in its way: one tap on a reason, or "Not
+// now" (which counts as asked). Afterwards one line says what happened.
+export function LessonGoalCard({
+  done,
+  saving,
+  error,
+  onAnswer,
+  onDismiss,
+}: {
+  done: string | null;
+  saving: boolean;
+  error: string | null;
+  onAnswer: (goal: CourseGoal) => void;
+  onDismiss: () => void;
+}) {
+  if (done) {
+    return (
+      <View style={styles.note}>
+        <LiveAnnouncement message={done} />
+        <Muted style={{ color: colors.text, fontSize: 13 }}>{done}</Muted>
+      </View>
+    );
+  }
+  return (
+    <View style={styles.goalCard}>
+      <View style={styles.headingRow}>
+        <Feather name="compass" size={16} color={colors.accent} />
+        <Text style={styles.goalCardTitle} accessibilityRole="header">
+          {GOAL_QUESTION}
+        </Text>
+      </View>
+      <Muted style={{ fontSize: 13 }}>{LESSON_GOAL_INTRO}</Muted>
+      <GoalButtons disabled={saving} onPick={onAnswer} />
+      {error ? <ErrorBanner message={error} /> : null}
+      <Button label={NOT_NOW} accessibilityLabel={`${NOT_NOW}: don't ask why I'm taking this course`} variant="link" fullWidth={false} disabled={saving} onPress={onDismiss} />
+    </View>
+  );
+}
+
+// REQ-255: the course page's goal line -- the current answer and "Change",
+// which opens the course's level settings. It never asks.
+export function GoalSummaryRow({ state, onChange }: { state: LevelState; onChange: () => void }) {
+  const summary = goalSummary(state);
+  return (
+    <View style={styles.summaryRow}>
+      <View style={{ flex: 1, minWidth: 160 }}>
+        <Muted style={{ fontSize: 12 }}>{GOAL_SUMMARY_LABEL}</Muted>
+        <Body style={{ fontSize: 14 }}>{summary}</Body>
+      </View>
+      <Button
+        label="Change"
+        accessibilityLabel={`Change why you're taking this course, now ${summary}`}
+        variant="link"
+        fullWidth={false}
+        onPress={onChange}
+      />
     </View>
   );
 }
@@ -334,6 +502,34 @@ const styles = StyleSheet.create({
   ladderRow: { flexDirection: "row", gap: 4 },
   rung: { flex: 1, gap: 3, alignItems: "flex-start" },
   rungBar: { height: 6, borderRadius: 3, alignSelf: "stretch" },
+  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
+  sheet: {
+    maxHeight: "88%",
+    width: "100%",
+    maxWidth: 640,
+    alignSelf: "center",
+    backgroundColor: colors.card,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderBottomWidth: 0,
+  },
+  sheetTitle: { color: colors.text, fontFamily: fonts.displaySemiBold, fontSize: 19 },
+  levelLine: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: spacing.sm, marginTop: spacing.xs },
+  goalCard: {
+    gap: spacing.sm,
+    alignSelf: "stretch",
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+    backgroundColor: colors.card,
+  },
+  goalCardTitle: { color: colors.text, fontFamily: fonts.bodySemiBold, fontSize: 15, flex: 1 },
+  summaryRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: spacing.sm },
   beforeAfter: {
     flexDirection: "row",
     flexWrap: "wrap",

@@ -17227,6 +17227,54 @@
       "prevention_rules": [],
       "prevention_notes": "Learner-facing text that states a server threshold uses a mirrored constant pinned by a cross-package test.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1765",
+      "date": "2026-11-12",
+      "title": "British spelling in a new mobile test (labelled)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "backend lib/us-spelling.test.ts failed: mobile/src/lib/goalEntryPoints.test.ts: labelled -> labeled",
+      "how_detected": "backend npm test (US English spelling, REQ-220) before commit",
+      "root_cause": "The new source-check test was written with the British form of 'labeled' in a test name and a comment; the repo is US English and the spelling scan covers mobile sources too.",
+      "requirement": "REQ-255",
+      "affected": [
+        "mobile/src/lib/goalEntryPoints.test.ts"
+      ],
+      "fix_summary": "Changed to labeled.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/us-spelling.test.ts::US English spelling (REQ-220)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The existing US-spelling scan caught it; run backend npm test whenever mobile files change, since the scan spans both packages.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1766",
+      "date": "2026-11-12",
+      "title": "Source-check regex stopped at an arrow function inside JSX props",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "goalEntryPoints.test.ts 'targets are 48 dp and every control is labeled' failed on GoalButtons although the Pressable has accessibilityLabel",
+      "how_detected": "mobile npm test while writing REQ-255",
+      "root_cause": "The test matched a JSX opening tag with <Pressable[^>]*>, which ends at the '>' of an onPress arrow (=>), so the props after the handler, including accessibilityLabel, were never seen.",
+      "requirement": "REQ-255",
+      "affected": [
+        "mobile/src/lib/goalEntryPoints.test.ts"
+      ],
+      "fix_summary": "Each control's props are now the text up to the next <Pressable or <Button in the same component, and the test asserts at least one control was found.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/goalEntryPoints.test.ts::targets are 48 dp and every control is labeled"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Source checks on JSX never use [^>]* to find the end of a tag; slice between known markers and assert the slice is non-empty so a vacuous pass is impossible.",
+      "recurrence_of": ""
     }
   ]
 }

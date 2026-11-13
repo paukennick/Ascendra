@@ -9322,6 +9322,52 @@
         "Visuals (hunch, ladder, notice, Key terms opening for New) not checked in a browser or device: none available",
         "Seed on this branch writes subject_tracks.level_flow: run it only after 078 is applied"
       ]
+    },
+    {
+      "id": "REQ-255",
+      "category": "feature",
+      "title": "Earlier entry points for the per-course goal question",
+      "description": "Follow-up to REQ-252 (Nick, 2026-11-12: ask the goal when the learner picks a course, not later). The goal is asked once per course wherever it comes first: in the welcome intake beside the experience question for the first course (saved to that course's level profile after the first run records the course); on Start course through a small sheet with one-tap reasons and the pre-selected starting level, Skip for now keeping the suggestion; as a fallback, a one-tap card above the first lesson opened in a course never asked, never blocking, Not now counting as asked. The course page panel becomes a change point (the answer with Change) and never prompts. Applies to every course; only lesson-flow changes stay behind level_flow. Answered, skipped and dismissed are course_goal_set events with outcome and via in detail. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/learner-level-rules.ts",
+        "backend/lib/learner-level.ts",
+        "backend/app/api/courses/[id]/level",
+        "mobile/src/lib/learnerLevel.ts",
+        "mobile/src/components/LearnerLevel.tsx",
+        "mobile/src/components/CourseLevelPanel.tsx",
+        "mobile/src/components/IntakeForm.tsx",
+        "mobile/app/(app)/welcome.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/app/(app)/course/[trackId]/level.tsx"
+      ],
+      "acceptance_criteria": [
+        "The welcome intake asks the goal for the first course beside the experience question and saves it through PUT /api/courses/:id/level",
+        "Start course on a course never asked opens a sheet where one tap on a reason saves and starts the lesson and Skip for now keeps the suggested level",
+        "The first lesson in a course never asked shows a one-tap card above the lesson that never blocks it and Not now counts as asked",
+        "The course page panel shows the answer with Change and never prompts",
+        "Answered skipped and dismissed are recorded as course_goal_set with outcome and via and no answer text",
+        "48 dp targets and labeled controls",
+        "No migration"
+      ],
+      "validation_required": [
+        "backend lib/learner-level-rules.test.ts",
+        "backend lib/learner-level.dbtest.ts on Postgres 16",
+        "mobile src/lib/goalEntryPoints.test.ts",
+        "tsc backend and mobile compared with master",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/learner-levels.md",
+        "mobile/src/content/legal.ts FAQ",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Visual layout of the sheet and card not checked in a browser or device",
+        "Skip for now counts as asked (decision for Nick)"
+      ]
     }
   ]
 }
