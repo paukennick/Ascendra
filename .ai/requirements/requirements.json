@@ -6900,7 +6900,7 @@
       "id": "REQ-197",
       "category": "product/engagement",
       "title": "Smart study reminders, service emails, dictation tip, next store build plan",
-      "description": "Nick-approved 2026-11-09. (1) Local study reminders built from GET /api/reminders/plan: one topic a day ranked Needs review, then days overdue x exam weight, then lapses (fixed_v1 ladder; DuePriority interface for FSRS later); title '<course>: <topic>' <=40, body 'Due for review · N questions, ~M min[ · exam in D days]' <=60; never 'fading' or a percentage; skip days with nothing due; at most one a day within quiet hours; device-only 'Show topic on lock screen' (default on). Web has none and says so. (2) Exam change notice, exam countdown (14 and 3 days, readiness or 'unconfirmed', 3 weakest), opt-in weekly digest (List-Unsubscribe one-click; refuses without MAIL_POSTAL_ADDRESS and DIGEST_EMAIL_FROM) via Resend; per-kind preference, signed unsubscribe, verified addresses only, idempotent per user/kind/period; daily Vercel cron with CRON_SECRET, small batches; dark until SERVICE_EMAILS_ENABLED=true with the Privacy Policy update. (3) Migration 063 email_preferences and service_email_log. (4) No guilt or marketing copy, tested. (5) One-time keyboard dictation tip on lab, explain-back and coach fields (iOS/Android); fields no longer truncate. (6) docs/next-store-build-plan.md.",
+      "description": "Nick-approved 2026-11-09. (1) Local study reminders built from GET /api/reminders/plan: one topic a day ranked Needs review, then days overdue x exam weight, then lapses (fixed_v1 ladder; DuePriority interface for FSRS later); title '<course>: <topic>' <=40, body 'Due for review \u00b7 N questions, ~M min[ \u00b7 exam in D days]' <=60; never 'fading' or a percentage; skip days with nothing due; at most one a day within quiet hours; device-only 'Show topic on lock screen' (default on). Web has none and says so. (2) Exam change notice, exam countdown (14 and 3 days, readiness or 'unconfirmed', 3 weakest), opt-in weekly digest (List-Unsubscribe one-click; refuses without MAIL_POSTAL_ADDRESS and DIGEST_EMAIL_FROM) via Resend; per-kind preference, signed unsubscribe, verified addresses only, idempotent per user/kind/period; daily Vercel cron with CRON_SECRET, small batches; dark until SERVICE_EMAILS_ENABLED=true with the Privacy Policy update. (3) Migration 063 email_preferences and service_email_log. (4) No guilt or marketing copy, tested. (5) One-time keyboard dictation tip on lab, explain-back and coach fields (iOS/Android); fields no longer truncate. (6) docs/next-store-build-plan.md.",
       "priority": "high",
       "status": "needs_review",
       "minimum_access_scope": [
@@ -9211,7 +9211,7 @@
       "id": "REQ-250",
       "category": "defect",
       "title": "Leave a lesson at any step without losing your place",
-      "description": "Pilot tester (2026-11-12): 'once I'm in a lesson or objective, I can't navigate back to the dashboard or check my progress ... There should be a way to leave an objective, view my overall progress, or come back to it later without losing where I left off.' The lesson header gets Save and exit (back when there is history, else replace with the course page; mobile/src/lib/lessonExit.ts) and Course progress, on the loading and error states too; every step but done says 'Your place is saved — leave any time and pick up here.' and ends with Save and exit and Home. Each exit sends the pending account save first. Leaving at Try it keeps the place (saved as the graded Solo step, FAIL-1641). GET /api/courses/:id reports lesson_saved_at per objective within the 7-day resume window; the course and Mastery rows show In progress / Place saved and Continue opens the most recent saved place (FAIL-1642). Sims and exams keep their own exits. No migration.",
+      "description": "Pilot tester (2026-11-12): 'once I'm in a lesson or objective, I can't navigate back to the dashboard or check my progress ... There should be a way to leave an objective, view my overall progress, or come back to it later without losing where I left off.' The lesson header gets Save and exit (back when there is history, else replace with the course page; mobile/src/lib/lessonExit.ts) and Course progress, on the loading and error states too; every step but done says 'Your place is saved \u2014 leave any time and pick up here.' and ends with Save and exit and Home. Each exit sends the pending account save first. Leaving at Try it keeps the place (saved as the graded Solo step, FAIL-1641). GET /api/courses/:id reports lesson_saved_at per objective within the 7-day resume window; the course and Mastery rows show In progress / Place saved and Continue opens the most recent saved place (FAIL-1642). Sims and exams keep their own exits. No migration.",
       "priority": "high",
       "status": "completed",
       "minimum_access_scope": [
@@ -9417,6 +9417,43 @@
         "Migration 080 must be applied before the backend deploy",
         "REQ-255 builds already installed do not ask the server so they keep showing the goal card until answered",
         "The privacy text gained detail without a Privacy version bump (same as REQ-252)"
+      ]
+    },
+    {
+      "id": "REQ-257",
+      "category": "feature",
+      "title": "Switch on level-aware lessons for DPT, PTPREREQ, CCRNADULT and AWSSAA",
+      "description": "Nick 2026-11-12 (\"Yup let's do it\": Key terms for the pilot launch courses, then switch level_flow on per course as each is ready). These four courses' Key terms were pre-generated (most objectives have one; the rest are written on first use), so their seed tracks set levelFlow: true and the seed switches subject_tracks.level_flow on. New learners there now get Key terms opened first, the one-tap hunch and the full worked example before guided practice; Experienced learners are offered Skip guided; the move-down suggestion applies. The solo check and mastery rules are unchanged. FAQ and docs name the courses. AWSMLA, SECPLUS and CNA follow when their Key terms are written.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/supabase/seed/tracks/ccrn.ts",
+        "backend/supabase/seed/tracks/pt-dpt.ts",
+        "backend/supabase/seed/tracks/pt-prereq.ts",
+        "backend/supabase/seed/data.ts",
+        "mobile/src/content/legal.ts",
+        "docs/learner-levels.md"
+      ],
+      "acceptance_criteria": [
+        "DPT, PTPREREQ, CCRNADULT and AWSSAA seed tracks set levelFlow true and the seed switches level_flow on",
+        "No other course is switched on or off",
+        "FAQ and docs name the courses with level-aware lessons"
+      ],
+      "validation_required": [
+        "backend lib/level-flow-tracks.test.ts",
+        "backend and mobile test suites",
+        "python3 omni gate",
+        "production: subject_tracks.level_flow true for the four codes after the seed"
+      ],
+      "documentation_required": [
+        "docs/learner-levels.md",
+        "CHANGELOG.md",
+        "mobile/src/content/legal.ts FAQ"
+      ],
+      "risk_notes": [
+        "A course switched on cannot be switched off by the seed (it never clears level_flow); switching off is a manual update",
+        "Objectives without Key terms write them on first use, a live model call within the pilot AI ceiling"
       ]
     }
   ]

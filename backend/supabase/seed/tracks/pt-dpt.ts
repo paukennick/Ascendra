@@ -188,6 +188,8 @@ const PT_REQ220_RETIRED_AT = "2026-11-10T00:00:00Z";
 
 export const DPT_TRACK: SeedTrack = {
   code: "DPT",
+  // REQ-257 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
+  levelFlow: true,
   title: "Doctor of Physical Therapy (DPT) Coach",
   description:
     "The entry-level DPT curriculum as CAPTE's 2024 accreditation standards define it: the foundational and clinical sciences, professional values and lifelong learning, and the 25 practice expectations (examination through practice management) every graduate must meet before sitting the NPTE-PT.",

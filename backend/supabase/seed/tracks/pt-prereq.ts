@@ -105,6 +105,8 @@ export interface PrereqUnitSource extends SourceRef {
 
 export const PT_PREREQ_TRACK: SeedTrack = {
   code: "PTPREREQ",
+  // REQ-257 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
+  levelFlow: true,
   title: "PT School Prerequisites Refresher",
   description:
     "A refresher of the undergraduate prerequisites Doctor of Physical Therapy programs commonly require: anatomy and physiology, biology, general chemistry, physics, psychology and statistics. It leans toward what the first year of PT school builds on, which is musculoskeletal and nervous system anatomy, muscle and cardiopulmonary physiology, levers, torque and basic biomechanics. Chemistry and physics go only as deep as PT coursework needs. It is a review course. It does not replace the coursework a program requires.",
