@@ -113,7 +113,63 @@
 //   threshold (42 CFR 410.60(a)(4)), falls exercise dose (150 min to 3 h/week
 //   for 6-12 months) and DFU offloading as in pt.ts.
 
-import type { SeedTrack } from "../data";
+import type { SeedTrack, UnitSource } from "../data";
+
+// REQ-235 (batch H wave 1): dated unit sources. Every unit names the CAPTE
+// standard elements it is scoped on (element numbers only: the standard is
+// APTA's copyright, see above; re-read 2026-11-04 per this header). Ethics
+// and practice management carry key values read on 2026-11-11: the APTA
+// Code of Ethics PDF, 42 CFR 410.60 through the eCFR versioner API (as of
+// 2026-11-01), and APTA's "Skilled Maintenance Therapy Under Medicare" page.
+const CAPTE_PT_PDF = "https://www.capteonline.org/globalassets/capte-docs/2024-capte-pt-standards-required-elements.pdf";
+const capte = (elements: string): UnitSource => ({
+  title: `CAPTE Standards and Required Elements for PT programs (2024; text updated through 2026-07-28), required elements ${elements}`,
+  url: CAPTE_PT_PDF,
+  kind: "reference",
+  checkedAt: "2026-11-04",
+});
+const APTA_COE: UnitSource = {
+  title: "APTA Code of Ethics for the Physical Therapy Profession (effective 2026-01-01; one code for PTs and PTAs)",
+  url: "https://www.apta.org/siteassets/pdfs/policies/apta-code-ethics-physical-therapy-profession.pdf",
+  kind: "reference",
+  checkedAt: "2026-11-11",
+  keyValues: [
+    "six ethical principles: autonomy, beneficence, nonmaleficence, justice, veracity, fidelity",
+    "nine Ethical Commitments: Respect, Integrity, Accountability, Maintaining Professional Relationships, Compassion and Trust, Responsible Business and Organizational Practices, Direction and Supervision, Professional Expertise, Societal Responsibility; the Standards of Conduct under them are what APTA enforces",
+    "pro bono service is aspirational (9.E: 'shall strive to provide'), not an enforceable duty",
+  ],
+};
+const MEDICARE_PTA: UnitSource[] = [
+  {
+    title: "42 CFR 410.60, outpatient physical therapy services (eCFR)",
+    url: "https://www.ecfr.gov/current/title-42/section-410.60",
+    kind: "reference",
+    checkedAt: "2026-11-11",
+    keyValues: [
+      "a PTA may work under the general supervision of a PT in private practice (410.60(c)(2)); state law, payers or the facility may be stricter",
+      "services furnished in whole or in part by a PTA carry the modifier and, from 2022-01-01, are paid at 85 percent; 'in part' means the PTA's separate minutes exceed 10 percent of the service's total minutes",
+    ],
+  },
+  {
+    title: "APTA, Skilled Maintenance Therapy Under Medicare (citing the CY 2021 Physician Fee Schedule final rule)",
+    url: "https://www.apta.org/your-practice/payment/medicare-payment/coverage-issues/skilled-maintenance-therapy-under-medicare",
+    kind: "reference",
+    checkedAt: "2026-11-11",
+    keyValues: [
+      "since 2021-01-01 a PT may delegate furnishing skilled maintenance therapy to a PTA under Medicare Part B; establishing or designing the maintenance program still takes the therapist's skills",
+    ],
+  },
+];
+export const DPT_UNIT_SOURCES: Record<string, UnitSource[]> = {
+  "Foundational sciences for physical therapist practice (7A)": [capte("7A")],
+  "Ethics, values, service and leadership (7B)": [capte("7B"), APTA_COE],
+  "Lifelong learning, education and health care disparities (7C)": [capte("7C")],
+  "Examination and screening (7D1)": [capte("7D1")],
+  "Evaluation, diagnosis, prognosis and plan of care (7D2-7D9)": [capte("7D2-7D9")],
+  "Interventions and management of the delivery of care (7D10-7D16)": [capte("7D10-7D16")],
+  "Health care activities and community health (7D17-7D22)": [capte("7D17-7D22")],
+  "Practice management (7D23-7D25)": [capte("7D23-7D25"), ...MEDICARE_PTA],
+};
 
 const CAPTE_PROVIDER = {
   providerSlug: "capte",
@@ -132,6 +188,8 @@ const PT_REQ220_RETIRED_AT = "2026-11-10T00:00:00Z";
 
 export const DPT_TRACK: SeedTrack = {
   code: "DPT",
+  // REQ-257 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
+  levelFlow: true,
   title: "Doctor of Physical Therapy (DPT) Coach",
   description:
     "The entry-level DPT curriculum as CAPTE's 2024 accreditation standards define it: the foundational and clinical sciences, professional values and lifelong learning, and the 25 practice expectations (examination through practice management) every graduate must meet before sitting the NPTE-PT.",
@@ -165,6 +223,7 @@ export const DPT_TRACK: SeedTrack = {
   units: [
     {
       title: "Foundational sciences for physical therapist practice (7A)",
+      sources: DPT_UNIT_SOURCES["Foundational sciences for physical therapist practice (7A)"],
       gate: "Trace a symptom to the tissue, system or movement mechanism producing it -- not a generic 'it hurts because it is injured' answer.",
       objectives: [
         "Anatomy, physiology and pathology of the cardiovascular, pulmonary, musculoskeletal, neuromuscular, integumentary and lymphatic systems across the life span",
@@ -201,6 +260,7 @@ export const DPT_TRACK: SeedTrack = {
     },
     {
       title: "Ethics, values, service and leadership (7B)",
+      sources: DPT_UNIT_SOURCES["Ethics, values, service and leadership (7B)"],
       gate: "Given a practice dilemma, name the ethical principle or Ethical Commitment of APTA's Code of Ethics for the Physical Therapy Profession at stake and the Standard of Conduct or action it requires.",
       objectives: [
         "The APTA Code of Ethics and Core Values for the physical therapist and physical therapist assistant, applied to real practice decisions",
@@ -220,6 +280,7 @@ export const DPT_TRACK: SeedTrack = {
     },
     {
       title: "Lifelong learning, education and health care disparities (7C)",
+      sources: DPT_UNIT_SOURCES["Lifelong learning, education and health care disparities (7C)"],
       gate: "Read a study abstract and state what it does and does not justify changing in a plan of care.",
       objectives: [
         "Evidence-informed practice: forming a clinical question and locating the best available evidence",
@@ -239,6 +300,7 @@ export const DPT_TRACK: SeedTrack = {
     },
     {
       title: "Examination and screening (7D1)",
+      sources: DPT_UNIT_SOURCES["Examination and screening (7D1)"],
       gate: "For a presenting complaint, select the systems review items and tests and measures that rule in or out the plausible sources -- and say when the patient needs someone else.",
       objectives: [
         "Taking a comprehensive subjective examination: history, health record review and the questions that change the plan",
@@ -261,6 +323,7 @@ export const DPT_TRACK: SeedTrack = {
     },
     {
       title: "Evaluation, diagnosis, prognosis and plan of care (7D2-7D9)",
+      sources: DPT_UNIT_SOURCES["Evaluation, diagnosis, prognosis and plan of care (7D2-7D9)"],
       gate: "From a set of examination findings, write the ICF-structured problem list, the PT diagnosis, a prognosis with a timeline, and a plan of care that names who does what.",
       objectives: [
         "Evaluating examination data to make clinical judgments about impairments, activity limitations and participation restrictions",
@@ -286,6 +349,7 @@ export const DPT_TRACK: SeedTrack = {
     },
     {
       title: "Interventions and management of the delivery of care (7D10-7D16)",
+      sources: DPT_UNIT_SOURCES["Interventions and management of the delivery of care (7D10-7D16)"],
       gate: "Given a condition and stage, select the specific intervention and dose, state how you will know it is working, and document it the way the jurisdiction requires.",
       objectives: [
         "Selecting and performing interventions for cardiovascular and pulmonary conditions to achieve patient goals",
@@ -311,6 +375,7 @@ export const DPT_TRACK: SeedTrack = {
     },
     {
       title: "Health care activities and community health (7D17-7D22)",
+      sources: DPT_UNIT_SOURCES["Health care activities and community health (7D17-7D22)"],
       gate: "Describe how a physical therapist contributes to quality improvement, interprofessional care and population health -- with a concrete example, not a slogan.",
       objectives: [
         "Participating in ongoing assessment and improvement of the quality of services",
@@ -327,6 +392,7 @@ export const DPT_TRACK: SeedTrack = {
     },
     {
       title: "Practice management (7D23-7D25)",
+      sources: DPT_UNIT_SOURCES["Practice management (7D23-7D25)"],
       gate: "Identify a safety, billing or regulatory risk in a practice scenario and the specific action that addresses it.",
       objectives: [
         "Assessing, documenting and minimizing safety risks for patients and providers, including facility safety policies",

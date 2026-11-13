@@ -1,0 +1,1094 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "stack-update-rollback-failed",
+  "title": "The stack that could not roll back",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "stack",
+          "label": "Stack shop-prod (us-east-2)",
+          "spokenLabel": "CloudFormation stack shop-prod in us-east-2",
+          "items": [
+            {
+              "label": "Status: {stack == \"failed\" ? \"UPDATE_ROLLBACK_FAILED\" : (stack == \"deleted\" ? \"rebuilding from scratch\" : (rerun == \"none\" ? \"UPDATE_ROLLBACK_COMPLETE\" : \"UPDATE_COMPLETE\"))}",
+              "when": "true"
+            },
+            {
+              "label": "Application Load Balancer",
+              "when": "stack != \"deleted\""
+            },
+            {
+              "label": "Auto Scaling group: {capacity} web instances",
+              "when": "stack != \"deleted\""
+            },
+            {
+              "label": "RDS database (DeletionPolicy not set: Snapshot by default)",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "net",
+          "label": "Subnets",
+          "spokenLabel": "Web subnets",
+          "items": [
+            {
+              "label": "web-a 10.0.1.0/28 and web-b 10.0.1.16/28 (11 usable addresses each)",
+              "when": "subnets != \"new24\""
+            },
+            {
+              "label": "web-a2 10.0.4.0/24 and web-b2 10.0.5.0/24 (251 usable each)",
+              "when": "subnets == \"new24\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "cap",
+          "label": "Web instances ready for Wednesday's sale",
+          "value": "{capacity} of {saleNeed}"
+        },
+        {
+          "id": "avail",
+          "label": "Shop availability this month",
+          "value": "{avail|3dp}%"
+        }
+      ]
+    }
+  },
+  "objective": "Identifying and remediating deployment issues: subnet sizing, CloudFormation errors, permissions problems",
+  "secondaryObjectives": [
+    "Creating and managing AWS resources with AWS CloudFormation and the AWS CDK",
+    "Configuring a VPC: subnets, route tables, network ACLs, security groups, NAT gateways, internet gateway, egress-only internet gateway"
+  ],
+  "sources": [
+    {
+      "cite": "Ascendra AWSSOA course catalog (backend/supabase/seed/tracks/aws.ts), built from the exam guide",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/sysops-administrator-associate-03/sysops-administrator-associate-03.html",
+      "note": "The objective and secondary objectives are the course's own titles, from the SOA-C03 outline at the course's source URL. Not re-fetched for this scenario."
+    },
+    {
+      "cite": "AWS. CloudFormation User Guide: Continue rolling back an update",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-continueupdaterollback.html",
+      "note": "Read 2026-11-11: UPDATE_ROLLBACK_FAILED when CloudFormation 'can't roll back all the changes', e.g. a resource 'deleted outside of CloudFormation'; 'A stack in the UPDATE_ROLLBACK_FAILED state can't be updated, but it can be rolled back to a working state (UPDATE_ROLLBACK_COMPLETE)'; continue-update-rollback with --resources-to-skip for resources that failed during the rollback; skipped resources become inconsistent with the template and must be made consistent 'Before performing another stack update', or 'the stack will become unrecoverable'."
+    },
+    {
+      "cite": "AWS. Amazon VPC User Guide: Subnet CIDR blocks",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/subnet-sizing.html",
+      "note": "Read 2026-11-11: an IPv4 subnet is between /28 and /16; five addresses in each subnet are reserved (network, VPC router, DNS, future use, broadcast). A /28 has 16 addresses, so 11 usable."
+    },
+    {
+      "cite": "AWS. Amazon EC2 API Reference: CreateSubnet",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateSubnet.html",
+      "note": "Read 2026-11-11: 'After you create a subnet, you can't change its CIDR block.' 'AWS reserves both the first four and the last IPv4 address in each subnet's CIDR block.'"
+    },
+    {
+      "cite": "AWS. CloudFormation Template Reference: DeletionPolicy attribute",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-attribute-deletionpolicy.html",
+      "note": "Read 2026-11-11: without a DeletionPolicy 'CloudFormation deletes your resources'; for AWS::RDS::DBInstance without DBClusterIdentifier 'the default policy is Snapshot'."
+    },
+    {
+      "cite": "AWS. CloudFormation User Guide: Update stacks using change sets",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html",
+      "note": "Read 2026-11-11: change sets 'preview how proposed changes to a stack might impact your running resources'; creating one 'doesn't make changes to your stack'; failures from runtime conditions 'might still occur during execution'."
+    }
+  ],
+  "brief": {
+    "situation": "Monday 10:00. Overnight, the update to shop-prod (us-east-2, Ohio) failed and then its rollback failed too: the stack is in UPDATE_ROLLBACK_FAILED. The shop still runs on its 4 web instances. Wednesday's flash sale needs 16.",
+    "handover": [
+      "The update raised the Auto Scaling group from 4 to 16 instances and moved them to a new security group, WebSecurityGroupV2, replacing WebSecurityGroupV1.",
+      "The web instances run in two subnets, web-a and web-b, created years ago for a small pilot.",
+      "The stack also holds the shop's RDS database. Nobody has written down why the rollback failed."
+    ],
+    "howItWorks": [
+      "Learner-paced: nothing moves until you act. Read the failure, recover the stack, fix the cause, then run the week.",
+      "The board shows the stack and its subnets; the meters show the capacity ready for the sale and the shop's availability.",
+      "Before you run the week you are asked what failed and how you fixed it. The debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-15T10:00",
+    "tick": "1min",
+    "maxDuration": "8d",
+    "calendar": "date"
+  },
+  "params": {
+    "saleNeed": {
+      "value": 16,
+      "unit": "instances",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Instances the flash sale needs, from last year's sale."
+      }
+    },
+    "rebuildS": {
+      "value": 10800,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Deleting and recreating the stack, including restoring the database from its final snapshot, takes about 3 hours with the shop down."
+      }
+    },
+    "saleShortS": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "With 4 instances at the sale, the shop returns errors for about 90 minutes of its peak."
+      }
+    },
+    "monthS": {
+      "value": 2592000,
+      "unit": "s",
+      "source": {
+        "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+        "checkedAt": "2026-11-11",
+        "note": "Availability over a 30-day month (2,592,000 s): 99.9% leaves 2,592 s (43.2 minutes)."
+      }
+    },
+    "dayWait": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step of the week."
+      }
+    }
+  },
+  "state": {
+    "eventsAt": {
+      "type": "time",
+      "init": null
+    },
+    "ipsAt": {
+      "type": "time",
+      "init": null
+    },
+    "trailAt": {
+      "type": "time",
+      "init": null
+    },
+    "stack": {
+      "type": "enum",
+      "values": [
+        "failed",
+        "ok",
+        "deleted"
+      ],
+      "init": "failed"
+    },
+    "skipped": {
+      "type": "bool",
+      "init": false
+    },
+    "subnets": {
+      "type": "enum",
+      "values": [
+        "small",
+        "new24"
+      ],
+      "init": "small"
+    },
+    "rerun": {
+      "type": "enum",
+      "values": [
+        "none",
+        "changeset",
+        "direct"
+      ],
+      "init": "none"
+    },
+    "capacity": {
+      "type": "number",
+      "init": 4,
+      "min": 0,
+      "max": 100
+    },
+    "ipAnswer": {
+      "type": "enum",
+      "values": [
+        "none",
+        "right",
+        "wrong"
+      ],
+      "init": "none"
+    },
+    "downS": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000,
+      "unit": "s"
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedBlind": {
+      "type": "bool",
+      "init": false
+    },
+    "changes": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "weekStarted": {
+      "type": "bool",
+      "init": false
+    },
+    "weekDone": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "avail": {
+      "expr": "round((1 - downS / monthS) * 100000) / 1000",
+      "unit": "%",
+      "precision": 3
+    },
+    "investigated": {
+      "expr": "not isNull(eventsAt) and not isNull(ipsAt)"
+    },
+    "investigatedFirst": {
+      "expr": "investigated and not changedBlind"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Investigate and change",
+      "clock": "turns",
+      "actions": [
+        "stackEvents",
+        "subnetIps",
+        "trailSg",
+        "recreateSg",
+        "continueRollback",
+        "deleteStack",
+        "fixSubnets",
+        "rerunUpdate",
+        "runWeek"
+      ]
+    },
+    "week": {
+      "label": "The week",
+      "clock": "turns",
+      "actions": []
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "stackEvents": {
+      "label": "Read the stack's events",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(eventsAt)",
+          "then": [
+            {
+              "set": "eventsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "02:41 UPDATE_FAILED WebASG: 'Group did not stabilize ... Failed to launch instances: There are not enough free addresses in subnet web-a to satisfy the requested number of instances.' 02:58 UPDATE_FAILED WebSecurityGroupV1 (during rollback): 'The security group sg-0a1b2c3d does not exist.' 02:58 UPDATE_ROLLBACK_FAILED."
+        },
+        {
+          "log": "Events: the update failed on subnet addresses; the rollback failed on a missing security group.",
+          "kind": "find"
+        }
+      ]
+    },
+    "subnetIps": {
+      "label": "Describe the web subnets",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(ipsAt)",
+          "then": [
+            {
+              "set": "ipsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "web-a 10.0.1.0/28: 3 addresses available; web-b 10.0.1.16/28: 2 available. In use: 4 web instances, the load balancer's nodes, a NAT gateway and endpoint interfaces."
+        },
+        {
+          "log": "Subnets: two /28s, nearly full.",
+          "kind": "find"
+        },
+        {
+          "if": "ipAnswer == \"none\"",
+          "then": [
+            {
+              "prompt": "ipQ"
+            }
+          ]
+        }
+      ]
+    },
+    "trailSg": {
+      "label": "CloudTrail: who touched sg-0a1b2c3d?",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(trailAt)",
+          "then": [
+            {
+              "set": "trailAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "01:12 DeleteSecurityGroup sg-0a1b2c3d by user jlee, from a 'remove unused security groups' script, after the update had moved the instances to WebSecurityGroupV2."
+        },
+        {
+          "log": "CloudTrail: a cleanup script deleted the old group outside CloudFormation mid-update.",
+          "kind": "find"
+        }
+      ]
+    },
+    "recreateSg": {
+      "label": "Recreate the old security group by hand with the same rules",
+      "group": "Change",
+      "available": "stack == \"failed\"",
+      "why": "Not needed now.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "log": "New group sg-0f9e8d7c created with the same rules. CloudFormation still tracks sg-0a1b2c3d, so the rollback would fail the same way.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "continueRollback": {
+      "label": "Continue the update rollback",
+      "group": "Change",
+      "available": "stack == \"failed\"",
+      "why": "The stack is not in UPDATE_ROLLBACK_FAILED.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "How",
+          "options": [
+            {
+              "value": "skip",
+              "label": "Skip the deleted group (--resources-to-skip WebSecurityGroupV1)"
+            },
+            {
+              "value": "plain",
+              "label": "Retry as it is"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "if": "how == \"skip\"",
+          "then": [
+            {
+              "set": "stack",
+              "to": "\"ok\""
+            },
+            {
+              "set": "skipped",
+              "to": "true"
+            },
+            {
+              "log": "continue-update-rollback --resources-to-skip WebSecurityGroupV1: UPDATE_ROLLBACK_COMPLETE. The skipped group must be reconciled in the next update."
+            }
+          ],
+          "else": [
+            {
+              "log": "continue-update-rollback: WebSecurityGroupV1 fails again ('does not exist'). Still UPDATE_ROLLBACK_FAILED.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "deleteStack": {
+      "label": "Delete the stack and rebuild it from the template",
+      "group": "Change",
+      "available": "stack == \"failed\"",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "stack",
+          "to": "\"deleted\""
+        },
+        {
+          "add": "downS",
+          "by": "rebuildS"
+        },
+        {
+          "log": "Stack deleted: load balancer and instances gone; the database is snapshotted by its default policy and restored into the new stack. The shop is down for about 3 hours.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "fixSubnets": {
+      "label": "Fix the subnet capacity in the template",
+      "group": "Change",
+      "available": "subnets != \"new24\"",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Fix",
+          "options": [
+            {
+              "value": "new24",
+              "label": "Add two new /24 subnets and move the Auto Scaling group to them"
+            },
+            {
+              "value": "resize",
+              "label": "Change web-a and web-b from /28 to /24"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "if": "how == \"new24\"",
+          "then": [
+            {
+              "set": "subnets",
+              "to": "\"new24\""
+            },
+            {
+              "log": "Template: two new /24 subnets (web-a2, web-b2), the Auto Scaling group moved to them; the /28s kept until the move is done."
+            }
+          ],
+          "else": [
+            {
+              "log": "Rejected: a subnet's CIDR block cannot be changed after it is created.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "rerunUpdate": {
+      "label": "Run the sale update again",
+      "group": "Change",
+      "available": "stack == \"ok\" and rerun == \"none\"",
+      "why": "The stack must be in a working state first, or it already ran.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "How",
+          "options": [
+            {
+              "value": "changeset",
+              "label": "Create a change set, review it, then execute"
+            },
+            {
+              "value": "direct",
+              "label": "Update the stack directly"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "if": "subnets == \"new24\"",
+          "then": [
+            {
+              "set": "rerun",
+              "to": "how"
+            },
+            {
+              "set": "capacity",
+              "to": "saleNeed"
+            },
+            {
+              "if": "how == \"changeset\"",
+              "then": [
+                {
+                  "log": "Change set reviewed: add two subnets, modify WebASG (subnets, size 16), add WebSecurityGroupV2, remove WebSecurityGroupV1 from the template. No replacement of the database. Executed: UPDATE_COMPLETE, 16 instances.",
+                  "kind": "good"
+                }
+              ],
+              "else": [
+                {
+                  "log": "Update applied directly: UPDATE_COMPLETE, 16 instances.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "log": "UPDATE_FAILED again: not enough free addresses in web-a. Rolled back (UPDATE_ROLLBACK_COMPLETE); still 4 instances.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "runWeek": {
+      "label": "Close the change window and run the week",
+      "group": "Run",
+      "available": "true",
+      "why": "Not available now.",
+      "effects": [
+        {
+          "set": "weekStarted",
+          "to": "true"
+        },
+        {
+          "reason": "plan"
+        },
+        {
+          "phase": "week"
+        },
+        {
+          "schedule": "dayT",
+          "after": "dayWait",
+          "with": {
+            "d": "1"
+          }
+        },
+        {
+          "log": "Change window closed. {capacity} web instances ready for the sale.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "prompts": {
+    "ipQ": {
+      "title": "Usable addresses",
+      "context": "How many addresses in a /28 subnet can your instances and interfaces use?",
+      "choices": [
+        {
+          "id": "right",
+          "label": "11: 16 minus the 5 AWS reserves",
+          "effects": [
+            {
+              "set": "ipAnswer",
+              "to": "\"right\""
+            }
+          ],
+          "feedback": "Right. AWS reserves the first four and the last address of every subnet, so a /28 gives 11, shared with load balancer nodes, NAT gateways and endpoints."
+        },
+        {
+          "id": "wrong",
+          "label": "16",
+          "effects": [
+            {
+              "set": "ipAnswer",
+              "to": "\"wrong\""
+            }
+          ],
+          "feedback": "No. Five addresses in every subnet are reserved, so a /28 has 11 usable."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "dayT": {
+      "label": "the next day",
+      "wait": {
+        "skipLabel": "the next day"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "d": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step; the sale is on Wednesday."
+      },
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "timer.with.d == 1",
+              "then": [
+                {
+                  "log": "Tuesday: {stack == \"failed\" ? \"the stack still cannot be updated\" : \"sale preparation continues\"}.",
+                  "kind": "sys"
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "2"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "timer.with.d == 2",
+              "then": [
+                {
+                  "log": "Wednesday 12:00: the flash sale opens.",
+                  "kind": "alarm"
+                },
+                {
+                  "if": "capacity >= saleNeed",
+                  "then": [
+                    {
+                      "log": "16 web instances carry the sale.",
+                      "kind": "good"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "add": "downS",
+                      "by": "saleShortS"
+                    },
+                    {
+                      "log": "{capacity} instances cannot carry the sale: errors for about 90 minutes at the peak.",
+                      "kind": "bad"
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "3"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Thursday: the week's changes are reviewed.",
+                  "kind": "sys"
+                },
+                {
+                  "set": "weekDone",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "plan": {
+      "question": "Before you run the week: why did the update fail, why did the rollback fail, and how did you fix each without making things worse?",
+      "parts": [
+        {
+          "label": "Two failures",
+          "criteria": "Reads the stack events: the update failed because the /28 subnets had too few free addresses (11 usable each, mostly used); the rollback failed because the old security group was deleted outside CloudFormation.",
+          "modelAnswer": "The update could not launch 12 more instances into two /28 subnets with 11 usable addresses each, mostly taken. The rollback then tried to restore a security group a cleanup script had deleted, which CloudFormation still tracked."
+        },
+        {
+          "label": "Recovery and fix",
+          "criteria": "Continues the update rollback skipping the deleted resource (not deleting the stack, which holds the database); adds new larger subnets because a subnet's CIDR cannot change; reconciles the skipped resource in the next update, ideally previewed with a change set.",
+          "modelAnswer": "Continue the rollback skipping WebSecurityGroupV1, which brings the stack back without touching the database. Add two /24 subnets in the template, since existing subnets cannot be resized, and move the group there. Rerun through a change set, which also removes the skipped group from the template so the stack and the real resources agree again."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "availabilityTarget": {
+        "value": 99.9,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Stated SLA over the month by the error-budget method."
+        }
+      },
+      "availabilityRecovered": {
+        "value": 99.85,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "A small miss."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "weekDone and stack == \"failed\"",
+      "class": "recovered",
+      "rationale": "The shop stayed up on its old capacity, but the stack is still stuck and the sale was not prepared: recovered by luck, never target.",
+      "source": {
+        "cite": "AWS. CloudFormation User Guide: Continue rolling back an update",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-continueupdaterollback.html",
+        "note": "Read 2026-11-11: UPDATE_ROLLBACK_FAILED when CloudFormation 'can't roll back all the changes', e.g. a resource 'deleted outside of CloudFormation'; 'A stack in the UPDATE_ROLLBACK_FAILED state can't be updated, but it can be rolled back to a working state (UPDATE_ROLLBACK_COMPLETE)'; continue-update-rollback with --resources-to-skip for resources that failed during the rollback; skipped resources become inconsistent with the template and must be made consistent 'Before performing another stack update', or 'the stack will become unrecoverable'."
+      }
+    }
+  },
+  "endings": {
+    "outage": {
+      "label": "Shop outage",
+      "class": "harm",
+      "when": "avail < availabilityRecovered",
+      "terminal": true,
+      "narrative": "The shop was down or failing for {downS|min} minutes this month: {avail|3dp}%, below the 99.9% target."
+    },
+    "fixed": {
+      "label": "Stack recovered and the sale carried",
+      "class": "target",
+      "when": "weekDone and avail >= availabilityTarget and investigatedFirst and skipped and subnets == \"new24\" and capacity >= saleNeed",
+      "terminal": true,
+      "narrative": "Thursday: the stack is UPDATE_COMPLETE, 16 instances carried the sale, and the template matches what exists."
+    },
+    "partly": {
+      "label": "Through the week, by a rougher route",
+      "class": "recovered",
+      "when": "weekDone",
+      "terminal": true,
+      "narrative": "Thursday: {capacity} instances, availability {avail|3dp}%. Something was missed: the events first, a safe recovery, or the subnet fix."
+    },
+    "time_up": {
+      "label": "The week ran out",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The week ended without a decision."
+    }
+  },
+  "endingOrder": [
+    "outage",
+    "fixed",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "investigate",
+        "label": "Read the stack events and the subnets before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "investigatedFirst",
+            "score": "met",
+            "why": "Events and subnet addresses first."
+          },
+          {
+            "when": "investigated",
+            "score": "partial",
+            "why": "Read them, but after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Acted without reading the failure."
+          }
+        ]
+      },
+      {
+        "id": "recover",
+        "label": "Recovered the stack without deleting it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "skipped",
+            "score": "met",
+            "why": "Continued the rollback, skipping the deleted group."
+          },
+          {
+            "when": "stack == \"deleted\"",
+            "score": "missed",
+            "why": "Deleted the stack, the database with it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The stack is still UPDATE_ROLLBACK_FAILED."
+          }
+        ]
+      },
+      {
+        "id": "subnets",
+        "label": "Fixed subnet sizing with new subnets",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "subnets == \"new24\"",
+            "score": "met",
+            "why": "Two /24 subnets added."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still on two nearly full /28s."
+          }
+        ]
+      },
+      {
+        "id": "preview",
+        "label": "Previewed the rerun with a change set",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "rerun == \"changeset\"",
+            "score": "met",
+            "why": "Change set reviewed before executing."
+          },
+          {
+            "when": "rerun == \"direct\"",
+            "score": "missed",
+            "why": "Updated directly."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "No rerun."
+          }
+        ]
+      },
+      {
+        "id": "who",
+        "label": "Found what deleted the group",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(trailAt)",
+            "score": "met",
+            "why": "CloudTrail: a cleanup script."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The out-of-band deletion was never traced."
+          }
+        ]
+      },
+      {
+        "id": "ips",
+        "label": "Knew a /28's usable addresses",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "ipAnswer == \"right\"",
+            "score": "met",
+            "why": "11 usable."
+          },
+          {
+            "when": "ipAnswer == \"wrong\"",
+            "score": "missed",
+            "why": "Forgot the 5 reserved addresses."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "Not asked."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: the two failures, the recovery and the fix",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "capacity",
+        "label": "Web instances at the sale",
+        "value": "capacity",
+        "format": "number",
+        "expert": "16"
+      },
+      {
+        "id": "down",
+        "label": "Downtime this month",
+        "value": "downS",
+        "format": "duration",
+        "expert": "0"
+      },
+      {
+        "id": "changes",
+        "label": "Changes made",
+        "value": "changes",
+        "format": "number",
+        "expert": "3"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Monday 10:00",
+        "text": "Stack events: subnet addresses, then a missing security group. Subnets: two /28s nearly full. CloudTrail: a cleanup script deleted the group."
+      },
+      {
+        "at": "Monday 10:20",
+        "text": "Continue the rollback, skipping WebSecurityGroupV1. Add two /24 subnets in the template."
+      },
+      {
+        "at": "Monday 10:45",
+        "text": "Rerun through a change set and review it. The trade-off: a slower, previewed update instead of a quick retry on a stack that just failed twice."
+      }
+    ],
+    "debrief": {
+      "outage": {
+        "headline": "Shop outage",
+        "body": "Deleting the stack took the shop down for hours, and leaving the /28 subnets in place left the sale without capacity. Recover the stack in place and add room for the instances."
+      },
+      "fixed": {
+        "headline": "Recovered and carried the sale",
+        "body": "You read both failures, recovered the stack without touching the database, fixed the subnet sizing and reconciled the skipped resource in a reviewed update. That is the expert path."
+      },
+      "partly": {
+        "headline": "Through the week, by a rougher route",
+        "body": "Check whether you read the events first, whether the stack was recovered in place, and whether the subnets were fixed."
+      },
+      "time_up": {
+        "headline": "No decision",
+        "body": "The stack stays stuck."
+      }
+    },
+    "modelReasoning": "Two separate problems show in the stack events. The update failed because two /28 subnets have only 11 usable addresses each (AWS reserves 5) and were nearly full. The rollback failed because a security group was deleted outside CloudFormation, which still expected it. A stack in UPDATE_ROLLBACK_FAILED cannot be updated; continue the rollback and skip the resource that cannot be restored, then reconcile it in the next update. Deleting the stack would take down the shop and its database. A subnet's CIDR cannot be changed, so add larger subnets and move the Auto Scaling group to them, and preview the rerun with a change set."
+  }
+}

@@ -1,0 +1,1519 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "assisted-living-norovirus-outbreak",
+  "title": "Vomiting at Cedar Hills",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "cases",
+          "label": "Cases",
+          "spokenLabel": "Resident cases on the line list",
+          "value": "listed",
+          "unit": "",
+          "announce": {
+            "bands": [
+              20,
+              30,
+              40
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "lineList"
+        },
+        {
+          "id": "attack",
+          "label": "Attack rate",
+          "spokenLabel": "Resident attack rate",
+          "value": "attackPct",
+          "unit": "%",
+          "alarm": {
+            "high": 30
+          },
+          "announce": {
+            "bands": [
+              20,
+              30,
+              40
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(attackAt)"
+        },
+        {
+          "id": "newDay",
+          "label": "New today",
+          "spokenLabel": "New resident cases in the last day",
+          "value": "dayNew",
+          "unit": "",
+          "alarm": {
+            "high": 4
+          },
+          "announce": {
+            "bands": [
+              1,
+              3,
+              5
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "surveil and day > 0"
+        },
+        {
+          "id": "quiet",
+          "label": "Quiet days",
+          "spokenLabel": "Days in a row without a new case",
+          "value": "quietDays",
+          "unit": "",
+          "announce": {
+            "bands": [
+              2,
+              4
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "surveil and day > 0"
+        }
+      ],
+      "infusions": "Day {day|int}. Soap and water: {soap|yesno}. Ill residents isolated: {isolate|yesno}. Ill staff excluded: {exclude|yesno}. Bleach: {bleach|yesno}. Dining room paused: {dining|yesno}. State told: {not isNull(stateAt)|yesno}.",
+      "banner": [
+        {
+          "when": "labBack",
+          "text": "State lab: norovirus GII confirmed in stool from 3 of 5 residents."
+        },
+        {
+          "when": "premature",
+          "text": "The facility has lifted its outbreak measures."
+        }
+      ]
+    }
+  },
+  "objective": "Take part in a community health assessment and use the nursing process to form a community diagnosis and plan of care",
+  "secondaryObjectives": [
+    "Epidemiology and describing disease in a population",
+    "Use epidemiological measures -- rates, proportions, incidence, prevalence, case-fatality and attack rates -- to compare disease frequency across groups, places and times",
+    "Partnerships with public health, government, industry and community"
+  ],
+  "sources": [
+    {
+      "cite": "AACN. The Essentials: Core Competencies for Professional Nursing Education (2026 edition, announced April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.aacnnursing.org/essentials",
+      "note": "Read 2026-11-11 (primary web page). The page describes the 2026 edition's targeted refinements to the 2021 Essentials; it does not list the domains by name, so the domain placement (Domain 3, population health) is the course catalog's."
+    },
+    {
+      "cite": "CDC. Updated Norovirus Outbreak Management and Disease Prevention Guidelines. MMWR Recomm Rep 2011;60(RR-3)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.cdc.gov/mmwr/preview/mmwrhtml/rr6003a1.htm",
+      "note": "Read 2026-11-11 (primary web page). Incubation typically 12-48 h; illness usually 1-3 days; report all outbreaks of acute gastroenteritis to state and local health departments; whole stool from at least five ill persons in the acute phase (72 h or less from onset); lab-confirmed when two or more are positive; soap and running water for at least 20 seconds (alcohol rub between washes, not a substitute); exclude ill food, child-care and patient-care staff until 48-72 h after symptoms resolve; isolate ill residents until 24-48 h after symptoms resolve; chlorine bleach 1,000-5,000 ppm or another EPA-registered product."
+    },
+    {
+      "cite": "North Carolina DPH. NC Communicable Disease Manual: Norovirus-LTCF control measure summary (January 2018)",
+      "checkedAt": "2026-11-11",
+      "url": "https://epi.dph.ncdhhs.gov/CD/norovirus/LTCFContolMeasureSummaryNoro_Jan2018.pdf",
+      "note": "Read 2026-11-11 (primary PDF). An outbreak is over once two incubation periods (96 hours) pass without new illness; exclude ill staff until 48 hours after the last symptom; cancel shared group activities until 96 hours after the last case; restrict admissions and transfers until no new cases for at least 96 hours; bleach 1,000 ppm minimum, 5,000 ppm for porous or hard-to-clean surfaces, made fresh daily. A state document, used here for the end-of-outbreak rule the CDC guideline does not state."
+    },
+    {
+      "cite": "CDC. Principles of Epidemiology in Public Health Practice, 3rd ed., Lesson 6: Investigating an Outbreak (archived)",
+      "checkedAt": "2026-11-11",
+      "url": "https://archive.cdc.gov/www_cdc_gov/csels/dsepd/ss1978/lesson6/section2.html",
+      "note": "Read 2026-11-11 (primary web page, CDC archive). Table 6.2's 13 steps, including 'Construct a working case definition', 'Find cases systematically and record information' (a line listing), 'Implement control and prevention measures' (usually as soon as the source and mode of transmission are known), 'Initiate or maintain surveillance' and 'Communicate findings'."
+    },
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf",
+      "note": "Read 2026-11-11 (primary PDF). 'Report client conditions as required by law (e.g., abuse/neglect, communicable diseases)'; 'Follow correct policy and procedures when reporting a client with a communicable disease'; 'Apply principles of infection prevention (e.g., hand hygiene ... isolation ...)'."
+    },
+    {
+      "cite": "Ascendra BSN-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-11",
+      "note": "The objective and secondary objectives are the course's own titles (community assessment and a community diagnosis with the nursing process; epidemiology and attack rates; partnerships with public health)."
+    }
+  ],
+  "brief": {
+    "situation": "Monday 08:30 at the county health department. You are the public health nurse on duty. The director of nursing at Cedar Hills Assisted Living (110 residents, about 70 staff, one shared dining room) calls: residents and staff have been vomiting and having diarrhea since Saturday evening.",
+    "handover": [
+      "She thinks about 9 residents and 3 staff are ill; two residents were seen in the emergency department on Sunday for dehydration and came back.",
+      "Saturday evening was a family buffet in the dining room. Activities, meals and the hair salon are shared.",
+      "You can advise the facility, arrange testing through the state lab, and report to the state epidemiologist. The facility follows your recommendations the same day."
+    ],
+    "howItWorks": [
+      "This case moves at your pace: nothing happens until you advance to the next morning's update, so take the time you need.",
+      "Assess, form a community diagnosis, plan and put measures in place, then evaluate day by day until the outbreak can be called over.",
+      "You are asked once to write your reasoning. The case runs up to 12 days, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "2027-01-11T08:30",
+    "tick": "1h",
+    "maxDuration": "12d",
+    "calendar": "date"
+  },
+  "params": {
+    "residents": {
+      "value": 110,
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Cedar Hills has 110 residents."
+      }
+    },
+    "r0": {
+      "value": 2.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Person-to-person spread with no measures: each ill resident infects about 2.6 others. No guideline gives a number for this setting. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "illHours": {
+      "value": 36,
+      "unit": "h",
+      "source": {
+        "cite": "CDC. Updated Norovirus Outbreak Management and Disease Prevention Guidelines (MMWR 2011)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.cdc.gov/mmwr/preview/mmwrhtml/rr6003a1.htm",
+        "note": "Read 2026-11-11. Illness typically resolves in 1-3 days; the model's residents are infectious for an average of 36 h (an authored point inside that range; shedding continues longer, as the MMWR notes)."
+      }
+    },
+    "soapF": {
+      "value": 0.75,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored transmission factor for soap-and-water hand hygiene by staff and residents. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "alcoholF": {
+      "value": 0.95,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. Alcohol rub alone barely helps: the MMWR says it is not a substitute for soap and water against norovirus. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "isolateF": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored transmission factor for ill residents kept in their rooms with contact precautions. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "excludeF": {
+      "value": 0.85,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored transmission factor for ill staff kept at home. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bleachF": {
+      "value": 0.75,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored transmission factor for chlorine bleach at 1,000-5,000 ppm on touched surfaces. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "diningF": {
+      "value": 0.7,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored transmission factor for pausing the dining room and group activities. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmCases": {
+      "value": 44,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored line. 44 of 110 residents (a 40% attack rate) counts as an outbreak out of control in this case. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "quietNeeded": {
+      "value": 4,
+      "source": {
+        "cite": "NC DPH. Norovirus-LTCF control measure summary (January 2018)",
+        "checkedAt": "2026-11-11",
+        "url": "https://epi.dph.ncdhhs.gov/CD/norovirus/LTCFContolMeasureSummaryNoro_Jan2018.pdf",
+        "note": "Read 2026-11-11. Over once two incubation periods, 96 hours, pass without new illness: four daily updates in a row with no new case."
+      }
+    },
+    "dayWait": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per update: each morning at 08:30 the facility's numbers come in."
+      }
+    },
+    "labTime": {
+      "value": 172800,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored. The state lab's PCR result comes back about two days after the specimens are sent; no source gives a turnaround. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "firstDay": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "CDC. Principles of Epidemiology, Lesson 6",
+        "checkedAt": "2026-11-11",
+        "url": "https://archive.cdc.gov/www_cdc_gov/csels/dsepd/ss1978/lesson6/section2.html",
+        "note": "Read 2026-11-11. Control measures are usually put in place as soon as the source and mode of transmission are known. FLAG: the day-one window (before Tuesday's 08:30 update) for this case's measures and report is authored."
+      }
+    },
+    "specimenWindow": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "CDC. Updated Norovirus Outbreak Management and Disease Prevention Guidelines (MMWR 2011)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.cdc.gov/mmwr/preview/mmwrhtml/rr6003a1.htm",
+        "note": "Read 2026-11-11. Stool from at least five ill persons within 72 h of onset; most of today's cases began Saturday evening, so specimens must be arranged today to fall inside that window."
+      }
+    }
+  },
+  "state": {
+    "susceptible": {
+      "type": "number",
+      "init": 101,
+      "min": 0,
+      "max": 110
+    },
+    "ill": {
+      "type": "number",
+      "init": 7,
+      "min": 0,
+      "max": 110
+    },
+    "cum": {
+      "type": "number",
+      "init": 9,
+      "min": 0,
+      "max": 110
+    },
+    "day": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "listed": {
+      "type": "number",
+      "init": 9,
+      "min": 0,
+      "max": 110
+    },
+    "dayNew": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 110
+    },
+    "quietDays": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "assessAt": {
+      "type": "time",
+      "init": null
+    },
+    "caseDef": {
+      "type": "enum",
+      "values": [
+        "none",
+        "good",
+        "broad",
+        "narrow"
+      ],
+      "init": "none"
+    },
+    "lineList": {
+      "type": "bool",
+      "init": false
+    },
+    "attackAt": {
+      "type": "time",
+      "init": null
+    },
+    "specAt": {
+      "type": "time",
+      "init": null
+    },
+    "labBack": {
+      "type": "bool",
+      "init": false
+    },
+    "dxAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxGood": {
+      "type": "bool",
+      "init": false
+    },
+    "soap": {
+      "type": "bool",
+      "init": false
+    },
+    "alcohol": {
+      "type": "bool",
+      "init": false
+    },
+    "isolate": {
+      "type": "bool",
+      "init": false
+    },
+    "exclude": {
+      "type": "bool",
+      "init": false
+    },
+    "bleach": {
+      "type": "bool",
+      "init": false
+    },
+    "dining": {
+      "type": "bool",
+      "init": false
+    },
+    "admissions": {
+      "type": "bool",
+      "init": false
+    },
+    "ctrlAt": {
+      "type": "time",
+      "init": null
+    },
+    "waitedLab": {
+      "type": "bool",
+      "init": false
+    },
+    "sendAll": {
+      "type": "bool",
+      "init": false
+    },
+    "stateAt": {
+      "type": "time",
+      "init": null
+    },
+    "surveil": {
+      "type": "bool",
+      "init": false
+    },
+    "updates": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "premature": {
+      "type": "bool",
+      "init": false
+    },
+    "overAt": {
+      "type": "time",
+      "init": null
+    },
+    "soapAt": {
+      "type": "time",
+      "init": null
+    },
+    "isolateAt": {
+      "type": "time",
+      "init": null
+    },
+    "excludeAt": {
+      "type": "time",
+      "init": null
+    },
+    "bleachAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "ctrl": {
+      "expr": "(soap ? soapF : (alcohol ? alcoholF : 1)) * (isolate ? isolateF : 1) * (exclude ? excludeF : 1) * (bleach ? bleachF : 1) * (dining ? diningF : 1)"
+    },
+    "attackPct": {
+      "expr": "round(100 * listed / residents)",
+      "unit": "%",
+      "precision": 0
+    },
+    "allControls": {
+      "expr": "soap and isolate and exclude and bleach"
+    },
+    "soapByDay1": {
+      "expr": "not isNull(soapAt) and timeAt(soapAt) < firstDay"
+    },
+    "isolateByDay1": {
+      "expr": "not isNull(isolateAt) and timeAt(isolateAt) < firstDay"
+    },
+    "excludeByDay1": {
+      "expr": "not isNull(excludeAt) and timeAt(excludeAt) < firstDay"
+    },
+    "bleachByDay1": {
+      "expr": "not isNull(bleachAt) and timeAt(bleachAt) < firstDay"
+    }
+  },
+  "processes": [
+    {
+      "id": "spread",
+      "update": {
+        "susceptible": "max(0, susceptible - r0 / illHours * ctrl * ill * susceptible / residents * dt / 3600)",
+        "ill": "max(0, ill + r0 / illHours * ctrl * ill * susceptible / residents * dt / 3600 - ill / illHours * dt / 3600)",
+        "cum": "cum + r0 / illHours * ctrl * ill * susceptible / residents * dt / 3600"
+      }
+    }
+  ],
+  "phases": {
+    "respond": {
+      "label": "The outbreak",
+      "clock": "turns",
+      "actions": [
+        "callDon",
+        "caseDefine",
+        "attackRate",
+        "specimens",
+        "diagnose",
+        "handHygiene",
+        "isolateIll",
+        "excludeStaff",
+        "disinfect",
+        "pauseDining",
+        "restrictAdmissions",
+        "waitForLab",
+        "sendToEd",
+        "reportState",
+        "dailyReports",
+        "update",
+        "declare"
+      ]
+    }
+  },
+  "initialPhase": "respond",
+  "actions": {
+    "callDon": {
+      "label": "Interview the director of nursing: who is ill, when it started, symptoms, what is shared",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(assessAt)",
+          "then": [
+            {
+              "set": "assessAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Onsets from Saturday 19:00, most within 24 hours. Sudden vomiting, watery diarrhea, some low fever, better in 1-3 days. Ill residents live on all three halls; the 3 ill staff work in care and the kitchen. Nobody has been tested.",
+          "kind": "find"
+        }
+      ]
+    },
+    "caseDefine": {
+      "label": "Set a case definition and start a line list",
+      "group": "Assess",
+      "available": "caseDef == \"none\"",
+      "why": "Already set.",
+      "params": [
+        {
+          "id": "def",
+          "kind": "choice",
+          "label": "Case definition",
+          "options": [
+            {
+              "value": "good",
+              "label": "Resident or staff at Cedar Hills with vomiting, or 3 or more loose stools in 24 hours, starting on or after Saturday"
+            },
+            {
+              "value": "broad",
+              "label": "Anyone at Cedar Hills with any stomach complaint this month"
+            },
+            {
+              "value": "narrow",
+              "label": "Only people with a positive norovirus test"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "def == \"good\"",
+              "then": [
+                {
+                  "set": "caseDef",
+                  "to": "\"good\""
+                },
+                {
+                  "set": "lineList",
+                  "to": "true"
+                },
+                {
+                  "set": "listed",
+                  "to": "round(cum)"
+                },
+                {
+                  "log": "Line list started: name, hall, role, onset, symptoms, outcome. {round(cum)|0dp} resident cases meet the definition.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "def == \"broad\"",
+              "then": [
+                {
+                  "set": "caseDef",
+                  "to": "\"broad\""
+                },
+                {
+                  "set": "lineList",
+                  "to": "true"
+                },
+                {
+                  "set": "listed",
+                  "to": "round(cum) + 6"
+                },
+                {
+                  "log": "The list fills with residents who have chronic diarrhea or reflux: {round(cum) + 6|0dp} 'cases', and the real pattern blurs.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "caseDef",
+                  "to": "\"narrow\""
+                },
+                {
+                  "log": "Nobody has been tested, so nobody meets the definition yet: the list is empty while people keep getting sick.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "isNull(assessAt)",
+          "then": [
+            {
+              "set": "assessAt",
+              "to": "t"
+            }
+          ]
+        }
+      ]
+    },
+    "attackRate": {
+      "label": "Calculate the attack rate from the line list",
+      "group": "Assess",
+      "available": "lineList",
+      "why": "Start a line list first.",
+      "effects": [
+        {
+          "if": "isNull(attackAt)",
+          "then": [
+            {
+              "set": "attackAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Attack rate among residents: {listed|0dp} of 110, {attackPct}%.",
+          "kind": "find"
+        }
+      ]
+    },
+    "specimens": {
+      "label": "Arrange stool specimens from at least 5 ill people for the state lab",
+      "group": "Assess",
+      "available": "isNull(specAt)",
+      "why": "Already arranged.",
+      "effects": [
+        {
+          "if": "isNull(specAt)",
+          "then": [
+            {
+              "set": "specAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "labT",
+          "after": "labTime"
+        },
+        {
+          "log": "Kits couriered; the facility collects whole stool from 5 recently ill residents."
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Write the community diagnosis",
+      "group": "Diagnose",
+      "available": "isNull(dxAt)",
+      "why": "Already written.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Community diagnosis",
+          "options": [
+            {
+              "value": "spread",
+              "label": "Risk of continued spread of acute gastroenteritis among Cedar Hills residents and staff, related to person-to-person and surface transmission in shared dining and activities, as shown by the case count and attack rate since Saturday"
+            },
+            {
+              "value": "buffet",
+              "label": "Food poisoning from Saturday's buffet"
+            },
+            {
+              "value": "staff",
+              "label": "Poor hand hygiene by the staff"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(dxAt)",
+          "then": [
+            {
+              "set": "dxAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "dx == \"spread\"",
+              "then": [
+                {
+                  "set": "dxGood",
+                  "to": "true"
+                },
+                {
+                  "log": "Community diagnosis recorded: it names the population, the risk, its causes and the evidence."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "A conclusion without the evidence to back it (or a blame). Cases are still starting days after the buffet, which points to person-to-person spread.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "handHygiene": {
+      "label": "Recommend hand hygiene",
+      "group": "Plan and act",
+      "available": "not soap",
+      "why": "Soap and water already in place.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "How",
+          "options": [
+            {
+              "value": "soap",
+              "label": "Soap and running water for 20 seconds for staff and residents; alcohol rub between washes, not instead"
+            },
+            {
+              "value": "alcohol",
+              "label": "Alcohol hand rub stations in every hall"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "how == \"soap\"",
+              "then": [
+                {
+                  "set": "soap",
+                  "to": "true"
+                },
+                {
+                  "if": "isNull(soapAt)",
+                  "then": [
+                    {
+                      "set": "soapAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "if": "isNull(ctrlAt)",
+                  "then": [
+                    {
+                      "set": "ctrlAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Soap-and-water hand washing in place."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "alcohol",
+                  "to": "true"
+                },
+                {
+                  "log": "Alcohol rub stations go up. Alcohol rub alone is not a substitute for soap and water against norovirus.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "isolateIll": {
+      "label": "Ill residents stay in their rooms with contact precautions until 48 hours after symptoms end",
+      "group": "Plan and act",
+      "available": "not isolate",
+      "why": "Already in place.",
+      "effects": [
+        {
+          "set": "isolate",
+          "to": "true"
+        },
+        {
+          "if": "isNull(isolateAt)",
+          "then": [
+            {
+              "set": "isolateAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(ctrlAt)",
+          "then": [
+            {
+              "set": "ctrlAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Ill residents stay in their rooms; gowns and gloves for their care; meals on trays."
+        }
+      ]
+    },
+    "excludeStaff": {
+      "label": "Ill staff stay home until 48 hours after their symptoms end",
+      "group": "Plan and act",
+      "available": "not exclude",
+      "why": "Already in place.",
+      "effects": [
+        {
+          "set": "exclude",
+          "to": "true"
+        },
+        {
+          "if": "isNull(excludeAt)",
+          "then": [
+            {
+              "set": "excludeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(ctrlAt)",
+          "then": [
+            {
+              "set": "ctrlAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Ill staff off until 48 hours symptom-free; the kitchen worker included."
+        }
+      ]
+    },
+    "disinfect": {
+      "label": "Clean, then disinfect touched surfaces with chlorine bleach at 1,000-5,000 ppm, made fresh daily",
+      "group": "Plan and act",
+      "available": "not bleach",
+      "why": "Already in place.",
+      "effects": [
+        {
+          "set": "bleach",
+          "to": "true"
+        },
+        {
+          "if": "isNull(bleachAt)",
+          "then": [
+            {
+              "set": "bleachAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(ctrlAt)",
+          "then": [
+            {
+              "set": "ctrlAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Housekeeping switches to fresh bleach solution for rails, bathrooms, call bells and dining surfaces."
+        }
+      ]
+    },
+    "pauseDining": {
+      "label": "Pause the dining room and group activities until 96 hours after the last case",
+      "group": "Plan and act",
+      "available": "not dining",
+      "why": "Already paused.",
+      "effects": [
+        {
+          "set": "dining",
+          "to": "true"
+        },
+        {
+          "log": "Tray service in rooms; activities, the salon and outings paused."
+        }
+      ]
+    },
+    "restrictAdmissions": {
+      "label": "Hold new admissions and transfers until 96 hours with no new case; signs for visitors",
+      "group": "Plan and act",
+      "available": "not admissions",
+      "why": "Already in place.",
+      "effects": [
+        {
+          "set": "admissions",
+          "to": "true"
+        },
+        {
+          "log": "Admissions on hold; signs ask ill visitors to stay away and all visitors to wash their hands."
+        }
+      ]
+    },
+    "waitForLab": {
+      "label": "Advise waiting for lab confirmation before changing anything",
+      "group": "Plan and act",
+      "available": "not waitedLab",
+      "why": "Already advised.",
+      "effects": [
+        {
+          "set": "waitedLab",
+          "to": "true"
+        },
+        {
+          "log": "The facility carries on as usual while it waits for a result.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "sendToEd": {
+      "label": "Advise sending every ill resident to the emergency department",
+      "group": "Plan and act",
+      "available": "not sendAll",
+      "why": "Already advised.",
+      "effects": [
+        {
+          "set": "sendAll",
+          "to": "true"
+        },
+        {
+          "log": "Seven residents go by ambulance; most are sent back within hours, and the hospital's emergency department now has norovirus to contain.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "reportState": {
+      "label": "Report the outbreak to the state epidemiologist",
+      "group": "Communicate",
+      "available": "isNull(stateAt)",
+      "why": "Already reported.",
+      "effects": [
+        {
+          "if": "isNull(stateAt)",
+          "then": [
+            {
+              "set": "stateAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Reported to the state epidemiologist; the state offers lab support and logs it for national outbreak reporting.",
+          "kind": "good"
+        }
+      ]
+    },
+    "dailyReports": {
+      "label": "Ask the facility to report new cases to you every morning",
+      "group": "Evaluate",
+      "available": "not surveil",
+      "why": "Already arranged.",
+      "effects": [
+        {
+          "set": "surveil",
+          "to": "true"
+        },
+        {
+          "log": "Each morning at 08:30 the director of nursing will send new cases, by hall and role."
+        }
+      ]
+    },
+    "update": {
+      "label": "Update the line list and the epidemic curve from this morning's report",
+      "group": "Evaluate",
+      "available": "lineList and surveil",
+      "why": "Start a line list and arrange daily reports first.",
+      "effects": [
+        {
+          "add": "updates",
+          "by": "1"
+        },
+        {
+          "log": "Line list updated: {listed|0dp} resident cases ({attackPct}%), {dayNew|0dp} new in the last day, {quietDays|0dp} days in a row without a new case.",
+          "kind": "find"
+        }
+      ]
+    },
+    "declare": {
+      "label": "Declare the outbreak over and lift the measures",
+      "group": "Evaluate",
+      "available": "isNull(overAt)",
+      "why": "Already declared.",
+      "effects": [
+        {
+          "if": "quietDays >= quietNeeded",
+          "then": [
+            {
+              "if": "isNull(overAt)",
+              "then": [
+                {
+                  "set": "overAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "Outbreak declared over: 96 hours without a new case.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "premature",
+              "to": "true"
+            },
+            {
+              "set": "soap",
+              "to": "false"
+            },
+            {
+              "set": "alcohol",
+              "to": "false"
+            },
+            {
+              "set": "isolate",
+              "to": "false"
+            },
+            {
+              "set": "exclude",
+              "to": "false"
+            },
+            {
+              "set": "bleach",
+              "to": "false"
+            },
+            {
+              "set": "dining",
+              "to": "false"
+            },
+            {
+              "log": "Declared over too soon: fewer than four quiet days. The facility reopens the dining room and drops its measures.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "dayT": {
+      "label": "the next morning's update",
+      "wait": {
+        "skipLabel": "the next morning's update (08:30)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One update each morning at 08:30."
+      },
+      "effects": [
+        {
+          "add": "day",
+          "by": "1"
+        },
+        {
+          "set": "dayNew",
+          "to": "max(0, round(cum) - listed - (caseDef == \"broad\" ? 6 : 0))"
+        },
+        {
+          "if": "max(0, round(cum) - listed - (caseDef == \"broad\" ? 6 : 0)) == 0",
+          "then": [
+            {
+              "add": "quietDays",
+              "by": "1"
+            }
+          ],
+          "else": [
+            {
+              "set": "quietDays",
+              "to": "0"
+            }
+          ]
+        },
+        {
+          "set": "listed",
+          "to": "round(cum) + (caseDef == \"broad\" ? 6 : 0)"
+        },
+        {
+          "cases": [
+            {
+              "when": "surveil",
+              "then": [
+                {
+                  "log": "08:30 report: {dayNew|0dp} new resident cases in the last day, {round(ill)|0dp} ill now.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "08:30: no report arrives; nobody asked the facility to send one.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "schedule": "dayT",
+          "after": "dayWait"
+        }
+      ]
+    },
+    "labT": {
+      "label": "the state lab result",
+      "wait": {
+        "skipLabel": "the state lab result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: authored two-day lab turnaround."
+      },
+      "effects": [
+        {
+          "set": "labBack",
+          "to": "true"
+        },
+        {
+          "log": "State lab: norovirus GII by RT-PCR in 3 of 5 specimens. Two or more positives confirm a norovirus outbreak.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "dayT",
+          "after": "dayWait"
+        }
+      ]
+    },
+    {
+      "id": "edCall",
+      "when": "cum >= 30",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "The hospital calls: three Cedar Hills residents admitted with dehydration this week.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "plan": {
+      "trigger": "day >= 1",
+      "question": "Walk through the nursing process for Cedar Hills as a community: what your assessment shows, your community diagnosis, your plan and why, and how you will know when it is over.",
+      "parts": [
+        {
+          "label": "Assessment and diagnosis",
+          "criteria": "Uses a case definition with time, place and person, a line list and the attack rate; reads the pattern (sudden vomiting and diarrhea, 1-3 days, onsets continuing after one shared meal, staff ill too) as person-to-person norovirus-like spread; states a community diagnosis naming the population, the risk, its causes and the evidence; arranges specimens from about five ill people within 72 hours of onset and reports to the state.",
+          "modelAnswer": "A working case definition (vomiting or 3 or more loose stools in 24 hours since Saturday, residents and staff) and a line list give the count and an attack rate. Sudden vomiting and diarrhea lasting 1-3 days, new cases days after the buffet, and ill care staff fit norovirus spreading person to person and from surfaces. Diagnosis: risk of continued spread among residents and staff related to shared dining and activities and surface contamination, as shown by the attack rate. Stool from five ill residents to the state lab, and a report to the state epidemiologist today."
+        },
+        {
+          "label": "Plan, partnership and evaluation",
+          "criteria": "Puts measures in on day one without waiting for the lab: soap and water (not alcohol rub alone), ill residents isolated until 48 hours symptom-free, ill staff excluded until 48 hours, bleach at 1,000-5,000 ppm, dining and activities paused, admissions held; works through the facility as a partner; sets up daily case reports and updates the line list; declares it over only after 96 hours (two incubation periods) with no new case.",
+          "modelAnswer": "Today, through the director of nursing: soap and water, ill residents in their rooms and ill staff home until 48 hours after symptoms end, bleach at 1,000-5,000 ppm made fresh daily, trays instead of the dining room, admissions on hold. Not waiting for the lab: measures go in as soon as the mode of spread is clear. Each morning the facility reports new cases, I update the line list and curve, and I call it over only after 96 hours, two incubation periods, without a new case."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= 1036800 and isNull(overAt)",
+      "class": "recovered",
+      "rationale": "If spread was kept below the harm line but the outbreak was never shown to be over by day 12, residents stayed safe but the facility stays closed to admissions and shared life with no evaluation; this case calls that recovered.",
+      "source": {
+        "cite": "North Carolina DPH. NC Communicable Disease Manual: Norovirus-LTCF control measure summary (January 2018)",
+        "checkedAt": "2026-11-11",
+        "url": "https://epi.dph.ncdhhs.gov/CD/norovirus/LTCFContolMeasureSummaryNoro_Jan2018.pdf",
+        "note": "Read 2026-11-11 (primary PDF). An outbreak is over once two incubation periods (96 hours) pass without new illness; exclude ill staff until 48 hours after the last symptom; cancel shared group activities until 96 hours after the last case; restrict admissions and transfers until no new cases for at least 96 hours; bleach 1,000 ppm minimum, 5,000 ppm for porous or hard-to-clean surfaces, made fresh daily. A state document, used here for the end-of-outbreak rule the CDC guideline does not state."
+      }
+    }
+  },
+  "endings": {
+    "uncontrolled": {
+      "label": "The outbreak runs out of control",
+      "class": "harm",
+      "when": "cum >= harmCases",
+      "terminal": true,
+      "narrative": "Day {day|int}: {round(cum)|0dp} of 110 residents have been ill, several in the hospital with dehydration. The outbreak outran the measures."
+    },
+    "over": {
+      "label": "Outbreak contained and declared over",
+      "class": "target",
+      "when": "not isNull(overAt) and not premature and not isNull(ctrlAt) and not isNull(stateAt) and timeAt(stateAt) < firstDay and caseDef == \"good\" and surveil and updates >= 3 and not waitedLab and soapByDay1 and isolateByDay1 and excludeByDay1 and bleachByDay1",
+      "terminal": true,
+      "narrative": "Day {day|int}: 96 hours without a new case; {round(cum)|0dp} residents were ill in all ({attackPct}%). Measures in on day one, the state told, the cases counted every morning, and the end called on the evidence."
+    },
+    "overLate": {
+      "label": "Over, by a slower route",
+      "class": "recovered",
+      "when": "not isNull(overAt)",
+      "terminal": true,
+      "narrative": "Day {day|int}: the outbreak is over, with {round(cum)|0dp} residents ill ({attackPct}%). The route cost cases or time: measures that came late or partly, a wait for the lab, a report not made on day one, a loose case definition, or an early declaration that had to be undone."
+    },
+    "time_up": {
+      "label": "Day 12 and nobody has called it",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "Day 12: {round(cum)|0dp} residents have been ill. Without daily counts and a clear end rule, the facility is still under restrictions."
+    }
+  },
+  "endingOrder": [
+    "uncontrolled",
+    "over",
+    "overLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "early",
+        "label": "Control measures in on day one, without waiting for the lab",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "waitedLab",
+            "score": "missed",
+            "why": "Advised waiting for the lab before acting; control goes in as soon as the mode of spread is clear."
+          },
+          {
+            "when": "soapByDay1 and isolateByDay1 and excludeByDay1 and bleachByDay1",
+            "score": "met",
+            "why": "Soap and water, isolation, staff exclusion and bleach all in on day one."
+          },
+          {
+            "when": "allControls or soapByDay1 or isolateByDay1",
+            "score": "partial",
+            "why": "Some measures in on day one, or all of them later."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The core measures never went in."
+          }
+        ]
+      },
+      {
+        "id": "report",
+        "label": "Reported to the state on day one",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(stateAt)",
+            "score": "missed",
+            "why": "The outbreak was never reported to the state."
+          },
+          {
+            "when": "timeAt(stateAt) < firstDay",
+            "score": "met",
+            "why": "Reported to the state epidemiologist on day one."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Reported, but after the first day."
+          }
+        ]
+      },
+      {
+        "id": "caseFinding",
+        "label": "Case definition, line list and daily surveillance",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "caseDef == \"none\" or caseDef == \"narrow\"",
+            "score": "missed",
+            "why": "No usable case definition: a lab-only definition counts nobody while people get sick."
+          },
+          {
+            "when": "caseDef == \"good\" and surveil and updates >= 3",
+            "score": "met",
+            "why": "A definition with time, place and person, a line list, and at least three daily updates."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "A loose definition, or too few daily updates to follow the curve."
+          }
+        ]
+      },
+      {
+        "id": "evaluate",
+        "label": "Called it over only on the evidence",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "premature",
+            "score": "missed",
+            "why": "Declared over before 96 hours without a new case."
+          },
+          {
+            "when": "isNull(overAt)",
+            "score": "missed",
+            "why": "The outbreak was never evaluated as over."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Declared over after 96 hours with no new case."
+          }
+        ]
+      },
+      {
+        "id": "specimens",
+        "label": "Specimens inside the 72-hour window",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(specAt) and timeAt(specAt) < specimenWindow",
+            "score": "met",
+            "why": "Stool from five ill residents arranged on day one."
+          },
+          {
+            "when": "not isNull(specAt)",
+            "score": "partial",
+            "why": "Specimens arranged after day one, when most cases were past 72 hours."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No specimens; the cause was never confirmed."
+          }
+        ]
+      },
+      {
+        "id": "diagnosis",
+        "label": "A community diagnosis backed by evidence",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxGood",
+            "score": "met",
+            "why": "Population, risk, causes and evidence named."
+          },
+          {
+            "when": "not isNull(dxAt)",
+            "score": "partial",
+            "why": "A diagnosis that jumped to a conclusion or a blame."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No community diagnosis was written."
+          }
+        ]
+      },
+      {
+        "id": "shared",
+        "label": "Shared settings closed and admissions held",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dining and admissions",
+            "score": "met",
+            "why": "Dining and activities paused; admissions held."
+          },
+          {
+            "when": "dining or admissions",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shared dining, activities and admissions carried on."
+          }
+        ]
+      },
+      {
+        "id": "proportion",
+        "label": "A proportionate response",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "sendAll",
+            "score": "missed",
+            "why": "Every ill resident sent to the emergency department: most need fluids at home, and the hospital inherits the outbreak."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Care kept at the facility, with the hospital for those who need it."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: the nursing process for a community",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toControls",
+        "label": "Call to the first control measure",
+        "value": "isNull(ctrlAt) ? -1 : timeAt(ctrlAt)",
+        "format": "duration",
+        "expert": "the same morning"
+      },
+      {
+        "id": "residentsIll",
+        "label": "Residents ill in all",
+        "value": "round(cum)",
+        "format": "number",
+        "expert": "about 13 (12%)"
+      },
+      {
+        "id": "overDay",
+        "label": "Day the outbreak was declared over",
+        "value": "isNull(overAt) ? -1 : day",
+        "format": "number",
+        "expert": "day 8"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Mon 08:30",
+        "text": "Interview the director of nursing. Case definition with time, place and person; line list; attack rate 9 of 110 (8%). Stool from five ill residents to the state lab. Report to the state epidemiologist."
+      },
+      {
+        "at": "Mon 09:00",
+        "text": "Community diagnosis: risk of continued person-to-person and surface spread in shared dining and activities, shown by the attack rate. Soap and water, ill residents in their rooms and ill staff home until 48 hours symptom-free, bleach at 1,000-5,000 ppm, trays instead of the dining room, admissions on hold. Daily case reports."
+      },
+      {
+        "at": "Tue-Fri",
+        "text": "Each morning: update the line list and curve. Wednesday: norovirus confirmed."
+      },
+      {
+        "at": "Day 8",
+        "text": "Four mornings in a row with no new case (96 hours): declare it over and lift the measures."
+      }
+    ],
+    "debrief": {
+      "uncontrolled": {
+        "headline": "The outbreak outran the measures",
+        "body": "Find the day each measure went in, whether alcohol rub replaced soap and water, and whether anyone waited for the lab before acting."
+      },
+      "over": {
+        "headline": "Contained and called on the evidence",
+        "body": "A working case definition and line list, measures through the facility on day one, the state told, a count every morning, and the end called at 96 hours without a new case. That is the expert path."
+      },
+      "overLate": {
+        "headline": "Over, by a slower route",
+        "body": "It ended, but check when each measure went in, whether you waited for the lab, when the state heard, how cases were defined and counted, and whether it was called over too soon."
+      },
+      "time_up": {
+        "headline": "Nobody called it",
+        "body": "Evaluation is the last step of the nursing process for a community too: daily counts and a clear end rule (96 hours without a new case) tell you when the plan can end."
+      }
+    },
+    "modelReasoning": "The public health nurse assesses Cedar Hills as a population: a working case definition with time, place and person, a line list, and an attack rate (9 of 110 at the first call). Sudden vomiting and diarrhea lasting 1-3 days, with cases still starting days after one shared meal and care staff ill too, fit norovirus spreading person to person and from surfaces, so the community diagnosis names that risk, its causes and the evidence, and stool from five ill people goes to the state lab within 72 hours of onset. The plan goes in through the facility on day one without waiting for the lab: soap and running water (alcohol rub is not a substitute), ill residents isolated and ill staff excluded until 48 hours after symptoms end, chlorine bleach at 1,000-5,000 ppm, the dining room and group activities paused and admissions held. The outbreak is reported to the state the same day. Evaluation is daily: the facility reports new cases each morning, the line list and curve are updated, and the outbreak is declared over only after two incubation periods, 96 hours, with no new case."
+  }
+}

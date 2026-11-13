@@ -6900,7 +6900,7 @@
       "id": "REQ-197",
       "category": "product/engagement",
       "title": "Smart study reminders, service emails, dictation tip, next store build plan",
-      "description": "Nick-approved 2026-11-09. (1) Local study reminders built from GET /api/reminders/plan: one topic a day ranked Needs review, then days overdue x exam weight, then lapses (fixed_v1 ladder; DuePriority interface for FSRS later); title '<course>: <topic>' <=40, body 'Due for review · N questions, ~M min[ · exam in D days]' <=60; never 'fading' or a percentage; skip days with nothing due; at most one a day within quiet hours; device-only 'Show topic on lock screen' (default on). Web has none and says so. (2) Exam change notice, exam countdown (14 and 3 days, readiness or 'unconfirmed', 3 weakest), opt-in weekly digest (List-Unsubscribe one-click; refuses without MAIL_POSTAL_ADDRESS and DIGEST_EMAIL_FROM) via Resend; per-kind preference, signed unsubscribe, verified addresses only, idempotent per user/kind/period; daily Vercel cron with CRON_SECRET, small batches; dark until SERVICE_EMAILS_ENABLED=true with the Privacy Policy update. (3) Migration 063 email_preferences and service_email_log. (4) No guilt or marketing copy, tested. (5) One-time keyboard dictation tip on lab, explain-back and coach fields (iOS/Android); fields no longer truncate. (6) docs/next-store-build-plan.md.",
+      "description": "Nick-approved 2026-11-09. (1) Local study reminders built from GET /api/reminders/plan: one topic a day ranked Needs review, then days overdue x exam weight, then lapses (fixed_v1 ladder; DuePriority interface for FSRS later); title '<course>: <topic>' <=40, body 'Due for review \u00b7 N questions, ~M min[ \u00b7 exam in D days]' <=60; never 'fading' or a percentage; skip days with nothing due; at most one a day within quiet hours; device-only 'Show topic on lock screen' (default on). Web has none and says so. (2) Exam change notice, exam countdown (14 and 3 days, readiness or 'unconfirmed', 3 weakest), opt-in weekly digest (List-Unsubscribe one-click; refuses without MAIL_POSTAL_ADDRESS and DIGEST_EMAIL_FROM) via Resend; per-kind preference, signed unsubscribe, verified addresses only, idempotent per user/kind/period; daily Vercel cron with CRON_SECRET, small batches; dark until SERVICE_EMAILS_ENABLED=true with the Privacy Policy update. (3) Migration 063 email_preferences and service_email_log. (4) No guilt or marketing copy, tested. (5) One-time keyboard dictation tip on lab, explain-back and coach fields (iOS/Android); fields no longer truncate. (6) docs/next-store-build-plan.md.",
       "priority": "high",
       "status": "needs_review",
       "minimum_access_scope": [
@@ -8304,6 +8304,1193 @@
         "Production facts in docs/development.md (settings set",
         "project status) are as reported by Nick on 2026-11-11 and were not re-read from Vercel",
         "@types/react-dom is not a direct backend dependency so its ignore rule is a no-op today"
+      ]
+    },
+    {
+      "id": "REQ-232",
+      "category": "feature",
+      "title": "Sims: PT treatment-session screen type and the first three DPT cases",
+      "description": "A physical therapy treatment-session renderer (screen type treatment-session) behind SIMS_RENDERERS and on by default: the patient's presentation, vitals and response to activity, tests and measures with red flags, interventions with dosage, and stopping and escalation rules, with an outcome profile physical-therapy. Three DPT scenarios on DPT catalog objectives: early mobilization in the ICU, total knee arthroplasty progression with signs of DVT, and balance and fall risk after stroke. Sims take the clinical pace rule (study pace 3x) because vitals move on their own during exertion.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/DPT",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "treatment-session renderer behind SIMS_RENDERERS with treatment-session@1 capability",
+        "accessibility to the bedside board and session standard",
+        "three DPT scenarios with golden paths Good Mediocre Bad",
+        "clinical pace rule applies",
+        "no engine stepping change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle",
+        "sims DB tests",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.7",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "Several physiological sizes and timings are authored teaching-model values marked FLAG in the documents",
+        "The 2022 VTE CPG was read only through a summary",
+        "Merged with REQ-231 (security console): the docs section is now docs/sims.md 22.8 (22.7 is the security console); the two parseCaps fixes were merged into REQ-231's (hyphenated types up to 40 characters)."
+      ]
+    },
+    {
+      "id": "REQ-234",
+      "category": "content",
+      "title": "Labs for A+ Core 1/2 and the EPPP; DP-900 and PWCS top-ups",
+      "description": "Lead (wave 1): lab sets for the three courses that have none -- CompTIA A+ Core 1 (APLUS_CORE1) and Core 2 (APLUS_CORE2), hands-on troubleshooting labs across the current V15 domains, and the EPPP across ASPPB's eight Part 1 domains under the mental health mature-content rules -- and top up Azure DP-900 (4 labs) and ABPTS Pelvic & Women's Health (ABPTSPWCS, 5) to at least 8 each. Every value sourced and dated in value-sources.ts. Density follows the hybrid plan (A+ 10 and 10, EPPP 14); the two top-ups are recorded in LAB_PLAN_TOP_UPS, which never goes below the plan or above the per-unit cap.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/comptia-aplus-core1.ts",
+        "backend/supabase/seed/labs/comptia-aplus-core2.ts",
+        "backend/supabase/seed/labs/eppp.ts",
+        "backend/supabase/seed/labs/microsoft-dp900.ts",
+        "backend/supabase/seed/labs/pt-abpts-pelvic-health.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/scripts/generate-labs-lib.ts",
+        "backend/lib/labs-aplus-eppp.test.ts",
+        "backend/lib/release-notes.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "APLUS_CORE1 and APLUS_CORE2 have 10 labs each and EPPP 14 following the hybrid plan unit by unit",
+        "DP900 and ABPTSPWCS have 8 labs each within the per-unit cap",
+        "every new lab has a dated value source or a reason in value-sources.ts",
+        "all labs pass the content rules and name active objectives",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "lab dbtests on a throwaway Postgres after migrate and seed",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "All new labs are needs_expert_review: A+ by an IT support professional; EPPP by a licensed psychologist; PWCS by a board-certified pelvic health PT",
+        "APA Ethics Code and two StatPearls chapters were read through a fetch tool's summary (apa.org and NCBI refuse scripted downloads)",
+        "Course objective for A+ malware removal still summarizes the older seven-step list; V15 lists ten steps",
+        "The net use command page was not re-read (404 at its usual URL)"
+      ]
+    },
+    {
+      "id": "REQ-231",
+      "category": "feature",
+      "title": "Sims: security operations console screen type and the first three Security+ incidents",
+      "description": "A security operations console renderer (screen type security-console) behind SIMS_RENDERERS and on by default: alert queue, log and event lines and assets with status that update over sim time, containment actions as scenario action groups, accessibility equal to the bedside, board and session screens, JavaScript only, older apps told to update. Outcome profile security with default thresholds. Three Security+ incidents (a phished account, ransomware on a file server, a leaked cloud key with a new administrator) on SY0-701 objectives in SECPLUS and, as V8 bands, the matching SY0-801 objectives in SECPLUSV8. Learner-paced: the attacker works on the sim clock, which moves by the analyst time each task takes.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/SECPLUS",
+        "backend/supabase/seed/sims/SECPLUSV8",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "security-console renderer behind SIMS_RENDERERS with security-console@1 capability",
+        "accessibility to the bedside board and session standard",
+        "three Security+ incidents with endings in all three classes and golden paths Good Mediocre Bad",
+        "V8 bands on the matching SY0-801 objectives",
+        "no engine stepping change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle",
+        "sims DB tests",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.7",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "Sources read through a summarizing fetch; vendor guidance (Microsoft Learn",
+        "AWS re:Post) used for account and cloud steps; two V8 objective titles do not match the generator selection rule word list"
+      ]
+    },
+    {
+      "id": "REQ-233",
+      "category": "content",
+      "title": "Bedside sims wave 1: CCRN Pediatric, CCRN Neonatal, NCLEX-RN, NCLEX-PN, and a second AWS SAA board sim",
+      "description": "Nick's sims wave 1 (2026-11-11): baseline sims for four courses on the existing bedside screen, two each, plus a second AWS SAA board sim in a domain other than TicketBurst's. CCRNPEDS/pediatric-septic-shock-fluids and pediatric-dka-cerebral-edema; CCRNNEO/neonatal-rds-escalating-support and neonatal-sepsis-hypoglycemia; NCLEXRN/med-surg-deterioration-sbar and post-op-transfusion-reaction; NCLEXPN/ltc-change-in-condition and med-pass-error-caught; AWSSAA/nat-gateway-bill-spike (cost). Engine 1.2 with endingOrder; endings in all three classes, 3-4 critical criteria inside target, KPIs, expert path, debrief per ending, 5-6 golden paths; clinical sims at study pace (3x). Literature checked and dated on each document; authored teaching values flagged. No engine, renderer or schema change; no migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/CCRNPEDS/",
+        "backend/supabase/seed/sims/CCRNNEO/",
+        "backend/supabase/seed/sims/NCLEXRN/",
+        "backend/supabase/seed/sims/NCLEXPN/",
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.sim.json",
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "every objective title exists in its course catalog",
+        "golden paths end the same in written reversed and jsonb key order",
+        "clinical sims are paced (study pace by default)"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test (storage-order and objectives tests included)",
+        "sim:cross-runtime and the engine-bundle replay",
+        "sims dbtests on a throwaway Postgres",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "SSC Children's 2026 and AAP 2011 hypoglycemia read only through summaries",
+        "authored teaching-model numbers are flagged in their source notes",
+        "AWS prices are the Ohio rates read 2026-11-11 and change over time",
+        "new document hashes enter expert review"
+      ]
+    },
+    {
+      "id": "REQ-235",
+      "category": "content",
+      "title": "Batch H wave 1: make holds rare -- dated sources and outline statements for the launch courses, pregen retry, owner hold-rate view, G5 follow-ups",
+      "description": "Nick asked to make holds rare (2026-11-11); production holds were driven by thin source material. For DPT, PTPREREQ, CCRNADULT, AWSSAA, AWSMLA, SECPLUS and CNA every taught unit names dated sources; the exam courses carry their official outline statements (headings only where copyrighted; 42 CFR text in full) and key values read 2026-11-11, given to the lesson writer and the fact-checker alike (lib/current-facts.ts). Pre-generation retries a held half once, steered, live (pregen_retry) inside --max-usd, and reports the counts. Settings > Access shows the owner generated vs held per course and kind for 7 and 30 days with the top reasons (counts only). G5 follow-ups: Security+ BCDR moved to 3.4/5.2 (retired in place in Security Operations, BIA lab to 5.2); PTA labs header reworded; CNA choking, sepsis and stroke BP values re-read (sepsis cultures 'ideally before'). No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/",
+        "backend/lib/",
+        "backend/app/api/access/",
+        "mobile/src/",
+        "mobile/app/(app)/settings/",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every launch-course unit has a dated source (lib/content-batch-h.test.ts)",
+        "writer and checker get the same outline statements",
+        "a held pregen half is retried once steered and counted (lib/pregen.dbtest.ts)",
+        "hold-rate view is owner only and counts only (lib/hold-rates.dbtest.ts; lib/account-access.dbtest.ts)",
+        "Security+ BCDR retired in place and taught in 3.4/5.2"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db",
+        "mobile npm test",
+        "mobile tsc",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/operations-runbook.md"
+      ],
+      "risk_notes": [
+        "Outline statements are headings only for copyrighted outlines (AWS; CompTIA) per the repo's paraphrase rule; CNA uses public-domain 42 CFR text in full. Decision for Nick if he wants fuller outline text.",
+        "The AIS 2026 values were confirmed through a summary (UIC Drug Information Group) and AHA's Top Things page; the full guideline refused automated access. The hyperglycemic-crises values were read through the CCJM 2025 summary.",
+        "CCRN cardiovascular key values are carried from the 2026-10-31 audit (not re-read in this batch).",
+        "Hold rates from seeds only are not measurable; production numbers are the lead's to read."
+      ]
+    },
+    {
+      "id": "REQ-230",
+      "category": "feature",
+      "title": "Sims: sims:generate, the sim generator (gated drafts to register by hand, cost per draft)",
+      "description": "Nick approved the sim library plan 2026-11-11 (engine-order fix done in 1.2; learner-paced client sessions; measure the first 20 generated sims, then a separate monthly sim budget; breadth before variants). npm run sims:generate takes a course code, a sub-objective (exact objective title), a screen type (bedside, board, session) and an optional seed idea; builds the prompt from the course's own sources and the screen's authoring rules in docs/sims.md 12.1; asks the model for a document plus golden paths as move scripts; runs every gate (reply and writer confidence, schema, identity, golden paths, lint with the key-order rule, key-order replay, reachability by the bounded path search, server/checkpoint/client and engine-bundle replay, sourced and dated numbers with a course source cited, duplicate check) and then an independent fact check that must agree. A failing draft is retried once with the reasons, then held with them, never registered; a passing draft is written as files ready to register in lib/sim/documents.ts, never auto-registered. A selection helper lists sub-objectives meeting the selection rule (two of: time matters, cues, consequential choices, competing priorities) with the recorded reason, ranked by exam weight. Each draft's tokens and USD (writer attempts, retries, fact checks) go in a JSON report and a costs.jsonl ledger with --cost-summary. Only ANTHROPIC_PREGEN_API_KEY; with none it refuses to call the API. All tests use a mocked model; no real sims were generated.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim/generator",
+        "backend/scripts/sims-generate.ts",
+        "backend/package.json",
+        "backend/.gitignore",
+        "backend/.env.example",
+        "docs/sims.md",
+        "docs/operations-runbook.md"
+      ],
+      "acceptance_criteria": [
+        "sims:generate with course objective screen and optional idea",
+        "prompt from course sources and docs/sims.md 12.1 rules",
+        "schema lint key-order path-search golden-replay on server engine and engine bundle and sources gates",
+        "fact-check call must agree",
+        "one steered retry then held with reasons never registered",
+        "passing draft written as files ready to register not auto-registered",
+        "selection helper with recorded reason ranked by exam weight",
+        "tokens and USD per draft in a JSON report and ledger",
+        "ANTHROPIC_PREGEN_API_KEY only and refuses without it",
+        "duplicate check with an explained similarity measure",
+        "mocked end to end: valid / lint-fail-then-pass / fact-check held"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "lib/sim/generator/generator.test.ts",
+        "npm run sims:generate estimate and keyless --run",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 12 12.1 12.2",
+        "docs/operations-runbook.md Generating sims"
+      ],
+      "risk_notes": [
+        "selection is a keyword screen of the title and over-includes; a person confirms",
+        "no live API run yet: request shapes and real cost unverified until the key exists",
+        "generated sims seed as source authored until the seed is taught origin generated"
+      ]
+    },
+    {
+      "id": "REQ-236",
+      "category": "content",
+      "title": "Wave 1 follow-ups: generated sims marked 'generated', schedule time-unit lint rule, A+ Core 2 malware-removal objective",
+      "description": "Nick approved three follow-ups (2026-11-11). (1) A registration entry in lib/sim/documents.ts can mark a sim generated (entry(course, slug, { source: 'generated' })); the seed writes it to sim_versions.source, correcting a changed marking in place on an unchanged hash; the generator's .register.md emits the generated form; every existing sim stays authored. (2) Lint error (lib/sim/lint.ts secondsUnitProblems, lint layer only, no engine change or minor) when a param, state variable or derived value with a time unit other than seconds is read where the engine reads sim seconds: an expression schedule.after, a console alert or event at, and a template slot, table column or KPI with a seconds format. (3) A+ Core 2 objective 'Best-practice malware removal procedure' retitled in place (same index and row id; seed-lib invalidates the old title's lessons and items, FAIL-893) to the ten steps of 220-1202 V15 objective 2.6 (CompTIA objectives document version 4.0, read in full 2026-11-11); the malware lab's objective title updated with it. No migration.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim/",
+        "backend/supabase/seed/",
+        "backend/lib/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a generated entry seeds with source generated and an authored one stays authored (lib/sims-source.dbtest.ts)",
+        "every registered sim is authored (lib/sim/documents.test.ts)",
+        "register.md emits the generated entry (lib/sim/generator/generator.test.ts)",
+        "a minutes param in schedule.after / console at / seconds format is a lint error and no seeded sim fails (lib/sim/seconds-units.test.ts; npm run sims:lint)",
+        "the A+ objective keeps its row and mastery across a re-seed with the new text (lib/aplus-malware-objective.dbtest.ts)"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run sims:lint",
+        "relevant dbtests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 12.2 and 22.7",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "A time-unit param converted inside the expression (x * 60) is also an error: the rule asks for seconds rather than guessing at conversions",
+        "The objective title paraphrases the ten V15 step names (short procedural phrases) rather than quoting the copyrighted outline"
+      ]
+    },
+    {
+      "id": "REQ-241",
+      "category": "content",
+      "title": "EMS bedside sims wave 2: NREMT EMR, EMT, AEMT and Paramedic, two each",
+      "description": "Nick's sims wave 2 (2026-11-11): baseline prehospital bedside sims for the four NREMT courses, two each, within each level's scope of practice (National EMS Scope of Practice Model 2019 with Change Notices 1.0 and 2.0). NREMTEMR/unresponsive-adult-cpr-aed and thigh-bleed-tourniquet; NREMTEMT/anaphylaxis-epinephrine and stroke-scale-destination; NREMTAEMT/hypoglycemia-iv-dextrose and hemorrhagic-shock-fluids; NREMTPARAMEDIC/inferior-stemi-cath-alert and infant-respiratory-failure. Scene time and transport decisions are on the clock. Engine 1.2 with endingOrder; endings in all three classes, 3-4 critical criteria, KPIs, expert path, debrief per ending, 6 golden paths, teaching prompts in jsonb key order; study pace (3x). Literature read and dated on each document (AHA 2025, NASEMSO v3.0, ACS-COT/NAEMSP field triage 2021, Mission: Lifeline 2027, NREMT test plans); summaries marked; authored values flagged. No engine, renderer or schema change; no migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/NREMTEMR/",
+        "backend/supabase/seed/sims/NREMTEMT/",
+        "backend/supabase/seed/sims/NREMTAEMT/",
+        "backend/supabase/seed/sims/NREMTPARAMEDIC/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "every objective title exists in its course catalog",
+        "golden paths end the same in written reversed and jsonb key order",
+        "clinical sims are paced (study pace by default)",
+        "each level stays within its scope of practice"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test (storage-order objectives us-spelling and engine-bundle tests included)",
+        "sim:cross-runtime engine-print",
+        "sims dbtests on a throwaway Postgres",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "the 2025 ACS and 2026 stroke guidelines read only through summaries",
+        "NREMT test plans and the AHA Part 6 infant breathing rate relayed from the course seed (2026-11-09)",
+        "authored teaching-model numbers and hospital and drive times are flagged in their source notes",
+        "the regional stroke and STEMI plans and destinations are authored for the cases"
+      ]
+    },
+    {
+      "id": "REQ-242",
+      "category": "content",
+      "title": "AWS board sims wave 2: AWS MLA, Cloud Practitioner, Developer and SysOps (CloudOps)",
+      "description": "Nick's sims wave 2: nine learner-paced board sims for AWS courses on the existing board renderer and engine 1.2, patterned on TicketBurst and the NAT gateway bill (AWSSAA). AWSMLA (launch course) 3: drift detection, endpoint auto scaling metrics, training-data bias; AWSCLF 2: data transfer costs, a leaked access key (least privilege and shared responsibility); AWSDVA 2: deployment failure read from logs with a DLQ backlog, PHI in application logs; AWSSOA 2: CloudFormation UPDATE_ROLLBACK_FAILED with subnet sizing, EC2 status-check recovery alarms. Objectives chosen from each course catalog among those the sim selection rule (lib/sim/generator/selection.ts) qualifies. Prices, quotas and behaviors read from AWS documentation and price lists on 2026-11-11, one region (us-east-2, US East Ohio). Each sim: endings in all three classes, 3-4 critical criteria inside target, KPIs, expert path, debrief per ending, 5-6 golden paths, endingOrder, times stored in seconds. No engine, renderer, schema or migration change.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/AWSMLA/",
+        "backend/supabase/seed/sims/AWSCLF/",
+        "backend/supabase/seed/sims/AWSDVA/",
+        "backend/supabase/seed/sims/AWSSOA/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "every objective title exists in its course catalog and meets the selection rule",
+        "golden paths end the same in written reversed and jsonb key order",
+        "times are stored in seconds (secondsUnitProblems clean)"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "sim:cross-runtime and the engine-bundle replay",
+        "storage-order test",
+        "sims dbtests on a throwaway Postgres",
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.15",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "AWS prices are us-east-2 rates read 2026-11-11 and change over time",
+        "SageMaker Model Monitor is closed to new customers (scenario team is an existing customer)",
+        "authored teaching-model numbers are flagged",
+        "new documents enter expert review"
+      ]
+    },
+    {
+      "id": "REQ-238",
+      "category": "content",
+      "title": "Security wave 2: CySA+, PenTest+, SecurityX and SecAI+ incidents on the security console",
+      "description": "Eight baseline sims, two per course (CYSAPLUS, PENTESTPLUS, SECURITYX, SECAIPLUS), on the existing security-console screen (REQ-231, docs/sims.md 22.7) following the Security+ pattern: learner-paced turns phases with the attacker on the analyst's clock, the security outcome profile, engine 1.2 with endingOrder, endings in all three classes, 3-4 critical criteria, KPIs, an expert path, a debrief per ending and six golden paths each. Objectives are active catalog objectives meeting the generator's selection rule; sources (CompTIA exam pages and the CS0-004 objectives PDF, NIST SP 800-61r3, NIST AI RMF, OWASP LLM Top 10 2025, CISA KEV/OT/CM0073, MITRE T1606.002, PTES) read and dated 2026-11-11; every address and domain from RFC 5737/2606. No engine, renderer, schema or migration change.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/security-w2.test.ts",
+        "backend/lib/sims-security-w2.dbtest.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "eight valid console sims",
+        "two per course",
+        "each on its own catalog objective meeting isPerformanceObjective (lib/sim/security-w2.test.ts)",
+        "every learner-visible address and domain is a documentation range (lib/sim/security-w2.test.ts)",
+        "goldens cover every ending but time_up and every criterion met and missed (npm run sims:lint)",
+        "seeded idempotently and golden paths play through the routes to one attempt each (lib/sims-security-w2.dbtest.ts)",
+        "storage-order and engine-bundle replays pass (lib/sim/storage-order.test.ts; lib/sim/cross-runtime/engine-bundle.test.ts)"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run sims:lint",
+        "sim:cross-runtime print and engine-print",
+        "relevant dbtests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.11",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "PenTest+ and SecurityX catalog titles are the course's own wording; the PT0-003/CAS-005/CY0-001 objective PDFs were not re-read",
+        "author's teaching timings and scores (marked on each param)"
+      ]
+    },
+    {
+      "id": "REQ-240",
+      "category": "content",
+      "title": "Bedside sims wave 2 (nursing): LPN/VN, ADN-RN and BSN-RN baseline sims",
+      "description": "Nick's sims wave 2 (2026-11-11): two baseline bedside sims each for LPNVN, ADNRN and BSNRN. LPNVN/ltc-pressure-injury-infection (an infected sacral pressure injury in long-term care) and ltc-insulin-hypoglycemia (hypoglycemia at insulin peak with poor intake); ADNRN/pca-oversedation-naloxone (PCA oversedation reversed with titrated naloxone, plan changed on evaluation) and heart-failure-pulmonary-edema (acute decompensated heart failure after IV saline); BSNRN/assisted-living-norovirus-outbreak (public health nurse, community diagnosis, learner-paced over 12 days) and charge-nurse-short-staffed-shift (assignment, delegation, conflict and staff development). Engine 1.2 with endingOrder; endings in all three classes, 4 critical criteria inside target, KPIs, expert path, debrief per ending, 5-6 golden paths; teaching keys in jsonb order (FAIL-1362); running cases at study pace (3x), the outbreak learner-paced. Literature read 2026-11-11 and dated on each document; authored teaching values flagged. No engine, renderer, schema or migration change.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/LPNVN/",
+        "backend/supabase/seed/sims/ADNRN/",
+        "backend/supabase/seed/sims/BSNRN/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "every objective title exists in its course catalog",
+        "golden paths end the same in written reversed and jsonb key order",
+        "the generator's deterministic gates (key order reachability server and bundle replay sources duplicate) pass on each document",
+        "running clinical sims are paced (study pace by default)"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test (storage-order and objectives tests included)",
+        "sim:cross-runtime and the engine-bundle replay",
+        "sims dbtests on a throwaway Postgres",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "the 2022 AHA/ACC/HFSA HF guideline and the ASPMN 2020 revisions were read only through summaries",
+        "authored teaching-model numbers are flagged in their source notes",
+        "two objectives (LPN hypoglycemia and ADN opioid) are the nearest titles that pass the keyword selection screen rather than the most specific titles",
+        "new document hashes enter expert review"
+      ]
+    },
+    {
+      "id": "REQ-239",
+      "category": "content",
+      "title": "NCE and NCMHCE courses (NBCC counseling licensure), their labs and five client-session sims",
+      "description": "Wave 2 (lead's brief, built the way the EPPP was: REQ-224 course and 18+ gate, REQ-225 client sessions, REQ-234 labs, REQ-235 outline statements). Prep for the NCE and Prep for the NCMHCE under Mental Health > counseling-licensure (migration 077), so the 18+ confirmation and study notice apply through the category with no code change. Units are NBCC's six domains at the current outlines' weights (NCE 2023: 12/12/29/9/30/8; NCMHCE revised 2025-10-08: 15/25/0/15/30/15, Areas of Clinical Focus assessed through the cases), each with objectives in our own words, a gate, dated sources, NBCC's lettered task headings as outline statements and the format key values; the NCMHCE case-study format (11 cases, one unscored; intake summary plus two sessions; 9-15 four-option items per case; 100 scored; 255 minutes) and the NCE form (200 items, 160 scored, 255-minute session) read 2026-11-11; Washington WAC 246-809-240; review due 2027-04-01 before NBCC's 2027-07-01 blueprint change. 12 labs each by the hybrid plan, sourced in value-sources.ts. Five client sessions (NCE 2, NCMHCE 3) registered by exact objective title, with goldens. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/nbcc.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/nbcc-nce.ts",
+        "backend/supabase/seed/labs/nbcc-ncmhce.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/supabase/seed/sims/NCE",
+        "backend/supabase/seed/sims/NCMHCE",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden",
+        "backend/lib/nbcc-course.test.ts",
+        "backend/lib/labs-nbcc.test.ts",
+        "backend/lib/sim/nbcc-session.test.ts",
+        "backend/lib/nbcc-mental-health.dbtest.ts",
+        "docs/sims.md",
+        "docs/labs.md",
+        "README.md",
+        "docs/development.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "NCE units are NBCC's six domains at 12/12/29/9/30/8 and NCMHCE at 15/25/0/15/30/15 with outline headings and dated sources on every unit",
+        "the NCMHCE case-study format is described from NBCC's outline",
+        "both courses are in counseling-licensure and refused without the 18+ confirmation",
+        "12 labs each following the hybrid plan with a value source or reason on every lab",
+        "five client sessions (NCE 2 and NCMHCE 3) with endings in all three classes and 3-4 critical criteria and 5-6 golden paths and endingOrder registered to exact objective titles",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle replay under Node",
+        "migrations and seed twice on throwaway Postgres",
+        "npm run test:db as owner and as app_runtime",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.12",
+        "docs/labs.md",
+        "README.md",
+        "docs/development.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "NBCC's new blueprints take effect 2027-07-01 (different domains; NCE 170 three-option items; NCMHCE 10 cases; scaled 100-500 with 360 passing): a successor version must be built before then",
+        "Outline task headings are carried verbatim as outline statements (short headings; NBCC copyright) while objectives are paraphrased; Nick's decision if headings should be paraphrased too",
+        "NCMHCE Areas of Clinical Focus has weight 0 so readiness and mock exams leave it out and the hybrid lab plan splits evenly (a weighted split would be 2/2/1/2/3/2)",
+        "ACA Code of Ethics revision pending adoption (recheck by 2027-02-01)",
+        "DSM-5-TR not read; SUD severity counts read on NIAAA's DSM-5 page; Stanley-Brown SPRC summary and APA PTSD guideline abstract not re-read in this batch",
+        "All labs and sims need review by a licensed professional counselor",
+        "The sims list for a mental health course names its sims without the 18+ confirmation (starting one is gated)"
+      ]
+    },
+    {
+      "id": "REQ-237",
+      "category": "feature",
+      "title": "Sims: terminal and network screen type and the first Linux+, Network+ and CKA outages",
+      "description": "A terminal and network renderer (screen type terminal) behind SIMS_RENDERERS and on by default: a command line over a bounded command set (no free shell; commands are the phase's actions with arguments chosen from lists), the output each command prints over sim time with log lines that appear on their own, and a map of hosts, devices or cluster nodes and the links between them with a status in words. Outcome profile infrastructure gets its defaults. Two outages each for Linux+ (LINUXPLUS), Network+ (NETWORKPLUS) and CKA on catalog objectives that meet the selection rule. Learner-paced: each command costs operator minutes.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/LINUXPLUS",
+        "backend/supabase/seed/sims/NETWORKPLUS",
+        "backend/supabase/seed/sims/CKA",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "terminal renderer behind SIMS_RENDERERS with terminal@1 capability",
+        "accessibility to the console standard: output polite and rate-limited and errors spoken at once and Read the terminal and 48 dp and web keyboard order",
+        "six outages with endings in all three classes and 3-4 critical criteria and 5-6 golden paths and endingOrder",
+        "learner-paced",
+        "no engine stepping change and no engine minor"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle",
+        "sims DB tests",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.10",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "Command output layouts (IOS show output; kubectl tables; journal lines; httpd AH00035) are authored renderings in the tools' style; the facts they carry are sourced",
+        "The CompTIA objectives PDFs were not reachable; the certification pages and the N10-009 comparison flyer were read through summaries",
+        "Whether a crash-looping container picks up a fixed ConfigMap value on its own next restart is not modeled (FLAG)"
+      ]
+    },
+    {
+      "id": "REQ-245",
+      "category": "content",
+      "title": "Verify MSCS, CMPCBS and PTPREREQ against current sources",
+      "description": "The three academic_foundational courses showed Unverified (no source_verified_at). Each unit's objectives and key facts were checked against current sources read 2026-11-11 (CS2023, standard texts' tables of contents, RFC 9846, NIST, NN/g, W3C, APTA, ACAPT, OpenStax), defects fixed, dated sources recorded, then sourceVerifiedAt 2026-11-11 and contentReviewDueAt 2027-11-11 set, following the DPT/BSN/MSHI pattern. No migration.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/tracks/pt-prereq.ts",
+        "backend/lib/"
+      ],
+      "acceptance_criteria": [
+        "view_content_freshness shows MSCS CMPCBS and PTPREREQ as current after seeding",
+        "every taught unit names dated https sources",
+        "defects found have ledger entries and regression tests"
+      ],
+      "validation_required": [
+        "npm test",
+        "throwaway Postgres migrate and seed",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-243",
+      "category": "ux",
+      "title": "Settings: one Notifications section for every notification channel",
+      "description": "Nick, 2026-11-11: \"Study notifications email, sms and other notifications types should be under a notifications block.\" Settings gains a Notifications section holding Study reminders and Email; the Study section keeps Study profile. A future channel (SMS, push) is added as a row there. Source-checked by mobile/src/lib/settingsSections.test.ts.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/(app)/settings.tsx",
+        "mobile/src/lib/settingsSections.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Settings shows a Notifications section containing Study reminders and Email",
+        "The Study section holds only Study profile"
+      ],
+      "validation_required": [
+        "mobile npm test (settingsSections.test.ts)"
+      ],
+      "documentation_required": [],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-244",
+      "category": "content",
+      "title": "Verify the Python, JavaScript, DP-300 and GCP DevOps courses against current sources",
+      "description": "Python Programming Coach and JavaScript Programming Coach showed Unverified, DP-300 showed Review due since 2026-10-27, and GCP DevOps would show Review due from 2026-11-23 (both review-date lines deleted in b5c4cf7, which the coalescing seed cannot clear). Re-read each course's sources on 2026-11-11 (docs.python.org, devguide versions, python.org downloads; ECMA-262, TC39 finished proposals, MDN, Node.js docs and release schedule; Microsoft's DP-300 study guide, certification page and catalog API; Google's Professional Cloud DevOps Engineer guide live on 2026-11-23 and certification page), fix drift, date every source and set the verified and review dates the way the repo records them. Courses with a stored review date are pinned so it only moves forward.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/labs/microsoft-dp300.ts",
+        "backend/lib/course-verification-req244.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Every Python and JavaScript unit names dated https sources with key values for version-sensitive facts",
+        "Python and JavaScript set sourceVerifiedAt 2026-11-11 and technology_aligned",
+        "DP-300 objectives match the live guide and the course sets a review date after its check so the stale stored date is replaced",
+        "Review interval for technology_aligned courses proposed to Nick rather than invented"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "lib/course-verification-req244.test.ts",
+        "US spelling test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Python and JavaScript have no contentReviewDueAt until Nick picks an interval",
+        "GCPDEVOPS had the same deleted review line (2026-11-23) and will show Review due from that day",
+        "GCPDEVOPS resolved in this branch (FAIL-1541, FAIL-1542); the earlier GCPDEVOPS risk note is superseded"
+      ]
+    },
+    {
+      "id": "REQ-246",
+      "category": "feature",
+      "title": "Pilot-only coach and graded-answer allowances",
+      "description": "Nick, 2026-11-12: during the pilot, learners the AI mode limits (not owners, not granted accounts) get 10 coach messages a day instead of none and 20 AI-graded answers a day instead of 3, just for the pilot. Two env settings read per request and applied only when aiLimited: AI_PILOT_COACH_MESSAGES_PER_DAY (default 0 = the unchanged 403 limited preview; above 0 the coach is counted per rolling day in allowance_uses in place of the plan count, 429 aiAccess coach_limit at the limit, no plan or price) and AI_PILOT_GRADED_ANSWERS_PER_DAY (unset = Free's allowance). They stop applying when AI_ACCESS_MODE changes and never change ALLOWANCE_DEFAULTS or BILLING_ALLOWANCE_*. GET /api/auth/me ai gains coachPerDay; the app shows the coach box when full or coachPerDay > 0 and shows a coach_limit refusal in the error banner (JS only, OTA). No migration.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/ai-access-config.ts",
+        "backend/lib/ai-access.ts",
+        "backend/app/api/chat/route.ts",
+        "mobile/src/lib/aiAccess.ts",
+        "mobile/app/(app)/course/[trackId]/chat.tsx",
+        "docs/billing.md",
+        "docs/operations-runbook.md",
+        "backend/.env.example"
+      ],
+      "acceptance_criteria": [
+        "with AI_PILOT_COACH_MESSAGES_PER_DAY=10 a limited learner sends 10 coach messages and the 11th is a 429 coach_limit",
+        "a failed reply releases its use and a replay is not counted twice",
+        "owners and granted accounts are not counted",
+        "at 0 or invalid the 403 limited_preview is unchanged",
+        "the global ceiling and per-learner budget still apply",
+        "AI_PILOT_GRADED_ANSWERS_PER_DAY replaces Free's graded count for limited learners only and Free's billing count is unchanged",
+        "invalid values are reported in /api/health",
+        "the app shows the coach box for coachPerDay > 0 and older servers keep today's behavior"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "ai-access DB tests on throwaway Postgres 16",
+        "mobile npm test",
+        "tsc backend and mobile",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "changelog",
+        "docs/billing.md",
+        "docs/operations-runbook.md",
+        "backend/.env.example"
+      ],
+      "risk_notes": [
+        "rows share allowance_uses kind coach_message with the plan count; a pilot learner's last-24h uses would count toward a plan's coach count for up to a day after billing launch"
+      ]
+    },
+    {
+      "id": "REQ-247",
+      "category": "feature",
+      "title": "Pre-generation reports content-check problem kinds",
+      "description": "The 2026-11-12 pre-generation trial saved 4 of 25 lessons; 21 failed the content check with no visible cause. Collect now counts each failed lesson's content-check problems as message kinds (quoted text and numbers removed, lib/pregen.ts problemKind), in the summary's problemKinds and one log line, so failures can be diagnosed from the public log.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/pregen.ts",
+        "backend/lib/pregen-problem-kinds.test.ts"
+      ],
+      "acceptance_criteria": [
+        "collect logs and summarizes content-check problem kinds",
+        "no quoted lesson text or numbers in a kind"
+      ],
+      "validation_required": [
+        "backend lib/pregen-problem-kinds.test.ts"
+      ],
+      "documentation_required": [],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-249",
+      "category": "feature",
+      "title": "Course cards show sims; Explore filters by Has sims",
+      "description": "Nick (2026-11-12): 'can we create an icon or maybe a filter for courses with sims?' GET /api/courses gives each course sim_count: sims with a served version and a switched-on renderer, by the start route's rule (pickServedVersion, now in lib/sim/server-run.ts and shared with servedVersion), 0 while SIMS_ENABLED is off, in one query for the whole list (lib/sim-count.ts). Tier not applied; the 18+ rule matches GET /api/sims?trackId= (not gated, docs/sims.md 22.12 finding 3). The course card shows a '1 sim' / 'N sims' badge with the activity icon and its button label says 'Has N simulations'; Explore gains a 'Has sims' chip in its own row, ANDed with search, category and verification, hidden when no listed course has sims, with its own empty state. No migration.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim-count.ts",
+        "backend/lib/sim/server-run.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/item-status-sql.ts",
+        "backend/lib/item-quality.ts",
+        "backend/app/api/courses/route.ts",
+        "backend/lib/sim-count.test.ts",
+        "backend/lib/sim-count.dbtest.ts",
+        "mobile/src/lib/courseSims.ts",
+        "mobile/src/lib/courseSims.test.ts",
+        "mobile/src/lib/emptyStates.ts",
+        "mobile/src/components/CourseCard.tsx",
+        "mobile/app/(app)/explore.tsx",
+        "mobile/src/types/index.ts",
+        "docs/sims.md",
+        "docs/education-taxonomy.md"
+      ],
+      "acceptance_criteria": [
+        "sim_count on every GET /api/courses track",
+        "sim_count counts served sims with switched-on renderers and is 0 with sims off",
+        "one query for the whole list and none while sims are off",
+        "18+ rule matches GET /api/sims?trackId=",
+        "card badge with icon and text and a spoken label when sim_count > 0",
+        "Has sims chip ANDs with the other filters and is hidden when no course has sims",
+        "empty state names the filter"
+      ],
+      "validation_required": [
+        "backend lib/sim-count.test.ts",
+        "backend lib/sim-count.dbtest.ts",
+        "mobile src/lib/courseSims.test.ts",
+        "backend and mobile tsc unchanged from master"
+      ],
+      "documentation_required": [
+        "docs/sims.md 7",
+        "docs/education-taxonomy.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "visual look and the web Tab order not checked in a browser",
+        "Pro-only sims are counted (matches the course page)"
+      ]
+    },
+    {
+      "id": "REQ-248",
+      "category": "feature",
+      "title": "Pre-generation handles style findings as the live app does",
+      "description": "The 2026-11-12 pre-generation trial (25 DPT objectives, claude-sonnet-5-5) saved 4 of 25 practice halves; REQ-247's problem kinds showed only distractor-lint (style) findings. Live generation (generateValid with lintOf, REQ-216 M6) retries such a draft once, steered with fixFor, and serves a retry with style findings only; pre-generation failed it outright. Pre-generation now does the same: hard problems fail; style-only drafts get one live steered retry (pregen_retry, inside --max-usd, counted); a style-only retry is saved through the same fact-check and holdbacks; a retry with hard problems, or one the cap cannot cover, leaves the lesson for its first visit. A held half's retry follows the same rule. The upper bound reserves one live practice retry per lesson. A capitalized cue word inside a proper name is not a cue. A submit without --limit needs --confirm-full-run (workflow confirm_full_run). The batch practice prompt is the app's, ITEM_WRITING_RULES included (tested). No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/pregen.ts",
+        "backend/lib/content-validator.ts",
+        "backend/scripts/pregenerate-lib.ts",
+        "backend/scripts/pregenerate.ts",
+        ".github/workflows/pregenerate.yml",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "style-only then clean retry is saved",
+        "style-only then style-only retry is saved and logged",
+        "style-only then hard retry fails",
+        "no cap means no retry",
+        "batch practice prompt equals the live prompt",
+        "upper bound includes one live retry per lesson",
+        "a full submit needs confirm_full_run"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend lib/pregen.dbtest.ts",
+        "tsc",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "the launch-set upper bound (about 171.82 USD) is over the 110 USD cap and Console limit"
+      ]
+    },
+    {
+      "id": "REQ-253",
+      "category": "feature",
+      "title": "Lesson primers: a Key terms button in every lesson",
+      "description": "Phase 1B of teaching learners at every level (design 2026-11-12, sections 4-5, Nick's decisions): one shared primer per objective (lesson_primers, migration 079: terms jsonb {term, plain, example, exam_wording}, source_lesson_hash, model, generated_at), written on first use from the finished shared lesson (intro and practice text) and the objective: every term a newcomer would not know, one plain sentence, an everyday example, the exam's wording, about 8 at most, none defined with an undefined term. Checked before saving: deterministic (every primer term in the lesson, every technical term covered: title-listed items and acronyms, docs/lesson-primers.md), a plain-language lint, the writer's doubt, the existing fact-check per definition, one steered retry then save or fail (generateValid's pattern). Stale when the lesson's hash changes: rewritten on next use. GET /api/objectives/:id/primer with the lesson route's access rules and the 18+ rule; shared content uses no plan allowance, its calls are charged to the learner's daily budget, it waits at the global ceiling, 30 starts an hour. Pre-generation primers mode (batch submit and collect, max_usd honored with an upper bound naming every call, insert-if-absent, problem-kind counts, no lesson text in logs). Mobile KeyTermsButton: a reusable sheet at every lesson step, 48 dp targets, screen-reader labels, offline from the cached primer, loading and error states, exported with initiallyOpen for the levels work.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/079_lesson_primers.sql",
+        "backend/lib/primers.ts",
+        "backend/lib/pregen-primers.ts",
+        "backend/lib/pregen.ts",
+        "backend/app/api/objectives/[id]/primer/route.ts",
+        "backend/lib/schema-status.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/lib/ai-spend-ledger.ts",
+        "backend/lib/item-quality.ts",
+        "backend/scripts/pregenerate.ts",
+        "backend/scripts/pregenerate-lib.ts",
+        ".github/workflows/pregenerate.yml",
+        "mobile/src/components/KeyTerms.tsx",
+        "mobile/src/lib/keyTerms.ts",
+        "mobile/src/lib/localData.ts",
+        "mobile/src/api/client.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "docs/lesson-primers.md",
+        "docs/operations-runbook.md",
+        "docs/deploy-runbook-integration.md",
+        "docs/legal/data-inventory.md"
+      ],
+      "acceptance_criteria": [
+        "lesson_primers one shared row per objective with RLS and app_runtime grants",
+        "primer written on first use from the shared lesson and stored",
+        "every primer term appears in the lesson and every technical term is covered",
+        "plain-language lint and fact-check per definition with one steered retry",
+        "stale primer rewritten when the lesson hash changes",
+        "GET /api/objectives/:id/primer applies the lesson route's visibility and 18+ rules",
+        "no plan allowance used and the global ceiling applies",
+        "pregen primers mode honors max_usd and saves insert-if-absent with counts-only logs",
+        "Key terms button at every lesson step with 48 dp target and screen-reader labels and offline copy"
+      ],
+      "validation_required": [
+        "backend/lib/primers.test.ts",
+        "backend/lib/primers.dbtest.ts",
+        "mobile/src/lib/keyTerms.test.ts",
+        "npm run test:db and as app_runtime",
+        "tsc",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/lesson-primers.md",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "visuals unverified (no browser)",
+        "real model output unverified (tests mock it)",
+        "a 10 USD cap covers about half of the 95 Python and JavaScript primers by the upper bound"
+      ]
+    },
+    {
+      "id": "REQ-251",
+      "category": "quality",
+      "title": "Generated questions follow the answer-choice style rules more reliably",
+      "description": "The 2026-11-12 pre-generation trial (25 DPT objectives, claude-sonnet-5-5) had style findings on 22 of 25 first practice drafts (a right answer much longer than the others, absolute cue words in wrong options) and 15 of 25 still after the one steered retry, which are served (REQ-216 M6). The rules were already in ITEM_WRITING_RULES but stated without numbers ('parallel in length', 'never the longest'), named four of the eight cue words the lint checks, gave the right answer nowhere to put its qualifications while each question must also work as free response, and the schema descriptions where the options are written said only 'similar in length'. The rules, the option-field schema descriptions and the JSON template now state the lint's own thresholds (key at most 1.25x the mean wrong-option length or +8 characters, aim for the key not being the longest) and full cue-word list, from one module (lib/item-style.ts) the lint also reads; say options are short answers with qualifications in the explanation; carry a good/bad example pair and a check to run on each option set. The retry steer for both findings now names a concrete target (shorten the key to at most N characters or lengthen the wrong options to about M; make a wrong option wrong through content, with the word list). Two clear false positives fixed: a key not longer than every distractor is not 'much longer' (FAIL-1660), and 'every' in a stated interval ('every 2 hours') is not a cue (FAIL-1661). New offline report npm run items:style scores practice/quiz JSON with the validator and prints rates by kind. The cached stable system block is unchanged; the rules stay in the per-call task block. The real-model effect needs a measured trial. No migration. Nick's decision 2026-11-12 ('Let the model think', FAIL-1663): the practice half (claudeGenerator.practice and its steered retry, pregen practiceParams and liveRetryWriter.practice, the live eval) is written with bounded thinking from one configuration, PRACTICE_CALL in lib/lesson-generation.ts: adaptive thinking at effort low, max_tokens = PRACTICE_OUTPUT_TOKENS 6000 for the answer plus PRACTICE_THINKING_BUDGET_TOKENS 4000 (budget_tokens is a 400 on the 5.5 models, so the allowance only sizes max_tokens, the hard cap); a reply that still stops on max_tokens is written once more with thinking off in the app (not in pregen, where it is a failed retry inside the bound). The intro (teaching text) stays thinking off. Pregen's upper bound prices the allowance on the batch draft and the live retry: about $0.255 a lesson (was $0.195); the pregen.dbtest cost-bound limit rises from $0.20 to $0.30 with the reason in the test. Per-learner budgets and the global ceiling are unchanged; each call reserves its own max_tokens.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/prompts.ts",
+        "backend/lib/item-style.ts",
+        "backend/lib/content-validator.ts",
+        "backend/scripts/item-style-report.ts",
+        "backend/scripts/item-style-report-lib.ts",
+        "backend/package.json",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "rules state the lint's ratio",
+        "slack and full cue list",
+        "option schema descriptions and template carry them for Guided Solo and Quiz",
+        "cached stable block unchanged",
+        "retry steer names a target",
+        "example pair passes/fails by the validator itself",
+        "FAIL-1660 and FAIL-1661 fixed with the intent kept",
+        "offline style report with npm script and runbook line"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "tsc compared with master",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/operations-runbook.md"
+      ],
+      "risk_notes": [
+        "real-model effect unmeasured until a 25-lesson trial",
+        "longer task prompt adds a few hundred input tokens per item call",
+        "practice thinking effect on style findings, token use and cost is unmeasured until the next 25-lesson trial; trial needs max_usd 7"
+      ]
+    },
+    {
+      "id": "REQ-250",
+      "category": "defect",
+      "title": "Leave a lesson at any step without losing your place",
+      "description": "Pilot tester (2026-11-12): 'once I'm in a lesson or objective, I can't navigate back to the dashboard or check my progress ... There should be a way to leave an objective, view my overall progress, or come back to it later without losing where I left off.' The lesson header gets Save and exit (back when there is history, else replace with the course page; mobile/src/lib/lessonExit.ts) and Course progress, on the loading and error states too; every step but done says 'Your place is saved \u2014 leave any time and pick up here.' and ends with Save and exit and Home. Each exit sends the pending account save first. Leaving at Try it keeps the place (saved as the graded Solo step, FAIL-1641). GET /api/courses/:id reports lesson_saved_at per objective within the 7-day resume window; the course and Mastery rows show In progress / Place saved and Continue opens the most recent saved place (FAIL-1642). Sims and exams keep their own exits. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonExit.ts",
+        "mobile/src/lib/lessonExit.test.ts",
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/src/lib/nextStep.ts",
+        "mobile/src/types/index.ts",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/app/(app)/course/[trackId]/progress.tsx",
+        "mobile/src/lib/f5WebA11y.test.ts",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/lib/lesson-saved-place.dbtest.ts",
+        ".ai/checklists/pre-completion.md"
+      ],
+      "acceptance_criteria": [
+        "a way out on every lesson step and state with or without history",
+        "a way to the course Progress screen and Home",
+        "a line saying the place is saved",
+        "leaving at any step including Try it loses nothing",
+        "a saved place shows as in progress on the course page and Continue opens it",
+        "labels and 48 dp targets and the done screen exits unchanged"
+      ],
+      "validation_required": [
+        "mobile npm test",
+        "mobile tsc",
+        "backend npm test",
+        "lesson-saved-place dbtest",
+        "web e2e (tab-order) when a browser is available"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "browser not available in the build container: web header behavior verified by code and unit tests only",
+        "Web header behavior not checked in a browser: /opt/pw-browsers/chromium is missing in the build container, so the reproduction and mobile/e2e/tab-order.e2e.mjs were not run; verified by code, unit tests and a passing web export."
+      ]
+    },
+    {
+      "id": "REQ-254",
+      "category": "quality",
+      "title": "Duplicate-option check respects code",
+      "description": "Code options that differ only in punctuation or case (== vs ===, [] vs (), None vs none) are different answers, not duplicates (FAIL-1760). Found by the 2026-11-12 Python/JavaScript pre-generation, where 10 of 92 lessons failed on it. Follow-up (FAIL-1761, FAIL-1762): string literals and concatenation count as code; pregen problem kinds strip everything between the first and last quote so no option text reaches the public log.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/content-validator.ts"
+      ],
+      "acceptance_criteria": [
+        "code-like options compared exactly with whitespace collapsed",
+        "plain-language duplicates still caught"
+      ],
+      "validation_required": [
+        "backend/lib/code-option-duplicates.test.ts",
+        "backend/lib/pregen-problem-kinds.test.ts"
+      ],
+      "documentation_required": [],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-252",
+      "category": "feature",
+      "title": "Teaching learners at every level, phase 1A: levels, the per-course goal question, the level-aware lesson flow and progress signals",
+      "description": "Per course: the goal question approved 2026-11-10 (five options) and a level (New, Some background, Experienced) defaulted from the goal and the account experience answer (experience wins), confirmed by a concrete self-rating, changeable per course or per unit. Levels move up automatically from mastery evidence (4 of the last 5 first-try solo answers in a unit right without a hint; LEVEL_UP_WINDOW and LEVEL_UP_MIN_FIRST_TRY_CORRECT) with a notice and Undo, never silently. On courses with subject_tracks.level_flow (Python and JavaScript in phase 1): New gets REQ-253's Key terms sheet opened once at the start (initiallyOpen on the one KeyTermsButton), a one-tap hunch on the Guided item and the full worked example before Guided; Experienced is offered Skip guided; Some background unchanged; Solo the same for all. Progress signals: a five-rung mastery ladder (Mastered and Kept are today's Independent and Transfer-ready), You can now, before/after, comeback credit. Phase 1 lesson events in learner_events with a fixed detail, Key terms opened and closed included. Migration 078, safe to apply after 079.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/078_learner_levels.sql",
+        "backend/lib/learner-level.ts",
+        "backend/lib/learner-level-rules.ts",
+        "backend/app/api/courses/[id]/level",
+        "backend/app/api/objectives/[id]/lesson-event",
+        "mobile/src/lib/learnerLevel.ts",
+        "mobile/src/components/LearnerLevel.tsx",
+        "mobile/src/components/CourseLevelPanel.tsx",
+        "mobile/app/(app)/course/[trackId]/level.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "acceptance_criteria": [
+        "The five goal options are asked when a course is opened and editable in course level settings",
+        "Level defaults from goal and experience with experience winning and is shown as a chip",
+        "Per-unit levels override the course level",
+        "A unit moves up one level when 4 of the last 5 first-try solo answers are right without a hint with a notice and Undo",
+        "Pilot courses only: New gets the one-tap hunch and full worked example and Experienced is offered Skip guided",
+        "Mastered and Kept rungs equal Independent and Transfer-ready",
+        "No model call is added",
+        "Lesson events store no answer text"
+      ],
+      "validation_required": [
+        "backend lib/learner-level-rules.test.ts",
+        "backend lib/learner-level.dbtest.ts against Postgres 16 with migrations through 078 and the seed",
+        "mobile src/lib/learnerLevel.test.ts",
+        "tsc backend and mobile compared with master",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/learner-levels.md",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md",
+        "mobile/src/content/legal.ts FAQ About Privacy"
+      ],
+      "risk_notes": [
+        "Privacy text changed without a version bump (decision for Nick)",
+        "Every existing learner sees the goal question once on each course page",
+        "Hunch falls back to the typed guess while the practice half is still generating",
+        "Visuals (hunch, ladder, notice, Key terms opening for New) not checked in a browser or device: none available",
+        "Seed on this branch writes subject_tracks.level_flow: run it only after 078 is applied"
+      ]
+    },
+    {
+      "id": "REQ-255",
+      "category": "feature",
+      "title": "Earlier entry points for the per-course goal question",
+      "description": "Follow-up to REQ-252 (Nick, 2026-11-12: ask the goal when the learner picks a course, not later). The goal is asked once per course wherever it comes first: in the welcome intake beside the experience question for the first course (saved to that course's level profile after the first run records the course); on Start course through a small sheet with one-tap reasons and the pre-selected starting level, Skip for now keeping the suggestion; as a fallback, a one-tap card above the first lesson opened in a course never asked, never blocking, Not now counting as asked. The course page panel becomes a change point (the answer with Change) and never prompts. Applies to every course; only lesson-flow changes stay behind level_flow. Answered, skipped and dismissed are course_goal_set events with outcome and via in detail. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/learner-level-rules.ts",
+        "backend/lib/learner-level.ts",
+        "backend/app/api/courses/[id]/level",
+        "mobile/src/lib/learnerLevel.ts",
+        "mobile/src/components/LearnerLevel.tsx",
+        "mobile/src/components/CourseLevelPanel.tsx",
+        "mobile/src/components/IntakeForm.tsx",
+        "mobile/app/(app)/welcome.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/app/(app)/course/[trackId]/level.tsx"
+      ],
+      "acceptance_criteria": [
+        "The welcome intake asks the goal for the first course beside the experience question and saves it through PUT /api/courses/:id/level",
+        "Start course on a course never asked opens a sheet where one tap on a reason saves and starts the lesson and Skip for now keeps the suggested level",
+        "The first lesson in a course never asked shows a one-tap card above the lesson that never blocks it and Not now counts as asked",
+        "The course page panel shows the answer with Change and never prompts",
+        "Answered skipped and dismissed are recorded as course_goal_set with outcome and via and no answer text",
+        "48 dp targets and labeled controls",
+        "No migration"
+      ],
+      "validation_required": [
+        "backend lib/learner-level-rules.test.ts",
+        "backend lib/learner-level.dbtest.ts on Postgres 16",
+        "mobile src/lib/goalEntryPoints.test.ts",
+        "tsc backend and mobile compared with master",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/learner-levels.md",
+        "mobile/src/content/legal.ts FAQ",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Visual layout of the sheet and card not checked in a browser or device",
+        "Skip for now counts as asked (decision for Nick)"
+      ]
+    },
+    {
+      "id": "REQ-256",
+      "category": "feature",
+      "title": "Learner levels follow-ups: suggest moving a unit down, stop the lesson goal card after two ignored showings, watch the goal question's drop-off",
+      "description": "Nick 2026-11-12 approved all recommended fixes. (1) The downward counterpart to REQ-252's automatic move up, as a suggestion only: at the level check after a solo answer, when nothing moved up, on a course with level_flow and for an app that sends suggest true, if 3 of the last 5 first-try solo answers in the unit were missed (incorrect or partial) or every one of at least 3 recent typed guesses was off (guess_matched, the model's guessMatch), the done screen asks This unit seems tougher than expected. Want more step-by-step help here? Yes moves that unit down one level (never below New) recorded in learner_level_changes with reason suggested so Undo puts it back; Not now snoozes it for the unit for a week; at most one suggestion per unit per week. Named constants LEVEL_DOWN_WINDOW 5, LEVEL_DOWN_MIN_MISSED 3, LEVEL_DOWN_MIN_GUESSES 3, LEVEL_DOWN_SNOOZE_DAYS 7 mirrored on mobile and pinned by tests. (2) REQ-255's lesson goal card is counted on the server per lesson (goal_card_shown); after GOAL_CARD_MAX_SHOWINGS 2 lessons unanswered it is recorded dismissed like Not now (course_goal_set outcome dismissed via lesson reason auto) and not shown again. (3) A read-only query in docs/learner-levels.md and npm run metrics for the share of Start-course sheets not followed by a lesson start and the skip and dismiss rates by via, from course_goal_set only. Migration 080 (event names and the suggested reason).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/080_level_down_suggestions.sql",
+        "backend/lib/learner-level-rules.ts",
+        "backend/lib/learner-level.ts",
+        "backend/lib/events.ts",
+        "backend/lib/metrics.ts",
+        "backend/scripts/metrics.ts",
+        "backend/app/api/courses/[id]/level",
+        "backend/app/api/objectives/[id]/guess-feedback/route.ts",
+        "mobile/src/lib/learnerLevel.ts",
+        "mobile/src/components/LearnerLevel.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "acceptance_criteria": [
+        "The move-down suggestion appears only after 3 of the last 5 first tries missed or every guess off and never moves the level by itself",
+        "Yes moves the unit down one level with a suggested change that Undo reverses and a double tap moves it once",
+        "Not now snoozes the unit for 7 days and at most one suggestion per unit per week",
+        "Never below New and only on level_flow courses and only for apps that send suggest true",
+        "The lesson goal card is shown in at most two lessons then recorded dismissed with via lesson and reason auto",
+        "The goal question query is documented and npm run metrics prints it",
+        "No model call is added and no answer or guess text is stored"
+      ],
+      "validation_required": [
+        "backend lib/learner-level-down.test.ts",
+        "backend lib/learner-level-down.dbtest.ts and lib/learner-level.dbtest.ts and lib/lesson-experience.dbtest.ts against Postgres 16 with migrations through 080 and the seed",
+        "mobile src/lib/levelDown.test.ts and goalEntryPoints.test.ts",
+        "tsc backend and mobile compared with master",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/learner-levels.md",
+        "docs/operations-runbook.md",
+        "docs/deploy-runbook-integration.md",
+        "docs/legal/data-inventory.md",
+        "CHANGELOG.md",
+        "mobile/src/content/legal.ts FAQ About Privacy"
+      ],
+      "risk_notes": [
+        "Migration 080 must be applied before the backend deploy",
+        "REQ-255 builds already installed do not ask the server so they keep showing the goal card until answered",
+        "The privacy text gained detail without a Privacy version bump (same as REQ-252)"
+      ]
+    },
+    {
+      "id": "REQ-257",
+      "category": "feature",
+      "title": "Switch on level-aware lessons for DPT, PTPREREQ, CCRNADULT and AWSSAA",
+      "description": "Nick 2026-11-12 (\"Yup let's do it\": Key terms for the pilot launch courses, then switch level_flow on per course as each is ready). These four courses' Key terms were pre-generated (most objectives have one; the rest are written on first use), so their seed tracks set levelFlow: true and the seed switches subject_tracks.level_flow on. New learners there now get Key terms opened first, the one-tap hunch and the full worked example before guided practice; Experienced learners are offered Skip guided; the move-down suggestion applies. The solo check and mastery rules are unchanged. FAQ and docs name the courses. AWSMLA, SECPLUS and CNA follow when their Key terms are written.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/supabase/seed/tracks/ccrn.ts",
+        "backend/supabase/seed/tracks/pt-dpt.ts",
+        "backend/supabase/seed/tracks/pt-prereq.ts",
+        "backend/supabase/seed/data.ts",
+        "mobile/src/content/legal.ts",
+        "docs/learner-levels.md"
+      ],
+      "acceptance_criteria": [
+        "DPT, PTPREREQ, CCRNADULT and AWSSAA seed tracks set levelFlow true and the seed switches level_flow on",
+        "No other course is switched on or off",
+        "FAQ and docs name the courses with level-aware lessons"
+      ],
+      "validation_required": [
+        "backend lib/level-flow-tracks.test.ts",
+        "backend and mobile test suites",
+        "python3 omni gate",
+        "production: subject_tracks.level_flow true for the four codes after the seed"
+      ],
+      "documentation_required": [
+        "docs/learner-levels.md",
+        "CHANGELOG.md",
+        "mobile/src/content/legal.ts FAQ"
+      ],
+      "risk_notes": [
+        "A course switched on cannot be switched off by the seed (it never clears level_flow); switching off is a manual update",
+        "Objectives without Key terms write them on first use, a live model call within the pilot AI ceiling"
+      ]
+    },
+    {
+      "id": "REQ-258",
+      "category": "feature",
+      "title": "Switch on level-aware lessons for AWSMLA, SECPLUS and CNA",
+      "description": "Nick 2026-11-12: switch level_flow on per course as each is ready. These three courses' Key terms were pre-generated, so their seed tracks set levelFlow: true. Same behavior as REQ-257. Completes the launch set.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/supabase/seed/tracks/nursing.ts",
+        "backend/supabase/seed/data.ts",
+        "backend/lib/level-flow-tracks.test.ts",
+        "backend/lib/release-notes.ts",
+        "mobile/src/content/legal.ts",
+        "docs/learner-levels.md"
+      ],
+      "acceptance_criteria": [
+        "AWSMLA, SECPLUS and CNA seed tracks set levelFlow true",
+        "The nine level-flow courses are pinned by lib/level-flow-tracks.test.ts",
+        "FAQ, docs and the What's new note name the courses"
+      ],
+      "validation_required": [
+        "backend lib/level-flow-tracks.test.ts",
+        "backend and mobile test suites",
+        "python3 omni gate",
+        "production: subject_tracks.level_flow true for the four codes after the seed"
+      ],
+      "documentation_required": [
+        "docs/learner-levels.md",
+        "CHANGELOG.md",
+        "mobile/src/content/legal.ts FAQ"
+      ],
+      "risk_notes": [
+        "A course switched on cannot be switched off by the seed (it never clears level_flow); switching off is a manual update",
+        "Objectives without Key terms write them on first use, a live model call within the pilot AI ceiling"
       ]
     }
   ]

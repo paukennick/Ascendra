@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import { DateField } from "@/components/DatePicker";
+import { HoldRates } from "@/components/HoldRates";
 import { Body, Button, Card, Divider, ErrorBanner, H2, ListRow, Loading, Muted, Screen, SectionHeader, TextField } from "@/components/ui";
 import { Alert } from "@/lib/alert";
 import { friendlyError } from "@/lib/errorMessage";
@@ -207,6 +208,9 @@ export default function AccessSettings() {
         {trackerLine ? <Body>{trackerLine}</Body> : null}
         <Button label="Send a test error" variant="ghost" icon="send" loading={busy === "tracker"} onPress={testTracker} />
       </Card>
+
+      {/* REQ-235: generated vs held back, per course and kind (counts only). */}
+      <HoldRates />
 
       {list?.history.length ? (
         <>

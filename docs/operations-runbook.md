@@ -222,6 +222,16 @@ next deployment only.
 - `AI_GLOBAL_DAILY_CEILING_USD` (unset or `off` = none). Total model spend per
   UTC day; at it coach chat and lesson regenerate pause for everyone but
   owners.
+- `AI_PILOT_COACH_MESSAGES_PER_DAY` (default `0` = no coach) and
+  `AI_PILOT_GRADED_ANSWERS_PER_DAY` (unset = Free's 3). REQ-246, pilot only:
+  daily coach messages and AI-graded answers for a learner the AI mode limits
+  (not owners, not granted accounts). Pilot values `10` and `20`. They do
+  nothing once `AI_ACCESS_MODE` is `all` (or `paid` with billing on); delete
+  them when the pilot ends. A value that is not a whole number is reported
+  in `/api/health` (coach falls back to 0, graded to Free's allowance). Raise
+  the graded count with the pilot name, never
+  `BILLING_ALLOWANCE_GRADED_ANSWER_FREE`, which is Free's count after launch.
+  docs/billing.md, "Pilot-only allowances".
 - `ERROR_TRACKER_DSN`: see "Error tracker" above. Unset = nothing is sent.
 - `MIN_APP_VERSION` (semver; unset = no minimum). App builds below it get a
   426 "update required". `IOS_APP_STORE_URL` (an `https://apps.apple.com/`
@@ -237,7 +247,7 @@ next deployment only.
 - `MIGRATION_LOCK_TIMEOUT` (default `5s`; `0` = off). The lock wait
   `npm run migrate` allows before a migration fails and rolls back.
 - `SIMS_ENABLED` (off unless set), `SIMS_RENDERERS` (default
-  `bedside,board,session`), `SIMS_SERVE_UNREVIEWED` (on unless `off`): simulations.
+  `bedside,board,session,security-console,treatment-session,terminal`), `SIMS_SERVE_UNREVIEWED` (on unless `off`): simulations.
   `LABS_SERVE_UNREVIEWED` (on unless `off`): labs waiting for expert review.
 - `ITEM_FACT_CHECK` (on unless `off`): the second-model check before generated
   items publish. Off lets them publish unchecked.
@@ -405,6 +415,11 @@ retention period (the Privacy Policy says so); decide one if you want one.
 - **Source currency** (REQ-142): `npm run currency:report` lists exam
   outlines and lab sources overdue or due within 60 days
   ([source-reliability-standard.md](source-reliability-standard.md)).
+- **Goal question drop-off** (REQ-256): `npm run metrics -- --days 30`
+  (read-only) ends with "Goal question": the share of Start-course sheets
+  not followed by a lesson start, and the skip and dismiss rates by where
+  the question was asked. The query and how to read it are in
+  [learner-levels.md](learner-levels.md), "Watching the goal question".
 - **`auth_events` retention**: owned by the security branch (daily purge
   cron).
 
@@ -552,8 +567,43 @@ batches because the practice questions are written from the teaching text:
    queue, then saves **insert-if-absent**: it never replaces a lesson, a lesson
    a content fix voided or corrected, an authored lesson or a learner's own
    version. A lesson that fails a check is logged in `item_holdbacks` (review
-   with `npm run items`) and not saved; its first learner visit makes it through
-   the full pipeline, retry included.
+   with `npm run items`) and not saved.
+4. REQ-235: a held half gets the app's one steered retry, as a live call
+   (purpose `pregen_retry`, not discounted, inside `max_usd`, outside the
+   global daily ceiling like the rest of pre-generation). A held teaching text
+   is retried during the first collect, and if the retry passes that lesson is
+   finished live there (its practice was never in the batch); a held practice
+   half is retried during the second collect. Only a retry that passes every
+   check is saved. A retry the cap cannot cover is not made: the lesson stays
+   held and its first learner visit makes it through the full pipeline. Both
+   collects print the retry counts (retried, saved after the retry, held again,
+   not retried for budget), and the summary carries them.
+5. REQ-248: the distractor lint (an absolute cue word in a wrong option, a
+   right answer much longer than the others, "asks for N but option lists M")
+   is a **style finding**, as in the app (`generateValid`, REQ-216 M6), not a
+   failure. A practice draft whose only problems are style findings gets the
+   app's one steered retry (live, `pregen_retry`, inside `max_usd`, steered
+   with the findings); a retry with style findings only is saved, as the app
+   serves it, with the app's log line "lesson served with style findings after
+   one retry" (as kinds, no option text). A retry with a hard problem (an
+   empty or duplicate option, a key out of range, not English, an explanation
+   naming an option by position) fails, and a style retry the cap cannot cover
+   is not made: either way the lesson stays missing and is made on first
+   visit. A hard problem in the first draft fails at once, as before. Collect
+   prints the style-retry counts and the style findings by kind
+   (`styleFindingKinds`); `problemKinds` is the problems of lessons that failed.
+   Before REQ-248 any style finding failed the lesson outright (the
+   2026-11-12 trial: 21 of 25 practice halves, FAIL-1600).
+6. REQ-251: to measure answer-choice style offline (no model, no database),
+   score a trial's drafts or an export of stored lessons with
+   `cd backend && npm run items:style -- <file-or-dir> [...] [--json] [--label <text>]`.
+   It finds practice halves (camelCase or `lesson_content` snake_case) and
+   quiz items anywhere in .json/.jsonl files and prints counts only: items
+   with each kind of style finding, flagged cue words, and how often the right
+   answer is the longest option. Export stored lessons read-only, for example
+   `psql "$DATABASE_URL" -At -c "select json_agg(t) from (select fade_problem, fade_choices, fade_correct_index, solo_check, solo_choices, solo_correct_index from lesson_content where generated_at > '<trial start>') t" > lessons.json`.
+   Stored lessons are what was served (after the retry); first-draft rates
+   need the drafts themselves.
 
 Left out always: retired objectives and units, hidden courses (`hidden_at`
 passed), private courses, authored lessons, and any objective that already has
@@ -561,9 +611,18 @@ a lesson row of any kind.
 
 **The money.** `max_usd` is checked against an **upper bound**, not a guess:
 every request priced at its full `max_tokens` with the Batches discount, plus
-the fact-check at its full `max_tokens` (thinking included). At the 2026-11-09
+the fact-check at its full `max_tokens` (thinking included), plus (REQ-248) one
+live steered retry of the practice half at the full live price, so every
+lesson in the batch can have its retry inside the cap. At the 2026-11-09
 prices (Sonnet 5.5, $2 in / $10 out per million tokens; batches $1 / $5) that is
-about **$0.118 a lesson, so about 84 lessons per $10** of cap. The real cost is
+about **$0.255 a lesson, so about 39 lessons per $10** of cap. It was $0.119
+before the retry was reserved and $0.195 before REQ-251 let the practice half
+think: a practice request's `max_tokens` is now 10,000 (6,000 for the answer
+plus a 4,000-token thinking allowance, `PRACTICE_THINKING_BUDGET_TOKENS` in
+lib/lesson-generation.ts), and thinking is billed as output, so the bound
+prices all of it, on the batch draft and on the live retry. Every live call (a retry, a fact-check) is also
+checked against the cap at its worst case before it is made, so `max_usd` is a
+ceiling on the whole run, not only on the plan. The real cost is
 expected to be well under that (collect prints the actual figure), so a run
 usually leaves cap unspent; run estimate again afterwards for what is left.
 `--tracks` is a **priority order**: a track is filled before the next, a unit at
@@ -597,23 +656,37 @@ workflow stops at once, naming the secret, if `PROD_DATABASE_URL` or
 **(b) Estimate.** Actions -> Pre-generate lessons -> Run workflow, mode
 `estimate`. `tracks` defaults to the launch set in priority order:
 `DPT,PTPREREQ,CCRNADULT,AWSSAA,AWSMLA,SECPLUS,CNA`; `max_usd` 110. On the
-batch-10 seed this is 845 lessons and an upper bound of $100.23 (DPT 110,
-PTPREREQ 95, CCRNADULT 271, AWSSAA 99, AWSMLA 107, SECPLUS 36, CNA 127), so the
-whole set fits with $9.77 to spare. Read the log:
+2026-11-12 seed (REQ-251: the retry reserved and the practice thinking
+allowance priced) a fresh database has 886 lessons for these tracks and an
+upper bound of $227.83 (DPT 110 lessons $28.25, PTPREREQ 95 $24.39, CCRNADULT
+271 $69.74, AWSSAA 99 $25.50, AWSMLA 107 $27.49, SECPLUS 77 $19.77, CNA 127
+$32.69); it was $172.79 before REQ-251. **$110 no longer covers the whole
+set**: it covers 401 lessons by the bound (fresh seed): the cutoff falls in
+CCRNADULT, at "Multisystem", leaving AWSSAA, AWSMLA, SECPLUS and CNA out. Raise
+`max_usd` and the Console workspace limit together, or let the cutoff stand and
+run again with what is left (the actual cost is expected to be far below the
+bound). Read the log:
 lessons and upper-bound cost per track and the line "Cut off at ...". Change
 the order or drop courses until the cutoff is where you want it. No model call,
 no write.
 
 **(b2) Trial first.** Before the full run, spend a few dollars to prove the
-whole path on real API responses (the request shapes are untested against the
-live API). Run `submit` with the same `tracks`, **`limit` 25 and `max_usd` 5**
-(25 lessons are about $3 at the upper bound), then collect both stages as in
-(d). Check the counts and the Console usage page (e). Then run **estimate
-again**: the 25 saved lessons drop out, and the new total and cutoff are what
-the full submit will use. Only then run (c) without `limit`.
+whole path on real API responses. Run `submit` with the same `tracks`,
+**`limit` 25 and `max_usd` 7** (25 lessons are about $6.40 at the upper bound
+since REQ-251; $6 no longer covers 25),
+then collect both stages as in (d). Check the counts and the Console usage page
+(e): **most of the 25 (90% or more) should be saved**. If they are not, read the
+"Content-check problems" and "Style findings" lines, fix the cause, and run
+another trial; do not go on. The 2026-11-12 trial saved 4 of 25 (FAIL-1600).
+Then run **estimate again**: the saved lessons drop out, and the new total and
+cutoff are what the full submit will use. Only then run (c) without `limit`.
 
 **(c) Submit.** Mode `submit`, the agreed `tracks` (priority order) and
-`max_usd` (110), no `limit`. The log prints the intro batch id (`msgbatch_...`). Most batches
+`max_usd`, no `limit`, and tick **`confirm_full_run`** (REQ-248): a submit with
+`limit` blank is refused without it, by the workflow before anything is
+installed and by the script (`--confirm-full-run`). It is a deliberate "the
+trial passed" step, not a check the script can make: the trial's counts live in
+its workflow artifact, not in the database. The log prints the intro batch id (`msgbatch_...`). Most batches
 finish within an hour.
 
 **(d) Collect, until it ends.** Mode `collect`, `batch_id` = the intro batch id,
@@ -621,7 +694,8 @@ the same `tracks` and `max_usd`. "Not finished yet" means run it later. When it
 has ended it starts the **practice batch** and prints its id. Wait again, then
 run `collect` with `batch_id` = the practice batch id and `intro_batch_id` = the
 intro batch id. That run saves the lessons and prints the counts (saved,
-already had one, held back, failed) and the actual cost. Run each collect once
+already had one, held back, failed, and the REQ-235 retry counts) and the actual
+cost. Run each collect once
 per ended batch: a repeat of the first starts nothing (the workflow refuses
 when a newer batch exists), and a repeat of the second only re-checks lessons
 still unsaved. To cover what was cut off, go back to (b): saved lessons drop out
@@ -638,6 +712,99 @@ not a problem: they are simply still missing and are made on first visit.
 The log never contains prompts, lesson text or claims (the held-back claims are in
 `item_holdbacks`). To rehearse without cost, `npm run pregen -- --submit
 --tracks ... --max-usd 110 --dry-run` builds every request and sends nothing.
+
+### Pre-generating lesson primers ("Key terms", REQ-253)
+
+The same workflow makes the **Key terms** of objectives that already have a
+lesson: set **`content` = `primers`** (locally, add `--primers`). Without it a
+primer is written the first time a learner opens Key terms (docs/lesson-primers.md),
+and that learner waits a few seconds. Needs migration 079.
+
+- **What is eligible:** an objective of a listed catalog track, active, with a
+  servable shared lesson and **no primer row**. A primer that went stale (its
+  lesson changed) is left to its next use. An objective with no lesson yet is
+  skipped: pre-generate its lesson first.
+- **One batch, no practice stage.** `submit` creates the primer batch;
+  `collect` with that `batch_id` runs every check (the deterministic term
+  checks, the writer's doubt, the plain-language lint, the fact-check of each
+  definition, one live steered retry `pregen_retry`) and saves
+  insert-if-absent. Never give `intro_batch_id` (refused).
+- **The cap.** `max_usd` is checked against an upper bound that names every
+  call a primer can make: the batch request at its max output, one live retry,
+  and two live fact-checks of up to 10 terms with the checker's thinking. That
+  is about **$0.21 a primer** (Sonnet 5.5 list prices, 2026-11-09); the typical
+  cost is about **$0.03** (one batch request plus one fact-check). Python and
+  JavaScript (95 objectives, if every one has a lesson; production was not
+  checked) are about **$20 at the bound**
+  and about **$2.70 typical**, so **a $10 cap covers about 47 of the 95** in the
+  first run (whole units, Python first if `tracks` = `PYTHON,JAVASCRIPT`).
+  Collect it, then run `estimate` and `submit` again for the rest with
+  `max_usd` = $10 minus what was spent (the saved primers drop out); or agree
+  a $20 cap. Both figures are estimates; collect prints the actual cost.
+- **Trial first** (REQ-248): `submit` with `limit` 10 and `max_usd` 3, collect,
+  and check most were saved before a run without `limit` (which needs
+  `confirm_full_run`).
+- **The log** has counts, ids and problem KINDS only (quoted text and numbers
+  removed): saved, already had one, held back, failed, skipped, "lesson changed
+  since the submit", the retry counts, the content-check and plain-language
+  finding kinds, and the actual cost. Never lesson text, terms or claims.
+- **Check:** `select count(*) from lesson_primers;`, `npm run items -- list`
+  for held primers (item_kind `primer`), and `select purpose, count(*) from
+  ai_calls where purpose in ('pregen_primer', 'pregen_fact_check',
+  'pregen_retry') group by 1;`.
+- **Removing a bad primer:** `delete from lesson_primers where objective_id =
+  '<id>';`. The next learner to open Key terms gets a fresh one.
+
+Example (Python and JavaScript, $10): `content` primers, `mode` estimate,
+`tracks` `PYTHON,JAVASCRIPT`, `max_usd` 10; then a trial `submit` with `limit`
+10; `collect`; then `submit` with `confirm_full_run`; `collect`.
+
+## Generating sims (REQ-230)
+
+`npm run sims:generate` (backend) drafts one sim at a time for a course
+sub-objective and a screen (bedside, board or session), runs every gate and
+an independent fact check, and writes a draft that passes as files for a
+person to register. It never registers a sim, never touches the database,
+and sends nothing without `--run`. Design and gates: docs/sims.md 12.2.
+
+**Key and spend.** It uses only `ANTHROPIC_PREGEN_API_KEY`, the
+pre-generation workspace's key (set up under "Pre-generating lessons"
+(a)), so its spend sits under that workspace's limit and shows on its usage
+page, not in the app's `ai_calls` or daily ceiling. With no key, `--run`
+stops before any call and says so. Each run is also capped by `--max-usd`
+(default $3): before every call it adds the largest that call could cost
+(prompt plus the full output limit) and stops instead of passing the cap.
+Nick's plan: measure the first 20 drafts, then set a separate monthly sim
+budget from `--cost-summary`.
+
+**Steps** (from `backend/`, locally, with the key in the shell or in
+`backend/.env.local`):
+
+1. Pick objectives: `npm run sims:generate -- --select --course CCRNADULT`.
+   The list is a keyword screen with the reason recorded for each; a person
+   chooses. Objectives that already have a sim are listed last (breadth
+   before variants).
+2. Estimate: the same command with `--objective "<exact title>" --screen
+   bedside` and no `--run`. Read the prompt it writes under
+   `sim-drafts/prompts/` once per screen type.
+3. Generate: add `--run` (and `--idea "<seed idea>"` if you have one).
+   Exit 0 is ready, 2 is held, 1 is an error (no key, unknown objective,
+   bad arguments).
+4. Ready: read `sim-drafts/ready/<COURSE>/<slug>.sim.json`, then follow
+   `<slug>.register.md` (two `mv` lines, one `entry(...)` line in
+   `lib/sim/documents.ts`, then `npm run sims:lint`, `npm test` and
+   `npm run sim:cross-runtime -- engine-print`). It seeds as
+   `needs_expert_review` like every sim.
+5. Held: `sim-drafts/held/<COURSE>/<time>-<slug>/reasons.json` says which
+   gate failed on each attempt. `check_did_not_run` means the fact-check
+   call failed (not a verdict): run the same command again. `budget` means
+   the next call could have passed `--max-usd`.
+6. After each batch: `npm run sims:generate -- --cost-summary` (drafts,
+   ready, held, mean, median and highest cost per draft, cost per ready
+   sim). Every draft's own report is in `sim-drafts/reports/`.
+
+`sim-drafts/` is git-ignored; nothing in it is committed until a ready draft
+is moved into the seed.
 
 ## CI
 

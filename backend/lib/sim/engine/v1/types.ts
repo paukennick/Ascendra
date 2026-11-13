@@ -261,7 +261,11 @@ export type OutcomeClass = "target" | "recovered" | "harm";
 // REQ-225: "clinical-session" is the people-layer profile (docs/sims.md 9.2,
 // 20.2): a session with a client, where the outcome is what the session left
 // the client with (safety, protection, the right diagnosis, the alliance).
-export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session";
+// REQ-232: "physical-therapy" is the treatment-session profile (docs/sims.md
+// 9.2, 22.8): a PT session where the outcome is what the patient was left
+// with (the session's goal reached inside the stopping rules, a red flag
+// acted on, no fall, syncope or embolism).
+export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session" | "physical-therapy";
 
 export interface OutcomeSpec {
   profile: OutcomeProfile;
@@ -282,23 +286,31 @@ export interface Ending {
   phase?: Id; // a non-terminal ending is a branch point: the phase it moves to (required when terminal is false)
 }
 
+// One vital-sign tile: the bedside monitor's, and since REQ-232 the
+// treatment session's vitals too (the same bindings, alarms and bands).
+export interface VitalTile {
+  id: Id;
+  label: string;
+  spokenLabel: string;
+  value: Expr | [Expr, Expr];
+  unit: Unit;
+  sub?: Template;
+  alarm?: { low?: number; high?: number };
+  trend?: { history: Id; window: Duration; threshold: number };
+  announce: { bands: number[] };
+  colour: "ecg" | "art" | "cvp" | "pa" | "spo2" | "neutral";
+  hiddenUntil?: Expr;
+}
+
 export interface ScreenSpec {
-  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data";
+  // REQ-231: "security-console" is the security operations console as built
+  // (the design's "security" placeholder stays unused). REQ-232:
+  // "treatment-session" is the PT treatment session. REQ-237: "terminal" is
+  // the terminal and network screen as built (screen.terminal bindings).
+  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data" | "security-console" | "treatment-session";
   level?: number;
   bedside?: {
-    tiles: {
-      id: Id;
-      label: string;
-      spokenLabel: string;
-      value: Expr | [Expr, Expr];
-      unit: Unit;
-      sub?: Template;
-      alarm?: { low?: number; high?: number };
-      trend?: { history: Id; window: Duration; threshold: number };
-      announce: { bands: number[] };
-      colour: "ecg" | "art" | "cvp" | "pa" | "spo2" | "neutral";
-      hiddenUntil?: Expr;
-    }[];
+    tiles: VitalTile[];
     waveforms?: { kind: "ecg" | "art" | "pleth"; from: { hr: Id; sys?: Id; dia?: Id; flat?: Expr } }[];
     infusions?: Template;
     banner?: { when: Expr; text: Template }[];
@@ -325,7 +337,63 @@ export interface ScreenSpec {
     notes?: { id: Id; label: string; text: Template; when?: Expr; alert?: Expr }[];
     record?: { label: string; items: { label: Template; when: Expr }[] };
   };
+  // REQ-231: the security operations console (docs/sims.md 20, 20.1, 22.7),
+  // display-only like the board and the session. The alert queue lists the
+  // alerts whose `when` holds, newest `at` first (sim seconds), each with a
+  // severity, a status in words and `open` (an open alert is spoken at once,
+  // like an alarm). Events are log and telemetry lines shown while `when`
+  // holds, newest first, with the log they came from. Assets are hosts,
+  // accounts and cloud identities with a status in words and a tone
+  // (ok, watch, bad, held) the screen shows as a badge.
+  console?: {
+    alerts: { id: Id; severity: ConsoleSeverity; title: Template; detail?: Template; when: Expr; at: Expr; status: Template; open: Expr }[];
+    events: { id: Id; source: string; text: Template; when: Expr; at: Expr }[];
+    assets: { id: Id; label: string; spokenLabel: string; kind: string; status: Template; tone: Expr }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
+  // REQ-232: the physical therapy treatment session (docs/sims.md 8.2, 20,
+  // 22.8), display-only like the board and the client session. The patient's
+  // name and presentation (a template over state); the vitals, read as the
+  // bedside tiles are (HR, BP, SpO2, RPE, pain); what the patient is doing and
+  // how they move now (`activity`); the tests and measures taken so far, each
+  // shown once `when` holds, `flag` marking a red-flag finding the screen
+  // reader must hear at once; the interventions given with their dosage; and
+  // the stopping and escalation rules, always shown, `met` marking a rule
+  // crossed now (spoken at once, like an alarm).
+  treatment?: {
+    patient: { name: string; presentation: Template };
+    vitals: VitalTile[];
+    activity?: Template;
+    measures?: { id: Id; label: string; result: Template; when: Expr; flag?: Expr }[];
+    dosage?: { label: string; items: { label: Template; when: Expr }[] };
+    rules: { id: Id; label: string; text: Template; met: Expr }[];
+  };
+  // REQ-237: the terminal and network screen (docs/sims.md 20, 20.1, 22.10),
+  // display-only like the console. The learner's commands are the phase's
+  // actions (a bounded command set: no free shell, arguments chosen from
+  // lists); what a command prints is its `output` effects, shown as the
+  // transcript at the tick it ran. `prompt` is the shell prompt over state
+  // ("ops@app01:~$", or another host after an ssh). `lines` are output that
+  // appears on its own over sim time (a followed log, a watch), shown while
+  // `when` holds at `at` (sim seconds); `error` marks a line the screen
+  // reader must hear at once. `nodes` are hosts, devices, cluster nodes or
+  // services, and `links` the connections between two of them, each with a
+  // status in words and a tone (up, degraded, down, out) the map shows as a
+  // badge; a node or link that goes down is spoken at once, like an alarm.
+  terminal?: {
+    prompt: Template;
+    lines: { id: Id; text: Template; when: Expr; at: Expr; error?: Expr }[];
+    nodes: { id: Id; label: string; spokenLabel: string; kind: string; status: Template; tone: Expr }[];
+    links: { id: Id; from: Id; to: Id; label: string; status: Template; tone: Expr }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
 }
+
+export type ConsoleSeverity = "critical" | "high" | "medium" | "low";
+export type ConsoleTone = "ok" | "watch" | "bad" | "held";
+// REQ-237: the terminal screen's node and link tones. "out" is out of service
+// on purpose (cordoned, drained, shut for maintenance), not a fault.
+export type TerminalTone = "up" | "degraded" | "down" | "out";
 
 export type CriterionScore = "met" | "partial" | "missed";
 // REQ-190: a criterion row may also score "na" (not applicable), left out of

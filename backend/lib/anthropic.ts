@@ -140,6 +140,14 @@ export function getFastModel(): string {
 //      Haiku 5.5   {type:"disabled"}, valid at effort high or below.
 //      4.5 models  {type:"disabled"}.
 //    {type:"enabled", budget_tokens} is a 400 on 5.5 and is never sent.
+//    There is no thinking-only cap on 5.5 (docs: "You don't set a thinking
+//    token budget"; read 2026-11-12 at platform.claude.com/docs/en/
+//    build-with-claude/thinking-steering-and-cost). A call that wants some
+//    thinking (REQ-251: the practice writer) is bounded with the two levers
+//    the docs name: effort (soft: low = "Claude minimizes thinking") and
+//    max_tokens (hard), sized as the answer's own headroom PLUS a thinking
+//    allowance (CallOptions.thinkingBudgetTokens), so thinking that uses its
+//    whole allowance still leaves the answer all of its room.
 //  - output_config.effort: sent for the 5.5 models; NOT supported on the 4.5
 //    models, where it is dropped (so ANTHROPIC_MODEL can be rolled back).
 //  - An unrecognized model id gets neither thinking nor effort (the safe
@@ -225,13 +233,34 @@ export function modelParams(
 // we can't tell) get headroom.
 export const THINKING_HEADROOM_TOKENS = 4000;
 
-export function effectiveMaxTokens(model: string, base: number, thinking: ThinkingMode = "default"): number {
+// `thinkingTokens` (REQ-251) is the allowance a caller sizes for its own
+// thinking; THINKING_HEADROOM_TOKENS when it does not say. Either way the
+// answer keeps all of `base`: thinking that runs to its allowance cannot eat
+// into it, which is how FAIL-008 (blocks=[thinking], stop_reason max_tokens)
+// happened when thinking and the answer shared one answer-sized ceiling.
+export function effectiveMaxTokens(
+  model: string,
+  base: number,
+  thinking: ThinkingMode = "default",
+  thinkingTokens: number = THINKING_HEADROOM_TOKENS
+): number {
+  if (!Number.isInteger(thinkingTokens) || thinkingTokens < 0) {
+    throw new Error(`thinkingBudgetTokens must be a whole number of tokens, 0 or more; got ${String(thinkingTokens)}.`);
+  }
+  return thinkingMayRun(model, thinking) ? base + thinkingTokens : base;
+}
+
+// Whether the model may think on a call with this thinking mode: unknown
+// models and Opus always (thinking can't be turned off, or we can't tell),
+// the 5.5 Sonnet and Haiku unless thinking is "off", the 4.5 models never
+// (their thinking is off unless enabled, and nothing here enables it).
+export function thinkingMayRun(model: string, thinking: ThinkingMode): boolean {
   const family = modelFamily(model);
-  const thinkingMayRun =
+  return (
     family === "unknown" ||
     family === "opus-5-5" ||
-    ((family === "sonnet-5-5" || family === "haiku-5-5") && thinking === "default");
-  return thinkingMayRun ? base + THINKING_HEADROOM_TOKENS : base;
+    ((family === "sonnet-5-5" || family === "haiku-5-5") && thinking === "default")
+  );
 }
 
 const warnedUnknownModels = new Set<string>();
@@ -271,6 +300,11 @@ export interface CallOptions {
   model?: string;
   effort?: Effort;
   thinking?: ThinkingMode;
+  // REQ-251: output reserved for thinking on top of maxTokens when thinking
+  // may run (see effectiveMaxTokens); THINKING_HEADROOM_TOKENS by default.
+  // Never sent as budget_tokens (a 400 on the 5.5 models): it only sizes
+  // max_tokens, the hard cap on thinking plus answer.
+  thinkingBudgetTokens?: number;
   // Recorded in ai_calls; required so a new call site can't go unlabelled.
   purpose: AiPurpose;
   // REQ-202: REQUIRED, so a new call site cannot forget it. The learner the
@@ -327,7 +361,7 @@ export function buildRequest(opts: CallOptions, outputFormat?: unknown): Record<
   };
   return {
     model,
-    max_tokens: effectiveMaxTokens(model, opts.maxTokens ?? 2000, thinkingMode),
+    max_tokens: effectiveMaxTokens(model, opts.maxTokens ?? 2000, thinkingMode, opts.thinkingBudgetTokens),
     ...(params.thinking ? { thinking: params.thinking } : {}),
     ...(Object.keys(outputConfig).length ? { output_config: outputConfig } : {}),
     system: systemParam(opts.system),

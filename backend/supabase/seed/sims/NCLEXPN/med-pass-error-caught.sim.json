@@ -1,0 +1,1375 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "med-pass-error-caught",
+  "title": "The med pass that almost went wrong",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "apical",
+          "label": "Apical",
+          "spokenLabel": "Apical pulse, counted for a full minute",
+          "value": "apLast",
+          "unit": "/min",
+          "alarm": {
+            "low": 60
+          },
+          "announce": {
+            "bands": [
+              60,
+              50
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "apLast > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "bpS",
+            "bpD"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "bpS > 0"
+        },
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate now",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              60,
+              50,
+              45
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "given > 0"
+        }
+      ],
+      "infusions": "Given: {given} of 4. Held: {held}. Card checked against the MAR: {cardCheck|yesno}. Two identifiers: {idOk|yesno}.",
+      "banner": [
+        {
+          "when": "wrongPerson",
+          "text": "Medications given to the wrong resident."
+        }
+      ]
+    }
+  },
+  "objective": "The rights of medication administration, applied rather than recited",
+  "secondaryObjectives": [
+    "Take an apical pulse before digoxin and withhold and report it below 60 beats per minute, and report signs of toxicity -- nausea, vomiting, visual changes, dysrhythmias",
+    "Checking contraindications, allergies and interactions before giving",
+    "Know that a sentinel event, such as a fall that causes death or permanent disability, is investigated by root cause analysis aimed at system causes, which is why prompt incident reports matter"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_PN_Test Plan-F.pdf",
+      "note": "Read 2026-11-11 (primary PDF): Pharmacological Therapies 10-16% of items, including 'Follow the rights of medication administration' and 'Collect required data prior to medication administration (e.g., contraindications, current medications)'; Safety and Infection Prevention and Control: 'Verify the identity of client' and 'Acknowledge and document practice errors and near misses (e.g., incident report)'."
+    },
+    {
+      "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-11",
+      "note": "The objective and secondary objectives are the course's own titles, including 'Take an apical pulse before digoxin and withhold and report it below 60 beats per minute'. Not re-fetched for this scenario."
+    },
+    {
+      "cite": "Provider order on the MAR (authored for this scenario)",
+      "checkedAt": "2026-11-11",
+      "note": "Mr. Robert Hall's orders: digoxin 0.125 mg by mouth daily, hold for an apical pulse below 60 and notify; metoprolol tartrate 25 mg by mouth twice daily, hold for HR below 60 or systolic below 100 and notify; furosemide 40 mg daily; potassium chloride 20 mEq daily. Hold parameters are written for this scenario."
+    }
+  ],
+  "brief": {
+    "situation": "08:00 med pass in a long-term care home. You are the LPN. Room 12A: Mr. Robert Hall, 84, heart failure and atrial fibrillation. His roommate in 12B is Mr. Robert Hale. The pharmacy delivered a new blister card of digoxin overnight.",
+    "handover": [
+      "Night shift: Mr. Hall said he felt 'a bit queasy' at 06:00 and didn't want much breakfast.",
+      "MAR for Mr. Hall at 08:00: digoxin 0.125 mg (hold for an apical pulse below 60), metoprolol tartrate 25 mg (hold for HR below 60 or systolic below 100), furosemide 40 mg, potassium chloride 20 mEq. Potassium yesterday 4.1.",
+      "Both men are hard of hearing and both answer to 'Robert'."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check and each medication is its own step. You can give, hold, or set a medication aside.",
+      "Partway through you are asked to write what you found and what you will do. The case ends at 08:45, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "08:00",
+    "tick": "1s",
+    "maxDuration": "45min",
+    "calendar": "clock"
+  },
+  "params": {
+    "apicalHold": {
+      "value": 60,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+        "checkedAt": "2026-11-11",
+        "note": "The objective and secondary objectives are the course's own titles, including 'Take an apical pulse before digoxin and withhold and report it below 60 beats per minute'. Not re-fetched for this scenario."
+      }
+    },
+    "sbpHold": {
+      "value": 100,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Provider order on the MAR (authored for this scenario)",
+        "checkedAt": "2026-11-11",
+        "note": "Metoprolol hold parameter written for this scenario."
+      }
+    },
+    "apicalTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+        "checkedAt": "2026-11-11",
+        "note": "The objective and secondary objectives are the course's own titles, including 'Take an apical pulse before digoxin and withhold and report it below 60 beats per minute'. Not re-fetched for this scenario."
+      }
+    },
+    "bpTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "A manual blood pressure: about 1 min."
+      }
+    },
+    "rnWalk": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "RN supervisor to the room: about 5 min."
+      }
+    },
+    "pharmacyCall": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Pharmacy phone call: about 5 min."
+      }
+    },
+    "brady": {
+      "value": 0.6,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Heart-rate fall per minute after a double digoxin dose plus metoprolol in a man already at 56. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmHr": {
+      "value": 45,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Heart rate at which this resident becomes dizzy and hypotensive. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reviewAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 08:45."
+      }
+    }
+  },
+  "state": {
+    "idOk": {
+      "type": "bool",
+      "init": false
+    },
+    "roomOnly": {
+      "type": "bool",
+      "init": false
+    },
+    "wrongPerson": {
+      "type": "bool",
+      "init": false
+    },
+    "cardCheck": {
+      "type": "bool",
+      "init": false
+    },
+    "cardCaughtAt": {
+      "type": "time",
+      "init": null
+    },
+    "allergyAt": {
+      "type": "time",
+      "init": null
+    },
+    "apLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "/min"
+    },
+    "apAt": {
+      "type": "time",
+      "init": null
+    },
+    "radialOnly": {
+      "type": "bool",
+      "init": false
+    },
+    "bpS": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "bpD": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "bpAt": {
+      "type": "time",
+      "init": null
+    },
+    "digGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "dig25": {
+      "type": "bool",
+      "init": false
+    },
+    "metoGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "furoGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "kGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "given": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "held": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "digHeld": {
+      "type": "bool",
+      "init": false
+    },
+    "metoHeld": {
+      "type": "bool",
+      "init": false
+    },
+    "reportAt": {
+      "type": "time",
+      "init": null
+    },
+    "pharmacyAt": {
+      "type": "time",
+      "init": null
+    },
+    "incidentAt": {
+      "type": "time",
+      "init": null
+    },
+    "incidentInChart": {
+      "type": "bool",
+      "init": false
+    },
+    "docAt": {
+      "type": "time",
+      "init": null
+    },
+    "toxAsked": {
+      "type": "time",
+      "init": null
+    },
+    "effectAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "baseHr": {
+      "expr": "56"
+    },
+    "hr": {
+      "expr": "round(clamp(isNull(effectAt) ? baseHr : baseHr - brady * (t - timeAt(effectAt)) / 60, 30, 120))",
+      "unit": "/min",
+      "precision": 0
+    }
+  },
+  "processes": [],
+  "phases": {
+    "live": {
+      "label": "Med pass",
+      "clock": "running",
+      "actions": [
+        "identify",
+        "roomCall",
+        "allergies",
+        "mar",
+        "apical",
+        "radial",
+        "bp",
+        "ask",
+        "giveDig",
+        "giveMeto",
+        "giveFuro",
+        "giveK",
+        "holdDig",
+        "holdMeto",
+        "report",
+        "pharmacy",
+        "incident",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "identify": {
+      "label": "Check two identifiers: name band and date of birth (and photo)",
+      "group": "Identify",
+      "available": "not idOk",
+      "why": "Already identified.",
+      "effects": [
+        {
+          "set": "idOk",
+          "to": "true"
+        },
+        {
+          "log": "Wristband: Robert Hall, born 1942-03-14, photo matches. He states his name and birth date. You are at 12A.",
+          "kind": "find"
+        }
+      ]
+    },
+    "roomCall": {
+      "label": "Call 'Robert?' at the door and go to the man who answers",
+      "group": "Identify",
+      "available": "not idOk and not roomOnly",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "roomOnly",
+          "to": "true"
+        },
+        {
+          "log": "Both men look up; the nearer one, in 12B, says 'Yes?'. You go to him.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "allergies": {
+      "label": "Check allergies and recent labs",
+      "group": "Before",
+      "effects": [
+        {
+          "if": "isNull(allergyAt)",
+          "then": [
+            {
+              "set": "allergyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "No known drug allergies. Potassium 4.1 yesterday. Last digoxin level two weeks ago, in range.",
+          "kind": "find"
+        }
+      ]
+    },
+    "mar": {
+      "label": "Compare each card with the MAR (first check)",
+      "group": "Before",
+      "available": "not cardCheck",
+      "why": "Already checked.",
+      "effects": [
+        {
+          "set": "cardCheck",
+          "to": "true"
+        },
+        {
+          "if": "isNull(cardCaughtAt)",
+          "then": [
+            {
+              "set": "cardCaughtAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Digoxin card label: digoxin 0.25 mg. MAR: digoxin 0.125 mg. Wrong strength: do not give it. Metoprolol, furosemide and potassium cards match.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "apical": {
+      "label": "Apical pulse for a full minute",
+      "group": "Before",
+      "available": "isNull(apAt)",
+      "why": "Already counted.",
+      "effects": [
+        {
+          "schedule": "apT",
+          "after": "apicalTime"
+        },
+        {
+          "log": "Counting the apical pulse for a full minute."
+        }
+      ]
+    },
+    "radial": {
+      "label": "Radial pulse for 15 seconds",
+      "group": "Before",
+      "available": "isNull(apAt)",
+      "why": "An apical pulse is already counted.",
+      "effects": [
+        {
+          "set": "radialOnly",
+          "to": "true"
+        },
+        {
+          "log": "Radial pulse about 64 (irregular, counted for 15 s and multiplied).",
+          "kind": "sys"
+        }
+      ]
+    },
+    "bp": {
+      "label": "Blood pressure",
+      "group": "Before",
+      "available": "isNull(bpAt)",
+      "why": "Already taken.",
+      "effects": [
+        {
+          "schedule": "bpT",
+          "after": "bpTime"
+        },
+        {
+          "log": "Taking his blood pressure."
+        }
+      ]
+    },
+    "ask": {
+      "label": "Ask about nausea, appetite and vision",
+      "group": "Before",
+      "effects": [
+        {
+          "if": "isNull(toxAsked)",
+          "then": [
+            {
+              "set": "toxAsked",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "\"Still queasy, off my food. And the lights look a bit yellow round the edges this morning.\"",
+          "kind": "find"
+        }
+      ]
+    },
+    "giveDig": {
+      "label": "Give digoxin from the new card",
+      "group": "Give",
+      "available": "not digGiven and not digHeld and not wrongPerson",
+      "why": "Already given or held.",
+      "effects": [
+        {
+          "set": "digGiven",
+          "to": "true"
+        },
+        {
+          "add": "given",
+          "by": "1"
+        },
+        {
+          "set": "dig25",
+          "to": "true"
+        },
+        {
+          "if": "isNull(effectAt)",
+          "then": [
+            {
+              "set": "effectAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not idOk",
+          "then": [
+            {
+              "set": "wrongPerson",
+              "to": "roomOnly"
+            },
+            {
+              "if": "roomOnly",
+              "then": [
+                {
+                  "log": "You were at 12B: Mr. Hale answered to 'Robert' and swallowed it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Digoxin given from the card."
+        }
+      ]
+    },
+    "giveMeto": {
+      "label": "Give metoprolol 25 mg",
+      "group": "Give",
+      "available": "not metoGiven and not metoHeld and not wrongPerson",
+      "why": "Already given or held.",
+      "effects": [
+        {
+          "set": "metoGiven",
+          "to": "true"
+        },
+        {
+          "add": "given",
+          "by": "1"
+        },
+        {
+          "if": "isNull(effectAt)",
+          "then": [
+            {
+              "set": "effectAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not idOk",
+          "then": [
+            {
+              "set": "wrongPerson",
+              "to": "roomOnly"
+            },
+            {
+              "if": "roomOnly",
+              "then": [
+                {
+                  "log": "You were at 12B: Mr. Hale answered to 'Robert' and swallowed it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Metoprolol given."
+        }
+      ]
+    },
+    "giveFuro": {
+      "label": "Give furosemide 40 mg",
+      "group": "Give",
+      "available": "not furoGiven and not wrongPerson",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "furoGiven",
+          "to": "true"
+        },
+        {
+          "add": "given",
+          "by": "1"
+        },
+        {
+          "if": "not idOk",
+          "then": [
+            {
+              "set": "wrongPerson",
+              "to": "roomOnly"
+            },
+            {
+              "if": "roomOnly",
+              "then": [
+                {
+                  "log": "You were at 12B: Mr. Hale answered to 'Robert' and swallowed it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Furosemide given."
+        }
+      ]
+    },
+    "giveK": {
+      "label": "Give potassium chloride 20 mEq",
+      "group": "Give",
+      "available": "not kGiven and not wrongPerson",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "kGiven",
+          "to": "true"
+        },
+        {
+          "add": "given",
+          "by": "1"
+        },
+        {
+          "if": "not idOk",
+          "then": [
+            {
+              "set": "wrongPerson",
+              "to": "roomOnly"
+            },
+            {
+              "if": "roomOnly",
+              "then": [
+                {
+                  "log": "You were at 12B: Mr. Hale answered to 'Robert' and swallowed it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Potassium chloride given with water."
+        }
+      ]
+    },
+    "holdDig": {
+      "label": "Hold the digoxin",
+      "group": "Hold",
+      "available": "not digGiven and not digHeld",
+      "why": "Already given or held.",
+      "effects": [
+        {
+          "set": "digHeld",
+          "to": "true"
+        },
+        {
+          "add": "held",
+          "by": "1"
+        },
+        {
+          "log": "Digoxin held."
+        }
+      ]
+    },
+    "holdMeto": {
+      "label": "Hold the metoprolol",
+      "group": "Hold",
+      "available": "not metoGiven and not metoHeld",
+      "why": "Already given or held.",
+      "effects": [
+        {
+          "set": "metoHeld",
+          "to": "true"
+        },
+        {
+          "add": "held",
+          "by": "1"
+        },
+        {
+          "log": "Metoprolol held."
+        }
+      ]
+    },
+    "report": {
+      "label": "Report to the RN supervisor (SBAR)",
+      "group": "Report",
+      "available": "isNull(reportAt) and not isNull(apAt)",
+      "why": "Count the apical pulse first (or already reported).",
+      "effects": [
+        {
+          "if": "isNull(reportAt)",
+          "then": [
+            {
+              "set": "reportAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "rnT",
+          "after": "rnWalk"
+        },
+        {
+          "log": "Reported to the RN: apical {apLast}, BP {bpS}/{bpD}, nausea and yellow-tinged vision on digoxin; digoxin and metoprolol held; a wrong-strength digoxin card."
+        }
+      ]
+    },
+    "pharmacy": {
+      "label": "Call the pharmacy about the card and set it aside",
+      "group": "Report",
+      "available": "cardCheck and isNull(pharmacyAt)",
+      "why": "Nothing to report to the pharmacy yet (or already called).",
+      "effects": [
+        {
+          "if": "isNull(pharmacyAt)",
+          "then": [
+            {
+              "set": "pharmacyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "pharmT",
+          "after": "pharmacyCall"
+        },
+        {
+          "log": "Card set aside in a bag, labeled 'do not use'; calling the pharmacy."
+        }
+      ]
+    },
+    "incident": {
+      "label": "File an incident report for the near miss",
+      "group": "Report",
+      "available": "isNull(incidentAt)",
+      "why": "Already filed.",
+      "params": [
+        {
+          "id": "where",
+          "kind": "choice",
+          "label": "Where",
+          "options": [
+            {
+              "value": "system",
+              "label": "In the facility's reporting system, not the chart"
+            },
+            {
+              "value": "chart",
+              "label": "Mention it in his progress note"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(incidentAt)",
+          "then": [
+            {
+              "set": "incidentAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "where == \"system\"",
+              "then": [
+                {
+                  "log": "Incident report filed in the reporting system: wrong-strength digoxin dispensed, caught at the first check, not given."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "incidentInChart",
+                  "to": "true"
+                },
+                {
+                  "log": "You write 'incident report filed for pharmacy error' in his progress note.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the med pass",
+      "group": "Report",
+      "available": "isNull(docAt)",
+      "why": "Already documented.",
+      "effects": [
+        {
+          "if": "isNull(docAt)",
+          "then": [
+            {
+              "set": "docAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "MAR updated: each medication given or held, with the apical pulse ({apLast}), the BP and the reason for each hold."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "apT": {
+      "label": "the apical pulse",
+      "wait": {
+        "skipLabel": "the apical pulse (1 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+        "checkedAt": "2026-11-11",
+        "note": "The objective and secondary objectives are the course's own titles, including 'Take an apical pulse before digoxin and withhold and report it below 60 beats per minute'. Not re-fetched for this scenario."
+      },
+      "effects": [
+        {
+          "set": "apAt",
+          "to": "t"
+        },
+        {
+          "set": "apLast",
+          "to": "hr"
+        },
+        {
+          "log": "Apical pulse {hr}, irregular, counted for a full minute.",
+          "kind": "find"
+        },
+        {
+          "if": "hr < apicalHold",
+          "then": [
+            {
+              "log": "Below 60: digoxin is held and reported.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "bpT": {
+      "label": "the blood pressure",
+      "wait": {
+        "skipLabel": "the blood pressure (about 1 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 1 min."
+      },
+      "effects": [
+        {
+          "set": "bpAt",
+          "to": "t"
+        },
+        {
+          "set": "bpS",
+          "to": "96"
+        },
+        {
+          "set": "bpD",
+          "to": "58"
+        },
+        {
+          "log": "BP 96/58: below metoprolol's hold parameter of 100 systolic.",
+          "kind": "find"
+        }
+      ]
+    },
+    "rnT": {
+      "label": "the RN supervisor",
+      "wait": {
+        "skipLabel": "the RN supervisor (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 5 min."
+      },
+      "effects": [
+        {
+          "log": "RN supervisor: assesses him, agrees with holding both, and calls the provider, who orders a digoxin level and an ECG today.",
+          "kind": "good"
+        }
+      ]
+    },
+    "pharmT": {
+      "label": "the pharmacy",
+      "wait": {
+        "skipLabel": "the pharmacy call (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "About 5 min."
+      },
+      "effects": [
+        {
+          "log": "Pharmacist: the card was filled from the wrong stock bin; a correct card is coming and the batch is being checked.",
+          "kind": "good"
+        }
+      ]
+    },
+    "endT": {
+      "label": "08:45",
+      "wait": {
+        "skipLabel": "08:45, the end of the med pass",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Long-term care unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The case ends at 08:45."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "slow",
+      "when": "hr < 50",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Mr. Hall is dizzy and pale; pulse {hr}.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "found": {
+      "trigger": "not isNull(apAt) or t >= 900",
+      "question": "What have you found before giving anything, and what will you do with each of the four medications?",
+      "parts": [
+        {
+          "label": "Findings",
+          "criteria": "Names the wrong-strength digoxin card (0.25 mg dispensed, 0.125 mg ordered), the apical pulse below 60, the BP below metoprolol's parameter, and nausea, poor appetite and visual changes as possible digoxin toxicity; confirms the resident with two identifiers, not the room or the first name.",
+          "modelAnswer": "The digoxin card is 0.25 mg against an order for 0.125 mg. His apical pulse is 56 and his BP 96/58, both below the hold parameters, and he has nausea, poor appetite and yellow-tinged vision, which can be digoxin toxicity. I confirmed it is Mr. Hall with his band and date of birth, not by calling 'Robert'."
+        },
+        {
+          "label": "What to do",
+          "criteria": "Holds digoxin and metoprolol and reports to the RN (and provider) with the data; gives furosemide and potassium as ordered; sets the card aside and tells the pharmacy; files an incident report for the near miss in the reporting system rather than the chart; documents the held doses and why.",
+          "modelAnswer": "Hold digoxin and metoprolol and report to the RN now with the pulse, BP and symptoms; give the furosemide and potassium. Set the wrong card aside and call the pharmacy. File an incident report in the reporting system for the near miss, not in his chart, and document the held doses with reasons."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and isNull(reportAt)",
+      "class": "recovered",
+      "rationale": "Nothing harmful was given, but the findings never reached the RN, so this case calls it recovered, never target.",
+      "source": {
+        "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+        "checkedAt": "2026-11-11",
+        "url": "https://nclex.com/files/2026_PN_Test Plan-F.pdf",
+        "note": "Read 2026-11-11 (primary PDF): Pharmacological Therapies 10-16% of items, including 'Follow the rights of medication administration' and 'Collect required data prior to medication administration (e.g., contraindications, current medications)'; Safety and Infection Prevention and Control: 'Verify the identity of client' and 'Acknowledge and document practice errors and near misses (e.g., incident report)'."
+      }
+    }
+  },
+  "endings": {
+    "bradycardia": {
+      "label": "Symptomatic bradycardia",
+      "class": "harm",
+      "when": "hr <= harmHr",
+      "terminal": true,
+      "narrative": "Mr. Hall slumps in his chair, pale and dizzy, pulse {hr}. The RN calls the provider; he is sent to the hospital with digoxin and beta-blocker effects."
+    },
+    "wrongResident": {
+      "label": "Given to the wrong resident",
+      "class": "harm",
+      "when": "wrongPerson",
+      "terminal": true,
+      "narrative": "Mr. Hale in 12B, who takes none of these, has swallowed Mr. Hall's medications. The RN and provider are called and he is monitored for a fall in heart rate and pressure."
+    },
+    "caught": {
+      "label": "Caught in time, reported properly",
+      "class": "target",
+      "when": "t >= reviewAt and not digGiven and not metoGiven and not wrongPerson and idOk and cardCheck and not isNull(apAt) and not isNull(reportAt) and not isNull(pharmacyAt) and not isNull(incidentAt) and not incidentInChart",
+      "terminal": true,
+      "narrative": "08:45: the wrong-strength card never reached him, digoxin and metoprolol were held for his pulse, pressure and symptoms, the RN and pharmacy know, and the near miss is in the reporting system where the system cause will be found."
+    },
+    "caughtGaps": {
+      "label": "Nothing harmful given, with gaps",
+      "class": "recovered",
+      "when": "t >= reviewAt and not digGiven and not metoGiven and not wrongPerson",
+      "terminal": true,
+      "narrative": "08:45: nothing harmful reached him, but a step was missed: a check, the report to the RN, the pharmacy call, or the incident report (or it went into the chart)."
+    },
+    "time_up": {
+      "label": "08:45 with a harmful dose given",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "08:45: a medication that should have been held was given. He is being watched closely."
+    }
+  },
+  "endingOrder": [
+    "wrongResident",
+    "bradycardia",
+    "caught",
+    "caughtGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "rightDrugDose",
+        "label": "Right drug and dose: the card checked against the MAR",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dig25",
+            "score": "missed",
+            "why": "The wrong-strength digoxin was given."
+          },
+          {
+            "when": "cardCheck",
+            "score": "met",
+            "why": "The wrong-strength card was caught at the first check."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cards were never compared with the MAR."
+          }
+        ]
+      },
+      {
+        "id": "rightPerson",
+        "label": "Right resident: two identifiers",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "wrongPerson",
+            "score": "missed",
+            "why": "Given to the man who answered to 'Robert'."
+          },
+          {
+            "when": "idOk",
+            "score": "met",
+            "why": "Band, date of birth and photo checked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Identity never confirmed with two identifiers."
+          }
+        ]
+      },
+      {
+        "id": "holdParams",
+        "label": "Collected data and held for the parameters",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "digGiven or metoGiven",
+            "score": "missed",
+            "why": "{digGiven ? \"Digoxin\" : \"Metoprolol\"} was given below its hold parameter."
+          },
+          {
+            "when": "radialOnly and isNull(apAt)",
+            "score": "missed",
+            "why": "A 15-second radial count missed the slow, irregular apical rate."
+          },
+          {
+            "when": "not isNull(apAt) and not isNull(bpAt) and digHeld and metoHeld",
+            "score": "met",
+            "why": "Apical {apLast} for a full minute, BP {bpS}/{bpD}: both held."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Held, but without both the apical pulse and the BP."
+          }
+        ]
+      },
+      {
+        "id": "report",
+        "label": "Reported to the RN with the data",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(reportAt)",
+            "score": "met",
+            "why": "Reported at {timeAt(reportAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The RN was not told about the pulse, pressure and symptoms."
+          }
+        ]
+      },
+      {
+        "id": "incident",
+        "label": "Near miss reported through the incident system, not the chart",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(incidentAt)",
+            "score": "missed",
+            "why": "No incident report: the system cause stays hidden."
+          },
+          {
+            "when": "incidentInChart",
+            "score": "partial",
+            "why": "Reported, but in the chart: incident reports are not part of the medical record."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Incident report filed in the reporting system."
+          }
+        ]
+      },
+      {
+        "id": "pharmacy",
+        "label": "Wrong card set aside and the pharmacy told",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(pharmacyAt)",
+            "score": "met",
+            "why": "Card set aside, pharmacy called."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The wrong card stayed in the cart."
+          }
+        ]
+      },
+      {
+        "id": "others",
+        "label": "Gave the medications that were safe to give",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "furoGiven and kGiven",
+            "score": "met",
+            "why": "Furosemide and potassium given."
+          },
+          {
+            "when": "furoGiven or kGiven",
+            "score": "partial",
+            "why": "One of the two safe medications was missed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Furosemide and potassium were not given."
+          }
+        ]
+      },
+      {
+        "id": "toxicity",
+        "label": "Asked about toxicity symptoms",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(toxAsked)",
+            "score": "met",
+            "why": "Nausea and visual changes found and reported."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Did not ask about nausea, appetite or vision."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "found",
+        "label": "Written reasoning: the findings and the plan for each medication",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "apical",
+        "label": "Apical pulse counted",
+        "value": "apLast",
+        "format": "number",
+        "expert": "56"
+      },
+      {
+        "id": "held",
+        "label": "Medications held",
+        "value": "held",
+        "format": "number",
+        "expert": "2"
+      },
+      {
+        "id": "given",
+        "label": "Medications given",
+        "value": "given",
+        "format": "number",
+        "expert": "2"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:00",
+        "text": "Compare each card with the MAR: digoxin card 0.25 mg, order 0.125 mg. Set it aside."
+      },
+      {
+        "at": "08:01",
+        "text": "Two identifiers at 12A, not 'Robert?' at the door. Allergies and labs."
+      },
+      {
+        "at": "08:02",
+        "text": "Apical pulse for a full minute (56), BP (96/58), ask about nausea and vision (yellow-tinged)."
+      },
+      {
+        "at": "08:05",
+        "text": "Hold digoxin and metoprolol; give furosemide and potassium. SBAR to the RN; call the pharmacy; incident report in the system; document the held doses and why."
+      }
+    ],
+    "debrief": {
+      "bradycardia": {
+        "headline": "Symptomatic bradycardia",
+        "body": "The rights include the right assessment before giving: an apical pulse for a full minute and the BP against the hold parameters. Find what you gave before you had them."
+      },
+      "wrongResident": {
+        "headline": "Wrong resident",
+        "body": "Room numbers and first names are not identifiers. Two identifiers, every time, at the bedside."
+      },
+      "caught": {
+        "headline": "Caught in time",
+        "body": "The card checked against the MAR, two identifiers, data before giving, holds and reports, and the near miss in the reporting system. That is the expert path."
+      },
+      "caughtGaps": {
+        "headline": "Safe, with gaps",
+        "body": "Nothing harmful reached him, but check the report to the RN, the pharmacy call and where the incident report went."
+      },
+      "time_up": {
+        "headline": "A dose that should have been held",
+        "body": "Find the check that would have stopped it."
+      }
+    },
+    "modelReasoning": "The rights are applied, not recited: compare each card with the MAR (the digoxin card is 0.25 mg against an order for 0.125 mg, so it is set aside and the pharmacy told); confirm the resident with two identifiers, never a room number or an answer to a first name; collect the data the orders require before giving (an apical pulse for a full minute before digoxin, the blood pressure and heart rate before metoprolol) and hold below the parameters; ask about nausea, appetite and visual changes as possible digoxin toxicity. Report the findings to the RN, give the medications that are safe, document held doses with the reason, and file an incident report for the near miss in the facility's reporting system, not the chart, so the system cause can be found."
+  },
+  "chapters": [
+    {
+      "id": "dataIn",
+      "label": "Pulse and pressure in",
+      "when": "not isNull(apAt) and not isNull(bpAt)"
+    }
+  ],
+  "teaching": {
+    "incidentQ": {
+      "during": "pharmT",
+      "ask": "Where does the report of this near miss go?",
+      "choices": [
+        {
+          "id": "system",
+          "label": "The facility's incident reporting system"
+        },
+        {
+          "id": "chart",
+          "label": "His progress note"
+        },
+        {
+          "id": "none",
+          "label": "Nowhere: nothing reached him"
+        }
+      ],
+      "expect": "system",
+      "explain": "The incident reporting system. Near misses are reported so the system cause (here, a stock-bin error) can be fixed; the report is not part of the medical record, so the chart records only the care and the held doses.",
+      "source": {
+        "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+        "checkedAt": "2026-11-11",
+        "url": "https://nclex.com/files/2026_PN_Test Plan-F.pdf",
+        "note": "Read 2026-11-11 (primary PDF): Pharmacological Therapies 10-16% of items, including 'Follow the rights of medication administration' and 'Collect required data prior to medication administration (e.g., contraindications, current medications)'; Safety and Infection Prevention and Control: 'Verify the identity of client' and 'Acknowledge and document practice errors and near misses (e.g., incident report)'."
+      }
+    },
+    "fullMinute": {
+      "during": "apT",
+      "ask": "While you count: why a full minute at the apex rather than 15 seconds at the wrist?",
+      "choices": [
+        {
+          "id": "irreg",
+          "label": "His rhythm is irregular, and digoxin decisions rest on the true rate"
+        },
+        {
+          "id": "habit",
+          "label": "It is just policy"
+        },
+        {
+          "id": "same",
+          "label": "The two are always the same"
+        }
+      ],
+      "expect": "irreg",
+      "explain": "In atrial fibrillation some beats do not reach the wrist and a short count multiplies the error. Digoxin is held below 60, so the apical rate over a full minute is the number that decides.",
+      "source": {
+        "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+        "checkedAt": "2026-11-11",
+        "note": "The objective and secondary objectives are the course's own titles, including 'Take an apical pulse before digoxin and withhold and report it below 60 beats per minute'. Not re-fetched for this scenario."
+      }
+    }
+  }
+}

@@ -265,12 +265,21 @@ describe("adaptive Guided inputs", () => {
     assert.equal(m!.status, "Independent");
   });
 
-  test("guess feedback returns the coarse match and records nothing", async () => {
+  test("guess feedback returns the coarse match and records no attempt", async () => {
     const u = await newUser();
     const r = await json(await guessPost(req(u, "POST", { guess: "my guess" }), ctx(CARDS)));
     assert.equal(r.status, 200);
     assert.deepEqual(r.body, { feedback: "close-ish", guessMatch: "close" });
     assert.equal(Number((await queryOne<{ n: string }>(`select count(*) n from attempts where user_id = $1`, [u]))!.n), 0);
+    // REQ-256: only the label is kept, as a learner event (the move-down
+    // suggestion's "every guess off"); never the guess text.
+    const ev = await query<{ detail: unknown; objective_id: string; track_id: string }>(
+      `select detail, objective_id, track_id from learner_events where user_id = $1 and event = 'guess_matched'`,
+      [u]
+    );
+    assert.deepEqual(ev, [{ detail: { match: "close" }, objective_id: CARDS, track_id: track }]);
+    const all = await query<{ detail: unknown }>(`select detail from learner_events where user_id = $1`, [u]);
+    assert.ok(!JSON.stringify(all).includes("my guess"));
   });
 });
 

@@ -18,16 +18,25 @@ export interface DocumentEntry {
   file: string; // the source: <slug>.sim.json, or <slug>.band.json for a band
   golden: string | null;
   kind: "scenario" | "band";
+  // REQ-236: where the content came from, written to sim_versions.source. A
+  // document written by `npm run sims:generate` (REQ-230) and registered by
+  // hand is "generated" (entry(course, slug, { source: "generated" }), as
+  // its .register.md says); everything else is "authored".
+  source: "authored" | "generated";
+}
+
+export interface EntryOptions {
+  source?: "authored" | "generated";
 }
 
 const ROOT = join(__dirname, "..", "..", "supabase", "seed", "sims");
 
-function entry(course: string, slug: string): DocumentEntry {
-  return { course, slug, file: join(ROOT, course, `${slug}.sim.json`), golden: join(ROOT, course, `${slug}.golden.json`), kind: "scenario" };
+function entry(course: string, slug: string, opts: EntryOptions = {}): DocumentEntry {
+  return { course, slug, file: join(ROOT, course, `${slug}.sim.json`), golden: join(ROOT, course, `${slug}.golden.json`), kind: "scenario", source: opts.source ?? "authored" };
 }
 
-function band(course: string, slug: string): DocumentEntry {
-  return { course, slug, file: join(ROOT, course, `${slug}.band.json`), golden: join(ROOT, course, `${slug}.golden.json`), kind: "band" };
+function band(course: string, slug: string, opts: EntryOptions = {}): DocumentEntry {
+  return { course, slug, file: join(ROOT, course, `${slug}.band.json`), golden: join(ROOT, course, `${slug}.golden.json`), kind: "band", source: opts.source ?? "authored" };
 }
 
 // Phase 1a step 5: the prototype ports. Tamponade after CABG (now hosting the
@@ -58,6 +67,95 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("EPPP", "duty-to-protect-threat"),
   entry("EPPP", "diagnostic-intake-mood"),
   // ---- end REQ-225 (EPPP-B) -------------------------------------------
+  // ---- REQ-231: security console incidents, course SECPLUS (SY0-701), and
+  // each as a V8 band (SECPLUSV8, SY0-801: same incident, the V8 objective).
+  entry("SECPLUS", "phish-to-account-takeover"),
+  band("SECPLUSV8", "phish-to-account-takeover-v8"),
+  entry("SECPLUS", "ransomware-file-server"),
+  band("SECPLUSV8", "ransomware-file-server-v8"),
+  entry("SECPLUS", "cloud-iam-backdoor"),
+  band("SECPLUSV8", "cloud-iam-backdoor-v8"),
+  // ---- end REQ-231 ------------------------------------------------------
+  // ---- REQ-232: PT treatment-session scenarios, course DPT ------------
+  entry("DPT", "icu-early-mobility"),
+  entry("DPT", "tka-gait-dvt-red-flag"),
+  entry("DPT", "stroke-balance-fall-risk"),
+  // ---- end REQ-232 -----------------------------------------------------
+  // ---- REQ-233 (bedside wave 1): CCRN Pediatric, CCRN Neonatal, NCLEX-RN
+  // and NCLEX-PN bedside cases, and a second AWS SAA board case. Keep these
+  // entries together. ----
+  entry("CCRNPEDS", "pediatric-septic-shock-fluids"),
+  entry("CCRNPEDS", "pediatric-dka-cerebral-edema"),
+  entry("CCRNNEO", "neonatal-rds-escalating-support"),
+  entry("CCRNNEO", "neonatal-sepsis-hypoglycemia"),
+  entry("NCLEXRN", "med-surg-deterioration-sbar"),
+  entry("NCLEXRN", "post-op-transfusion-reaction"),
+  entry("NCLEXPN", "ltc-change-in-condition"),
+  entry("NCLEXPN", "med-pass-error-caught"),
+  entry("AWSSAA", "nat-gateway-bill-spike"),
+  // ---- end REQ-233 ----
+  // ---- REQ-242 (AWS board sims, wave 2): AWS MLA, Cloud Practitioner,
+  // Developer and SysOps (CloudOps) board cases, learner-paced, set in
+  // us-east-2. Keep these entries together. ----
+  entry("AWSMLA", "fraud-model-drift"),
+  entry("AWSMLA", "endpoint-scaling-latency"),
+  entry("AWSMLA", "loan-data-bias"),
+  entry("AWSCLF", "data-transfer-surprise"),
+  entry("AWSCLF", "leaked-access-key"),
+  entry("AWSDVA", "canary-rollback-dlq"),
+  entry("AWSDVA", "phi-in-application-logs"),
+  entry("AWSSOA", "stack-update-rollback-failed"),
+  entry("AWSSOA", "ec2-status-check-recovery"),
+  // ---- end REQ-242 ----
+  // ---- REQ-238 (security wave 2): security-console incidents for CySA+,
+  // PenTest+, SecurityX and SecAI+, two each. Keep these entries together. ----
+  entry("CYSAPLUS", "alert-triage-lolbin-hunt"),
+  entry("CYSAPLUS", "vuln-prioritization-kev-edge"),
+  entry("PENTESTPLUS", "pentest-third-party-webshell"),
+  entry("PENTESTPLUS", "pentest-scope-boundary"),
+  entry("SECURITYX", "federation-token-forgery"),
+  entry("SECURITYX", "ot-segmentation-breach"),
+  entry("SECAIPLUS", "agent-indirect-prompt-injection"),
+  entry("SECAIPLUS", "rag-assistant-data-leak"),
+  // ---- end REQ-238 ----
+  // ---- REQ-240 (bedside wave 2, nursing): LPN/VN, ADN-RN and BSN-RN
+  // baseline bedside cases, two each. Keep these entries together. ----
+  entry("LPNVN", "ltc-pressure-injury-infection"),
+  entry("LPNVN", "ltc-insulin-hypoglycemia"),
+  entry("ADNRN", "pca-oversedation-naloxone"),
+  entry("ADNRN", "heart-failure-pulmonary-edema"),
+  entry("BSNRN", "assisted-living-norovirus-outbreak"),
+  entry("BSNRN", "charge-nurse-short-staffed-shift"),
+  // ---- end REQ-240 ----
+  // ---- REQ-237: terminal and network screen, Linux+ (LINUXPLUS), Network+
+  // (NETWORKPLUS) and CKA outages. Keep these entries together. ----
+  entry("LINUXPLUS", "full-var-stops-database"),
+  entry("LINUXPLUS", "selinux-denies-moved-site"),
+  entry("NETWORKPLUS", "vlan-missing-from-trunk"),
+  entry("NETWORKPLUS", "branch-dns-route-typo"),
+  entry("CKA", "crashloop-bad-configmap"),
+  entry("CKA", "node-notready-swap-drain"),
+  // ---- end REQ-237 ----
+  // ---- REQ-239: NBCC client sessions, courses NCE and NCMHCE (session
+  // renderer, clinical-session profile; NBCC_SESSION_DOCUMENTS below) ----
+  entry("NCE", "nce-boundary-dual-relationship"),
+  entry("NCE", "nce-substance-use-screen"),
+  entry("NCMHCE", "ncmhce-intake-ptsd-alcohol"),
+  entry("NCMHCE", "ncmhce-suicide-safety-plan"),
+  entry("NCMHCE", "ncmhce-trauma-treatment-plan"),
+  // ---- end REQ-239 ----
+  // ---- REQ-241 (bedside wave 2, EMS): prehospital bedside cases for the
+  // four NREMT courses, two each, within each level's scope of practice.
+  // Keep these entries together. ----
+  entry("NREMTEMR", "unresponsive-adult-cpr-aed"),
+  entry("NREMTEMR", "thigh-bleed-tourniquet"),
+  entry("NREMTEMT", "anaphylaxis-epinephrine"),
+  entry("NREMTEMT", "stroke-scale-destination"),
+  entry("NREMTAEMT", "hypoglycemia-iv-dextrose"),
+  entry("NREMTAEMT", "hemorrhagic-shock-fluids"),
+  entry("NREMTPARAMEDIC", "inferior-stemi-cath-alert"),
+  entry("NREMTPARAMEDIC", "infant-respiratory-failure"),
+  // ---- end REQ-241 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
@@ -68,6 +166,27 @@ export const EPPP_OBJECTIVES = [
   "Apply duty-to-warn and duty-to-protect obligations",
   "Conduct a diagnostic intake using DSM-5-TR criteria",
 ] as const;
+
+// REQ-232: the DPT treatment-session documents (the PT renderer) and the
+// objective titles they are registered to (active objectives of course DPT).
+export const DPT_TREATMENT_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "DPT");
+export const DPT_OBJECTIVES = [
+  "Selecting and performing interventions for cardiovascular and pulmonary conditions to achieve patient goals",
+  "Total knee arthroplasty rehabilitation per the 2026 APTA guideline: range-of-motion work instead of continuous passive motion, progressive strengthening, motor function training, and early daily quadriceps NMES",
+  "Selecting and performing interventions for neurological and musculoskeletal conditions",
+] as const;
+
+// REQ-239: the NCE and NCMHCE client-session documents and the objective
+// titles they are registered to (active objectives of their course; the
+// titles are exported by seed/tracks/nbcc.ts too, and the tests compare).
+export const NBCC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NCE" || e.course === "NCMHCE");
+export const NBCC_OBJECTIVES: Readonly<Record<string, string>> = {
+  "nce-boundary-dual-relationship": "Manage boundaries and multiple relationships under the ACA Code of Ethics",
+  "nce-substance-use-screen": "Screen for substance use and match the client to a level of care",
+  "ncmhce-intake-ptsd-alcohol": "Conduct an intake and reach a DSM-5-TR diagnosis in a counseling case",
+  "ncmhce-suicide-safety-plan": "Assess suicide risk and build a safety plan in a counseling session",
+  "ncmhce-trauma-treatment-plan": "Build a trauma-informed treatment plan with the client",
+};
 
 export interface Compiled {
   doc: ScenarioDoc | null; // null when the source, the band or a module failed

@@ -95,6 +95,7 @@ function callSites(): CallSite[] {
 // needs a line here and a reason.
 const NULL_USER_OK: Record<string, string> = {
   "lib/lab-generation.ts": "modelLabChecker and modelLabWriter (the one steered retry): run only by scripts/generate-labs.ts (an operator), never for a learner",
+  "lib/pregen.ts": "liveRetryWriter (REQ-235, the one steered retry of a held pre-generated half): run only by scripts/pregenerate.ts (an operator), never for a learner",
 };
 const nullUserAllowed = (file: string) => file.startsWith("scripts/") || file in NULL_USER_OK;
 
@@ -201,6 +202,7 @@ const MODEL_ROUTES: Record<string, RouteKind> = {
   "app/api/objectives/[id]/lab/route.ts": "indirect",
   "app/api/objectives/[id]/lesson/prefetch-next/route.ts": "inline",
   "app/api/objectives/[id]/lesson/route.ts": "inline",
+  "app/api/objectives/[id]/primer/route.ts": "inline",
   "app/api/objectives/[id]/refresher/route.ts": "indirect",
   "app/api/pbq/route.ts": "inline",
   "app/api/reminders/plan/route.ts": "indirect",

@@ -3,6 +3,9 @@ import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { factCheckEnabled, modelFactChecker, orderingForCheck, type CheckItem, type FactChecker } from "@/lib/fact-check";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
+// No model imports there, so a read-only list can leave pulled items out
+// without importing the fact checker (REQ-249: GET /api/courses counts sims).
+import { ITEM_KINDS, servableSql, type ItemKind } from "@/lib/item-status-sql";
 
 // REQ-114 (Audit 3 H1/H2/H3): what keeps a wrong shared item from reaching
 // every learner. Migration 042.
@@ -22,10 +25,8 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 //                  against it is voided (kept, left out of mastery) and the
 //                  learners' mastery is recomputed.
 
-// REQ-123: "lab" (migration 050) -- a verifiable lab, by labs.id.
-// REQ-199: "sim" (migration 067) -- one simulation VERSION, by sim_versions.id.
-export const ITEM_KINDS = ["lesson", "review", "exam", "quiz", "comparison", "lab", "sim"] as const;
-export type ItemKind = (typeof ITEM_KINDS)[number];
+// The item kinds and servableSql live in lib/item-status-sql.ts (REQ-249).
+export { ITEM_KINDS, servableSql, type ItemKind };
 
 export const FLAG_REASONS = ["wrong_answer", "unclear", "outdated", "offensive", "other"] as const;
 export type FlagReason = (typeof FLAG_REASONS)[number];
@@ -51,12 +52,6 @@ export function lessonItemId(objectiveId: string, stage: "fade" | "solo", questi
   return `${objectiveId.toLowerCase()}:${stage}:${md5(question)}`;
 }
 
-// SQL: true when the item is not pulled (no status row, or cleared). Used in
-// every query that picks an item to serve. `idExpr` is a SQL expression for
-// the item id (cast to text here).
-export function servableSql(kind: ItemKind, idExpr: string): string {
-  return `not exists (select 1 from item_status qs where qs.item_kind = '${kind}' and qs.item_id = (${idExpr})::text and qs.status <> 'cleared')`;
-}
 
 // SQL: true when the lesson check an exam_items copy (source 'lesson') was
 // made from is not pulled. The copy has no stage, and a lesson check's id is
@@ -130,7 +125,7 @@ export function noteListedClaims(label: string, o: UncertaintyFields | null | un
 }
 
 export interface HoldbackInput {
-  kind: ItemKind | "lesson_intro" | "pbq" | "unit_check";
+  kind: ItemKind | "lesson_intro" | "pbq" | "unit_check" | "primer";
   objectiveId?: string | null;
   unitId?: string | null;
   trackId?: string | null;

@@ -1,0 +1,1429 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cloud-iam-backdoor",
+  "title": "Incident: a leaked cloud key and a new administrator",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "admin",
+          "severity": "high",
+          "title": "New administrator user support-ops created by ci-deploy's key from 192.0.2.77",
+          "detail": "The build server is the only place this key has been used before.",
+          "when": "true",
+          "at": "0",
+          "status": "{isNull(ciOffAt) or isNull(userOffAt) ? (isNull(trailAt) ? \"New\" : \"Investigating\") : \"Contained\"}",
+          "open": "isNull(ciOffAt) or isNull(userOffAt)"
+        },
+        {
+          "id": "secret",
+          "severity": "medium",
+          "title": "Secret scanning: ci-deploy's access key found in the public repository fernhill/etl-scripts (committed 13:20)",
+          "when": "true",
+          "at": "0",
+          "status": "{isNull(eradicatedAt) ? (isNull(ciOffAt) ? \"New\" : \"Key deactivated\") : \"Key deleted\"}",
+          "open": "isNull(ciOffAt)"
+        },
+        {
+          "id": "roleA",
+          "severity": "high",
+          "title": "Role ops-automation trusts an outside account",
+          "when": "not isNull(roleAt)",
+          "at": "timeAt(roleAt)",
+          "status": "{isNull(roleOffAt) ? \"New\" : \"Contained\"}",
+          "open": "isNull(roleOffAt)"
+        },
+        {
+          "id": "minersA",
+          "severity": "medium",
+          "title": "Eight GPU instances in an unused region",
+          "when": "not isNull(minersAt)",
+          "at": "timeAt(minersAt)",
+          "status": "{minersRunning ? \"Running\" : \"Terminated\"}",
+          "open": "minersRunning"
+        },
+        {
+          "id": "exfilA",
+          "severity": "critical",
+          "title": "customer-exports copying to an outside account",
+          "when": "not isNull(exfilAt)",
+          "at": "timeAt(exfilAt)",
+          "status": "{not isNull(impactAt) ? \"Copy complete\" : attackerActive ? \"In progress\" : \"Stopped\"}",
+          "open": "attackerActive"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Code host",
+          "text": "13:20 commit to fernhill/etl-scripts (public) contains an access key ID and secret",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "Audit trail",
+          "text": "13:51 ci-deploy from 192.0.2.77: CreateUser support-ops",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e3",
+          "source": "Audit trail",
+          "text": "13:52 AttachUserPolicy AdministratorAccess to support-ops; 13:58 CreateAccessKey for support-ops",
+          "when": "not isNull(trailAt)",
+          "at": "timeAt(trailAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Audit trail",
+          "text": "CreateRole ops-automation, trust: an outside account",
+          "when": "not isNull(roleAt)",
+          "at": "timeAt(roleAt)"
+        },
+        {
+          "id": "e5",
+          "source": "Billing",
+          "text": "8 x GPU instances started; spend ${spend|0dp} so far",
+          "when": "not isNull(minersAt)",
+          "at": "timeAt(minersAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Audit trail",
+          "text": "ListBuckets; GetBucketPolicy customer-exports",
+          "when": "not isNull(reconAt)",
+          "at": "timeAt(reconAt)"
+        },
+        {
+          "id": "e7",
+          "source": "Storage logs",
+          "text": "Copy of customer-exports to an outside account started",
+          "when": "not isNull(exfilAt)",
+          "at": "timeAt(exfilAt)"
+        },
+        {
+          "id": "e8",
+          "source": "Audit trail",
+          "text": "Same credentials now used from 192.0.2.91",
+          "when": "not isNull(newIpAt)",
+          "at": "timeAt(newIpAt)"
+        },
+        {
+          "id": "e9",
+          "source": "Storage logs",
+          "text": "Copy complete",
+          "when": "not isNull(impactAt)",
+          "at": "timeAt(impactAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "ci",
+          "label": "ci-deploy",
+          "spokenLabel": "Access key of ci-deploy",
+          "kind": "Pipeline access key",
+          "status": "{not isNull(eradicatedAt) ? \"Deleted; pipeline on a short-lived role\" : isNull(ciOffAt) ? \"Active; leaked and in use from 192.0.2.77\" : \"Deactivated\"}",
+          "tone": "isNull(ciOffAt) ? \"bad\" : \"held\""
+        },
+        {
+          "id": "user",
+          "label": "support-ops",
+          "spokenLabel": "User support-ops",
+          "kind": "IAM user (administrator)",
+          "status": "{isNull(userOffAt) ? \"Active; made by the attacker\" : \"Key deactivated, deny-all attached\"}",
+          "tone": "isNull(userOffAt) ? \"bad\" : \"held\""
+        },
+        {
+          "id": "role",
+          "label": "ops-automation",
+          "spokenLabel": "Role ops-automation",
+          "kind": "IAM role",
+          "status": "{isNull(roleAt) ? \"Does not exist\" : isNull(roleOffAt) ? \"Assumable by an outside account\" : \"Trust emptied, deny-all attached\"}",
+          "tone": "isNull(roleAt) ? \"ok\" : isNull(roleOffAt) ? \"bad\" : \"held\""
+        },
+        {
+          "id": "bucket",
+          "label": "customer-exports",
+          "spokenLabel": "Bucket customer-exports",
+          "kind": "Storage bucket (customer data)",
+          "status": "{not isNull(impactAt) ? \"Copied out\" : not isNull(exfilAt) ? (attackerActive ? \"Being copied out\" : \"Copy stopped part way\") : not isNull(reconAt) ? \"Policy read by the attacker\" : \"Untouched\"}",
+          "tone": "not isNull(exfilAt) ? \"bad\" : not isNull(reconAt) ? \"watch\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "spendM",
+          "label": "Unauthorized spend",
+          "value": "${spend|0dp}"
+        },
+        {
+          "id": "evM",
+          "label": "Case bucket",
+          "value": "{isNull(evidenceAt) ? \"empty\" : \"audit trail and IAM records\"}{not isNull(evidenceAt) and not isNull(minersAt) and timeAt(evidenceAt) >= timeAt(minersAt) ? \", instance snapshots\" : \"\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Identity and access management: provisioning/de-provisioning user accounts, permission assignments and implications, identity proofing, federation, single sign-on (SSO) with LDAP, OAuth, and SAML, interoperability, attestation; access controls (mandatory, discretionary, role-based, rule-based, attribute-based, time-of-day restrictions, least privilege)",
+  "secondaryObjectives": [
+    "Incident response activities as SY0-701 names them: preparation, detection, analysis, containment, eradication, recovery, lessons learned; training; testing (tabletop exercise, simulation); root cause analysis; threat hunting; digital forensics (legal hold, chain of custody, acquisition, reporting, preservation, e-discovery)"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA Security+ SY0-701 Exam Objectives, Version 5.0",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/security/v7/",
+      "note": "Relevant text: domain weights 12/22/18/28/20; 2.4 'Given a scenario, analyze indicators of malicious activity' (account lockout, concurrent session usage, impossible travel); 4.6 'Given a scenario, implement and maintain identity and access management'; 4.8 'Explain appropriate incident response activities' (preparation, detection, analysis, containment, eradication, recovery, lessons learned; digital forensics: legal hold, chain of custody, acquisition, reporting, preservation, e-discovery); 4.9 'Given a scenario, use data sources to support an investigation'. Read in a copy of the official objectives PDF (Version 5.0) hosted at laurelridgeworkforce.com, through a summarizing fetch, on 2026-11-11; the CompTIA page is the course's official source."
+    },
+    {
+      "cite": "CompTIA Security+ V8 (SY0-801): launch on or around 2026-11-17; up to 90 questions, 90 minutes, pass 750 (100-900); domains 16/24/19/27/14; Security Operations includes 'Implement incident response activities' (preparation, detection, containment, recovery, lessons learned)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/security/v8/",
+      "note": "Read through a summarizing fetch on 2026-11-11. The SY0-801 objectives document (Version 2.0) is the course's official source and was not re-read here."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+      "checkedAt": "2026-11-11",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "Relevant text: A CSF 2.0 Community Profile (April 2025; supersedes Rev. 2): RS.MI-01 'Incidents are contained'; RS.MI-02 'Incidents are eradicated'; RS.AN-03 analysis and root cause; RS.AN-07 'Incident data and metadata are collected, and their integrity and provenance are preserved'; RS.CO-02 'Internal and external stakeholders are notified of incidents'; RC.RP-03 'The integrity of backups and other restoration assets is verified before using them for restoration'. The current revision. Subcategory wording read in the PDF (nvlpubs.nist.gov) through a summarizing fetch on 2026-11-11; the publication date and the supersession read on the CSRC news page. Rev. 3 replaces the Rev. 2 four-phase life cycle with the CSF 2.0 Functions; Security+ still names the older phases."
+    },
+    {
+      "cite": "CISA, Federal Government Cybersecurity Incident and Vulnerability Response Playbooks (November 2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.cisa.gov/sites/default/files/2024-08/Federal_Government_Cybersecurity_Incident_and_Vulnerability_Response_Playbooks_508C.pdf",
+      "note": "Relevant text: containment includes 'Isolating impacted systems and network segments', 'Capturing forensic images to preserve evidence for legal use (if applicable) and further investigation', 'Blocking (and logging) of unauthorized accesses; blocking malware sources', 'Changing system admin passwords, rotating private keys, and service/application account secrets where compromise is suspected'; 'Before moving to eradication, ensure that all means of persistent access into the network have been accounted for'. Read through a summarizing fetch on 2026-11-11. Written for federal agencies; the containment, evidence and persistence steps are general practice."
+    },
+    {
+      "cite": "AWS re:Post Knowledge Center, 'What do I do if I notice unauthorized activity in my AWS account?' (potential-account-compromise)",
+      "checkedAt": "2026-11-11",
+      "url": "https://repost.aws/knowledge-center/potential-account-compromise",
+      "note": "Relevant text: rotate exposed keys by creating a new key and deactivating the original ('Don't delete the original access key during this step'); review IAM users for ones you did not create; in the audit trail look for unsanctioned access keys, policies, roles or temporary credentials and delete them; review resources in every Region, including Regions you do not use; 'If you must keep resources available for investigation', back them up first, such as an EBS snapshot before terminating an instance. Vendor guidance for one cloud, used for the cloud steps; the scenario names no provider. Read through a summarizing fetch on 2026-11-11; the page showed no last-updated date."
+    },
+    {
+      "cite": "CrowdStrike, 2026 Global Threat Report (press release, 2026-02-24): 'The average eCrime breakout time fell to just 29 minutes in 2025', the fastest observed 27 seconds; breakout time is the time an adversary takes to move from the first compromised host to another (2025 report)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.crowdstrike.com/en-us/press-releases/2026-crowdstrike-global-threat-report/",
+      "note": "Vendor telemetry, not a standard. Used only to set the scale of the attacker's clock (tens of minutes, not hours); the scenario's own step times are the author's."
+    },
+    {
+      "cite": "IETF RFC 5737 (documentation IPv4 ranges, including 192.0.2.0/24)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are the cloud security analyst at Fernhill Analytics, a fictional data company. At 14:05 two alerts land together: the code host's secret scanning found the build pipeline's access key in a public repository, and the cloud audit trail shows that key creating a new administrator user. Work the incident: investigate, contain, preserve evidence, and report.",
+    "handover": [
+      "The pipeline user ci-deploy uses a long-lived access key. The customer-exports bucket holds customer data. The audit trail covers every Region and is kept for a year.",
+      "The account has a write-once case bucket for evidence."
+    ],
+    "howItWorks": [
+      "Each task takes analyst time: choose it, then let the work finish, which moves the clock by the minutes that task takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you declare the incident contained, you notify, write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:05",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "roleDelay": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "minerDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "reconDelay": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "exfilDelay": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "exfilDoneDelay": {
+      "value": 3300,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "newIpDelay": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      }
+    },
+    "minerRate": {
+      "value": 96,
+      "unit": "$/h",
+      "source": {
+        "cite": "Author's scenario figure (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "Eight GPU instances at about $12 an hour each, an illustrative order of magnitude, not a quoted price."
+      }
+    },
+    "escalateWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "Escalation to the incident lead within 15 minutes of a confirmed compromise; NIST SP 800-61r3 RS.CO-02 asks that stakeholders be notified, not by when."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "trailAt": {
+      "type": "time",
+      "init": null
+    },
+    "scopedAt": {
+      "type": "time",
+      "init": null
+    },
+    "ciOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "userOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "roleAt": {
+      "type": "time",
+      "init": null
+    },
+    "roleOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "allOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "ipBlockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "newIpAt": {
+      "type": "time",
+      "init": null
+    },
+    "minersAt": {
+      "type": "time",
+      "init": null
+    },
+    "minersStoppedAt": {
+      "type": "time",
+      "init": null
+    },
+    "spend": {
+      "type": "number",
+      "init": 0,
+      "unit": "$",
+      "min": 0,
+      "max": 100000
+    },
+    "reconAt": {
+      "type": "time",
+      "init": null
+    },
+    "exfilAt": {
+      "type": "time",
+      "init": null
+    },
+    "impactAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceDestroyed": {
+      "type": "bool",
+      "init": false
+    },
+    "eradicatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "internal",
+        "nobody"
+      ],
+      "init": "none"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "leakedKey",
+        "phish",
+        "insider"
+      ],
+      "init": "none"
+    },
+    "dataDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "untouched",
+        "partial",
+        "copied"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "attackerActive": {
+      "expr": "isNull(ciOffAt) or isNull(userOffAt) or (not isNull(roleAt) and isNull(roleOffAt))"
+    },
+    "spread": {
+      "expr": "isNull(roleAt) ? 0 : 1"
+    },
+    "minersRunning": {
+      "expr": "not isNull(minersAt) and isNull(minersStoppedAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "mining",
+      "when": "phase == \"incident\" and minersRunning",
+      "update": {
+        "spend": "spend + minerRate * dt / 3600"
+      }
+    }
+  ],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "reviewTrail",
+        "reviewIdentities",
+        "quarantine",
+        "blockIp",
+        "preserve",
+        "terminateMiners",
+        "eradicate",
+        "escalate",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "reviewTrail": {
+      "label": "Review the audit trail for ci-deploy's key",
+      "group": "Investigate",
+      "available": "not busy and (isNull(trailAt))",
+      "why": "Reviewed.",
+      "effects": [
+        {
+          "set": "trailAt",
+          "to": "t"
+        },
+        {
+          "log": "You filter the audit trail on ci-deploy's access key for the last 24 hours.",
+          "kind": "act"
+        },
+        {
+          "finding": "Until 13:20 the key was used only from the build server. From 13:51 it was used from 192.0.2.77: CreateUser support-ops, AttachUserPolicy AdministratorAccess, CreateAccessKey for support-ops. The secret-scanning alert matches this key."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "reviewIdentities": {
+      "label": "List every user, role and key created in the last 24 hours",
+      "group": "Investigate",
+      "available": "not busy and (isNull(scopedAt) or (not isNull(roleAt) and timeAt(roleAt) > timeAt(scopedAt)))",
+      "why": "Listed; nothing new since.",
+      "effects": [
+        {
+          "set": "scopedAt",
+          "to": "t"
+        },
+        {
+          "log": "You list identities, keys and trust policies created or changed since yesterday.",
+          "kind": "act"
+        },
+        {
+          "finding": "support-ops (user, administrator, one key){isNull(roleAt) ? \"; nothing else new\" : \", and the role ops-automation, which an outside account can assume\"}."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "quarantine": {
+      "label": "Contain an identity",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "params": [
+        {
+          "id": "which",
+          "kind": "choice",
+          "label": "Identity",
+          "options": [
+            {
+              "value": "ci",
+              "label": "ci-deploy's access key (deactivate it)"
+            },
+            {
+              "value": "user",
+              "label": "User support-ops (deactivate its key, attach deny-all)"
+            },
+            {
+              "value": "role",
+              "label": "Role ops-automation (empty its trust, attach deny-all, revoke sessions)"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "which == \"ci\"",
+              "then": [
+                {
+                  "if": "isNull(ciOffAt)",
+                  "then": [
+                    {
+                      "set": "ciOffAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "ci-deploy's access key deactivated (kept, not deleted, for the investigation); deploys pause until the pipeline gets new credentials.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "which == \"user\"",
+              "then": [
+                {
+                  "if": "isNull(userOffAt)",
+                  "then": [
+                    {
+                      "set": "userOffAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "support-ops's key deactivated and a deny-all policy attached.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "not isNull(roleAt)",
+              "then": [
+                {
+                  "if": "isNull(roleOffAt)",
+                  "then": [
+                    {
+                      "set": "roleOffAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "ops-automation's trust policy emptied and a deny-all policy attached; its sessions revoked.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "There is no role called ops-automation.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "not attackerActive and isNull(allOffAt)",
+          "then": [
+            {
+              "set": "allOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "blockIp": {
+      "label": "Deny 192.0.2.77 in an account-wide policy",
+      "group": "Contain",
+      "available": "not busy and (isNull(ipBlockedAt))",
+      "why": "Blocked.",
+      "effects": [
+        {
+          "set": "ipBlockedAt",
+          "to": "t"
+        },
+        {
+          "log": "Requests from 192.0.2.77 are now denied account-wide.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "preserve": {
+      "label": "Preserve evidence to the locked case bucket",
+      "group": "Evidence",
+      "available": "not busy and (isNull(evidenceAt) or (minersRunning and timeAt(evidenceAt) < timeAt(minersAt)))",
+      "why": "Preserved; nothing new to keep.",
+      "effects": [
+        {
+          "set": "evidenceAt",
+          "to": "t"
+        },
+        {
+          "log": "You copy the audit trail and the IAM records of every new identity to the write-once case bucket{minersRunning ? \" and snapshot the GPU instances' volumes\" : \"\"}, with hashes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "terminateMiners": {
+      "label": "Terminate the unknown instances",
+      "group": "Contain",
+      "available": "not busy and (minersRunning)",
+      "why": "No unknown instances are running.",
+      "effects": [
+        {
+          "set": "minersStoppedAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(evidenceAt) or timeAt(evidenceAt) < timeAt(minersAt)",
+          "then": [
+            {
+              "set": "evidenceDestroyed",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "Eight instances terminated{isNull(evidenceAt) or timeAt(evidenceAt) < timeAt(minersAt) ? \" with no snapshot of their volumes\" : \" after their volumes were snapshotted\"}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "eradicate": {
+      "label": "Eradicate: delete the attacker's identities and ci-deploy's old key; give the pipeline a short-lived role",
+      "group": "Recover",
+      "available": "not busy and (not attackerActive and isNull(eradicatedAt) and not isNull(evidenceAt))",
+      "why": "Contain every identity and preserve evidence first.",
+      "effects": [
+        {
+          "set": "eradicatedAt",
+          "to": "t"
+        },
+        {
+          "log": "support-ops{isNull(roleAt) ? \"\" : \", ops-automation\"} and ci-deploy's old key deleted; the pipeline now assumes a short-lived role; the key is removed from the repository history.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Escalate to the incident response lead",
+      "group": "Communicate",
+      "available": "not busy and (isNull(escalatedAt))",
+      "why": "Escalated.",
+      "effects": [
+        {
+          "set": "escalatedAt",
+          "to": "t"
+        },
+        {
+          "log": "You open an incident and page the incident response lead.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Declare the incident contained and write the report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident phase and start the report.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "full",
+              "label": "Incident lead, leadership, legal and privacy (customer data may be involved)"
+            },
+            {
+              "value": "internal",
+              "label": "Engineering only"
+            },
+            {
+              "value": "nobody",
+              "label": "No one"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"full\" ? \"incident lead, leadership, legal and privacy\" : who == \"internal\" ? \"engineering only\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "leakedKey",
+                  "label": "A long-lived access key committed to a public repository"
+                },
+                {
+                  "value": "phish",
+                  "label": "A phished console password"
+                },
+                {
+                  "value": "insider",
+                  "label": "An insider"
+                }
+              ]
+            },
+            {
+              "id": "data",
+              "label": "Customer data",
+              "options": [
+                {
+                  "value": "untouched",
+                  "label": "Not accessed"
+                },
+                {
+                  "value": "partial",
+                  "label": "Copying started and was stopped"
+                },
+                {
+                  "value": "copied",
+                  "label": "Copied out"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "dataDoc",
+          "to": "data"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: cause {cause}, customer data {data}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-231)",
+        "checkedAt": "2026-11-11",
+        "note": "How many sim minutes each analyst task takes and when the fictional attacker takes each step are teaching simplifications for exam practice, not measured values. The pace of the attacker's steps is set against the published breakout times below."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "roleMade",
+      "when": "t >= roleDelay and phase == \"incident\" and attackerActive",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "roleAt",
+          "to": "t"
+        },
+        {
+          "log": "Audit trail: role ops-automation created, trusting an outside account, with administrator rights.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "miners",
+      "when": "t >= minerDelay and phase == \"incident\" and attackerActive",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "minersAt",
+          "to": "t"
+        },
+        {
+          "log": "Billing anomaly: eight GPU instances started in a region the company does not use.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "recon",
+      "when": "t >= reconDelay and phase == \"incident\" and attackerActive",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "reconAt",
+          "to": "t"
+        },
+        {
+          "log": "Audit trail: every storage bucket listed; the customer-exports bucket's policy read.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "exfilStart",
+      "when": "t >= exfilDelay and phase == \"incident\" and attackerActive",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "exfilAt",
+          "to": "t"
+        },
+        {
+          "log": "Storage logs: customer-exports is being copied to a bucket in an outside account.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "newIp",
+      "when": "phase == \"incident\" and attackerActive and not isNull(ipBlockedAt) and t >= timeAt(ipBlockedAt) + newIpDelay",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "newIpAt",
+          "to": "t"
+        },
+        {
+          "log": "Audit trail: the same credentials, now from 192.0.2.91.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "exfilDone",
+      "when": "t >= exfilDoneDelay and phase == \"incident\" and attackerActive",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "impactAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Storage logs: the copy of customer-exports is complete. Legal and privacy take the incident over; write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: how the attacker got in and stayed in, why you contained each identity the way you did, and what you kept as evidence.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Access and persistence",
+          "criteria": "Names the leaked long-lived key in a public repository as initial access, and the administrator user (and any role trusting an outside account) as persistence the attacker made with it.",
+          "modelAnswer": "A long-lived access key for the pipeline was committed to a public repository; from 13:51 someone else used it to create support-ops with administrator rights and its own key, which is persistence that survives deactivating the leaked key."
+        },
+        {
+          "label": "Containment",
+          "criteria": "Deactivates (does not delete) the leaked key and quarantines every attacker-made identity with a deny-all policy; explains why an IP block alone does not contain it (the attacker changes address); checks every Region for resources.",
+          "modelAnswer": "I deactivated ci-deploy's key without deleting it, then deactivated support-ops's key with a deny-all policy, after reviewing every identity made in the last day. Blocking the address would not help: the credentials work from any address."
+        },
+        {
+          "label": "Evidence and eradication",
+          "criteria": "Copies the audit trail and IAM records to write-once storage and snapshots instances before terminating them; then deletes the attacker's identities and replaces the long-lived key with short-lived role credentials.",
+          "modelAnswer": "Before deleting or terminating anything I copied the audit trail and the identities' records to the write-once case bucket, and snapshotted any instance; then I deleted the attacker's identities and moved the pipeline to a short-lived role."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Set against the 29-minute average eCrime breakout time in CrowdStrike's 2026 Global Threat Report (see sources)."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-11",
+          "note": "No identity newly made by the attacker after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and attackerActive",
+      "class": "harm",
+      "rationale": "Closing while any key, user or role the attacker holds still works leaves the customer data reachable; it is never a safe outcome.",
+      "source": {
+        "cite": "AWS re:Post Knowledge Center, 'What do I do if I notice unauthorized activity in my AWS account?' (potential-account-compromise)",
+        "checkedAt": "2026-11-11",
+        "url": "https://repost.aws/knowledge-center/potential-account-compromise",
+        "note": "Relevant text: rotate exposed keys by creating a new key and deactivating the original ('Don't delete the original access key during this step'); review IAM users for ones you did not create; in the audit trail look for unsanctioned access keys, policies, roles or temporary credentials and delete them; review resources in every Region, including Regions you do not use; 'If you must keep resources available for investigation', back them up first, such as an EBS snapshot before terminating an instance. Vendor guidance for one cloud, used for the cloud steps; the scenario names no provider. Read through a summarizing fetch on 2026-11-11; the page showed no last-updated date."
+      }
+    }
+  },
+  "endings": {
+    "exfil": {
+      "label": "Customer data copied out",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(impactAt)",
+      "narrative": "The attacker still held a working identity 55 minutes in and finished copying the customer-exports bucket to an outside account. Legal now has a breach to assess."
+    },
+    "evidenceLost": {
+      "label": "Evidence destroyed before it was kept",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and evidenceDestroyed",
+      "narrative": "The GPU instances were terminated with no snapshot, so what ran on them, and whether they reached anything else, is gone."
+    },
+    "stillIn": {
+      "label": "Closed with the attacker still in",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and attackerActive",
+      "narrative": "The incident was closed while {isNull(ciOffAt) ? \"ci-deploy's leaked key\" : isNull(userOffAt) ? \"the support-ops administrator\" : \"the ops-automation role\"} still worked for the attacker."
+    },
+    "contained": {
+      "label": "Contained before the data moved",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not isNull(allOffAt) and timeAt(allOffAt) <= containWindow and spread <= containSpread and isNull(exfilAt) and not isNull(evidenceAt) and not evidenceDestroyed and not minersRunning and not isNull(trailAt) and not isNull(scopedAt)",
+      "narrative": "Every identity the attacker had was shut within minutes, customer data was never touched, and the trail is in the case bucket."
+    },
+    "containedLate": {
+      "label": "Contained, late or with spread",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The attacker is out, but containment came late, a second backdoor was made, or the copying of customer data had started."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "exfil",
+    "evidenceLost",
+    "stillIn",
+    "contained",
+    "containedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "containFast",
+        "label": "Shut every identity the attacker held within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(allOffAt) and timeAt(allOffAt) <= containWindow",
+            "score": "met",
+            "why": "All shut {timeAt(allOffAt) / 60|0dp} min after the alert."
+          },
+          {
+            "when": "not isNull(allOffAt)",
+            "score": "partial",
+            "why": "All shut, but {timeAt(allOffAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(ciOffAt)",
+            "score": "partial",
+            "why": "The leaked key was cut; the attacker's own identities kept working."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing the attacker held was shut."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Kept the audit trail, the IAM records and the instances' volumes before terminating or deleting",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(evidenceAt) and not evidenceDestroyed and not minersRunning",
+            "score": "met",
+            "why": "Kept in the write-once case bucket with hashes."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{evidenceDestroyed ? \"The instances were terminated before a snapshot.\" : \"Nothing was preserved.\"}"
+          }
+        ]
+      },
+      {
+        "id": "scope",
+        "label": "Found every identity the attacker made (audit trail and a 24-hour identity review)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(trailAt) and not isNull(scopedAt)",
+            "score": "met",
+            "why": "Both the key's trail and every new identity were reviewed."
+          },
+          {
+            "when": "not isNull(trailAt) or not isNull(scopedAt)",
+            "score": "partial",
+            "why": "Only part of the scoping was done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one checked what the key had been used to create."
+          }
+        ]
+      },
+      {
+        "id": "stopCost",
+        "label": "Stopped the unauthorized instances",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(minersAt)",
+            "score": "met",
+            "why": "Contained before any were started."
+          },
+          {
+            "when": "not minersRunning",
+            "score": "met",
+            "why": "Terminated after ${spend|0dp} of spend."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still running at ${spend|0dp} and counting."
+          }
+        ]
+      },
+      {
+        "id": "eradicated",
+        "label": "Deleted the attacker's identities and moved the pipeline off the long-lived key",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(eradicatedAt)",
+            "score": "met",
+            "why": "Short-lived role credentials replace the key."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The old key and the attacker's identities are still in the account."
+          }
+        ]
+      },
+      {
+        "id": "escalated",
+        "label": "Escalated to the incident lead within 15 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(escalatedAt) and timeAt(escalatedAt) <= escalateWindow",
+            "score": "met",
+            "why": "Escalated {timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(escalatedAt)",
+            "score": "partial",
+            "why": "Escalated {timeAt(escalatedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never escalated."
+          }
+        ]
+      },
+      {
+        "id": "notifiedCrit",
+        "label": "Notified the incident lead, leadership, legal and privacy (RS.CO-02)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified == \"full\"",
+            "score": "met",
+            "why": "Legal and privacy can assess the customer data."
+          },
+          {
+            "when": "notified == \"internal\"",
+            "score": "partial",
+            "why": "Only engineering was told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one was told."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the root cause and what happened to customer data accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"leakedKey\" and dataDoc == (not isNull(impactAt) ? \"copied\" : not isNull(exfilAt) ? \"partial\" : \"untouched\")",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written access, containment and evidence",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToContain",
+        "label": "Minutes until every attacker identity was shut",
+        "value": "isNull(allOffAt) ? -1 : timeAt(allOffAt) / 60",
+        "format": "number",
+        "expert": "30 or less"
+      },
+      {
+        "id": "spendK",
+        "label": "Unauthorized spend",
+        "value": "spend",
+        "format": "usd",
+        "expert": "$0"
+      },
+      {
+        "id": "identities",
+        "label": "Identities the attacker made",
+        "value": "1 + spread",
+        "format": "number",
+        "expert": "1"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "Read the audit trail for the leaked key: it created an administrator. Deactivate the key (keep it) and quarantine support-ops."
+      },
+      {
+        "at": "5-20 min",
+        "text": "Escalate; list every identity made in the last day; nothing else."
+      },
+      {
+        "at": "20-45 min",
+        "text": "Copy the trail and the IAM records to the case bucket; then delete the attacker's identities and move the pipeline to a short-lived role."
+      },
+      {
+        "at": "After",
+        "text": "Notify the incident lead, leadership, legal and privacy; record the leaked key as the root cause and the customer data as untouched."
+      }
+    ],
+    "debrief": {
+      "contained": {
+        "headline": "Good: contained before the data moved",
+        "body": "You cut the leaked key and the attacker's administrator before either could build more, checked for anything else they made, and kept the trail first."
+      },
+      "containedLate": {
+        "headline": "Contained, with gaps",
+        "body": "The attacker is out. The criteria show what cost you: a later containment, a second backdoor, or copying that had started."
+      },
+      "exfil": {
+        "headline": "Customer data copied out",
+        "body": "Deactivating only the leaked key, or blocking one address, left the attacker's own administrator working. Shut every identity the key created."
+      },
+      "evidenceLost": {
+        "headline": "Evidence destroyed",
+        "body": "Terminating the instances before a snapshot removes the only record of what ran on them. Back up, then terminate."
+      },
+      "stillIn": {
+        "headline": "Closed too soon",
+        "body": "A working key, user or role is a way back in. Account for every means of persistent access before eradication (CISA)."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A long-lived key leaked in a public repository and used from a new address to create an administrator is a compromise with persistence. Deactivate the key (keep it), quarantine every identity it created after listing them, escalate, keep the audit trail, the identities' records and any instance snapshots in write-once storage before terminating or deleting, then delete the attacker's identities and move the pipeline to short-lived role credentials, and notify the incident lead, leadership, legal and privacy."
+  }
+}

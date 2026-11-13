@@ -1,0 +1,498 @@
+{
+  "slug": "canary-rollback-dlq",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: stack, CodeDeploy and function logs first; ssm:GetParameter on the one parameter; canary kept; redeploy; DLQ redriven",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stackEvents",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deployEvents",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "functionLogs",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "retryQ",
+          "choice": "right",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "dlqPeek",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "grantSsm",
+          "params": {
+            "scope": "scoped"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "redeploy",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "redrive",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 12,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 13,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "investigate": "met",
+          "perm": "met",
+          "canary": "met",
+          "dlq": "met",
+          "retry": "met"
+        },
+        "kpis": {
+          "lost": 0,
+          "attempts": 2,
+          "changes": 3
+        },
+        "stateHash": "b1bb440e4492c179"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "broadPolicy",
+      "title": "Finds the cause but fixes it with AmazonSSMReadOnlyAccess",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stackEvents",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "functionLogs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "retryQ",
+          "choice": "right",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "grantSsm",
+          "params": {
+            "scope": "broad"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "redeploy",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "redrive",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 10,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 11,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "investigate": "met",
+          "perm": "partial",
+          "canary": "met",
+          "dlq": "met",
+          "retry": "met"
+        },
+        "kpis": {
+          "lost": 0,
+          "attempts": 2,
+          "changes": 3
+        },
+        "stateHash": "8644f1737e05c194"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "forgotDlq",
+      "title": "Fixes and ships correctly but forgets the DLQ; Wednesday the retention expires",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stackEvents",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deployEvents",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "functionLogs",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "retryQ",
+          "choice": "right",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "grantSsm",
+          "params": {
+            "scope": "scoped"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "redeploy",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 10,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 11,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "investigate": "met",
+          "perm": "met",
+          "canary": "met",
+          "dlq": "missed",
+          "retry": "met"
+        },
+        "kpis": {
+          "lost": 120,
+          "attempts": 2,
+          "changes": 2
+        },
+        "stateHash": "504dd85f4c17fecf"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "retryBlind",
+      "title": "Redeploys unchanged hoping it was a fluke (rolled back again), then fixes it and purges the DLQ",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "redeploy",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deployEvents",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "functionLogs",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "retryQ",
+          "choice": "wrong",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "grantSsm",
+          "params": {
+            "scope": "scoped"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "redeploy",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "purge",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 11,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 12,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 42,
+        "criteria": {
+          "investigate": "partial",
+          "perm": "met",
+          "canary": "met",
+          "dlq": "missed",
+          "retry": "missed"
+        },
+        "kpis": {
+          "lost": 240,
+          "attempts": 3,
+          "changes": 4
+        },
+        "stateHash": "7178017722b05c9a"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    },
+    {
+      "id": "noAlarm",
+      "title": "Failure: removes the alarm 'so the deploy sticks' and redeploys without a fix",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stackEvents",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setStrategy",
+          "params": {
+            "how": "noAlarm"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "redeploy",
+          "seq": 3,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "broken",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "investigate": "missed",
+          "perm": "missed",
+          "canary": "missed",
+          "dlq": "missed",
+          "retry": "na"
+        },
+        "kpis": {
+          "lost": 0,
+          "attempts": 2,
+          "changes": 2
+        },
+        "stateHash": "308dc1e7b61a6fcb"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}

@@ -33,9 +33,19 @@ export const HOME_EMPTY: EmptyCopy = {
   action: { label: "Find a course", to: "explore" },
 };
 
-// Explore, when the search or filter matches nothing.
-export function exploreEmpty(query: string): EmptyCopy {
+// Explore, when the search or filter matches nothing. REQ-249: with "Has
+// sims" on, say so, since that filter is the likeliest reason.
+export function exploreEmpty(query: string, opts: { simsOnly?: boolean } = {}): EmptyCopy {
   const q = query.trim();
+  if (opts.simsOnly) {
+    return {
+      title: "No courses with simulations match",
+      message: q
+        ? `No course with simulations matches "${q}". Turn off "Has sims" to see every course, try another word, or ask us to add it.`
+        : `No course with simulations matches these filters. Turn off "Has sims" or try a different filter, or ask us to add the course you need.`,
+      action: { label: "Request a course", to: "support" },
+    };
+  }
   return {
     title: "No courses match",
     message: q

@@ -1,0 +1,1463 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "icu-early-mobility",
+  "title": "Out of bed in the ICU: oxygen and a new rhythm",
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mrs. Okafor, 64",
+        "presentation": "ICU day 3, pneumonia with sepsis, improving. High-flow oxygen at FiO2 {fio2|2dp}. Awake and following commands."
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "sub": "{afib ? \"irregular\" : \"regular\"}",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, arterial line",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              140
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 88
+          },
+          "announce": {
+            "bands": [
+              90,
+              88
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 40
+          },
+          "announce": {
+            "bands": [
+              30,
+              40
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "rpe",
+          "label": "RPE",
+          "spokenLabel": "Her last rating of exertion, Borg 6 to 20",
+          "value": "rpeSaid",
+          "unit": "/20",
+          "sub": "asked {isNull(rpeAt) ? 0 : t - timeAt(rpeAt)|duration} ago",
+          "announce": {
+            "bands": [
+              13,
+              15
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(rpeAt)"
+        }
+      ],
+      "activity": "{activityText}",
+      "measures": [
+        {
+          "id": "screen",
+          "label": "Mobility safety screen",
+          "result": "FiO2 0.45 (below 0.6), SpO2 93% (above 90%), RR 24 (below 30), off norepinephrine 8 h, follows commands: safe to start",
+          "when": "not isNull(screenedAt)"
+        },
+        {
+          "id": "lines",
+          "label": "Lines and tubes",
+          "result": "High-flow cannula, arterial line, peripheral IV: secured, with slack for standing",
+          "when": "not isNull(linesAt)"
+        },
+        {
+          "id": "chart",
+          "label": "Chart review",
+          "result": "Lactate 1.4 (was 3.8); MAP 70-78 off pressors since 02:00; Hgb 9.8; no arrhythmia overnight",
+          "when": "not isNull(chartAt)"
+        },
+        {
+          "id": "rhythm",
+          "label": "Heart rhythm",
+          "result": "New irregularly irregular rhythm, rate about {round(hr)}: probable atrial fibrillation",
+          "when": "afib",
+          "flag": "afib"
+        }
+      ],
+      "dosage": {
+        "label": "Activity given",
+        "items": [
+          {
+            "label": "Sat at the edge of the bed from {timeAt(edgeAt)|clock}",
+            "when": "not isNull(edgeAt)"
+          },
+          {
+            "label": "Stood with the walker, gait belt, nurse assisting, from {timeAt(stoodAt)|clock}",
+            "when": "not isNull(stoodAt)"
+          },
+          {
+            "label": "Marched in place at the walker from {timeAt(marchAt)|clock}",
+            "when": "not isNull(marchAt)"
+          },
+          {
+            "label": "FiO2 raised to 0.60 for activity by the respiratory therapist",
+            "when": "fio2 >= 0.6"
+          },
+          {
+            "label": "Pursed-lip breathing coached",
+            "when": "pursed"
+          },
+          {
+            "label": "Step-pivot to the chair at {timeAt(chairAt)|clock}",
+            "when": "not isNull(chairAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleSpo2",
+          "label": "SpO2 below 88%",
+          "text": "Ease or stop the activity, sit her down, and raise the oxygen with the team.",
+          "met": "spo2 < spo2Floor"
+        },
+        {
+          "id": "ruleRhythm",
+          "label": "New or worsening dysrhythmia",
+          "text": "Stop, sit or lie her down, and call her nurse and the ICU team.",
+          "met": "afib"
+        },
+        {
+          "id": "ruleRr",
+          "label": "Respiratory rate above 40",
+          "text": "Stop and let her recover; she should be able to speak comfortably.",
+          "met": "rr > rrStop"
+        },
+        {
+          "id": "ruleSbp",
+          "label": "Systolic BP falls more than 10 mmHg as the work rises",
+          "text": "Stop and sit her down.",
+          "met": "afib and sbp < 108"
+        }
+      ]
+    }
+  },
+  "objective": "Selecting and performing interventions for cardiovascular and pulmonary conditions to achieve patient goals",
+  "secondaryObjectives": [
+    "Monitoring and adjusting the plan of care to optimize health outcomes",
+    "Selecting and administering age-appropriate tests and measures for the cardiovascular and pulmonary systems"
+  ],
+  "sources": [
+    {
+      "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+      "note": "Read 2026-11-11 through a text extraction of the PDF. Normal exercise response: HR rises about 10 beats/min per MET and returns to the pre-exercise level in 3-5 min; SBP rises about 10 mmHg per MET. Stop criteria include SBP drop >10 mmHg with increasing workload, new or worsening dysrhythmia, RR >40, unable to speak comfortably, SpO2 <90% or a drop of 4% or more (acute coronary syndrome), SpO2 <85% (lung disease); lung disease activity target 88-92%. Orthostatic hypotension: SBP drop >20 or DBP drop >10 mmHg within 3 min of standing. Beta blockers: lower HR with exercise and a dampened BP response; use the RPE scale in addition to HR."
+    },
+    {
+      "cite": "Hodgson CL, Stiller K, Needham DM, et al. Expert consensus and recommendations on safety criteria for active mobilization of mechanically ventilated critically ill adults. Crit Care. 2014;18:658. doi:10.1186/s13054-014-0658-y",
+      "checkedAt": "2026-11-11",
+      "url": "https://aifi.net/wp-content/uploads/2020/04/Hodgson-2014-Expert-consensus-and-recommendations-on-safety-criteria-for-active-mobilization-of-mechanically-ventilated-critically-ill-adults.pdf",
+      "note": "Read 2026-11-11 in a copy of the published PDF (the publisher's own PDF link could not be fetched). FiO2 below 0.6 with SpO2 above 90% and RR below 30/min were considered safe for in- and out-of-bed mobilization; vasoactive drugs are not in themselves a contraindication but rising doses call for caution; the most conservatively scored parameter takes precedence; oxygen reserve should exceed the activity. The traffic-light figures were not readable in the text, so no HR or MAP limit is taken from it. Written for ventilated patients; applied here to a patient on high-flow oxygen."
+    },
+    {
+      "cite": "Hillegass E, Puthoff M, Frese EM, et al. Role of physical therapists in the management of individuals at risk for or diagnosed with venous thromboembolism: evidence-based clinical practice guideline. Phys Ther. 2016;96:143-166",
+      "checkedAt": "2026-11-11",
+      "url": "https://scholarblogs.emory.edu/buddterrace/files/2016/03/CPG-for-Individuals-at-Risk-for-or-Diagnosed-with-Venous-Thromboembolism.pdf",
+      "note": "Read 2026-11-11 (a hosted copy of the published PDF). Action statement 1: advocate for a culture of mobility and physical activity unless medical contraindications exist. A 2022 update exists (Phys Ther 2022, pzac057); its full text could not be fetched."
+    },
+    {
+      "cite": "CAPTE, Standards and Required Elements for Accreditation of Physical Therapist Education Programs (2024 standards), Standard 7D",
+      "checkedAt": "2026-10-08",
+      "url": "https://www.capteonline.org/globalassets/capte-docs/2024-capte-pt-standards-required-elements.pdf",
+      "note": "FLAG: not re-read for this scenario; the scope (7D10-7D16 interventions, 7D1 examination) is the DPT course seed's reading of 2026-10-08."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-11",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. The direction of each response follows the cited sources; the sizes and time constants are authored."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 in the medical ICU. You are the physical therapist. Mrs. Okafor, 64, is on day 3 of a stay for pneumonia with sepsis and is getting better. Rounds set today's goal: out of bed to the chair.",
+    "handover": [
+      "High-flow nasal cannula, 40 L/min, FiO2 0.45. Arterial line, peripheral IV.",
+      "Norepinephrine stopped at 02:00; MAP 70-78 since.",
+      "Awake, calm, following commands. Lived alone and walked without an aid before admission.",
+      "Her nurse is in the room and can help; the respiratory therapist is on the unit."
+    ],
+    "howItWorks": [
+      "The clock runs in real time at the pace you choose: study pace (3x) or exam realism (1x). Pause any time.",
+      "Her heart rate, blood pressure, oxygen saturation and breathing respond to each activity and recover with rest, as in a real session.",
+      "The stopping rules are on screen. A rule that is met now is marked and read out at once.",
+      "Early on you are asked to write your plan. Then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "hrRest": {
+      "value": 96,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Her resting heart rate on the monitor this morning."
+      }
+    },
+    "hrPerMet": {
+      "value": 10,
+      "unit": "bpm/MET",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Read 2026-11-11 through a text extraction of the PDF. Normal exercise response: HR rises about 10 beats/min per MET and returns to the pre-exercise level in 3-5 min; SBP rises about 10 mmHg per MET. Stop criteria include SBP drop >10 mmHg with increasing workload, new or worsening dysrhythmia, RR >40, unable to speak comfortably, SpO2 <90% or a drop of 4% or more (acute coronary syndrome), SpO2 <85% (lung disease); lung disease activity target 88-92%. Orthostatic hypotension: SBP drop >20 or DBP drop >10 mmHg within 3 min of standing. Beta blockers: lower HR with exercise and a dampened BP response; use the RPE scale in addition to HR."
+      }
+    },
+    "sbpPerMet": {
+      "value": 10,
+      "unit": "mmHg/MET",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Read 2026-11-11 through a text extraction of the PDF. Normal exercise response: HR rises about 10 beats/min per MET and returns to the pre-exercise level in 3-5 min; SBP rises about 10 mmHg per MET. Stop criteria include SBP drop >10 mmHg with increasing workload, new or worsening dysrhythmia, RR >40, unable to speak comfortably, SpO2 <90% or a drop of 4% or more (acute coronary syndrome), SpO2 <85% (lung disease); lung disease activity target 88-92%. Orthostatic hypotension: SBP drop >20 or DBP drop >10 mmHg within 3 min of standing. Beta blockers: lower HR with exercise and a dampened BP response; use the RPE scale in addition to HR."
+      }
+    },
+    "tauHr": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Vitals approach each new level with a 1-minute time constant, so a change of activity is about 95% complete in 3 minutes, inside the guide's 3-5 minute return to resting."
+      }
+    },
+    "tauSpo2": {
+      "value": 45,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Saturation follows activity a little faster than heart rate."
+      }
+    },
+    "desatPerMet": {
+      "value": 3,
+      "unit": "%/MET",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. FLAG: her SpO2 falls about 3 points for each MET above rest on FiO2 0.45 (pneumonia with shunt); chosen so marching in place takes her below 88%."
+      }
+    },
+    "o2Gain": {
+      "value": 20,
+      "unit": "%/FiO2",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. FLAG: raising FiO2 from 0.45 to 0.60 adds about 3 points of SpO2 at the same effort."
+      }
+    },
+    "plGain": {
+      "value": 1,
+      "unit": "%",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Coached pursed-lip breathing adds about 1 point of SpO2 and slows her breathing a little."
+      }
+    },
+    "afAfter": {
+      "value": 210,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. FLAG: after about 3.5 minutes in total below 88% during activity, hypoxia tips her into atrial fibrillation with a fast rate. New AF is common in sepsis; the trigger and the timing are authored."
+      }
+    },
+    "afHr": {
+      "value": 45,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Atrial fibrillation adds about 45 beats/min to her rate."
+      }
+    },
+    "rrStop": {
+      "value": 40,
+      "unit": "/min",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Read 2026-11-11 through a text extraction of the PDF. Normal exercise response: HR rises about 10 beats/min per MET and returns to the pre-exercise level in 3-5 min; SBP rises about 10 mmHg per MET. Stop criteria include SBP drop >10 mmHg with increasing workload, new or worsening dysrhythmia, RR >40, unable to speak comfortably, SpO2 <90% or a drop of 4% or more (acute coronary syndrome), SpO2 <85% (lung disease); lung disease activity target 88-92%. Orthostatic hypotension: SBP drop >20 or DBP drop >10 mmHg within 3 min of standing. Beta blockers: lower HR with exercise and a dampened BP response; use the RPE scale in addition to HR."
+      }
+    },
+    "rtSec": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The respiratory therapist raises the FiO2 about 1 minute after being asked."
+      }
+    },
+    "restSec": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "A seated rest of about 2 minutes."
+      }
+    },
+    "chairSec": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "She sits up in the chair for about 15 minutes before you hand over."
+      }
+    },
+    "dangleSec": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Sitting at the edge of the bed for about a minute before standing lets her blood pressure and breathing settle; authored, as no single number was found in the sources read."
+      }
+    },
+    "reasonAt": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The written question opens 30 s in, before she moves."
+      }
+    }
+  },
+  "state": {
+    "pos": {
+      "type": "enum",
+      "values": [
+        "supine",
+        "edge",
+        "standing",
+        "marching",
+        "chair"
+      ],
+      "init": "supine"
+    },
+    "hr": {
+      "type": "number",
+      "init": 96,
+      "min": 30,
+      "max": 220
+    },
+    "sbp": {
+      "type": "number",
+      "init": 118,
+      "min": 50,
+      "max": 240,
+      "unit": "mmHg"
+    },
+    "dbp": {
+      "type": "number",
+      "init": 64,
+      "min": 30,
+      "max": 140,
+      "unit": "mmHg"
+    },
+    "spo2": {
+      "type": "number",
+      "init": 93,
+      "min": 50,
+      "max": 100,
+      "unit": "%"
+    },
+    "rr": {
+      "type": "number",
+      "init": 24,
+      "min": 6,
+      "max": 60
+    },
+    "fio2": {
+      "type": "number",
+      "init": 0.45,
+      "min": 0.21,
+      "max": 1
+    },
+    "pursed": {
+      "type": "bool",
+      "init": false
+    },
+    "chartAt": {
+      "type": "time",
+      "init": null
+    },
+    "screenedAt": {
+      "type": "time",
+      "init": null
+    },
+    "linesAt": {
+      "type": "time",
+      "init": null
+    },
+    "edgeAt": {
+      "type": "time",
+      "init": null
+    },
+    "stoodAt": {
+      "type": "time",
+      "init": null
+    },
+    "marchAt": {
+      "type": "time",
+      "init": null
+    },
+    "chairAt": {
+      "type": "time",
+      "init": null
+    },
+    "rpeSaid": {
+      "type": "number",
+      "init": 6,
+      "min": 6,
+      "max": 20
+    },
+    "rpeAt": {
+      "type": "time",
+      "init": null
+    },
+    "rpeUpright": {
+      "type": "bool",
+      "init": false
+    },
+    "curLow": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 7200,
+      "unit": "s"
+    },
+    "maxLow": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 7200,
+      "unit": "s"
+    },
+    "lowSecs": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 7200,
+      "unit": "s"
+    },
+    "o2Asked": {
+      "type": "bool",
+      "init": false
+    },
+    "afAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "handedOff": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "load": {
+      "expr": "pos == \"marching\" ? 3 : pos == \"standing\" ? 2 : pos == \"supine\" ? 1 : 1.5"
+    },
+    "afib": {
+      "expr": "not isNull(afAt)"
+    },
+    "upright": {
+      "expr": "pos == \"standing\" or pos == \"marching\""
+    },
+    "hrGoal": {
+      "expr": "hrRest + hrPerMet * (load - 1) + (afib ? afHr : 0) + max(0, spo2Floor - spo2) * 2"
+    },
+    "sbpGoal": {
+      "expr": "118 + sbpPerMet * (load - 1) - (afib ? 22 : 0)"
+    },
+    "dbpGoal": {
+      "expr": "64 + 2 * (load - 1) - (afib ? 10 : 0)"
+    },
+    "spo2Goal": {
+      "expr": "93 + (fio2 - 0.45) * o2Gain + (pursed ? plGain : 0) - desatPerMet * (load - 1) - (afib ? 3 : 0) - (load >= 2 ? min(10, curLow / 30) : 0)"
+    },
+    "rrGoal": {
+      "expr": "24 + 4 * (load - 1) + (spo2 < spo2Floor ? 6 : 0) + (afib ? 4 : 0) - (pursed ? 2 : 0)"
+    },
+    "rpe": {
+      "expr": "round(clamp(9 + 2 * (load - 1) + (spo2 < spo2Floor ? 3 : 0) + (afib ? 3 : 0), 6, 20))",
+      "precision": 0
+    },
+    "activityText": {
+      "expr": "pos == \"supine\" ? (isNull(chairAt) ? \"Lying in bed, head up 30 degrees\" : \"Back in bed\") : pos == \"edge\" ? \"Sitting at the edge of the bed, feet on the floor\" : pos == \"standing\" ? \"Standing at the walker with the gait belt on\" : pos == \"marching\" ? (spo2 < spo2Floor ? \"Marching in place; short of breath, speaking in short phrases\" : \"Marching in place at the walker, steady\") : \"Sitting up in the chair\""
+    }
+  },
+  "processes": [
+    {
+      "id": "vitals",
+      "update": {
+        "hr": "hr + (hrGoal - hr) * dt / tauHr",
+        "sbp": "sbp + (sbpGoal - sbp) * dt / tauHr",
+        "dbp": "dbp + (dbpGoal - dbp) * dt / tauHr",
+        "spo2": "spo2 + (spo2Goal - spo2) * dt / tauSpo2",
+        "rr": "rr + (rrGoal - rr) * dt / tauHr"
+      }
+    },
+    {
+      "id": "lowTime",
+      "update": {
+        "curLow": "spo2 < spo2Floor ? curLow + dt : 0",
+        "maxLow": "max(maxLow, spo2 < spo2Floor ? curLow + dt : 0)",
+        "lowSecs": "lowSecs + (spo2 < spo2Floor and load >= 2 ? dt : 0)"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In the ICU room",
+      "clock": "running",
+      "actions": [
+        "chart",
+        "screen",
+        "lines",
+        "toEdge",
+        "stand",
+        "march",
+        "sitRest",
+        "pivot",
+        "toBed",
+        "askRpe",
+        "o2Up",
+        "pursedLip",
+        "escalate",
+        "handover"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "chart": {
+      "label": "Review the chart and the overnight trends",
+      "group": "Before moving",
+      "available": "isNull(chartAt)",
+      "why": "Already reviewed.",
+      "effects": [
+        {
+          "set": "chartAt",
+          "to": "t"
+        },
+        {
+          "log": "Chart: norepinephrine off since 02:00, MAP 70-78 since; lactate 1.4 this morning (3.8 on admission); Hgb 9.8; no arrhythmia overnight. Rounds goal: out of bed to the chair.",
+          "kind": "find"
+        }
+      ]
+    },
+    "screen": {
+      "label": "Run the mobility safety screen with her nurse",
+      "group": "Before moving",
+      "available": "isNull(screenedAt)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "screenedAt",
+          "to": "t"
+        },
+        {
+          "log": "Screen with her nurse: FiO2 {fio2|2dp} (below 0.6), SpO2 {round(spo2)}% (above 90%), RR {round(rr)} (below 30), no vasopressor for 8 h, awake and following commands. Safe to start, with oxygen in reserve.",
+          "kind": "good"
+        }
+      ]
+    },
+    "lines": {
+      "label": "Check her lines and tubes and give them slack",
+      "group": "Before moving",
+      "available": "isNull(linesAt)",
+      "why": "Already checked.",
+      "effects": [
+        {
+          "set": "linesAt",
+          "to": "t"
+        },
+        {
+          "log": "High-flow tubing, arterial line and IV traced and secured with slack for standing. The nurse will manage the lines as she moves.",
+          "kind": "good"
+        }
+      ]
+    },
+    "toEdge": {
+      "label": "Help her sit up at the edge of the bed",
+      "group": "Move",
+      "available": "pos == \"supine\" and not handedOff",
+      "why": "She is not lying in bed.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"edge\""
+        },
+        {
+          "if": "isNull(edgeAt)",
+          "then": [
+            {
+              "set": "edgeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "She rolls and sits up at the edge of the bed with your help, feet flat on the floor.",
+          "kind": "act"
+        }
+      ]
+    },
+    "stand": {
+      "label": "Sit to stand at the walker (gait belt, nurse assisting)",
+      "group": "Move",
+      "available": "pos == \"edge\" and not handedOff",
+      "why": "She needs to be sitting at the edge of the bed first.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"standing\""
+        },
+        {
+          "if": "isNull(stoodAt)",
+          "then": [
+            {
+              "set": "stoodAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Gait belt on; she stands at the walker with minimal assist of one, the nurse guarding the lines.",
+          "kind": "act"
+        }
+      ]
+    },
+    "march": {
+      "label": "March in place at the walker",
+      "group": "Move",
+      "available": "pos == \"standing\"",
+      "why": "She needs to be standing first.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"marching\""
+        },
+        {
+          "if": "isNull(marchAt)",
+          "then": [
+            {
+              "set": "marchAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "She marches in place at the walker, lifting each knee.",
+          "kind": "act"
+        }
+      ]
+    },
+    "sitRest": {
+      "label": "Sit her back down at the edge of the bed to rest",
+      "group": "Move",
+      "available": "upright",
+      "why": "She is not standing.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"edge\""
+        },
+        {
+          "cancel": "restT"
+        },
+        {
+          "schedule": "restT",
+          "after": "restSec"
+        },
+        {
+          "log": "She sits back down at the edge of the bed to rest.",
+          "kind": "act"
+        }
+      ]
+    },
+    "pivot": {
+      "label": "Step-pivot to the chair beside the bed",
+      "group": "Move",
+      "available": "upright",
+      "why": "She needs to be standing first.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"chair\""
+        },
+        {
+          "set": "chairAt",
+          "to": "t"
+        },
+        {
+          "cancel": "restT"
+        },
+        {
+          "schedule": "chairT",
+          "after": "chairSec"
+        },
+        {
+          "log": "She steps and pivots to the chair with the walker and sits, the nurse following with the lines.",
+          "kind": "good"
+        }
+      ]
+    },
+    "toBed": {
+      "label": "Help her back to bed",
+      "group": "Move",
+      "available": "(pos == \"edge\" or pos == \"chair\") and not handedOff",
+      "why": "She is already in bed, or standing.",
+      "effects": [
+        {
+          "set": "pos",
+          "to": "\"supine\""
+        },
+        {
+          "cancel": "restT"
+        },
+        {
+          "cancel": "chairT"
+        },
+        {
+          "log": "Back to bed with the nurse's help, head of the bed up.",
+          "kind": "act"
+        }
+      ]
+    },
+    "askRpe": {
+      "label": "Ask her rating of exertion (Borg 6-20) and whether she can talk",
+      "group": "Monitor",
+      "effects": [
+        {
+          "set": "rpeSaid",
+          "to": "rpe"
+        },
+        {
+          "set": "rpeAt",
+          "to": "t"
+        },
+        {
+          "if": "upright",
+          "then": [
+            {
+              "set": "rpeUpright",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "spo2 < spo2Floor or afib",
+              "then": [
+                {
+                  "log": "\"About {rpe}... hard.\" She answers in two or three words between breaths.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "\"About {rpe}.\" She answers in a full sentence.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "o2Up": {
+      "label": "Ask the respiratory therapist to raise FiO2 to 0.60 for activity",
+      "group": "Respond",
+      "available": "fio2 < 0.6 and not o2Asked",
+      "why": "Already raised or asked for.",
+      "effects": [
+        {
+          "set": "o2Asked",
+          "to": "true"
+        },
+        {
+          "schedule": "rtT",
+          "after": "rtSec"
+        },
+        {
+          "log": "You ask the respiratory therapist to raise the FiO2 to 0.60 while she is active.",
+          "kind": "good"
+        }
+      ]
+    },
+    "pursedLip": {
+      "label": "Coach pursed-lip breathing",
+      "group": "Respond",
+      "available": "not pursed",
+      "why": "Already coached.",
+      "effects": [
+        {
+          "set": "pursed",
+          "to": "true"
+        },
+        {
+          "log": "\"In through your nose, out slowly through pursed lips.\" Her breathing slows a little.",
+          "kind": "act"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Call her nurse and the ICU team now (SBAR)",
+      "group": "Respond",
+      "available": "isNull(escalatedAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "afib",
+              "then": [
+                {
+                  "set": "escalatedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "SBAR: \"New irregular rhythm, rate {round(hr)}, BP {round(sbp)}/{round(dbp)}, SpO2 {round(spo2)}% while marching on FiO2 {fio2|2dp}; I have stopped the activity.\" The ICU resident comes at once, orders a 12-lead ECG and asks for her back in bed.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Her nurse: \"Thanks for letting me know. Tell me if anything changes.\"",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "handover": {
+      "label": "Hand over to her nurse: what she did, how she tolerated it, the plan",
+      "group": "Finish",
+      "available": "(pos == \"chair\" or pos == \"supine\") and not handedOff",
+      "why": "Get her safely seated in the chair or back in bed first.",
+      "effects": [
+        {
+          "set": "handedOff",
+          "to": "true"
+        },
+        {
+          "log": "Handover to her nurse: activity, vitals, the oxygen she needed, and what to do next time.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "rtT": {
+      "label": "the respiratory therapist adjusting the oxygen",
+      "wait": {
+        "skipLabel": "the respiratory therapist raising the oxygen (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "The respiratory therapist raises the FiO2 about 1 minute after being asked."
+      },
+      "effects": [
+        {
+          "set": "fio2",
+          "to": "0.6"
+        },
+        {
+          "log": "The respiratory therapist sets the FiO2 to 0.60.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "restT": {
+      "label": "a seated rest",
+      "wait": {
+        "skipLabel": "a seated rest (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "A seated rest of about 2 minutes."
+      },
+      "effects": [
+        {
+          "log": "Two minutes of rest: SpO2 {round(spo2)}%, HR {round(hr)}, RR {round(rr)}.",
+          "kind": "find"
+        }
+      ]
+    },
+    "chairT": {
+      "label": "sitting up in the chair",
+      "wait": {
+        "skipLabel": "her time sitting up in the chair (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "She sits up in the chair for about 15 minutes before you hand over."
+      },
+      "effects": [
+        {
+          "log": "Fifteen minutes in the chair: SpO2 {round(spo2)}%, HR {round(hr)}, comfortable and talking with her nurse.",
+          "kind": "find"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "afOnset",
+      "when": "isNull(afAt) and lowSecs >= afAfter",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "afAt",
+          "to": "t"
+        },
+        {
+          "log": "Monitor alarm: a new irregularly irregular rhythm, rate climbing past 140. \"My heart is racing.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "lowAlarm",
+      "when": "spo2 < spo2Floor and upright",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "SpO2 alarm: {round(spo2)}% while she is standing.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "plan": {
+      "trigger": "t >= reasonAt",
+      "question": "Before she moves: is Mrs. Okafor safe to get out of bed today, what will you watch while she is up, and what will make you stop?",
+      "parts": [
+        {
+          "label": "Is it safe to start?",
+          "criteria": "Uses a safety screen across systems: oxygen need below the commonly used limit (FiO2 under 0.6) with SpO2 above 90% and RR under 30; no rising vasopressor dose (off for 8 h, MAP stable); awake and following commands; lines secured. Concludes she can start, with oxygen in reserve.",
+          "modelAnswer": "Yes. FiO2 is 0.45 with SpO2 93% and RR 24, she has been off norepinephrine for 8 hours with a stable MAP, and she is awake and following commands. I will secure the lines, have her nurse help and keep extra oxygen available."
+        },
+        {
+          "label": "What to watch and when to stop",
+          "criteria": "Monitors HR, rhythm, BP, SpO2, RR and RPE or the talk test during each step; stages the activity (edge of bed, stand, march, chair); names stopping rules: SpO2 below about 88-90% that does not recover, a new arrhythmia, a falling SBP as work rises, RR above 40, inability to speak; and the response: sit her down, raise the oxygen with the team, call the nurse and ICU team for a new rhythm.",
+          "modelAnswer": "I will step her up from the edge of the bed to standing, marching, then the chair, watching the monitor and asking her RPE. I stop if SpO2 drops below 88% and does not come back with rest, if a new arrhythmia appears, if SBP drops as she works, if RR goes over 40 or if she cannot talk. Then I sit her down, ask the RT to raise the oxygen, and for a new rhythm I call her nurse and the ICU team."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+          "checkedAt": "2026-11-11",
+          "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+          "note": "Read 2026-11-11 through a text extraction of the PDF. Stop criteria for activity include SpO2 below 90% or a drop of 4% or more (acute coronary syndrome) and below 85% (lung disease), with an activity target of 88-92% in lung disease. The 2-minute window to ease the activity once SpO2 stays below 88% is authored; the guide gives no time."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+          "checkedAt": "2026-11-11",
+          "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+          "note": "Read 2026-11-11 through a text extraction of the PDF. Lung disease activity target 88-92%; collaborate with the team below 90%."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+          "checkedAt": "2026-11-11",
+          "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+          "note": "Read 2026-11-11 through a text extraction of the PDF. A new or worsening dysrhythmia is a stop criterion. FLAG: the 5-minute limit to call the team is authored and tighter than the profile default of 15 minutes, because a new fast rhythm in the ICU needs the team now."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "handedOff and pos != \"chair\"",
+      "class": "recovered",
+      "rationale": "She is safe, but back in bed without reaching today's goal; another day in bed adds to the weakness of critical illness, which mobility is meant to prevent. A gap, not harm in itself.",
+      "source": {
+        "cite": "Hillegass E, Puthoff M, Frese EM, et al. Role of physical therapists in the management of individuals at risk for or diagnosed with venous thromboembolism: evidence-based clinical practice guideline. Phys Ther. 2016;96:143-166",
+        "checkedAt": "2026-11-11",
+        "url": "https://scholarblogs.emory.edu/buddterrace/files/2016/03/CPG-for-Individuals-at-Risk-for-or-Diagnosed-with-Venous-Thromboembolism.pdf",
+        "note": "Read 2026-11-11 (a hosted copy of the published PDF). Action statement 1: advocate for a culture of mobility and physical activity unless medical contraindications exist. A 2022 update exists (Phys Ther 2022, pzac057); its full text could not be fetched."
+      }
+    }
+  },
+  "endings": {
+    "rapidResponse": {
+      "label": "Rapid response",
+      "class": "harm",
+      "terminal": true,
+      "when": "spo2 < 80 or (afib and isNull(escalatedAt) and t - timeAt(afAt) > escalateWindow)",
+      "narrative": "Her saturation fell below 80% and a fast new rhythm went on without the team being called. The rapid response team puts her back in bed on more oxygen and treats the rhythm. Mobility is off for today."
+    },
+    "chairSafe": {
+      "label": "In the chair, inside the stopping rules",
+      "class": "target",
+      "terminal": true,
+      "when": "handedOff and pos == \"chair\" and not isNull(screenedAt) and timeAt(screenedAt) <= timeAt(stoodAt) and maxLow <= stopWindow and not afib",
+      "narrative": "She sat up in the chair for 15 minutes after standing and marching, with her saturation kept at or above 88% by staging the activity, resting, coaching her breathing and raising the oxygen with the team."
+    },
+    "chairGaps": {
+      "label": "In the chair, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "handedOff and pos == \"chair\"",
+      "narrative": "She reached the chair, but something was missing or late: the safety screen before she stood, or easing off when her saturation stayed low."
+    },
+    "backInBed": {
+      "label": "Back in bed, goal not reached",
+      "class": "recovered",
+      "terminal": true,
+      "when": "handedOff",
+      "narrative": "She is back in bed and safe, but did not reach the chair today."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The hour ran out before you handed over."
+    }
+  },
+  "endingOrder": [
+    "rapidResponse",
+    "chairSafe",
+    "chairGaps",
+    "backInBed"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "screened",
+        "label": "Ran the mobility safety screen before she stood",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(screenedAt)",
+            "score": "missed",
+            "why": "She was mobilized without a safety screen."
+          },
+          {
+            "when": "not isNull(stoodAt) and timeAt(screenedAt) > timeAt(stoodAt)",
+            "score": "missed",
+            "why": "The screen came only after she was standing."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Screened at {timeAt(screenedAt)|clock}: FiO2 under 0.6, SpO2 over 90%, RR under 30, off pressors, following commands."
+          }
+        ]
+      },
+      {
+        "id": "stopInTime",
+        "label": "Eased the activity within 2 min of SpO2 staying below 88%",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "maxLow == 0",
+            "score": "met",
+            "why": "Her saturation never stayed below 88%."
+          },
+          {
+            "when": "maxLow <= stopWindow",
+            "score": "met",
+            "why": "The longest stretch below 88% was {maxLow|duration}."
+          },
+          {
+            "when": "maxLow <= stopWindow + 60",
+            "score": "partial",
+            "why": "Below 88% for {maxLow|duration} before the activity eased; aim for under 2 minutes."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Below 88% for {maxLow|duration} while she kept going."
+          }
+        ]
+      },
+      {
+        "id": "rhythmCalled",
+        "label": "Stopped and called the team for the new rhythm",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not afib",
+            "score": "na",
+            "why": "No new rhythm appeared."
+          },
+          {
+            "when": "isNull(escalatedAt)",
+            "score": "missed",
+            "why": "A new fast irregular rhythm and the team was not called."
+          },
+          {
+            "when": "timeAt(escalatedAt) - timeAt(afAt) <= escalateWindow",
+            "score": "met",
+            "why": "Team called {(timeAt(escalatedAt) - timeAt(afAt))|duration} after the rhythm started."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Team called {(timeAt(escalatedAt) - timeAt(afAt))|duration} after the rhythm started; call at once."
+          }
+        ]
+      },
+      {
+        "id": "linesFirst",
+        "label": "Secured lines and tubes before she sat up",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(linesAt)",
+            "score": "missed",
+            "why": "Lines were never checked."
+          },
+          {
+            "when": "isNull(edgeAt) or timeAt(linesAt) <= timeAt(edgeAt)",
+            "score": "met",
+            "why": "Lines secured with slack before she moved."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Lines checked only after she was sitting up."
+          }
+        ]
+      },
+      {
+        "id": "staged",
+        "label": "Sat at the edge of the bed for a minute before standing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(stoodAt)",
+            "score": "na",
+            "why": "She did not stand."
+          },
+          {
+            "when": "timeAt(stoodAt) - timeAt(edgeAt) >= dangleSec",
+            "score": "met",
+            "why": "Sat {(timeAt(stoodAt) - timeAt(edgeAt))|duration} before standing."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Stood only {(timeAt(stoodAt) - timeAt(edgeAt))|duration} after sitting up."
+          }
+        ]
+      },
+      {
+        "id": "oxygen",
+        "label": "Raised the oxygen with the team when she needed it",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "o2Asked",
+            "score": "met",
+            "why": "FiO2 raised to 0.60 for activity."
+          },
+          {
+            "when": "lowSecs == 0",
+            "score": "na",
+            "why": "She never needed more oxygen."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Her saturation fell below 88% and the oxygen was never adjusted."
+          }
+        ]
+      },
+      {
+        "id": "rpe",
+        "label": "Checked exertion (RPE or talk test) while she was up",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "rpeUpright",
+            "score": "met",
+            "why": "Asked her RPE while standing."
+          },
+          {
+            "when": "isNull(stoodAt)",
+            "score": "na",
+            "why": "She did not stand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Exertion never checked while she was standing."
+          }
+        ]
+      },
+      {
+        "id": "handover",
+        "label": "Handed over to her nurse",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "handedOff",
+            "score": "met",
+            "why": "Activity, tolerance and plan handed over."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No handover."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written plan: safe to start, what to watch, when to stop",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "longestLow",
+        "label": "Longest stretch with SpO2 below 88%",
+        "value": "maxLow",
+        "format": "duration",
+        "expert": "none, or under 1 min"
+      },
+      {
+        "id": "toChair",
+        "label": "Start to sitting in the chair",
+        "value": "isNull(chairAt) ? -1 : timeAt(chairAt)",
+        "format": "duration",
+        "expert": "about 10-15 min"
+      },
+      {
+        "id": "rhythmToCall",
+        "label": "New rhythm to calling the team",
+        "value": "not afib or isNull(escalatedAt) ? -1 : timeAt(escalatedAt) - timeAt(afAt)",
+        "format": "duration",
+        "expert": "under 1 min (if it happens)"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Chart and trends, then the safety screen with her nurse: FiO2 0.45, SpO2 93%, RR 24, off pressors 8 h, following commands. Lines secured with slack."
+      },
+      {
+        "at": "10:02",
+        "text": "Edge of the bed for a minute or two, then stand at the walker with a gait belt, nurse assisting. Ask her RPE."
+      },
+      {
+        "at": "10:05",
+        "text": "Marching drops her SpO2 toward 88%: sit her down, coach pursed-lip breathing and ask the RT for FiO2 0.60."
+      },
+      {
+        "at": "10:08",
+        "text": "Rest until she recovers, stand again and march on the higher FiO2, then step-pivot to the chair."
+      },
+      {
+        "at": "10:25",
+        "text": "After 15 minutes in the chair, hand over: what she did, the oxygen she needed, and the plan for next time."
+      }
+    ],
+    "debrief": {
+      "chairSafe": {
+        "headline": "In the chair, inside the stopping rules",
+        "body": "You screened before moving her, staged the activity, and acted as soon as her saturation fell: rest, breathing, more oxygen with the team. That is the expert path."
+      },
+      "chairGaps": {
+        "headline": "In the chair, with gaps",
+        "body": "She got there, which matters. Look at the safety screen and how long her saturation stayed below 88% before the activity eased."
+      },
+      "backInBed": {
+        "headline": "Back in bed",
+        "body": "Safe, but the goal for today was not reached. If a new rhythm sent her back, that was the right call; if not, staging, rest and oxygen usually get a patient like her to the chair."
+      },
+      "rapidResponse": {
+        "headline": "Rapid response",
+        "body": "The most useful kind of run to learn from. A saturation that stays under 88% during activity means sit down, rest and more oxygen; a new fast rhythm means stop and call the team at once."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The hour ran out before the handover."
+      }
+    },
+    "modelReasoning": "Mrs. Okafor meets common safety criteria to start: FiO2 under 0.6 with SpO2 over 90% and RR under 30, no rising vasopressor (off for 8 h), awake and following commands. Secure lines, stage the activity (edge of bed, stand with a gait belt, march, step-pivot to the chair) and monitor HR, rhythm, BP, SpO2, RR and RPE. Expect HR and SBP to rise about 10 per MET and recover in 3-5 minutes. Her SpO2 falls with effort; below 88% the response is to sit, rest, coach pursed-lip breathing and ask the RT for more oxygen before trying again. A new arrhythmia is a stop rule: sit or lie her down and call the nurse and the ICU team at once."
+  },
+  "chapters": [
+    {
+      "id": "upright",
+      "label": "She is standing",
+      "when": "not isNull(stoodAt)"
+    },
+    {
+      "id": "inChair",
+      "label": "In the chair",
+      "when": "pos == \"chair\""
+    }
+  ],
+  "teaching": {
+    "afterRest": {
+      "during": "restT",
+      "ask": "She is resting after marching. What should her heart rate and saturation do over the next few minutes?",
+      "choices": [
+        {
+          "id": "recover",
+          "label": "Settle back toward her resting values within about 3-5 minutes"
+        },
+        {
+          "id": "stay",
+          "label": "Stay where they were at the peak of the activity"
+        },
+        {
+          "id": "drop",
+          "label": "Fall well below her resting values"
+        }
+      ],
+      "expect": "recover",
+      "explain": "After activity, heart rate normally returns toward its pre-exercise level within 3-5 minutes, and saturation recovers as the oxygen demand falls. A rate or saturation that does not recover with rest is a reason to stop for the day and tell the team.",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Read 2026-11-11 through a text extraction of the PDF. Normal exercise response: HR rises about 10 beats/min per MET and returns to the pre-exercise level in 3-5 min; SBP rises about 10 mmHg per MET. Stop criteria include SBP drop >10 mmHg with increasing workload, new or worsening dysrhythmia, RR >40, unable to speak comfortably, SpO2 <90% or a drop of 4% or more (acute coronary syndrome), SpO2 <85% (lung disease); lung disease activity target 88-92%. Orthostatic hypotension: SBP drop >20 or DBP drop >10 mmHg within 3 min of standing. Beta blockers: lower HR with exercise and a dampened BP response; use the RPE scale in addition to HR."
+      }
+    },
+    "nextTime": {
+      "during": "chairT",
+      "ask": "Next session, what would most likely keep her SpO2 at or above 88% while she marches?",
+      "choices": [
+        {
+          "id": "prepare",
+          "label": "Plan the oxygen increase and rest breaks with the RT before she stands"
+        },
+        {
+          "id": "push",
+          "label": "March for longer so she gets used to it"
+        },
+        {
+          "id": "skip",
+          "label": "Skip standing and keep her in bed until she is off oxygen"
+        }
+      ],
+      "expect": "prepare",
+      "explain": "Oxygen reserve should exceed the activity, and an activity target of 88-92% is usual in lung disease. Planning the oxygen and the rest breaks lets her keep moving, which is the point of early mobility.",
+      "source": {
+        "cite": "Hodgson CL, Stiller K, Needham DM, et al. Expert consensus and recommendations on safety criteria for active mobilization of mechanically ventilated critically ill adults. Crit Care. 2014;18:658. doi:10.1186/s13054-014-0658-y",
+        "checkedAt": "2026-11-11",
+        "url": "https://aifi.net/wp-content/uploads/2020/04/Hodgson-2014-Expert-consensus-and-recommendations-on-safety-criteria-for-active-mobilization-of-mechanically-ventilated-critically-ill-adults.pdf",
+        "note": "Read 2026-11-11 in a copy of the published PDF (the publisher's own PDF link could not be fetched). FiO2 below 0.6 with SpO2 above 90% and RR below 30/min were considered safe for in- and out-of-bed mobilization; vasoactive drugs are not in themselves a contraindication but rising doses call for caution; the most conservatively scored parameter takes precedence; oxygen reserve should exceed the activity. The traffic-light figures were not readable in the text, so no HR or MAP limit is taken from it. Written for ventilated patients; applied here to a patient on high-flow oxygen."
+      }
+    }
+  }
+}

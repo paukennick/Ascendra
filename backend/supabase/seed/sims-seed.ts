@@ -9,7 +9,11 @@
 //   - a sim_versions row is inserted only when the content hash is new; an
 //     unchanged hash with changed source dates updates that row in place;
 //     a file reverted to an earlier hash points the head back at its row;
-//   - authored sims of a seeded course that are no longer listed are retired.
+//   - authored sims of a seeded course that are no longer listed are retired;
+//   - the version's `source` is the entry's (REQ-236): 'generated' for a
+//     sim the generator wrote (entry(..., { source: "generated" })),
+//     otherwise 'authored'. A changed marking on an unchanged hash is
+//     corrected in place on that row, like the source dates.
 // Idempotent: a second run changes nothing.
 import type { Pool, PoolClient } from "pg";
 import { ALL_DOCUMENTS, loadDocument, type DocumentEntry } from "../../lib/sim/documents";
@@ -62,8 +66,9 @@ async function seedOne(c: PoolClient, entry: DocumentEntry, doc: ScenarioDoc): P
   const hash = contentHash(doc);
   const cHash = clientHash(doc);
   const recheck = earliestRecheck(doc, family === "general" ? 12 : 6);
-  const existing = await c.query<{ id: string; version: number; document: ScenarioDoc }>(
-    `select id, version, document from sim_versions where sim_id = $1 and content_hash = $2`,
+  const source = entry.source ?? "authored";
+  const existing = await c.query<{ id: string; version: number; document: ScenarioDoc; source: string }>(
+    `select id, version, document, source from sim_versions where sim_id = $1 and content_hash = $2`,
     [simId, hash]
   );
   let versionId: string;
@@ -80,6 +85,9 @@ async function seedOne(c: PoolClient, entry: DocumentEntry, doc: ScenarioDoc): P
         [versionId, JSON.stringify(doc), JSON.stringify(clientDocument(doc)), cHash, recheck]
       );
     }
+    if (existing.rows[0].source !== source) {
+      await c.query(`update sim_versions set source = $2 where id = $1`, [versionId, source]);
+    }
     change = sim.rows[0].head_version_id !== versionId ? "reverted" : same ? "unchanged" : "dates";
   } else {
     const next = await c.query<{ v: number }>(`select coalesce(max(version), 0) + 1 as v from sim_versions where sim_id = $1`, [simId]);
@@ -88,7 +96,7 @@ async function seedOne(c: PoolClient, entry: DocumentEntry, doc: ScenarioDoc): P
       `insert into sim_versions
          (sim_id, version, schema_version, engine_major, engine_minor, renderer_level, document, client_document,
           content_hash, client_hash, sources_recheck_by, source, review_status)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'authored', 'needs_expert_review')
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'needs_expert_review')
        returning id`,
       [
         simId,
@@ -102,6 +110,7 @@ async function seedOne(c: PoolClient, entry: DocumentEntry, doc: ScenarioDoc): P
         hash,
         cHash,
         recheck,
+        source,
       ]
     );
     versionId = ins.rows[0].id;

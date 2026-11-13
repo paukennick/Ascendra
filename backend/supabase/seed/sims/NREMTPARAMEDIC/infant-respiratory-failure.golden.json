@@ -1,0 +1,590 @@
+{
+  "slug": "infant-respiratory-failure",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: assessment triangle, suction, oxygen, recognizes exhaustion, BVM at 20-30/min before apnea, no tube, transport",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "suction",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nrb",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 6,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "params": {
+            "rate": "right"
+          },
+          "seq": 7,
+          "tick": 45
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 45
+        },
+        {
+          "type": "chapter",
+          "chapter": "bagging",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "teach",
+          "prompt": "ride",
+          "choice": "no",
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 12,
+          "tick": 90
+        }
+      ],
+      "expect": {
+        "ending": "ventilated",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "recognize": "met",
+          "rate": "met",
+          "leastInvasive": "met",
+          "first": "met",
+          "noHarmDrugs": "met",
+          "brady": "na",
+          "notify": "met"
+        },
+        "kpis": {
+          "toBvm": 45,
+          "lowHr": 165,
+          "sceneK": 210
+        },
+        "stateHash": "049cacc96e5a4eb7"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "nebThenApnea",
+      "title": "Suction skipped and nebulized epinephrine first; she stops breathing, her heart rate falls below 60, compressions and BVM bring her back",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nrb",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nebEpi",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "neb",
+          "choice": "tiring",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "cpr",
+          "seq": 7,
+          "tick": 637
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "params": {
+            "rate": "right"
+          },
+          "seq": 8,
+          "tick": 637
+        },
+        {
+          "type": "chapter",
+          "chapter": "bagging",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 637
+        },
+        {
+          "type": "act",
+          "action": "stopCpr",
+          "seq": 10,
+          "tick": 747
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 11,
+          "tick": 747
+        },
+        {
+          "type": "teach",
+          "prompt": "ride",
+          "choice": "no",
+          "seq": 12,
+          "tick": 747
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 13,
+          "tick": 747
+        }
+      ],
+      "expect": {
+        "ending": "arrivedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "recognize": "missed",
+          "rate": "met",
+          "leastInvasive": "met",
+          "first": "partial",
+          "noHarmDrugs": "met",
+          "brady": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toBvm": 637,
+          "lowHr": 59,
+          "sceneK": 867
+        },
+        "stateHash": "8fe92548bc51a69c"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "slowBagging",
+      "title": "Recognizes failure in time but bags at the adult rate of 12 a minute",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "suction",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nrb",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "params": {
+            "rate": "slow"
+          },
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "chapter",
+          "chapter": "bagging",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "ride",
+          "choice": "no",
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 10,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "arrivedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "recognize": "met",
+          "rate": "missed",
+          "leastInvasive": "met",
+          "first": "met",
+          "noHarmDrugs": "met",
+          "brady": "na",
+          "notify": "met"
+        },
+        "kpis": {
+          "toBvm": 60,
+          "lowHr": 165,
+          "sceneK": 240
+        },
+        "stateHash": "fcc0abb92812624b"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "fastBagging",
+      "title": "Bags as fast as possible to chase the saturation: the stomach fills",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "suction",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nrb",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "params": {
+            "rate": "fast"
+          },
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "chapter",
+          "chapter": "bagging",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "ride",
+          "choice": "no",
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 10,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "arrivedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "recognize": "met",
+          "rate": "missed",
+          "leastInvasive": "met",
+          "first": "met",
+          "noHarmDrugs": "met",
+          "brady": "na",
+          "notify": "met"
+        },
+        "kpis": {
+          "toBvm": 60,
+          "lowHr": 165,
+          "sceneK": 240
+        },
+        "stateHash": "d20efd5ba5430a09"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "tubeAttempt",
+      "title": "Good BVM, then albuterol, a steroid and an intubation attempt that costs oxygen",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "suction",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nrb",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "albuterol",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "dexamethasone",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "params": {
+            "rate": "right"
+          },
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "chapter",
+          "chapter": "bagging",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "intubate",
+          "seq": 10,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 11,
+          "tick": 190
+        },
+        {
+          "type": "teach",
+          "prompt": "ride",
+          "choice": "no",
+          "seq": 12,
+          "tick": 190
+        }
+      ],
+      "expect": {
+        "ending": "arrivedGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "recognize": "met",
+          "rate": "met",
+          "leastInvasive": "missed",
+          "first": "met",
+          "noHarmDrugs": "missed",
+          "brady": "na",
+          "notify": "missed"
+        },
+        "kpis": {
+          "toBvm": 60,
+          "lowHr": 165,
+          "sceneK": 310
+        },
+        "stateHash": "4bfb7b4b5b84a51a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noBvm",
+      "title": "Failure: albuterol and watching; the slowing breaths are read as improvement; she stops breathing and arrests",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "albuterol",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 300
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "recognize": "missed",
+          "rate": "missed",
+          "leastInvasive": "met",
+          "first": "missed",
+          "noHarmDrugs": "missed",
+          "brady": "missed",
+          "notify": "missed"
+        },
+        "kpis": {
+          "toBvm": -1,
+          "lowHr": 51,
+          "sceneK": -1
+        },
+        "stateHash": "2624fef1c372b565"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

@@ -33,7 +33,10 @@ export function simsEnabled(env: Record<string, string | undefined> = process.en
 // so the default is both renderers this release ships. REQ-225 adds the
 // client session (the people layer) to the default so testers see it;
 // SIMS_RENDERERS=bedside,board turns it off again without a release.
-export const DEFAULT_RENDERERS = ["bedside", "board", "session"] as const;
+// REQ-231 adds the security operations console ("security-console").
+// REQ-232 adds the PT treatment session ("treatment-session") the same way.
+// REQ-237 adds the terminal and network screen ("terminal").
+export const DEFAULT_RENDERERS = ["bedside", "board", "session", "security-console", "treatment-session", "terminal"] as const;
 export function renderersOn(env: Record<string, string | undefined> = process.env): string[] {
   const raw = env.SIMS_RENDERERS;
   if (raw === undefined || raw.trim() === "") return [...DEFAULT_RENDERERS];
@@ -90,7 +93,11 @@ export function parseCaps(header: string | null | undefined): SimCaps | null {
     }
     if (k === "renderers") {
       for (const r of v.split(",")) {
-        const m = /^([a-z]{1,20})@(\d{1,3})$/.exec(r.trim());
+        // REQ-231 (FAIL-1320; REQ-232 found the same bug, FAIL-1340): a screen type may contain a hyphen
+        // ("security-console"); the old pattern dropped it silently, so the
+        // server thought the app could not run the console. Same 40-character
+        // limit as sims.screen_type.
+        const m = /^([a-z][a-z-]{0,39})@(\d{1,3})$/.exec(r.trim());
         if (m) caps.renderers.push({ type: m[1], level: Number(m[2]) });
       }
     }
@@ -110,6 +117,40 @@ export function runnable(v: VersionNeeds, caps: SimCaps | null): boolean {
   const engineOk = caps.engines.some((e) => e.major === v.engine_major && e.minor >= v.engine_minor);
   const rendererOk = caps.renderers.some((r) => r.type === v.screen_type && r.level >= v.renderer_level);
   return engineOk && rendererOk;
+}
+
+// A sim version as servedVersion reads it.
+export interface VersionRow {
+  id: string;
+  version: number;
+  engine_major: number;
+  engine_minor: number;
+  renderer_level: number;
+  client_hash: string;
+  review_status: "needs_expert_review" | "approved" | "rejected";
+}
+
+// Which version new runs get (lib/sims.ts servedVersion, docs/sims.md 6),
+// chosen from a sim's servable versions already read (newest first). REQ-249: the course list's sim_count reads every listed
+// track's versions in one query and asks this the same question, so the
+// count and the start route can never disagree about what is served.
+export function pickServedVersion(
+  rows: VersionRow[],
+  sim: { head_version_id: string | null; screen_type: string },
+  caps: SimCaps | null,
+  env: Record<string, string | undefined> = process.env
+): { version: VersionRow; runnable: boolean } | null {
+  const head = (sim.head_version_id && rows.find((r) => r.id === sim.head_version_id)) || null;
+  const approved = rows.filter((r) => r.review_status === "approved");
+  let first: VersionRow | null = null;
+  if (head && head.review_status === "approved") first = head;
+  else if (approved.length) first = approved[0];
+  else if (head && head.review_status !== "rejected" && serveUnreviewed(env)) first = head;
+  if (!first) return null;
+  const can = (v: VersionRow) => runnable({ ...v, screen_type: sim.screen_type }, caps);
+  if (can(first)) return { version: first, runnable: true };
+  const fallback = approved.find(can);
+  return fallback ? { version: fallback, runnable: true } : { version: first, runnable: false };
 }
 
 // ---- commands from the app ----

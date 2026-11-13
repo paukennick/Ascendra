@@ -15318,6 +15318,2067 @@
       ],
       "prevention_notes": "Ran the suite with SIMS_ENABLED off and on",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1340",
+      "date": "2026-11-11",
+      "title": "The sim capability header refused a hyphenated screen type",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "An app advertising treatment-session@1 parsed to no treatment-session renderer, so every DPT sim answered 409 app_update_required and listed as not runnable.",
+      "how_detected": "test (lib/sim/treatment.test.ts, before any app shipped it)",
+      "root_cause": "parseCaps matched renderer types with /^[a-z]{1,20}@/, written when every screen type was one lower-case word; the treatment-session type has a hyphen.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/lib/sim/server-run.ts"
+      ],
+      "fix_summary": "The type pattern is now /^[a-z][a-z-]{0,29}@/.",
+      "fix_commits": [
+        "64656fe"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/treatment.test.ts",
+        "mobile/src/sim/runtime.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A new screen type is tested end to end through parseCaps and runnable with the app's real header (simCaps).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1341",
+      "date": "2026-11-11",
+      "title": "The sim DB tests' moment finder missed reasoning moments that open on the clock",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Golden paths played through the routes scored 8-12 points under their goldens: the written moment was never graded, so its criterion counted as missed.",
+      "how_detected": "test (lib/sims-treatment.dbtest.ts)",
+      "root_cause": "momentOpening (copied from sims-session.dbtest.ts) replays command prefixes only up to the last command's tick; a moment that opens by time between commands (the DPT plans open 30 s in) is first open at the tick of the command that answers it. The EPPP moments open from a command, so the original never hit this.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/lib/sims-treatment.dbtest.ts"
+      ],
+      "fix_summary": "Replay each prefix with toTick set to the next command's tick.",
+      "fix_commits": [
+        "ca266d5"
+      ],
+      "regression_tests": [
+        "backend/lib/sims-treatment.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The helper in lib/sims-session.dbtest.ts has the same limit; harmless for its documents, change it if reused.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1342",
+      "date": "2026-11-11",
+      "title": "TKA case credited a screen made at the same tick as the walk that revealed the calf",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Golden path peCaught (walking first, calf complaint while walking) scored screenFirst met.",
+      "how_detected": "golden review before writing the golden file",
+      "root_cause": "The calf cue trigger sets the history time at the tick the walk starts, and the criterion compared suspicion time <= first loading time.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/supabase/seed/sims/DPT/tka-gait-dvt-red-flag.sim.json"
+      ],
+      "fix_summary": "Strict comparison in the criterion and the target ending.",
+      "fix_commits": [
+        "ca266d5"
+      ],
+      "regression_tests": [
+        "backend/supabase/seed/sims/DPT/tka-gait-dvt-red-flag.golden.json"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Order criteria compare a learner action with a trigger time strictly when the trigger is caused by the action.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1343",
+      "date": "2026-11-11",
+      "title": "Stroke case: the measured BP drop lagged the orthostatic model",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "20 s after standing the light-headed state (26 mmHg dip) was on, but a BP taken then showed about 12 mmHg of drop, under the 20 mmHg definition the case teaches.",
+      "how_detected": "test (lib/sim/treatment.test.ts)",
+      "root_cause": "Systolic pressure followed its target with a 30 s time constant while the presyncope rule read the dip directly.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/supabase/seed/sims/DPT/stroke-balance-fall-risk.sim.json"
+      ],
+      "fix_summary": "An authored 10 s BP time constant (param tauBp).",
+      "fix_commits": [
+        "ca266d5"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/treatment.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When a rule and a displayed measurement describe the same thing, test that they agree.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1344",
+      "date": "2026-11-11",
+      "title": "Two DPT debriefs repeated the client-visible time_up narrative",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts 'client document leaks nothing server-only' failed for the TKA and stroke cases: server-only debrief text reached the client document.",
+      "how_detected": "test (backend npm test, lib/sim/documents.test.ts)",
+      "root_cause": "The time_up debrief body was written with the same sentence as the ending's narrative, which the client document keeps; the leak check cannot tell the copies apart.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/supabase/seed/sims/DPT/tka-gait-dvt-red-flag.sim.json",
+        "backend/supabase/seed/sims/DPT/stroke-balance-fall-risk.sim.json"
+      ],
+      "fix_summary": "Debrief bodies now say something the narrative does not.",
+      "fix_commits": [
+        "0726be1"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the full backend npm test, not only the linter and the new tests, before reporting a new sim.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1320",
+      "date": "2026-11-11",
+      "title": "Capabilities header dropped a screen type with a hyphen",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "parseCaps read renderers with /^([a-z]{1,20})@(\\d{1,3})$/, so security-console@1 in x-sim-caps was silently ignored; the server would have treated every app as unable to run the security console and told it to update.",
+      "how_detected": "Review while adding the security-console renderer (REQ-231); mobile runtime.test.ts 'capabilities' also fails on it",
+      "root_cause": "The renderer token pattern was written when every screen type was one lower-case word; nothing tied it to the screen types the schema allows or to the sims.screen_type column (varchar 40), and a token that fails the pattern is skipped without an error.",
+      "requirement": "REQ-231",
+      "affected": [
+        "backend/lib/sim/server-run.ts parseCaps"
+      ],
+      "fix_summary": "The pattern accepts a lower-case letter followed by up to 39 letters or hyphens.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/server-run.test.ts::a screen type with a hyphen is read (REQ-231",
+        "FAIL-1320)",
+        "backend/lib/sim/server-run.test.ts::the app advertises every default renderer the server turns on",
+        "mobile/src/sim/runtime.test.ts::capabilities"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A test parses the app's own header and asserts every default renderer is advertised and runnable, so a new screen type whose name the parser cannot read fails CI.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1321",
+      "date": "2026-11-11",
+      "title": "Sim document schema could not name 17 catalog objectives",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The phished-account sim failed the schema: objective: Too big: expected string to have <=400 characters. Its SY0-701 objective title is 455 characters; 17 catalog titles exceed 400 (the longest 586, SECPLUS).",
+      "how_detected": "npm run sims:lint while authoring REQ-231",
+      "root_cause": "The scenario schema capped objective at 400 characters as a sanity limit, but the seed registers a sim by the exact objective title (objectives.title is text, unbounded), so the cap silently excluded long catalog objectives from ever having a sim.",
+      "requirement": "REQ-231",
+      "affected": [
+        "backend/lib/sim/schema.ts scenarioSchema.objective"
+      ],
+      "fix_summary": "The cap is 1000 characters.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/security-console.test.ts::every catalog objective title fits the scenario schema's objective field"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A test runs every active catalog objective title through the schema's objective field.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1360",
+      "date": "2026-11-11",
+      "title": "Turn-based sim ordered actions by timeAt, which cannot order actions at one tick",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "AWSSAA/nat-gateway-bill-spike draft: a golden path that added the endpoint before looking at any data scored 'investigated first' met and reached the target ending.",
+      "how_detected": "golden path review while authoring (guessFirst)",
+      "root_cause": "In a turns phase the clock only moves when a wait is skipped, so every action before the first skip has the same tick; the criterion compared timeAt(ceAt) <= timeAt(firstChangeAt), which is true for equal ticks.",
+      "requirement": "REQ-233",
+      "affected": [
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.sim.json"
+      ],
+      "fix_summary": "The change actions set a changedBlind flag when the investigation is not complete; the criterion and the target read the flag.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts",
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.7 records it: in a turns phase, order actions with state set by the actions, never by timeAt.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1361",
+      "date": "2026-11-11",
+      "title": "A schedule.after param is read in seconds whatever its unit says",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "AWSSAA/nat-gateway-bill-spike draft: the 'one day per step' wait (param dayWait 1440, unit min) advanced 24 minutes, so the week ended at tick 72.",
+      "how_detected": "golden output (ended at tick 72 with a 1-minute tick)",
+      "root_cause": "schedule.after evaluates an expression in seconds; a param's unit is display and lint metadata only, and the linter does not check a non-second time unit on a param used as a delay.",
+      "requirement": "REQ-233",
+      "affected": [
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.sim.json"
+      ],
+      "fix_summary": "dayWait is 86400 with unit s.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts",
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json",
+        "backend/lib/sim/seconds-units.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.7 records it. REQ-236 (FAIL-1420) added the lint rule: a param with a non-second time unit read where the engine reads seconds (schedule.after and others) is an error (lib/sim/lint.ts secondsUnitProblems).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1362",
+      "date": "2026-11-11",
+      "title": "New sims' golden paths relied on the teaching map's file order (FAIL-1250 hit in new content)",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "storage-order.test.ts: pediatric-septic-shock-fluids, neonatal-sepsis-hypoglycemia and post-op-transfusion-reaction failed in jsonb key order: 'teaching prompt stopSign is not offered now'.",
+      "how_detected": "lib/sim/storage-order.test.ts",
+      "root_cause": "teachingDue offers the first due prompt in Object.keys order (open FAIL-1250). Two prompts were due at once and their keys were written in an order jsonb does not keep (shorter keys first, then bytewise), so the golden paths, recorded in file order, answered a prompt the server and app would not offer first.",
+      "requirement": "REQ-233",
+      "affected": [
+        "backend/supabase/seed/sims/CCRNPEDS/",
+        "backend/supabase/seed/sims/CCRNNEO/",
+        "backend/supabase/seed/sims/NCLEXRN/",
+        "backend/supabase/seed/sims/NCLEXPN/"
+      ],
+      "fix_summary": "Every REQ-233 document writes its teaching keys in jsonb order (length, then bytewise), so file order, server and app agree; goldens regenerated (same outcomes, scores and criteria).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/storage-order.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Until FAIL-1250 gets a teachingOrder list, author teaching keys in jsonb order or give overlapping prompts mutually exclusive conditions; docs/sims.md 22.7 says so.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1400",
+      "date": "2026-11-11",
+      "title": "Pre-generation never retried a held half",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A pre-generated lesson held by the writer's doubt or the fact-check was dropped and left to the first learner visit; the live gate's one steered retry did not exist in the batch path",
+      "how_detected": "production hold counts, Nick's 'make holds rare' (2026-11-11)",
+      "root_cause": "REQ-208 refused the retry because a batch cannot make a second request; nothing made a live retry instead, so batch holds stayed holds",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "batchGenerator hands checkedIntro/checkedPractice's retry to a live writer (purpose pregen_retry) when the cap covers it; collect reports the counts",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts::REQ-235 (FAIL-1400): a held pre-generated half is retried once",
+        "steered",
+        "like the live gate"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "pre-completion: a batch path that holds gives the same steered retry",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1401",
+      "date": "2026-11-11",
+      "title": "No view of how often content is held",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The owner could not see generated vs held per course and kind; holds were found only by reading logs",
+      "how_detected": "Nick's request (2026-11-11)",
+      "root_cause": "item_holdbacks was a review queue (npm run items) with no aggregate, and no table records generation per course",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/lib/hold-rates.ts",
+        "backend/app/api/access/hold-rates/route.ts",
+        "mobile/src/components/HoldRates.tsx"
+      ],
+      "fix_summary": "owner-only counts report and Settings > Access section",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hold-rates.dbtest.ts",
+        "backend/lib/account-access.dbtest.ts::hold-rate view (owner only)",
+        "mobile/src/lib/holdRates.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "the report is the measure batch H is judged by",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1402",
+      "date": "2026-11-11",
+      "title": "item_holdbacks mixes holds with staged findings and replaced lessons",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A naive count of item_holdbacks would count re-check findings and lessons-fix logs as generation holds",
+      "how_detected": "review while writing the hold-rate query",
+      "root_cause": "the table is shared by the gate, the staging jobs (content.staged) and lesson-fixes (the old LessonRow, snake_case keys)",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/lib/hold-rates.ts"
+      ],
+      "fix_summary": "GATE_HOLD_SQL leaves out content ? 'staged', a lesson row with fade_problem, and fact_check_error",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hold-rates.dbtest.ts",
+        "backend/lib/sandbox.test.ts::no route reads the staging tables"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "pre-completion: a report over item_holdbacks leaves staged and replaced rows out",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1403",
+      "date": "2026-11-11",
+      "title": "A hold report could expose learner courses or claims",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Risk: counting holds by track would list learners' private course titles; returning claims would leak model text",
+      "how_detected": "design review",
+      "root_cause": "item_holdbacks rows exist for private tracks and carry claims/content",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/lib/hold-rates.ts"
+      ],
+      "fix_summary": "catalog tracks only (user_id is null), counts only",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hold-rates.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "the sandbox test checks no claims/content are selected",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1404",
+      "date": "2026-11-11",
+      "title": "Launch courses had units with no dated sources",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "AWSSAA, AWSMLA, SECPLUS, DPT and PTPREREQ had no unit sources at all; CNA and CCRN had one or two units; the writer fell back on memory and production holds were driven by thin source material",
+      "how_detected": "production holds (lead, 2026-11-11)",
+      "root_cause": "REQ-195/220 added unit sources only where a fix needed them; nothing required them on courses that generate",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/supabase/seed/tracks/ccrn.ts",
+        "backend/supabase/seed/tracks/nursing.ts",
+        "backend/supabase/seed/tracks/pt-dpt.ts",
+        "backend/supabase/seed/tracks/pt-prereq.ts",
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "dated sources and key values on every taught unit of the 7 launch courses",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-batch-h.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "content-batch-h.test.ts fails a launch-course unit with no dated source",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1405",
+      "date": "2026-11-11",
+      "title": "Writer and checker did not share the official outline wording",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Objectives are paraphrased (copyright rule), so the writer and the fact-checker each judged scope from our wording or memory, not the exam's statement",
+      "how_detected": "batch H brief",
+      "root_cause": "the seed held no outline statements; current-facts named only the exam",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/lib/current-facts.ts"
+      ],
+      "fix_summary": "UnitSource.outline; unitReferenceLines puts the statements first; whole-course prompts list them by unit",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-batch-h.test.ts::REQ-235: the writer and the checker get the same outline statements (FAIL-1405)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "pre-completion bullet",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1406",
+      "date": "2026-11-11",
+      "title": "Security+ taught BIA/DR in Security Operations",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "SY0-701 covers BIA (RTO, RPO, MTTR, MTBF) in 5.2 and backups/sites in 3.4, but the course had a domain-4 objective and lab for it, so readiness credited it to the wrong domain",
+      "how_detected": "G5 audit follow-up (Nick-approved)",
+      "root_cause": "an original objective predating the REQ-220 term-by-term placement",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "retired in place; BIA lab moved to the 5.2 line; gate no longer names RTO/RPO",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-batch-h.test.ts::Security+: business continuity / DR leaves Security Operations"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "secplus-v7-coverage keeps the terms per domain",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1407",
+      "date": "2026-11-11",
+      "title": "PTA labs header quoted the pre-2021 maintenance sentence",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The NPTE-PTA labs header quoted Medicare manual 230.1's 'develop, manage, or furnish skilled maintenance program services' as the rule",
+      "how_detected": "G5 audit follow-up",
+      "root_cause": "the manual still prints the sentence; the 2021 PFS rule lets a PT delegate furnishing maintenance to a PTA",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/supabase/seed/labs/pt-nptepta.ts"
+      ],
+      "fix_summary": "header paraphrases the current rule and notes the older clause is not current",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-batch-h.test.ts::the PTA labs header no longer quotes"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "-",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1408",
+      "date": "2026-11-11",
+      "title": "Sepsis key value said cultures strictly before antimicrobials",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "CCRN Multisystem key value: 'blood cultures before antimicrobials'; SSC 2026 says as soon as possible and ideally before",
+      "how_detected": "G5 re-read 2026-11-11 (SCCM page)",
+      "root_cause": "summarized wording when the value was first recorded",
+      "requirement": "REQ-235",
+      "affected": [
+        "backend/supabase/seed/tracks/ccrn.ts"
+      ],
+      "fix_summary": "reworded; choking and stroke values re-read and unchanged",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-batch-h.test.ts::CNA choking",
+        "sepsis and stroke key values re-read"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "a re-read records its day and whether only a summary was read",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1300",
+      "date": "2026-11-11",
+      "title": "Generator key-order gate reversed the teaching map and failed every paced clinical draft",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The first key-order gate replayed golden paths with every object reversed; the Whipple bleed's expert path was rejected in reversed order ('teaching prompt bridge is not offered now'), so a valid clinical draft with two or more teaching prompts could never pass.",
+      "how_detected": "lib/sim/generator/generator.test.ts during development (mocked pipeline run on the Whipple case), before any commit",
+      "root_cause": "teachingDue still offers the first due teaching prompt in key order (FAIL-1250, open). lib/sim/storage-order.test.ts already leaves that one map out of its reversal; the generator's copy of the check was written from the lint rule (endingOrderProblems) instead of from the storage-order test, so it missed the known exception.",
+      "requirement": "REQ-230",
+      "affected": [
+        "backend/lib/sim/generator/gates.ts::storageKeyProblems"
+      ],
+      "fix_summary": "The reversed copy keeps the teaching map as written, exactly as storage-order.test.ts does; the jsonb order (what the app and server read) is still checked in full.",
+      "fix_commits": [
+        "69b4f2f"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts::key order (FAIL-1300)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A regression test replays the Whipple case (teaching prompts) through the gate and was confirmed to fail without the exception; docs/sims.md 12.2 gate 6 names FAIL-1250 so the exception is removed together with the fix for FAIL-1250.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1301",
+      "date": "2026-11-12",
+      "title": "Duplicate-check test margin too tight once a second screen family existed",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "generator.test 'seeded documents on different cases sit well below the threshold' failed in CI after the Security+ sims merged: highest pair 0.325 against a 0.30 bound",
+      "how_detected": "CI Backend job on PR #143",
+      "root_cause": "The test required every seeded pair to be 0.2 below the 0.5 duplicate threshold; three Security+ incidents on one screen share action vocabulary (decisions 0.33) though their stories differ (under 0.04)",
+      "requirement": "REQ-230",
+      "affected": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "fix_summary": "Margin 0.1 below the threshold, with the reason in the test; the gate itself is unchanged and only compares same-objective sims",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1302",
+      "date": "2026-11-12",
+      "title": "Duplicate check counted shared decisions alone as a duplicate",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After the bedside wave merged, adult and pediatric septic shock scored 0.43 (decisions) against a 0.5 duplicate threshold; a variant of one skill would have been held as a duplicate",
+      "how_detected": "CI Backend job on PR #143 (generator.test seeded-pairs check)",
+      "root_cause": "similarity took the higher of story and decisions overlap, so two sims teaching the same skill on different patients looked like copies",
+      "requirement": "REQ-230",
+      "affected": [
+        "backend/lib/sim/generator/similarity.ts",
+        "docs/sims.md"
+      ],
+      "fix_summary": "Score = max(story, mean(story, decisions)): a copied story is still a duplicate; shared decisions alone are not",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1420",
+      "date": "2026-11-11",
+      "title": "Linter let a non-second time unit be read as seconds (schedule.after and other seconds reads)",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "FAIL-1361: the NAT gateway draft's dayWait 1440 with unit min, given to schedule.after, advanced 24 minutes; sims:lint passed it.",
+      "how_detected": "golden output during REQ-233 authoring (FAIL-1361); rule approved by Nick 2026-11-11",
+      "root_cause": "The engine reads schedule.after expressions, console alert/event at, and seconds formats (clock, time, duration, min, date...) as sim seconds; a param's unit is display and lint metadata only, and no lint rule compared the two. Only rates times dt had a heuristic warning.",
+      "requirement": "REQ-236",
+      "affected": [
+        "backend/lib/sim/lint.ts"
+      ],
+      "fix_summary": "secondsUnitProblems in lib/sim/lint.ts (run by checkDocument, so sims:lint, the seeded-documents test and the generator's lint gate): an error when a param, state variable or derived value whose unit is a time unit other than seconds is read in one of those places. Lint layer only; engine and minor unchanged. All 30 seeded documents pass.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/seconds-units.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.7 now records the rule; store durations in seconds with unit s and display with |min or |duration.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1421",
+      "date": "2026-11-11",
+      "title": "Generated sims would seed as 'authored'",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims-seed.ts wrote source 'authored' for every registered sim, so a sim written by sims:generate and registered by hand could not be told apart from an authored one in sim_versions (docs/sims.md 12.2 open question).",
+      "how_detected": "review of REQ-230 (docs/sims.md 12.2 open question)",
+      "root_cause": "DocumentEntry carried no provenance and the seed hard-coded the literal 'authored', although sim_versions.source allows 'generated' since 062.",
+      "requirement": "REQ-236",
+      "affected": [
+        "backend/lib/sim/documents.ts",
+        "backend/supabase/seed/sims-seed.ts",
+        "backend/lib/sim/generator/pipeline.ts"
+      ],
+      "fix_summary": "DocumentEntry.source ('authored' default; entry()/band() take { source: 'generated' }); the seed writes it on insert and corrects it in place on an unchanged hash; .register.md emits the generated form.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sims-source.dbtest.ts",
+        "backend/lib/sim/documents.test.ts",
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 12.2 documents the option; documents.test.ts pins every current sim as authored so a generated one has to be marked on purpose.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1422",
+      "date": "2026-11-11",
+      "title": "A+ Core 2 malware-removal objective summarized CompTIA's older seven-step list",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The APLUS_CORE2 objective title listed the older procedure (no 'update anti-malware', no scan and removal techniques, no reimage/reinstall, System Restore not limited to Windows Home) while 220-1202 V15 objective 2.6 lists ten steps; the REQ-234 lab taught V15 and recorded the gap.",
+      "how_detected": "REQ-234 lab authoring (recorded in labs/comptia-aplus-core2.ts)",
+      "root_cause": "The objective was written from the earlier exam's procedure and not re-read when the track was aligned to V15; REQ-234 left the title alone to avoid touching the catalog in a labs change.",
+      "requirement": "REQ-236",
+      "affected": [
+        "backend/supabase/seed/tracks/comptia.ts",
+        "backend/supabase/seed/labs/comptia-aplus-core2.ts"
+      ],
+      "fix_summary": "Retitled in place at the same index (same row id; mastery and attempts kept; seed-lib invalidates the old title's lessons and pulls its items, FAIL-893) to the ten V15 steps, read in CompTIA's objectives document version 4.0 on 2026-11-11; the lab's objective title updated with it.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/aplus-malware-objective.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A course objective that names an outline's steps is retitled in place by position, never moved or appended, so learner rows stay (REQ-102, FAIL-893).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1520",
+      "date": "2026-11-11",
+      "title": "EMR CPR case: asystole ending read a rhythm no effect ever set",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "sims:lint: ERROR endings.asystole: reached by no golden path; the gasps path ended cprHandoff although viability had fallen far below the asystole threshold",
+      "how_detected": "sims:lint reachability check while authoring",
+      "root_cause": "The ending tested rhythm == asystole, but nothing moved the rhythm there: the author defined the threshold param and the ending, not the transition between them. An ending over a state needs the effect that produces that state.",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTEMR/unresponsive-adult-cpr-aed.sim.json"
+      ],
+      "fix_summary": "Added the fade trigger (VF below asystoleAt becomes asystole, interrupts skips, logs).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/supabase/seed/sims/NREMTEMR/unresponsive-adult-cpr-aed.golden.json (gasps path ends asystole); npm run sims:lint"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The linter's ending reachability rule caught it; new cases keep every ending reached by a golden path (docs/sims.md 22.14).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1521",
+      "date": "2026-11-11",
+      "title": "EMR CPR case: AED analysis gated on the hidden rhythm",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Golden driver: analyze rejected (action not available) at the AED's 2-minute check after a converting shock, so the rescuer could not reanalyze and find the pulse",
+      "how_detected": "golden driver (npm run sim:golden -- steps emr-cpr)",
+      "root_cause": "The action's availability read inArrest (the true rhythm), which the rescuer cannot know until the AED analyzes or a pulse is felt; availability must read what the learner can know (arrestBelieved).",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTEMR/unresponsive-adult-cpr-aed.sim.json"
+      ],
+      "fix_summary": "analyze is available while arrestBelieved (no pulse found yet).",
+      "fix_commits": [],
+      "regression_tests": [
+        "unresponsive-adult-cpr-aed.golden.json expert and slowAed paths analyze after conversion"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Action availability reads only state the learner has observed, never hidden truth (docs/sims.md 22.14).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1522",
+      "date": "2026-11-11",
+      "title": "EMR bleed case: timer with-fields read as bare names",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims:lint: unknown name site in timers.tqT cases",
+      "how_detected": "sims:lint",
+      "root_cause": "A schedule's with values are bound inside the timer as timer.with.<field>, not as bare names; the form field names were reused from the action.",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTEMR/thigh-bleed-tourniquet.sim.json"
+      ],
+      "fix_summary": "Cases read timer.with.site and timer.with.tight.",
+      "fix_commits": [],
+      "regression_tests": [
+        "thigh-bleed-tourniquet.golden.json snugFirst and wrongSite paths exercise both branches"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The linter rejects unknown names; documented in 22.14.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1523",
+      "date": "2026-11-11",
+      "title": "EMS cases: reasoning moments opened mid-step or on the tick a terminal ending fired",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Golden driver: startCpr and flat rejected (clock blocked by a reasoning moment) right after a shock or the first epinephrine dose; a reason command sent after the run had ended when the moment and the asystole ending fell on the same tick",
+      "how_detected": "golden driver while authoring",
+      "root_cause": "Triggers keyed to the first shock and first dose stopped the clock in the middle of a time-critical sequence, and a t >= 300 trigger coincided with the ending tick. A written moment belongs at a natural pause.",
+      "requirement": "REQ-241",
+      "affected": [
+        "unresponsive-adult-cpr-aed.sim.json",
+        "anaphylaxis-epinephrine.sim.json"
+      ],
+      "fix_summary": "CPR: pulse found or t >= 240; anaphylaxis: departure or t >= 420; ems-helpers act() answers an open moment before the next action.",
+      "fix_commits": [],
+      "regression_tests": [
+        "all six goldens of both cases"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Open reasoning moments at pauses (departure, pulse found, crew arrival), not on a treatment step (22.14).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1524",
+      "date": "2026-11-11",
+      "title": "EMS cases: model constants left the target or a harm ending unreachable",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "sims:lint: anaphylaxis target class reached by no path (the repeat dose came after arrival); STEMI vf ending reached by no path (the nitrate drop faded above 70 mmHg before the 3-minute VF delay)",
+      "how_detected": "sims:lint outcome-class and ending reachability rules",
+      "root_cause": "Authored rates were chosen before the timeline (scene, load, drive) was fixed; the outcome depends on rates and times together, so they must be tuned against the golden paths.",
+      "requirement": "REQ-241",
+      "affected": [
+        "anaphylaxis-epinephrine.sim.json (riseRate",
+        "epiPotency",
+        "epiTau)",
+        "inferior-stemi-cath-alert.sim.json (nitroFade)"
+      ],
+      "fix_summary": "Retuned and FLAG-noted: anaphylaxis 0.05/min rise, 0.15/min potency, 300 s wane; nitrate fade 0.0006/s.",
+      "fix_commits": [],
+      "regression_tests": [
+        "anaphylaxis-epinephrine.golden.json expert (target) and noRepeat; inferior-stemi-cath-alert.golden.json nitroCrash (vf)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Lint reachability rules; tune authored rates against the full scene-to-door timeline (22.14).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1525",
+      "date": "2026-11-11",
+      "title": "EMS hemorrhagic shock case committed with British spellings",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Narrative said 'theatre' and a trigger was named twoLitres in commit d45f572",
+      "how_detected": "review before the full test run",
+      "root_cause": "Author habit; the spelling check runs in npm test, which was run after the per-sim commits.",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTAEMT/hemorrhagic-shock-fluids.sim.json"
+      ],
+      "fix_summary": "operating room; twoLiters.",
+      "fix_commits": [],
+      "regression_tests": [
+        "lib/us-spelling.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the spelling test with the per-sim checks, not only at the end.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1526",
+      "date": "2026-11-11",
+      "title": "Infant case: server-only debrief text repeated the client's time_up narrative",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts: NREMTPARAMEDIC/infant-respiratory-failure: server-only text reaches the client: Forty-five minutes passed.",
+      "how_detected": "backend npm test (lib/sim/documents.test.ts)",
+      "root_cause": "The time_up debrief body (server-only) was word for word the time_up narrative (sent to the app), so the leak check could not tell the server-only copy had stayed on the server.",
+      "requirement": "REQ-241",
+      "affected": [
+        "backend/supabase/seed/sims/NREMTPARAMEDIC/infant-respiratory-failure.sim.json"
+      ],
+      "fix_summary": "Reworded the debrief body.",
+      "fix_commits": [],
+      "regression_tests": [
+        "lib/sim/documents.test.ts client document leaks nothing server-only"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Debrief bodies are never copies of ending narratives (docs/sims.md 22.14).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1460",
+      "date": "2026-11-11",
+      "title": "Containment criterion read a first-time stamp and scored met after the attacker got back in",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "SECURITYX/federation-token-forgery golden rotateNoFoothold: containFast 'met' (17 min) on a path that closed with forged tokens accepted again",
+      "how_detected": "review of the golden expectations (npm run sim:golden -- steps sx-fed)",
+      "root_cause": "allOffAt is stamped the first time attackerActive is false and never cleared; rotating the key while svc-fed-sync still worked let the attacker re-read the key ten minutes later, but the criterion only read the stamp",
+      "requirement": "REQ-238",
+      "affected": [
+        "backend/supabase/seed/sims/SECURITYX/federation-token-forgery.sim.json"
+      ],
+      "fix_summary": "containFast's met and partial rows also require not attackerActive",
+      "fix_commits": [
+        "5b39af4"
+      ],
+      "regression_tests": [
+        "backend/supabase/seed/sims/SECURITYX/federation-token-forgery.golden.json (rotateNoFoothold expects containFast missed; npm run sims:lint)",
+        "backend/lib/sim/security-w2.test.ts::SecurityX: rotating twice while the service account still works lets the attacker read the new key"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "docs/sims.md 22.11"
+      ],
+      "prevention_notes": "docs/sims.md 22.11 finding 1: a criterion that reads a first-time stamp also checks the live derived value when access can be regained",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1461",
+      "date": "2026-11-11",
+      "title": "Record option 'none' duplicated the state enum's leading 'none'",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims lint: state.scopeDoc / state.fixDoc: duplicate enum values",
+      "how_detected": "sims:lint (validateScenario) before commit",
+      "root_cause": "the builder's enum helper prepends 'none' as the unset value, and a record field also offered 'none' as an answer",
+      "requirement": "REQ-238",
+      "affected": [
+        "CYSAPLUS/alert-triage-lolbin-hunt.sim.json",
+        "SECURITYX/federation-token-forgery.sim.json"
+      ],
+      "fix_summary": "answer values renamed (zero, nochange); SecAI+ dataDoc uses 'unset' as its initial value",
+      "fix_commits": [
+        "9b3dd21",
+        "5b39af4"
+      ],
+      "regression_tests": [
+        "npm run sims:lint (validateScenario duplicate-enum rule)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "docs/sims.md 22.11"
+      ],
+      "prevention_notes": "docs/sims.md 22.11 finding 2; the validator already refuses it",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1462",
+      "date": "2026-11-11",
+      "title": "Rate-driven KPI printed an unrounded float in the debrief",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "rag-assistant-data-leak expert golden: leakedK = 83.20000000000003 (shown as the KPI value)",
+      "how_detected": "reading the golden expectations",
+      "root_cause": "leaked grows by rate * dt / 60 with a fractional rate, and a number-format KPI is shown as computed",
+      "requirement": "REQ-238",
+      "affected": [
+        "SECAIPLUS/rag-assistant-data-leak.sim.json",
+        "SECAIPLUS/agent-indirect-prompt-injection.sim.json"
+      ],
+      "fix_summary": "leakedK value is round(leaked) in both SecAI+ documents",
+      "fix_commits": [
+        "04e51d0"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/security-w2.test.ts::every KPI the goldens record is a whole number"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "docs/sims.md 22.11"
+      ],
+      "prevention_notes": "the test fails on the old golden (checked by swapping it back)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1463",
+      "date": "2026-11-11",
+      "title": "Documentation-range test read 'RS.CO' as a domain",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "security-w2.test.ts: alert-triage-lolbin-hunt: RS.CO",
+      "how_detected": "first run of the new test",
+      "root_cause": "the host pattern was case-insensitive, so NIST subcategory ids like RS.CO-02 matched the .co TLD",
+      "requirement": "REQ-238",
+      "affected": [
+        "backend/lib/sim/security-w2.test.ts"
+      ],
+      "fix_summary": "host pattern is lower-case only",
+      "fix_commits": [
+        "6937a0e"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "a defect in the test itself; its passing run over all eight documents is the check",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.11 finding 4",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1464",
+      "date": "2026-11-11",
+      "title": "A trigger due at minute N fires during the skip into N, before the learner's action at N",
+      "status": "mitigated",
+      "severity": "low",
+      "symptom": "with appDelay 1800 the federation expert path's revoke at 30 min came after the backdoor app (appAt 1800 at tick 30)",
+      "how_detected": "authoring check with a modified document (scratch driver), 2026-11-11",
+      "root_cause": "turns-phase ordering: a skip advances tick by tick and evaluates triggers at the target tick before the next command is applied",
+      "requirement": "REQ-238",
+      "affected": [
+        "SECURITYX/federation-token-forgery.sim.json and the other REQ-238 attacker timings"
+      ],
+      "fix_summary": "attacker delays leave at least a minute after the expert path's matching action; appDelay is 2100 s",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/supabase/seed/sims/SECURITYX/federation-token-forgery.golden.json (expert path",
+        "npm run sims:lint)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "docs/sims.md 22.11"
+      ],
+      "prevention_notes": "documented with FAIL-1360's turns-phase ordering note; no lint rule",
+      "recurrence_of": "FAIL-1360"
+    },
+    {
+      "id": "FAIL-1500",
+      "date": "2026-11-11",
+      "title": "Lint warns 'never available' for an action used right after the timer or trigger that unlocked it",
+      "status": "open",
+      "severity": "low",
+      "symptom": "sims:lint warned 'actions.furosemide: never available in any golden path' (ADNRN/heart-failure-pulmonary-edema) and 'actions.supportSam: never available in any golden path' (BSNRN/charge-nurse-short-staffed-shift), although golden paths sent those actions and the engine accepted them.",
+      "how_detected": "the generator-gate check script on the wave-2 documents (lint output)",
+      "root_cause": "replayGoldenPath (engine/v1/validate.ts) samples availability only at command boundaries after each command (noteBoundary). An action that becomes available when a timer or trigger fires during the ticks advanced before the next command, and is that next command, is never sampled as available.",
+      "requirement": "REQ-240",
+      "affected": [
+        "backend/lib/sim/engine/v1/validate.ts",
+        "mobile/src/sim/engine/v1/validate.ts"
+      ],
+      "fix_summary": "Not fixed: the change is in the engine folder, out of scope for REQ-240 (no engine changes). Worked around in the two goldens by sending one repeatable command (note, followUp) before the newly available action. Proposed fix: also sample availability just before each command is applied (after the tick loop).",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Open; a regression test belongs with the validate.ts fix (a fixture whose only use of an action is right after the timer that unlocks it should not warn).",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.13 records the workaround for authors until validate.ts samples availability before each command.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1480",
+      "date": "2026-11-11",
+      "title": "Sim authoring: an after-session action placed after the one that satisfies an ending can never run",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "npm run sim:golden -- steps nce-substance: 'sendReport ... rejected: run has ended' -- the first draft of the NCE substance case had 'send the report to the court' as a separate after-session action following 'document'",
+      "how_detected": "the golden-path builder (scripts/sim-golden/steps.ts) refused the command",
+      "root_cause": "Every ending's condition starts with 'documented', so the document action ends the run at once; any action meant to come after it is dead. sims:lint checks reachability of endings and states, not whether an available action can still be taken once the run has ended, so the dead action passed lint.",
+      "requirement": "REQ-239",
+      "affected": [
+        "backend/supabase/seed/sims/NCE/nce-substance-use-screen.sim.json"
+      ],
+      "fix_summary": "The court decision is a field of the documentation form (release / all / hold), so it is taken with the record; breach and reportSent are set there.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/scripts/sim-golden/nce-substance.steps.ts",
+        "backend/supabase/seed/sims/NCE/nce-substance-use-screen.golden.json",
+        "backend/lib/sim/nbcc-session.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.12 finding 2: put every after-session decision into the action that satisfies the ending (or gate the ending on it). The goldens' builder fails on a dead command, and every NBCC golden path ends with the documenting action.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1481",
+      "date": "2026-11-11",
+      "title": "Duplicate-check pin: the EPPP and NCMHCE suicide sessions share C-SSRS and safety-plan moves (score 0.329 over the 0.30 pin)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim/generator/generator.test.ts 'seeded documents on different cases sit well below the threshold': highest seeded pair 0.329 (EPPP/suicide-risk-safety-plan vs NCMHCE/ncmhce-suicide-safety-plan: decisions 0.64, story 0.01)",
+      "how_detected": "backend npm test",
+      "root_cause": "The test pinned every seeded pair below DUPLICATE_THRESHOLD - 0.2. Two suicide-risk sessions in different courses legitimately share the same protocol moves (C-SSRS questions, Stanley-Brown steps), which the decisions measure counts, while their stories are unrelated. The duplicate gate itself only compares sims on the same objective, so it never compares these two.",
+      "requirement": "REQ-239",
+      "affected": [
+        "backend/lib/sim/generator/generator.test.ts"
+      ],
+      "fix_summary": "The pin is DUPLICATE_THRESHOLD - 0.15 with the reason in a comment; DUPLICATE_THRESHOLD (0.5) is unchanged.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts::duplicate check"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.12 names the pair; a sim on the same objective that reuses the moves and the story is still a duplicate.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1482",
+      "date": "2026-11-11",
+      "title": "Five NBCC lab steps were graded by an interactive part alone",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/lab-interactive.test.ts 'clinical and fitness labs keep a written part in every step': NCE/nce-values-countertransference step 2 (and NCMHCE steps in five labs with only a match, order or select part)",
+      "how_detected": "backend npm test",
+      "root_cause": "The labs were authored against lib/labs-nbcc.test.ts and labs.test.ts; the rule that every clinical lab step keeps a written part lives in lib/lab-interactive.test.ts, which I did not run before committing the lab sets.",
+      "requirement": "REQ-239",
+      "affected": [
+        "backend/supabase/seed/labs/nbcc-nce.ts",
+        "backend/supabase/seed/labs/nbcc-ncmhce.ts"
+      ],
+      "fix_summary": "Each of those steps now has a written part beside the interactive one (what the attributes did; whether the PTSD picture is complete; why end as planned; warning signs in her words; the first words in a crisis; what to say to Sam).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lab-interactive.test.ts::clinical and fitness labs keep a written part in every step (no quiz replaces clinical reasoning)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the whole backend npm test, not only the set's own test file, before committing a lab set; docs/labs.md authoring step 7 already says so.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1440",
+      "date": "2026-11-11",
+      "title": "A backslash escape in a sim document string renders as a letter, not a line break",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "While authoring the terminal sims, output templates written with \\n inside a template slot's string literal would have rendered the letter n where a line break was meant (and a visible backslash outside a slot).",
+      "how_detected": "review",
+      "root_cause": "The expression parser keeps the character after a backslash and drops the backslash; templates have no backslash escapes at all. Nothing checked for them, and JSON written from a generator easily double-escapes a line break.",
+      "requirement": "REQ-237",
+      "affected": [
+        "backend/lib/sim/lint.ts",
+        "backend/supabase/seed/sims"
+      ],
+      "fix_summary": "New lint rule backslashEscapeProblems (sims:lint and the generator lint gate through checkDocument) errors on a backslash before n, r, t, a quote or a backslash in any document string; the sims use real line breaks.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/terminal.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "backend/lib/sim/lint.ts"
+      ],
+      "prevention_notes": "docs/sims.md 22.10 finding 2",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1441",
+      "date": "2026-11-11",
+      "title": "Terminal transcript put a command's output before a line that appeared at the same minute",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "terminal.test.ts: Read the terminal said the latest output was the 09:00 shopd error line, though df had just run at 09:00.",
+      "how_detected": "test",
+      "root_cause": "The first transcript sort broke ties at the same sim time by putting every command output before every timed line; a line that appears on its own happens as the minute begins, so a command run in that minute prints after it.",
+      "requirement": "REQ-237",
+      "affected": [
+        "mobile/src/sim/runtime/terminalView.ts"
+      ],
+      "fix_summary": "Ties order the timed lines first (authored order), then command output in print order.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/sim/terminal.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.10 (transcript order)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1442",
+      "date": "2026-11-11",
+      "title": "A command refused because its device was unreachable said to wait for the running command",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "terminal.test.ts: after the bare allowed-vlan list dropped the management VLAN, the command line answered 'Wait for the running command to finish' for ACC-SW2 commands.",
+      "how_detected": "test",
+      "root_cause": "The builder gave every gated command the generic busy reason; the console-only state needed its own why, since the screen shows the action's why to say why a command will not run.",
+      "requirement": "REQ-237",
+      "affected": [
+        "backend/supabase/seed/sims/NETWORKPLUS/vlan-missing-from-trunk.sim.json"
+      ],
+      "fix_summary": "Every ACC-SW2 command carries a why that names both reasons (the management VLAN is off the uplink, or a command is running).",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/sim/terminal.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.10 finding 3",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1560",
+      "date": "2026-11-11",
+      "title": "MSCS units cited no sources",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "No MSCS unit had sources, so the lesson writer and the fact-checker got no dated references or key values for the course and it could not be verified",
+      "how_detected": "REQ-245 verification review",
+      "root_cause": "MSCS predates REQ-195/REQ-235 unit sources; it was carried as a self-defined syllabus and never given references",
+      "requirement": "REQ-245",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "MSCS_UNIT_SOURCES: dated sources per unit (CS2023 knowledge units plus standard texts) with key values, read 2026-11-11",
+      "fix_commits": [
+        "5506b13"
+      ],
+      "regression_tests": [
+        "backend/lib/academic-verification.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "academic-verification.test.ts requires every taught unit of the three courses to name dated https sources, and every MSCS unit title to have an entry",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1561",
+      "date": "2026-11-11",
+      "title": "MSCS TLS objective implied TLS encrypts with public keys",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Objective 'Symmetric vs asymmetric encryption, and why both exist together (e.g. TLS)' invites the outdated lesson that TLS encrypts a session key with the server's public key",
+      "how_detected": "REQ-245 verification against RFC 9846",
+      "root_cause": "Written from TLS 1.2-era RSA key transport; TLS 1.3 (RFC 8446, now RFC 9846 of July 2026) removed static RSA and uses public-key cryptography only for ephemeral key agreement and signatures",
+      "requirement": "REQ-245",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Objective reworded in place (re-seed invalidates its generated lessons); RFC 9846 key values added to the unit",
+      "fix_commits": [
+        "5506b13"
+      ],
+      "regression_tests": [
+        "backend/lib/academic-verification.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Key values on the unit reach the writer and fact-checker; the test pins the wording and the RFC 9846 source",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1562",
+      "date": "2026-11-11",
+      "title": "CMPCBS multivariable unit taught power series in several variables",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Multivariable Calculus objective 'Integration and power series in several variables' is not in the unit's source (OpenStax Calculus Volume 3) nor a standard multivariable topic",
+      "how_detected": "REQ-245 verification against the Calculus Volume 3 table of contents",
+      "root_cause": "Carried over from the school catalog description REQ-195 reframed; the objective was never checked against the textbook it is taught from",
+      "requirement": "REQ-245",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Reworded in place to multiple integration (Calculus Volume 3 chapter 5)",
+      "fix_commits": [
+        "5506b13"
+      ],
+      "regression_tests": [
+        "backend/lib/academic-verification.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Test pins the objective and forbids power series in the unit",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1563",
+      "date": "2026-11-11",
+      "title": "CMPCBS units cited references that did not cover their objectives",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Several taught units' only reference lacked some of their objectives: Discrete Mathematics (Boolean algebra, matrices, algorithms not in Levin), Intro to CS (networking, IP, privacy, computer crime), Statistics (calculus-based probability), Numerical Methods (linear systems, error), Modeling (modeling process, simulation), Information Systems (technical writing), Information Security (attacker tactics)",
+      "how_detected": "REQ-245 verification against each reference's table of contents",
+      "root_cause": "REQ-195 picked one open text per course by title, without comparing its table of contents with each objective",
+      "requirement": "REQ-245",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Added CS2023, Applied Discrete Structures, Grinstead and Snell, Fundamentals of Numerical Computation, SIAM modeling handbook, Technical Writing Essentials, MITRE ATT&CK v20.1 and Microsoft's C++ reference, each read 2026-11-11",
+      "fix_commits": [
+        "5506b13"
+      ],
+      "regression_tests": [
+        "backend/lib/academic-verification.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Test requires each gap's covering reference; future course reviews compare every objective with the cited table of contents",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1540",
+      "date": "2026-11-11",
+      "title": "DP-300 stuck at Review due after its review-date line was deleted",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Production showed DP-300 as Review due since 2026-10-27 although the course was re-verified on 2026-11-09 (sourceVerifiedAt 2026-11-09 in the seed).",
+      "how_detected": "Production freshness state read 2026-11-12 (REQ-244 brief); traced through git history (commit b5c4cf7) and seed-lib.ts",
+      "root_cause": "The 2026-11-09 audit fix removed contentReviewDueAt: 2026-10-27 from the seed, expecting the review to end. The seed writes content_review_due_at with coalesce(new, existing), so a missing value keeps the stored date; review_due stays true for good. Nothing documented that the field cannot be cleared by deleting it.",
+      "requirement": "REQ-244",
+      "affected": [
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/seed-lib.ts"
+      ],
+      "fix_summary": "DP-300 re-verified 2026-11-11 and given contentReviewDueAt 2027-11-11 (12-month exam-outline default), which replaces the stale stored date on the next seed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/course-verification-req244.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "SeedTrack.contentReviewDueAt now says a later date ends a review and deleting the line does not; the regression test checks DP-300 sets one and that every course reviews after its check. GCP DevOps had the same deletion (2026-11-23) and is reported for its owner.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1541",
+      "date": "2026-11-11",
+      "title": "GCP DevOps would stick at Review due from 2026-11-23 after its review-date line was deleted",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Same bug as FAIL-1540: commit b5c4cf7 deleted contentReviewDueAt 2026-11-23 from GCPDEVOPS; production keeps that stored date and would show the course as Review due from 2026-11-23 although it was re-authored to the new guide.",
+      "how_detected": "REQ-244 git-history review of every removed contentReviewDueAt line (git log -S)",
+      "root_cause": "The seed writes content_review_due_at with coalesce(new, existing), so removing the line cannot clear a stored date. The 2026-11-09 audit removed two such lines (DP300, GCPDEVOPS) expecting the review to end.",
+      "requirement": "REQ-244",
+      "affected": [
+        "backend/supabase/seed/tracks/gcp.ts"
+      ],
+      "fix_summary": "GCPDEVOPS re-verified 2026-11-11 against the guide live on 2026-11-23 and given contentReviewDueAt 2027-11-11, which replaces the stored date on the next seed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/course-verification-req244.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "STORED_REVIEW_DUE in the REQ-244 test pins every course with a stored review date to a later one; docs/source-reliability-standard.md and the SeedTrack.contentReviewDueAt comment say a review date only moves forward through the seed.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1542",
+      "date": "2026-11-11",
+      "title": "GCP DevOps exam facts drifted from the certification page",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The course said recommended experience was 1+ year designing and managing solutions, and the format was multiple choice and multiple select; the certification page (read 2026-11-11) says 1+ years designing and managing production systems, and 50-60 multiple choice questions.",
+      "how_detected": "REQ-244 re-check of the certification page",
+      "root_cause": "The exam-fact fields were written from a shared Google Cloud template and not re-read against this exam's page when the course moved to the 2026-11-23 guide.",
+      "requirement": "REQ-244",
+      "affected": [
+        "backend/supabase/seed/tracks/gcp.ts"
+      ],
+      "fix_summary": "recommendedExperience and questionFormat now word the page as printed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/course-verification-req244.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Re-checks compare the credential block's exam facts with the certification page, not only the outline; the regression test pins the wording.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1620",
+      "date": "2026-11-12",
+      "title": "Course list import put GET /api/courses on the model-route list",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/ai-spend-gate.test.ts: 'a route now reaches the model and is not in MODEL_ROUTES' with app/api/courses/route.ts, after the route imported simCountsByTrack from lib/sims.ts",
+      "how_detected": "backend npm test during development (never committed)",
+      "root_cause": "The model-route check walks the import graph. lib/sims.ts grades sim reasoning (sim-grading, the model), and lib/item-quality.ts (servableSql) imports the fact checker, so any route importing either for a read-only helper is counted as reaching the model, even though the list never calls it.",
+      "requirement": "REQ-249",
+      "affected": [
+        "backend/app/api/courses/route.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/item-quality.ts"
+      ],
+      "fix_summary": "The count lives in lib/sim-count.ts, which imports only the database, progress-sql, visibility, lib/item-status-sql.ts (servableSql and ITEM_KINDS moved there, re-exported from item-quality) and lib/sim/server-run.ts (pickServedVersion and VersionRow moved there).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-gate.test.ts",
+        "backend/lib/sim-count.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A read-only route takes SQL helpers and pure rules from model-free modules (lib/item-status-sql.ts, lib/sim/server-run.ts); importing lib/sims.ts or lib/item-quality.ts from a list route makes it a model route. The existing import-graph test is the guard.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1600",
+      "date": "2026-11-12",
+      "title": "Pre-generation failed lessons on style findings the app serves",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "2026-11-12 trial: 21 of 25 practice halves failed the content check; every problem kind was a distractor-lint finding (absolute word, longer key, count mismatch)",
+      "how_detected": "production trial with REQ-247 problem kinds",
+      "root_cause": "collectPractice checked lessonPracticeProblems (hard + lint) and failed on any finding with no retry; REQ-216 M6 split lint from hard problems in generateValid for the live path but pregen kept the combined list",
+      "requirement": "REQ-248",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "hard problems fail; style-only drafts get styleRetry (one live steered retry with fixFor, inside the cap); a style-only retry is saved; a hard retry fails; no cap means no retry",
+      "fix_commits": [
+        "0e98059"
+      ],
+      "regression_tests": [
+        "backend/lib/pregen-style-retry.test.ts",
+        "backend/lib/pregen.dbtest.ts::REQ-248 (FAIL-1600)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "batch paths use the live split (Hard/Lint functions), never the combined *Problems list, to decide a failure",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1601",
+      "date": "2026-11-12",
+      "title": "Cue-word lint flagged proper names such as Always Encrypted",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "an option 'Enable Always Encrypted on the column' (a DP-300 objective's feature) was reported as using the absolute word always",
+      "how_detected": "review of the absolute-word rule (REQ-248 item 3)",
+      "root_cause": "distractorProblems lowercased every word, so a Title-case product name was read as the cue word",
+      "requirement": "REQ-248",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "cueWords skips a Title-case cue word after the first word and not after a sentence break or opening quote; ALL-CAPS and sentence-initial cues are still caught",
+      "fix_commits": [
+        "0e98059"
+      ],
+      "regression_tests": [
+        "backend/lib/pregen-style-retry.test.ts::FAIL-1601"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "tests pin both the exemption and the cases that must stay caught",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1602",
+      "date": "2026-11-12",
+      "title": "Pregen retry writer rejected a held half's retry for style findings alone",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "a REQ-235 holdback retry whose only problems were style findings was reported as 'retry content check' and dropped, where the app would retry once more and serve it",
+      "how_detected": "review while fixing FAIL-1600",
+      "root_cause": "liveRetryWriter.practice checked lessonPracticeProblems (hard + lint) instead of the hard list",
+      "requirement": "REQ-248",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "the writer fails only hard problems; batchGenerator.practice applies styleRetry to the holdback retry",
+      "fix_commits": [
+        "0e98059"
+      ],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts::REQ-248 (FAIL-1600)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "same as FAIL-1600",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1603",
+      "date": "2026-11-12",
+      "title": "A full pre-generation run could be submitted without a passing trial",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "the runbook said trial first, but nothing stopped a full submit; the 2026-11-12 trial saved 4 of 25, so a full run would have spent most of the cap on failures",
+      "how_detected": "REQ-248 brief",
+      "root_cause": "the trial step was advice only; the trial's counts live in a workflow artifact, so the script cannot check them",
+      "requirement": "REQ-248",
+      "affected": [
+        "backend/scripts/pregenerate-lib.ts",
+        ".github/workflows/pregenerate.yml"
+      ],
+      "fix_summary": "submit without --limit needs --confirm-full-run; the workflow needs confirm_full_run, checked before npm ci; runbook asks for 90% saved in the trial",
+      "fix_commits": [
+        "0e98059"
+      ],
+      "regression_tests": [
+        "backend/lib/pregen-style-retry.test.ts::FAIL-1603",
+        "backend/scripts/pregenerate-lib.test.ts::REQ-248 (FAIL-1603)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "an explicit confirmation input",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1604",
+      "date": "2026-11-12",
+      "title": "The pregen upper bound left no room for retries",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "the estimate priced two batch requests and one fact-check per lesson; a cap filled by the plan left REQ-235 retries to be refused at run time (notRetriedForBudget)",
+      "how_detected": "REQ-248 brief",
+      "root_cause": "REQ-235 added live retries checked at run time but did not reserve them in price()/submit/the practice batch plan",
+      "requirement": "REQ-248",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "price(), submit's rebuilt check and the practice-batch rebuilt check add one live practice retry per lesson (liveRequestUpperUsd); every live call is still checked at its worst case before it is made",
+      "fix_commits": [
+        "0e98059"
+      ],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts::FAIL-979: the budget guard",
+        "backend/lib/pregen.dbtest.ts::REQ-248 (FAIL-1604)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "the bound names every call a lesson can make",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1720",
+      "date": "2026-11-12",
+      "title": "Migration 079 restated 067's item_holdbacks check under a new name: 067's probe failed and a replay of 067 dropped 'primer'",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "npm run test:db: schema status, /api/health, app_runtime and 029b/031 status tests listed 067_sim_item_kind.sql as missing after 079 was applied",
+      "how_detected": "full integration suite (npm run test:db) before commit: schema status, /api/health, app_runtime, 029b/031 status and migration 040 tests",
+      "root_cause": "079 first added item_holdbacks_item_kind_079 (067's kinds plus 'primer') and dropped every other item_kind check, copying 067's own pattern. Two things relied on 067's name: 067's schema probe names item_holdbacks_item_kind_067, so a database with every migration looked like it lacked 067 (/api/health would have failed in production after 079), and 067 itself drops every item_kind check but its own, so replaying it (lib/sims.dbtest.ts does) removed 079's check and 'primer' with it.",
+      "requirement": "REQ-253",
+      "affected": [
+        "backend/supabase/migrations/079_lesson_primers.sql",
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "079 restates the check under 067's own name, item_holdbacks_item_kind_067, with 'primer' added, only when it lacks 'primer'. 067's probe is unchanged; 079's probe checks that check's definition includes 'primer'.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/primers.dbtest.ts::FAIL-1720: 079 restates 067's item_holdbacks check under 067's name; both probes pass, and a replay of 067 keeps 'primer'"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A migration that changes a constraint an earlier migration or probe names keeps that name (or updates every reader in the same change), and is tested with the earlier migration replayed after it.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1721",
+      "date": "2026-11-12",
+      "title": "New pregen purpose broke the pinned list of ceiling-exempt purposes",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/ai-spend-ceiling.test.ts: pregen purposes deepEqual ['pregen','pregen_fact_check','pregen_retry'] got pregen_primer too",
+      "how_detected": "backend npm test during development",
+      "root_cause": "The test pins the purposes that start with pregen on purpose, so a new one is a deliberate decision; pregen_primer (the primer batch rows) is operator spend outside the global ceiling like the others",
+      "requirement": "REQ-253",
+      "affected": [
+        "backend/lib/ai-calls.ts",
+        "backend/lib/ai-spend-ceiling.test.ts"
+      ],
+      "fix_summary": "Added pregen_primer to the pinned list",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-ceiling.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The pinned list is the guard: a new pregen purpose must be added there knowingly",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1722",
+      "date": "2026-11-12",
+      "title": "Migration 079 added a table without updating the data inventory",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/ship-notes.test.ts: docs/legal/data-inventory.md was checked up to migration 077, but 079 exists",
+      "how_detected": "backend npm test during development",
+      "root_cause": "A new table needs a line in the data inventory even when it holds nothing personal; lesson_primers was written before the inventory was updated",
+      "requirement": "REQ-253",
+      "affected": [
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "Listed lesson_primers under Shared, not personal and moved the check to migration 079",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "ship-notes.test.ts already fails CI on this; the pre-completion checklist names the inventory",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1660",
+      "date": "2026-11-12",
+      "title": "Length lint flagged a key that was not the longest option",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "distractorProblems reported 'the right answer is much longer than the other options' when a distractor was as long as or longer than the key, because one very short distractor pulled the mean down (e.g. key 37 chars, distractors 50, 7, 10)",
+      "how_detected": "review of the length check (REQ-251 item 3)",
+      "root_cause": "the check compared the key only with the MEAN distractor length; the cue it targets (REQ-187: the longest option is the answer) needs the key to be the longest option",
+      "requirement": "REQ-251",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "the length finding now also requires the key to be longer than every distractor; thresholds unchanged",
+      "fix_commits": [
+        "1933a07"
+      ],
+      "regression_tests": [
+        "backend/lib/item-writing-quality.test.ts::FAIL-1660"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "tests pin the exemption and that a key longer than every distractor and over the limit is still flagged",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1661",
+      "date": "2026-11-12",
+      "title": "Cue-word lint flagged 'every' in a stated interval",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "a wrong option such as 'Repeat the set every 2 hours' or 'Stretch every other day' (DPT, nursing and backup schedules) was reported as using the absolute word every",
+      "how_detected": "review of the cue-word list against the DPT trial's domain (REQ-251 item 3)",
+      "root_cause": "the lint matched the word alone; in a frequency ('every N hours') every states a schedule, not an absolute claim",
+      "requirement": "REQ-251",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "cueWords ignores every when a time unit follows, optionally after a number, 'other', 'few' or a range; every user/case and other cues in the same option are still caught",
+      "fix_commits": [
+        "1933a07"
+      ],
+      "regression_tests": [
+        "backend/lib/item-writing-quality.test.ts::FAIL-1661"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "tests pin both the exemption and the cases that stay caught",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1662",
+      "date": "2026-11-12",
+      "title": "Item-writing rules did not state the lint's thresholds or full cue list",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "2026-11-12 pre-generation trial: 22 of 25 first practice drafts had style findings (12 solo and 9 guided keys much longer, 12 guided and 12 solo cue words); 15 of 25 still had them after the steered retry and were served",
+      "how_detected": "pre-generation trial 2026-11-12 (REQ-247 problem kinds)",
+      "root_cause": "the prompt said 'parallel in length' and 'never the longest' with no number while the lint checks 1.25x the mean or +8 characters; it named four of the eight cue words the lint checks; each question must also work as free response, so the key was written as a qualified model answer with nowhere else to put the qualifications (stored 2026-11-09 sample: key longest in 45 of 64 option sets); the option-field schema description said only 'similar in length'; the retry steer said 'make the options parallel' with no target",
+      "requirement": "REQ-251",
+      "affected": [
+        "backend/lib/prompts.ts",
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "rules, option schema descriptions and template state the lint's numbers and word list from lib/item-style.ts (shared with the lint), say options are short answers with qualifications in the explanation, add an example pair and a per-set check; steer names the target length and the word list",
+      "fix_commits": [
+        "1933a07"
+      ],
+      "regression_tests": [
+        "backend/lib/item-writing-quality.test.ts::REQ-251: the rules carry the check's numbers and word list",
+        "backend/lib/item-writing-quality.test.ts::REQ-251: the retry steer names a target"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "the prompt reads the thresholds and words from the module the lint uses, and tests fail if the rule text drops them; real-model effect to be measured with npm run items:style on a 25-lesson trial",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1663",
+      "date": "2026-11-12",
+      "title": "Practice writer ran with thinking off, so it could not check option sets against the style rules",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "2026-11-12 pre-generation trial: 22 of 25 first practice drafts had answer-choice style findings (key much longer than the wrong options, cue words in wrong options) although the prompt carried the rules; REQ-251 then stated the exact numbers, which a writer can only meet by measuring its options before it commits to them",
+      "how_detected": "review of the 2026-11-12 trial with Nick (decision 2026-11-12: 'Let the model think')",
+      "root_cause": "Every lesson call ran with thinking off (FAIL-008: on Sonnet 5 adaptive thinking had used the whole answer-sized max_tokens and returned only a thinking block). That fixed the truncation by removing thinking rather than by giving it its own room, so the practice writer had to emit each option set in one pass, with no chance to compare lengths or scan for cue words; the 5.5 models also accept no thinking-only budget (budget_tokens is a 400), so 'turn it on, bounded' needed max_tokens sized as answer plus allowance",
+      "requirement": "REQ-251",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/pregen.ts",
+        "backend/lib/anthropic.ts",
+        "backend/scripts/eval/live.ts"
+      ],
+      "fix_summary": "PRACTICE_CALL (lib/lesson-generation.ts): adaptive thinking at effort low, max_tokens = PRACTICE_OUTPUT_TOKENS 6000 + PRACTICE_THINKING_BUDGET_TOKENS 4000 via the new CallOptions.thinkingBudgetTokens (sizes max_tokens only, never sent); used by claudeGenerator.practice, pregen practiceParams and liveRetryWriter.practice and the live eval; a max_tokens stop in the app is rewritten once with thinking off (writePracticeDraft). Intro stays thinking off. Pregen bounds price the allowance (per lesson about 0.255 USD, was 0.195)",
+      "fix_commits": [
+        "b334a8a"
+      ],
+      "regression_tests": [
+        "backend/lib/practice-thinking.test.ts",
+        "backend/lib/anthropic.test.ts::REQ-251: a caller's own thinking allowance is added on top of its answer cap",
+        "only when thinking may run",
+        "backend/lib/pregen.dbtest.ts::practiceParams sends exactly what the app's generator sends for the same lesson",
+        "and its system prompt carries ITEM_WRITING_RULES",
+        "backend/lib/pregen.dbtest.ts::estimate: per-track counts and cost",
+        "an upper bound",
+        "and nothing sent"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A call that thinks gets max_tokens = its answer's own cap plus a named thinking allowance (effectiveMaxTokens), never a shared answer-sized cap; one PRACTICE_CALL definition keeps batch and live identical (parity DB test); the real-model effect is measured on the next trial with npm run items:style",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1640",
+      "date": "2026-11-12",
+      "title": "No way out of a lesson after a reload or a direct link",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Pilot tester 2026-11-12: 'once I'm in a lesson or objective, I can't navigate back to the dashboard or check my progress. I'm basically locked into the lesson until I finish it.'",
+      "how_detected": "pilot user report; reproduced by reading the stack config (no browser available in the build container)",
+      "root_cause": "The lesson screen set only a title and relied on the native stack's default back arrow, which appears only when a previous route is in the stack. On the web a reload or a link opened straight to a lesson has no history (no initialRouteName in app/(app)), so the header was empty; the only in-page exits were on the done screen, and the loading and error states had none. Nothing told the learner the place was saved, so leaving felt like losing work. FAIL-921 made Back buttons use useGoBack but did not cover screens that had no Back button of their own.",
+      "requirement": "REQ-250",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "Header Save and exit (goBackOr to the course) and Course progress on every lesson state; 'Your place is saved' line on every step but done; bottom Save and exit and Home (dismissTo Home when in the stack, else replace); each flushes the pending account save first (mobile/src/lib/lessonExit.ts).",
+      "fix_commits": [
+        "875983f"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/lessonExit.test.ts::Save and exit (FAIL-1640)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Checklist: a screen a learner works through gives its own way out through useGoBack on every state, not the header's default arrow.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1641",
+      "date": "2026-11-12",
+      "title": "Leaving a lesson at the optional Try it step lost the saved place",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Leaving at the 'Try it' (lab) step and reopening the objective started it again at Guess.",
+      "how_detected": "code review while verifying that leaving mid-step loses nothing (REQ-250)",
+      "root_cause": "REQ-096 added the lab step after Solo, but the save effect treats every step outside teach/fade/solo as 'clear', so reaching the lab step deleted the device and account copies. The account table's step check allows only teach/fade/solo.",
+      "requirement": "REQ-250",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonProgress.ts"
+      ],
+      "fix_summary": "savedStepFor maps lab to solo: the place is saved as the graded Solo step, one Continue away from Try it; no migration.",
+      "fix_commits": [
+        "875983f"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/lessonExit.test.ts::leaving at 'Try it' keeps the place (FAIL-1641)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Checklist: every step that saves a place keeps it when left, optional steps included.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1642",
+      "date": "2026-11-12",
+      "title": "The course page showed a lesson left part-way as Not started",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After leaving a lesson at Teach (before any graded check), the course page listed the objective as 'Not started' and offered 'Start course', with no sign the place was kept.",
+      "how_detected": "code review of the course page while checking 'on a resumed objective, the course page should show it as in progress' (REQ-250)",
+      "root_cause": "The course route reported only mastery; a mastery row is written by a graded check, and the saved place (lesson_progress) was never read by any listing.",
+      "requirement": "REQ-250",
+      "affected": [
+        "backend/app/api/courses/[id]/route.ts",
+        "mobile/src/lib/nextStep.ts",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/app/(app)/course/[trackId]/progress.tsx"
+      ],
+      "fix_summary": "GET /api/courses/:id returns lesson_saved_at per objective (within the app's 7-day resume window, same query); rows read In progress / Place saved; Continue and Continue unit open the saved place.",
+      "fix_commits": [
+        "875983f"
+      ],
+      "regression_tests": [
+        "backend/lib/lesson-saved-place.dbtest.ts",
+        "mobile/src/lib/lessonExit.test.ts::the course page shows a saved place (FAIL-1642)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Checklist: a list that shows progress counts a saved place as started.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1760",
+      "date": "2026-11-12",
+      "title": "Duplicate-option check failed code options that differ only in punctuation or case",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "10 of 92 Python/JavaScript lessons failed pre-generation on 2026-11-12 with 'duplicate option'.",
+      "how_detected": "Pre-generation problem-kind log (REQ-247) on the 2026-11-12 Python/JavaScript run.",
+      "root_cause": "normOption lowercases and strips punctuation, so `a == b` and `a === b`, [1, 2] and (1, 2), None and none collapse to the same key.",
+      "requirement": "REQ-254",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "Code-like options are compared exactly with whitespace collapsed (optionKey); plain-language options keep the loose comparison.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/code-option-duplicates.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "Content checks that normalize text must not erase distinctions that carry meaning in code."
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1761",
+      "date": "2026-11-12",
+      "title": "Pre-generation problem kinds leaked option text when an option held quotes",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The public pregen log showed option text (ERROR: disk full) inside a duplicate-option problem kind on 2026-11-12.",
+      "how_detected": "Pre-generation problem-kind log (REQ-247) on the 2026-11-12 Python/JavaScript run.",
+      "root_cause": "problemKind removed quoted spans pairwise, so quotes inside an option split the pairs and left text between them.",
+      "requirement": "REQ-254",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "problemKind replaces everything from the first quote to the last.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen-problem-kinds.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "Content checks that normalize text must not erase distinctions that carry meaning in code."
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1762",
+      "date": "2026-11-12",
+      "title": "Duplicate-option check failed string-literal and concatenation options",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A JavaScript lesson failed pre-generation on 2026-11-12: \"ERROR: disk full\" vs \"ERROR, disk full\", and a+b+c variants, counted as duplicates.",
+      "how_detected": "Pre-generation problem-kind log (REQ-247) on the 2026-11-12 Python/JavaScript run.",
+      "root_cause": "CODE_LIKE (FAIL-1760) didn't count double quotes or + as code, so those options got the loose punctuation-stripping comparison.",
+      "requirement": "REQ-254",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "Double quote and + added to CODE_LIKE.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/code-option-duplicates.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "Content checks that normalize text must not erase distinctions that carry meaning in code."
+      ],
+      "prevention_notes": "",
+      "recurrence_of": "FAIL-1760"
+    },
+    {
+      "id": "FAIL-1680",
+      "date": "2026-11-12",
+      "title": "Data inventory 'up to migration' header named 077 first after 078 was added",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/ship-notes.test.ts: docs/legal/data-inventory.md was checked up to migration 077, but 078 exists (after the header already mentioned 078 later in the sentence)",
+      "how_detected": "backend npm test (ship-notes.test.ts)",
+      "root_cause": "The check reads the FIRST 'up to migration NNN' in the file. Adding the new migration as a second clause after the old 'up to migration 077' left the old number first, so the inventory still read as stale although 078's tables were listed.",
+      "requirement": "REQ-252",
+      "affected": [
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "Reworded the header so 'up to migration 078' is the first and only such phrase, with 071-077 and 078 listed after it.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts::its 'up to migration NNN' is the newest migration"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When bumping the inventory, replace the number in the existing phrase rather than appending a second 'up to migration' clause; the test catches it.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1681",
+      "date": "2026-11-12",
+      "title": "A level changed from a lesson's chip did not apply when the learner came back to that lesson",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Found in review after merging REQ-250: the lesson read the level once per objective, so changing it in the level settings opened from the lesson's chip (a push, which keeps the lesson mounted) left the lesson on the old level until it was reopened.",
+      "how_detected": "Code review of the merged lesson screen",
+      "root_cause": "The level fetch was keyed on the objective and unit only; returning to a still-mounted screen fires no mount effect. REQ-250 made leaving and returning to a lesson the normal path, so the stale state became reachable.",
+      "requirement": "REQ-252",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "The lesson refetches the level quietly on focus (useFocusEffect), after the first load.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Screen-level focus behavior; the app's tests run pure libraries under node --test and no browser or device is available in this environment. The level state parsing it uses is tested in src/lib/learnerLevel.test.ts.",
+      "prevention_rules": [],
+      "prevention_notes": "A screen that links to a settings screen for state it reads refetches that state on focus.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1682",
+      "date": "2026-11-12",
+      "title": "New learners never saw Key terms opened at the start, and Key terms events were never logged",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After merging #166 (REQ-253), the lesson rendered KeyTermsButton without initiallyOpen, so New learners in Python and JavaScript got no Key terms at the start of a lesson (a decision of 2026-11-12); key_terms_opened / key_terms_closed were allowed by 078 and the event route but nothing sent them. REQ-252 was already marked completed with a PRIMERS SLOT comment standing in for the integration.",
+      "how_detected": "Review of the branch diff against the brief after merging origin/master",
+      "root_cause": "The levels branch was built before the primers branch merged; it left a placeholder comment for the other builder instead of a check that would fail until the integration existed, and the requirement was completed with the placeholder still in place. KeyTermsButton had no way to tell its host it opened or closed.",
+      "requirement": "REQ-252",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/components/KeyTerms.tsx",
+        "mobile/src/lib/learnerLevel.ts"
+      ],
+      "fix_summary": "KeyTermsButton (the one button, keyed by objective) gets initiallyOpen={openKeyTermsAtStart(flow, step)}: New with the flow on, only when the lesson starts at its first step. An optional onOpenChange on KeyTermsButton feeds key_terms_opened and key_terms_closed (with seconds). PRIMERS SLOT comment removed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/learnerLevel.test.ts::Key terms opens once at the start for New only (REQ-253's initiallyOpen)",
+        "mobile/src/lib/keyTerms.test.ts::the lesson screen places it once",
+        "beside the step header",
+        "at every step"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A seam left for another branch is wired and tested on the merged tree before the requirement is completed (the FAIL-964 checklist line); a placeholder comment is not a seam.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1683",
+      "date": "2026-11-12",
+      "title": "078's locking note said validating its checks would not block inserts",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "078's header said the learner_events checks were swapped NOT VALID then VALIDATE (SHARE UPDATE EXCLUSIVE, not blocking inserts). The migration tool runs the file in one transaction, so the ACCESS EXCLUSIVE locks taken earlier on learner_events and subject_tracks are held until commit, scan included.",
+      "how_detected": "Review of migration 078 for the production apply",
+      "root_cause": "The NOT VALID / VALIDATE pattern only releases writers when the validate runs in its own transaction; the note described the pattern, not this file's run.",
+      "requirement": "REQ-252",
+      "affected": [
+        "backend/supabase/migrations/078_learner_levels.sql"
+      ],
+      "fix_summary": "The header now says the locks are held to commit, that what bounds the hold is table size (2-row update, one scan of the small learner_events), the measured apply time on a seeded copy, and the production order (applied after 079).",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "A comment's accuracy about lock duration; the behavior (applies after 079, re-runs, rolls back) was exercised on a throwaway Postgres 16 copy built 001-079 without 078.",
+      "prevention_rules": [],
+      "prevention_notes": "A migration's LOCKING note states whether its statements share one transaction before claiming a lock is released.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1684",
+      "date": "2026-11-12",
+      "title": "The level-change notice hard-coded 4 of 5 instead of the named thresholds",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "levelChangeNotice wrote 'You got 4 of your last 5 solo checks' as literal text; changing LEVEL_UP_WINDOW or LEVEL_UP_MIN_FIRST_TRY_CORRECT on the server would leave the notice telling learners the wrong rule.",
+      "how_detected": "Review against the brief (thresholds are named constants)",
+      "root_cause": "The app cannot import the backend's rules module, and the wording copied the numbers rather than mirroring the constants with a check that they match.",
+      "requirement": "REQ-252",
+      "affected": [
+        "mobile/src/lib/learnerLevel.ts"
+      ],
+      "fix_summary": "The app mirrors LEVEL_UP_WINDOW and LEVEL_UP_MIN_FIRST_TRY_CORRECT and builds the notice from them; a test reads backend/lib/learner-level-rules.ts and fails if the numbers differ.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/learnerLevel.test.ts::the notice's numbers are the server's named constants"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Learner-facing text that states a server threshold uses a mirrored constant pinned by a cross-package test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1765",
+      "date": "2026-11-12",
+      "title": "British spelling in a new mobile test (labelled)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "backend lib/us-spelling.test.ts failed: mobile/src/lib/goalEntryPoints.test.ts: labelled -> labeled",
+      "how_detected": "backend npm test (US English spelling, REQ-220) before commit",
+      "root_cause": "The new source-check test was written with the British form of 'labeled' in a test name and a comment; the repo is US English and the spelling scan covers mobile sources too.",
+      "requirement": "REQ-255",
+      "affected": [
+        "mobile/src/lib/goalEntryPoints.test.ts"
+      ],
+      "fix_summary": "Changed to labeled.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/us-spelling.test.ts::US English spelling (REQ-220)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The existing US-spelling scan caught it; run backend npm test whenever mobile files change, since the scan spans both packages.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1766",
+      "date": "2026-11-12",
+      "title": "Source-check regex stopped at an arrow function inside JSX props",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "goalEntryPoints.test.ts 'targets are 48 dp and every control is labeled' failed on GoalButtons although the Pressable has accessibilityLabel",
+      "how_detected": "mobile npm test while writing REQ-255",
+      "root_cause": "The test matched a JSX opening tag with <Pressable[^>]*>, which ends at the '>' of an onPress arrow (=>), so the props after the handler, including accessibilityLabel, were never seen.",
+      "requirement": "REQ-255",
+      "affected": [
+        "mobile/src/lib/goalEntryPoints.test.ts"
+      ],
+      "fix_summary": "Each control's props are now the text up to the next <Pressable or <Button in the same component, and the test asserts at least one control was found.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/goalEntryPoints.test.ts::targets are 48 dp and every control is labeled"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Source checks on JSX never use [^>]* to find the end of a tag; slice between known markers and assert the slice is non-empty so a vacuous pass is impossible.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1790",
+      "date": "2026-11-12",
+      "title": "The lesson goal card came back in every lesson for a learner who ignored it",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "REQ-255's LessonGoalCard showed again in each new lesson until the learner answered or tapped Not now, with no upper bound; a learner who ignored it saw it above every lesson in the course.",
+      "how_detected": "review (Nick's approved follow-up, 2026-11-12)",
+      "root_cause": "Asked was only ever set by a learner action (answer, skip, dismiss); nothing counted showings, and a device-side count would reset with cleared storage or a reinstall.",
+      "requirement": "REQ-256",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "backend/lib/learner-level.ts"
+      ],
+      "fix_summary": "The lesson asks POST /api/courses/:id/level/goal-card before showing it; the server records goal_card_shown once per lesson and, after GOAL_CARD_MAX_SHOWINGS (2) lessons, records it dismissed like Not now (via lesson, reason auto) and answers show false.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learner-level-down.dbtest.ts::shown in two lessons",
+        "then recorded dismissed (via lesson",
+        "reason auto) and never shown again",
+        "backend/lib/learner-level-down.test.ts::shown in two lessons",
+        "then recorded dismissed in the third",
+        "mobile/src/lib/levelDown.test.ts::nothing shows until the server answers; a confirmation stays in place"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A prompt shown repeatedly until acted on gets a named cap counted on the server (GOAL_CARD_MAX_SHOWINGS), never only on the device.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1791",
+      "date": "2026-11-12",
+      "title": "A REQ-255 source check pinned the exact goal-card call and failed when the card gained the server count",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "mobile src/lib/goalEntryPoints.test.ts 'the lesson card answers or dismisses through the level API' failed: the lesson no longer contained showsLessonGoalCard(levelState, goalCard).",
+      "how_detected": "test (npm test in mobile)",
+      "root_cause": "The source check matched one literal expression rather than the rule; wrapping the rule (showsCountedGoalCard calls showsLessonGoalCard) changed the text but not the behavior.",
+      "requirement": "REQ-256",
+      "affected": [
+        "mobile/src/lib/goalEntryPoints.test.ts"
+      ],
+      "fix_summary": "Updated the check (not deleted, FAIL-232) to the counted wrapper and added a check that the lesson asks the goal-card route; the wrapper itself is unit tested.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/goalEntryPoints.test.ts::the lesson card answers or dismisses through the level API",
+        "and never blocks the lesson",
+        "mobile/src/lib/levelDown.test.ts::nothing shows until the server answers; a confirmation stays in place"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When a rule a source check pins is wrapped, update the check to the wrapper and unit test the wrapper (FAIL-232: tests written against an older rule are updated, not deleted).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1792",
+      "date": "2026-11-12",
+      "title": "Data inventory not marked as checked up to the new migration 080",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "backend lib/ship-notes.test.ts: docs/legal/data-inventory.md was checked up to migration 079, but 080 exists.",
+      "how_detected": "test (npm test in backend)",
+      "root_cause": "080 adds no table, so the inventory's tables needed no new row, but the 'brought up to migration NNN' marker still has to move with every migration.",
+      "requirement": "REQ-256",
+      "affected": [
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "Noted what 080 stores (four learner_events names, the 'suggested' reason; no new table) and bumped the marker to 080.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts::its 'up to migration NNN' is the newest migration"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The existing ship-notes test caught it; a migration with no new table still updates the inventory marker.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1793",
+      "date": "2026-11-12",
+      "title": "080 renamed 078's checks, so 078's health probe failed and a replay of 078 would add a narrower second check",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "With 080 applied, npm run test:db failed 9 tests: /api/health 503 and schema status listing 078_learner_levels.sql as missing, because 078's probe looks for learner_events_event_078, which the first draft of 080 dropped in favor of learner_events_event_080.",
+      "how_detected": "test (npm run test:db on a throwaway Postgres 16)",
+      "root_cause": "The first draft restated the checks under new names. 078's probe and 078's own replay guard key on the name learner_events_event_078: the probe then reports 078 missing, and replaying 078 (safe to run twice) would add its 078-only list beside 080's, refusing the four new events. Same trap as FAIL-1720 (079 and 067).",
+      "requirement": "REQ-256",
+      "affected": [
+        "backend/supabase/migrations/080_level_down_suggestions.sql",
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "080 restates both checks under their existing names (learner_events_event_078, learner_level_changes_reason_check), guarded by what the definition already allows; the 080 probe reads the definitions.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learner-level-down.dbtest.ts::FAIL-1793: the checks keep 078's names",
+        "so a replay of 078 (or 080) keeps the new values; every probe passes"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A migration that widens an earlier migration's named check restates it under the SAME name (FAIL-1720, FAIL-1793) and a DB test replays the earlier migration after it.",
+      "recurrence_of": ""
     }
   ]
 }

@@ -65,10 +65,27 @@ import { source, type SourceRef } from "../sources";
 
 const PT_DISCLAIMER_KEY = "pt-clinical-content";
 const CHECKED = "2026-11-09";
+// REQ-245: verified 2026-11-11. Re-read that day: the APTA and ACAPT pages
+// (unchanged: the same ten common prerequisites, footer (c) 2026; the same
+// 2012 common core, footer (c) 2024); the table of contents of all six
+// OpenStax books, against which every section tag in this file (inline and
+// in PTPREREQ_UNIT_SOURCES) was matched by number and title, none missing;
+// and the full text of A&P 2e 3.1, 4.3, 4.6, 6.2, 9.4, 9.6, 10.4, 10.5,
+// 11.5, 12.2, 12.4, 13.4, 14.3, 16.4, 19.4, 20.2, 22.3, 26.5, College
+// Physics 2e 9.5, 9.6, 20.6, Chemistry 2e 14.2 and Psychology 2e 12.3, whose
+// facts the objectives state (3 Na+ out and 2 K+ in per pump cycle; peak
+// tension at 80-120 percent of resting sarcomere length; -70 mV resting
+// potential; MAP = diastolic + pulse pressure / 3; TLC and VC as sums of the
+// lung volumes; the four cardinal signs; the patella as the sesamoid; the
+// knee's cruciates and menisci; the rotator cuff four; three fiber types; UMN
+// and LMN signs; dermatomes in 16.4). No objective needed a change. The book
+// sections keep the date they were first read; the scope pages carry the
+// re-read date.
+const VERIFIED = "2026-11-11";
 
 export const PTPREREQ_SCOPE_SOURCES: readonly SourceRef[] = [
-  source("https://www.apta.org/your-career/careers-in-physical-therapy/pt-admissions-process", "reference", CHECKED),
-  source("https://acapt.org/resources/admissions", "reference", CHECKED),
+  source("https://www.apta.org/your-career/careers-in-physical-therapy/pt-admissions-process", "reference", VERIFIED),
+  source("https://acapt.org/resources/admissions", "reference", VERIFIED),
 ];
 
 const OX = {
@@ -88,20 +105,24 @@ export interface PrereqUnitSource extends SourceRef {
 
 export const PT_PREREQ_TRACK: SeedTrack = {
   code: "PTPREREQ",
+  // REQ-257 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
+  levelFlow: true,
   title: "PT School Prerequisites Refresher",
   description:
     "A refresher of the undergraduate prerequisites Doctor of Physical Therapy programs commonly require: anatomy and physiology, biology, general chemistry, physics, psychology and statistics. It leans toward what the first year of PT school builds on, which is musculoskeletal and nervous system anatomy, muscle and cardiopulmonary physiology, levers, torque and basic biomechanics. Chemistry and physics go only as deep as PT coursework needs. It is a review course. It does not replace the coursework a program requires.",
   trackType: "graduate",
   subcategorySlug: "physical-therapy",
   freshnessModel: "academic_foundational",
+  sourceVerifiedAt: "2026-11-11T00:00:00Z",
+  contentReviewDueAt: "2027-11-11T00:00:00Z",
   // REQ-142: no exam. A syllabus the course defines for itself, scoped on
   // the common DPT prerequisites as APTA lists them.
   curriculum: {
     kind: "self_defined",
     name: "PT School Prerequisites Refresher syllabus, scoped on APTA's list of common DPT prerequisites",
-    version: "APTA PT admissions page and ACAPT common core prerequisites, read 2026-11-09",
+    version: "APTA PT admissions page and ACAPT common core prerequisites, read 2026-11-09, re-read 2026-11-11",
     url: "https://www.apta.org/your-career/careers-in-physical-therapy/pt-admissions-process",
-    checkedAt: CHECKED,
+    checkedAt: VERIFIED,
   },
   // The same single study notice as every physical therapy course (REQ-165).
   requiresAcknowledgement: true,
@@ -290,3 +311,49 @@ export const PTPREREQ_UNIT_SOURCES: Readonly<Record<string, readonly PrereqUnitS
   "Psychology for patient care": [ox("PSY", "2.2-2.3, 6.2-6.4, 9.2-9.3, 12.3, 14.1, 14.3, 15.4, 15.7")],
   "Statistics for reading research": [ox("STAT", "1.3, 2.5-2.7, 6.1-6.2, 8.1-8.2, 9.1-9.2, 10.1, 10.4, 11.3, 12.3-12.4")],
 };
+
+// REQ-235 (batch H wave 1): the unit's textbook sections reach the lesson
+// writer and the fact-checker (lib/current-facts.ts) as dated unit sources,
+// and four core units carry key values read on 2026-11-11 in the online
+// OpenStax editions (A&P 2e 12.4, 19.4, 26.5; College Physics 2e 9.2). A
+// refresher has no official outline, so there is none to quote.
+const BOOK_TITLE: Record<string, string> = {
+  [OX.AP]: "OpenStax Anatomy and Physiology 2e",
+  [OX.CHEM]: "OpenStax Chemistry 2e",
+  [OX.PHYS]: "OpenStax College Physics 2e",
+  [OX.BIO]: "OpenStax Biology 2e",
+  [OX.PSY]: "OpenStax Psychology 2e",
+  [OX.STAT]: "OpenStax Introductory Statistics 2e",
+};
+const PTPREREQ_KEY_VALUES: Readonly<Record<string, { url: string; keyValues: string[] }>> = {
+  "Nervous system": {
+    url: OX.AP,
+    keyValues: [
+      "resting membrane potential about -70 mV (varies between cells); threshold about -55 mV, where voltage-gated Na+ channels open; the action potential is all-or-none (AP 12.4)",
+    ],
+  },
+  "Cardiovascular system": {
+    url: OX.AP,
+    keyValues: ["cardiac output = heart rate x stroke volume, for each ventricle; resting mean about 5.25 L/min, range 4.0-8.0 L/min (AP 19.4)"],
+  },
+  "Respiratory system and acid-base balance": {
+    url: OX.AP,
+    keyValues: [
+      "arterial reference values: pH 7.35-7.45; pCO2 35-48 mm Hg (male), 32-45 mm Hg (female); total venous bicarbonate 22-29 mM; at pH 7.40 bicarbonate to carbonic acid is 20:1 (AP 26.5)",
+    ],
+  },
+  "Biomechanics: levers, torque and forces": {
+    url: OX.PHYS,
+    keyValues: ["torque = rF sin(theta) = perpendicular lever arm x force, in newton-meters (N-m) (College Physics 9.2)"],
+  },
+};
+for (const unit of PT_PREREQ_TRACK.units) {
+  const kv = PTPREREQ_KEY_VALUES[unit.title];
+  unit.sources = (PTPREREQ_UNIT_SOURCES[unit.title] ?? []).map((s) => ({
+    title: `${BOOK_TITLE[s.url] ?? s.url}, sections ${s.sections}`,
+    url: s.url,
+    kind: s.kind,
+    checkedAt: kv && kv.url === s.url ? "2026-11-11" : s.checkedAt,
+    ...(kv && kv.url === s.url ? { keyValues: kv.keyValues } : {}),
+  }));
+}

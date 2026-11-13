@@ -1,0 +1,860 @@
+{
+  "slug": "pca-oversedation-naloxone",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: rouse, pause the PCA, take the button, airway, full count, naloxone 0.1 mg twice, capnography, SBAR to change the plan, reassessed every 15 minutes with a third dose when he drifts",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rouse",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "stopPca",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "button",
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "params": {
+            "dose": "small"
+          },
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "count",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "poss4",
+          "choice": "stop",
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "smallDose",
+          "choice": "titrate",
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "chapter",
+          "chapter": "reversing",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 66
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "params": {
+            "dose": "small"
+          },
+          "seq": 11,
+          "tick": 126
+        },
+        {
+          "type": "act",
+          "action": "capno",
+          "seq": 12,
+          "tick": 126
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "over",
+            "bg": "risk",
+            "asmt": "oird",
+            "rec": "change"
+          },
+          "seq": 13,
+          "tick": 126
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 14,
+          "tick": 126
+        },
+        {
+          "type": "teach",
+          "prompt": "wearsOff",
+          "choice": "stay",
+          "seq": 15,
+          "tick": 126
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 16,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 17,
+          "tick": 1026
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 18,
+          "tick": 1926
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "params": {
+            "dose": "small"
+          },
+          "seq": 19,
+          "tick": 1926
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 20,
+          "tick": 2826
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 21,
+          "tick": 3726
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 22,
+          "tick": 4626
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "stopFirst": "met",
+          "titrated": "met",
+          "monitored": "met",
+          "plan": "met",
+          "airway": "met",
+          "noMask": "met",
+          "proxy": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toStop": 5,
+          "toNaloxone": 5,
+          "doses": 3
+        },
+        "stateHash": "475c18a5aaca70d9"
+      },
+      "reasoning": {
+        "cues": "met"
+      }
+    },
+    {
+      "id": "oxygenFirst",
+      "title": "Turns the oxygen up and counts before pausing the PCA five minutes in; then titrated naloxone, capnography, a clear SBAR and a 30-minute reassessment",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "o2up",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "rouse",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "count",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "poss4",
+          "choice": "stop",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "stopPca",
+          "seq": 5,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 6,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "params": {
+            "dose": "small"
+          },
+          "seq": 7,
+          "tick": 300
+        },
+        {
+          "type": "teach",
+          "prompt": "smallDose",
+          "choice": "titrate",
+          "seq": 8,
+          "tick": 300
+        },
+        {
+          "type": "chapter",
+          "chapter": "reversing",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 421
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "params": {
+            "dose": "small"
+          },
+          "seq": 10,
+          "tick": 421
+        },
+        {
+          "type": "act",
+          "action": "capno",
+          "seq": 11,
+          "tick": 421
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "over",
+            "bg": "risk",
+            "asmt": "oird",
+            "rec": "change"
+          },
+          "seq": 12,
+          "tick": 421
+        },
+        {
+          "type": "act",
+          "action": "button",
+          "seq": 13,
+          "tick": 421
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 14,
+          "tick": 421
+        },
+        {
+          "type": "teach",
+          "prompt": "wearsOff",
+          "choice": "stay",
+          "seq": 15,
+          "tick": 421
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 16,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 17,
+          "tick": 1321
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "params": {
+            "dose": "small"
+          },
+          "seq": 18,
+          "tick": 1321
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 19,
+          "tick": 2221
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 20,
+          "tick": 3121
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 21,
+          "tick": 4021
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 22,
+          "tick": 4921
+        }
+      ],
+      "expect": {
+        "ending": "safeLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 78,
+        "criteria": {
+          "stopFirst": "partial",
+          "titrated": "met",
+          "monitored": "met",
+          "plan": "met",
+          "airway": "met",
+          "noMask": "missed",
+          "proxy": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toStop": 300,
+          "toNaloxone": 300,
+          "doses": 3
+        },
+        "stateHash": "496c7c8b58d62f51"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "fullPush",
+      "title": "Fast stop, then 0.4 mg undiluted at once: an abrupt reversal; the rest done well",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "rouse",
+          "seq": 1,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "stopPca",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "button",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "params": {
+            "dose": "big"
+          },
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "capno",
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "over",
+            "bg": "risk",
+            "asmt": "oird",
+            "rec": "change"
+          },
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "count",
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "poss4",
+          "choice": "stop",
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "wearsOff",
+          "choice": "stay",
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "smallDose",
+          "choice": "titrate",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "chapter",
+          "chapter": "reversing",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 66
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 13,
+          "tick": 66
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 14,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 15,
+          "tick": 905
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 16,
+          "tick": 1805
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 17,
+          "tick": 2705
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 18,
+          "tick": 3605
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 19,
+          "tick": 4505
+        }
+      ],
+      "expect": {
+        "ending": "safeLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "stopFirst": "met",
+          "titrated": "missed",
+          "monitored": "met",
+          "plan": "met",
+          "airway": "met",
+          "noMask": "met",
+          "proxy": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toStop": 5,
+          "toNaloxone": 5,
+          "doses": 1
+        },
+        "stateHash": "5b9ba0b3a486ea79"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "rrtRescue",
+      "title": "Rouses him and calls the rapid response team, who pause the PCA and give the naloxone; no airway or count of his own, and a vague call to the resident",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "rouse",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "rrt",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "chapter",
+          "chapter": "reversing",
+          "choice": "continue",
+          "seq": 3,
+          "tick": 340
+        },
+        {
+          "type": "act",
+          "action": "capno",
+          "seq": 4,
+          "tick": 340
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "sats",
+            "bg": "min",
+            "asmt": "sleep",
+            "rec": "resume"
+          },
+          "seq": 5,
+          "tick": 340
+        },
+        {
+          "type": "act",
+          "action": "button",
+          "seq": 6,
+          "tick": 340
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 7,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 8,
+          "tick": 1240
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "params": {
+            "dose": "small"
+          },
+          "seq": 9,
+          "tick": 1240
+        },
+        {
+          "type": "teach",
+          "prompt": "smallDose",
+          "choice": "titrate",
+          "seq": 10,
+          "tick": 1240
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 11,
+          "tick": 2140
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 12,
+          "tick": 3040
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 13,
+          "tick": 3940
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 14,
+          "tick": 4840
+        }
+      ],
+      "expect": {
+        "ending": "safeLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 44,
+        "criteria": {
+          "stopFirst": "missed",
+          "titrated": "partial",
+          "monitored": "met",
+          "plan": "missed",
+          "airway": "missed",
+          "noMask": "met",
+          "proxy": "met",
+          "note": "missed"
+        },
+        "kpis": {
+          "toStop": -1,
+          "toNaloxone": 330,
+          "doses": 3
+        },
+        "stateHash": "07983b9d214b8f7b"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "restartLeave",
+      "title": "Failure: stops and reverses well, then restarts the PCA once he is awake and leaves until 04:00",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "rouse",
+          "seq": 1,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "stopPca",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "params": {
+            "dose": "small"
+          },
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "smallDose",
+          "choice": "titrate",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "chapter",
+          "chapter": "reversing",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 126
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "params": {
+            "dose": "small"
+          },
+          "seq": 7,
+          "tick": 126
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 8,
+          "tick": 426
+        },
+        {
+          "type": "act",
+          "action": "leave",
+          "seq": 9,
+          "tick": 426
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 10,
+          "tick": 426
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 11,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 44,
+        "criteria": {
+          "stopFirst": "met",
+          "titrated": "met",
+          "monitored": "missed",
+          "plan": "missed",
+          "airway": "partial",
+          "noMask": "met",
+          "proxy": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "toStop": 5,
+          "toNaloxone": 5,
+          "doses": 2
+        },
+        "stateHash": "0bb0f905606ea38a"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "pauseOnly",
+      "title": "Failure: rouses him and pauses the PCA, then waits for the hydromorphone to wear off: no naloxone, no capnography, nobody called",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "rouse",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "stopPca",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "o2up",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "count",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "poss4",
+          "choice": "stop",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 6,
+          "tick": 81
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 7,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "stillSedated",
+        "class": "harm",
+        "rating": "bad",
+        "score": 33,
+        "criteria": {
+          "stopFirst": "met",
+          "titrated": "missed",
+          "monitored": "missed",
+          "plan": "missed",
+          "airway": "partial",
+          "noMask": "met",
+          "proxy": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "toStop": 20,
+          "toNaloxone": -1,
+          "doses": 0
+        },
+        "stateHash": "74c9ee3f92c485d9"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    }
+  ]
+}

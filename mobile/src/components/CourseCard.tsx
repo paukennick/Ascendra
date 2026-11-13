@@ -4,6 +4,7 @@ import Feather from "@expo/vector-icons/Feather";
 import { Badge, Card, FavoriteButton, H2, Muted, ProgressBar } from "@/components/ui";
 import { colors, getCourseIcon, spacing } from "@/lib/theme";
 import type { Track } from "@/types";
+import { simBadge } from "@/lib/courseSims";
 
 type IconName = React.ComponentProps<typeof Feather>["name"];
 
@@ -38,6 +39,9 @@ export function CourseCard({
   onToggleFavorite: () => void;
 }) {
   const { emoji, icon, accent, iconColor } = getCourseIcon(track);
+  // REQ-249: a course with sims says so. The badge row below is left out of
+  // the reading order, so the button's own label carries "Has N simulations".
+  const sims = simBadge(track);
   return (
     // REQ-206 (FAIL-933): the star used to sit inside a pressable Card, a
     // button inside a button (43 axe "nested-interactive" hits on Explore, and
@@ -50,7 +54,7 @@ export function CourseCard({
         <Pressable
           onPress={onPress}
           accessibilityRole="button"
-          accessibilityLabel={`${track.title}, ${track.code}. ${track.mastered_objectives ?? 0} of ${track.total_objectives ?? 0} objectives at Independent or above.`}
+          accessibilityLabel={`${track.title}, ${track.code}. ${track.mastered_objectives ?? 0} of ${track.total_objectives ?? 0} objectives at Independent or above.${sims ? ` ${sims.accessibilityLabel}.` : ""}`}
           style={({ pressed }) => [{ flex: 1, flexDirection: "row", gap: spacing.md, alignItems: "flex-start", minHeight: 48 }, pressed && { opacity: 0.75 }]}
         >
         <View style={[styles.iconWrap, { backgroundColor: withAlpha(accent) }]}>
@@ -73,11 +77,15 @@ export function CourseCard({
       </View>
       <Pressable onPress={onPress} accessible={false} focusable={false} style={{ gap: spacing.sm }}>
       <ProgressBar percent={track.percent_progress ?? 0} />
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+      {/* REQ-249: the row wraps, so a fourth badge (sims) never pushes the
+          others off a narrow phone. */}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 6 }}>
         <Muted>
           {track.mastered_objectives ?? 0}/{track.total_objectives ?? 0} objectives at Independent+
         </Muted>
-        <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+          {/* The same "activity" icon as the course page's Simulations button. */}
+          {sims ? <Badge label={sims.label} color={colors.accent} icon="activity" /> : null}
           <Badge label={contentKindLabel(track.track_type)} color={colors.mutedDim} />
           {track.freshness_status ? (
             <Badge

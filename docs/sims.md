@@ -31,12 +31,17 @@ Whether a sim is paced depends on its kind, not its course:
   Save and finish later, and can resume on any device.
 - **Project-management and IT/cloud sims are learner-paced**: they move only
   when the learner acts, have none of the above, and the server refuses
-  pacing commands for them. Today TicketBurst is the only one seeded.
+  pacing commands for them. Seeded: TicketBurst and, since REQ-233, the
+  NAT gateway bill (both AWS SAA).
+- **Security incidents (REQ-231) are learner-paced too**: the attacker
+  works on the sim clock, and the clock moves by the analyst time each
+  task takes (22.7).
 
 The rule is `pacingEligible` in `backend/lib/sim/server-run.ts`: a running
-phase and a clinical or fitness outcome profile. No PT or fitness running
-sim exists yet; a new one gets pacing by declaring the features. Details in
-5.4a to 5.4f and 22.2.
+phase and a clinical or fitness track (the safety family the seed derives
+from the course category). The three DPT treatment sessions (REQ-232, 22.8)
+are the first PT running sims and get study pace by default; no fitness
+running sim exists yet. Details in 5.4a to 5.4f, 22.2 and 22.8.
 
 Sim labs are the product's main paid differentiator. Nick's instruction for
 this work: "I care little about the time it will take and more that overall
@@ -61,7 +66,7 @@ engine and the practice-lab acknowledgement).
 9. Scoring, debrief and mastery
 10. Grading the written-reasoning moments
 11. Tiers, the switch, disclaimers and review
-12. Authoring, seeding and (later) generation
+12. Authoring, seeding and generation (the generator, REQ-230)
 13. Accessibility
 14. Performance and cost per run
 15. Security
@@ -72,7 +77,8 @@ engine and the practice-lab acknowledgement).
 20. Sims for every subject family
 21. Review resolution
 22. Phase 1b as built (REQ-190), pacing (REQ-209), more CCRN cases (REQ-222),
-    CNA cases (REQ-223) and the client session (REQ-225)
+    CNA cases (REQ-223), the client session (REQ-225), the security console
+    (REQ-231) and the PT treatment session (REQ-232)
 
 ---
 
@@ -2203,6 +2209,7 @@ capabilities (5.10).
 
 | Route | What |
 |---|---|
+| `GET /api/courses` (REQ-249) | Each course gains `sim_count`: its sims with a served version and a renderer switched on, by the start route's rule (`pickServedVersion` in `lib/sim/server-run.ts`, `simCountsByTrack` in `lib/sim-count.ts`), in one query for the whole list; 0 everywhere and no query while `SIMS_ENABLED` is off. Tier is not applied (a Pro-only sim counts, as on the course page), and, like the list below, it is not behind the 18+ gate (22.12, finding 3). Drives the course card's sims badge and Explore's "Has sims" filter. |
 | `GET /api/sims?trackId=` / `?unitId=` / `?objectiveId=` | Sims the learner can open: title, screen type, objective, state ("In progress", "Done: Mediocre"), `access` (full/sample/locked), `reviewStatus`, `runnable` (false = "Update the app to open this"). |
 | `GET /api/sims/:id` | One sim: brief (no per-sim disclaimer; the study notice covers sims, REQ-165), client document of the served version (or the pinned version of an open run) with its hash, the open run if any, the latest finished run's summary. |
 | `POST /api/sims/:id/runs { restart?, deviceId }` | Start or resume (one open run per learner and sim); takes the lease. A clinical or fitness sim needs the study notice (403 `study_notice_required`, REQ-165). Returns `{ run, seed, leaseEpoch, clientDocument?, checkpoint, commandsAfter, lastTick }`; the document is omitted when the app's cached hash matches. |
@@ -2413,7 +2420,10 @@ direction):
 | Project | CPI ≥ 0.95 and SPI ≥ 0.95 at close, every compliance item met, every stakeholder ≥ 60/100 | CPI or SPI 0.85-0.95, or one stakeholder 40-59 | a compliance gate failed, CPI or SPI < 0.85, or team attrition ≥ 2 |
 | Fitness | no adverse event, screening done correctly, primary goal met (for example knee pain reduced ≥ 50%), adherence ≥ 80% | safe, goal partly met (pain reduced 25-49%) or adherence 60-79% | an adverse event, a required referral skipped, injury, or drop-out |
 | Clinical session (REQ-225) | the session's safety or diagnostic task done within its window (`safetyWindow`, default 20 min from the cue), rapport >= 6/10 at the close (`allianceTarget`) | done late, partly, or at a cost to the alliance or the client's autonomy (an over-restrictive referral, a disclosure made on a guess) | a client left at foreseeable risk, a required protective step not taken, confidentiality broken beyond what the law allows, a diagnosis that misses a required rule-out, or a walk-out after a rupture |
-| Security, infrastructure, data | defined with their renderers (20) | | |
+| Security (REQ-231, 22.7) | contained within `containWindow` (default 60 min; the Security+ cases use 30) of the first alert, no asset newly compromised after it (`containSpread` 0), evidence preserved before anything is purged, wiped or terminated | contained, but late, after spread to another asset, with partial evidence (a disk image without memory), or with a costly recovery (an older backup past the RPO) | the attacker's impact reached (payment fraud, backups destroyed, data copied out), evidence destroyed before collection, a reinfection during recovery, or the incident closed with an attacker path still open |
+| Physical therapy (REQ-232) | the session's goal reached with every stopping rule respected (activity eased within `stopWindow`, default 2 min, of a rule being crossed; SpO2 floor `spo2Floor`, default 88%) and any red flag escalated within `escalateWindow` (default 15 min) | the goal partly reached, a stopping rule acted on late, or a red flag escalated by a slower route (the patient told to call) or after it became an emergency | a fall, syncope, an embolism, rapid response, or a red flag left unescalated |
+| Infrastructure (REQ-237, 22.10) | the service restored within `restoreWindow` (default 60 min; the cases use 30 or 45) of the first report, with no fault the fix introduced (`newFaults` 0) and the case's evidence step done first | restored late, by a guess, unsaved, or with a side effect (a weakened server, a fix that will not survive a reboot) | the outage spread to the authored secondary service, or a destructive command (data or WAL deleted, a config erased by a reload, a node wiped, a disruption budget bypassed) |
+| Data | defined with its renderer (20) | | |
 
 Two readings are written down so they are not re-decided per scenario.
 The cloud "missed by ≤ 10%" is read as the example Nick gave: 99.85%
@@ -2651,7 +2661,11 @@ device while sims are off (5.9).
 `SIMS_RENDERERS`: a comma-separated allowlist of screen types that are on
 (default `bedside,board` since REQ-190, because the first flagship is the
 TicketBurst board, 19.4 item 1; `bedside,board,session` since REQ-225, so
-testers see the client session). A renderer can be launched, or pulled after a bad
+testers see the client session; `bedside,board,session,security-console`
+since REQ-231; `bedside,board,session,security-console,treatment-session`
+since REQ-232, for the PT treatment session;
+`bedside,board,session,security-console,treatment-session,terminal` since
+REQ-237, for the terminal and network screen). A renderer can be launched, or pulled after a bad
 scenario, without touching the others. A sim whose screen type is not
 listed behaves as if `SIMS_ENABLED` were off for that sim.
 
@@ -2729,7 +2743,7 @@ mechanism exists so that review can happen whenever Nick chooses:
   review here, with the evidence (runs, Good/Mediocre/Bad over time, flag
   count) in the packet.
 
-## 12. Authoring, seeding and (later) generation
+## 12. Authoring, seeding and generation
 
 **Files.** `backend/supabase/seed/sims/<course-code>/<slug>.sim.json`, one
 scenario per file, with its golden paths beside it in
@@ -2761,19 +2775,243 @@ row in place (4.5). The safety family is derived from the
 objective's course, never read from the file. Removing a file retires the sim
 (`retired_at`); runs and attempts stay.
 
-**Generator (later phase).** `npm run sims:generate`, dry-run by default,
-in the labs generator's shape: for a chosen objective and screen type, a
-large model writes a document from the screen type's template and the
-objective, then the pipeline **fails closed** through: schema and semantic
-validation, the linter, an **automatic path search** (a bounded
-breadth-first search over the action space at decision ticks, which must
-find the expert path's ending, every outcome class, and no `target`
-ending with a critical criterion missed, and must show no dominant
-shortcut; the same search runs in the linter for authored scenarios, with
-a smaller bound), golden path generation from the search,
-then an independent fast-model fact check of numbers and safety. Stored
-`source 'generated'`, `needs_expert_review`. Never run live until the
-authored set has shown which scenario shapes work.
+**Generator.** Built in REQ-230; the design is 12.2 and the per-screen
+authoring rules the generator hands the model are 12.1. The original plan
+(a model writes a document, the pipeline fails closed through schema, lint,
+a path search, golden paths and an independent fact check; stored as
+generated, `needs_expert_review`; never run live until the authored set has
+shown which shapes work) stands. What changed in the build: the model writes
+the golden paths as move scripts and the engine fills their expectations,
+the checker is the writer's model (REQ-187), and a passing draft is written
+as files for a person to register, never registered by the script.
+
+### 12.1 Generator authoring rules by screen (REQ-230)
+
+`npm run sims:generate` reads the blocks between the `generator-rules`
+markers below and puts them, word for word, in the writer's prompt: the
+rules for every screen, then the requested screen's. Edit them here; the
+test `lib/sim/generator/generator.test.ts` fails if a screen's block goes
+missing.
+
+<!-- generator-rules:all -->
+- One scenario per document, built for exactly the objective title given
+  (`objective`), for the screen type given (`screen.type`).
+- `schemaVersion` 1, `engine` `{ "major": 1, "minor": 2 }`. Every ending
+  that has a `when` is listed once in `endingOrder`, in the order it should
+  win; `time_up` is never listed.
+- Endings: at least one terminal ending of each outcome class (`target`,
+  `recovered`, `harm`), each with a `when`, a label and a narrative; a
+  `time_up` ending as the hard stop. `outcome.noProgress` says how safe but
+  stalled is classed, with a rationale of a sentence and a source.
+- Scoring: criteria with at least one critical criterion, each with rows
+  ending in a `true` row; one reasoning moment (`reasoning`) and a matching
+  `scoring.reasoningCriteria` entry; KPIs; an expert path; a debrief per
+  terminal ending; `modelReasoning`.
+- Numbers: every numeric param, every timer, every outcome threshold and the
+  no-progress rule carries a `source` with `cite`, an ISO `checkedAt` (the
+  day the source was read; never in the future) and a `url` or a `note`
+  saying where in the source the number is. `sources` lists the exam outline
+  by the course's own URL and every reference used. Never invent a number;
+  when a source gives a range, use it and say so in the note.
+- The people are fictional. Never address the learner's own patients or
+  clients ("your patient"). US English. Plain words in everything the
+  learner reads.
+- Golden paths, as move scripts: at least the expert path, one slow but
+  safe path and two failure paths; together at least one `good`, one
+  `mediocre` and one `bad` rating, every terminal ending but `time_up`
+  reached, and every criterion both met and missed by some path. Moves are
+  `act` (action id and params), `choose` (a choice on the open decision
+  card), `answer` (submit the open reasoning moment), `skip` (to the
+  earliest wait, or a named timer's), `wait` (seconds of real time in a
+  running phase), and for a paced clinical case `pace`, `begin` (the
+  focused start, first move only), `teach` and `chapter`. Each path states
+  the ending, class and rating it reaches; the engine checks it.
+<!-- /generator-rules:all -->
+
+<!-- generator-rules:bedside -->
+- Bedside monitor (`screen.bedside`, level 3): tiles for the vitals that
+  carry the case, each with `spokenLabel`, `unit`, alarm limits where the
+  monitor would alarm, and `announce.bands` at the values that change what
+  a nurse does. Hidden tiles (`hiddenUntil`) for results that come back
+  later (labs, imaging).
+- Physiology moves whether or not the learner acts: a `running` phase with
+  processes that worsen the patient untreated and respond to the right
+  treatment with sourced delays. Profile `clinical`; its thresholds may be
+  tightened, never loosened (9.2).
+- Pacing (5.4a): a clinical case may declare a focused start, chapters and
+  teaching prompts during named waits; each needs a source.
+- Actions are what the nurse or clinician in the exam's scope would do,
+  grouped as the exam groups them (assess, intervene, call, document);
+  results that take time come back by timer, with the wait labelled.
+<!-- /generator-rules:bedside -->
+
+<!-- generator-rules:board -->
+- Board (`screen.board`): zones listing what is placed or running, with
+  `spokenLabel`, and meters for the numbers the learner is judged on (cost,
+  availability, schedule). Profile `cloud`, `project` or another fitting
+  general profile, with its default thresholds or tighter.
+- The learner builds or changes a design (catalog entries placed in slots,
+  settings chosen in forms), starts it, and the scenario plays events
+  against it by timer (load spikes, failures, a finance review). Each event
+  and each limit or price is sourced and dated; cloud prices and service
+  limits are re-checked every six months.
+- Competing priorities are the point: cost against availability, speed
+  against risk. The expert path names the trade-off it makes.
+<!-- /generator-rules:board -->
+
+<!-- generator-rules:session -->
+- Client session (`screen.session`, 22.5): the client's name and a
+  presentation template, gauges for the client's states (for example
+  rapport, distress, disclosure) with words for each band, notes that appear
+  as the learner learns things (an alert note for risk), and the record.
+- Learner-paced: the session phase is `turns`, not `running`. Each exchange
+  shows the client's answer at once and schedules the conversation wait,
+  which moves the session clock by the minutes that kind of exchange takes.
+  The hour ends at 50 minutes and moves to an after-session phase for the
+  written formulation and documentation. No focused start, chapters or
+  teaching prompts; one unscored prediction may be a decision card.
+- Profile `clinical-session`, defaults `allianceTarget` 6,
+  `allianceRecovered` 3, `safetyWindow` 1200 s or tighter. Harm is a client
+  left at foreseeable risk, a required protective step not taken, or
+  confidentiality broken without a legal basis; cite the ethics code,
+  statute or guideline that makes it so.
+<!-- /generator-rules:session -->
+
+### 12.2 The generator as built (REQ-230)
+
+Nick approved the sim library plan on 2026-11-11: the engine-order fix first
+(done in engine 1.2, 22.6), learner-paced client sessions, measure the first
+20 generated sims and then set a separate monthly sim budget, and breadth
+before variants.
+
+**Commands** (backend; nothing is sent without `--run`):
+
+```
+npm run sims:generate -- --select --course CCRNADULT
+npm run sims:generate -- --course CCRNADULT --objective "<exact title>" --screen bedside [--idea "<seed scenario idea>"]
+npm run sims:generate -- --course CCRNADULT --objective "<exact title>" --screen bedside --run [--max-usd 3]
+npm run sims:generate -- --cost-summary
+```
+
+Without `--run` it builds the prompt, prints its size and an upper-bound
+cost, and writes the prompt to the output folder so a person can read it.
+With `--run` it needs `ANTHROPIC_PREGEN_API_KEY` (the pre-generation
+workspace's key, docs/operations-runbook.md); with no key it refuses before
+any call and says so. It never falls back to the app's key.
+
+**Selection.** `--select` lists the course's active sub-objectives that meet
+the selection rule (at least two of: time matters, cues to read, choices
+with consequences, competing priorities), each with the words that matched
+as the recorded reason, ranked by the unit's exam weight; objectives that
+already have a sim go last (breadth before variants). It is a keyword screen
+over the objective's title (`lib/sim/generator/selection.ts`), a shortlist
+for a person, not a judgement. Generating for an objective that does not
+qualify needs `--allow-unselected`, and the report records it.
+
+**The prompt** is built from the course's own sources (the exam outline URL
+and the unit's dated sources with the values the course uses, from the
+seeded catalog), the 12.1 rules for the screen, one seeded document of the
+same screen as the shape to follow, and the seed idea if given. The writer
+returns `{ confidence, uncertainClaims, document, goldenPaths }`.
+
+**Gates**, in order, each failing closed with a reason
+(`lib/sim/generator/gates.ts`):
+
+1. the reply is one JSON object of that shape, and the writer did not rate
+   its own confidence low (REQ-216);
+2. the zod scenario schema;
+3. identity: the requested screen and exact objective title, a slug no
+   seeded sim or earlier draft uses, the current engine minor (2), so
+   `endingOrder` is required;
+4. golden paths: each move script drives the server engine, every move is
+   accepted, and the path ends at the ending, class and rating the model
+   said; the expectations (score, criteria, KPIs, state hash) are then the
+   engine's own result;
+5. lint: `checkDocument` in full, as `npm run sims:lint` runs it
+   (semantics, content rules, golden replays, ending order, the key-order
+   rule), with today's date for source ages; its path search is left to
+   gate 7 so it runs once;
+6. key order: every golden path ends the same with the document's keys as
+   written, reversed and in jsonb order (the storage-order test; like it,
+   the reversal leaves the `teaching` map alone, FAIL-1250, FAIL-1300);
+7. reachability: the bounded path search (`--search-nodes`, default 4000 as
+   in `sims:lint`); every terminal ending but `time_up` is reached by a
+   golden path or by the search, and no searched path reaches a `target`
+   ending with a critical criterion missed; the report says which endings
+   the bounded search found on its own;
+8. replay: each golden path replayed as the sync route replays it
+   (straight, resumed from a mid-run checkpoint, and as the client
+   document) reaches the engine's state hash, and the engine bundle (engine
+   major 1 transpiled to the one script Hermes and the browsers run) prints
+   the same result;
+9. sources: every number in params, timers, thresholds and the no-progress
+   rule has a cite, an ISO `checkedAt` not in the future and a url or note,
+   and the document cites at least one of the course's own sources by URL.
+   This is stricter than the linter on purpose (several authored documents
+   would fail it, mostly a missing url or note);
+10. duplicate: not too close to a sim on the same objective (below);
+11. fact check: a separate call, the writer's model (REQ-187), answers
+    agree, disagree or unsure for claims taken from the document by code:
+    every sourced number, each terminal ending's class, the no-progress rule
+    and the expert path. Any disagreement fails the gate; unsure answers are
+    logged; a claim with no answer, or a failed call, means the check did
+    not run: the call is tried once more, and if it still fails the draft
+    is held as "check did not run", not as wrong.
+
+The fact check is only paid for when gates 1-10 pass.
+
+**Retry and hold.** A draft that fails any gate is written once more, with
+the failure reasons in the prompt. If the second draft fails too, both
+drafts and their reasons go to `held/`; nothing held is ever registered.
+A run that would pass `--max-usd` (default $3, an upper bound per call from
+the prompt size and the output limit) stops before the call and holds what
+it has with that reason.
+
+**A passing draft** is written to `ready/<COURSE>/<slug>.sim.json` and
+`<slug>.golden.json` (status `draft`) in the output folder (default
+`backend/sim-drafts/`, git-ignored), with `<slug>.register.md`: the two
+`mv` lines into `backend/supabase/seed/sims/<COURSE>/`, the
+`entry("<COURSE>", "<slug>", { source: "generated" })` line for
+`ALL_DOCUMENTS` in `lib/sim/documents.ts`, and the checks to run. The script
+never edits `documents.ts`. Registered, it seeds as `needs_expert_review`
+with `sim_versions.source = 'generated'` (Nick approved, REQ-236): the
+`source` option on `entry()` (or `band()`) is what the seed writes, and an
+entry without it is `'authored'`. A marking changed on unchanged content is
+corrected in place on the same version row, like re-checked source dates (no
+new version, review kept). Every sim registered before REQ-236 is authored
+(`lib/sim/documents.test.ts`; `lib/sims-source.dbtest.ts` seeds one of each).
+
+**Duplicate check** (`lib/sim/generator/similarity.ts`). Two Jaccard indexes
+(shared divided by either): the story (three-word runs of the title,
+situation and handover) and the decisions (content words of the action and
+ending labels). The similarity is the story index, or the mean of the two
+when that is higher; at 0.5 or above the draft is a duplicate of that sim.
+Shared decisions alone never make a duplicate: a variant (the same skill on
+a different patient or system) shares its decisions by design, as adult and
+pediatric septic shock do (decisions 0.43, story 0.05; FAIL-1302). It is
+compared with every seeded sim and every earlier ready draft on the same
+objective. Across the seeded documents the highest pair on different cases
+is 0.24 (adult and pediatric septic shock); a band over its base is 1.0.
+
+**Cost.** Each call's input, output and cache tokens and its price
+(`lib/ai-pricing.ts`) go into the draft's report,
+`reports/<time>-<COURSE>-<slug>.json`, split by writer attempt and fact
+check, with the retries counted; one line per draft is appended to
+`reports/costs.jsonl`. `--cost-summary` reads that ledger and prints the
+drafts, how many were ready, the mean, median and highest cost per draft,
+and the cost per ready sim (all spend divided by ready drafts, which is the
+per-sim number for the monthly budget after the first 20).
+
+**Tests** (`lib/sim/generator/generator.test.ts`) use a mocked model only.
+The mocked writer returns the seeded EPPP suicide-risk session re-aimed at
+another EPPP objective (fast to replay), with its golden paths turned back
+into move scripts: (a) a valid draft that passes every gate and the fact
+check, (b) a draft with no `endingOrder` that fails lint and passes on the
+steered retry, (c) a draft whose fact check disagrees twice and is held.
+Also: the Whipple bleed's paths as moves (a running case with a focused
+start and pacing) reproduce its golden hashes, the duplicate check, the
+selection rule, the missing key, the budget stop, a failed fact-check call,
+the writer's low confidence, the key-order gate and the rule blocks above.
 
 ## 13. Accessibility
 
@@ -3366,8 +3604,8 @@ cover the whole catalog (95 courses):
 | **Architecture board** | Cloud: AWS (12), Azure (9), Google Cloud (11), Cloud+, CloudNetX | Place services across zones and regions under a cost meter, then survive spikes, outages, failovers and budget cuts |
 | **Project dashboard** | Project management: PMP, CAPM, PgMP, PfMP, PMI-ACP, PMI-RMP, PMI-SP, PMI-PBA, PMO-CP, PMI-CP, CPMAI, Project+ | Run a project week by week: change requests, risks, team and stakeholder events, earned value; delayed consequences |
 | **Client trainer** | Fitness: NASM, ACE, ACSM, NCCPT, NSCA-CPT, NSCA-CSCS | Screen, assess movement, program by phase, coach through weeks; adherence, pain and progress respond |
-| **Treatment session** | Physical therapy: NPTE-PT, NPTE-PTA, DPT, the ten ABPTS specialties | Examine, choose tests and measures, treat and progress a patient across visits; vitals and red flags during exercise |
-| **Security operations console** | Security: Security+, CySA+, PenTest+, SecurityX, SecAI+ | Triage alerts and logs during a live incident, contain, eradicate, recover, report; the attacker progresses on a clock |
+| **Treatment session** (REQ-232, 22.8) | Physical therapy: DPT now; NPTE-PT, NPTE-PTA and the ten ABPTS specialties later | Examine, choose tests and measures, treat and progress a patient across visits; vitals and red flags during exercise |
+| **Security operations console** (REQ-231, 22.7) | Security: Security+ (SY0-701 and V8) now; CySA+, PenTest+, SecurityX, SecAI+ later | Triage alerts and logs during a live incident, contain, eradicate, recover, report; the attacker progresses on a clock |
 | **Terminal and network** | Infrastructure: Tech+, Network+, Linux+, Server+, AutoOps+ | Diagnose and fix a broken network or server through a simulated shell (an authored fault tree, not an emulator) and topology; outages spread while you work |
 | **Client session** (REQ-225, 22.5) | Mental health: EPPP, then NCE, NCMHCE and ASWB | Conduct a session with a client: ask, respond, intervene and document; rapport, distress, disclosure and risk move with each choice and with time |
 | **Data and code console** | Data, AI and development: Data+, DataAI, AI-901, DP-300, DP-900, Python, JavaScript, MS Health Informatics (data quality and EHR rollout cases), MSCS | Guided: pick the query or fix, inspect authored result tables, reason in writing about a dataset or a failing program under a deadline; no learner code or SQL is ever run |
@@ -3971,3 +4209,787 @@ Nick approved the engine approach on 2026-11-10. What changed:
   while the app and server read the same jsonb order, and the storage-order
   test leaves that one map out of its reversal. A `teachingOrder` list would
   be the same kind of minor.
+
+### 22.7 The security operations console and the Security+ incidents (REQ-231)
+
+Security+ is a launch course, so its sims come first on the seventh renderer
+of 20. The screen is `screen.type: "security-console"`, `security-console@1`,
+behind `SIMS_RENDERERS` and on by default
+(`bedside,board,session,security-console`). The design's placeholder type
+`security` stays unused.
+
+**The renderer** (`ConsolePanel`, `mobile/src/sim/ConsolePanel.tsx`; view
+model `consoleView`/`consoleNews`/`consoleAlarmTexts`/`consoleSentence` in
+`src/sim/runtime/consoleView.ts`). Three blocks in reading order:
+
+- **Alert queue**: the alerts whose `when` holds, open ones first, then
+  newest first by `at` (sim seconds), then by severity. Each shows a
+  severity word and color, the time, a status in words and an optional
+  detail.
+- **Assets**: hosts, accounts and cloud identities, each with a kind, a
+  status in words and a tone (`ok`, `watch`, `bad`, `held`) read as
+  "normal", "under watch", "compromised", "contained". Meters (the
+  attacker's stage, the case file, encryption or spend) sit under them.
+- **Logs and events**: the lines whose `when` holds, newest first, at most
+  40, each with the log it came from (sign-in log, EDR, audit trail).
+
+Containment and investigation are the scenario's action groups (Investigate,
+Contain, Evidence, Recover, Communicate, Wait, Close; after the incident,
+Report), drawn by the shared `ActionBar`: isolate a host, disable an account,
+block an indicator, preserve evidence, escalate and notify are actions with
+`choice` or `form` params, so the panel holds no rule.
+
+**Accessibility**, equal to the bedside, board and session: every alert,
+asset, meter and log line is one accessible element whose label says its
+state in words (severity and tone are a word plus a color, never color
+alone); every element is at least 48 dp; "Read the console" speaks the open
+alerts, every asset in words, the meters and the newest line. An open alert is
+spoken at once, like a monitor alarm ("High severity: ..."), and again as
+cleared when it closes; an asset's tone changing, a closed alert's new status
+and new log lines are polite news through the announcer (at most one polite
+sentence per 10 s), with a burst of lines summarized as one sentence ("3 new
+log lines. Newest: ..."). Keyboard order on web is the order on screen
+(queue, assets, logs, then the actions). JavaScript only, so it ships over the
+air; an app without `security-console@1` is not offered these sims and is told
+to update (5.10).
+
+**Bindings** (`screen.console` in `engine/v1/types.ts`, the zod schema and
+`validate.ts` `consoleCheck`): `alerts` (`severity` one of critical, high,
+medium, low; `title`, `detail`, `status` templates; `when` and `open` bools;
+`at` a number), `events` (`source`, `text`, `when`, `at`), `assets`
+(`label`, `spokenLabel`, `kind`, `status`, `tone` an enum expression over the
+four tones), `meters`. Ids are unique across the three lists. Display and lint
+only: stepping, the corpus and every existing hash are unchanged, and there is
+no engine minor (an older app is held back by the renderer, as for the
+session).
+
+**Pacing: learner-paced, with the attacker on the analyst's clock.** An
+incident does evolve on its own clock, unlike a talk session, so the question
+was study pace (3x) versus real time. Neither: a running phase at 1x would
+score how fast someone reads log lines and race screen-reader users, and 3x
+only shortens that; the clinical pacing rule (`pacingEligible`) is for bodies
+that change on their own, and Security+ is a general-family course where the
+server refuses pace commands anyway. What Security+ tests is the order and
+choice of analyst actions (contain before eradicating, preserve before
+wiping, scope before closing), so the incident phase is `turns`: each task
+costs the analyst minutes it would take (a sign-in review 5, isolating a host
+2, a memory capture and disk image 15, a rebuild 20) through one `work` wait
+("Let the work finish"), and the attacker's steps are triggers on the same
+sim clock. Investigating for 20 minutes before containing lets the attacker
+build persistence or move laterally exactly as waiting 20 real minutes would,
+without timing the learner's reading. A "Keep watching the console (10 min)"
+action lets time pass on purpose. An attacker step stops the skip early
+(`interruptsSkip`) so the new alert is seen at the minute it happens. With no
+running phase, the focused start, the skip offer, 5.4d teaching prompts and
+chapters do not apply. The attacker's step times are the author's, set against
+CrowdStrike's 2026 average eCrime breakout time of 29 minutes, which also
+sets the cases' tightened `containWindow` of 30 minutes.
+
+**Outcome profile `security`** (9.2): defaults `containWindow` 3600 s and
+`containSpread` 0; `noProgress` per case.
+
+**Cases** (`backend/supabase/seed/sims/SECPLUS/`, each also a V8 band in
+`SECPLUSV8/` that changes only `objective` and `secondaryObjectives`, so
+SY0-801 learners get the same incident on the V8 objective):
+
+| Slug | SY0-701 objective | SY0-801 objective (band) | Core of the case |
+|---|---|---|---|
+| `phish-to-account-takeover` | Application, cryptographic, and password attacks and their indicators (2.4) | Given authentication logs, identify credential attacks | Impossible travel and an approved MFA push: disable and revoke (a reset alone leaves the session), find the second recipient, block the domain, keep the message and logs before purging, remove the inbox rule and the added authenticator; else payment fraud at 75 min |
+| `ransomware-file-server` | Incident response activities as SY0-701 names them (4.8) | Containment (quarantine/isolation), negotiation, and eradication/recovery | Network-isolate FS01 (power off only if it cannot be disconnected), disable the abused service account and isolate patient zero before it reaches the backup server, memory then disk before the rebuild, restore last night's backup after a scan, report to the FBI and CISA, do not pay |
+| `cloud-iam-backdoor` | Identity and access management: provisioning/de-provisioning user accounts... (4.6) | Given a scenario, manage the account life cycle | A pipeline key leaked to a public repository made an administrator: deactivate the key, quarantine every identity it made (an IP block does not contain it), snapshot before terminating the miners, then eradicate and move the pipeline to a short-lived role; else customer data copied out at 55 min |
+
+The three SY0-701 objectives meet the generator's selection rule
+(`isPerformanceObjective`, a performance verb in the title); two of the V8
+titles ("Given ... identify ...", "Containment ...") do not match that
+rule's word list although they are the matching V8 objectives, so the bands
+follow the topic, not the rule (a decision for Nick).
+
+Each case has one written-reasoning moment, endings in all three classes and
+an `endingOrder` (harm endings first), three or four critical criteria, KPIs,
+an expert path, a debrief per ending, and six golden paths (Good, Mediocre,
+Bad; every ending but `time_up` and every criterion both met and missed),
+built by `npm run sim:golden -- steps secplus-phish|secplus-ransomware|secplus-cloud`
+and the `-v8` variants. Sources are on each document with `checkedAt`
+2026-11-11: NIST SP 800-61 Rev. 3 (April 2025, the current revision; it
+replaces the Rev. 2 life cycle with the CSF 2.0 Functions, while Security+
+still names the older phases), the CISA incident response playbooks (2021),
+the #StopRansomware Guide (2023), the CompTIA SY0-701 objectives (v5.0) and
+V8 page, vendor guidance for the account and cloud steps (Microsoft Learn,
+AWS re:Post, named in the sources but not in the scenarios), and CrowdStrike's
+2026 Global Threat Report. Every address and domain is a documentation range
+(RFC 5737, RFC 2606).
+
+**Findings** (20: recorded, not worked around):
+
+1. **The capabilities header dropped a hyphenated screen type
+   (FAIL-1320).** `parseCaps` accepted `[a-z]{1,20}`, so
+   `security-console@1` was silently ignored and the server would have told
+   every app to update. It now accepts a lower-case letter followed by up to
+   39 letters or hyphens (the `screen_type` column is 40).
+2. **The document schema could not name 17 catalog objectives
+   (FAIL-1321).** `objective` was capped at 400 characters; SECPLUS titles
+   run to 586 and a sim is registered by exact title. The cap is now 1000; a
+   test checks every catalog title fits.
+3. **The screen spec and the profile list are in the engine folder** again
+   (as for the board and the session): display and lint only, no minor.
+
+### 22.8 The PT treatment session and the first DPT cases (REQ-232)
+
+**The renderer** (`screen.type: "treatment-session"`, `treatment-session@1`,
+behind `SIMS_RENDERERS`, on by default). `screen.treatment` holds the
+patient's name and presentation (a template), the vitals (the bedside tile
+type, `VitalTile`, so alarms, bands, `hiddenUntil` and units work as on the
+monitor; the validator checks them with the same `tileChecks`), `activity`
+(what the patient is doing and how they move now), `measures` (each shown
+once `when` holds; `flag` marks a red flag), `dosage` (the interventions
+given, with their dose) and `rules` (the stopping and escalation rules,
+always shown; `met` marks one crossed now; at least one is required).
+`TreatmentPanel` (`mobile/src/sim/SimPanels.tsx`) sits above the vitals;
+the view model is `treatmentView`, `treatmentAlarmTexts` and `treatmentNews`
+in `src/sim/runtime/view.ts`, and `tileViews` reads the treatment vitals
+when there is no bedside. Accessibility as the bedside, board and session:
+every block is one accessible element with its state in words ("met now",
+"not met", "Red flag"), never colour alone; a met rule or a red flag is
+announced at once like an alarm; a new result, a change of activity and a
+new dosage line are announced politely (the announcer's one sentence per
+10 s); "Read the patient" speaks the vitals, activity, rules met and
+results; 48 dp targets; web keyboard order is the order on screen. JS only,
+so it ships over the air; an app without `treatment-session@1` is told to
+update (5.10). Authors should change `activity` in steps, not every tick, or
+the polite queue fills with stale sentences.
+
+**Pacing: the clinical rule applies.** Heart rate, blood pressure, SpO2 and
+breathing move on their own while a patient exerts and recovers (the acute
+care guide's 10 beats/min and 10 mmHg per MET, recovering in 3-5 minutes),
+and a stopping rule is about how long the clinician lets a bad value run.
+That is the bedside situation, not the client session's (22.5), so each case
+runs in a `running` phase; DPT sits under `healthcare-nursing`, so the seed
+derives `clinical`, `pacingEligible` holds and study pace (3x) is the default
+with exam realism (1x) and Pause available. Tests that take minutes (the Berg,
+orthostatic vitals) are waits the learner can skip. The TKA case's three days
+between visits are a `turns` phase with one wait.
+
+**Outcome profile `physical-therapy`** (9.2): `stopWindow` 120 s,
+`spo2Floor` 88%, `escalateWindow` 900 s; the cases tighten them where the
+patient calls for it (ICU 5 min to call the team for a new rhythm; stroke
+30 s to sit him down when light-headed; SpO2 90% without lung disease).
+`safetyFamilyOf` reads the profile as clinical.
+
+**Cases** (`backend/supabase/seed/sims/DPT/`, golden paths built by
+`npm run sim:golden -- steps dpt-icu|dpt-tka|dpt-stroke`). Objectives are
+DPT catalog titles chosen by the 12 step 1 rule (tested by recognition and
+action over time):
+
+| Slug | Objective | Endings (class) | Critical criteria |
+|---|---|---|---|
+| `icu-early-mobility` | Selecting and performing interventions for cardiovascular and pulmonary conditions to achieve patient goals | rapidResponse (harm), chairSafe (target), chairGaps, backInBed (recovered) | safety screen before standing; activity eased within 2 min of SpO2 below 88%; team called for a new rhythm |
+| `tka-gait-dvt-red-flag` | Total knee arthroplasty rehabilitation per the 2026 APTA guideline (...) | peMissed, sentHome (harm), referredSameDay (target), peCaught, referredNoRehab, referredGaps (recovered) | screened before loading on Thursday; no leg exercise or calf massage once a clot is suspected; same-day call to the surgeon; 911 at once for lung-clot signs |
+| `stroke-balance-fall-risk` | Selecting and performing interventions for neurological and musculoskeletal conditions | fell (harm), safePlan (target), noWalking, planGaps (recovered) | gait belt whenever upright; sat down within 30 s of light-headedness; the orthostatic drop and the new tamsulosin reported to his physician |
+
+Each has one written moment, KPIs, an expert path, a debrief per ending,
+`endingOrder` (engine minor 2), two chapters or teaching prompts where a
+wait allows, and six golden paths (Good, Mediocre, Bad; every ending but
+`time_up` and every criterion met and missed).
+
+**Sources** carry `checkedAt` 2026-11-11 and say how each was read. Read in
+primary text: the APTA acute care vital sign guide 2021 (through a text
+extraction of the PDF), Hodgson 2014 (a hosted copy; its figures were not
+readable, so no HR or MAP limit is taken from it), the 2026 TKA CPG, the 2025
+fall-risk CPG and the 2018 neurologic core-set CPG (Europe PMC full text), the
+2016 VTE CPG (a hosted copy), Hornby 2020 (a repository copy) and the ASNC
+termination criteria. Read only through a summary: the 2022 VTE CPG (Guideline
+Central). The CAPTE scope line is the course seed's reading of 2026-10-08.
+Authored teaching-model sizes and timings say so and the ones that stand in
+for a missing number carry `FLAG` (ICU desaturation per MET, oxygen gain and
+the AF trigger; the PE timing and its vitals; the beta-blocker HR and BP
+slopes, the orthostatic drop size, buckling and stumbling times).
+
+**Findings against this design** (20: recorded, not worked around):
+
+1. **The capability parser refused a hyphen (FAIL-1340).** `parseCaps` took
+   letters only, so `treatment-session@1` was dropped and every app would
+   have been told to update. Fixed in `lib/sim/server-run.ts`; no stepping
+   change.
+2. **Bindings and profile live in the engine folder**, as for the board and
+   the session: `VitalTile` was factored out of the bedside type (same shape,
+   so no document or hash changed), `screen.treatment` and the profile were
+   added. Display and lint only; no engine minor.
+3. **A moment that opens on the clock** is open at the tick of the command
+   that answers it; the DB tests' helper (copied from the session tests)
+   missed that (FAIL-1341).
+
+### 22.9 Bedside wave 1: CCRN Pediatric, CCRN Neonatal, NCLEX-RN, NCLEX-PN and a second SAA board case (REQ-233)
+
+Nine documents on the existing bedside and board renderers and engine 1.2;
+no engine, renderer, schema or migration change. Each declares engine minor 2
+and `endingOrder`, has endings in all three outcome classes, three or four
+critical criteria inside its `target` condition, KPIs, an expert path, a
+debrief per ending, one reasoning moment, sourced teaching prompts (the
+clinical ones) and five or six golden paths built by
+`npm run sim:golden -- steps <name>` (`scripts/sim-golden/<name>.steps.ts`).
+The clinical cases run in one `running` phase, so study pace (3x) is the
+default (5.4a). None has a focused start: each patient needs action from the
+first minute.
+
+| Course / slug | Objective (exact title, abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| CCRNPEDS/pediatric-septic-shock-fluids | Manage pediatric septic shock ... | antibiotics within 1 h; reassess after every bolus; stop at overload signs; epinephrine for fluid-refractory shock | peds-sepsis |
+| CCRNPEDS/pediatric-dka-cerebral-edema | Recognize cerebral edema in DKA ... | hyperosmolar therapy within 20 min, no CT first; potassium with insulin; no insulin bolus, start at 1 h; dextrose with insulin kept running | peds-dka |
+| CCRNNEO/neonatal-rds-escalating-support | Manage non-invasive support ... | surfactant (LISA) at FiO2 > 0.30 on CPAP >= 6; SpO2 90-94% without hyperoxia; slipped prongs found | neo-rds |
+| CCRNNEO/neonatal-sepsis-hypoglycemia | Name maternal, neonatal and treatment-related risk factors for neonatal sepsis ... | IV dextrose for symptomatic hypoglycemia; ampicillin and gentamicin within 1 h; 1 mL culture first | neo-eos |
+| NCLEXRN/med-surg-deterioration-sbar | Unstable versus stable ... | the unstable client seen first; effective escalation (SBAR, rapid response, chain of command); assessment not delegated | rn-deterioration |
+| NCLEXRN/post-op-transfusion-reaction | Tell transfusion reactions apart ... | stop at the first sign; new tubing, no flush; provider and blood bank told | rn-transfusion |
+| NCLEXPN/ltc-change-in-condition | Recognizing the client whose condition requires immediate RN or provider involvement | data compared with baseline; report to the RN that lands; within PN scope | pn-change |
+| NCLEXPN/med-pass-error-caught | The rights of medication administration, applied rather than recited | card checked against the MAR; two identifiers; apical pulse and BP before holding | pn-mederror |
+| AWSSAA/nat-gateway-bill-spike | Routing that minimizes transfer cost ... | cause confirmed with data first; a NAT gateway per AZ kept; S3 gateway endpoint on every private route table | aws-nat |
+
+- **AWS SAA now has two sims** (plus the SAP band): TicketBurst (resilient
+  design) and the NAT gateway bill (cost), learner-paced on the board screen
+  (two `turns` phases; the server refuses pacing commands). Prices are the
+  US East (Ohio) NAT rates read on the AWS VPC pricing page, so the scenario
+  is set in us-east-2.
+- **Sources** carry `checkedAt` 2026-11-11 (2026-10-31 where a title was
+  relayed from the course seed, 2026-11-10 where the adult SSC 2026 summary
+  was reused). Read in primary text: the SSC Children's 2020 sheets and
+  algorithm (SCCM), ISPAD 2022 DKA (Glaser et al.), the European RDS
+  consensus 2022 (Sweet et al.), AAP 2018 EOS (Puopolo et al.), the 2026
+  NCLEX-RN and NCLEX-PN test plans, Lifeblood's suspected-reaction
+  guidance, StatPearls "Transfusion Reactions", CHEMM's PALS values, and the
+  AWS pages (VPC pricing, NAT gateway basics and pricing, gateway endpoints,
+  Cost Anomaly Detection). Read only through summaries: the SSC Children's
+  2026 update (the publisher text was not opened) and the AAP 2011 neonatal
+  hypoglycemia report (values as relayed by the UCSF pathway). Authored
+  teaching-model numbers say so; the ones standing in for a missing guideline
+  number carry `FLAG` (for example the DKA edema onset and size, the RDS
+  disease course, the transfusion slow-start rate and volume-to-harm,
+  hospital rapid-response criteria, and the PN hold parameters).
+- **Authoring findings (FAIL-1360, FAIL-1361).** In a `turns` phase every
+  action happens at the same tick until a wait is skipped, so a criterion
+  that orders actions by `timeAt` cannot tell "investigated first" from
+  "changed first"; the board case orders them with a flag set by the change
+  actions instead. And a `schedule.after` given a param is read in seconds
+  whatever the param's `unit` says: a "1440 min" day became 24 minutes. The
+  linter does not check the first; the goldens (`guessFirst`, and every
+  path's final tick) pin both. Since REQ-236 the second is a lint error
+  (`secondsUnitProblems`, lib/sim/lint.ts, run by `sims:lint` and the
+  generator's lint gate): a param, state variable or derived value whose unit
+  is a time unit other than seconds (ms, min, h, d, wk and their spellings)
+  may not be read where the engine reads sim seconds, which is an expression
+  `schedule.after`, a console alert's or event's `at`, and a template slot,
+  table column or KPI with a seconds format (clock, clocks, date, dateShort,
+  datetime, time, duration, min). Store it in seconds with unit `s` and show
+  it with `|min` or `|duration`. A rate (mL/min) is not a duration and is
+  not checked (the engine's dt warning covers rates). Lint only: the engine
+  and its minor are unchanged.
+- **Teaching key order (FAIL-1362, an instance of the open FAIL-1250).** Two
+  teaching prompts due at once are offered in the teaching map's key order,
+  which jsonb does not keep, so three goldens recorded in file order failed
+  the storage-order test. Every REQ-233 document now writes its teaching keys
+  in jsonb order (length, then bytewise); until a `teachingOrder` list exists,
+  new documents should do the same or make overlapping prompts mutually
+  exclusive.
+- **`time_up`** is a reachable harm in the pediatric DKA, pediatric sepsis
+  and neonatal sepsis cases; elsewhere every slow path ends in an earlier
+  ending first, so the linter's `time_up` warning remains, as in the
+  existing CCRN cases.
+
+### 22.11 Security wave 2: CySA+, PenTest+, SecurityX and SecAI+ on the security console (REQ-238)
+
+Eight documents, two per course, on the existing `security-console@1`
+screen (22.7) and engine 1.2. No engine, renderer, schema or migration
+change. Each follows the Security+ pattern: learner-paced (`turns` phases;
+each task costs analyst minutes through one `work` wait, and the attacker's
+steps are `interruptsSkip` triggers on the same clock), outcome profile
+`security` (`containWindow` 1800 s, tightened to 900 s in the scope case,
+`containSpread` 0), engine minor 2 with `endingOrder` (harm endings first),
+endings in all three classes, three or four critical criteria (all inside the
+`target` ending's condition), three KPIs, an expert path, a debrief per
+ending, one three-part reasoning moment and six golden paths built by
+`npm run sim:golden -- steps <name>` (every ending but `time_up`, every
+criterion met and missed). Every address and domain is from the
+documentation ranges (RFC 5737, RFC 2606); `lib/sim/security-w2.test.ts`
+scans every learner-visible string for that.
+
+| Course / slug | Objective (catalog title, abridged) | Core of the case | Critical criteria | Steps name |
+|---|---|---|---|---|
+| CYSAPLUS/alert-triage-lolbin-hunt | Given a scenario, assess: triage, ... escalation | Four alerts by severity label; the medium certutil/rundll32 one is the live intrusion; LSASS read at 15 min, lateral to FIN-SQL01 at 30, upload done at 70 | every alert dispositioned on evidence; footholds and stolen credentials cut in 30 min; memory before reimage; hunt after the last attacker step | cysa-triage |
+| CYSAPLUS/vuln-prioritization-kev-edge | Prioritization criteria: exploitability, active exploitation ... | A KEV, internet-facing VPN flaw (lower CVSS) against CVSS 9.8/10.0 internal and isolated findings and a banner-only false positive; exploited at 40 min if still exposed | ranked by exploitation, exposure and asset value; exposure closed in 30 min; checked for a web shell; rescan after the patch | cysa-vuln |
+| PENTESTPLUS/pentest-third-party-webshell | Communication and escalation paths during an engagement | A web shell the team did not write on an in-scope portal; customer exports appear at 20 and 30 min; phone vs email to the client | emergency contact phoned in 15 min; shell never used or removed; team logs saved and hashed; portal testing paused | pt-webshell |
+| PENTESTPLUS/pentest-scope-boundary | Vulnerability scanning tools and interpreting their output | Discovery output includes a vendor's host and a shared web host; a queued scan of everything starts at 18:15; the excluded imaging server crashes if scanned | nothing outside the authorization; excluded host spared; ambiguous assets raised with the client; printer default credentials validated first | pt-scope |
+| SECURITYX/federation-token-forgery | Identity and access management architecture at enterprise scale | Forged SAML tokens from a stolen signing key; one rotation leaves it trusted; rotating while svc-fed-sync works lets it read the new key; a backdoor app at 35 min | out in 30 min; the identity-tier foothold closed before trusting a new key; federation servers imaged before rebuild; key theft and persistence both scoped | sx-fed |
+| SECURITYX/ot-segmentation-breach | Secure network architecture: segmentation, SASE, microsegmentation | Ransomware operators in IT via a vendor VPN account; a dual-homed historian bridges into the plant at 20 min; backups deleted at 25; HMIs at 35 | plant path closed first; backups cut off the domain; entry and Domain Admin rights closed in 30 min; appliance imaged before reset | sx-ot |
+| SECAIPLUS/agent-indirect-prompt-injection | Analyzing evidence of AI-specific attacks and applying compensating controls ... | Hidden instructions in email (and a poisoned forum article at 25 min) make a tool-using support agent leak orders through image URLs and, at 45 min, issue refunds | image channel closed in 30 min; refunds and replies behind human approval (a system-prompt line is not a control); every untrusted source searched; evidence before purge | ai-inject |
+| SECAIPLUS/rag-assistant-data-leak | Data security controls for AI systems: ... classification, redaction, masking, minimization | A retrieval assistant indexed HR and Finance with a read-all connector and no permission check; a contractor pulls salaries, then contracts at 15 min, then scripts the API key | sensitive retrieval stopped in 30 min; fixed with a data control (permission-aware retrieval or removing the collections), not a prompt; recipients listed; logs and an index manifest kept first | ai-rag |
+
+**Objectives.** Each is an active catalog objective of its course that meets
+the generator's selection rule (`isPerformanceObjective`), one sim per
+objective, with catalog secondaries. The PenTest+ and SecurityX catalog unit
+titles are the course's own wording, not CompTIA's, so the sims cite the
+official exam pages for the matching CompTIA text. Level: CySA+ is the
+analyst's call (triage, hunt, prioritize); PenTest+ is an authorized tester's
+duties to the client (scope, rules of engagement, out-of-band reporting, hands
+off evidence, framed defensively); SecurityX is the architect's decisions
+(trust, segmentation, what to rebuild where); SecAI+ is AI-specific controls
+(output handling, human approval, permission-aware retrieval, masking).
+
+**Sources** (each document carries them with `checkedAt` 2026-11-11 unless
+noted, and says how it was read): the CompTIA CS0-004 objectives PDF
+(document version 2.0, through a summarizing fetch) and the CySA+, PenTest+
+(PT0-003), SecurityX (CAS-005) and SecAI+ (CY0-001) exam pages (summarizing
+fetches; the PT0-003, CAS-005 and CY0-001 PDFs were not re-read); NIST SP
+800-61r3 (PDF text and the CSRC page); NIST AI 100-1 (PDF text: MANAGE 2.4,
+4.3) and the AI RMF page; OWASP Top 10 for LLM Applications 2025 (LLM01, 02,
+06, 08 pages); CISA's KEV page, the May 2025 OT primary-mitigations fact
+sheet and Eviction Strategies countermeasure CM0073; MITRE ATT&CK T1606.002;
+PTES pre-engagement and post-exploitation (the readthedocs mirror;
+pentest-standard.org refused automated reads); CrowdStrike's 2026 Global
+Threat Report press release; RFC 5737 and 2606. FIRST EPSS/CVSS and the
+ATT&CK technique names for the LOLBin case are cited as the CySA+ course seed
+records them (read 2026-11-07), not re-read. All step times, task durations,
+scores and rates are the author's teaching figures and say so on each param.
+
+**Authoring findings** (FAIL-1460 to FAIL-1464; recorded, not worked around):
+
+1. **A "contained at" stamp is not current state (FAIL-1460).** The
+   federation case stamps `allOffAt` the first time the attacker has no way
+   in, but rotating the key while the service account still works lets the
+   attacker back in ten minutes later; the containment criterion read only
+   the stamp and scored "met" on a path that ended with the attacker in. A
+   criterion that reads a first-time stamp now also checks the live derived
+   value (`not attackerActive and ...`). The REQ-231 incidents cannot regain
+   access after their stamp, so they are unaffected.
+2. **A form option named `none` collides with the state enum's `none`
+   (FAIL-1461).** Record fields whose options include "None" produced a
+   duplicate enum value; the validator refused it. Use another value
+   (`zero`, `nochange`) or `unset` as the enum's initial value.
+3. **A rate-driven KPI printed raw floats (FAIL-1462).** `leaked` grows by
+   `rate * dt / 60`, and a `number` KPI is shown as computed (83.20000000000003
+   in the debrief); KPIs over such counts use `round()`. The test checks every
+   wave-2 golden KPI is whole.
+4. **The documentation-range test matched NIST identifiers (FAIL-1463).** A
+   case-insensitive host pattern read "RS.CO" as a domain; the pattern is
+   lower-case only.
+5. **A trigger due at minute N fires during the skip into N (FAIL-1464),**
+   before any action the learner takes at N, so an expert path that acts
+   "at 30 min" is already late for a 30-minute trigger. The delays leave a
+   minute's margin after the expert path; the goldens pin it. Same family as
+   FAIL-1360 (turns-phase ordering).
+
+### 22.15 AWS board sims, wave 2: AWS MLA, Cloud Practitioner, Developer and SysOps (REQ-242)
+
+Nine learner-paced documents on the existing board renderer and engine 1.2,
+patterned on TicketBurst and the NAT gateway bill; no engine, renderer,
+schema or migration change. Each declares engine minor 2 and `endingOrder`,
+runs two `turns` phases (investigate and change, then the week, one skip per
+day), has endings in all three outcome classes, three or four critical
+criteria inside its `target` condition, KPIs, an expert path that names its
+trade-off, a debrief per ending, one reasoning moment, one decision card and
+five or six golden paths built by `npm run sim:golden -- steps <name>`
+(`scripts/sim-golden/<name>.steps.ts`, the shared week in
+`aws-board-helpers.ts`). Every objective is an exact catalog title that the
+selection rule (12.2, `lib/sim/generator/selection.ts`) qualifies; the
+examples in the brief that did not qualify (a DynamoDB hot partition, a
+Lambda throttling case on its own) were folded into qualifying objectives or
+left for a later wave. All durations are stored in seconds (unit `s`) and
+shown with `|min` or `|duration`.
+
+| Course / slug | Objective (exact title, abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| AWSMLA/fraud-model-drift | Creating performance baselines and implementing drift detection | evidence first; baseline from the training set; retrain on mature labels only; new model proven in shadow | aws-mla-drift |
+| AWSMLA/endpoint-scaling-latency | Selecting the metrics that drive auto scaling | evidence first; scales on invocations or concurrency per instance; maximum covers the peak; CPU instance type within budget | aws-mla-scaling |
+| AWSMLA/loan-data-bias | Identifying and mitigating sources of bias: dataset splitting, shuffling, augmentation | measured first; shuffled stratified split; oversampling after the split (no leakage); release through bias review | aws-mla-bias |
+| AWSCLF/data-transfer-surprise | Data transfer costs: inbound, outbound, Region to Region, and within a Region | evidence first; owner confirms before the rule is turned off; backup replication kept; two AZs kept | aws-clf-transfer |
+| AWSCLF/leaked-access-key | Managed policies versus custom policies, written to least privilege | full scope (CloudTrail and every Region); key deactivated with the quarantine kept; attacker's user disabled; customer managed policy | aws-clf-key |
+| AWSDVA/canary-rollback-dlq | Troubleshooting deployment failures from output logs | logs first; permission on the one parameter; canary and alarm kept; DLQ redriven before it expires | aws-dva-canary |
+| AWSDVA/phi-in-application-logs | Identifying sensitive data: PII and PHI | destinations found first; PHI stopped at the source; vendor feed off; privacy officer told | aws-dva-phi |
+| AWSSOA/stack-update-rollback-failed | Identifying and remediating deployment issues: subnet sizing, CloudFormation errors, permissions problems | events first; continue-update-rollback skipping the deleted resource; new /24 subnets | aws-soa-cfn |
+| AWSSOA/ec2-status-check-recovery | Analyzing performance metrics and automating remediation with CloudWatch, AWS Lambda, AWS Systems Manager, and CloudTrail | evidence first; cache off the instance store; recover on the system check; reboot on the instance check, 3 periods | aws-soa-recover |
+
+- **One Region.** Every scenario is set in us-east-2 (US East, Ohio), as the
+  NAT case is. Prices were read on 2026-11-11 from the AWS Price List API
+  offer files (no JavaScript needed, so the numbers are the published ones):
+  SageMaker hosting ml.c5.xlarge $0.204, ml.g5.xlarge $1.4084 an hour; data
+  transfer out to the internet $0.09 per GB (first 10 TB), to us-west-2
+  $0.02, within the Region between AZs $0.01, in $0; CloudFront US out $0.085
+  per GB. Re-check every six months (12.1).
+- **Sources** carry `checkedAt` 2026-11-11 and a quoted note each: SageMaker
+  AI (Model Monitor data quality, schedule expressions, CloudWatch metrics,
+  model quality, shadow tests, auto scaling policy, scaling policy
+  definition, load testing, endpoint metrics), Application Auto Scaling
+  scheduled scaling, SageMaker Clarify (CI, DPL, post-training metrics),
+  Kapoor and Narayanan 2022 on leakage, Cost Explorer, AWS Budgets, the
+  shared responsibility model, the AWSCompromisedKeyQuarantineV3 policy
+  reference, IAM best practices and managed policies, Lambda asynchronous
+  error handling and DLQs, CodeDeploy deployment configurations, SAM gradual
+  deployments, SQS SetQueueAttributes, CloudWatch Logs masking and
+  retention, HHS de-identification and breach notification guidance,
+  CloudFormation continue-update-rollback, DeletionPolicy and change sets,
+  VPC subnet sizing and CreateSubnet, EC2 instance recovery and CloudWatch
+  alarm actions. The re:Post compromised-account article was read directly
+  (it names the V2 quarantine policy; the policy reference documents V3).
+- **Model Monitor is closed to new customers** (AWS's availability-change
+  page, read 2026-11-11, gives no date). The drift case's team is an
+  existing customer and its model reasoning names the replacement for new
+  teams. The MLA-C02 outline still asks for drift detection, so the skill
+  stands; whether to recast the case on the open-source monitoring
+  solutions is a decision for Nick.
+- **Flagged teaching values.** AWS publishes no recovery or scale-out times,
+  so the endpoint case's failed-request minutes per policy and the
+  recovery case's recovery and reboot outages carry `FLAG` notes. Everything
+  else that is not an AWS figure is scenario data, labeled as such.
+- **`time_up`** is not reached by any golden path in these cases (every
+  path ends in an earlier ending), so the linter's `time_up` warning remains,
+  as in the NAT case.
+
+### 22.13 Bedside wave 2, nursing: LPN/VN, ADN-RN and BSN-RN (REQ-240)
+
+Six documents on the existing bedside renderer and engine 1.2; no engine,
+renderer, schema or migration change. Each declares engine minor 2 and
+`endingOrder`, has endings in all three outcome classes, four critical
+criteria inside its `target` condition, KPIs, an expert path, a debrief per
+ending, one reasoning moment and five or six golden paths built by
+`npm run sim:golden -- steps <name>` (`scripts/sim-golden/<name>.steps.ts`).
+The five running cases have three sourced teaching prompts each, written in
+jsonb key order (FAIL-1362), and default to study pace (3x); none has a
+focused start, because each needs action from the first minute.
+
+| Course / slug | Objective (exact title, abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| LPNVN/ltc-pressure-injury-infection | Infection, sepsis and recognizing early deterioration | gown and gloves before the wound care; measured and compared with the record; SBAR that lands within 15 min of the first sign; within the wound orders | lpn-wound |
+| LPNVN/ltc-insulin-hypoglycemia | Contribute to each step of clinical judgment ... and report what needs RN judgment | treated by protocol within 5 min; fast carbohydrate, not fat; recheck at 13-20 min; RN told and the lunch lispro held for review | lpn-hypo |
+| ADNRN/pca-oversedation-naloxone | Map the nursing process onto the six clinical judgment steps, and use evaluation ... | PCA paused and sedation checked within 3 min; naloxone 0.1 mg titrated; capnography and a reassessment 30 min or more after the last dose; SBAR that changes the plan | adn-opioid |
+| ADNRN/heart-failure-pulmonary-edema | Recognize heart failure findings ... and pulmonary edema as an emergency | upright with more oxygen within 5 min; saline stopped; SBAR that gets IV furosemide, given promptly; potassium and urine output checked | adn-hf |
+| BSNRN/assisted-living-norovirus-outbreak | Take part in a community health assessment and use the nursing process to form a community diagnosis and plan of care | core measures on day one without waiting for the lab; state told on day one; case definition, line list and daily surveillance; declared over only after 96 h without a new case | bsn-outbreak |
+| BSNRN/charge-nurse-short-staffed-shift | Know that nurse managers coordinate care, delegate and support staff's professional development | the unstable client to an RN within 15 min; the assistant given specific directions, never assessment; the transfusion matched to scope and competence; a staff safety concern heard and the staffing gap raised | bsn-charge |
+
+- **The outbreak is learner-paced.** A 12-day outbreak cannot run at 3x, so
+  its one phase is `turns` with a 1-hour tick: nothing moves until the
+  learner advances to the next 08:30 update (or the lab result). Teaching
+  prompts and chapters need a running phase (5.4a lint), so it has neither;
+  the server offers no pacing for it. Its epidemic is a small SIR model with
+  authored transmission factors per measure (all FLAG); the end rule (four
+  quiet daily updates, 96 hours) is the NC DPH LTCF guidance, used because
+  the CDC 2011 guideline does not state one.
+- **Objective choice.** Every objective passes the keyword selection screen
+  (12.2). For the LPN hypoglycemia and ADN opioid cases the most specific
+  titles ("Know insulin onset, peak and duration ..." and "Pain management,
+  including the opioid-tolerant patient") screen at one of four, so the
+  nearest qualifying clinical-judgment titles were used and the specific
+  ones are listed as secondary objectives. Nick may prefer the specific
+  titles; the change is the `objective` line only (a new hash).
+- **Sources** carry `checkedAt` 2026-11-11. Read in primary text: the 2026
+  NCLEX-PN and NCLEX-RN test plans, ADA Standards of Care 2026 section 6
+  (PMC), CDC's low blood sugar page, the Lupin glucagon label, Lilly's lispro
+  pharmacodynamics answer, CDC enhanced barrier precautions, the NPIAP 2016
+  staging poster, Sepsis-3 (JAMA 2016), the Pfizer naloxone, hydromorphone
+  and furosemide labels, the POSS as reproduced by RNAO, the 2021 ESC heart
+  failure guideline (acute section), the MMWR 2011 norovirus guideline, the
+  NC DPH norovirus LTCF summary, CDC Principles of Epidemiology lesson 6, the
+  ANA-NCSBN 2019 delegation guidelines and the AACN Essentials page. Read
+  only through summaries: the 2022 AHA/ACC/HFSA heart failure guideline (The
+  Hospitalist; the publisher refused the fetch; the ACC's 2026-06-30 release
+  says the next management guideline is due late 2027) and the ASPMN 2020
+  sedation-monitoring revisions (a University at Buffalo news item). No
+  number in either case is taken from those two. Authored teaching-model
+  numbers say so, and those standing in for a missing guideline number carry
+  `FLAG` (for example the glucose rise per gram of carbohydrate, the opioid
+  and naloxone effect sizes, the congestion and diuresis rates, the wound
+  infection time course, and every outbreak transmission factor).
+- **Authoring finding (FAIL-1500, open).** The linter's "never available in
+  any golden path" warning samples availability only after each command, so
+  an action whose first use comes right after the timer or trigger that
+  unlocked it is reported as never available. Until `validate.ts` samples
+  before each command too, send one other command first (the goldens here
+  do: a note or a follow-up).
+- **`time_up`** is reached by a golden path in the LPN hypoglycemia case
+  (class recovered: treated, but the cause never reached the provider), the
+  heart failure case (harm: still in pulmonary edema at 07:00) and the
+  outbreak (recovered: nobody called it over by day 12); elsewhere an earlier
+  ending always comes first and the linter's warning remains.
+
+### 22.10 The terminal and network screen and the first Linux+, Network+ and CKA outages (REQ-237)
+
+The design's terminal renderer (20.1, decision R3) as built: `screen.type:
+"terminal"`, `terminal@1`, behind `SIMS_RENDERERS` and on by default
+(`bedside,board,session,security-console,treatment-session,terminal`). It is
+still an authored fault tree, never an emulator, and it does not use the
+typed `command` param (4.1): **the command set is bounded.** Each command is
+one of the phase's actions; its label is the command line (`df -h /var`,
+`ACC-SW2# show interfaces trunk`, `kubectl drain w3`) and its arguments are
+`choice` params whose option labels are the literal arguments. Nothing the
+learner types reaches the engine as text.
+
+**The renderer** (`TerminalPanel`, `mobile/src/sim/TerminalPanel.tsx`; view
+model `terminalView`, `terminalCommands`, `matchCommand`, `suggestCommands`,
+`commandProblem`, `terminalAlarmTexts`, `terminalErrors`, `terminalNews`,
+`terminalSentence` in `src/sim/runtime/terminalView.ts`). Three blocks in
+reading order and web keyboard order:
+
+- **Map**: `nodes` (hosts, switches, cluster nodes, services, a deadline)
+  and `links` between two of them, each with a status in words and a tone
+  (`up`, `degraded`, `down`, `out` read as "up", "degraded", "down", "out of
+  service"); meters under them.
+- **Terminal**: the transcript, oldest first, at most 40 entries: every
+  command's `output` effects at the tick it ran (the run's `outputs`, which
+  the screen no longer shows as separate cards) merged with `lines` that
+  appear on their own while `when` holds at `at` (sim seconds). At the same
+  minute a line comes before command output (FAIL-1441). `error` marks a
+  line the screen reader must hear at once.
+- **Command line**: the prompt (a template), a text field and Run, and up to
+  six suggestions (prefix matches first, then contains; available first).
+  A typed line runs only when it is exactly one command of the set (case and
+  spacing ignored, never a partial or fuzzy match); a command whose action
+  needs a form (the write-up) is sent to the action list; anything else is
+  answered on screen ("not available in this lab", or the action's `why`)
+  and sends nothing. The same commands stay in the action list (ActionBar)
+  for picking.
+
+**Accessibility**, equal to the console: every node, link, meter and
+transcript entry is one accessible element whose label says its state in
+words (tone is a word plus a color); every element is at least 48 dp; a
+node or link that goes down is an alarm (spoken at once, and again as
+cleared); a new error line goes through the announcer's new `urgent` input,
+spoken at once, never rate-limited, even while typing; new output and a tone
+change other than down are polite news, at most one sentence per 10 s, a
+burst summarized ("2 new output blocks. Newest: ..."); a refused typed line
+is spoken at once. "Read the terminal" speaks the prompt, every node, the
+links not up, the meters, the latest error and the latest output. JavaScript
+only, so it ships over the air; an app without `terminal@1` is not offered
+these sims and is told to update (5.10).
+
+**Bindings** (`screen.terminal` in `engine/v1/types.ts`, the zod schema and
+`validate.ts` `terminalCheck`): `prompt` (template), `lines` (`text`,
+`when`, `at` a number, optional `error` bool), `nodes` (`label`,
+`spokenLabel`, `kind`, `status`, `tone` an enum expression over the four
+tones), `links` (`from` and `to` must be node ids and differ, `label`,
+`status`, `tone`), `meters`. Ids are unique across lines, nodes, links and
+meters. A line's `at` is checked by the seconds-unit lint (22.9). Display and
+lint only: stepping, the corpus and every existing hash are unchanged, and
+there is no engine minor.
+
+**Pacing: learner-paced, as on the board and the console.** Every phase is
+`turns`; each command costs the operator minutes through one `work` wait
+("Let the command finish": a `df` 1, `du` 3, a console walk 15, a reboot 6
+to 10), and the outage's next step (a job that needs the database, a
+deadline, memory pressure) is a trigger on the same clock that stops the
+skip early (`interruptsSkip`). The general family is not pace-eligible, so
+the server refuses pace commands.
+
+**Outcome profile `infrastructure`** (9.2, drafts in 20.1 now defaults):
+`restoreWindow` 3600 s (restored within 60 minutes of the first report) and
+`newFaults` 0 (faults the fix itself introduced). Target: restored in the
+window with no new fault and the case's evidence step done first;
+recovered: late, guessed, unsaved or with a side effect; harm: the outage
+spread to the authored secondary service, or a destructive command (WAL
+deleted, SELinux set to be disabled, a reload without saving, a node wiped,
+a budget bypassed). Each case tightens `restoreWindow` (30 or 45 minutes).
+
+**Cases** (golden paths by `npm run sim:golden -- steps <name>`, shared
+driver `scripts/sim-golden/terminal-helpers.ts`):
+
+| Course / slug | Objective (catalog title) | Critical criteria | Steps name |
+|---|---|---|---|
+| LINUXPLUS/full-var-stops-database | Diagnosing storage issues: full disks, inode exhaustion, failing drives | found the process holding the deleted log (lsof +L1) before freeing space; freed space without deleting WAL, data or logs; database back within 30 min | linux-full-var |
+| LINUXPLUS/selinux-denies-moved-site | Managing users, groups, and permissions at the system level | proved SELinux (ausearch, ls -Z) before changing anything; kept SELinux enforcing and the permissions tight; restorecon within 30 min | linux-selinux |
+| NETWORKPLUS/vlan-missing-from-trunk | Diagnosing network service issues: switching, routing, and address pool exhaustion | found VLAN 20 missing on the uplink trunk before changing it; `allowed vlan add` (a bare list drops voice and management); fixed within 30 min | net-trunk |
+| NETWORKPLUS/branch-dns-route-typo | Applying a consistent troubleshooting methodology from problem identification through documentation | questioned users and checked what changed first; stated and tested the theory; restored within 45 min; no new fault | net-dns |
+| CKA/crashloop-bad-configmap | Troubleshoot application failures from Pod status: Pending, CrashLoopBackOff, ... | `kubectl logs --previous` before changing anything; fixed the ConfigMap rather than relying on `rollout undo`; old pods kept serving; complete within 30 min | cka-crashloop |
+| CKA/node-notready-swap-drain | Troubleshoot clusters and nodes: a NotReady node, ... | kubelet journal first; swap fix that survives a reboot; w3 drained through eviction with capacity back; w2 Ready within 30 min | cka-node |
+
+Each case has one written-reasoning moment, endings in all three classes,
+`endingOrder` (harm first), KPIs, an expert path, a debrief per ending and
+six golden paths (Good, Mediocre, Bad; every ending but `time_up` and every
+criterion met and missed, checked by `lib/sim/terminal.test.ts`). Every
+objective is a catalog objective that meets the selection rule
+(`isPerformanceObjective`).
+
+**Sources** carry `checkedAt` 2026-11-11 and say how each was read. Read in
+primary text: unlink(2) (man-pages 6.19), RFC 3927, PostgreSQL 18 (27.6.2
+Disk Full Failure, 28.5 WAL configuration) and the CKA Curriculum v1.37 PDF.
+Read through summarizing fetches: df(1), lsof(8) (the column list was not
+reached), journald.conf(5), restorecon(8), setenforce(8), Red Hat's RHEL 9
+SELinux troubleshooting and modes chapters, CompTIA's Linux+ and Network+
+pages and the N10-009 comparison flyer, Pearson's N10-009 cert guide (only
+methodology steps 1-4 were visible), the Cisco `switchport trunk` and `ip
+route` references, RFC 1812 2.2.5.2, Microsoft's ipconfig and nslookup
+pages, and the Kubernetes pages (Pod lifecycle, ConfigMaps, Deployments,
+kubectl logs and drain, Nodes, Taints and Tolerations, Safely Drain a Node,
+Installing kubeadm). Not reached: the CompTIA objectives PDFs (XK0-006,
+N10-009). Command output layouts are authored renderings in each tool's
+style; the facts they carry are the sources'. Authored values that stand in
+for a missing source carry `FLAG`: equal-distance static defaults sharing
+traffic, and whether a crash-looping container picks up a fixed ConfigMap
+value without a restart (not modeled; the documented restart is required).
+
+**Findings** (20: recorded, not worked around):
+
+1. **The design's terminal (typed `command` patterns) was not used.** The
+   task asked for no free shell, so commands are actions; the `command`
+   param stays for a later typed-pattern console. A decision for Nick if a
+   free-text-matching terminal is still wanted.
+2. **A backslash escape in a document string (FAIL-1440).** The expression
+   parser drops a backslash and keeps the next character, so `\n` in a slot
+   renders the letter n. New lint error `backslashEscapeProblems`
+   (lib/sim/lint.ts, run by `sims:lint` and the generator's lint gate); no
+   seeded document had one.
+3. **A gated command's reason (FAIL-1442).** An action's `why` is what the
+   command line says when a command will not run, so a gate with two causes
+   (busy, or the device unreachable) names both.
+4. **The infrastructure thresholds were drafts** with an empty profile; they
+   are now defaults (display and lint only, no engine minor).
+
+### 22.12 NCE and NCMHCE client sessions (REQ-239)
+
+Five more cases on the client `session` screen (22.5), for the two NBCC
+counseling courses (`backend/supabase/seed/tracks/nbcc.ts`, Mental Health >
+counseling licensure, so the 18+ confirmation and the study notice apply
+through the category). Same profile (`clinical-session`), same pacing
+(learner-paced `turns`, no running phase, so no pace or skip offer), same
+engine (1.2, an explicit `endingOrder`), no engine or renderer change.
+Registered as authored entries in one block at the end of `ALL_DOCUMENTS`;
+`NBCC_SESSION_DOCUMENTS` and `NBCC_OBJECTIVES` (lib/sim/documents.ts) list
+them for the tests, and the course seed exports the same titles
+(`NCE_SIM_OBJECTIVES`, `NCMHCE_SIM_OBJECTIVES`).
+
+| Course | Slug | Objective (exact title) | Core of the case |
+|---|---|---|---|
+| NCE | `nce-boundary-dual-relationship` | Manage boundaries and multiple relationships under the ACA Code of Ethics | A current client's friend request (prohibited, ACA A.5.e), her coaching your child's soccer team in a small town (an unavoidable overlap managed with consent, A.6.a) and her wedding invitation (a boundary extension to weigh, consult on and document first, A.6.b-c); a transfer 50 miles away is the recovered ending |
+| NCE | `nce-substance-use-screen` | Screen for substance use and match the client to a level of care | A court-referred DUI assessment: limits and a written release before anything goes to the court (B.6.g), the AUDIT (24; 15 or more suggests likely dependence on the authors' site), withdrawal history (needs trust), a borrowed sedative, 7 of 11 criteria (severe), a medical withdrawal evaluation before intensive outpatient |
+| NCMHCE | `ncmhce-intake-ptsd-alcohol` | Conduct an intake and reach a DSM-5-TR diagnosis in a counseling case | 'Panic attacks' that are cued by reminders of an assault: a gentle trauma question once trust is there, the four PTSD clusters for more than a month (VA), a co-occurring mild alcohol use disorder (3 of 11), medical rule-outs, a suicide screen; pressing for detail costs the alliance |
+| NCMHCE | `ncmhce-suicide-safety-plan` | Assess suicide risk and build a safety plan in a counseling session | A late-night voicemail: a direct question early, the C-SSRS follow-ups including a past attempt, pills in the nightstand moved out today, a six-step Stanley-Brown plan, her roommate involved with consent, 988, a call tomorrow; elevated, not imminent |
+| NCMHCE | `ncmhce-trauma-treatment-plan` | Build a trauma-informed treatment plan with the client | Two sessions three weeks apart, as an NCMHCE case runs: session 1 builds the plan with SAMHSA's principles (grounding first, no forced retelling, transparency, his choice of a recommended trauma-focused therapy, goals in his words, peer support, a measure); session 2, after the anniversary, reassesses risk early and revises the plan with him |
+
+Each has one written-reasoning moment, endings in all three classes, four
+critical criteria, KPIs with expert values, an expert path, a debrief per
+ending, one unscored prediction as a decision card (22.5 finding 3), and six
+golden paths (Good, Mediocre, Bad; every ending but `time_up` and every
+criterion both met and missed), built by
+`npm run sim:golden -- steps nce-boundary|nce-substance|ncmhce-intake|ncmhce-suicide|ncmhce-trauma`.
+Checked by `lib/sim/nbcc-session.test.ts` and, against a seeded database,
+`lib/nbcc-mental-health.dbtest.ts` (the gate, the seeded sims, and each
+expert path through the routes to a Good attempt).
+
+**Sources** (on each document): the NBCC outlines (read 2026-11-11), the ACA
+Code of Ethics (2014; current per counseling.org, read 2026-11-11, a revision
+pending Board adoption), the C-SSRS screen (re-read 2026-11-11), the VA
+National Center for PTSD criteria page (updated 2026-09-28), NIAAA's DSM-5
+comparison page (the 11 criteria and severity counts; DSM-5, so that they
+carry into DSM-5-TR is an inference), auditscreen.org's AUDIT scoring bands,
+the ASAM Criteria page (fourth edition, 2023; no dimension names or level
+numbers are attributed to it), SAMHSA's trauma-informed approaches page (five
+principles, updated 2026-02-08; the 2014 concept paper refused access) and
+988 page. Read only through earlier batches, not re-read: the Stanley-Brown
+SPRC summary and psychiatry.org's DSM page (2026-11-10, EPPP) and the APA
+PTSD guideline abstract (2026-11-11, EPPP labs). The DSM-5-TR itself was not
+read; no criteria text is reproduced.
+
+**Findings** (recorded, not worked around):
+
+1. **A two-session case on one clock.** The trauma case runs session 1 and
+   session 2 as two `turns` phases; ending session 1 (or its hour) sets
+   `s2At` and moves on, and session 2's hour uses `since(s2At)`. The three
+   weeks between them are not simulated, so `t` and the "session minutes"
+   KPI count both hours back to back. No engine change was needed.
+2. **Anything after the action that satisfies an ending never runs.** The
+   first draft of the substance case had "send the report" after "document";
+   documenting ended the run, so the report could never be sent, and the
+   linter did not flag it (it checks reachability of states, not of actions
+   after the run ends). The golden builder caught it ("run has ended"); the
+   court decision is now a field of the documentation form. Recorded as
+   FAIL-1480.
+3. **The sims list is not behind the 18+ gate.** `GET /api/sims?trackId=`
+   names a mental health course's sims (titles only) without the
+   confirmation; starting one is refused (403 `mature_content_required`), as
+   are opening the course and its labs. REQ-224 gates the course, teaching
+   and start routes, so this is as designed; listed for Nick in case titles
+   should be hidden too.
+4. **Shared protocol, different cases.** The NCMHCE and EPPP suicide
+   sessions share the C-SSRS questions and the Stanley-Brown steps as moves
+   (decisions 0.64) under unrelated stories (0.01): similarity 0.33, the
+   highest seeded pair. They are on different objectives, which the
+   duplicate gate never compares; the generator test's pin now allows 0.15
+   below the 0.5 threshold instead of 0.2 (FAIL-1481).
+5. **`time_up`** stays unreached in all five (every slow path ends in an
+   earlier ending), so the linter's `time_up` warning remains, as for the
+   EPPP cases.
+
+### 22.14 EMS bedside wave 2: NREMT EMR, EMT, AEMT and Paramedic (REQ-241)
+
+Eight prehospital cases on the existing bedside renderer and engine 1.2, two
+for each NREMT course; no engine, renderer, schema or migration change. Each
+declares engine minor 2 and `endingOrder`, has endings in all three outcome
+classes, three or four critical criteria (the target ending reads them), KPIs,
+an expert path, a debrief per ending, one reasoning moment, two or three
+sourced teaching prompts written in jsonb key order (22.9, FAIL-1362), a
+chapter, and six golden paths built by `npm run sim:golden -- steps <name>`
+(`scripts/sim-golden/<name>.steps.ts`, helpers in `ems-helpers.ts`). Every
+case runs in one `running` phase; the EMS courses sit under
+`healthcare-nursing`, so study pace (3x) is the default. None has a focused
+start: each patient needs action from the first second.
+
+**The prehospital setting on the bedside screen.** The tiles are what that
+level can measure: an EMR has no pulse oximeter (pulse, manual blood pressure
+and breathing only; the CPR case shows a CPR-feedback compression fraction and
+the bleed case an estimated blood loss, both labeled as sim aids), an EMT adds
+pulse oximetry and glucose, an AEMT adds capnography, and a paramedic has the
+monitor with ECG and pleth waveforms. **Scene time and transport are on the
+clock**: "Load and go" schedules loading and the drive by destination, care
+continues during the drive (repeat epinephrine, boluses, ventilation), and the
+case ends at the hospital door or when the transporting crew takes over (EMR).
+Destinations are a choice whose consequence is an ending (a center that cannot
+finish the job is `recovered`), and scene time is a KPI and, where a guideline
+gives a goal, a criterion.
+
+**Scope of practice** follows the National EMS Scope of Practice Model 2019
+with Change Notices 1.0 and 2.0 (no newer model was found on 2026-11-11):
+the EMR transports nothing and gives no epinephrine; the EMT gives the
+auto-injector, aspirin and glucose but no IV; the AEMT gives IV fluids, D10 and
+glucagon but no TXA, nitrates by IV or 12-lead interpretation; the paramedic
+interprets the 12-lead and gives fentanyl. Out-of-scope or harmful options are
+offered as traps (a pressure bandage on an arterial bleed, aspirin or blood
+pressure pills by mouth in a stroke, oral glucose to a man who cannot swallow,
+nitroglycerin after tadalafil, an infant intubation attempt while BVM works).
+
+| Course / slug | Objective (exact title, abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| NREMTEMR/unresponsive-adult-cpr-aed | Recognize cardiac arrest and perform high-quality CPR with an AED | agonal gasps recognized, compressions within 30 s; first shock within 3 min; compression fraction >= 60% and compressions back within 10 s of a shock | emr-cpr |
+| NREMTEMR/thigh-bleed-tourniquet | Control life-threatening external bleeding ... | saw off and gloves before contact; bleeding stopped within 90 s; tourniquet above the wound, tight, a second, timed, never loosened | emr-bleed |
+| NREMTEMT/anaphylaxis-epinephrine | Treat anaphylaxis with intramuscular epinephrine ... | 0.3 mg IM thigh within 5 min; repeat within 5 min of hypoperfusion returning; flat, never walked | emt-anaph |
+| NREMTEMT/stroke-scale-destination | Recognize a possible stroke with a validated prehospital stroke scale ... | glucose before leaving; last known well 07:30 from its source; suspected LVO to the thrombectomy center; scene <= 15 min with a stroke alert | emt-stroke |
+| NREMTAEMT/hypoglycemia-iv-dextrose | Treat hypoglycemia in a patient who cannot swallow ... | airway first, nothing by mouth; glucose within 3 min; D10 within 10 min in 10 g steps with rechecks; transport after an informed conversation (a decision card) | aemt-hypo |
+| NREMTAEMT/hemorrhagic-shock-fluids | Resuscitate hemorrhagic shock with hemorrhage control and IV fluids to a target blood pressure | tourniquet first within 90 s; scene <= 10 min; 500 mL boluses to SBP about 90 within 2 L; Level I center for red criteria | aemt-shock |
+| NREMTPARAMEDIC/inferior-stemi-cath-alert | Manage a STEMI: aspirin, nitrates within their limits, analgesia and destination for reperfusion | 12-lead within 10 min; cath lab activated within 10 min of it; no nitrate after a PDE inhibitor; PCI center | medic-stemi |
+| NREMTPARAMEDIC/infant-respiratory-failure | Assess and manage respiratory distress in infants and children, including croup and bronchiolitis | BVM for impending failure before apnea; 20-30/min; no intubation attempt while BVM works | medic-peds |
+
+**Sources** are on each document. Read 2026-11-11 in primary text: AHA 2025
+Part 7 (adult BLS) and Part 8 (PALS) on cpr.heart.org; the NASEMSO National
+Model EMS Clinical Guidelines v3.0 (March 2022) in full (Iowa HHS's copy:
+anaphylaxis, hypoglycemia, stroke, ACS/STEMI, general trauma, external
+hemorrhage, pediatric respiratory distress, cardiac arrest, universal care,
+refusals, pain); the ACS-COT/NAEMSP 2021 field triage handout; the Mission:
+Lifeline EMS recognition criteria for 2027; the 2019 Scope of Practice Model
+(a text extraction of a state copy, table placement cross-checked with the
+course's 2026-11-09 reading). Read only through summaries: the 2025
+ACC/AHA/ACEP/NAEMSP/SCAI ACS guideline and the 2026 AHA/ASA stroke guideline
+(Guideline Central). Relayed from the course seed and not re-read: the NREMT
+test plans (2026-11-09) and AHA Part 6's infant rescue-breathing rate
+(2026-11-09); the ATLS class anchors from the CCRN bleeding case (2026-11-10,
+FLAG). Authored teaching-model numbers say so, and those standing in for a
+number no guideline gives carry `FLAG` (viability loss without CPR and the
+shock threshold; arterial and ooze rates; epinephrine potency and wane;
+the glucose fall and rise per gram; the splenic bleed rate and dilution; the
+nitrate-tadalafil drop; infant fatigue and desaturation rates; every hospital
+door-to-device time and every drive time).
+
+**Findings while authoring** (FAIL-1520 to FAIL-1526; caught by the linter,
+the golden driver or review while authoring; none is in engine code):
+an ending that read a state no effect ever set (asystole), an AED action gated
+on the hidden rhythm instead of what the rescuer can know, timer `with`
+fields read as bare names instead of `timer.with.<field>`, reasoning moments
+that opened in the middle of a resuscitation step or on the tick a terminal
+ending fired, model constants that left the target or a harm ending
+unreachable until tuned against the goldens, British spellings in one
+narrative, and a server-only debrief body that repeated a client narrative
+word for word (the leak test in `lib/sim/documents.test.ts` caught it). `time_up` is reached by no golden path in any of the eight (every
+slow path ends earlier), so the linter's warning remains, as in the CCRN
+cases.

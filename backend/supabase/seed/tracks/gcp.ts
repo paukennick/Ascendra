@@ -704,7 +704,22 @@ export const GCP_PDE_TRACK: SeedTrack = {
 //   - Authored labs point at the new units' objectives (labs/gcp-devops.ts).
 // ---------------------------------------------------------------------------
 const GCP_DEVOPS_OLD_GUIDE_RETIRED_AT = "2026-11-23T12:00:00Z";
-const GCP_DEVOPS_CHECKED_AT = "2026-11-09T00:00:00Z";
+// REQ-244 (2026-11-11): re-verified against the guide live on 2026-11-23
+// (the PDF above, five pages) and the certification page. All five section
+// weights (~18/30/18/22/12%) and every consideration (25/14/10/20/10 per
+// section) match the live units in order; no drift in the outline. The
+// certification page (2 hours, $200, English and Japanese, 50-60 multiple
+// choice questions, no retirement notice) differed from the exam facts below
+// in two wordings, fixed here (FAIL-1542).
+const GCP_DEVOPS_CHECKED_AT = "2026-11-11T00:00:00Z";
+// REQ-244 (FAIL-1541): the next review. The seed once set contentReviewDueAt
+// to 2026-11-23 (the new guide's date) and b5c4cf7 deleted the line; the
+// seed writes it with coalesce, so the stored date would have stayed and the
+// course would show "Review due" from 2026-11-23 for good. A review date can
+// only move forward through the seed (SeedTrack.contentReviewDueAt). 12
+// months after the check is the default for an exam outline
+// (docs/source-reliability-standard.md "Re-checking").
+const GCP_DEVOPS_REVIEW_DUE_AT = "2027-11-11T00:00:00Z";
 
 export const GCP_DEVOPS_TRACK: SeedTrack = {
   code: "GCPDEVOPS",
@@ -716,6 +731,7 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
   freshnessModel: "certification_aligned",
   sourceUrl: "https://services.google.com/fh/files/misc/112326_professional_cloud_devops_engineer_exam_guide_english.pdf",
   sourceVerifiedAt: GCP_DEVOPS_CHECKED_AT,
+  contentReviewDueAt: GCP_DEVOPS_REVIEW_DUE_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "cloud-devops-engineer",
@@ -731,10 +747,12 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
     effectiveDate: "2026-11-23",
     officialObjectivesUrl: "https://services.google.com/fh/files/misc/112326_professional_cloud_devops_engineer_exam_guide_english.pdf",
     lastVendorVerifiedAt: GCP_DEVOPS_CHECKED_AT,
+    // REQ-244 (FAIL-1542): as the certification page words them (read
+    // 2026-11-11): "production systems", and "multiple choice" only.
     recommendedExperience:
-      "3+ years of industry experience, including 1+ year designing and managing solutions using Google Cloud.",
+      "3+ years of industry experience, including 1+ years designing and managing production systems using Google Cloud.",
     durationMinutes: 120,
-    questionFormat: "50-60 questions; multiple choice and multiple select",
+    questionFormat: "50-60 multiple choice questions",
     passingScorePolicy: "No minimum passing score is published by Google for this exam.",
   },
   units: [

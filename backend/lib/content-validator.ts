@@ -33,6 +33,7 @@
 
 import type { LessonIntroContent, LessonPracticeContent, CoachQuizItem } from "@/lib/prompts";
 import { UserFacingError } from "@/lib/http";
+import { ABSOLUTE_WORDS, KEY_LENGTH_RATIO, KEY_LENGTH_SLACK_CHARS, keyLengthLimit } from "@/lib/item-style";
 
 export const CONTENT_LIMITS = {
   question: 1_500,
@@ -52,6 +53,16 @@ const normOption = (s: string) =>
     .replace(/[\s\p{P}]+/gu, " ")
     .trim();
 
+// FAIL-1760: in code, case and punctuation carry meaning -- `a == b` and
+// `a === b`, `[1, 2]` and `(1, 2)`, `None` and `none` are different answers.
+// An option that looks like code (a backtick or code symbols) is compared
+// exactly, with only whitespace runs collapsed. Plain-language options keep
+// the loose comparison above, so "Use IAM roles." still duplicates "use IAM roles".
+// FAIL-1762: string literals ("ERROR: disk full") and concatenation (a + b) are code too.
+const CODE_LIKE = /[`=(){}\[\]<>;"+]/;
+export const optionKey = (s: string): string =>
+  CODE_LIKE.test(s) ? `code:${s.normalize("NFKC").replace(/\s+/g, " ").trim()}` : normOption(s);
+
 function text(label: string, v: unknown, max: number, out: string[]): void {
   if (typeof v !== "string" || !v.trim()) out.push(`${label} is empty.`);
   else if (v.length > max) out.push(`${label} is longer than ${max} characters.`);
@@ -67,7 +78,7 @@ function options(label: string, choices: unknown, correctIndex: unknown, reasons
     if (typeof c !== "string" || !c.trim()) out.push(`${label} option ${i + 1} is empty.`);
     else if (c.length > CONTENT_LIMITS.option) out.push(`${label} option ${i + 1} is too long.`);
     else {
-      const n = normOption(c);
+      const n = optionKey(c);
       if (seen.has(n)) out.push(`${label} has a duplicate option ("${c.slice(0, 40)}").`);
       seen.add(n);
     }
@@ -106,12 +117,9 @@ export function languageProblem(texts: string[], language = "en"): string | null
 // Distractor lint (REQ-187)
 // ---------------------------------------------------------------------------
 
-// How much longer than the mean distractor the key may be. Short options get
-// a few characters of slack: "TCP 443" vs "UDP 53" is not a length cue.
-export const KEY_LENGTH_RATIO = 1.25;
-export const KEY_LENGTH_SLACK_CHARS = 8;
-
-const ABSOLUTE_WORDS = ["always", "never", "only", "all", "none", "every", "guaranteed", "completely"] as const;
+// The key-length threshold and the cue words live in lib/item-style.ts
+// (REQ-251), shared with the item-writing rules the prompt states.
+export { KEY_LENGTH_RATIO, KEY_LENGTH_SLACK_CHARS, ABSOLUTE_WORDS, keyLengthLimit };
 const ABOVE = /\b(all|none|both|neither) of (the )?(above|these|the options)\b/i;
 const SELF_LABEL = /\((?:in)?correct\)|\b(?:distractor|trick option|the (?:right|wrong|correct|incorrect) (?:answer|option)|not the answer)\b/i;
 // "Option B", "answer (C)", "choice 2", "the second option". The letter must
@@ -127,6 +135,35 @@ const COUNT_ASK = /\b(?:which|what|name|list|choose|select|identify|pick|give)\s
 // access" used to be read as "read" + "only" and failed the absolute-word cue
 // ("only"), rejecting a correct answer.
 const words = (s: string) => new Set((s.toLowerCase().match(/[a-z]+(?:-[a-z]+)*/g) ?? []));
+
+// REQ-248 (FAIL-1601): a cue word written with a capital in the middle of an
+// option is part of a proper name -- "Enable Always Encrypted on the column"
+// (SQL Server's feature, a DP-300 objective), "the All Users group" -- not an
+// absolute claim. Only Title case counts (an ALL-CAPS "NEVER" is emphasis and
+// is still a cue), and only after the first word and not right after a
+// sentence break (". Always ..." starts a sentence). An option that STARTS
+// with such a name is still flagged: the lint cannot tell it from an
+// ordinary sentence start, and the retry steer is cheap.
+const TITLE_WORD = /\b[A-Z][a-z]+\b/g;
+// REQ-251 (FAIL-1661): "every" in a stated frequency -- "every 2 hours",
+// "every other day", "every hour" -- is a schedule (a dosing or exercise
+// interval, a backup cadence), not an absolute claim. Only when a time unit
+// follows; "every user", "every case" stay cues.
+const EVERY_INTERVAL =
+  /\bevery\s+(?:(?:\d+(?:\.\d+)?|one|two|three|four|five|six|seven|eight|ten|twelve|other|few|several)(?:\s*(?:to|-|–)\s*\d+)?\s+)?(?:seconds?|minutes?|mins?|hours?|hrs?|days?|nights?|weeks?|months?|years?)\b/gi;
+export function cueWords(option: string): Set<string> {
+  let kept = option.replace(EVERY_INTERVAL, (m) => " ".repeat(5) + m.slice(5));
+  for (const m of option.matchAll(TITLE_WORD)) {
+    const w = m[0].toLowerCase();
+    if (!(ABSOLUTE_WORDS as readonly string[]).includes(w)) continue;
+    const before = option.slice(0, m.index).trimEnd();
+    if (!before || /[.!?:;"“(\[]$/.test(before)) continue;
+    // a hyphenated compound ("Always-On") is already one word
+    if (option[m.index! + m[0].length] === "-" || option[m.index! - 1] === "-") continue;
+    kept = kept.slice(0, m.index) + " ".repeat(m[0].length) + kept.slice(m.index! + m[0].length);
+  }
+  return words(kept);
+}
 
 // How many things an option lists: comma, semicolon, slash or "and" separated.
 export function listedCount(option: string): number {
@@ -151,18 +188,34 @@ export function distractorProblems(label: string, stem: unknown, choices: unknow
   const key = opts[correctIndex as number].trim();
   const distractors = opts.filter((_, i) => i !== correctIndex).map((o) => o.trim());
   const mean = distractors.reduce((n, d) => n + d.length, 0) / distractors.length;
-  if (key.length > KEY_LENGTH_RATIO * mean && key.length - mean > KEY_LENGTH_SLACK_CHARS) {
-    out.push(`${label}: the right answer is much longer than the other options (${key.length} vs about ${Math.round(mean)} characters); make the options parallel.`);
+  // REQ-251 (FAIL-1660): the cue is "the longest option is the answer". When
+  // a wrong option is at least as long as the key, the key is not the longest
+  // and "pick the longest" finds a wrong answer; one very short distractor
+  // used to drag the mean down and flag a key no longer than the others.
+  const keyIsLongest = distractors.every((d) => d.length < key.length);
+  if (keyIsLongest && key.length > keyLengthLimit(mean)) {
+    // The retry steer (fixFor) carries this sentence, so it names the target.
+    const limit = keyLengthLimit(mean);
+    const needMean = Math.ceil(Math.min(key.length / KEY_LENGTH_RATIO, key.length - KEY_LENGTH_SLACK_CHARS));
+    out.push(
+      `${label}: the right answer is much longer than the other options (${key.length} vs about ${Math.round(mean)} characters); ` +
+        `shorten the right answer to at most ${limit} characters (move qualifications into the explanation), ` +
+        `or lengthen the wrong options with plausible detail to about ${needMean} characters each, so the right answer is not the longest.`
+    );
   }
   const stemText = typeof stem === "string" ? stem : "";
   const stemWords = words(stemText);
   opts.forEach((o, i) => {
-    const w = words(o);
+    const w = cueWords(o);
     // REQ-216 (M6): a cue word gives a wrong answer away; the RIGHT answer may
     // say "only" or "all" when the fact does ("Only the owner can ..."), so the
     // key is not held to it.
     const abs = i === correctIndex ? [] : ABSOLUTE_WORDS.filter((a) => w.has(a) && !stemWords.has(a));
-    if (abs.length) out.push(`${label} option ${i + 1} uses the absolute word "${abs[0]}"; reword it without a cue word.`);
+    if (abs.length)
+      out.push(
+        `${label} option ${i + 1} uses the absolute word "${abs[0]}"; reword it without a cue word: make it wrong through its content ` +
+          `(a wrong value, step, condition or cause), not an absolute, and use none of ${ABSOLUTE_WORDS.join(", ")} in a wrong option.`
+      );
     if (ABOVE.test(o)) out.push(`${label} option ${i + 1} is an "all/none of the above" option.`);
     if (SELF_LABEL.test(o)) out.push(`${label} option ${i + 1} labels itself as right or wrong.`);
   });

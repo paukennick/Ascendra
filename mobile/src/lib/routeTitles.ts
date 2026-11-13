@@ -50,6 +50,7 @@ const ROUTES: [RegExp, string][] = [
   [/^\/course\/[^/]+\/exam$/, "Practice exam"],
   [/^\/course\/[^/]+\/compare$/, "Compare look-alikes"],
   [/^\/course\/[^/]+\/plan$/, "Study plan"],
+  [/^\/course\/[^/]+\/level$/, "Your level"],
   [/^\/course\/[^/]+\/placement$/, "Placement check"],
   [/^\/course\/[^/]+\/quiz$/, "Quiz me"],
   [/^\/course\/[^/]+\/outcome$/, "I took the exam"],

@@ -39,7 +39,7 @@ describe("switches", () => {
     assert.equal(simsEnabled({ SIMS_ENABLED: "on" }), true);
   });
   test("renderers default to bedside and board; the env narrows them", () => {
-    assert.deepEqual(renderersOn({}), ["bedside", "board", "session"]);
+    assert.deepEqual(renderersOn({}), ["bedside", "board", "session", "security-console", "treatment-session", "terminal"]);
     assert.deepEqual(renderersOn({ SIMS_RENDERERS: "bedside" }), ["bedside"]);
   });
   test("unreviewed content is served unless switched off", () => {
@@ -58,6 +58,21 @@ describe("capabilities (5.10)", () => {
     assert.equal(runnable({ ...need, renderer_level: 4 }, caps), false, "newer renderer level");
     assert.equal(runnable({ ...need, screen_type: "terminal" }, caps), false, "renderer not in the app");
     assert.equal(runnable({ ...need, engine_major: 2 }, caps), false, "other major");
+  });
+  test("a screen type with a hyphen is read (REQ-231, FAIL-1320)", () => {
+    const caps = parseCaps("protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1,security-console@1");
+    assert.ok(caps);
+    assert.deepEqual(caps.renderers.map((r) => r.type), ["bedside", "board", "session", "security-console"]);
+    const need = { engine_major: 1, engine_minor: 2, renderer_level: 1, screen_type: "security-console" };
+    assert.equal(runnable(need, caps), true);
+    // still rejected: a leading hyphen, upper case, a type longer than the column
+    const bad = parseCaps(`protocol=1;engine=1.2;renderers=-x@1,Board@3,${"a".repeat(41)}@1`);
+    assert.deepEqual(bad?.renderers, []);
+  });
+  test("the app advertises every default renderer the server turns on", async () => {
+    const { SIM_RENDERERS } = await import("../../../mobile/src/sim/runtime/caps.ts");
+    const app = SIM_RENDERERS.map((r) => r.type as string);
+    for (const t of renderersOn({})) assert.ok(app.includes(t), `the app does not advertise ${t}`);
   });
   test("a missing or malformed header runs nothing", () => {
     assert.equal(parseCaps(null), null);

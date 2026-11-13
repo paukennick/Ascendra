@@ -8,7 +8,9 @@ import { compileEntry } from "./documents.ts";
 import type { DocumentEntry } from "./documents.ts";
 import { goldenFileSchema, schemaProblems } from "./schema.ts";
 import { lintScenario, replayGolden, replayGoldenPath } from "./engine/v1/validate.ts";
-import { stateHash } from "./engine/v1/index.ts";
+import { parseCached, parseTemplate, stateHash } from "./engine/v1/index.ts";
+import { parseDuration } from "./engine/v1/engine.ts";
+import type { Ast, TemplatePart } from "./engine/v1/parser.ts";
 import { jsonbKeyOrder, reverseKeyOrder, withKeyOrder } from "./key-order.ts";
 import type { GoldenFile, GoldenResult, SafetyFamily } from "./engine/v1/validate.ts";
 import type { Problem, ScenarioDoc } from "./engine/v1/types.ts";
@@ -21,8 +23,10 @@ export interface DocumentReport {
   goldenResults: GoldenResult[];
 }
 
+// REQ-232: a physical therapy treatment session is clinical (its course sits
+// under healthcare, so the seed derives "clinical" too).
 export function safetyFamilyOf(doc: ScenarioDoc): SafetyFamily {
-  if (doc.outcome?.profile === "clinical") return "clinical";
+  if (doc.outcome?.profile === "clinical" || doc.outcome?.profile === "physical-therapy") return "clinical";
   if (doc.outcome?.profile === "fitness") return "fitness";
   return "general";
 }
@@ -73,6 +77,118 @@ export function endingOrderProblems(doc: ScenarioDoc, golden: GoldenFile | null)
   return problems;
 }
 
+// REQ-236 (FAIL-1361): the engine reads some expressions as sim seconds
+// whatever the unit a param declares (a unit is display and lint metadata
+// only). A "1440 min" day given to `schedule.after` became 24 minutes. So a
+// named value (param, state variable or derived value) that declares a time
+// unit other than seconds may not be read where the engine reads seconds:
+//   - `schedule.after` given as an expression (engine.ts scheduleTimer);
+//   - a console alert's or event's `at` (sorted and shown as sim seconds);
+//   - a template slot, table column or KPI with a format that takes seconds
+//     (clock, clocks, date, dateShort, datetime, time, duration, min).
+// Store the value in seconds (unit "s") and show it with |min or |duration.
+// A rate (mL/min) or a non-time unit is not a duration, so it is not checked
+// here (unitsLint in the engine warns about rates times dt). Lint layer only:
+// the engine and its stepping are unchanged.
+const SECONDS_UNITS = new Set(["s", "sec", "secs", "second", "seconds"]);
+const OTHER_TIME_UNITS = new Set(["ms", "min", "mins", "minute", "minutes", "h", "hr", "hrs", "hour", "hours", "d", "day", "days", "wk", "week", "weeks"]);
+export const SECONDS_FORMATS = new Set(["clock", "clocks", "date", "dateShort", "datetime", "time", "duration", "min"]);
+
+export function isNonSecondTimeUnit(unit: string | undefined): boolean {
+  if (typeof unit !== "string") return false;
+  const u = unit.trim().toLowerCase();
+  return !SECONDS_UNITS.has(u) && OTHER_TIME_UNITS.has(u);
+}
+
+function namesOf(ast: Ast, out: Set<string>): void {
+  if (ast.k === "name") out.add(ast.name);
+  for (const v of Object.values(ast)) {
+    if (Array.isArray(v)) for (const x of v) if (x && typeof x === "object" && "k" in x) namesOf(x as Ast, out);
+    if (v && typeof v === "object" && !Array.isArray(v) && "k" in v) namesOf(v as Ast, out);
+  }
+}
+
+export function secondsUnitProblems(doc: ScenarioDoc): Problem[] {
+  const problems: Problem[] = [];
+  const unitOf = (n: string): string | undefined =>
+    doc.params?.[n]?.unit ?? (doc.state?.[n] as { unit?: string } | undefined)?.unit ?? (doc.derived?.[n] as { unit?: string } | undefined)?.unit;
+  const check = (path: string, expr: string, reads: string): void => {
+    let ast: Ast;
+    try {
+      ast = parseCached(expr);
+    } catch {
+      return; // the validator reports a bad expression
+    }
+    const names = new Set<string>();
+    namesOf(ast, names);
+    for (const n of names) {
+      const unit = unitOf(n);
+      if (isNonSecondTimeUnit(unit)) {
+        problems.push({
+          level: "error",
+          path,
+          message: `"${n}" has unit "${unit}", but ${reads} is read in seconds whatever the unit says (FAIL-1361); store it in seconds with unit "s" and show it with |min or |duration`,
+        });
+      }
+    }
+  };
+  const checkTemplate = (path: string, tpl: string): void => {
+    if (tpl.indexOf("{") < 0) return;
+    let parts: TemplatePart[];
+    try {
+      parts = parseTemplate(tpl);
+    } catch {
+      return; // not a template (a command pattern) or reported by the validator
+    }
+    for (const p of parts) if ("expr" in p && p.format && SECONDS_FORMATS.has(p.format)) check(path, p.src, `the |${p.format} format`);
+  };
+  const walk = (x: unknown, path: string): void => {
+    if (typeof x === "string") return checkTemplate(path, x);
+    if (Array.isArray(x)) return x.forEach((v, i) => walk(v, `${path}[${i}]`));
+    if (!x || typeof x !== "object") return;
+    const o = x as Record<string, unknown>;
+    // an effect: { schedule, after }; a literal duration ("8min") carries its own unit
+    if (typeof o.schedule === "string" && typeof o.after === "string" && parseDuration(o.after) === null) check(`${path}.after`, o.after, "schedule.after");
+    // a table column or a KPI: { label, value, format } ("duration" KPIs)
+    if (typeof o.value === "string" && typeof o.format === "string" && typeof o.label === "string" && SECONDS_FORMATS.has(o.format)) check(`${path}.value`, o.value, `a value with the "${o.format}" format`);
+    for (const k of Object.keys(o)) walk(o[k], path ? `${path}.${k}` : k);
+  };
+  walk(doc, "");
+  const con = doc.screen?.console;
+  (con?.alerts ?? []).forEach((a, i) => check(`screen.console.alerts[${i}].at`, a.at, "a console alert's at"));
+  (con?.events ?? []).forEach((e, i) => check(`screen.console.events[${i}].at`, e.at, "a console event's at"));
+  // REQ-237: a terminal output line's `at` is sim seconds too.
+  (doc.screen?.terminal?.lines ?? []).forEach((l, i) => check(`screen.terminal.lines[${i}].at`, l.at, "a terminal line's at"));
+  // one problem per place and name
+  const seen = new Set<string>();
+  return problems.filter((p) => {
+    const key = `${p.path}\u0000${p.message}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+// REQ-237 (FAIL-1440): a backslash escape in a document string. Inside an
+// expression's string literal (a template slot, a condition) the parser keeps
+// the character after a backslash and drops the backslash, so "\\n" renders
+// as the letter n, not a line break; outside a slot it renders as a visible
+// backslash. Neither is ever what an author means: write a real line break
+// (the JSON escape \n is one) instead.
+export function backslashEscapeProblems(doc: ScenarioDoc): Problem[] {
+  const out: Problem[] = [];
+  const walk = (x: unknown, path: string): void => {
+    if (typeof x === "string") {
+      if (/\\[nrt"\\]/.test(x)) out.push({ level: "error", path, message: "contains a backslash escape (\\n, \\t, \\\"); the expression language drops the backslash and keeps the letter, so write a real line break or the character itself (FAIL-1440)" });
+      return;
+    }
+    if (Array.isArray(x)) return x.forEach((v, i) => walk(v, `${path}[${i}]`));
+    if (x && typeof x === "object") for (const [k, v] of Object.entries(x as Record<string, unknown>)) walk(v, path ? `${path}.${k}` : k);
+  };
+  walk(doc, "");
+  return out;
+}
+
 // `full` false = schema only (sims:validate); true adds the semantic and
 // content layers, golden replays and the path search (sims:lint).
 export function checkDocument(entry: DocumentEntry, opts: { full: boolean; now?: string; searchNodes?: number }): DocumentReport {
@@ -101,6 +217,8 @@ export function checkDocument(entry: DocumentEntry, opts: { full: boolean; now?:
     goldenResults = golden ? replayGolden(doc, golden) : [];
     problems.push(...lintScenario(doc, { now: opts.now, safetyFamily: safetyFamilyOf(doc), golden, goldenResults, searchNodes: opts.searchNodes ?? 4000 }));
     problems.push(...endingOrderProblems(doc, golden));
+    problems.push(...secondsUnitProblems(doc));
+    problems.push(...backslashEscapeProblems(doc));
   }
   return { entry, doc, golden, problems, goldenResults };
 }

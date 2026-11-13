@@ -127,7 +127,7 @@ describe("REQ-220 dated key values reach the writer and the checker (FAIL-1141)"
     const unit = cna.units.find((u) => u.objectives.some((o) => /Heimlich/.test(o)))!;
     const block = currentFactsBlock(cna, unit.title)!;
     assert.match(block, /5 back blows, then 5 abdominal thrusts/);
-    assert.match(block, /checked 2026-11-08/);
+    assert.match(block, /checked 2026-11-11/); // REQ-235: re-read 2026-11-11
     assert.deepEqual(unitReferenceLines(cna, "no such unit"), []);
   });
 

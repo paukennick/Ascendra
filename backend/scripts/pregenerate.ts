@@ -20,6 +20,12 @@
 //   --summary <file>   write a counts-only JSON summary (the workflow's artifact)
 //   --limit N          at most N objectives
 //   --allow-concurrent skip the "a batch is already running" refusal
+//   --confirm-full-run a submit without --limit (a full run); refused without
+//                      it, so a trial (--limit 25) comes first (REQ-248)
+//   --primers          REQ-253: lesson primers ("Key terms") instead of lessons,
+//                      for objectives that have a lesson and no primer. One
+//                      batch: --primers --submit ..., then --primers --collect
+//                      <batch> ... (no --intro-batch). lib/pregen-primers.ts.
 //
 // --tracks is a priority order: lessons are made track by track in the order
 // given, unit by unit, and the cap (--max-usd, an UPPER BOUND on the cost)
@@ -37,6 +43,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { closePool } from "../lib/db";
 import { flushAiCallLog } from "../lib/ai-calls";
 import { collectRun, estimateRun, submitRun, type BatchInfo, type BatchesClient, type Summary } from "../lib/pregen";
+import { collectPrimersRun, estimatePrimersRun, submitPrimersRun } from "../lib/pregen-primers";
 import { parseArgs } from "./pregenerate-lib";
 
 function apiKey(): string {
@@ -75,7 +82,13 @@ async function main() {
   const ctx = { batches, log: (m: string) => console.log(m) };
   let summary: Summary;
   try {
-    if (args.mode === "collect") {
+    if (args.primers) {
+      // REQ-253: lesson primers ("Key terms"), one batch stage (lib/pregen-primers.ts).
+      if (args.mode === "collect") summary = await collectPrimersRun({ batchId: args.batchId!, tracks: args.tracks, maxUsd: args.maxUsd, dryRun: args.dryRun }, ctx);
+      else if (args.mode === "submit")
+        summary = await submitPrimersRun({ tracks: args.tracks, limit: args.limit, maxUsd: args.maxUsd!, dryRun: args.dryRun, allowConcurrent: args.allowConcurrent }, ctx);
+      else summary = await estimatePrimersRun({ tracks: args.tracks, limit: args.limit, maxUsd: args.maxUsd }, ctx);
+    } else if (args.mode === "collect") {
       summary = await collectRun(
         { batchId: args.batchId!, introBatchId: args.introBatchId, tracks: args.tracks, maxUsd: args.maxUsd, dryRun: args.dryRun, allowConcurrent: args.allowConcurrent },
         ctx
