@@ -169,7 +169,8 @@ export interface SeedTrack {
   requiresAcknowledgement?: boolean;
   // REQ-252 (migration 078): switch on the level-aware lesson flow (the
   // one-tap hunch and full worked example for New learners, "Skip guided"
-  // offered to Experienced ones). Phase 1: Python and JavaScript only. The
+  // offered to Experienced ones). Python and JavaScript (phase 1), then DPT, PTPREREQ,
+  // CCRNADULT and AWSSAA (REQ-257) as their Key terms were written. The
   // seed sets subject_tracks.level_flow and never clears it.
   levelFlow?: boolean;
   disclaimerKey?: string;

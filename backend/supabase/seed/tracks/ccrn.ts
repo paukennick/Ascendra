@@ -265,6 +265,8 @@ const CCRN_REQ220_RETIRED_AT = "2026-11-10T00:00:00Z";
 
 export const CCRN_ADULT_TRACK: SeedTrack = {
   code: "CCRNADULT",
+  // REQ-257 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
+  levelFlow: true,
   title: "Prep for the CCRN (Adult) Exam",
   description:
     "AACN's adult critical-care nursing specialty certification, built on the Adult CCRN Test Plan in force since November 12 2025: five body-system clinical judgment categories (80%) and Professional Caring & Ethical Practice through the Synergy Model's nurse competencies (20%), weighted as the exam weights them.",

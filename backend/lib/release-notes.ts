@@ -85,6 +85,54 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // 2026-11-12 (d): REQ-249 sims badge, REQ-250 Save and exit, REQ-251
+    // fairer answer choices, REQ-252/255/256 levels and the goal question,
+    // REQ-253 Key terms, REQ-257 level-aware lessons in four more courses.
+    // The course list in the levels item must match the seed's levelFlow
+    // tracks (lib/level-flow-tracks.test.ts); change both together.
+    id: "2026-11-12-d",
+    date: "2026-11-12",
+    covers: ["REQ-249", "REQ-250", "REQ-251", "REQ-252", "REQ-253", "REQ-255", "REQ-256", "REQ-257"],
+    title: "Lessons that meet you at your level",
+    items: [
+      {
+        icon: "compass",
+        headline: "A level for every course",
+        body:
+          "Tell us why you're taking a course and it starts at New, Some background or Experienced. " +
+          "Your level moves up when your answers show it, with an Undo, and you can change it any time.",
+      },
+      {
+        icon: "trending-up",
+        headline: "Lessons shaped by your level",
+        body:
+          "In Python, JavaScript, DPT, PT prerequisites, CCRN and AWS Solutions Architect, New learners get " +
+          "a quick hunch and the full worked example first. Experienced learners can skip guided practice.",
+      },
+      {
+        icon: "book-open",
+        headline: "Key terms in every lesson",
+        body: "Tap Key terms for the words a lesson uses, each in plain language with an example and the exam's wording.",
+      },
+      {
+        icon: "rotate-ccw",
+        headline: "Save and exit any time",
+        body: "Leave a lesson at any step and pick up where you left off.",
+      },
+      {
+        icon: "check-circle",
+        headline: "Fairer answer choices",
+        body: "Practice questions are written so the right answer is less often the longest one or given away by words like \"always\".",
+      },
+      {
+        icon: "zap",
+        headline: "Find courses with simulations",
+        body: "Course cards show how many sims a course has, and Explore can show only those courses.",
+        requires: "sims",
+      },
+    ],
+  },
+  {
     // 2026-11-12 (c): REQ-243 Settings Notifications, REQ-244/245 course
     // verification, REQ-246 pilot coach allowance. The coach item is true only
     // with AI_PILOT_COACH_MESSAGES_PER_DAY=10 and AI_PILOT_GRADED_ANSWERS_PER_DAY=20

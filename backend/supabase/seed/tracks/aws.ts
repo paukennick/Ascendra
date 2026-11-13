@@ -329,6 +329,8 @@ export const AWS_CLF_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const AWS_SAA_TRACK: SeedTrack = {
   code: "AWSSAA",
+  // REQ-257 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
+  levelFlow: true,
   title: "Prep for the AWS Certified Solutions Architect - Associate (SAA-C03) Exam",
   description:
     "AWS Certified Solutions Architect - Associate (SAA-C03): designing solutions against the Well-Architected Framework -- secure, resilient, high-performing, and cost-optimized architectures, and knowing which trade-off a requirement is really asking for.",
