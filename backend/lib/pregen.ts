@@ -122,6 +122,10 @@ export interface Ctx {
 // A counts-only record of a run, written to the workflow artifact.
 export interface Summary {
   mode: "estimate" | "submit" | "collect";
+  // REQ-253: what the run makes; absent = lessons.
+  kind?: "lessons" | "primers";
+  // REQ-253 (primers): skipped because the lesson changed after the submit.
+  lessonChanged?: number;
   stage?: "intro" | "practice";
   dryRun: boolean;
   model: string;
@@ -351,7 +355,7 @@ export async function estimateRun(opts: { tracks: string[]; limit: number | null
 
 // A batch already running in this workspace (the key is dedicated to
 // pre-generation) means a second submit would pay for the same lessons twice.
-async function activeBatches(batches: BatchesClient, sinceIso?: string): Promise<BatchInfo[]> {
+export async function activeBatches(batches: BatchesClient, sinceIso?: string): Promise<BatchInfo[]> {
   const found: BatchInfo[] = [];
   let seen = 0;
   for await (const b of await batches.list({ limit: 20 })) {
@@ -414,7 +418,7 @@ export async function submitRun(
 // Collect
 // ---------------------------------------------------------------------------
 
-async function readLines(batches: BatchesClient, id: string): Promise<BatchResultLine[]> {
+export async function readLines(batches: BatchesClient, id: string): Promise<BatchResultLine[]> {
   const lines: BatchResultLine[] = [];
   for await (const r of await batches.results(id)) lines.push(r as BatchResultLine);
   return lines;
@@ -442,17 +446,25 @@ function usageByModel(lines: BatchResultLine[], fallbackModel: string) {
 // inserted only if an identical one is not there, so collecting an ended batch
 // twice does not count it twice. Tokens are the API's, at list price in
 // that table; the batch discount is applied only to the cost printed here.
-async function recordBatch(batch: BatchInfo, lines: BatchResultLine[], model: string, dryRun: boolean, log: (m: string) => void): Promise<number> {
+export async function recordBatch(
+  batch: BatchInfo,
+  lines: BatchResultLine[],
+  model: string,
+  dryRun: boolean,
+  log: (m: string) => void,
+  // REQ-253: primer batches are recorded as `pregen_primer`.
+  purpose: "pregen" | "pregen_primer" = "pregen"
+): Promise<number> {
   let total = 0;
   for (const [m, t] of usageByModel(lines, model)) {
     total += batchUsageUsd(m, t);
     if (dryRun) continue;
     await query(
       `insert into ai_calls (created_at, user_id, purpose, model, input_tokens, output_tokens, cache_read_tokens, cache_write_tokens, latency_ms, ok, error_code)
-       select $1::timestamptz, null, 'pregen', $2::varchar, $3::int, $4::int, $5::int, $6::int, 0, true, null
-        where not exists (select 1 from ai_calls where purpose = 'pregen' and created_at = $1::timestamptz and model = $2::varchar
+       select $1::timestamptz, null, $7::varchar, $2::varchar, $3::int, $4::int, $5::int, $6::int, 0, true, null
+        where not exists (select 1 from ai_calls where purpose = $7::varchar and created_at = $1::timestamptz and model = $2::varchar
                             and input_tokens = $3::int and output_tokens = $4::int)`,
-      [batch.ended_at ?? new Date().toISOString(), m.slice(0, 80), t.input_tokens, t.output_tokens, t.cache_read_input_tokens, t.cache_creation_input_tokens]
+      [batch.ended_at ?? new Date().toISOString(), m.slice(0, 80), t.input_tokens, t.output_tokens, t.cache_read_input_tokens, t.cache_creation_input_tokens, purpose]
     ).catch((err) => log(`Could not record the batch's usage in ai_calls (${(err as Error).message.slice(0, 120)}). The cost above is still correct.`));
   }
   return total;
@@ -470,11 +482,11 @@ export function problemKind(message: string): string {
   return message.replace(/"[^"]*"/g, '"…"').replace(/\d+(\.\d+)?/g, "N").slice(0, 140);
 }
 
-function countKinds(into: Record<string, number>, problems: string[]): void {
+export function countKinds(into: Record<string, number>, problems: string[]): void {
   for (const k of new Set(problems.map(problemKind))) into[k] = (into[k] ?? 0) + 1;
 }
 
-function tally(failed: { reason: string }[]): Record<string, number> {
+export function tally(failed: { reason: string }[]): Record<string, number> {
   const out: Record<string, number> = {};
   for (const f of failed) out[category(f.reason)] = (out[category(f.reason)] ?? 0) + 1;
   return out;
@@ -482,7 +494,7 @@ function tally(failed: { reason: string }[]): Record<string, number> {
 
 // A held-back lesson is logged by recordHoldback, which prints the claims.
 // Claims are model text; the workflow's log carries counts only.
-async function quietHoldbackLog<T>(fn: () => Promise<T>): Promise<T> {
+export async function quietHoldbackLog<T>(fn: () => Promise<T>): Promise<T> {
   const warn = console.warn;
   console.warn = (...args: unknown[]) => {
     if (typeof args[0] === "string" && args[0].startsWith("[item-quality]")) return;
@@ -662,14 +674,14 @@ function batchGenerator(
   return gen as LessonGenerator & { retried: number };
 }
 
-function pregenFactChecker(): FactChecker {
+export function pregenFactChecker(): FactChecker {
   const real = makeModelFactChecker();
   return (items, meta) => real(items, { ...meta, purpose: "pregen_fact_check" });
 }
 
 // Routes every model call's record to ai_calls AND a tally, so the run can
 // report (and stop at) what the live fact-checks really cost.
-function installTally() {
+export function installTally() {
   const t = { usd: 0, calls: 0 };
   setAiCallSink(async (r: AiCallRecord) => {
     t.usd += callCostUsd(r.model, r);
@@ -703,7 +715,7 @@ export async function collectRun(
   return isPractice ? collectPractice(opts, ctx, lines, summary, batchUsd) : collectIntro(opts, ctx, batch, lines, summary, batchUsd);
 }
 
-const round4 = (n: number) => Math.round(n * 1e4) / 1e4;
+export const round4 = (n: number) => Math.round(n * 1e4) / 1e4;
 
 // Stage 1: the ended intro batch -> checked teaching text -> the practice batch.
 async function collectIntro(

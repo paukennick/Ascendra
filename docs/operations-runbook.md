@@ -708,6 +708,52 @@ The log never contains prompts, lesson text or claims (the held-back claims are 
 `item_holdbacks`). To rehearse without cost, `npm run pregen -- --submit
 --tracks ... --max-usd 110 --dry-run` builds every request and sends nothing.
 
+### Pre-generating lesson primers ("Key terms", REQ-253)
+
+The same workflow makes the **Key terms** of objectives that already have a
+lesson: set **`content` = `primers`** (locally, add `--primers`). Without it a
+primer is written the first time a learner opens Key terms (docs/lesson-primers.md),
+and that learner waits a few seconds. Needs migration 079.
+
+- **What is eligible:** an objective of a listed catalog track, active, with a
+  servable shared lesson and **no primer row**. A primer that went stale (its
+  lesson changed) is left to its next use. An objective with no lesson yet is
+  skipped: pre-generate its lesson first.
+- **One batch, no practice stage.** `submit` creates the primer batch;
+  `collect` with that `batch_id` runs every check (the deterministic term
+  checks, the writer's doubt, the plain-language lint, the fact-check of each
+  definition, one live steered retry `pregen_retry`) and saves
+  insert-if-absent. Never give `intro_batch_id` (refused).
+- **The cap.** `max_usd` is checked against an upper bound that names every
+  call a primer can make: the batch request at its max output, one live retry,
+  and two live fact-checks of up to 10 terms with the checker's thinking. That
+  is about **$0.21 a primer** (Sonnet 5.5 list prices, 2026-11-09); the typical
+  cost is about **$0.03** (one batch request plus one fact-check). Python and
+  JavaScript (95 objectives, if every one has a lesson; production was not
+  checked) are about **$20 at the bound**
+  and about **$2.70 typical**, so **a $10 cap covers about 47 of the 95** in the
+  first run (whole units, Python first if `tracks` = `PYTHON,JAVASCRIPT`).
+  Collect it, then run `estimate` and `submit` again for the rest with
+  `max_usd` = $10 minus what was spent (the saved primers drop out); or agree
+  a $20 cap. Both figures are estimates; collect prints the actual cost.
+- **Trial first** (REQ-248): `submit` with `limit` 10 and `max_usd` 3, collect,
+  and check most were saved before a run without `limit` (which needs
+  `confirm_full_run`).
+- **The log** has counts, ids and problem KINDS only (quoted text and numbers
+  removed): saved, already had one, held back, failed, skipped, "lesson changed
+  since the submit", the retry counts, the content-check and plain-language
+  finding kinds, and the actual cost. Never lesson text, terms or claims.
+- **Check:** `select count(*) from lesson_primers;`, `npm run items -- list`
+  for held primers (item_kind `primer`), and `select purpose, count(*) from
+  ai_calls where purpose in ('pregen_primer', 'pregen_fact_check',
+  'pregen_retry') group by 1;`.
+- **Removing a bad primer:** `delete from lesson_primers where objective_id =
+  '<id>';`. The next learner to open Key terms gets a fresh one.
+
+Example (Python and JavaScript, $10): `content` primers, `mode` estimate,
+`tracks` `PYTHON,JAVASCRIPT`, `max_usd` 10; then a trial `submit` with `limit`
+10; `collect`; then `submit` with `confirm_full_run`; `collect`.
+
 ## Generating sims (REQ-230)
 
 `npm run sims:generate` (backend) drafts one sim at a time for a course

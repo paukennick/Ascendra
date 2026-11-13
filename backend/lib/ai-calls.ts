@@ -79,7 +79,12 @@ export type AiPurpose =
   | "pregen"
   | "pregen_fact_check"
   // REQ-235: the one live steered retry of a held pre-generated half.
-  | "pregen_retry";
+  | "pregen_retry"
+  // REQ-253: a lesson's Key terms primer written on first use (live, charged
+  // to the learner who opened it, like a shared lesson), and the batch rows
+  // of primer pre-generation (one row per model, from the Batches usage).
+  | "primer"
+  | "pregen_primer";
 
 // REQ-208: the prefix every pre-generation purpose starts with, so the global
 // ceiling's sum can leave them out with one predicate.

@@ -321,6 +321,8 @@ export interface PregenArgs {
   // REQ-248 (FAIL-1603): a submit without --limit is a full run; it must be
   // asked for in so many words, after a trial (docs/operations-runbook.md).
   confirmFullRun: boolean;
+  // REQ-253: make lesson primers ("Key terms") instead of lessons.
+  primers: boolean;
 }
 
 const BATCH_ID = /^msgbatch_[A-Za-z0-9]+$/;
@@ -328,7 +330,7 @@ const BATCH_ID = /^msgbatch_[A-Za-z0-9]+$/;
 const TRACK_CODE = /^[A-Za-z0-9_-]{1,40}$/;
 
 export function parseArgs(argv: string[]): PregenArgs {
-  const out: PregenArgs = { mode: "estimate", tracks: [], limit: null, maxUsd: null, dryRun: false, allowConcurrent: false, confirmFullRun: false };
+  const out: PregenArgs = { mode: "estimate", tracks: [], limit: null, maxUsd: null, dryRun: false, allowConcurrent: false, confirmFullRun: false, primers: false };
   const value = (i: number, flag: string) => {
     const v = argv[i];
     if (v === undefined || v.startsWith("--")) throw new Error(`${flag} needs a value`);
@@ -361,6 +363,7 @@ export function parseArgs(argv: string[]): PregenArgs {
     } else if (a === "--dry-run") out.dryRun = true;
     else if (a === "--allow-concurrent") out.allowConcurrent = true;
     else if (a === "--confirm-full-run") out.confirmFullRun = true;
+    else if (a === "--primers") out.primers = true;
     else if (a === "--summary") out.summaryPath = value(++i, a);
     else throw new Error(`Unknown option ${a}`);
   }
@@ -376,6 +379,8 @@ export function parseArgs(argv: string[]): PregenArgs {
     }
   }
   if (out.mode !== "collect" && out.introBatchId) throw new Error("--intro-batch is only for --collect");
+  // REQ-253: a primer batch is one stage; there is no intro batch.
+  if (out.primers && out.introBatchId) throw new Error("--intro-batch is only for lesson batches, not --primers");
   return out;
 }
 

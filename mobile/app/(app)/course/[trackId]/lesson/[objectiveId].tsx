@@ -12,6 +12,7 @@ import type { GradeResult, LessonContent, MasteryStatus, NextObjective } from "@
 import { masteryAdvice, SOLO_HINT_NOTE, SOLO_OPEN_NOTE } from "@/lib/masteryAdvice";
 import { ReportProblem } from "@/components/ReportProblem";
 import { ReportLessonProblem } from "@/components/ReportLessonProblem";
+import { KeyTermsButton } from "@/components/KeyTerms";
 import {
   Badge,
   Body,
@@ -788,6 +789,8 @@ export default function LessonFlow() {
     <Screen scrollRef={scrollRef}>
       <Stack.Screen options={headerOptions} />
       <StepHeader step={step} steps={stepsFor(labPrompt)} guidedSkipped={guidedSkipped} />
+      {/* REQ-253: Key terms, a constant reference at every step. */}
+      <KeyTermsButton objectiveId={objectiveId} />
       {/* REQ-250: says the learner may leave; the header has the way out. */}
       {showLeaveNote(step) ? <Muted style={styles.leaveNote}>{LEAVE_NOTE}</Muted> : null}
       {/* REQ-252: the learner's level for this unit (pilot courses), one tap

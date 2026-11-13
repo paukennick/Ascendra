@@ -459,6 +459,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and exists(select 1 from pg_constraint where conname = 'learner_events_event_078') as ok`,
   },
   {
+    // REQ-253: the Key terms route reads and writes lesson_primers, and a
+    // primer held back is logged in item_holdbacks as item_kind 'primer'.
+    migration: "079_lesson_primers.sql",
+    what: "lesson_primers (Key terms in a lesson) and item_kind 'primer' on item_holdbacks",
+    sql: `select to_regclass('public.lesson_primers') is not null
+             and exists(select 1 from pg_constraint where conname = 'item_holdbacks_item_kind_067'
+                         and pg_get_constraintdef(oid) like '%''primer''%') as ok`,
+  },
+  {
     // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
     migration: "074_independent_confirmation.sql",
     what: "the 074 mastery_detail() (Independent needs a second unassisted correct answer 24 h after the first)",
