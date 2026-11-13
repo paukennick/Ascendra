@@ -167,6 +167,11 @@ export interface SeedTrack {
   // disclaimerVersion when that wording materially changes and everyone is
   // asked again rather than being treated as having agreed to new text.
   requiresAcknowledgement?: boolean;
+  // REQ-252 (migration 078): switch on the level-aware lesson flow (the
+  // one-tap hunch and full worked example for New learners, "Skip guided"
+  // offered to Experienced ones). Phase 1: Python and JavaScript only. The
+  // seed sets subject_tracks.level_flow and never clears it.
+  levelFlow?: boolean;
   disclaimerKey?: string;
   disclaimerVersion?: number;
 
@@ -1333,6 +1338,8 @@ const PY = {
 // ---------------------------------------------------------------------------
 export const PYTHON_TRACK: SeedTrack = {
   code: "PYTHON",
+  // REQ-252: phase 1 pilot of the level-aware lesson flow.
+  levelFlow: true,
   title: "Python Programming Coach",
   description:
     "9-week intro-to-advanced Python progression: syntax and control flow through OOP, the standard library, functional patterns, testing/typing, and concurrency.",
@@ -1539,6 +1546,8 @@ const JS = {
 // ---------------------------------------------------------------------------
 export const JAVASCRIPT_TRACK: SeedTrack = {
   code: "JAVASCRIPT",
+  // REQ-252: phase 1 pilot of the level-aware lesson flow.
+  levelFlow: true,
   title: "JavaScript Programming Coach",
   description:
     "9-week intro-to-advanced JavaScript progression: syntax and the DOM through async patterns, ES6+, prototypes, testing/tooling, and Node.js.",

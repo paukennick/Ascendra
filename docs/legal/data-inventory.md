@@ -8,10 +8,12 @@ this file and those pages together**.
 
 Rebuilt 2026-11-09 (REQ-205) from the table list of a database with every
 migration applied (migrations 001-070) and the foreign keys into `app_users`,
-and brought up to migration 079 on 2026-11-12 (REQ-228: 071-077 add
-`mature_content_confirmations`, `mastery_backup_074`,
-`inbound_email_events` and `app_users.totp_last_step`; REQ-253: 079 adds
-`lesson_primers`, shared content with no learner column),
+and brought up to migration 079 on 2026-11-12 (REQ-228, 2026-11-11: 071-077
+add `mature_content_confirmations`, `mastery_backup_074`,
+`inbound_email_events` and `app_users.totp_last_step`; REQ-252: 078 adds
+`learner_course_profiles`, `learner_unit_levels`, `learner_level_changes`
+and `learner_events.detail`; REQ-253: 079 adds `lesson_primers`, shared
+content with no learner column),
 not from memory: every table with a `user_id` column or a foreign key into
 `app_users` is below, and `lib/legal-privacy-f4.dbtest.ts` fails when a new one
 is missing from this file. Regenerate the list with:
@@ -63,7 +65,8 @@ row stays with its user link removed (and is listed under Kept after deletion).
 | `exam_sessions`, `exam_session_items`, `exam_outcomes` | practice exams and each saved answer; an exam result the learner reported | practice, readiness | while account open | nothing (cascade) | yes |
 | `study_plans`, `placement_checks`, `placement_items`, `coach_quiz_turns` | study plans, placement checks with answered items, Quiz me turns | planning and coaching | while account open | nothing (cascade) | yes |
 | `lesson_progress`, `lesson_progress_tombstones`, `lesson_hint_reveals` | place in a lesson; when a lesson step was finished or cleared; which Solo choices were revealed | resume across devices | while account open | nothing (cascade) | yes |
-| `learner_events`, `learner_onboarding` | learning milestones (no answer text); first-run state | checking Ascendra helps people learn | while account open | nothing (cascade) | yes |
+| `learner_events`, `learner_onboarding` | learning milestones and, since REQ-252, lesson steps (a hunch shown, made or skipped, a Teach card reached, Guided skipped, Key terms opened, a level or goal set, with the level, a card number or seconds; no answer text); first-run state | checking Ascendra helps people learn | while account open | nothing (cascade) | yes |
+| `learner_course_profiles`, `learner_unit_levels`, `learner_level_changes` (REQ-252) | per course: the goal answer ("why are you taking this course?") and the level (New, Some background, Experienced); optional per-unit levels; each level change, who or what made it, and whether it was seen or undone | choosing how each lesson is taught (the solo check and mastery rule are the same at every level) | while account open | nothing (cascade) | yes |
 | `learner_intake`, `learner_intake_targets` (REQ-169) | study-profile answers: goal, experience, weekly hours, what it's for, up to five courses with exam dates | setting up the study plan | while account open | nothing (cascade) | yes |
 | `lab_runs`, `lab_run_steps` | lab runs and every graded step with the learner's answers | labs | while account open | nothing (cascade) | yes |
 | `sim_runs`, `sim_run_commands`, `sim_run_reasoning` | sim runs, every command sent, written reasoning with its grade | sims | while account open | nothing (cascade; commands via their run) | yes |

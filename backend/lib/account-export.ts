@@ -172,6 +172,14 @@ export const EXPORT_SECTIONS = {
   intake: "select goal, experience, weekly_hours, use_for, skipped, created_at, updated_at from learner_intake where user_id = $1 order by user_id asc",
   intakeTargets:
     "select track_id, exam_date, position, created_at from learner_intake_targets where user_id = $1 order by position asc, track_id asc",
+  // REQ-252 (migration 078): the per-course goal answer and level, any
+  // per-unit levels, and every level change (by the learner, by mastery
+  // evidence, and whether it was undone).
+  courseLevels: `select track_id, goal, level, level_source, answered_at, created_at, updated_at
+                   from learner_course_profiles where user_id = $1 order by track_id asc`,
+  unitLevels: "select track_id, unit_id, level, source, updated_at from learner_unit_levels where user_id = $1 order by track_id asc, unit_id asc",
+  levelChanges: `select track_id, unit_id, from_level, to_level, reason, prior_unit_level, prior_unit_source, created_at, seen_at, undone_at
+                   from learner_level_changes where user_id = $1 order by created_at asc, id asc`,
   // REQ-144: unrestricted access given to this account, and its audit trail
   // (who gave, changed or ended it, and when). The giver is named, not their
   // email address.

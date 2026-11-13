@@ -123,14 +123,18 @@ describe("the component and its placement", () => {
     assert.match(src, /localDataGuard\.mayWrite\(key\)/);
   });
   test("exported for other screens, with initiallyOpen for the levels work", () => {
-    assert.match(src, /export function KeyTermsButton\(\{ objectiveId, initiallyOpen = false \}/);
+    // REQ-252 added onOpenChange (key_terms_opened / key_terms_closed events).
+    assert.match(src, /export function KeyTermsButton\(\{\s*objectiveId,\s*initiallyOpen = false,\s*onOpenChange,?\s*\}/);
     assert.match(src, /export function KeyTermsSheet/);
     assert.match(src, /export function useKeyTerms/);
   });
   test("the lesson screen places it once, beside the step header, at every step", () => {
     const lesson = read("app/(app)/course/[trackId]/lesson/[objectiveId].tsx");
-    assert.equal((lesson.match(/<KeyTermsButton /g) ?? []).length, 1);
-    assert.match(lesson, /<StepHeader [^\n]*\/>\n\s*\{\/\* REQ-253[^\n]*\*\/\}\n\s*<KeyTermsButton objectiveId=\{objectiveId\} \/>/);
+    assert.equal((lesson.match(/<KeyTermsButton\b/g) ?? []).length, 1);
+    // Right after the step header (a comment between them is allowed). REQ-252:
+    // New learners in a pilot course get it opened once at the start.
+    assert.match(lesson, /<StepHeader [^\n]*\/>\n\s*\{\/\* REQ-253[\s\S]*?\*\/\}\n\s*<KeyTermsButton\b[^>]*objectiveId=\{objectiveId\}[^>]*\/>/);
+    assert.match(lesson, /<KeyTermsButton\b[^>]*initiallyOpen=\{openKeyTermsAtStart\(flow, step\)\}/);
   });
   test("first use may write and fact-check the terms: the long model timeout", () => {
     assert.equal(requestTimeoutMs(`/api/objectives/${OBJ}/primer`), MODEL_TIMEOUT_MS);
