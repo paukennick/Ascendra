@@ -106,6 +106,10 @@
   unit tests.
 - A new migration the code depends on has a probe in
   `backend/lib/schema-status.ts`.
+- A migration that widens a check an earlier migration named restates it
+  under the SAME name, so the earlier probe and the earlier file's replay guard
+  still hold, and a DB test replays the earlier file after it (FAIL-1720,
+  FAIL-1793).
 - A new foreign key into `app_users` or `attempts` has an index led by its
   column (FAIL-393; account deletion otherwise scans the table per row).
 - A new check, key or column rule on `attempts` still holds after every

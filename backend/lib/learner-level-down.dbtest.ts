@@ -22,6 +22,10 @@ import { POST as changePost } from "../app/api/courses/[id]/level/changes/[chang
 import { POST as suggestionPost } from "../app/api/courses/[id]/level/suggestion/route";
 import { POST as goalCardPost } from "../app/api/courses/[id]/level/goal-card/route";
 import { goalQuestionSummary } from "./metrics";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { ownerQuery, closeOwner } from "./test-owner";
+import { checkSchema, SCHEMA_PROBES } from "./schema-status";
 
 const run = Date.now().toString(36);
 const users: string[] = [];
@@ -112,6 +116,7 @@ before(async () => {
 after(async () => {
   await query(`delete from subject_tracks where id = any($1::uuid[])`, [[trackId, plainTrack]]);
   if (users.length) await query(`delete from app_users where id = any($1::uuid[])`, [users]);
+  await closeOwner();
   await closePool();
 });
 
@@ -332,5 +337,30 @@ describe("goal question metrics", () => {
     );
     const lesson = rows.find((r) => r.via === "lesson")!;
     assert.deepEqual([lesson.total, lesson.dismissed, lesson.dismissedAuto], [1, 1, 1]);
+  });
+});
+
+describe("migration 080", () => {
+  const sqlOf = (f: string) => readFileSync(join(__dirname, "..", "supabase", "migrations", f), "utf8");
+  test("FAIL-1793: the checks keep 078's names, so a replay of 078 (or 080) keeps the new values; every probe passes", async () => {
+    const names = await query<{ conname: string }>(
+      `select conname from pg_constraint where conrelid in ('learner_events'::regclass, 'learner_level_changes'::regclass) and contype = 'c'
+         and (conname like 'learner_events_event%' or conname like 'learner_level_changes_reason%') order by conname`
+    );
+    assert.deepEqual(names.map((n) => n.conname), ["learner_events_event_078", "learner_level_changes_reason_check"]);
+    await ownerQuery(`begin; ${sqlOf("078_learner_levels.sql")}; commit;`);
+    await ownerQuery(`begin; ${sqlOf("080_level_down_suggestions.sql")}; commit;`);
+    const u = await newUser();
+    await query(`insert into learner_events (user_id, event, track_id) values ($1, 'goal_card_shown', $2)`, [u, trackId]);
+    await query(
+      `insert into learner_level_changes (user_id, track_id, unit_id, from_level, to_level, reason) values ($1, $2, $3, 'some', 'new', 'suggested')`,
+      [u, trackId, units[0]]
+    );
+    await assert.rejects(query(`insert into learner_events (user_id, event) values ($1, 'made_up')`, [u]), /learner_events_event_078/);
+    await assert.rejects(
+      query(`insert into learner_level_changes (user_id, track_id, from_level, to_level, reason) values ($1, $2, 'some', 'new', 'magic')`, [u, trackId]),
+      /learner_level_changes_reason_check/
+    );
+    assert.deepEqual((await checkSchema((sql) => query<{ ok: boolean }>(sql), SCHEMA_PROBES)).missing, []);
   });
 });

@@ -34,9 +34,14 @@
 --    learner just chose it), so it is never shown as a notice; older apps
 --    read notices only, and only reason 'mastery'.
 --
--- Both checks are restated under new names (..._080), added NOT VALID and
--- then validated, as 078 did.
---
+-- Both checks are restated UNDER THEIR EXISTING NAMES
+-- (learner_events_event_078, learner_level_changes_reason_check), added NOT
+-- VALID and then validated, as 079 did for 067's check (FAIL-1720): 078 is
+-- "safe to run twice" and its guard skips when a constraint of that name
+-- exists, so a replay of 078 after 080 keeps 080's list instead of adding a
+-- second, narrower check that would refuse the new events (FAIL-1793). Each
+-- swap is guarded by what the current definition already allows.
+
 -- ORDER. Apply BEFORE the backend that writes these values: the level check,
 -- the suggestion route, the goal-card route and the guess-feedback route
 -- insert them, and /api/health probes for this file (lib/schema-status.ts).
@@ -54,10 +59,8 @@
 --   delete from learner_events where event in ('guess_matched', 'level_down_suggested',
 --     'level_down_declined', 'goal_card_shown');
 --   update learner_level_changes set reason = 'learner' where reason = 'suggested';
---   -- then restate learner_events_event_078 (078's list) and drop
---   -- learner_events_event_080; restate learner_level_changes_reason_check
---   -- as check (reason in ('learner', 'mastery')) and drop
---   -- learner_level_changes_reason_080.
+--   -- then restate learner_events_event_078 with 078's list and
+--   -- learner_level_changes_reason_check as check (reason in ('learner', 'mastery')).
 -- docs/deploy-runbook-integration.md lists it with the other down paths.
 --
 -- Safe to run twice: guarded DO blocks.
@@ -66,10 +69,12 @@ set local lock_timeout = '5s';
 
 do $$
 begin
-    if not exists (select 1 from pg_constraint where conrelid = 'learner_events'::regclass and conname = 'learner_events_event_080') then
+    if not exists (select 1 from pg_constraint where conrelid = 'learner_events'::regclass
+                    and conname = 'learner_events_event_078'
+                    and pg_get_constraintdef(oid) like '%''goal_card_shown''%') then
         alter table learner_events drop constraint if exists learner_events_event_078;
         alter table learner_events drop constraint if exists learner_events_event_check;
-        alter table learner_events add constraint learner_events_event_080 check (event in (
+        alter table learner_events add constraint learner_events_event_078 check (event in (
             'lesson_started', 'lesson_finished', 'review_done', 'exam_taken',
             'placement_done', 'first_run_completed', 'exam_outcome',
             -- REQ-252 phase 1 (078)
@@ -80,13 +85,15 @@ begin
             -- REQ-256 (080)
             'guess_matched', 'level_down_suggested', 'level_down_declined',
             'goal_card_shown')) not valid;
-        alter table learner_events validate constraint learner_events_event_080;
+        alter table learner_events validate constraint learner_events_event_078;
     end if;
 
-    if not exists (select 1 from pg_constraint where conrelid = 'learner_level_changes'::regclass and conname = 'learner_level_changes_reason_080') then
+    if not exists (select 1 from pg_constraint where conrelid = 'learner_level_changes'::regclass
+                    and conname = 'learner_level_changes_reason_check'
+                    and pg_get_constraintdef(oid) like '%''suggested''%') then
         alter table learner_level_changes drop constraint if exists learner_level_changes_reason_check;
-        alter table learner_level_changes add constraint learner_level_changes_reason_080
+        alter table learner_level_changes add constraint learner_level_changes_reason_check
             check (reason in ('learner', 'mastery', 'suggested')) not valid;
-        alter table learner_level_changes validate constraint learner_level_changes_reason_080;
+        alter table learner_level_changes validate constraint learner_level_changes_reason_check;
     end if;
 end $$;

@@ -17352,6 +17352,33 @@
       "prevention_rules": [],
       "prevention_notes": "The existing ship-notes test caught it; a migration with no new table still updates the inventory marker.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1793",
+      "date": "2026-11-12",
+      "title": "080 renamed 078's checks, so 078's health probe failed and a replay of 078 would add a narrower second check",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "With 080 applied, npm run test:db failed 9 tests: /api/health 503 and schema status listing 078_learner_levels.sql as missing, because 078's probe looks for learner_events_event_078, which the first draft of 080 dropped in favor of learner_events_event_080.",
+      "how_detected": "test (npm run test:db on a throwaway Postgres 16)",
+      "root_cause": "The first draft restated the checks under new names. 078's probe and 078's own replay guard key on the name learner_events_event_078: the probe then reports 078 missing, and replaying 078 (safe to run twice) would add its 078-only list beside 080's, refusing the four new events. Same trap as FAIL-1720 (079 and 067).",
+      "requirement": "REQ-256",
+      "affected": [
+        "backend/supabase/migrations/080_level_down_suggestions.sql",
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "080 restates both checks under their existing names (learner_events_event_078, learner_level_changes_reason_check), guarded by what the definition already allows; the 080 probe reads the definitions.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learner-level-down.dbtest.ts::FAIL-1793: the checks keep 078's names",
+        "so a replay of 078 (or 080) keeps the new values; every probe passes"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A migration that widens an earlier migration's named check restates it under the SAME name (FAIL-1720, FAIL-1793) and a DB test replays the earlier migration after it.",
+      "recurrence_of": ""
     }
   ]
 }
