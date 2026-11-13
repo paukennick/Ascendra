@@ -112,7 +112,10 @@ describe("screens are wired (source checks)", () => {
   });
 
   test("the lesson card answers or dismisses through the level API, and never blocks the lesson", () => {
-    assert.match(lesson, /showsLessonGoalCard\(levelState, goalCard\)/);
+    // REQ-256: still showsLessonGoalCard's rule, now behind the server's count
+    // of lessons it was shown in (showsCountedGoalCard wraps it).
+    assert.match(lesson, /showsCountedGoalCard\(levelState, goalCard, goalCardServer\)/);
+    assert.match(lesson, /\/level\/goal-card`, \{ objectiveId: asked \}/);
     assert.match(lesson, /\{ goal, via: "lesson" \}/);
     assert.match(lesson, /\{ dismiss: true, via: "lesson" \}/);
     // The card is drawn beside the step content, not instead of it: the guess

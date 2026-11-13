@@ -111,14 +111,18 @@ import {
   levelFadingPlan,
   lessonGoalDone,
   parseLevelChange,
-  showsLessonGoalCard,
+  parseLevelDownSuggestion,
+  goalCardAllowed,
+  showsCountedGoalCard,
   type CourseGoal,
+  type GoalCardServer,
+  type LevelDownSuggestion,
   type LessonGoalCard as LessonGoalCardState,
   parseLevelState,
   type LevelChange,
   type LevelState,
 } from "@/lib/learnerLevel";
-import { DoneProgress, HunchNote, HunchStep, LadderView, LessonGoalCard, LevelChip, LevelNotice } from "@/components/LearnerLevel";
+import { DoneProgress, HunchNote, HunchStep, LadderView, LessonGoalCard, LevelChip, LevelDownCard, LevelNotice } from "@/components/LearnerLevel";
 
 // REQ-101 (FAIL-093): device copies once written under "anon" are removed
 // the first time a lesson opens in this app run.
@@ -263,11 +267,14 @@ export default function LessonFlow() {
   const [levelState, setLevelState] = useState<LevelState | null>(null);
   const [levelLoaded, setLevelLoaded] = useState(false);
   const [levelNotice, setLevelNotice] = useState<LevelChange | null>(null);
+  // REQ-256: a move-down suggestion from the same check (never a change).
+  const [levelDown, setLevelDown] = useState<LevelDownSuggestion | null>(null);
   const levelChecked = useRef<string | null>(null);
   useEffect(() => {
     let cancelled = false;
     setLevelLoaded(false);
     setLevelNotice(null);
+    setLevelDown(null);
     levelChecked.current = null;
     const q = unitId ? `?unitId=${encodeURIComponent(unitId)}` : "";
     api
@@ -587,14 +594,35 @@ export default function LessonFlow() {
   // REQ-252: after a solo answer, the unit may move up a level from the
   // evidence (backend lib/learner-level.ts). Asked once per lesson visit, on
   // the done screen; a change comes back as a notice with Undo.
+  // REQ-256: `suggest: true` says this build can show the move-down
+  // suggestion; when nothing moved up, one may come back instead.
   useEffect(() => {
     if (step !== "done" || !checks.solo?.result || !unitId || levelChecked.current === objectiveId) return;
     levelChecked.current = objectiveId;
     api
-      .post<{ change: unknown }>(`/api/courses/${trackId}/level/check`, { unitId })
-      .then((res) => setLevelNotice(parseLevelChange(res.change)))
+      .post<{ change: unknown; suggestion?: unknown }>(`/api/courses/${trackId}/level/check`, { unitId, suggest: true })
+      .then((res) => {
+        setLevelNotice(parseLevelChange(res.change));
+        setLevelDown(parseLevelDownSuggestion(res.suggestion));
+      })
       .catch(() => {});
   }, [step, checks.solo?.result, unitId, trackId, objectiveId]);
+  function applyLevelState(res: unknown) {
+    const next = parseLevelState(res);
+    if (next && unitId) setLevelState({ ...next, effective: next.units.find((u) => u.unitId === unitId)?.level ?? next.courseLevel ?? next.suggestion.level });
+  }
+  async function answerLevelDown(answer: "yes" | "not_now"): Promise<LevelChange | null> {
+    if (!levelDown) return null;
+    const res = await api.post<{ change?: unknown; state?: unknown }>(`/api/courses/${trackId}/level/suggestion`, {
+      unitId: levelDown.unitId,
+      answer,
+    });
+    applyLevelState(res.state);
+    return parseLevelChange(res.change);
+  }
+  async function undoLevelDown(change: LevelChange) {
+    applyLevelState(await api.post<unknown>(`/api/courses/${trackId}/level/changes/${change.id}`, { action: "undo" }));
+  }
   async function answerLevelNotice(action: "seen" | "undo") {
     if (!levelNotice) return;
     const res = await api.post<unknown>(`/api/courses/${trackId}/level/changes/${levelNotice.id}`, { action });
@@ -612,11 +640,34 @@ export default function LessonFlow() {
   const [goalCardDone, setGoalCardDone] = useState<string | null>(null);
   const [goalCardSaving, setGoalCardSaving] = useState(false);
   const [goalCardError, setGoalCardError] = useState<string | null>(null);
+  // REQ-256: the server counts the lessons the card was shown in and stops
+  // it after two unanswered (recorded dismissed, reason auto). Asked once per
+  // lesson, only while the course has never been asked; nothing shows until
+  // it answers, and a failed ask shows the card as before.
+  const [goalCardServer, setGoalCardServer] = useState<GoalCardServer>("unknown");
+  const goalCardAsked = useRef<string | null>(null);
   useEffect(() => {
     setGoalCard("ask");
     setGoalCardDone(null);
     setGoalCardError(null);
+    setGoalCardServer("unknown");
   }, [trackId, objectiveId]);
+  useEffect(() => {
+    if (!levelLoaded || !levelState || levelState.answered || goalCardAsked.current === objectiveId) return;
+    const asked = objectiveId;
+    goalCardAsked.current = asked;
+    // Not cancelled when the level state reloads (that would leave the card
+    // unknown for good); only an answer for another lesson is dropped.
+    api
+      .post<unknown>(`/api/courses/${trackId}/level/goal-card`, { objectiveId: asked })
+      .then((res) => {
+        if (goalCardAsked.current !== asked) return;
+        const show = goalCardAllowed(res);
+        setGoalCardServer(show ? "show" : "hide");
+        if (!show) setLevelState((prev) => (prev ? { ...prev, answered: true } : prev));
+      })
+      .catch(() => goalCardAsked.current === asked && setGoalCardServer("show"));
+  }, [levelLoaded, levelState, trackId, objectiveId]);
   async function answerGoalCard(body: Record<string, unknown>, outcome: "saved" | "dismissed") {
     setGoalCardSaving(true);
     setGoalCardError(null);
@@ -861,7 +912,7 @@ export default function LessonFlow() {
         </View>
       ) : null}
       {/* REQ-255: why they're taking the course, once, if never asked. */}
-      {levelLoaded && showsLessonGoalCard(levelState, goalCard) ? (
+      {levelLoaded && showsCountedGoalCard(levelState, goalCard, goalCardServer) ? (
         <LessonGoalCard
           done={goalCardDone}
           saving={goalCardSaving}
@@ -1092,6 +1143,8 @@ export default function LessonFlow() {
               onUndo={() => answerLevelNotice("undo")}
             />
           ) : null}
+          {/* REQ-256: a suggestion to move this unit down, never a change. */}
+          {levelDown ? <LevelDownCard suggestion={levelDown} onAnswer={answerLevelDown} onUndo={undoLevelDown} /> : null}
           {/* REQ-252: progress signals for the pilot courses. */}
           {flowOn ? (
             <DoneProgress

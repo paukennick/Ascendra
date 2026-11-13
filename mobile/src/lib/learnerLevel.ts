@@ -614,6 +614,11 @@ export function levelDownDone(change: Pick<LevelChange, "unitTitle" | "toLevel">
   return `Done. ${where} is now ${LEVEL_NAMES[change.toLevel]}, starting with your next lesson there.`;
 }
 
+export function levelDownUndone(change: Pick<LevelChange, "unitTitle" | "fromLevel">): string {
+  const where = change.unitTitle ? `"${change.unitTitle}"` : "This unit";
+  return `Undone. ${where} is back to ${LEVEL_NAMES[change.fromLevel]}.`;
+}
+
 export function levelDownSnoozed(): string {
   return `Okay, no change. We won't ask about this unit again for ${LEVEL_DOWN_SNOOZE_DAYS} days.`;
 }
@@ -631,4 +636,18 @@ export function goalCardAllowed(res: unknown): boolean {
   if (!res || typeof res !== "object") return true;
   const r = res as Record<string, unknown>;
   return typeof r.show === "boolean" ? r.show : true;
+}
+
+// The lesson asks the server first and shows nothing until it answers (no
+// card that flashes and disappears); a failed ask shows it, as before. Once
+// answered or put aside in this lesson, the card keeps its one-line
+// confirmation in place whatever the server said.
+export type GoalCardServer = "unknown" | "show" | "hide";
+export function showsCountedGoalCard(
+  state: Pick<LevelState, "answered"> | null,
+  local: LessonGoalCard,
+  server: GoalCardServer
+): boolean {
+  if (local !== "ask") return true;
+  return server === "show" && showsLessonGoalCard(state, local);
 }

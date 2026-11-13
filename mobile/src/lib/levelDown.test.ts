@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 import {
   GOAL_CARD_MAX_SHOWINGS,
   goalCardAllowed,
+  showsCountedGoalCard,
   LEVEL_DOWN_MIN_GUESSES,
   LEVEL_DOWN_MIN_MISSED,
   LEVEL_DOWN_NOT_NOW,
@@ -16,6 +17,7 @@ import {
   levelDownDone,
   levelDownQuestion,
   levelDownSnoozed,
+  levelDownUndone,
   levelDownWhat,
   parseLevelChange,
   parseLevelDownSuggestion,
@@ -62,6 +64,7 @@ describe("move-down suggestion", () => {
     }
     assert.match(levelDownSnoozed(), new RegExp(`${LEVEL_DOWN_SNOOZE_DAYS} days`));
     assert.match(levelDownDone({ unitTitle: "Loops", toLevel: "new" }), /"Loops" is now New/);
+    assert.equal(levelDownUndone({ unitTitle: null, fromLevel: "experienced" }), "Undone. This unit is back to Experienced.");
   });
   test("no shame: never counts misses back or calls anything a failure", () => {
     const all = [
@@ -71,6 +74,7 @@ describe("move-down suggestion", () => {
       levelDownWhat({ toLevel: "some" }),
       levelDownDone({ unitTitle: null, toLevel: "some" }),
       levelDownSnoozed(),
+      levelDownUndone({ unitTitle: "Loops", fromLevel: "some" }),
     ].join(" ");
     assert.doesNotMatch(all, /\b(fail|failed|failing|wrong|missed|struggl|behind|bad|poor|demot|easy mode|\d+ of your)\b/i);
   });
@@ -86,5 +90,22 @@ describe("lesson goal card", () => {
     assert.equal(goalCardAllowed({ show: true, autoDismissed: false }), true);
     assert.equal(goalCardAllowed(null), true);
     assert.equal(goalCardAllowed({ error: "Not found" }), true);
+  });
+  test("nothing shows until the server answers; a confirmation stays in place", () => {
+    const asked = { answered: false };
+    assert.equal(showsCountedGoalCard(asked, "ask", "unknown"), false);
+    assert.equal(showsCountedGoalCard(asked, "ask", "show"), true);
+    assert.equal(showsCountedGoalCard(asked, "ask", "hide"), false);
+    assert.equal(showsCountedGoalCard({ answered: true }, "ask", "show"), false);
+    assert.equal(showsCountedGoalCard({ answered: true }, "saved", "hide"), true);
+  });
+});
+
+describe("screens are wired (source checks)", () => {
+  const lesson = readFileSync(new URL("../../app/(app)/course/[trackId]/lesson/[objectiveId].tsx", import.meta.url), "utf8");
+  test("the lesson's level check says it can show the suggestion and draws it on the done screen", () => {
+    assert.match(lesson, /\/level\/check`, \{ unitId, suggest: true \}/);
+    assert.match(lesson, /<LevelDownCard suggestion=\{levelDown\}/);
+    assert.match(lesson, /\/level\/suggestion`/);
   });
 });
