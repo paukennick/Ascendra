@@ -33,6 +33,14 @@ updates:
         update-types: [version-update:semver-major]
       - dependency-name: "@types/bcryptjs"
         update-types: [version-update:semver-major]
+      # Nov 12, 2026 (Nick, PR cleanup): taken in a planned upgrade, not from the
+      # bot. The SDK's 1.x can change real API behaviour that mocked tests miss.
+      - dependency-name: "@anthropic-ai/sdk"
+        update-types: [version-update:semver-major]
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
+      - dependency-name: "@vercel/oidc"
+        update-types: [version-update:semver-major]
     groups:
       backend-minor-patch:
         update-types: [minor, patch]
@@ -57,6 +65,15 @@ updates:
         update-types: [version-update:semver-major]
       - dependency-name: typescript
         update-types: [version-update:semver-major]
+      # Nov 12, 2026: React 19.3 changes ref and ScrollView types and breaks the
+      # mobile typecheck (#141). React minors move with the Expo SDK step
+      # (docs/next-store-build-plan.md), so the bot proposes only patches.
+      - dependency-name: react
+        update-types: [version-update:semver-minor]
+      - dependency-name: react-dom
+        update-types: [version-update:semver-minor]
+      - dependency-name: "@types/react"
+        update-types: [version-update:semver-minor]
     groups:
       expo-sdk:
         patterns: [expo, expo-*, "@expo/*"]
