@@ -138,7 +138,7 @@ describe("Export my data downloads a JSON file on the web (FAIL-905)", () => {
 describe("the legal version the app shows (FAIL-901)", () => {
   test("the app sends the legal version on every request, and it is the text it carries", () => {
     assert.equal(LEGAL_VERSION_HEADER, "X-Ascendra-Legal");
-    assert.equal(TERMS_VERSION, "2026-11-10");
+    assert.equal(TERMS_VERSION, "2026-11-13");
     assert.match(read("src", "api", "client.ts"), /\[LEGAL_VERSION_HEADER\]: TERMS_VERSION/);
     const backend = readFileSync(join(root, "..", "backend", "lib", "legal.ts"), "utf8");
     assert.match(backend, new RegExp(`LEGAL_VERSION_HEADER = "${LEGAL_VERSION_HEADER}"`));
@@ -147,8 +147,14 @@ describe("the legal version the app shows (FAIL-901)", () => {
     const content = read("src", "content", "legal.ts");
     for (const n of ["TERMS", "PRIVACY"]) {
       const m = content.match(new RegExp(`export const ${n}: LegalDoc = \\{[\\s\\S]*?version: "([^"]+)",\\s*updated: "([^"]+)"`));
-      assert.deepEqual([m?.[1], m?.[2]], ["2026-11-10", "November 10, 2026"], n);
+      assert.deepEqual([m?.[1], m?.[2]], ["2026-11-13", "November 13, 2026"], n);
     }
+  });
+  test("REQ-260: the date of birth asked for mental health courses is disclosed, never denied", () => {
+    const content = read("src", "content", "legal.ts");
+    assert.doesNotMatch(content, /don't ask for (or keep )?(your|a) date of birth/);
+    assert.match(content, /your date of birth \(asked once, the first time\)/);
+    assert.match(content, /true to the best of your knowledge/);
   });
   test("no placeholder, no draft banner; Nick's decisions are filled in", () => {
     const content = read("src", "content", "legal.ts");

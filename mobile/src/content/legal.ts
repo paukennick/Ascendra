@@ -17,7 +17,7 @@
 // so every account is asked to agree once.
 //
 // 2026-11-09 (REQ-165, Nick): Terms section 4 describes the one study notice
-// in place of per-course acknowledgements; Privacy sections 1 and 5 add
+// in place of per-course acknowledgments; Privacy sections 1 and 5 add
 // graded lab-step answers, coach-reply reports, access grants and the study
 // notice record. Both are a new version: everyone agrees once more, in the
 // same launch flow as the study notice (src/lib/legal.ts launchGate).
@@ -32,6 +32,15 @@
 // Privacy are one new version: everyone agrees once more. Nothing here has
 // had a lawyer's review; a [square-bracket] placeholder must never ship again
 // (src/lib/productBasics.test.ts checks).
+//
+// 2026-11-13 (REQ-260, Nick): mental health courses ask for a date of birth
+// once and an 18+ acknowledgment with an attestation per course (REQ-259), so
+// the Terms (section 2) and Privacy (sections 1, 3, 6, 7 and 8) stop saying
+// that a date of birth is never asked and describe what is kept. Both are one new
+// version: everyone agrees once more. The text moves to US spelling with this
+// version (REQ-220). Website analytics are NOT added here: the old PRs (#115,
+// #116) would only have covered the few server-rendered token pages, not the
+// web app; they need their own design and their own version.
 
 import { TRADEMARK_OWNERS } from "../lib/vendor";
 
@@ -68,8 +77,8 @@ export const AI_COUNTS_MONTHS = 12;
 
 export const TERMS: LegalDoc = {
   title: "Terms of Service",
-  version: "2026-11-10",
-  updated: "November 10, 2026",
+  version: "2026-11-13",
+  updated: "November 13, 2026",
   intro:
     "These terms are the agreement between you and Ascendra's operator when you use Ascendra on the web or in the app. Please read them; creating an account means you accept them.",
   sections: [
@@ -83,7 +92,7 @@ export const TERMS: LegalDoc = {
     {
       title: "2. Who can use it",
       body: [
-        `You must be at least ${OWNER.minimumAge} to create an account, and you confirm that you are when you sign up. We don't ask for your date of birth. If you are under the age of majority where you live, a parent or guardian must agree to these terms on your behalf.`,
+        `You must be at least ${OWNER.minimumAge} to create an account, and you confirm that you are when you sign up. Mental health courses are for adults only: before you start each one you confirm that you are 18 or older and that what you've told us is true to the best of your knowledge, and the first time you also give your date of birth (see the Privacy Policy). If you are under the age of majority where you live, a parent or guardian must agree to these terms on your behalf.`,
         "One person per account. Keep your sign-in details to yourself.",
       ],
     },
@@ -106,8 +115,8 @@ export const TERMS: LegalDoc = {
       // expert review. Draft wording for the lawyer, like the rest.
       title: "5. Practice labs",
       body: [
-        "Hands-on labs (build, case and self-reported labs) are educational practice for exam preparation. Their people, organisations and cases are fictional; some labs have not yet been reviewed by a subject-matter expert, and any lab may contain errors. Labs are not professional advice of any kind, including medical, nursing, physical-therapy, fitness, legal, security or engineering advice.",
-        "Do not rely on a lab, its model answers or its feedback to make real-world decisions, including about a patient, a client, a system or an organisation. Follow your program, your employer's or facility's policies, licensed supervisors and current guidelines. In an emergency, call your local emergency services. If a lab looks wrong, use “Report a problem” on the lab.",
+        "Hands-on labs (build, case and self-reported labs) are educational practice for exam preparation. Their people, organizations and cases are fictional; some labs have not yet been reviewed by a subject-matter expert, and any lab may contain errors. Labs are not professional advice of any kind, including medical, nursing, physical-therapy, fitness, legal, security or engineering advice.",
+        "Do not rely on a lab, its model answers or its feedback to make real-world decisions, including about a patient, a client, a system or an organization. Follow your program, your employer's or facility's policies, licensed supervisors and current guidelines. In an emergency, call your local emergency services. If a lab looks wrong, use “Report a problem” on the lab.",
       ],
     },
     {
@@ -131,7 +140,7 @@ export const TERMS: LegalDoc = {
     {
       title: "8. Content ownership",
       body: [
-        "Ascendra's software, course structure and generated content belong to its operator. You may use them for your own study. Openly licensed source material keeps its own licence (see Sources & Trademarks).",
+        "Ascendra's software, course structure and generated content belong to its operator. You may use them for your own study. Openly licensed source material keeps its own license (see Sources & Trademarks).",
         "What you write — answers, coach messages, support requests — stays yours. You let us store and process it to run the service, as described in the Privacy Policy.",
       ],
     },
@@ -191,8 +200,8 @@ export const TERMS: LegalDoc = {
 // while paid plans are off.
 export const PRIVACY: LegalDoc = {
   title: "Privacy Policy",
-  version: "2026-11-10",
-  updated: "November 10, 2026",
+  version: "2026-11-13",
+  updated: "November 13, 2026",
   intro:
     "This policy explains what Ascendra stores about you, why, who else handles it, how long it is kept, and what you can do about it. It describes what the app actually stores and sends today.",
   sections: [
@@ -201,12 +210,13 @@ export const PRIVACY: LegalDoc = {
       body: [
         "• Account: email address, optional display name, optional profile photo, and a hashed password (never the password itself). If you sign in with Google, the Google account's ID and email address.",
         "• Security: two-factor settings and backup codes (stored hashed or encrypted); signed-in sessions with device name, browser or app details and IP address; a log of sign-in and security events with time and IP address, used to show your sessions, limit repeated attempts and flag suspicious activity; short-lived codes for verifying email, resetting passwords and confirming changes.",
-        "• Study activity: the courses you add or favourite; the lessons, questions, reviews, practice exams, scenarios and labs you've attempted; your answers (including anything you type) and how confident you said you were; the mastery levels, review schedule and study plan calculated from them; why you're taking each course and the level you study it at (New, Some background or Experienced, per course or per unit), with each change to that level and whether it was made by you, because your answers showed you'd moved up, or because you accepted a suggestion to move a unit down; study sessions; and that you accepted the study notice (and any course or lab disclaimers you accepted before it replaced them). If you choose to tell us how a real exam went, the date, the result and any score you enter.",
+        "• Study activity: the courses you add or favorite; the lessons, questions, reviews, practice exams, scenarios and labs you've attempted; your answers (including anything you type) and how confident you said you were; the mastery levels, review schedule and study plan calculated from them; why you're taking each course and the level you study it at (New, Some background or Experienced, per course or per unit), with each change to that level and whether it was made by you, because your answers showed you'd moved up, or because you accepted a suggestion to move a unit down; study sessions; and that you accepted the study notice (and any course or lab disclaimers you accepted before it replaced them). If you choose to tell us how a real exam went, the date, the result and any score you enter.",
         "• Learning milestones: a short record of milestones — a lesson started or finished, a review or practice exam done, a placement check finished, the welcome steps completed, an exam result reported, and the steps of a lesson (a guess made or skipped, which explanation card you reached, guided practice skipped, key terms opened, a level changed, why you're taking a course answered or put aside and where you were asked, that question's card shown in a lesson, a suggestion to move a unit's level down and whether you said “Not now”, and whether a typed guess was close, partly right or off) — with the time, the course it belongs to, and for lesson steps your level, the card number or how many seconds it took. It holds no answer text. We use it, only ourselves, to see whether Ascendra is helping people learn (for example, how many new learners finish a first lesson).",
         "• AI coach: the messages you send the coach and its replies.",
         "• Support: tickets, course requests and problem reports about a lesson, question, lab or coach reply that you send (a coach-reply report includes the reply you reported), with your account email so we can reply, and our replies.",
         "• Access grants: if the operator gives an email address unrestricted access, that address (even before an account uses it), who gave it, its dates and any note, and a record of grants, changes and when an account with it reached the AI safety limit.",
-        "• Agreements: which versions of these terms, this policy and the study notice you accepted, how (at sign-up or in the app) and when; and, for accounts made since 2026-11-10, that you confirmed you are 16 or older, and when. We don't ask for or keep your date of birth.",
+        "• Agreements: which versions of these terms, this policy and the study notice you accepted, how (at sign-up or in the app) and when; and, for accounts made since 2026-11-10, that you confirmed you are 16 or older, and when.",
+        "• Age for mental health courses: if you start one, your date of birth (asked once, the first time) and when you entered it; and, for each mental health course, that you confirmed you are 18 or older and that what you entered is true to the best of your knowledge, with the date and the version of the notice you saw. We use your date of birth only to check that you're old enough for these courses.",
         "• Questions you report: when you use “Report a problem” on a question, the reason you chose and any note you write, with the question it is about.",
       ],
     },
@@ -220,6 +230,7 @@ export const PRIVACY: LegalDoc = {
       title: "3. Why we use it",
       body: [
         "• To run your account and keep it secure: sign-in, two-factor checks, the session list, and spotting abuse.",
+        "• To check you're old enough for courses meant for adults (mental health courses).",
         "• To teach: tracking progress, choosing what to show next, grading answers and running the AI coach.",
         "• To check, in aggregate and only ourselves, that Ascendra is actually helping people learn.",
         "• To answer support requests and fix reported content.",
@@ -255,7 +266,7 @@ export const PRIVACY: LegalDoc = {
     {
       title: "6. How long we keep it",
       body: [
-        "• Account, study (including answers, milestones and exam results), coach and support data: while your account is open.",
+        "• Account, study (including answers, milestones and exam results), age confirmations and date of birth, coach and support data: while your account is open.",
         "• Sign-in and security event log: 90 days.",
         "• Ended or expired sessions: 30 days after they end.",
         "• Used or expired one-time codes: 7 days after they expire.",
@@ -277,14 +288,14 @@ export const PRIVACY: LegalDoc = {
     {
       title: "7. Your choices and rights",
       body: [
-        "From Account settings you can change your email or password, see and sign out of sessions, manage two-factor methods, download a copy of your data (including milestones, exam results and which terms you agreed to), or delete your account — without contacting us. You can change or delete a reported exam result at any time, and turn study reminders off in Settings.",
-        `For anything else — correcting data, objecting to a use, or a question this page doesn't answer — contact ${OWNER.contactEmail}. Depending on where you live, you may also have the right to complain to a data-protection authority.`,
+        "From Account settings you can change your email or password, see and sign out of sessions, manage two-factor methods, download a copy of your data (including milestones, exam results, which terms you agreed to, and your date of birth and age confirmations if you gave them), or delete your account — without contacting us. You can change or delete a reported exam result at any time, and turn study reminders off in Settings.",
+        `You can't change a date of birth you entered in the app; if it's wrong, contact us and we'll correct it. For anything else — correcting data, objecting to a use, or a question this page doesn't answer — contact ${OWNER.contactEmail}. Depending on where you live, you may also have the right to complain to a data-protection authority.`,
       ],
     },
     {
       title: "8. Children",
       body: [
-        `Ascendra is not meant for anyone under ${OWNER.minimumAge} and doesn't knowingly collect their data. Creating an account asks you to confirm that you are ${OWNER.minimumAge} or older; we don't ask for a date of birth. If you think someone under ${OWNER.minimumAge} has created an account, contact us and we will delete it.`,
+        `Ascendra is not meant for anyone under ${OWNER.minimumAge} and doesn't knowingly collect their data. Creating an account asks you to confirm that you are ${OWNER.minimumAge} or older. Mental health courses are for adults: each one asks you to confirm you are 18 or older, and the first one also asks for your date of birth. If a date of birth shows someone under 18, those courses stay locked; if it shows someone under ${OWNER.minimumAge}, we also review the account. If you think someone under ${OWNER.minimumAge} has created an account, contact us and we will delete it.`,
       ],
     },
     {

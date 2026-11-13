@@ -9558,6 +9558,43 @@
         "An under-16 owner alert that fails to send is only logged (the account id is in the log) and is not retried",
         "Deleting a course deletes its acknowledgements (cascade)"
       ]
+    },
+    {
+      "id": "REQ-260",
+      "category": "legal",
+      "title": "Terms and Privacy Policy 2026-11-13: date of birth and per-course 18+ attestations",
+      "description": "Nick 2026-11-13 (\"Yes do both\"): draft the Privacy Policy version REQ-259 needs and ship them together. The Terms and Privacy stop saying we don't ask for a date of birth and describe the date of birth (asked once), the per-course 18+ acknowledgment with its attestation, why they are kept, how long, the export, correction through support, and the under-18/under-16 handling. Terms and Privacy become 2026-11-13; the previous 2026-11-10 moves to PREVIOUS_LEGAL_VERSIONS; everyone re-accepts once. The legal text moves to US spelling (REQ-220).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/content/legal.ts",
+        "mobile/src/lib/legal.ts",
+        "backend/lib/legal.ts",
+        "backend/lib/us-spelling-scope.ts",
+        "backend/lib/us-spelling.test.ts",
+        "mobile/src/lib/legalPrivacy.test.ts"
+      ],
+      "acceptance_criteria": [
+        "No legal text says we don't ask for a date of birth",
+        "Privacy sections 1, 3, 6, 7 and 8 and Terms section 2 describe the date of birth and attestations",
+        "LEGAL_VERSIONS, TERMS_VERSION and both documents are 2026-11-13; previous moves to PREVIOUS_LEGAL_VERSIONS",
+        "Legal text passes the US spelling check"
+      ],
+      "validation_required": [
+        "mobile src/lib/legalPrivacy.test.ts",
+        "backend lib/legal.test.ts and lib/us-spelling.test.ts",
+        "full suites and python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "note in mobile/src/content/legal.ts header"
+      ],
+      "risk_notes": [
+        "Must ship with or after REQ-259 (migration 081), never before it would be described, and never after it without it",
+        "Everyone is asked to re-accept on next launch",
+        "Website analytics still not disclosed and not installed; a later version adds both together",
+        "No lawyer has reviewed this text"
+      ]
     }
   ]
 }

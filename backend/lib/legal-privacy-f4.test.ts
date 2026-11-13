@@ -77,9 +77,10 @@ describe("what the policy discloses (FAIL-902, FAIL-903)", () => {
     assert.match(privacy, /Billing records: paid plans are not switched on/);
     assert.match(privacy, /Our support inbox, and Resend/);
   });
-  test("16 or older, no date of birth", () => {
+  test("16 or older at sign-up; a date of birth only for mental health courses (REQ-260)", () => {
     assert.match(privacy, /confirmed you are 16 or older/);
-    assert.match(privacy, /We don't ask for or keep your date of birth/);
+    assert.doesNotMatch(privacy, /don't ask for (or keep )?(your|a) date of birth/);
+    assert.match(privacy, /your date of birth \(asked once, the first time\)/);
   });
   test("the delete page and the policy say the same kept items", () => {
     const page = read("backend", "app", "delete-account", "page.tsx");

@@ -12,15 +12,11 @@ import { isLegacyClient } from "@/lib/client-version";
 // the meaning changes, not for a typo: every account that accepted an older
 // version is asked once, on its next launch, with one tap.
 //
-// REQ-220 (Nick, 2026-11-10): the rest of the app moved to US spelling; the
-// Terms and Privacy text did not, so nobody is asked to re-accept for
-// spelling. At the NEXT version update, convert mobile/src/content/legal.ts
-// (and the app/(legal) screens) to US spelling with `toUsSpelling`
-// (lib/us-spelling.ts) and remove the legal entries from SPELLING_EXCLUDED
-// in lib/us-spelling-scope.ts, so lib/us-spelling.test.ts covers them.
+// REQ-220 / REQ-260: the legal text moved to US spelling with the
+// 2026-11-13 version and is now covered by lib/us-spelling.test.ts.
 export const LEGAL_VERSIONS = {
-  terms: "2026-11-10",
-  privacy: "2026-11-10",
+  terms: "2026-11-13",
+  privacy: "2026-11-13",
 } as const;
 
 // REQ-175 / REQ-205: the generations of the text that installed builds still
@@ -37,8 +33,8 @@ export const LEGAL_VERSIONS = {
 //   - LEGACY_LEGAL_VERSIONS: builds that send neither header (before
 //     REQ-175; "legacy clients"). Frozen: never change it.
 export const PREVIOUS_LEGAL_VERSIONS = {
-  terms: "2026-11-09",
-  privacy: "2026-11-09",
+  terms: "2026-11-10",
+  privacy: "2026-11-10",
 } as const;
 export const UNDECLARED_LEGAL_VERSIONS = {
   terms: "2026-11-09",
