@@ -34,6 +34,13 @@ export const LEARNER_EVENTS = [
   "lesson_step_reached",
   "key_terms_opened",
   "key_terms_closed",
+  // REQ-256 (migration 080): how a typed guess compared with the lesson
+  // (detail.match), the move-down suggestion and its "Not now" (detail.unit,
+  // from, to, why), and the lesson goal card shown in a lesson.
+  "guess_matched",
+  "level_down_suggested",
+  "level_down_declined",
+  "goal_card_shown",
 ] as const;
 
 export type LearnerEvent = (typeof LEARNER_EVENTS)[number];

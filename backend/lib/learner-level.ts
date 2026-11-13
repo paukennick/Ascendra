@@ -2,8 +2,16 @@ import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { recordEvent } from "@/lib/events";
 import {
   effectiveLevel,
+  goalCardDecision,
+  isGuessMatch,
   isLevel,
   levelAbove,
+  levelBelow,
+  LEVEL_DOWN_WINDOW,
+  meetsLevelDown,
+  suggestionDue,
+  type GuessMatch,
+  type LevelDownWhy,
   LEVEL_UP_WINDOW,
   meetsLevelUp,
   suggestedLevel,
@@ -34,7 +42,8 @@ export interface LevelChangeView {
   unitTitle: string | null;
   fromLevel: Level;
   toLevel: Level;
-  reason: "learner" | "mastery";
+  // REQ-256: 'suggested' -- the learner said Yes to a move-down suggestion.
+  reason: "learner" | "mastery" | "suggested";
   createdAt: string;
 }
 
@@ -339,7 +348,10 @@ export async function actOnLevelChange(userId: string, trackId: string, changeId
       return;
     }
     if (c.undone_at) return; // already undone: a repeat is a no-op
-    if (c.reason !== "mastery" || !c.unit_id) throw new LevelChangeError("Only an automatic level change can be undone.", 409);
+    // REQ-256: a move down the learner accepted from a suggestion is undone
+    // the same way (it records the unit's prior level too).
+    if ((c.reason !== "mastery" && c.reason !== "suggested") || !c.unit_id)
+      throw new LevelChangeError("Only an automatic or suggested level change can be undone.", 409);
     const newer = await tx.queryOne<{ id: string }>(
       `select id from learner_level_changes
         where user_id = $1 and track_id = $2 and (unit_id = $3 or unit_id is null) and id <> $4
@@ -365,5 +377,237 @@ export async function actOnLevelChange(userId: string, trackId: string, changeId
       { trackId, detail: { from: c.to_level, to: c.from_level, reason: "undo", scope: "unit" } },
       (sql, p) => tx.query(sql, p)
     );
+  });
+}
+
+// ---------------------------------------------------------------------------
+// REQ-256: the move-down SUGGESTION (never automatic), at the same moment as
+// the level-up check. Rules: lib/learner-level-rules.ts LEVEL_DOWN_*.
+// ---------------------------------------------------------------------------
+
+export interface LevelDownSuggestion {
+  unitId: string;
+  unitTitle: string | null;
+  fromLevel: Level;
+  toLevel: Level;
+  why: LevelDownWhy;
+}
+
+// The latest typed-guess match per objective in this unit after `since`,
+// newest first (learner_events guess_matched, 080).
+export const RECENT_GUESSES_SQL = `
+  select g.match
+    from (
+      select distinct on (e.objective_id) e.objective_id, e.detail->>'match' as match, e.created_at
+        from learner_events e
+        join objectives o on o.id = e.objective_id
+       where e.user_id = $1 and o.unit_id = $2 and e.event = 'guess_matched' and e.created_at > $3
+       order by e.objective_id, e.created_at desc, e.id desc
+    ) g
+   order by g.created_at desc
+   limit $4`;
+
+async function recentGuesses(run: Run, userId: string, unitId: string, since: Date): Promise<GuessMatch[]> {
+  const rows = await run.query<{ match: string | null }>(RECENT_GUESSES_SQL, [userId, unitId, since, LEVEL_DOWN_WINDOW]);
+  return rows.map((r) => r.match).filter(isGuessMatch);
+}
+
+// When this unit's level last changed (its own change, or the whole
+// course's), counting an undo as a change: evidence before it never counts.
+async function lastLevelChangeAt(run: Run, userId: string, trackId: string, unitId: string): Promise<Date> {
+  const last = await run.queryOne<{ at: Date | null }>(
+    `select max(greatest(created_at, coalesce(undone_at, created_at))) as at
+       from learner_level_changes
+      where user_id = $1 and track_id = $2 and (unit_id = $3 or unit_id is null)`,
+    [userId, trackId, unitId]
+  );
+  return last?.at ?? new Date(0);
+}
+
+// The latest suggestion or "Not now" for this unit (detail.unit).
+async function lastSuggestionAt(run: Run, userId: string, trackId: string, unitId: string): Promise<Date | null> {
+  const row = await run.queryOne<{ at: Date | null }>(
+    `select max(created_at) as at from learner_events
+      where user_id = $1 and track_id = $2 and event in ('level_down_suggested', 'level_down_declined')
+        and detail->>'unit' = $3`,
+    [userId, trackId, unitId]
+  );
+  return row?.at ?? null;
+}
+
+async function unitTitleOf(run: Run, unitId: string): Promise<string | null> {
+  return (await run.queryOne<{ title: string }>(`select title from course_units where id = $1`, [unitId]))?.title ?? null;
+}
+
+// Called by the level check only when nothing moved up and the app said it
+// can show the question (older apps never ask, so nothing is recorded for
+// them). Records the suggestion (the once-a-week clock) and returns it, or
+// null.
+export async function checkLevelDownSuggestion(userId: string, trackId: string, unitId: string): Promise<LevelDownSuggestion | null> {
+  return withTransaction(async (tx) => {
+    const profile = await lockProfile(tx, userId, trackId);
+    const flow = await tx.queryOne<{ level_flow: boolean }>(`select level_flow from subject_tracks where id = $1`, [trackId]);
+    if (flow?.level_flow !== true) return null;
+    const unit = await tx.queryOne<{ level: Level }>(
+      `select level from learner_unit_levels where user_id = $1 and unit_id = $2`,
+      [userId, unitId]
+    );
+    const current = effectiveLevel(unit?.level ?? null, profile.level, profile.level);
+    const down = levelBelow(current);
+    if (!down) return null;
+    if (!suggestionDue(await lastSuggestionAt(tx, userId, trackId, unitId))) return null;
+    const since = await lastLevelChangeAt(tx, userId, trackId, unitId);
+    const why = meetsLevelDown(await recentFirstTries(tx, userId, unitId, since), await recentGuesses(tx, userId, unitId, since));
+    if (!why) return null;
+    await recordEvent(
+      userId,
+      "level_down_suggested",
+      { trackId, detail: { unit: unitId, from: current, to: down, why } },
+      (sql, p) => tx.query(sql, p)
+    );
+    return { unitId, unitTitle: await unitTitleOf(tx, unitId), fromLevel: current, toLevel: down, why };
+  });
+}
+
+export class SuggestionError extends Error {
+  constructor(message: string, readonly status: 409) {
+    super(message);
+  }
+}
+
+// "Yes" or "Not now" on the suggestion. Only an open suggestion (asked for
+// this unit within LEVEL_DOWN_SNOOZE_DAYS, not yet answered) can be answered;
+// a repeat of the same answer is a no-op that returns the same result, so a
+// double tap never moves the unit down twice.
+export async function answerLevelDownSuggestion(
+  userId: string,
+  trackId: string,
+  unitId: string,
+  answer: "yes" | "not_now"
+): Promise<{ change: LevelChangeView | null }> {
+  return withTransaction(async (tx) => {
+    const profile = await lockProfile(tx, userId, trackId);
+    const asked = await tx.queryOne<{ at: Date }>(
+      `select created_at as at from learner_events
+        where user_id = $1 and track_id = $2 and event = 'level_down_suggested' and detail->>'unit' = $3
+        order by created_at desc, id desc limit 1`,
+      [userId, trackId, unitId]
+    );
+    if (!asked || suggestionDue(asked.at)) throw new SuggestionError("This suggestion has expired. You can change the level any time in the course's level settings.", 409);
+    const accepted = await tx.queryOne<{ id: string; from_level: Level; to_level: Level; created_at: Date }>(
+      `select id, from_level, to_level, created_at from learner_level_changes
+        where user_id = $1 and track_id = $2 and unit_id = $3 and reason = 'suggested' and created_at >= $4
+        order by created_at desc limit 1`,
+      [userId, trackId, unitId, asked.at]
+    );
+    const declined = await tx.queryOne<{ id: string }>(
+      `select id from learner_events
+        where user_id = $1 and track_id = $2 and event = 'level_down_declined' and detail->>'unit' = $3 and created_at >= $4
+        limit 1`,
+      [userId, trackId, unitId, asked.at]
+    );
+    const title = await unitTitleOf(tx, unitId);
+    if (answer === "not_now") {
+      if (accepted) throw new SuggestionError("You already said yes to this one. Use Undo, or change the level in the course's level settings.", 409);
+      if (!declined) {
+        await recordEvent(userId, "level_down_declined", { trackId, detail: { unit: unitId } }, (sql, p) => tx.query(sql, p));
+      }
+      return { change: null };
+    }
+    if (accepted) {
+      return {
+        change: {
+          id: accepted.id,
+          unitId,
+          unitTitle: title,
+          fromLevel: accepted.from_level,
+          toLevel: accepted.to_level,
+          reason: "suggested",
+          createdAt: new Date(accepted.created_at).toISOString(),
+        },
+      };
+    }
+    if (declined) throw new SuggestionError("You said not now to this one. You can change the level any time in the course's level settings.", 409);
+    const unit = await tx.queryOne<{ level: Level; source: "self" | "auto" }>(
+      `select level, source from learner_unit_levels where user_id = $1 and unit_id = $2`,
+      [userId, unitId]
+    );
+    const current = effectiveLevel(unit?.level ?? null, profile.level, profile.level);
+    const down = levelBelow(current);
+    if (!down) throw new SuggestionError("This unit is already at New.", 409);
+    // The learner chose it, so the unit's own level is theirs ('self').
+    await tx.query(
+      `insert into learner_unit_levels (user_id, unit_id, track_id, level, source, updated_at)
+       values ($1, $2, $3, $4, 'self', now())
+       on conflict (user_id, unit_id) do update set level = excluded.level, source = 'self', updated_at = now()`,
+      [userId, unitId, trackId, down]
+    );
+    // Seen already (the learner just chose it): never a course-page notice.
+    const change = await tx.queryOne<{ id: string; created_at: Date }>(
+      `insert into learner_level_changes (user_id, track_id, unit_id, from_level, to_level, reason, prior_unit_level, prior_unit_source, seen_at)
+       values ($1, $2, $3, $4, $5, 'suggested', $6, $7, now()) returning id, created_at`,
+      [userId, trackId, unitId, current, down, unit?.level ?? null, unit?.source ?? null]
+    );
+    await recordEvent(
+      userId,
+      "level_changed",
+      { trackId, detail: { from: current, to: down, reason: "suggested", scope: "unit" } },
+      (sql, p) => tx.query(sql, p)
+    );
+    return {
+      change: {
+        id: change!.id,
+        unitId,
+        unitTitle: title,
+        fromLevel: current,
+        toLevel: down,
+        reason: "suggested",
+        createdAt: new Date(change!.created_at).toISOString(),
+      },
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// REQ-256: REQ-255's lesson goal card, counted on the server. The lesson
+// asks before showing it; a showing is recorded once per lesson
+// (goal_card_shown with the objective). After GOAL_CARD_MAX_SHOWINGS lessons
+// without an answer, the next lesson records it dismissed exactly as "Not
+// now" is (answered_at set; course_goal_set outcome dismissed, via lesson)
+// with reason "auto", and the card is not shown again.
+// ---------------------------------------------------------------------------
+export async function goalCardShowing(
+  userId: string,
+  trackId: string,
+  objectiveId: string
+): Promise<{ show: boolean; autoDismissed: boolean }> {
+  return withTransaction(async (tx) => {
+    const profile = await lockProfile(tx, userId, trackId);
+    const shown = await tx.queryOne<{ lessons: number; here: boolean }>(
+      `select count(distinct objective_id)::int as lessons, bool_or(objective_id = $3) as here
+         from learner_events
+        where user_id = $1 and track_id = $2 and event = 'goal_card_shown'`,
+      [userId, trackId, objectiveId]
+    );
+    const decision = goalCardDecision(!!profile.answered_at, shown?.lessons ?? 0, shown?.here === true);
+    if (decision === "hide") return { show: false, autoDismissed: false };
+    if (decision === "show") {
+      if (shown?.here !== true) {
+        await recordEvent(userId, "goal_card_shown", { trackId, objectiveId }, (sql, p) => tx.query(sql, p));
+      }
+      return { show: true, autoDismissed: false };
+    }
+    await tx.query(
+      `update learner_course_profiles set answered_at = coalesce(answered_at, now()), updated_at = now()
+        where user_id = $1 and track_id = $2`,
+      [userId, trackId]
+    );
+    await recordEvent(
+      userId,
+      "course_goal_set",
+      { trackId, detail: { outcome: "dismissed", via: "lesson", reason: "auto" } },
+      (sql, p) => tx.query(sql, p)
+    );
+    return { show: false, autoDismissed: true };
   });
 }

@@ -468,6 +468,14 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                          and pg_get_constraintdef(oid) like '%''primer''%') as ok`,
   },
   {
+    // REQ-256: the level check, the suggestion route, the goal-card route and
+    // the guess-feedback route write these events and the 'suggested' reason.
+    migration: "080_level_down_suggestions.sql",
+    what: "learner_events guess_matched, level_down_suggested, level_down_declined and goal_card_shown, and learner_level_changes reason 'suggested' (the move-down suggestion and the lesson goal card's showings)",
+    sql: `select exists(select 1 from pg_constraint where conname = 'learner_events_event_080')
+             and exists(select 1 from pg_constraint where conname = 'learner_level_changes_reason_080') as ok`,
+  },
+  {
     // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
     migration: "074_independent_confirmation.sql",
     what: "the 074 mastery_detail() (Independent needs a second unassisted correct answer 24 h after the first)",

@@ -112,6 +112,87 @@ export function levelAbove(level: Level): Level | null {
 }
 
 // ---------------------------------------------------------------------------
+// REQ-256 (Nick, 2026-11-12): the downward counterpart, as a SUGGESTION.
+// Never automatic: the lesson asks "This unit seems tougher than expected.
+// Want more step-by-step help here?" with Yes (the unit moves down one
+// level, recorded so Undo works) and Not now (snoozed for that unit for
+// LEVEL_DOWN_SNOOZE_DAYS). Design section 3: "3 of the last 5 missed, or
+// every guess off". Asked at the same moment as the level-up check, only
+// when nothing moved up, never below New, at most once per unit per
+// LEVEL_DOWN_SNOOZE_DAYS, and only on a course whose lessons change by level
+// (subject_tracks.level_flow) -- elsewhere "more step-by-step help" would
+// change nothing, so it is not offered.
+//
+// The evidence is the same as the move up: the first lesson solo answer on
+// each of the learner's most recent LEVEL_DOWN_WINDOW objectives in the unit,
+// after the unit's last level change. A miss is an incorrect or partial
+// verdict (an assisted right answer is not a miss; an ungraded one is
+// neither). The guesses are the latest typed guess per objective
+// (learner_events guess_matched, the model's guessMatch, migration 080) in
+// the same window; "every guess off" needs at least LEVEL_DOWN_MIN_GUESSES of
+// them, so one off guess is never "every guess".
+// The app mirrors these numbers (mobile/src/lib/learnerLevel.ts) and a test
+// in each package pins them.
+// ---------------------------------------------------------------------------
+export const LEVEL_DOWN_WINDOW = 5;
+export const LEVEL_DOWN_MIN_MISSED = 3;
+export const LEVEL_DOWN_MIN_GUESSES = 3;
+export const LEVEL_DOWN_SNOOZE_DAYS = 7;
+
+export type GuessMatch = "close" | "partial" | "off";
+export const GUESS_MATCHES: readonly GuessMatch[] = ["close", "partial", "off"];
+export function isGuessMatch(v: unknown): v is GuessMatch {
+  return typeof v === "string" && (GUESS_MATCHES as readonly string[]).includes(v);
+}
+
+export function firstTryMissed(t: FirstTry): boolean {
+  return t.verdict === "incorrect" || t.verdict === "partial";
+}
+
+export type LevelDownWhy = "missed" | "guesses";
+
+// `recent` and `guesses` are newest first; only the first LEVEL_DOWN_WINDOW
+// of each are read. Misses are checked first (the stronger signal).
+export function meetsLevelDown(recent: FirstTry[], guesses: GuessMatch[]): LevelDownWhy | null {
+  const window = recent.slice(0, LEVEL_DOWN_WINDOW);
+  if (window.filter(firstTryMissed).length >= LEVEL_DOWN_MIN_MISSED) return "missed";
+  const g = guesses.slice(0, LEVEL_DOWN_WINDOW);
+  if (g.length >= LEVEL_DOWN_MIN_GUESSES && g.every((m) => m === "off")) return "guesses";
+  return null;
+}
+
+export function levelBelow(level: Level): Level | null {
+  if (level === "experienced") return "some";
+  if (level === "some") return "new";
+  return null;
+}
+
+// At most one suggestion per unit per LEVEL_DOWN_SNOOZE_DAYS, counted from
+// the latest suggestion or "Not now" for that unit.
+export function suggestionDue(lastAskedOrDeclined: Date | null, now: Date = new Date()): boolean {
+  if (!lastAskedOrDeclined) return true;
+  return now.getTime() - lastAskedOrDeclined.getTime() >= LEVEL_DOWN_SNOOZE_DAYS * 24 * 60 * 60 * 1000;
+}
+
+// ---------------------------------------------------------------------------
+// REQ-256: REQ-255's lesson goal card stops after it has been shown in
+// GOAL_CARD_MAX_SHOWINGS lessons without an answer or "Not now". The next
+// lesson records it dismissed the way "Not now" is (course_goal_set, outcome
+// dismissed, via lesson) with reason "auto", and shows nothing. A showing is
+// counted once per lesson (objective), on the server, so a reinstall or a
+// cleared device does not reset it and reopening the same lesson is not a
+// second showing.
+// ---------------------------------------------------------------------------
+export const GOAL_CARD_MAX_SHOWINGS = 2;
+
+export function goalCardDecision(answered: boolean, lessonsShown: number, shownInThisLesson: boolean): "hide" | "show" | "auto_dismiss" {
+  if (answered) return "hide";
+  if (shownInThisLesson) return "show";
+  if (lessonsShown >= GOAL_CARD_MAX_SHOWINGS) return "auto_dismiss";
+  return "show";
+}
+
+// ---------------------------------------------------------------------------
 // Measurement (design 8, phase 1): the lesson events the app may post, and
 // the only detail each may carry. Never answer text; the detail is built here
 // from a fixed list of keys and values, whatever the request held.
