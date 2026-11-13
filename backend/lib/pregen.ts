@@ -479,7 +479,9 @@ function category(reason: string): string {
 // validator's own wording is left. "Solo question option 3 is too long." ->
 // "Solo question option N is too long."
 export function problemKind(message: string): string {
-  return message.replace(/"[^"]*"/g, '"…"').replace(/\d+(\.\d+)?/g, "N").slice(0, 140);
+  // FAIL-1761: greedy, first quote to last, so an option that itself holds
+  // quotes ("ERROR: disk full") can't leak lesson text between the pairs.
+  return message.replace(/"[\s\S]*"/, '"…"').replace(/\d+(\.\d+)?/g, "N").slice(0, 140);
 }
 
 export function countKinds(into: Record<string, number>, problems: string[]): void {

@@ -21,3 +21,8 @@ test("real duplicates are still caught", () => {
   assert.equal(optionKey("Use IAM roles."), optionKey("use IAM roles"));
   assert.equal(optionKey("Encrypt at rest"), optionKey("encrypt, at rest!"));
 });
+
+test("FAIL-1762: string literals and concatenation are compared as code", () => {
+  assert.notEqual(optionKey('"ERROR: disk full"'), optionKey('"ERROR, disk full"'));
+  assert.notEqual(optionKey('a + b + c'), optionKey('a+b+c "x"'));
+});
