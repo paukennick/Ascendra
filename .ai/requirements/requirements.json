@@ -9455,6 +9455,43 @@
         "A course switched on cannot be switched off by the seed (it never clears level_flow); switching off is a manual update",
         "Objectives without Key terms write them on first use, a live model call within the pilot AI ceiling"
       ]
+    },
+    {
+      "id": "REQ-258",
+      "category": "feature",
+      "title": "Switch on level-aware lessons for AWSMLA, SECPLUS and CNA",
+      "description": "Nick 2026-11-12: switch level_flow on per course as each is ready. These three courses' Key terms were pre-generated, so their seed tracks set levelFlow: true. Same behavior as REQ-257. Completes the launch set.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/supabase/seed/tracks/nursing.ts",
+        "backend/supabase/seed/data.ts",
+        "backend/lib/level-flow-tracks.test.ts",
+        "backend/lib/release-notes.ts",
+        "mobile/src/content/legal.ts",
+        "docs/learner-levels.md"
+      ],
+      "acceptance_criteria": [
+        "AWSMLA, SECPLUS and CNA seed tracks set levelFlow true",
+        "The nine level-flow courses are pinned by lib/level-flow-tracks.test.ts",
+        "FAQ, docs and the What's new note name the courses"
+      ],
+      "validation_required": [
+        "backend lib/level-flow-tracks.test.ts",
+        "backend and mobile test suites",
+        "python3 omni gate",
+        "production: subject_tracks.level_flow true for the four codes after the seed"
+      ],
+      "documentation_required": [
+        "docs/learner-levels.md",
+        "CHANGELOG.md",
+        "mobile/src/content/legal.ts FAQ"
+      ],
+      "risk_notes": [
+        "A course switched on cannot be switched off by the seed (it never clears level_flow); switching off is a manual update",
+        "Objectives without Key terms write them on first use, a live model call within the pilot AI ceiling"
+      ]
     }
   ]
 }

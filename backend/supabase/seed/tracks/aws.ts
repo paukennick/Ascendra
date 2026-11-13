@@ -1396,6 +1396,8 @@ export const AWS_DEA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const AWS_MLA_TRACK: SeedTrack = {
   code: "AWSMLA",
+  // REQ-258 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
+  levelFlow: true,
   title: "Prep for the AWS Certified Machine Learning Engineer - Associate (MLA-C02) Exam",
   description:
     "AWS Certified Machine Learning Engineer - Associate (MLA-C02): building and running ML and generative AI systems on AWS -- data preparation, training and fine-tuning, deploying models, agents and RAG pipelines, and then monitoring, costing, and securing all of it in production.",

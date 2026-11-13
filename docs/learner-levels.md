@@ -5,7 +5,7 @@ Nick's decisions of that day (which override the design body). Phase 1A is
 the level machinery for every course plus the level-aware lesson flow on a
 per-course switch, on for Python and JavaScript (phase 1) and, from REQ-257
 (2026-11-12), DPT, PTPREREQ, CCRNADULT and AWSSAA once their Key terms were
-written. AWSMLA, SECPLUS and CNA follow when theirs are.
+written, and AWSMLA, SECPLUS and CNA (REQ-258) once theirs were.
 
 ## What a learner sees
 
