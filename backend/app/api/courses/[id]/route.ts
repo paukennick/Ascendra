@@ -35,7 +35,7 @@ export async function GET(
               ${isFavoriteSelect("$2")},
               -- REQ-165: a gated course now needs the one study notice.
               ${studyNoticeAcceptedSql("$2")} as __acknowledged,
-              -- REQ-224: a mental health course needs the 18+ confirmation.
+              -- REQ-224 / REQ-259: a mental health course needs the 18+ acknowledgement for this course.
               ${matureContentNeededSql("st", "$2")} as __mature_needed,
               (select max(a.created_at)::text from attempts a where a.user_id = $2) as __attempt_stamp
        from subject_tracks st
@@ -48,7 +48,7 @@ export async function GET(
     // refused before any of its content is read; the app shows the notice and
     // asks again (mobile/src/lib/matureContent.ts).
     const matureNeeded = (tracks[0] as { __mature_needed?: unknown }).__mature_needed;
-    if (isMatureCategory(matureNeeded)) return forbidden(MATURE_CONTENT_REQUIRED_MESSAGE, matureContentRequiredBody(matureNeeded));
+    if (isMatureCategory(matureNeeded)) return forbidden(MATURE_CONTENT_REQUIRED_MESSAGE, matureContentRequiredBody(matureNeeded, tracks[0].id as string));
 
     // REQ-220 (FAIL-1136): a course whose weights are only our study
     // emphasis (the CNA course) sends no weight, so no app build -- old or

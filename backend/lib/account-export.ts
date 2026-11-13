@@ -57,7 +57,9 @@ export const EXPORT_EXCLUDED_TABLES: Record<string, string> = {
 export const EXPORT_SECTIONS = {
   // REQ-205: the profile photo (a small JPEG, at most ~30 KB as base64, stored
   // on app_users since migration 004) and the age confirmation (migration 070).
+  // REQ-259: the date of birth given to an 18+ prompt and when (migration 081).
   profile: `select id, email, display_name, created_at, whats_new_seen_id, age_confirmed_at, age_confirmed_min,
+                   date_of_birth::text as date_of_birth, date_of_birth_entered_at,
                    case when avatar_image is not null
                         then 'data:' || coalesce(avatar_content_type, 'image/jpeg') || ';base64,' || replace(encode(avatar_image, 'base64'), E'\n', '')
                    end as avatar_data_url
@@ -112,8 +114,13 @@ export const EXPORT_SECTIONS = {
     "select user_id, document, version, source, accepted_at from legal_acceptances where user_id = $1 order by accepted_at asc, document asc, version asc",
   // REQ-224 (migration 077): the 18+ confirmations for mature-content
   // categories (mental health): category, notice version, age, where, when.
+  // Since REQ-259 these are history only (no gate reads them).
   matureContentConfirmations:
     "select user_id, category_slug, notice_version, min_age, source, confirmed_at from mature_content_confirmations where user_id = $1 order by confirmed_at asc, category_slug asc, notice_version asc",
+  // REQ-259 (migration 081): the per-course 18+ acknowledgement with its
+  // attestation: course, notice version, age, where, when.
+  matureCourseAcknowledgements:
+    "select user_id, track_id, notice_version, min_age, source, attested_at from mature_course_acknowledgements where user_id = $1 order by attested_at asc, track_id asc, notice_version asc",
   onboarding: "select * from learner_onboarding where user_id = $1 order by user_id asc",
   learnerEvents: "select * from learner_events where user_id = $1 order by created_at asc, id asc",
   examOutcomes: "select * from exam_outcomes where user_id = $1 order by exam_date asc, id asc",

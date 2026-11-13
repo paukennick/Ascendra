@@ -3,7 +3,6 @@ import { SectionList, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/api/client";
-import { useMatureContent } from "@/auth/MatureContentContext";
 import type { Track } from "@/types";
 import { Button, Card, Chip, EmptyState, ErrorBanner, Loading, Muted, SectionHeader, TextField } from "@/components/ui";
 import { courseRequestPrefill, exploreEmpty } from "@/lib/emptyStates";
@@ -68,9 +67,6 @@ export default function Explore() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [categorySlug, setCategorySlug] = useState<string | null>(null);
-  // REQ-224: picking the Mental Health category asks for the 18+
-  // confirmation first; closing the notice leaves the filter as it was.
-  const mature = useMatureContent();
   const [freshnessFilter, setFreshnessFilter] = useState<FreshnessFilter>("all");
   // REQ-249: "Has sims" narrows the list to courses with simulations. The
   // chip is hidden when no listed course has any (sims switched off), and a
@@ -172,10 +168,10 @@ export default function Explore() {
                     key={c.slug}
                     label={c.name}
                     active={categorySlug === c.slug}
-                    onPress={async () => {
-                      if (categorySlug === c.slug) return setCategorySlug(null);
-                      if (await mature.ensure(c.slug, "catalog")) setCategorySlug(c.slug);
-                    }}
+                    // REQ-259: the 18+ notice is per course (asked when a mental
+                    // health course is opened or started), so browsing a category
+                    // asks nothing.
+                    onPress={() => setCategorySlug(categorySlug === c.slug ? null : c.slug)}
                   />
                 ))}
               </View>

@@ -3,7 +3,7 @@ import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { visibleTrack } from "@/lib/visibility";
 import { resolveToday } from "@/lib/study-plan-store";
-import { matureContentRequiredBody, MATURE_CONTENT_REQUIRED_MESSAGE, unconfirmedMatureCategories } from "@/lib/mature-content";
+import { matureContentRequiredBody, MATURE_CONTENT_REQUIRED_MESSAGE, unackedMatureTracks } from "@/lib/mature-content";
 import { IntakeInputError, intakeFor, parseIntake, saveIntake, skipIntake } from "@/lib/intake";
 
 export const dynamic = "force-dynamic";
@@ -53,10 +53,11 @@ export async function PUT(req: Request) {
     for (const t of input.targets) {
       if (!(await visibleTrack(t.trackId, user.id))) return notFound("Course not found");
     }
-    // REQ-224: a mental health course can be a target only once the learner
-    // has confirmed they are 18+ (the app asks when the course is picked).
-    const unconfirmed = await unconfirmedMatureCategories(user.id, input.targets.map((t) => t.trackId));
-    if (unconfirmed.length) return forbidden(MATURE_CONTENT_REQUIRED_MESSAGE, matureContentRequiredBody(unconfirmed[0]));
+    // REQ-224 / REQ-259: a mental health course can be a target only once the
+    // learner has acknowledged THAT course as 18+ (the app asks when the
+    // course is picked).
+    const unacked = await unackedMatureTracks(user.id, input.targets.map((t) => t.trackId));
+    if (unacked.length) return forbidden(MATURE_CONTENT_REQUIRED_MESSAGE, matureContentRequiredBody(unacked[0].category, unacked[0].trackId));
     await saveIntake(user.id, input);
     return ok(await intakeFor(user.id, today));
   } catch (err) {

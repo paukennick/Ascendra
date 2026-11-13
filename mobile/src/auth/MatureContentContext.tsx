@@ -1,85 +1,96 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { api } from "@/api/client";
+import { api, ApiError } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
-import { MatureContentSheet } from "@/components/MatureContentNotice";
+import { MatureContentSheet, type MatureSheetSubmit } from "@/components/MatureContentNotice";
 import { friendlyError } from "@/lib/errorMessage";
 import {
+  acceptFailure,
   MATURE_CONTENT_NOTICE_VERSION,
   needsMatureConfirmation,
+  noticeMode,
   parseMatureState,
   registerMatureContentHandler,
-  type MatureCategory,
-  type MatureCategoryState,
+  type MatureAnswer,
   type MatureSource,
+  type MatureState,
+  type MatureTarget,
 } from "@/lib/matureContent";
 
-// REQ-224: the 18+ mature-content confirmation for the mental health courses
+// REQ-224 / REQ-259: the 18+ acknowledgement for each mental health course
 // (src/lib/matureContent.ts). Loads this account's state once per sign-in
-// (GET /api/mature-content), and shows the notice:
+// (GET /api/mature-content: whether a date of birth is on file, the age
+// status, the courses acknowledged), and shows the notice:
 //   - when a screen asks before acting (`ensure`: the intake form when a
-//     mental health course is picked, Explore when the category is picked);
+//     mental health course is picked);
 //   - when the API client gets a 403 "mature_content_required" (a mental
-//     health course opened or started without a confirmation), through the
-//     handler registered here, after which the client sends the request once
-//     more.
-// Every caller waiting while the sheet is open is answered together. The
-// confirmation is recorded on the server before anyone is told yes: unlike
-// the study notice's best-effort backstop, a failed record keeps the sheet
-// open with the error, because the server would refuse the content anyway.
+//     health course opened or started without an acknowledgement for it),
+//     through the handler registered here, after which the client sends the
+//     request once more.
+// The notice asks for a date of birth only while none is on file, and shows a
+// closed, kind message instead of a form when the account is under 18. Every
+// caller waiting while the sheet is open is answered together. The
+// acknowledgement is recorded on the server before anyone is told yes: unlike
+// the study notice's best-effort backstop, a failed record keeps the sheet open
+// with the error, because the server would refuse the content anyway.
+
+interface EnsureTrack {
+  id: string;
+  title?: string | null;
+  category_slug?: string | null;
+}
 
 interface MatureContentValue {
-  // true when no confirmation is needed for this category (or any other
-  // category), or once the learner confirmed and it was recorded.
-  ensure: (categorySlug: string | null | undefined, source: MatureSource) => Promise<boolean>;
-  needs: (categorySlug: string | null | undefined) => boolean;
+  // "confirmed" when no acknowledgement is needed for this course (or any
+  // other course), or once the learner acknowledged it and it was recorded;
+  // "declined" when they closed the notice; "blocked" for an under-18 account.
+  ensure: (track: EnsureTrack, source: MatureSource) => Promise<MatureAnswer>;
+  needs: (track: EnsureTrack) => boolean;
 }
 
 const Ctx = createContext<MatureContentValue>({
-  ensure: async () => true,
+  ensure: async () => "confirmed",
   needs: () => false,
 });
 
 export function MatureContentProvider({ children }: { children: React.ReactNode }) {
   const { status, user } = useAuth();
   const userId = status === "signedIn" ? user?.id ?? null : null;
-  const [state, setState] = useState<MatureCategoryState[] | null>(null);
+  const [state, setState] = useState<MatureState | null>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
-  const confirmedThisSession = useRef(new Set<string>());
-  const waiting = useRef<((go: boolean) => void)[]>([]);
-  const pending = useRef<{ category: MatureCategory; source: MatureSource } | null>(null);
-  const [open, setOpen] = useState(false);
+  const acknowledgedThisSession = useRef(new Set<string>());
+  const waiting = useRef<((answer: MatureAnswer) => void)[]>([]);
+  const pending = useRef<{ target: MatureTarget; source: MatureSource; title?: string } | null>(null);
+  const [shown, setShown] = useState<{ title?: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const settle = useCallback((go: boolean) => {
+  const settle = useCallback((answer: MatureAnswer) => {
     const list = waiting.current;
     waiting.current = [];
     pending.current = null;
-    setOpen(false);
+    setShown(null);
     setError(null);
-    list.forEach((resolve) => resolve(go));
+    list.forEach((resolve) => resolve(answer));
   }, []);
 
-  const ask = useCallback((category: MatureCategory, source: MatureSource) => {
-    if (!needsMatureConfirmation(category, stateRef.current, confirmedThisSession.current)) {
-      // The state says confirmed but the server refused: the version moved on
-      // or the state is stale. Ask anyway; a repeat keeps the first row.
-      if (source !== "course") return Promise.resolve(true);
-    }
-    return new Promise<boolean>((resolve) => {
+  // The state may say acknowledged while the server refused (the version moved
+  // on, a stale state): ask anyway; a repeat keeps the first row. Callers
+  // waiting on different courses at once share one sheet for the first.
+  const ask = useCallback((target: MatureTarget, source: MatureSource, title?: string) => {
+    return new Promise<MatureAnswer>((resolve) => {
       waiting.current.push(resolve);
-      pending.current ??= { category, source };
-      setOpen(true);
+      pending.current ??= { target, source, title };
+      setShown({ title: pending.current.title });
     });
   }, []);
 
   useEffect(() => {
-    confirmedThisSession.current = new Set();
+    acknowledgedThisSession.current = new Set();
     if (!userId) {
       setState(null);
       registerMatureContentHandler(null);
-      settle(false);
+      settle("declined");
       return;
     }
     let live = true;
@@ -96,44 +107,68 @@ export function MatureContentProvider({ children }: { children: React.ReactNode 
     };
   }, [userId, ask, settle]);
 
-  const confirm = useCallback(async () => {
-    const p = pending.current;
-    if (!p) return settle(false);
-    setBusy(true);
-    setError(null);
-    try {
-      const d = await api.post("/api/mature-content/accept", {
-        category: p.category,
-        version: MATURE_CONTENT_NOTICE_VERSION,
-        source: p.source,
-      });
-      setState(parseMatureState(d));
-      confirmedThisSession.current.add(p.category);
-      settle(true);
-    } catch (err) {
-      setError(friendlyError(err));
-    } finally {
-      setBusy(false);
-    }
-  }, [settle]);
+  const confirm = useCallback(
+    async (form: MatureSheetSubmit) => {
+      const p = pending.current;
+      if (!p) return settle("declined");
+      setBusy(true);
+      setError(null);
+      try {
+        const d = await api.post("/api/mature-content/accept", {
+          trackId: p.target.trackId,
+          version: MATURE_CONTENT_NOTICE_VERSION,
+          source: p.source,
+          ...form,
+        });
+        const next = parseMatureState(d);
+        if (next) setState(next);
+        acknowledgedThisSession.current.add(p.target.trackId);
+        settle("confirmed");
+      } catch (err) {
+        const failure = err instanceof ApiError ? acceptFailure(err.status, err.data) : { kind: "other" as const };
+        if (failure.kind === "underage") {
+          // The server decided from the date on the account: lock it here too.
+          setState((s) => ({ noticeVersion: MATURE_CONTENT_NOTICE_VERSION, acknowledgedTrackIds: [], ...s, dateOfBirthOnFile: true, ageStatus: "under_18" }));
+        } else if (failure.kind === "needs_dob") {
+          setState((s) => ({ noticeVersion: MATURE_CONTENT_NOTICE_VERSION, acknowledgedTrackIds: [], ...s, ageStatus: "unknown", dateOfBirthOnFile: false }));
+        } else {
+          setError(friendlyError(err));
+        }
+      } finally {
+        setBusy(false);
+      }
+    },
+    [settle]
+  );
 
   const ensure = useCallback(
-    async (categorySlug: string | null | undefined, source: MatureSource) => {
-      if (!needsMatureConfirmation(categorySlug, stateRef.current, confirmedThisSession.current)) return true;
-      return ask(categorySlug as MatureCategory, source);
+    async (track: EnsureTrack, source: MatureSource): Promise<MatureAnswer> => {
+      if (!needsMatureConfirmation(track, stateRef.current, acknowledgedThisSession.current)) return "confirmed";
+      // The category comes from the course row; only mental health asks today.
+      const answer = await ask({ trackId: track.id, category: "mental-health" }, source, track.title ?? undefined);
+      return answer;
     },
     [ask]
   );
   const needs = useCallback(
-    (categorySlug: string | null | undefined) => needsMatureConfirmation(categorySlug, state, confirmedThisSession.current),
+    (track: EnsureTrack) => needsMatureConfirmation(track, state, acknowledgedThisSession.current),
     [state]
   );
 
   const value = useMemo(() => ({ ensure, needs }), [ensure, needs]);
+  const mode = noticeMode(state);
   return (
     <Ctx.Provider value={value}>
       {children}
-      <MatureContentSheet visible={open} busy={busy} error={error} onConfirm={confirm} onCancel={() => settle(false)} />
+      <MatureContentSheet
+        visible={!!shown}
+        mode={mode}
+        courseTitle={shown?.title}
+        busy={busy}
+        error={error}
+        onConfirm={confirm}
+        onCancel={() => settle(mode === "blocked" ? "blocked" : "declined")}
+      />
     </Ctx.Provider>
   );
 }

@@ -436,8 +436,8 @@ export const ABOUT: LegalDoc = {
 
 export const FAQ: LegalDoc = {
   title: "FAQ",
-  version: "2026-11-12",
-  updated: "November 12, 2026",
+  version: "2026-11-13",
+  updated: "November 13, 2026",
   sections: [
     {
       title: "What is Ascendra?",
@@ -461,6 +461,13 @@ export const FAQ: LegalDoc = {
       title: "Can I use the clinical courses at work?",
       body: [
         "No. Nursing, critical care, emergency medical services, physical therapy and mental health courses are exam preparation only. Follow your license, your employer's policies and current references at work.",
+      ],
+    },
+    {
+      title: "Why do mental health courses ask my age and date of birth?",
+      body: [
+        "Mental health courses (psychology, counseling and social work licensure exams) include frank clinical material, such as suicide risk, abuse, violence and trauma, because those exams test it. They are for adults, so before you open or start each one you confirm that the information you've given is true and that you're 18 or older.",
+        "The first time, you also enter your date of birth. It is stored on your account and used only to check your age; later courses don't ask again, and you can't change it in the app. If you're under 18 the course stays locked. If the date on your account is wrong, write to us at the address in Support and we'll look at it.",
       ],
     },
     {

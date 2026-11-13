@@ -8,7 +8,7 @@ this file and those pages together**.
 
 Rebuilt 2026-11-09 (REQ-205) from the table list of a database with every
 migration applied (migrations 001-070) and the foreign keys into `app_users`,
-and brought up to migration 080 on 2026-11-12 (REQ-228, 2026-11-11: 071-077
+and brought up to migration 081 on 2026-11-13 (REQ-259: 081 adds `app_users.date_of_birth` and `mature_course_acknowledgements`; REQ-228, 2026-11-11: 071-077
 add `mature_content_confirmations`, `mastery_backup_074`,
 `inbound_email_events` and `app_users.totp_last_step`; REQ-252: 078 adds
 `learner_course_profiles`, `learner_unit_levels`, `learner_level_changes`
@@ -42,7 +42,7 @@ row stays with its user link removed (and is listed under Kept after deletion).
 
 | Table | What it holds | Why | Kept while open | Kept after deletion | In export |
 |---|---|---|---|---|---|
-| `app_users` | email, display name, password hash, profile photo (small JPEG), MFA settings and encrypted TOTP secret, the last authenticator time step used (`totp_last_step`, migration 075, so a code works once), the newest "What's new" note dismissed, the age confirmation (`age_confirmed_at`, `age_confirmed_min`; no date of birth) | account and sign-in | while account open | nothing (row deleted) | yes (profile incl. photo and age confirmation; no secrets) |
+| `app_users` | email, display name, password hash, profile photo (small JPEG), MFA settings and encrypted TOTP secret, the last authenticator time step used (`totp_last_step`, migration 075, so a code works once), the newest "What's new" note dismissed, the age confirmation (`age_confirmed_at`, `age_confirmed_min`), and since REQ-259 (migration 081) the date of birth (`date_of_birth`, `date_of_birth_entered_at`) a learner gives once, the first time an 18+ prompt for a mental health course asks; nothing else asks for it, and the learner cannot change it in the app | account and sign-in; the 18+ check on mental health courses | while account open | nothing (row deleted) | yes (profile incl. photo, age confirmation and date of birth; no secrets) |
 | `oauth_accounts` | Google account ID and email | Google sign-in | while linked | nothing (cascade) | yes (provider, email) |
 | `refresh_tokens` | session token hash, device label, user agent, IP address | keeping you signed in; session list | 30 days after the session ends (cron) | nothing (cascade) | yes (no hashes) |
 | `auth_events` | event type, email or user ID as identifier, IP address | rate limits, security history | 90 days (cron) | nothing: **deleted explicitly** by `DELETE /api/account` (the FK only nulls `user_id`, and the identifier is the email) | yes (type, IP, time; rows by address only since the account was created) |
@@ -50,7 +50,8 @@ row stays with its user link removed (and is listed under Kept after deletion).
 | `email_change_tokens` | token and cancel-link hashes, the requested new address, expiry, cancelled/used time | email change, and the "this wasn't me" cancel link to the old address | 30 days after expiry (cron; REQ-139) | nothing (cascade) | no (secrets, short-lived) |
 | `mfa_backup_codes` | hashed backup codes | two-factor recovery | while MFA on | nothing (cascade) | no (secrets) |
 | `legal_acceptances` | which Terms, Privacy and study-notice versions were accepted, how and when | record of consent | while account open | nothing (cascade) | yes |
-| `mature_content_confirmations` | that the account confirmed it is 18 or older to see a mature-content category (mental health), which notice version, where it was asked (intake, catalog, course) and when; no date of birth | the 18+ gate on mental health courses (REQ-224) | while account open | nothing (cascade) | yes |
+| `mature_content_confirmations` | history only since REQ-259: that the account confirmed it is 18 or older to see the mental health category, which notice version, where it was asked and when; no date of birth. No gate reads it any more | the first 18+ gate on mental health courses (REQ-224) | while account open | nothing (cascade) | yes |
+| `mature_course_acknowledgements` (REQ-259, migration 081) | per mental health course: that the account acknowledged it as 18 or older with the attestation "the information I've given is true to the best of my knowledge, and I'm 18 or older", which notice version, where it was asked (intake, course) and when (`attested_at`) | the 18+ gate on mental health courses; a record of the attestation | while account open | nothing (cascade; also removed if the course itself is deleted) | yes |
 | `track_acknowledgements`, `lab_disclaimer_acknowledgements` | which course / lab disclaimer version was accepted, when | history only since REQ-165 (the study notice is the gate) | while account open | nothing (cascade) | yes |
 | `account_access`, `account_access_events` | an email address given unrestricted access (even before an account uses it), who gave it, dates, a note; the audit trail of grants and changes | owner-granted access | while account open | nothing for a claimed grant (cascade on `user_id`); `granted_by` / `revoked_by` / `actor_id` of other accounts are set null | yes (giver named, not their address) |
 | `email_preferences`, `service_email_log` | on/off for exam change notices, exam countdown, weekly digest; which service email kind was sent for which period (no address, subject or body) | the learner's email choices; sending each at most once | while account open | nothing (cascade) | yes |

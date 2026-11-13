@@ -20,6 +20,7 @@ export type EmailKind =
   | "support_notification"
   | "security_alert"
   | "ai_ceiling_notice"
+  | "underage_review_notice"
   // REQ-197: service emails (lib/service-emails.ts).
   | "exam_change"
   | "exam_countdown"

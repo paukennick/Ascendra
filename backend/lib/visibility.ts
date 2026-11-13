@@ -110,7 +110,7 @@ export async function startableTrack(trackId: string, userId: string): Promise<{
     [trackId, userId]
   );
   if (!row) return null;
-  if (isMatureCategory(row.mature_needed)) throw new MatureContentError(row.mature_needed);
+  if (isMatureCategory(row.mature_needed)) throw new MatureContentError(row.mature_needed, row.id);
   return { id: row.id, title: row.title };
 }
 

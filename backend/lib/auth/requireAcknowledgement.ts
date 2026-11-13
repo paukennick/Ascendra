@@ -30,11 +30,11 @@ export class AcknowledgementError extends Error {
 }
 
 // REQ-224: a mental health course used before the learner confirmed they are
-// 18+ (lib/mature-content.ts). A subclass, so every route that already maps
+// 18+ (lib/mature-content.ts); REQ-259: confirmed for THAT course. A subclass, so every route that already maps
 // AcknowledgementError to a 403 answers this one with a 403 too.
 export class MatureContentError extends AcknowledgementError {
-  constructor(readonly category: MatureCategory) {
-    super(MATURE_CONTENT_REQUIRED_MESSAGE, matureContentRequiredBody(category));
+  constructor(readonly category: MatureCategory, readonly trackId: string) {
+    super(MATURE_CONTENT_REQUIRED_MESSAGE, matureContentRequiredBody(category, trackId));
     this.name = "MatureContentError";
   }
 }
@@ -62,7 +62,7 @@ export async function requireAcknowledgementForTrack(trackId: string, userId: st
   // there's nothing to gate here.
   if (!track) return;
   if (track.requires_acknowledgement && !(await hasAcceptedStudyNotice(userId))) throw new AcknowledgementError();
-  if (isMatureCategory(track.mature_needed)) throw new MatureContentError(track.mature_needed);
+  if (isMatureCategory(track.mature_needed)) throw new MatureContentError(track.mature_needed, trackId);
 }
 
 // Same gate, entered from a unit -- the PBQ endpoints work per unit.

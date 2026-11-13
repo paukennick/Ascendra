@@ -155,8 +155,11 @@
   `support-contact.ts` constant.
 - Mature content (REQ-224, FAIL-1200): a route that opens, starts or teaches
   a course goes through `requireAcknowledgementFor*` or `startableTrack`, so
-  a mental health course is refused without the 18+ confirmation
-  (lib/mature-content.ts) with 403 `mature_content_required`; a new mature
+  a mental health course is refused without the 18+ acknowledgment of THAT
+  course (REQ-259: per course, with the attestation and a date of birth asked
+  once; lib/mature-content.ts) with 403 `mature_content_required` naming its
+  `trackId`; a date below `MINIMUM_AGE` also alerts the owners
+  (lib/age-review.ts, OWNER_EMAILS); a new mature
   category is added to `MATURE_CATEGORIES`, 077's check and the app's list
   together. A 403 the learner can act on carries a stable `code` (pass
   `err.extra` to `forbidden`).
