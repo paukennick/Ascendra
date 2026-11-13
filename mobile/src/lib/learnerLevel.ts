@@ -96,7 +96,8 @@ export interface LevelChange {
   unitTitle: string | null;
   fromLevel: Level;
   toLevel: Level;
-  reason: "learner" | "mastery";
+  // REQ-256: "suggested" -- the learner said Yes to a move-down suggestion.
+  reason: "learner" | "mastery" | "suggested";
   createdAt: string;
 }
 
@@ -127,7 +128,7 @@ function parseChange(v: unknown): LevelChange | null {
     unitTitle: typeof c.unitTitle === "string" ? c.unitTitle : null,
     fromLevel: c.fromLevel,
     toLevel: c.toLevel,
-    reason: c.reason === "learner" ? "learner" : "mastery",
+    reason: c.reason === "learner" ? "learner" : c.reason === "suggested" ? "suggested" : "mastery",
     createdAt: typeof c.createdAt === "string" ? c.createdAt : "",
   };
 }
@@ -461,4 +462,84 @@ export function comebackLine(input: {
     return `You revised your guided answer on ${topic} after a miss and got it right.`;
   }
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// REQ-256 (Nick, 2026-11-12): the move-down SUGGESTION. Never automatic:
+// asked on the done screen at the same moment as the level-up check, when a
+// unit's recent answers show it is tougher than expected. Yes moves that
+// unit down one level (with Undo); Not now snoozes it for that unit for a
+// week. The server decides (backend/lib/learner-level-rules.ts LEVEL_DOWN_*);
+// these mirror its numbers for the wording, and a test in each package pins
+// them. The wording is specific (the unit, what changes) and kind: it never
+// counts misses back to the learner or calls anything a failure.
+// ---------------------------------------------------------------------------
+export const LEVEL_DOWN_WINDOW = 5;
+export const LEVEL_DOWN_MIN_MISSED = 3;
+export const LEVEL_DOWN_MIN_GUESSES = 3;
+export const LEVEL_DOWN_SNOOZE_DAYS = 7;
+
+export interface LevelDownSuggestion {
+  unitId: string;
+  unitTitle: string | null;
+  fromLevel: Level;
+  toLevel: Level;
+  why: "missed" | "guesses";
+}
+
+export function parseLevelDownSuggestion(v: unknown): LevelDownSuggestion | null {
+  if (!v || typeof v !== "object") return null;
+  const s = v as Record<string, unknown>;
+  if (typeof s.unitId !== "string" || !isLevel(s.fromLevel) || !isLevel(s.toLevel)) return null;
+  if (LEVELS.indexOf(s.toLevel) !== LEVELS.indexOf(s.fromLevel) - 1) return null; // one level down, never more
+  return {
+    unitId: s.unitId,
+    unitTitle: typeof s.unitTitle === "string" && s.unitTitle.trim() ? s.unitTitle : null,
+    fromLevel: s.fromLevel,
+    toLevel: s.toLevel,
+    why: s.why === "guesses" ? "guesses" : "missed",
+  };
+}
+
+export function levelDownQuestion(s: Pick<LevelDownSuggestion, "unitTitle">): string {
+  return s.unitTitle
+    ? `"${s.unitTitle}" seems tougher than expected. Want more step-by-step help there?`
+    : "This unit seems tougher than expected. Want more step-by-step help here?";
+}
+
+// What Yes would change, said plainly, plus the reassurance that the bar
+// stays the same and the choice is reversible.
+export function levelDownWhat(s: Pick<LevelDownSuggestion, "toLevel">): string {
+  const what =
+    s.toLevel === "new"
+      ? `At ${LEVEL_NAMES.new}, its lessons open with Key terms and a one-tap hunch, and show the full worked example before guided practice.`
+      : `At ${LEVEL_NAMES.some}, its lessons keep guided practice as a regular step before the solo check.`;
+  return `${what} Plenty of people take a unit more slowly. The solo check and what counts toward mastery stay the same, and you can switch back any time.`;
+}
+
+export const LEVEL_DOWN_YES = "Yes, more help";
+export const LEVEL_DOWN_NOT_NOW = "Not now";
+
+export function levelDownDone(change: Pick<LevelChange, "unitTitle" | "toLevel">): string {
+  const where = change.unitTitle ? `"${change.unitTitle}"` : "This unit";
+  return `Done. ${where} is now ${LEVEL_NAMES[change.toLevel]}, starting with your next lesson there.`;
+}
+
+export function levelDownSnoozed(): string {
+  return `Okay, no change. We won't ask about this unit again for ${LEVEL_DOWN_SNOOZE_DAYS} days.`;
+}
+
+// ---------------------------------------------------------------------------
+// REQ-256: REQ-255's lesson goal card stops after it has been shown in
+// GOAL_CARD_MAX_SHOWINGS lessons without an answer. The server counts the
+// showings (POST /api/courses/:id/level/goal-card), so clearing the app's
+// storage does not reset them. Its answer: show it or not. Anything else
+// (an older server, no network) keeps REQ-255's behavior: show it.
+// ---------------------------------------------------------------------------
+export const GOAL_CARD_MAX_SHOWINGS = 2;
+
+export function goalCardAllowed(res: unknown): boolean {
+  if (!res || typeof res !== "object") return true;
+  const r = res as Record<string, unknown>;
+  return typeof r.show === "boolean" ? r.show : true;
 }
