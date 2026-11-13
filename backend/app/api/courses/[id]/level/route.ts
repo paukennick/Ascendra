@@ -3,7 +3,7 @@ import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { isUuid, visibleTrack, visibleUnit } from "@/lib/visibility";
 import { levelState, saveCourseProfile, setUnitLevel } from "@/lib/learner-level";
-import { isCourseGoal, isLevel, type CourseGoal, type Level } from "@/lib/learner-level-rules";
+import { isCourseGoal, isGoalVia, isLevel, type CourseGoal, type Level } from "@/lib/learner-level-rules";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +35,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 // PUT /api/courses/:id/level
-//   { goal?: CourseGoal | null, level?: Level, skip?: true }  -- the start-of-course question / course settings
+//   { goal?: CourseGoal | null, level?: Level, skip?: true, dismiss?: true, via? }
+//                                                              -- the goal question / course settings
+//     REQ-255: `via` says where it was asked (intake, start, lesson,
+//     settings; lib/learner-level-rules.ts GOAL_VIA) and goes only into the
+//     course_goal_set event; `dismiss` is the lesson card's "Not now" (asked,
+//     like skip). An unknown `via` is a 400.
 //   { unitId, unitLevel: Level | null }                         -- a unit's own level (null: follow the course)
 // Answers the new LevelState.
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -71,8 +76,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       if (!isLevel(b.level)) return badRequest("level must be new, some or experienced");
       level = b.level;
     }
-    if (goal === undefined && level === undefined && b.skip !== true) return badRequest("Nothing to save");
-    await saveCourseProfile(user.id, id, { goal, level, skip: b.skip === true });
+    if (b.via !== undefined && !isGoalVia(b.via)) return badRequest("via must be one of intake, start, lesson, settings");
+    if (b.skip !== undefined && typeof b.skip !== "boolean") return badRequest("skip must be true or false");
+    if (b.dismiss !== undefined && typeof b.dismiss !== "boolean") return badRequest("dismiss must be true or false");
+    if (goal === undefined && level === undefined && b.skip !== true && b.dismiss !== true) return badRequest("Nothing to save");
+    await saveCourseProfile(user.id, id, {
+      goal,
+      level,
+      skip: b.skip === true,
+      dismiss: b.dismiss === true,
+      via: isGoalVia(b.via) ? b.via : undefined,
+    });
     return ok(await levelState(user.id, id));
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);

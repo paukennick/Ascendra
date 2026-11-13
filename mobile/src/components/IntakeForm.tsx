@@ -21,13 +21,32 @@ import {
 import { localToday } from "@/lib/studyPlan";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import type { Track } from "@/types";
+import { Choice } from "@/components/LearnerLevel";
+import { GOAL_CHOICES as COURSE_GOAL_CHOICES, intakeGoalQuestion, type CourseGoal } from "@/lib/learnerLevel";
 
 // REQ-169: the intake questions, shared by the first run (welcome.tsx) and
 // Settings > Study profile. Every question is optional. No price or plan
 // appears here: the answers only set up the study plan and, with paid plans
 // on, a suggestion shown after saving.
 
-export function IntakeFormFields({ value, onChange }: { value: Form; onChange: (f: Form) => void }) {
+// REQ-255: the first run also asks why the learner is taking the course they
+// just picked (the per-course goal, REQ-252), right after the account's
+// experience question. Settings > Study profile doesn't pass it.
+export interface CourseGoalField {
+  courseTitle: string;
+  value: CourseGoal | null;
+  onChange: (g: CourseGoal) => void;
+}
+
+export function IntakeFormFields({
+  value,
+  onChange,
+  courseGoal,
+}: {
+  value: Form;
+  onChange: (f: Form) => void;
+  courseGoal?: CourseGoalField;
+}) {
   const [tracks, setTracks] = useState<Track[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -118,6 +137,18 @@ export function IntakeFormFields({ value, onChange }: { value: Form; onChange: (
           ))}
         </View>
       </View>
+
+      {courseGoal ? (
+        <View style={{ gap: spacing.sm }}>
+          <H2>{intakeGoalQuestion(courseGoal.courseTitle)}</H2>
+          <Muted>Sets where this course's lessons start. You can change it later from the course page.</Muted>
+          <View style={{ gap: 6 }} accessibilityRole="radiogroup" accessibilityLabel={intakeGoalQuestion(courseGoal.courseTitle)}>
+            {COURSE_GOAL_CHOICES.map((g) => (
+              <Choice key={g.id} label={g.label} selected={courseGoal.value === g.id} onPress={() => courseGoal.onChange(g.id)} />
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       <View style={{ gap: spacing.sm }}>
         <H2>Hours a week for study</H2>

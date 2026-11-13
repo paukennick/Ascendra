@@ -11,7 +11,9 @@ import { LEVEL_NAMES, LEVELS, parseLevelState, type CourseGoal, type Level, type
 // REQ-252 (levels phase 1A): the course's level settings -- why the learner
 // is taking it (the per-course goal question, approved 2026-11-10), their
 // level for the whole course, and an optional level for any unit. Opened
-// from the level chip in a lesson and from the course page. Nothing here
+// from the level chip in a lesson and from the course page (its level chip
+// and, REQ-255, "Change" beside the goal answer -- the place to change an
+// answer given, skipped or dismissed elsewhere). Nothing here
 // changes the solo check or the mastery rules.
 export default function CourseLevelScreen() {
   const { trackId, unitId } = useLocalSearchParams<{ trackId: string; unitId?: string }>();
@@ -74,7 +76,7 @@ export default function CourseLevelScreen() {
               state={state}
               saving={saving}
               submitLabel="Save"
-              onSave={(goal: CourseGoal | null, level: Level) => put({ goal, level }, "Saved.")}
+              onSave={(goal: CourseGoal | null, level: Level) => put({ goal, level, via: "settings" }, "Saved.")}
             />
             {saved ? <Muted>{saved}</Muted> : null}
           </Card>

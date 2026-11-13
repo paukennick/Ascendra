@@ -7,12 +7,41 @@ per-course switch, on for Python and JavaScript only.
 
 ## What a learner sees
 
-- **Course page, first visit:** "Before you start" asks the per-course goal
-  question (approved 2026-11-10) and a concrete self-rating on one screen,
-  with the suggested level pre-selected. Skippable. After that, a chip
-  "Level: New · change" and any unacknowledged automatic level change.
-- **Course level settings** (`/course/:trackId/level`, from either chip):
-  the goal, the course level and an optional level per unit.
+- **The goal question, asked when the course is picked (REQ-255, Nick
+  2026-11-12).** The per-course goal question (approved 2026-11-10) is
+  asked once per course, wherever it comes first:
+  - **Welcome steps, first course:** "Why are you taking <course>?" right
+    after the account's experience question (`IntakeFormFields`
+    `courseGoal`). Saved with `PUT /api/courses/:id/level { goal, via:
+    "intake" }` after the first run records the course, and only when the
+    answers were submitted with Continue; a failed save is quiet (the next
+    two ask again). Its level is the suggestion, with the experience answer
+    saved beside it winning.
+  - **"Start course"** (the course page's primary button when nothing is
+    started; Explore opens the course page) on a course never asked opens
+    a sheet (`GoalStartSheet`): one tap on a reason saves and opens the
+    first lesson; the starting level is pre-selected from the suggestion
+    and folded into one line with "Change" (the concrete self-rating); a
+    level the learner picked there is sent with the goal, otherwise the
+    server sets the goal's suggestion. "Skip for now" keeps the suggestion
+    and starts the lesson, and counts as asked. A failed skip still starts
+    the lesson. "Continue" never opens it.
+  - **Fallback: the first lesson** opened in a course never asked shows a
+    one-tap card above the lesson (`LessonGoalCard`), at any step, never
+    blocking it. A reason or "Not now" (`dismiss: true`) is saved; both
+    count as asked, so no later lesson shows it. The open lesson keeps the
+    level it started with (a change mid-way would swap the guess step under
+    the learner); the answer applies from the next lesson. A card the
+    learner neither answers nor dismisses shows again in the next lesson.
+  - **"Asked"** is `learner_course_profiles.answered_at` (`answered` in the
+    level state): set by an answer, a skip or a dismiss anywhere.
+- **Course page:** a change point, never the main ask: "Why you're taking
+  it" with the answer (or "Not answered") and "Change", the chip "Level:
+  New · change", and any unacknowledged automatic level change. Both open
+  the level settings. REQ-252 builds still installed ask on the course page
+  as before; the server accepts both.
+- **Course level settings** (`/course/:trackId/level`, from either chip or
+  "Change"): the goal, the course level and an optional level per unit.
 - **Lesson, pilot courses only** (`subject_tracks.level_flow`):
   - the level chip under the step header, below REQ-253's "Key terms"
     button (one button; nothing added beside it);
@@ -34,8 +63,9 @@ per-course switch, on for Python and JavaScript only.
   appears on the done screen, and on the course page and level settings
   until acknowledged. Nothing moves down on its own.
 
-Other courses: the goal and level are asked and saved, and the level can
-move up; lessons are unchanged until `level_flow` is switched on.
+Other courses: the goal and level are asked (in the same places) and
+saved, and the level can move up; lessons are unchanged until `level_flow`
+is switched on. The goal sets the starting level on every course.
 
 ## Rules (named constants)
 
@@ -77,7 +107,7 @@ by the server from fixed keys (`lessonEventDetail`):
 | `lesson_step_reached` | step | drop-off between steps, completion |
 | `guided_skipped` | | Experienced skipping Guided |
 | `key_terms_opened`, `key_terms_closed` | seconds (on close) | whether the primer is opened and how long it stays open |
-| `course_goal_set` | goal | |
+| `course_goal_set` | outcome (answered / skipped / dismissed), goal (when answered), via (intake / start / lesson / settings; none from a REQ-252 build) | where the goal gets answered, how often it is put aside; a skip or dismiss is recorded only the first time |
 | `level_changed` | from, to, reason (learner / mastery / undo), scope | how often levels change |
 
 Every lesson event carries the learner's level and whether the flow was on.

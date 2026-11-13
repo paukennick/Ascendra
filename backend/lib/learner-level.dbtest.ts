@@ -108,7 +108,8 @@ describe("goal question and course level", () => {
     assert.equal(s.courseLevel, "new");
     assert.equal(s.courseLevelSource, "default");
     const ev = await queryOne<{ detail: unknown }>(`select detail from learner_events where user_id = $1 and event = 'course_goal_set'`, [u]);
-    assert.deepEqual(ev?.detail, { goal: "career_change" });
+    // REQ-255 added the outcome (and `via` when the app says where).
+    assert.deepEqual(ev?.detail, { outcome: "answered", goal: "career_change" });
   });
 
   test("experience wins over the goal; the learner's own pick wins over both", async () => {
@@ -165,6 +166,101 @@ describe("goal question and course level", () => {
       `select code, level_flow from subject_tracks where user_id is null and code in ('PYTHON', 'JAVASCRIPT')`
     );
     for (const r of rows) assert.equal(r.level_flow, true, r.code);
+  });
+});
+
+// REQ-255: the goal is asked where the course is picked -- the welcome
+// intake, the "Start course" sheet, a one-tap card in the first lesson --
+// and asked once: answered, skipped or dismissed anywhere counts.
+describe("goal entry points (REQ-255)", () => {
+  const goalEvents = (u: string) =>
+    query<{ detail: Record<string, string> }>(
+      `select detail from learner_events where user_id = $1 and event = 'course_goal_set' order by id`,
+      [u]
+    ).then((rows) => rows.map((r) => r.detail));
+
+  test("the intake's goal for the first course uses the experience answer saved beside it", async () => {
+    const u = await newUser("experienced");
+    const s = await json(await putLevel(u, { goal: "career_change", via: "intake" }));
+    assert.equal(s.answered, true);
+    assert.equal(s.goal, "career_change");
+    assert.equal(s.courseLevel, "experienced", "experience wins over the goal");
+    assert.equal(s.courseLevelSource, "default");
+    assert.deepEqual(await goalEvents(u), [{ outcome: "answered", goal: "career_change", via: "intake" }]);
+  });
+
+  test("the start sheet answers the goal and the self-rating in one save", async () => {
+    const u = await newUser();
+    const s = await json(await putLevel(u, { goal: "interest", level: "some", via: "start" }));
+    assert.equal(s.answered, true);
+    assert.equal(s.courseLevel, "some");
+    assert.equal(s.courseLevelSource, "self");
+    assert.deepEqual(await goalEvents(u), [{ outcome: "answered", goal: "interest", via: "start" }]);
+  });
+
+  test("Skip for now keeps the suggested level, counts as asked, and is recorded once", async () => {
+    const u = await newUser("new");
+    let s = await json(await putLevel(u, { skip: true, via: "start" }));
+    assert.equal(s.answered, true);
+    assert.equal(s.goal, null);
+    assert.equal(s.courseLevel, "new");
+    assert.equal(s.courseLevelSource, "default");
+    s = await json(await putLevel(u, { skip: true, via: "start" }));
+    assert.deepEqual(await goalEvents(u), [{ outcome: "skipped", via: "start" }]);
+    const changes = await queryOne<{ n: number }>(`select count(*)::int as n from learner_level_changes where user_id = $1`, [u]);
+    assert.equal(changes?.n, 0, "skipping changes no level");
+  });
+
+  test("dismissing the lesson card counts as asked, so it is not asked again", async () => {
+    const u = await newUser();
+    const before = await json(await getLevel(u, units[0]));
+    assert.equal(before.answered, false, "a course never asked shows the lesson card");
+    let s = await json(await putLevel(u, { dismiss: true, via: "lesson" }));
+    assert.equal(s.answered, true);
+    assert.equal(s.goal, null);
+    assert.equal(s.courseLevel, "some", "the suggestion with no answers");
+    s = await json(await getLevel(u, units[0]));
+    assert.equal(s.answered, true, "the card does not come back");
+    await json(await putLevel(u, { dismiss: true, via: "lesson" }));
+    assert.deepEqual(await goalEvents(u), [{ outcome: "dismissed", via: "lesson" }]);
+  });
+
+  test("a goal answered anywhere is not undone by a later skip or dismiss", async () => {
+    const u = await newUser();
+    await json(await putLevel(u, { goal: "program", via: "lesson" }));
+    let s = await json(await putLevel(u, { dismiss: true, via: "lesson" }));
+    s = await json(await putLevel(u, { skip: true, via: "start" }));
+    assert.equal(s.goal, "program");
+    assert.equal(s.courseLevel, "some");
+    assert.deepEqual(await goalEvents(u), [{ outcome: "answered", goal: "program", via: "lesson" }]);
+  });
+
+  test("changing the goal later from the course page is recorded as answered there", async () => {
+    const u = await newUser();
+    await json(await putLevel(u, { skip: true, via: "start" }));
+    const s = await json(await putLevel(u, { goal: "work", level: "some", via: "settings" }));
+    assert.equal(s.goal, "work");
+    assert.deepEqual(await goalEvents(u), [
+      { outcome: "skipped", via: "start" },
+      { outcome: "answered", goal: "work", via: "settings" },
+    ]);
+  });
+
+  test("an unknown place or a non-boolean skip or dismiss is a 400 and saves nothing", async () => {
+    const u = await newUser();
+    await json(await putLevel(u, { goal: "work", via: "explore" }), 400);
+    await json(await putLevel(u, { dismiss: "yes" }), 400);
+    await json(await putLevel(u, { skip: 1 }), 400);
+    await json(await putLevel(u, { dismiss: false }), 400);
+    const s = await json(await getLevel(u));
+    assert.equal(s.answered, false);
+    assert.deepEqual(await goalEvents(u), []);
+  });
+
+  test("an older app's panel (no via) still saves and records the event", async () => {
+    const u = await newUser();
+    await json(await putLevel(u, { skip: true }));
+    assert.deepEqual(await goalEvents(u), [{ outcome: "skipped" }]);
   });
 });
 

@@ -36,6 +36,95 @@ export const GOAL_CHOICES: Array<{ id: CourseGoal; label: string }> = [
   { id: "interest", label: "I'm learning out of interest" },
 ];
 
+// ---------------------------------------------------------------------------
+// REQ-255 (Nick, 2026-11-12): ask the goal when the learner picks a course,
+// not later. Asked once per course, wherever it is asked first:
+//   intake    the first course, in the welcome steps, beside the account's
+//             experience question; saved once the first run has recorded
+//             the course;
+//   start     a small sheet "Start course" opens on a course not asked yet:
+//             one tap on a reason answers it and starts the lesson; "Skip for
+//             now" keeps the suggested level;
+//   lesson    the fallback: a one-tap card above the first lesson opened in
+//             a course still not asked; never blocks the lesson, and "Not
+//             now" counts as asked;
+//   settings  the course's level settings, reached from "Change" on the
+//             course page (no longer the main ask).
+// The goal sets the starting level on every course; only the lesson-flow
+// changes stay behind the course's level_flow switch.
+// The server keeps the same list (backend/lib/learner-level-rules.ts GOAL_VIA).
+// ---------------------------------------------------------------------------
+export const GOAL_VIA = ["intake", "start", "lesson", "settings"] as const;
+export type GoalVia = (typeof GOAL_VIA)[number];
+
+export function goalLabel(goal: CourseGoal | null | undefined): string | null {
+  return GOAL_CHOICES.find((g) => g.id === goal)?.label ?? null;
+}
+
+// The welcome step's question names the course it is about.
+export function intakeGoalQuestion(courseTitle: string): string {
+  const t = courseTitle.trim();
+  return t ? `Why are you taking ${t}?` : GOAL_QUESTION;
+}
+
+// What the welcome flow saves for its first course: only an answered goal
+// (no answer leaves the course unasked, so the start sheet or the lesson card
+// asks later).
+export function intakeGoalBody(goal: CourseGoal | null): { goal: CourseGoal; via: "intake" } | null {
+  return goal ? { goal, via: "intake" } : null;
+}
+
+// "Start course" opens the sheet only on a course the learner has never been
+// asked about, and only for the first lesson ("Continue" goes straight on;
+// the lesson card covers anyone who gets in another way). With the level
+// state unknown (still loading or failed) it goes straight on too.
+export function asksAtStart(state: Pick<LevelState, "answered"> | null, stepKind: string | null | undefined): boolean {
+  return !!state && !state.answered && stepKind === "start";
+}
+
+// The lesson card: only while the course has never been asked about, and
+// only until the learner answers or says "Not now" in this lesson.
+export type LessonGoalCard = "ask" | "saved" | "dismissed";
+export function showsLessonGoalCard(state: Pick<LevelState, "answered"> | null, local: LessonGoalCard): boolean {
+  if (local !== "ask") return true; // keeps its one-line confirmation in place
+  return !!state && !state.answered;
+}
+
+// The request body for one tap on a reason. The level goes along only when
+// the learner picked one; otherwise the server sets the suggestion for this
+// goal (and the account's experience answer), as the app's suggestionFor does.
+export function goalAnswerBody(goal: CourseGoal, via: GoalVia, pickedLevel: Level | null): Record<string, unknown> {
+  return pickedLevel ? { goal, level: pickedLevel, via } : { goal, via };
+}
+
+export const START_SHEET_TITLE = "Before your first lesson";
+export const START_SHEET_INTRO = "One tap on a reason starts the lesson. It sets where lessons begin; you can change it any time from the course page.";
+export const SKIP_FOR_NOW = "Skip for now";
+export const LESSON_GOAL_INTRO = "One tap sets where your lessons start. This lesson carries on either way.";
+export const NOT_NOW = "Not now";
+export const STARTING_LEVEL = "Starting level";
+
+// The starting-level line on the sheet, before a reason is tapped.
+export function startingLevelLine(level: Level, picked: boolean): string {
+  return picked ? `${LEVEL_NAMES[level]} (your choice)` : `${LEVEL_NAMES[level]} (suggested; your reason can adjust it)`;
+}
+
+// After the lesson card is answered or put aside. The lesson already open
+// keeps the level it started with; the answer applies from the next lesson.
+export function lessonGoalDone(outcome: "saved" | "dismissed", level: Level | null, flow: boolean): string {
+  if (outcome === "dismissed") return "Okay. You can answer it any time with Change on the course page.";
+  const lvl = level ? ` Your level for this course is ${LEVEL_NAMES[level]}.` : "";
+  return `Saved.${lvl}${flow ? " It applies from your next lesson." : ""} Change it any time from the course page.`;
+}
+
+// The course page's summary line (the panel is a change point now).
+export function goalSummary(state: Pick<LevelState, "goal" | "answered">): string {
+  const label = goalLabel(state.goal);
+  if (label) return label;
+  return state.answered ? "Not answered" : "Not answered yet";
+}
+export const GOAL_SUMMARY_LABEL = "Why you're taking it";
+
 // The self-rating on the same screen: concrete descriptions rather than
 // labels (design section 3), with the suggestion pre-selected.
 export const RATING_QUESTION = "Which sounds most like you?";
