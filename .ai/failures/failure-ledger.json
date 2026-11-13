@@ -17329,6 +17329,29 @@
       "prevention_rules": [],
       "prevention_notes": "When a rule a source check pins is wrapped, update the check to the wrapper and unit test the wrapper (FAIL-232: tests written against an older rule are updated, not deleted).",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1792",
+      "date": "2026-11-12",
+      "title": "Data inventory not marked as checked up to the new migration 080",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "backend lib/ship-notes.test.ts: docs/legal/data-inventory.md was checked up to migration 079, but 080 exists.",
+      "how_detected": "test (npm test in backend)",
+      "root_cause": "080 adds no table, so the inventory's tables needed no new row, but the 'brought up to migration NNN' marker still has to move with every migration.",
+      "requirement": "REQ-256",
+      "affected": [
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "Noted what 080 stores (four learner_events names, the 'suggested' reason; no new table) and bumped the marker to 080.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts::its 'up to migration NNN' is the newest migration"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The existing ship-notes test caught it; a migration with no new table still updates the inventory marker.",
+      "recurrence_of": ""
     }
   ]
 }
