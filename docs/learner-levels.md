@@ -14,8 +14,11 @@ per-course switch, on for Python and JavaScript only.
 - **Course level settings** (`/course/:trackId/level`, from either chip):
   the goal, the course level and an optional level per unit.
 - **Lesson, pilot courses only** (`subject_tracks.level_flow`):
-  - the level chip under the step header, with the primers builder's
-    "Key terms" slot beside it (marked `PRIMERS SLOT` in the lesson screen);
+  - the level chip under the step header, below REQ-253's "Key terms"
+    button (one button; nothing added beside it);
+  - **New:** the Key terms sheet opens once at the start of the lesson
+    (`initiallyOpen`, only when the lesson starts at its first step, so a
+    resumed lesson does not pop it open again; `openKeyTermsAtStart`);
   - **New:** a one-tap hunch instead of the typed guess (3-4 options plus
     "No idea yet", with "Just teach me" always visible; no score and no
     model call, one line back), the full worked example before Guided by
@@ -73,7 +76,7 @@ by the server from fixed keys (`lessonEventDetail`):
 | `teach_card_viewed` | card | drop-off at each Teach card |
 | `lesson_step_reached` | step | drop-off between steps, completion |
 | `guided_skipped` | | Experienced skipping Guided |
-| `key_terms_opened`, `key_terms_closed` | seconds | for the primers builder |
+| `key_terms_opened`, `key_terms_closed` | seconds (on close) | whether the primer is opened and how long it stays open |
 | `course_goal_set` | goal | |
 | `level_changed` | from, to, reason (learner / mastery / undo), scope | how often levels change |
 

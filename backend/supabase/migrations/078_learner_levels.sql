@@ -50,12 +50,26 @@
 -- lesson event route read these tables, and /api/health probes them
 -- (lib/schema-status.ts). The code before this migration never reads them.
 --
--- LOCKING. Three new tables; one nullable column with a constant default on
+-- LOCKING. Three new tables; one column with a constant default on
 -- subject_tracks and one nullable column on learner_events (catalog-only
--- changes in PG 11+, no rewrite, but an instant ACCESS EXCLUSIVE each); the
--- learner_events checks are swapped with NOT VALID (an instant ACCESS
--- EXCLUSIVE) then VALIDATE (SHARE UPDATE EXCLUSIVE, which does not block
--- inserts). lock_timeout 5 s as usual.
+-- changes in PG 11+, no rewrite, but ACCESS EXCLUSIVE each). The migration
+-- tool runs the whole file in ONE transaction, so those ACCESS EXCLUSIVE
+-- locks on subject_tracks and learner_events are held until commit: the
+-- NOT VALID + VALIDATE split on learner_events' checks does not release
+-- inserts during the scan here. What bounds it is size: the 2-row
+-- level_flow update and one scan of learner_events (first-party milestones,
+-- small); the whole file applied in about 0.25 s on a seeded copy with
+-- few events (production's event count was not measured). lock_timeout
+-- 5 s as usual: a long query on either table makes the migration fail
+-- cleanly (nothing applied, re-run it) rather than queue behind it.
+--
+-- PRODUCTION ORDER. Production already has 079 (REQ-253) and not 078. 078
+-- touches nothing 079 does (079: lesson_primers and item_holdbacks' kind
+-- check), and `npm run migrate -- --all` applies an unrecorded earlier file
+-- after later ones; checked on a copy built 001-079 without 078, seeded,
+-- then 078 applied, applied again by hand, and its rollback run (REQ-252).
+-- The seed on this branch writes subject_tracks.level_flow, so run the seed
+-- only after 078.
 --
 -- ROLLBACK:
 --   drop table if exists learner_level_changes, learner_unit_levels, learner_course_profiles;
