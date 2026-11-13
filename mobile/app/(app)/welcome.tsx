@@ -13,6 +13,7 @@ import { friendlyError } from "@/lib/errorMessage";
 import { localToday } from "@/lib/studyPlan";
 import { pickableCourses } from "@/lib/firstRun";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
+import { intakeGoalBody, type CourseGoal } from "@/lib/learnerLevel";
 import type { Track } from "@/types";
 import type { PlanResponse } from "@/types/plan";
 
@@ -23,6 +24,8 @@ import type { PlanResponse } from "@/types/plan";
 //   2. REQ-169: the intake questions (goal, the exam(s) and dates,
 //      experience, weekly time, use) -- they set up the study plan and,
 //      with paid plans on, suggest a plan (never a price; step 2b shows it);
+//      REQ-255: beside experience, why they're taking the course picked in
+//      step 1 (the per-course goal, saved to that course's level profile);
 //   3. an optional quick placement check, or start at the beginning;
 // then it lands on a clear first step: the course page, whose main button
 // reads "Start course", or the placement check, or Explore.
@@ -45,6 +48,12 @@ export default function Welcome() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const planRequest = useRef<Promise<PlanResponse | null>>(Promise.resolve(null));
+  // REQ-255: why they're taking the course just picked, asked beside the
+  // experience question. Saved to the course's level profile once the first
+  // run has recorded the course (finish), and only when the answers were
+  // submitted with Continue.
+  const [courseGoal, setCourseGoal] = useState<CourseGoal | null>(null);
+  const pendingCourseGoal = useRef<CourseGoal | null>(null);
 
   const loadCourses = () => {
     setLoadError(null);
@@ -62,6 +71,10 @@ export default function Welcome() {
     // REQ-169: leaving without answering is remembered, so it isn't asked again.
     if (!intake) await api.put("/api/intake", { skip: true }).catch(() => undefined);
     await completeFirstRun({ trackId: to === "home" || to === "explore" ? goal?.id ?? null : goal!.id });
+    // REQ-255: a failed save is not shown -- the course's "Start course" sheet
+    // or its first lesson asks again.
+    const goalBody = intakeGoalBody(pendingCourseGoal.current);
+    if (goal && goalBody) await api.put(`/api/courses/${goal.id}/level`, goalBody).catch(() => undefined);
     setBusy(false);
     if (to === "home") return router.replace("/");
     if (to === "explore") {
@@ -76,6 +89,8 @@ export default function Welcome() {
     setGoal(t);
     setError(null);
     setForm(addTarget({ ...EMPTY_FORM, targets: [] }, t));
+    setCourseGoal(null);
+    pendingCourseGoal.current = null;
     setStep("date");
     // Placement availability and the plan's current settings; if this fails
     // the date step still works (default hours) and placement is not offered.
@@ -96,6 +111,7 @@ export default function Welcome() {
     try {
       saved = parseIntakeView(await api.put<unknown>("/api/intake", answered ? intakeBody(form, localToday()) : { skip: true }));
       setIntake(saved);
+      pendingCourseGoal.current = answered ? courseGoal : null;
     } catch (err) {
       setBusy(false);
       return setError(friendlyError(err));
@@ -167,7 +183,11 @@ export default function Welcome() {
           <H1>A few questions</H1>
           <Muted>{PRIVACY_LINE}</Muted>
           {error ? <ErrorBanner message={error} /> : null}
-          <IntakeFormFields value={form} onChange={setForm} />
+          <IntakeFormFields
+            value={form}
+            onChange={setForm}
+            courseGoal={{ courseTitle: goal.title, value: courseGoal, onChange: setCourseGoal }}
+          />
           <Button label="Continue" icon="arrow-right" loading={busy} onPress={() => saveAbout(true)} />
           <Button label="Skip these questions" variant="ghost" disabled={busy} onPress={() => saveAbout(false)} />
           <Button label="Pick a different course" variant="link" fullWidth={false} onPress={() => setStep("goal")} />
