@@ -201,8 +201,8 @@ export const PRIVACY: LegalDoc = {
       body: [
         "• Account: email address, optional display name, optional profile photo, and a hashed password (never the password itself). If you sign in with Google, the Google account's ID and email address.",
         "• Security: two-factor settings and backup codes (stored hashed or encrypted); signed-in sessions with device name, browser or app details and IP address; a log of sign-in and security events with time and IP address, used to show your sessions, limit repeated attempts and flag suspicious activity; short-lived codes for verifying email, resetting passwords and confirming changes.",
-        "• Study activity: the courses you add or favourite; the lessons, questions, reviews, practice exams, scenarios and labs you've attempted; your answers (including anything you type) and how confident you said you were; the mastery levels, review schedule and study plan calculated from them; study sessions; and that you accepted the study notice (and any course or lab disclaimers you accepted before it replaced them). If you choose to tell us how a real exam went, the date, the result and any score you enter.",
-        "• Learning milestones: a short record of milestones — a lesson started or finished, a review or practice exam done, a placement check finished, the welcome steps completed, an exam result reported — with the time and the course it belongs to. It holds no answer text. We use it, only ourselves, to see whether Ascendra is helping people learn (for example, how many new learners finish a first lesson).",
+        "• Study activity: the courses you add or favourite; the lessons, questions, reviews, practice exams, scenarios and labs you've attempted; your answers (including anything you type) and how confident you said you were; the mastery levels, review schedule and study plan calculated from them; why you're taking each course and the level you study it at (New, Some background or Experienced, per course or per unit), with each change to that level and whether it was made by you or because your answers showed you'd moved up; study sessions; and that you accepted the study notice (and any course or lab disclaimers you accepted before it replaced them). If you choose to tell us how a real exam went, the date, the result and any score you enter.",
+        "• Learning milestones: a short record of milestones — a lesson started or finished, a review or practice exam done, a placement check finished, the welcome steps completed, an exam result reported, and the steps of a lesson (a guess made or skipped, which explanation card you reached, guided practice skipped, key terms opened, a level changed) — with the time, the course it belongs to, and for lesson steps your level, the card number or how many seconds it took. It holds no answer text. We use it, only ourselves, to see whether Ascendra is helping people learn (for example, how many new learners finish a first lesson).",
         "• AI coach: the messages you send the coach and its replies.",
         "• Support: tickets, course requests and problem reports about a lesson, question, lab or coach reply that you send (a coach-reply report includes the reply you reported), with your account email so we can reply, and our replies.",
         "• Access grants: if the operator gives an email address unrestricted access, that address (even before an account uses it), who gave it, its dates and any note, and a record of grants, changes and when an account with it reached the AI safety limit.",
@@ -405,8 +405,8 @@ export const SOURCES: LegalDoc = {
 
 export const ABOUT: LegalDoc = {
   title: "About Ascendra",
-  version: "2026-11-11",
-  updated: "November 11, 2026",
+  version: "2026-11-12",
+  updated: "November 12, 2026",
   sections: [
     {
       title: "What it's for",
@@ -418,6 +418,7 @@ export const ABOUT: LegalDoc = {
       title: "How it teaches",
       body: [
         "Each objective runs the same loop: you guess first, then read a short explanation, then work a guided problem, then solve one on your own. Your answers are evidence for a mastery level, and Today's review brings objectives back on a widening schedule. Some courses add practice exams, scenario questions and hands-on labs. An AI coach answers questions about the material you're studying.",
+        "When you start a course you say why you're taking it and pick a level: New, Some background or Experienced, for the whole course or one unit at a time. In the Python and JavaScript courses the level changes how a lesson starts: New learners get a one-tap hunch instead of a typed guess and the full worked example before guided practice, and Experienced learners can skip guided practice. Your level moves up on its own when your solo answers show it, always with a note and an Undo. The solo check and the mastery rules are the same at every level.",
       ],
     },
     {
@@ -435,8 +436,8 @@ export const ABOUT: LegalDoc = {
 
 export const FAQ: LegalDoc = {
   title: "FAQ",
-  version: "2026-11-11",
-  updated: "November 11, 2026",
+  version: "2026-11-12",
+  updated: "November 12, 2026",
   sections: [
     {
       title: "What is Ascendra?",
@@ -470,6 +471,13 @@ export const FAQ: LegalDoc = {
       title: "How does mastery work?",
       body: [
         "Each answer is evidence for that objective's mastery level, weighted by the kind of question and by whether you had help (choices on screen, or a question you've seen before, count for less). Independent needs about 70% weighted accuracy and a second correct answer on your own at least a day after the first. Transfer-ready needs 80%, correct answers on your own in two different kinds of question, and at least three days between the first and the last. Objectives you've reached come back in Today's review after 1, 3, 7, 21 and 60 days, never sooner than a full 24 hours after your last review, and a miss brings a question back sooner.",
+      ],
+    },
+    {
+      title: "What does my level change?",
+      body: [
+        "Each course has a level — New, Some background or Experienced — that you choose when you start it and can change any time from the level chip (“Level: New · change”) or the course page. A unit can have its own level. In the Python and JavaScript courses, New opens each lesson with its Key terms list (close it any time; the Key terms button stays there) and a one-tap hunch (or “No idea yet”) and shows the full worked example before guided practice, with a progress ladder (Seen, Understood, Practiced, Mastered, Kept) that fills as you go; Experienced offers to skip guided practice; Some background is the standard lesson. Other courses save your level for when they get the same changes.",
+        "When 4 of your last 5 solo checks in a unit are right on the first try without a hint, that unit moves up one level and you see a note with Undo. Your level never changes the solo check or what counts toward mastery.",
       ],
     },
     {

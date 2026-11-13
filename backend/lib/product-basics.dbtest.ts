@@ -292,7 +292,15 @@ describe("learner events (M8)", () => {
     const cols = await query<{ column_name: string }>(
       `select column_name from information_schema.columns where table_schema = 'public' and table_name = 'learner_events' order by column_name`
     );
-    assert.deepEqual(cols.map((c) => c.column_name), ["created_at", "event", "id", "objective_id", "ref_id", "track_id", "user_id"]);
+    // REQ-252 (078) added `detail`: a few fixed keys (level, a card number,
+    // seconds, a level pair), built by the server -- never answer text. The
+    // database caps it at 400 bytes; lib/learner-level.dbtest.ts checks that
+    // the lesson event route drops every other key.
+    assert.deepEqual(cols.map((c) => c.column_name), ["created_at", "detail", "event", "id", "objective_id", "ref_id", "track_id", "user_id"]);
+    const cap = await queryOne<{ ok: boolean }>(
+      `select exists(select 1 from pg_constraint where conname = 'learner_events_detail_078') as ok`
+    );
+    assert.equal(cap?.ok, true);
   });
 });
 

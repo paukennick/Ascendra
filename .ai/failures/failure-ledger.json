@@ -17109,6 +17109,124 @@
       ],
       "prevention_notes": "",
       "recurrence_of": "FAIL-1760"
+    },
+    {
+      "id": "FAIL-1680",
+      "date": "2026-11-12",
+      "title": "Data inventory 'up to migration' header named 077 first after 078 was added",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/ship-notes.test.ts: docs/legal/data-inventory.md was checked up to migration 077, but 078 exists (after the header already mentioned 078 later in the sentence)",
+      "how_detected": "backend npm test (ship-notes.test.ts)",
+      "root_cause": "The check reads the FIRST 'up to migration NNN' in the file. Adding the new migration as a second clause after the old 'up to migration 077' left the old number first, so the inventory still read as stale although 078's tables were listed.",
+      "requirement": "REQ-252",
+      "affected": [
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "Reworded the header so 'up to migration 078' is the first and only such phrase, with 071-077 and 078 listed after it.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts::its 'up to migration NNN' is the newest migration"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When bumping the inventory, replace the number in the existing phrase rather than appending a second 'up to migration' clause; the test catches it.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1681",
+      "date": "2026-11-12",
+      "title": "A level changed from a lesson's chip did not apply when the learner came back to that lesson",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Found in review after merging REQ-250: the lesson read the level once per objective, so changing it in the level settings opened from the lesson's chip (a push, which keeps the lesson mounted) left the lesson on the old level until it was reopened.",
+      "how_detected": "Code review of the merged lesson screen",
+      "root_cause": "The level fetch was keyed on the objective and unit only; returning to a still-mounted screen fires no mount effect. REQ-250 made leaving and returning to a lesson the normal path, so the stale state became reachable.",
+      "requirement": "REQ-252",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "The lesson refetches the level quietly on focus (useFocusEffect), after the first load.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Screen-level focus behavior; the app's tests run pure libraries under node --test and no browser or device is available in this environment. The level state parsing it uses is tested in src/lib/learnerLevel.test.ts.",
+      "prevention_rules": [],
+      "prevention_notes": "A screen that links to a settings screen for state it reads refetches that state on focus.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1682",
+      "date": "2026-11-12",
+      "title": "New learners never saw Key terms opened at the start, and Key terms events were never logged",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After merging #166 (REQ-253), the lesson rendered KeyTermsButton without initiallyOpen, so New learners in Python and JavaScript got no Key terms at the start of a lesson (a decision of 2026-11-12); key_terms_opened / key_terms_closed were allowed by 078 and the event route but nothing sent them. REQ-252 was already marked completed with a PRIMERS SLOT comment standing in for the integration.",
+      "how_detected": "Review of the branch diff against the brief after merging origin/master",
+      "root_cause": "The levels branch was built before the primers branch merged; it left a placeholder comment for the other builder instead of a check that would fail until the integration existed, and the requirement was completed with the placeholder still in place. KeyTermsButton had no way to tell its host it opened or closed.",
+      "requirement": "REQ-252",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/components/KeyTerms.tsx",
+        "mobile/src/lib/learnerLevel.ts"
+      ],
+      "fix_summary": "KeyTermsButton (the one button, keyed by objective) gets initiallyOpen={openKeyTermsAtStart(flow, step)}: New with the flow on, only when the lesson starts at its first step. An optional onOpenChange on KeyTermsButton feeds key_terms_opened and key_terms_closed (with seconds). PRIMERS SLOT comment removed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/learnerLevel.test.ts::Key terms opens once at the start for New only (REQ-253's initiallyOpen)",
+        "mobile/src/lib/keyTerms.test.ts::the lesson screen places it once",
+        "beside the step header",
+        "at every step"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A seam left for another branch is wired and tested on the merged tree before the requirement is completed (the FAIL-964 checklist line); a placeholder comment is not a seam.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1683",
+      "date": "2026-11-12",
+      "title": "078's locking note said validating its checks would not block inserts",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "078's header said the learner_events checks were swapped NOT VALID then VALIDATE (SHARE UPDATE EXCLUSIVE, not blocking inserts). The migration tool runs the file in one transaction, so the ACCESS EXCLUSIVE locks taken earlier on learner_events and subject_tracks are held until commit, scan included.",
+      "how_detected": "Review of migration 078 for the production apply",
+      "root_cause": "The NOT VALID / VALIDATE pattern only releases writers when the validate runs in its own transaction; the note described the pattern, not this file's run.",
+      "requirement": "REQ-252",
+      "affected": [
+        "backend/supabase/migrations/078_learner_levels.sql"
+      ],
+      "fix_summary": "The header now says the locks are held to commit, that what bounds the hold is table size (2-row update, one scan of the small learner_events), the measured apply time on a seeded copy, and the production order (applied after 079).",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "A comment's accuracy about lock duration; the behavior (applies after 079, re-runs, rolls back) was exercised on a throwaway Postgres 16 copy built 001-079 without 078.",
+      "prevention_rules": [],
+      "prevention_notes": "A migration's LOCKING note states whether its statements share one transaction before claiming a lock is released.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1684",
+      "date": "2026-11-12",
+      "title": "The level-change notice hard-coded 4 of 5 instead of the named thresholds",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "levelChangeNotice wrote 'You got 4 of your last 5 solo checks' as literal text; changing LEVEL_UP_WINDOW or LEVEL_UP_MIN_FIRST_TRY_CORRECT on the server would leave the notice telling learners the wrong rule.",
+      "how_detected": "Review against the brief (thresholds are named constants)",
+      "root_cause": "The app cannot import the backend's rules module, and the wording copied the numbers rather than mirroring the constants with a check that they match.",
+      "requirement": "REQ-252",
+      "affected": [
+        "mobile/src/lib/learnerLevel.ts"
+      ],
+      "fix_summary": "The app mirrors LEVEL_UP_WINDOW and LEVEL_UP_MIN_FIRST_TRY_CORRECT and builds the notice from them; a test reads backend/lib/learner-level-rules.ts and fails if the numbers differ.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/learnerLevel.test.ts::the notice's numbers are the server's named constants"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Learner-facing text that states a server threshold uses a mirrored constant pinned by a cross-package test.",
+      "recurrence_of": ""
     }
   ]
 }

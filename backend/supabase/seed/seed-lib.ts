@@ -300,6 +300,13 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
     console.log(`subject_tracks: created ${track.code} -> ${trackId}`);
   }
 
+  // REQ-252 (migration 078): the level-aware lesson flow is switched on per
+  // course. Set when the seed marks a track, never cleared here, so a course
+  // Nick switches on by hand stays on through a re-seed.
+  if (track.levelFlow) {
+    await pool.query(`update subject_tracks set level_flow = true where id = $1 and not level_flow`, [trackId]);
+  }
+
   // REQ-102: units and objectives are matched by sort_order, so their row
   // ids -- and every learner's mastery and attempts on them -- survive a
   // re-seed. retired_at is assigned outright from the seed (a unit the seed
