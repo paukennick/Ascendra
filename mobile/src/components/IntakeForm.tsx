@@ -102,13 +102,13 @@ export function IntakeFormFields({
                 <Pressable
                   key={t.id}
                   onPress={async () => {
-                    if (!(await mature.ensure(t.category_slug, "intake"))) return;
+                    if ((await mature.ensure(t, "intake")) !== "confirmed") return;
                     onChange(addTarget(value, t));
                     setSearch("");
                     setAdding(false);
                   }}
                   accessibilityRole="button"
-                  accessibilityLabel={mature.needs(t.category_slug) ? `Add ${t.title} (18+ content notice)` : `Add ${t.title}`}
+                  accessibilityLabel={mature.needs(t) ? `Add ${t.title} (18+ content notice)` : `Add ${t.title}`}
                   style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
                 >
                   <View style={{ flex: 1, gap: 2 }}>

@@ -228,6 +228,24 @@ export async function sendAiCeilingNotice(to: string, accountEmail: string, spen
   });
 }
 
+// REQ-259: to each owner (OWNER_EMAILS) when an account's date of birth, given
+// to an 18+ prompt, is below the account minimum age (lib/age-confirmation.ts),
+// so the owner can review it. Carries only the account id and address and the
+// fact; never the date of birth or the age. Nothing is deleted automatically.
+// `accountId` and `accountEmail` are escaped.
+export async function sendUnderMinimumAgeNotice(to: string, accountId: string, accountEmail: string, minimumAge: number): Promise<void> {
+  await send("underage_review_notice", {
+    from: getFrom(),
+    to,
+    subject: "Ascendra: an account entered a date of birth below the minimum age",
+    html:
+      `<p>Account <strong>${escapeHtml(accountId)}</strong> (${escapeHtml(accountEmail)}) entered a date of birth below the account minimum age of ${minimumAge} ` +
+      `when asked to confirm they are 18 or older for a mental health course.</p>` +
+      `<p>The course stays locked for that account. Nothing has been deleted or changed. The date of birth is on the account (app_users.date_of_birth) if you need to review it; ` +
+      `it is not repeated here.</p>`,
+  });
+}
+
 // REQ-197: the service emails (exam change notice, exam countdown, weekly
 // digest). lib/service-emails.ts renders them, checks the preference, the
 // verified address and the send log first, and passes the sender: EMAIL_FROM

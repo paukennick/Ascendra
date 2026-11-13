@@ -13,7 +13,7 @@ import { randomUUID } from "node:crypto";
 import { Client } from "pg";
 import { query, queryOne, closePool } from "./db";
 import { signAccessToken } from "./auth/tokens";
-import { recordMatureContentConfirmation } from "./mature-content";
+import { MATURE_CONTENT_NOTICE_VERSION } from "./mature-content";
 import { ALL_DOCUMENTS, loadDocument } from "./sim/documents.ts";
 import { clientDocument, clientHash, contentHash } from "./sim/content-hash.ts";
 import type { ScenarioDoc } from "./sim/engine/v1/index.ts";
@@ -204,7 +204,7 @@ describe("GET /api/courses sim_count (REQ-249)", () => {
     };
     assert.equal(await listed(), 1, "the list names it without the confirmation");
     assert.equal((await listCourses(u)).get(mh), 1, "so the count matches it");
-    await recordMatureContentConfirmation(u, "mental-health", "catalog");
+    await query(`insert into mature_course_acknowledgements (user_id, track_id, notice_version) values ($1, $2, $3)`, [u, mh, MATURE_CONTENT_NOTICE_VERSION]);
     assert.equal(await listed(), 1);
     assert.equal((await listCourses(u)).get(mh), 1);
     // And for the plain course: the count equals the list's served sims.

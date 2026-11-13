@@ -479,6 +479,18 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                          and pg_get_constraintdef(oid) like '%''suggested''%') as ok`,
   },
   {
+    // REQ-259: every mental health course route reads the per-course 18+
+    // acknowledgement table; the accept route writes the date of birth.
+    migration: "081_mature_course_acknowledgements.sql",
+    what: "the per-course 18+ acknowledgment table (the mental health gate, with its attestation; in the account export) and app_users.date_of_birth / date_of_birth_entered_at (asked once at the first 18+ prompt)",
+    sql: `select to_regclass('public.mature_course_acknowledgements') is not null
+             and exists(select 1 from pg_constraint where conname = 'mature_course_acknowledgements_source_081')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'app_users' and column_name = 'date_of_birth')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'app_users' and column_name = 'date_of_birth_entered_at') as ok`,
+  },
+  {
     // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
     migration: "074_independent_confirmation.sql",
     what: "the 074 mastery_detail() (Independent needs a second unassisted correct answer 24 h after the first)",

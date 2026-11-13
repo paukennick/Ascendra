@@ -66,7 +66,7 @@ describe("simCountsByTrack switches (REQ-249)", () => {
     assert.equal(out.get(t1), 2);
     assert.equal(out.get(t2), undefined, "a rejected-only sim is not served");
     // REQ-224: matches GET /api/sims?trackId=, which is not behind the 18+ gate (docs/sims.md 22.12).
-    assert.doesNotMatch(calls[0].sql, /mature_content_confirmations/);
+    assert.doesNotMatch(calls[0].sql, /mature_course_acknowledgements/);
     assert.match(calls[0].sql, /item_status/, "pulled versions are left out (servableSql)");
   });
 });

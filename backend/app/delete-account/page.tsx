@@ -42,7 +42,7 @@ export default function DeleteAccountPage() {
         <li>Study data: courses you added, favorites, your study profile, answers (lessons, reviews, practice exams, labs and sims), mastery scores, review schedule, study sessions and any exam results you reported.</li>
         <li>AI coach conversations, support requests and lesson reports.</li>
         <li>The note you wrote on any question you reported.</li>
-        <li>Records of which terms, policies and study notice you accepted (and any older course disclaimers), that you confirmed your age, and any 18+ confirmation for mental health courses.</li>
+        <li>Records of which terms, policies and study notice you accepted (and any older course disclaimers), that you confirmed your age, the date of birth you gave for mental health courses, and each 18+ acknowledgment you made for a mental health course.</li>
       </ul>
 
       <h2>What is kept, and for how long</h2>

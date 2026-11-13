@@ -9492,6 +9492,72 @@
         "A course switched on cannot be switched off by the seed (it never clears level_flow); switching off is a manual update",
         "Objectives without Key terms write them on first use, a live model call within the pilot AI ceiling"
       ]
+    },
+    {
+      "id": "REQ-259",
+      "category": "feature",
+      "title": "18+ acknowledgement per mental health course with a date of birth asked once",
+      "description": "Nick 2026-11-13 (lighter version of REQ-224's gate): every mental health course needs its own 18+ acknowledgement (opening or starting it is refused with 403 mature_content_required naming the course until then) even if another one was acknowledged; old per-category confirmations stay for the record and no longer count. The first 18+ prompt on an account also asks for a date of birth (stored once on app_users and never changed through the flow; later courses do not ask again); the server computes age in UTC date terms; under 18 keeps the course locked with a kind message pointing to support; under 16 (MINIMUM_AGE) also emails the owners (OWNER_EMAILS) the account id and address and the fact only. Every prompt carries a required attestation (the information given is true and the learner is 18 or older) recorded per course with timestamp and notice version (notice version 2026-11-13). Migration 081. Account export and deletion cover the date of birth and the acknowledgements.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/081_mature_course_acknowledgements.sql",
+        "backend/lib/date-of-birth.ts",
+        "backend/lib/age-review.ts",
+        "backend/lib/mature-content.ts",
+        "backend/lib/auth/requireAcknowledgement.ts",
+        "backend/lib/visibility.ts",
+        "backend/lib/email.ts",
+        "backend/lib/email-errors.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/mature-content/",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/app/api/intake/route.ts",
+        "backend/app/delete-account/page.tsx",
+        "mobile/src/lib/matureContent.ts",
+        "mobile/src/lib/dateOfBirth.ts",
+        "mobile/src/auth/MatureContentContext.tsx",
+        "mobile/src/components/MatureContentNotice.tsx",
+        "mobile/src/components/IntakeForm.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/app/(app)/explore.tsx",
+        "mobile/src/content/legal.ts",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a mental health course route without an acknowledgement of that course answers 403 mature_content_required with its trackId and never 5xx even when another mental health course was acknowledged",
+        "the first acknowledgement without a date of birth answers 400 date_of_birth_required and later courses do not ask for it",
+        "a missing attestation answers 400 and stores nothing",
+        "an outdated notice version answers 409 mature_notice_outdated",
+        "a stored date of birth is never overwritten through the flow",
+        "under 18 by the stored date answers 403 mature_content_underage and records nothing",
+        "under 16 also sends one owner mail with no date of birth",
+        "the date of birth and the acknowledgements are in the account export and deleted with the account",
+        "the app shows the notice for the course with the date fields only the first time"
+      ],
+      "validation_required": [
+        "backend npm test and typecheck",
+        "npm run test:db on a throwaway Postgres with every migration applied",
+        "mobile npm test and tsc",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "mobile/src/content/legal.ts FAQ",
+        "backend/app/delete-account/page.tsx",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "LAUNCH NOTE: the next Privacy Policy version must list the date of birth and the attestation records; the current Privacy Policy and Terms (mobile/src/content/legal.ts) still say we do not ask for a date of birth and must change before or with this release",
+        "Installed app builds before this release send the old notice version and category and cannot acknowledge a mental health course (409 mature_notice_outdated) until updated",
+        "A wrong date of birth locks the learner out of mental health courses until support corrects it in the database",
+        "An under-16 owner alert that fails to send is only logged (the account id is in the log) and is not retried",
+        "Deleting a course deletes its acknowledgements (cascade)"
+      ]
     }
   ]
 }

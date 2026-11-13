@@ -55,7 +55,9 @@ const req = (u: string, url: string, method = "GET", body?: unknown) =>
 const json = async (res: Response) => ({ status: res.status, body: (await res.json()) as Record<string, any> });
 const idCtx = (id: string) => ({ params: Promise.resolve({ id }) });
 const runCtx = (runId: string) => ({ params: Promise.resolve({ runId }) });
-const confirm = (u: string) => acceptPost(req(u, "/api/mature-content/accept", "POST", { category: "mental-health", version: MATURE_CONTENT_NOTICE_VERSION, source: "course" })).then(json);
+// REQ-259: the 18+ acknowledgement is per course, and the account's first one carries a date of birth.
+const confirm = (u: string, trackId: string) =>
+  acceptPost(req(u, "/api/mature-content/accept", "POST", { trackId, version: MATURE_CONTENT_NOTICE_VERSION, attested: true, dateOfBirth: "1990-01-15", source: "course" })).then(json);
 const docOf = (slug: string): ScenarioDoc => loadDocument(NBCC_SESSION_DOCUMENTS.find((e) => e.slug === slug)!);
 const goldenOf = (slug: string): GoldenFile => JSON.parse(readFileSync(NBCC_SESSION_DOCUMENTS.find((e) => e.slug === slug)!.golden!, "utf8")) as GoldenFile;
 
@@ -147,7 +149,7 @@ describe("REQ-239: the seeded NCE and NCMHCE courses", () => {
         assert.equal(r.body.category, "mental-health");
         assert.equal(r.body.minAge, 18);
       }
-      assert.equal((await confirm(u)).status, 200);
+      assert.equal((await confirm(u, id)).status, 200);
       const opened = await json(await courseGet(req(u, `/api/courses/${id}`), idCtx(id)));
       assert.equal(opened.status, 200, JSON.stringify(opened.body));
       const labs = await json(await labsGet(req(u, `/api/labs?trackId=${id}`)));
@@ -197,7 +199,7 @@ describe("REQ-239: each session's expert path through the routes", () => {
     test(`${e.course}/${e.slug}: target ending, a Good rating, one attempt`, async () => {
       const u = await newUser();
       await recordStudyNoticeAcceptance(u);
-      await confirm(u);
+      await confirm(u, tracks[e.course]);
       const sim = await queryOne<{ id: string }>(`select id from sims where slug = $1`, [e.slug]);
       const doc = docOf(e.slug);
       const path = goldenOf(e.slug).paths.find((p) => p.id === "expert")!;
