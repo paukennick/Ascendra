@@ -22,6 +22,31 @@ export type Level = (typeof LEVELS)[number];
 export const COURSE_GOALS = ["work", "current", "program", "career_change", "interest"] as const;
 export type CourseGoal = (typeof COURSE_GOALS)[number];
 
+// REQ-255 (Nick, 2026-11-12: ask the goal when the learner picks a course,
+// not later): where the goal question was answered, skipped or dismissed.
+//   intake    the first course, chosen in the welcome steps (next to the
+//             account's experience question)
+//   start     the sheet "Start course" opens on a course not asked yet
+//   lesson    the one-tap card above the first lesson opened in a course
+//             not asked yet (the fallback)
+//   settings  the course's level settings ("Change" on the course page)
+// REQ-252 builds still installed ask on the course page and send no `via`.
+// Recorded in course_goal_set's detail only; nothing else reads it.
+export const GOAL_VIA = ["intake", "start", "lesson", "settings"] as const;
+export type GoalVia = (typeof GOAL_VIA)[number];
+export function isGoalVia(v: unknown): v is GoalVia {
+  return typeof v === "string" && (GOAL_VIA as readonly string[]).includes(v);
+}
+
+// What became of the question, in course_goal_set's detail: answered (a goal
+// was saved or changed), skipped ("Skip for now" on the start sheet, or the
+// REQ-252 panel's skip) or dismissed ("Not now" on the lesson card). Skipped
+// and dismissed both count as asked (learner_course_profiles.answered_at),
+// so the question is not put to the learner again; the course page and the
+// level settings keep a "Change" for later.
+export const GOAL_OUTCOMES = ["answered", "skipped", "dismissed"] as const;
+export type GoalOutcome = (typeof GOAL_OUTCOMES)[number];
+
 // The account intake's experience answer (REQ-169, lib/intake.ts).
 export type AccountExperience = "new" | "some" | "experienced" | "retake";
 
