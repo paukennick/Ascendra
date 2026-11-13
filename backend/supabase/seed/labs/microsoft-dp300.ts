@@ -22,8 +22,8 @@ import { source } from "../sources";
 export const DP300_LABS: SeedLabSet = {
   trackCode: "DP300",
   sources: [
-    // Exam outline (checked 2026-11-07)
-    source("https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300", "exam_outline", "2026-11-07"),
+    // Exam outline (checked 2026-11-07; re-read 2026-11-11, REQ-244: unchanged)
+    source("https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300", "exam_outline", "2026-11-11"),
     // Tier comparison: General Purpose / Business Critical 4 TB, Hyperscale 128 TB
     source("https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tier-hyperscale?view=azuresql", "reference", "2026-11-07"),
     // SQL Database vs SQL Server: SQL Agent, cross-database names, instance features

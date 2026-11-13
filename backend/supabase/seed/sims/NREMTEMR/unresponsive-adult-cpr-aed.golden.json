@@ -1,0 +1,881 @@
+{
+  "slug": "unresponsive-adult-cpr-aed",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: check in under 10 s, compressions, pads during CPR, shock, straight back on the chest, BVM, switch, pulse found, clean handoff",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "scene",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tapShout",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "requestAls",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "handover",
+          "choice": "times",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "aedOn",
+          "seq": 8,
+          "tick": 8
+        },
+        {
+          "type": "teach",
+          "prompt": "gasps",
+          "choice": "agonal",
+          "seq": 9,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "analyze",
+          "seq": 10,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 11,
+          "tick": 34
+        },
+        {
+          "type": "chapter",
+          "chapter": "shocked",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 13,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "seq": 14,
+          "tick": 34
+        },
+        {
+          "type": "teach",
+          "prompt": "depth",
+          "choice": "aha",
+          "seq": 15,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "swap",
+          "seq": 16,
+          "tick": 154
+        },
+        {
+          "type": "act",
+          "action": "analyze",
+          "seq": 17,
+          "tick": 154
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 18,
+          "tick": 160
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 19,
+          "tick": 168
+        },
+        {
+          "type": "act",
+          "action": "postRosc",
+          "seq": 20,
+          "tick": 168
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "report": "full"
+          },
+          "seq": 21,
+          "tick": 360
+        }
+      ],
+      "expect": {
+        "ending": "roscHandoff",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "recognize": "met",
+          "aed": "met",
+          "quality": "met",
+          "swap": "met",
+          "airway": "met",
+          "als": "met",
+          "handoff": "met",
+          "post": "met"
+        },
+        "kpis": {
+          "toCpr": 8,
+          "toShock": 34,
+          "ccfK": 88,
+          "gapK": 0
+        },
+        "stateHash": "699d49fcc57f27c3"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "slowAed",
+      "title": "Good CPR, but the AED goes on only after 3 minutes and ALS is asked for late",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "scene",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tapShout",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 4,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "requestAls",
+          "seq": 6,
+          "tick": 75
+        },
+        {
+          "type": "act",
+          "action": "swap",
+          "seq": 7,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "aedOn",
+          "seq": 8,
+          "tick": 200
+        },
+        {
+          "type": "teach",
+          "prompt": "gasps",
+          "choice": "agonal",
+          "seq": 9,
+          "tick": 200
+        },
+        {
+          "type": "teach",
+          "prompt": "handover",
+          "choice": "times",
+          "seq": 10,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "analyze",
+          "seq": 11,
+          "tick": 220
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 12,
+          "tick": 226
+        },
+        {
+          "type": "chapter",
+          "chapter": "shocked",
+          "choice": "continue",
+          "seq": 13,
+          "tick": 226
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 14,
+          "tick": 226
+        },
+        {
+          "type": "teach",
+          "prompt": "depth",
+          "choice": "aha",
+          "seq": 15,
+          "tick": 226
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 16,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "swap",
+          "seq": 17,
+          "tick": 346
+        },
+        {
+          "type": "act",
+          "action": "analyze",
+          "seq": 18,
+          "tick": 346
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 19,
+          "tick": 352
+        },
+        {
+          "type": "act",
+          "action": "postRosc",
+          "seq": 20,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "report": "full"
+          },
+          "seq": 21,
+          "tick": 435
+        }
+      ],
+      "expect": {
+        "ending": "roscGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "recognize": "met",
+          "aed": "partial",
+          "quality": "met",
+          "swap": "met",
+          "airway": "met",
+          "als": "partial",
+          "handoff": "met",
+          "post": "met"
+        },
+        "kpis": {
+          "toCpr": 8,
+          "toShock": 226,
+          "ccfK": 94,
+          "gapK": 0
+        },
+        "stateHash": "ec147cd20f8c69de"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "pulseChecks",
+      "title": "Early shock, then a pulse check after it and repeated checks: long hands-off time, no BVM, a vague report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "tapShout",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "requestAls",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "handover",
+          "choice": "times",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "aedOn",
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "teach",
+          "prompt": "gasps",
+          "choice": "agonal",
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "analyze",
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 9,
+          "tick": 34
+        },
+        {
+          "type": "chapter",
+          "chapter": "shocked",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 11,
+          "tick": 34
+        },
+        {
+          "type": "teach",
+          "prompt": "depth",
+          "choice": "aha",
+          "seq": 12,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 13,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 14,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 15,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "report": "vague"
+          },
+          "seq": 16,
+          "tick": 360
+        }
+      ],
+      "expect": {
+        "ending": "roscGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "recognize": "met",
+          "aed": "met",
+          "quality": "missed",
+          "swap": "met",
+          "airway": "missed",
+          "als": "met",
+          "handoff": "partial",
+          "post": "missed"
+        },
+        "kpis": {
+          "toCpr": 8,
+          "toShock": 34,
+          "ccfK": 56,
+          "gapK": 18
+        },
+        "stateHash": "2a6c5b7e7371f760"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "lateStart",
+      "title": "Compressions only after 90 s without a proper check; the first shock fails and the paramedics take over mid-arrest",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "scene",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "requestAls",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tapShout",
+          "seq": 3,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 4,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "aedOn",
+          "seq": 5,
+          "tick": 90
+        },
+        {
+          "type": "teach",
+          "prompt": "gasps",
+          "choice": "agonal",
+          "seq": 6,
+          "tick": 90
+        },
+        {
+          "type": "teach",
+          "prompt": "handover",
+          "choice": "times",
+          "seq": 7,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "analyze",
+          "seq": 8,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 9,
+          "tick": 116
+        },
+        {
+          "type": "chapter",
+          "chapter": "shocked",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 116
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 11,
+          "tick": 116
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "seq": 12,
+          "tick": 116
+        },
+        {
+          "type": "teach",
+          "prompt": "depth",
+          "choice": "aha",
+          "seq": 13,
+          "tick": 116
+        },
+        {
+          "type": "act",
+          "action": "swap",
+          "seq": 14,
+          "tick": 236
+        },
+        {
+          "type": "act",
+          "action": "analyze",
+          "seq": 15,
+          "tick": 236
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 16,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 17,
+          "tick": 242
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 18,
+          "tick": 242
+        },
+        {
+          "type": "act",
+          "action": "swap",
+          "seq": 19,
+          "tick": 362
+        },
+        {
+          "type": "act",
+          "action": "analyze",
+          "seq": 20,
+          "tick": 362
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 21,
+          "tick": 368
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "report": "full"
+          },
+          "seq": 22,
+          "tick": 368
+        }
+      ],
+      "expect": {
+        "ending": "cprHandoff",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "recognize": "missed",
+          "aed": "met",
+          "quality": "met",
+          "swap": "met",
+          "airway": "met",
+          "als": "met",
+          "handoff": "met",
+          "post": "na"
+        },
+        "kpis": {
+          "toCpr": 90,
+          "toShock": 116,
+          "ccfK": 94,
+          "gapK": 0
+        },
+        "stateHash": "a15cad4e1e50a8af"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "gasps",
+      "title": "Failure: the gasps are taken for breathing and he is put in the recovery position; CPR late, the shock fails, no ALS, VF fades to asystole",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "tapShout",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "recovery",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 3,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 4,
+          "tick": 108
+        },
+        {
+          "type": "act",
+          "action": "aedOn",
+          "seq": 5,
+          "tick": 108
+        },
+        {
+          "type": "teach",
+          "prompt": "gasps",
+          "choice": "agonal",
+          "seq": 6,
+          "tick": 108
+        },
+        {
+          "type": "act",
+          "action": "analyze",
+          "seq": 7,
+          "tick": 128
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 8,
+          "tick": 134
+        },
+        {
+          "type": "chapter",
+          "chapter": "shocked",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 134
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 10,
+          "tick": 134
+        },
+        {
+          "type": "teach",
+          "prompt": "depth",
+          "choice": "aha",
+          "seq": 11,
+          "tick": 134
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 12,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "analyze",
+          "seq": 13,
+          "tick": 254
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 14,
+          "tick": 260
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 15,
+          "tick": 260
+        }
+      ],
+      "expect": {
+        "ending": "asystole",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "recognize": "missed",
+          "aed": "met",
+          "quality": "met",
+          "swap": "missed",
+          "airway": "missed",
+          "als": "missed",
+          "handoff": "missed",
+          "post": "na"
+        },
+        "kpis": {
+          "toCpr": 108,
+          "toShock": 134,
+          "ccfK": 94,
+          "gapK": 0
+        },
+        "stateHash": "934cf25a3cda0eb5"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noAed",
+      "title": "Failure: good compressions, BVM and switches, but the AED never goes on",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "scene",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tapShout",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "requestAls",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "handover",
+          "choice": "times",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "startCpr",
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "swap",
+          "seq": 8,
+          "tick": 130
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 9,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "swap",
+          "seq": 10,
+          "tick": 260
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "report": "full"
+          },
+          "seq": 11,
+          "tick": 360
+        }
+      ],
+      "expect": {
+        "ending": "noShock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 75,
+        "criteria": {
+          "recognize": "met",
+          "aed": "missed",
+          "quality": "met",
+          "swap": "met",
+          "airway": "met",
+          "als": "met",
+          "handoff": "met",
+          "post": "na"
+        },
+        "kpis": {
+          "toCpr": 8,
+          "toShock": -1,
+          "ccfK": 100,
+          "gapK": 0
+        },
+        "stateHash": "d03867bd869dd5cf"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

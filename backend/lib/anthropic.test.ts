@@ -130,6 +130,14 @@ describe("effectiveMaxTokens", () => {
     assert.equal(effectiveMaxTokens(SONNET, 800, "default"), 800 + THINKING_HEADROOM_TOKENS);
     assert.equal(effectiveMaxTokens(HAIKU, 800), 800 + THINKING_HEADROOM_TOKENS);
   });
+  test("REQ-251: a caller's own thinking allowance is added on top of its answer cap, only when thinking may run", () => {
+    assert.equal(effectiveMaxTokens(SONNET, 6000, "default", 4000), 10_000);
+    assert.equal(effectiveMaxTokens(HAIKU, 6000, "default", 2500), 8500);
+    assert.equal(effectiveMaxTokens(SONNET, 6000, "off", 4000), 6000);
+    assert.equal(effectiveMaxTokens("claude-sonnet-4-5", 6000, "default", 4000), 6000);
+    assert.throws(() => effectiveMaxTokens(SONNET, 6000, "default", -1), /whole number/);
+    assert.throws(() => effectiveMaxTokens(SONNET, 6000, "default", 1.5), /whole number/);
+  });
 });
 
 describe("warnUnknownModelOnce", () => {

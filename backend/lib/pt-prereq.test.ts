@@ -49,7 +49,7 @@ describe("PT School Prerequisites Refresher: seed shape (REQ-198)", () => {
     assert.equal(T.credential, undefined);
     assert.equal(T.sourceUrl, undefined, "no Verified / Review due badge");
     assert.ok(units.every((u) => u.weight == null && u.rangeLabel == null));
-    assert.deepEqual(courseOutlineProblems(T, "2026-11-09"), []);
+    assert.deepEqual(courseOutlineProblems(T, "2026-11-11"), []);
     assert.equal(T.curriculum!.kind, "self_defined");
     assert.match(T.curriculum!.checkedAt, DATE);
   });

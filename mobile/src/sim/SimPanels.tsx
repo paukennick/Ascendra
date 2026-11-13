@@ -8,7 +8,7 @@ import { friendlyError } from "@/lib/errorMessage";
 import { useStoredDraft } from "@/lib/useStoredDraft";
 import type { Run } from "./engine/v1/engine.ts";
 import type { ActionParam, WaitInfo } from "./engine/v1/types.ts";
-import { slotChoices, waitLabel, type ActionView, type RunView, type SessionView, type TileView, type ZoneView } from "./runtime/view.ts";
+import { slotChoices, waitLabel, type ActionView, type RunView, type SessionView, type TileView, type TreatmentView, type ZoneView } from "./runtime/view.ts";
 import { cprCommandText, measureTaps, MEASURE_EVERY_MS, STOP_AFTER_MS, tapFeedback, windowAfter, type TapMeasure } from "./runtime/tapPad.ts";
 import type { CommandInput } from "./runtime/session.ts";
 import type { CalmOffer, ChapterOffer, LaunchChoice, LaunchView, PaceOption, TeachFeedback, TeachOffer } from "./runtime/pacing.ts";
@@ -196,6 +196,86 @@ export function SessionPanel({ v, said, onRead }: { v: SessionView | null; said:
       <Button label="Read the client" icon="volume-2" variant="ghost" size="sm" onPress={onRead} accessibilityLabel="Read the client's presentation and state aloud" />
     </Card>
   );
+}
+
+// REQ-232 (docs/sims.md 8.2, 13, 22.8): the PT treatment session, beside the
+// vitals (VitalsPanel). The patient's name and presentation, what they are
+// doing now and how they move, the stopping and escalation rules (always
+// shown; a rule met now gets a border and the words "Met now", never colour
+// alone), the tests and measures taken (a red flag gets a border and the
+// words "Red flag"), and the interventions with their dosage. Every block is
+// one accessible element with its state in words; "Read the patient" speaks
+// the vitals and all of this on demand.
+export function TreatmentPanel({ v, onRead }: { v: TreatmentView | null; onRead: () => void }) {
+  if (!v) return null;
+  return (
+    <Card>
+      <View accessible accessibilityRole="header" accessibilityLabel={`${v.name}. ${v.presentation}`} style={{ gap: 2 }}>
+        <H2>{v.name}</H2>
+        <Body>{v.presentation}</Body>
+      </View>
+      {v.activity ? (
+        <View accessible accessibilityLabel={`Now: ${v.activity}`} style={{ borderLeftWidth: 3, borderLeftColor: colors.accent, paddingLeft: spacing.sm, gap: 2 }}>
+          <Muted style={{ fontSize: 12 }}>Now</Muted>
+          <Body>{v.activity}</Body>
+        </View>
+      ) : null}
+      <View style={{ gap: spacing.xs }}>
+        <H3>Stopping and escalation rules</H3>
+        {v.rules.map((r) => (
+          <View
+            key={r.id}
+            accessible
+            accessibilityLabel={r.a11y}
+            style={{ minHeight: MIN_TOUCH, justifyContent: "center", borderWidth: r.met ? 2 : 1, borderColor: r.met ? colors.bad : colors.borderLight, borderRadius: radius.sm, padding: spacing.sm }}
+          >
+            <Muted style={{ fontSize: 12, fontWeight: r.met ? "700" : "400", color: r.met ? colors.bad : undefined }}>{r.met ? `Met now · ${r.label}` : r.label}</Muted>
+            <Body style={{ fontSize: 14 }}>{r.text}</Body>
+          </View>
+        ))}
+      </View>
+      {v.measures.length ? (
+        <View style={{ gap: spacing.xs }}>
+          <H3>Tests and measures</H3>
+          {v.measures.map((m) => (
+            <View
+              key={m.id}
+              accessible
+              accessibilityLabel={m.a11y}
+              style={{ minHeight: MIN_TOUCH, justifyContent: "center", borderWidth: m.flag ? 2 : 0, borderColor: m.flag ? colors.bad : "transparent", borderRadius: radius.sm, padding: m.flag ? spacing.sm : 0 }}
+            >
+              <Muted style={{ fontSize: 12 }}>{m.flag ? `Red flag · ${m.label}` : m.label}</Muted>
+              <Body>{m.result}</Body>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      {v.dosage && v.dosage.items.length ? (
+        <View accessible accessibilityLabel={`${v.dosage.label}: ${v.dosage.items.join(". ")}`} style={{ gap: 2 }}>
+          <H3>{v.dosage.label}</H3>
+          {v.dosage.items.map((it) => <Muted key={it}>{it}</Muted>)}
+        </View>
+      ) : null}
+      <Button label="Read the patient" icon="volume-2" variant="ghost" size="sm" onPress={onRead} accessibilityLabel="Read the patient's vitals, activity, rules and results aloud" />
+    </Card>
+  );
+}
+
+// One spoken summary of the patient, for "Read the patient" (13.1): the
+// vitals first, then the activity, the rules met now, the results and the
+// dosage. A rule not met is read only by its own block, to keep this short.
+export function treatmentSentence(v: TreatmentView, tiles: TileView[]): string {
+  const met = v.rules.filter((r) => r.met);
+  return [
+    `${v.name}. ${v.presentation}`,
+    ...tiles.map((t) => t.a11y),
+    v.activity ? `Now: ${v.activity}` : null,
+    met.length ? `Rules met now: ${met.map((r) => r.label).join(", ")}` : "No stopping rule met",
+    ...v.measures.map((m) => m.a11y),
+    v.dosage && v.dosage.items.length ? `${v.dosage.label}: ${v.dosage.items.join(", ")}` : null,
+  ]
+    .filter(Boolean)
+    .join(". ") + ".";
 }
 
 // One spoken summary of the session panel, for "Read the client" (13.1).

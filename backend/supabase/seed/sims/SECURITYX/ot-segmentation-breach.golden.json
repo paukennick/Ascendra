@@ -1,0 +1,1050 @@
+{
+  "slug": "ot-segmentation-breach",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Incident command, map the IT-to-OT paths, close the conduit, cut the backups off the domain, VPN offline, credentials reset by 28 min, image, microsegment; notify everyone with a stake",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "mapPaths",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "cutConduit",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "isolateBackups",
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 18,
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "cutVpn",
+          "seq": 10,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 28,
+          "seq": 11,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "resetCreds",
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 33,
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "imageEntry",
+          "seq": 14,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 48,
+          "seq": 15,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "microsegment",
+          "seq": 16,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 58,
+          "seq": 17,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "resetVpn",
+          "seq": 18,
+          "tick": 58
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 73,
+          "seq": 19,
+          "tick": 58
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 20,
+          "tick": 73
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 21,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 22,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "vendorVpn",
+            "fix": "dmz"
+          },
+          "seq": 23,
+          "tick": 73
+        }
+      ],
+      "expect": {
+        "ending": "contained",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "otSafe": "met",
+          "backupsSafe": "met",
+          "entryClosed": "met",
+          "evidence": "met",
+          "mapped": "met",
+          "keptRunning": "met",
+          "itSpared": "met",
+          "escalated": "met",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 28,
+          "otExposed": 8,
+          "linesStopped": 0
+        },
+        "stateHash": "7e5d1d32f9a17d6b"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "itFocus",
+      "title": "Works the IT side only (entry review, microsegmentation, image): the attacker crosses through the historian and encrypts the plant HMIs at 35 min",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "reviewEntry",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 8,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "microsegment",
+          "seq": 3,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 18,
+          "seq": 4,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 18,
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "imageEntry",
+          "seq": 6,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 33,
+          "seq": 7,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 33,
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 33,
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 10,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 43,
+          "seq": 11,
+          "tick": 33
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "it"
+          },
+          "seq": 13,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "phish",
+            "fix": "av"
+          },
+          "seq": 14,
+          "tick": 35
+        }
+      ],
+      "expect": {
+        "ending": "otHit",
+        "class": "harm",
+        "rating": "bad",
+        "score": 23,
+        "criteria": {
+          "otSafe": "missed",
+          "backupsSafe": "missed",
+          "entryClosed": "missed",
+          "evidence": "met",
+          "mapped": "missed",
+          "keptRunning": "missed",
+          "itSpared": "met",
+          "escalated": "missed",
+          "notifiedCrit": "partial",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToContain": -1,
+          "otExposed": -1,
+          "linesStopped": 2
+        },
+        "stateHash": "63b5ef6d23ab4dfb"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "slowBackups",
+      "title": "Maps the paths and closes the conduit, then investigates the entry and images it with the VPN still open: Domain Admin deletes the backups at 25 min and IT encryption starts at 45",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "mapPaths",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "cutConduit",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 11,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 11,
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "reviewEntry",
+          "seq": 6,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 19,
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "imageEntry",
+          "seq": 8,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 34,
+          "seq": 9,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 34,
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 44,
+          "seq": 12,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 54,
+          "seq": 14,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 54,
+          "seq": 15,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "cutVpn",
+          "seq": 16,
+          "tick": 54
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 64,
+          "seq": 17,
+          "tick": 54
+        },
+        {
+          "type": "act",
+          "action": "resetCreds",
+          "seq": 18,
+          "tick": 64
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 69,
+          "seq": 19,
+          "tick": 64
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 20,
+          "tick": 69
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 71,
+          "seq": 21,
+          "tick": 69
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 22,
+          "tick": 71
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 23,
+          "tick": 71
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 24,
+          "tick": 71
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "vendorVpn",
+            "fix": "dmz"
+          },
+          "seq": 25,
+          "tick": 71
+        }
+      ],
+      "expect": {
+        "ending": "backupsLost",
+        "class": "harm",
+        "rating": "bad",
+        "score": 68,
+        "criteria": {
+          "otSafe": "met",
+          "backupsSafe": "missed",
+          "entryClosed": "partial",
+          "evidence": "met",
+          "mapped": "met",
+          "keptRunning": "met",
+          "itSpared": "missed",
+          "escalated": "partial",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 64,
+          "otExposed": 6,
+          "linesStopped": 0
+        },
+        "stateHash": "ab5b3545274c9de7"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "resetNoImage",
+      "title": "Contains the plant, the backups and the entry fast, then factory-resets the VPN appliance with nothing kept",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "mapPaths",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "cutConduit",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "isolateBackups",
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 18,
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "cutVpn",
+          "seq": 10,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 28,
+          "seq": 11,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "resetCreds",
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 33,
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "resetVpn",
+          "seq": 14,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 48,
+          "seq": 15,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 16,
+          "tick": 48
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 17,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 18,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "vendorVpn",
+            "fix": "dmz"
+          },
+          "seq": 19,
+          "tick": 48
+        }
+      ],
+      "expect": {
+        "ending": "evidenceLost",
+        "class": "harm",
+        "rating": "bad",
+        "score": 86,
+        "criteria": {
+          "otSafe": "met",
+          "backupsSafe": "met",
+          "entryClosed": "met",
+          "evidence": "missed",
+          "mapped": "met",
+          "keptRunning": "met",
+          "itSpared": "met",
+          "escalated": "met",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 28,
+          "otExposed": 8,
+          "linesStopped": 0
+        },
+        "stateHash": "ace8189196c7d557"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "noCredsReset",
+      "title": "Closes the conduit, the backups and the VPN but never resets the Domain Admin rights the attacker took",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "cutConduit",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "isolateBackups",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "cutVpn",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "imageEntry",
+          "seq": 10,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 37,
+          "seq": 11,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 13,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "nobody"
+          },
+          "seq": 14,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "vendorVpn",
+            "fix": "nochange"
+          },
+          "seq": 15,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "stillIn",
+        "class": "harm",
+        "rating": "bad",
+        "score": 59,
+        "criteria": {
+          "otSafe": "met",
+          "backupsSafe": "met",
+          "entryClosed": "missed",
+          "evidence": "met",
+          "mapped": "missed",
+          "keptRunning": "met",
+          "itSpared": "met",
+          "escalated": "met",
+          "notifiedCrit": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToContain": -1,
+          "otExposed": 2,
+          "linesStopped": 0
+        },
+        "stateHash": "a3fea905fc044fda"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "shutdown",
+      "title": "Shuts the whole plant down first, then the VPN and the backups; isolates the historian, resets credentials and images: safe, but three lines stopped",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "shutdownPlant",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 12,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 12,
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "cutVpn",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 22,
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "isolateHistorian",
+          "seq": 8,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 25,
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "isolateBackups",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 30,
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "resetCreds",
+          "seq": 12,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 35,
+          "seq": 13,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "imageEntry",
+          "seq": 14,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 50,
+          "seq": 15,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 16,
+          "tick": 50
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 17,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 18,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "vendorVpn",
+            "fix": "dmz"
+          },
+          "seq": 19,
+          "tick": 50
+        }
+      ],
+      "expect": {
+        "ending": "containedCostly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 77,
+        "criteria": {
+          "otSafe": "met",
+          "backupsSafe": "met",
+          "entryClosed": "met",
+          "evidence": "met",
+          "mapped": "missed",
+          "keptRunning": "missed",
+          "itSpared": "met",
+          "escalated": "met",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 30,
+          "otExposed": 22,
+          "linesStopped": 3
+        },
+        "stateHash": "fafc74a608af9f4f"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

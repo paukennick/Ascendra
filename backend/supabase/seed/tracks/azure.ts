@@ -47,7 +47,8 @@
 // and .../study-guides/az-400 (skills measured as of July 27, 2026).
 // DP-300's guide changed on 2026-10-27 ("Implement security for data at
 // rest and data in transit", marked minor) -- its objectives were not
-// re-read this pass.
+// re-read this pass. (Since re-read in full on 2026-11-09 and again on
+// 2026-11-11, REQ-244: see the DP-300 block.)
 //
 // Re-verify each track's `credential.lastVendorVerifiedAt` against the live
 // certification page before release; migration 007 refuses to store any exam
@@ -1035,7 +1036,22 @@ export const AZURE_AZ140_TRACK: SeedTrack = {
 
 // Content audit fix (2026-11-09): DP-300 objectives re-compared with the live
 // study guide that day.
-const DP300_CHECKED_AT = "2026-11-09T00:00:00Z";
+// REQ-244 (2026-11-11): re-verified against the live study guide ("Skills
+// measured as of October 27, 2026", page last updated 2026-10-30), the
+// certification page (100 minutes; the English update notice for
+// 2026-10-27 is past; no retirement notice) and Microsoft's catalog API
+// (certification.azure-database-administrator-associate, no retirement
+// date). All five domain ranges and all 94 skills-measured bullets match
+// the units below in order; no drift.
+const DP300_CHECKED_AT = "2026-11-11T00:00:00Z";
+// REQ-244 (FAIL-1540): the next review. DP-300 is the one Azure track whose
+// seed once set contentReviewDueAt (2026-10-27, the guide's change date).
+// The seed writes it with coalesce, so deleting the line on 2026-11-09 left
+// production at "Review due" for good; only a later date clears it. 12
+// months after the check is the default re-check for an exam outline
+// (docs/source-reliability-standard.md "Re-checking"; RECHECK_MONTHS in
+// seed/sources.ts). Bring it forward if Microsoft posts an update notice.
+const DP300_REVIEW_DUE_AT = "2027-11-11T00:00:00Z";
 
 export const AZURE_DP300_TRACK: SeedTrack = {
   code: "DP300",
@@ -1047,6 +1063,7 @@ export const AZURE_DP300_TRACK: SeedTrack = {
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-database-administrator-associate/",
   sourceVerifiedAt: DP300_CHECKED_AT,
+  contentReviewDueAt: DP300_REVIEW_DUE_AT,
   credential: {
     ...AZURE_PROVIDER,
     credentialSlug: "azure-database-administrator-associate",
@@ -1059,7 +1076,8 @@ export const AZURE_DP300_TRACK: SeedTrack = {
     // says "with secure enclaves", its only change, marked Minor). Content
     // audit fix 2026-11-09: that objective reworded in place (same sort
     // order) and every other objective re-compared with the live guide,
-    // which was last updated 2026-10-30 -- no other differences.
+    // which was last updated 2026-10-30 -- no other differences. Re-read
+    // 2026-11-11 (REQ-244): unchanged.
     objectivesRevision: "Skills measured as of October 27, 2026",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300",
     // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of October 27, 2026) at

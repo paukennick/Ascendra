@@ -1,0 +1,714 @@
+{
+  "slug": "post-op-transfusion-reaction",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: full pre-checks, slow start, stays, stops at the first sign, new tubing with saline, provider and blood bank, samples, urine",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "baseline",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ivCheck",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "prime",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "bedside",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "whyCheck",
+          "choice": "id",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "checkT",
+          "instance": 2,
+          "to": 310,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "params": {
+            "speed": "slow"
+          },
+          "seq": 9,
+          "tick": 310
+        },
+        {
+          "type": "act",
+          "action": "stay",
+          "seq": 10,
+          "tick": 310
+        },
+        {
+          "type": "teach",
+          "prompt": "whenReact",
+          "choice": "early",
+          "seq": 11,
+          "tick": 310
+        },
+        {
+          "type": "chapter",
+          "chapter": "running",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 761
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 13,
+          "tick": 761
+        },
+        {
+          "type": "reason",
+          "moment": "which",
+          "answered": true,
+          "seq": 14,
+          "tick": 761
+        },
+        {
+          "type": "act",
+          "action": "newLine",
+          "seq": 15,
+          "tick": 761
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 16,
+          "tick": 761
+        },
+        {
+          "type": "act",
+          "action": "callProvider",
+          "seq": 17,
+          "tick": 761
+        },
+        {
+          "type": "act",
+          "action": "callBank",
+          "seq": 18,
+          "tick": 761
+        },
+        {
+          "type": "act",
+          "action": "labels",
+          "seq": 19,
+          "tick": 761
+        },
+        {
+          "type": "act",
+          "action": "samples",
+          "seq": 20,
+          "tick": 761
+        },
+        {
+          "type": "act",
+          "action": "urine",
+          "seq": 21,
+          "tick": 761
+        },
+        {
+          "type": "teach",
+          "prompt": "noFlush",
+          "choice": "contents",
+          "seq": 22,
+          "tick": 761
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 23,
+          "tick": 761
+        }
+      ],
+      "expect": {
+        "ending": "stopped",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "stopFast": "met",
+          "access": "met",
+          "notify": "met",
+          "noRestart": "met",
+          "precheck": "met",
+          "watch": "met",
+          "samples": "met"
+        },
+        "kpis": {
+          "toStop": 0,
+          "incompatible": 15,
+          "finalSbp": 112
+        },
+        "stateHash": "8466bdc0272a59ca"
+      },
+      "reasoning": {
+        "which": "met"
+      }
+    },
+    {
+      "id": "treatedAsFever",
+      "title": "Treats the chills as a febrile reaction for 4 minutes before stopping; the blood bank told late",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "baseline",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ivCheck",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "prime",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "bedside",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "whyCheck",
+          "choice": "id",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "checkT",
+          "instance": 2,
+          "to": 310,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "params": {
+            "speed": "slow"
+          },
+          "seq": 8,
+          "tick": 310
+        },
+        {
+          "type": "chapter",
+          "chapter": "running",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 761
+        },
+        {
+          "type": "act",
+          "action": "acetaminophen",
+          "seq": 10,
+          "tick": 761
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 11,
+          "tick": 1001
+        },
+        {
+          "type": "reason",
+          "moment": "which",
+          "answered": true,
+          "seq": 12,
+          "tick": 1001
+        },
+        {
+          "type": "act",
+          "action": "newLine",
+          "seq": 13,
+          "tick": 1001
+        },
+        {
+          "type": "act",
+          "action": "callProvider",
+          "seq": 14,
+          "tick": 1001
+        },
+        {
+          "type": "chapter",
+          "chapter": "stoppedCh",
+          "choice": "continue",
+          "seq": 15,
+          "tick": 2201
+        },
+        {
+          "type": "act",
+          "action": "callBank",
+          "seq": 16,
+          "tick": 2201
+        },
+        {
+          "type": "act",
+          "action": "samples",
+          "seq": 17,
+          "tick": 2201
+        }
+      ],
+      "expect": {
+        "ending": "stoppedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 69,
+        "criteria": {
+          "stopFast": "partial",
+          "access": "met",
+          "notify": "partial",
+          "noRestart": "partial",
+          "precheck": "met",
+          "watch": "met",
+          "samples": "partial"
+        },
+        "kpis": {
+          "toStop": 240,
+          "incompatible": 23,
+          "finalSbp": 105
+        },
+        "stateHash": "ff68c593e904ae74"
+      },
+      "reasoning": {
+        "which": "partial"
+      }
+    },
+    {
+      "id": "leftTheRoom",
+      "title": "Full rate from the start, leaves the room; the reaction is found by the call light",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "baseline",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ivCheck",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "prime",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "bedside",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "whyCheck",
+          "choice": "id",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "checkT",
+          "instance": 2,
+          "to": 310,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "params": {
+            "speed": "full"
+          },
+          "seq": 8,
+          "tick": 310
+        },
+        {
+          "type": "act",
+          "action": "leave",
+          "seq": 9,
+          "tick": 310
+        },
+        {
+          "type": "chapter",
+          "chapter": "running",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 536
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 11,
+          "tick": 716
+        },
+        {
+          "type": "reason",
+          "moment": "which",
+          "answered": true,
+          "seq": 12,
+          "tick": 716
+        },
+        {
+          "type": "act",
+          "action": "newLine",
+          "seq": 13,
+          "tick": 716
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 14,
+          "tick": 716
+        },
+        {
+          "type": "act",
+          "action": "callProvider",
+          "seq": 15,
+          "tick": 716
+        },
+        {
+          "type": "act",
+          "action": "callBank",
+          "seq": 16,
+          "tick": 716
+        },
+        {
+          "type": "act",
+          "action": "labels",
+          "seq": 17,
+          "tick": 716
+        },
+        {
+          "type": "act",
+          "action": "samples",
+          "seq": 18,
+          "tick": 716
+        },
+        {
+          "type": "act",
+          "action": "urine",
+          "seq": 19,
+          "tick": 716
+        },
+        {
+          "type": "teach",
+          "prompt": "noFlush",
+          "choice": "contents",
+          "seq": 20,
+          "tick": 716
+        },
+        {
+          "type": "teach",
+          "prompt": "whenReact",
+          "choice": "early",
+          "seq": 21,
+          "tick": 716
+        }
+      ],
+      "expect": {
+        "ending": "stoppedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "stopFast": "partial",
+          "access": "met",
+          "notify": "met",
+          "noRestart": "met",
+          "precheck": "met",
+          "watch": "missed",
+          "samples": "met"
+        },
+        "kpis": {
+          "toStop": 180,
+          "incompatible": 27,
+          "finalSbp": 101
+        },
+        "stateHash": "62e1c62d03361894"
+      },
+      "reasoning": {
+        "which": "met"
+      }
+    },
+    {
+      "id": "flushRestart",
+      "title": "Failure: no bedside check, stops, then flushes the blood line and restarts the unit once she settles",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "baseline",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ivCheck",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "prime",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "params": {
+            "speed": "full"
+          },
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "chapter",
+          "chapter": "running",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 236
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 7,
+          "tick": 236
+        },
+        {
+          "type": "reason",
+          "moment": "which",
+          "answered": true,
+          "seq": 8,
+          "tick": 236
+        },
+        {
+          "type": "act",
+          "action": "flush",
+          "seq": 9,
+          "tick": 236
+        },
+        {
+          "type": "act",
+          "action": "callProvider",
+          "seq": 10,
+          "tick": 236
+        },
+        {
+          "type": "chapter",
+          "chapter": "stoppedCh",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 836
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 12,
+          "tick": 836
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "stopFast": "met",
+          "access": "missed",
+          "notify": "missed",
+          "noRestart": "missed",
+          "precheck": "missed",
+          "watch": "partial",
+          "samples": "missed"
+        },
+        "kpis": {
+          "toStop": 0,
+          "incompatible": 60,
+          "finalSbp": 71
+        },
+        "stateHash": "fafdee0e3bb1c06c"
+      },
+      "reasoning": {
+        "which": "partial"
+      }
+    },
+    {
+      "id": "keptRunning",
+      "title": "Failure: diphenhydramine and a slower rate while the unit keeps running",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "baseline",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ivCheck",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "prime",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "bedside",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "whyCheck",
+          "choice": "id",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "checkT",
+          "instance": 2,
+          "to": 310,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "params": {
+            "speed": "full"
+          },
+          "seq": 8,
+          "tick": 310
+        },
+        {
+          "type": "chapter",
+          "chapter": "running",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 536
+        },
+        {
+          "type": "act",
+          "action": "antihistamine",
+          "seq": 10,
+          "tick": 536
+        },
+        {
+          "type": "act",
+          "action": "slow",
+          "seq": 11,
+          "tick": 536
+        },
+        {
+          "type": "reason",
+          "moment": "which",
+          "answered": true,
+          "seq": 12,
+          "tick": 836
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "stopFast": "missed",
+          "access": "missed",
+          "notify": "missed",
+          "noRestart": "partial",
+          "precheck": "met",
+          "watch": "partial",
+          "samples": "missed"
+        },
+        "kpis": {
+          "toStop": -1,
+          "incompatible": 60,
+          "finalSbp": 71
+        },
+        "stateHash": "2abdb560f4686083"
+      },
+      "reasoning": {
+        "which": "missed"
+      }
+    }
+  ]
+}

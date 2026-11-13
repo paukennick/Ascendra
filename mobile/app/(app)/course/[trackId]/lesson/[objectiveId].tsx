@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { friendlyError } from "@/lib/errorMessage";
-import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { Stack, useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { MisconceptionNote, RefresherOffer, UnderstandingActions } from "@/components/Understanding";
 import { api } from "@/api/client";
@@ -12,6 +12,7 @@ import type { GradeResult, LessonContent, MasteryStatus, NextObjective } from "@
 import { masteryAdvice, SOLO_HINT_NOTE, SOLO_OPEN_NOTE } from "@/lib/masteryAdvice";
 import { ReportProblem } from "@/components/ReportProblem";
 import { ReportLessonProblem } from "@/components/ReportLessonProblem";
+import { KeyTermsButton } from "@/components/KeyTerms";
 import {
   Badge,
   Body,
@@ -19,6 +20,7 @@ import {
   Card,
   ErrorBanner,
   H2,
+  IconButton,
   LiveAnnouncement,
   Loading,
   Muted,
@@ -43,6 +45,7 @@ import {
   OPEN_ANSWER_MAX,
   parseSnapshot,
   samePosition,
+  savedStepFor,
   settleWithin,
   shouldAdoptLateServer,
   snapshotStorageKey,
@@ -57,6 +60,9 @@ import { regenerateErrorMessage } from "@/lib/regenerateError";
 import { hasFullAi, REGENERATE_PREVIEW_NOTE } from "@/lib/aiAccess";
 import { planCourseReturn } from "@/lib/courseReturn";
 import { routePath } from "@/lib/navPlan";
+import { HOME } from "@/lib/goBack";
+import { useGoBack } from "@/lib/useGoBack";
+import { LEAVE_NOTE, courseProgressPath, homeExitMode, lessonExitFallback, showLeaveNote } from "@/lib/lessonExit";
 import {
   MISS_FRAMING,
   REVISE_NOTE,
@@ -89,6 +95,34 @@ import {
 } from "@/lib/lessonExperience";
 import { useStoredDraft } from "@/lib/useStoredDraft";
 import { followUpDraftKey, guessDraftKey } from "@/lib/drafts";
+// REQ-252: learner levels (the level-aware flow is per course; Python and
+// JavaScript in phase 1) and the progress signals for newer learners.
+import {
+  FULL_EXAMPLE_LEVEL_NOTE,
+  openKeyTermsAtStart,
+  SKIP_GUIDED_LEVEL_NOTE,
+  STANDARD_FLOW,
+  beforeAfter,
+  canDoSentence,
+  comebackLine,
+  hunchQuestion,
+  ladderFor,
+  lessonFlowFor,
+  levelFadingPlan,
+  lessonGoalDone,
+  parseLevelChange,
+  parseLevelDownSuggestion,
+  goalCardAllowed,
+  showsCountedGoalCard,
+  type CourseGoal,
+  type GoalCardServer,
+  type LevelDownSuggestion,
+  type LessonGoalCard as LessonGoalCardState,
+  parseLevelState,
+  type LevelChange,
+  type LevelState,
+} from "@/lib/learnerLevel";
+import { DoneProgress, HunchNote, HunchStep, LadderView, LessonGoalCard, LevelChip, LevelDownCard, LevelNotice } from "@/components/LearnerLevel";
 
 // REQ-101 (FAIL-093): device copies once written under "anon" are removed
 // the first time a lesson opens in this app run.
@@ -227,6 +261,90 @@ export default function LessonFlow() {
   const [labSaving, setLabSaving] = useState(false);
   const [labError, setLabError] = useState<string | null>(null);
 
+  // REQ-252: this learner's level for the lesson's unit, and whether the
+  // course has the level-aware flow on. Until it arrives (or if it fails) the
+  // lesson is today's standard one.
+  const [levelState, setLevelState] = useState<LevelState | null>(null);
+  const [levelLoaded, setLevelLoaded] = useState(false);
+  const [levelNotice, setLevelNotice] = useState<LevelChange | null>(null);
+  // REQ-256: a move-down suggestion from the same check (never a change).
+  const [levelDown, setLevelDown] = useState<LevelDownSuggestion | null>(null);
+  const levelChecked = useRef<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    setLevelLoaded(false);
+    setLevelNotice(null);
+    setLevelDown(null);
+    levelChecked.current = null;
+    const q = unitId ? `?unitId=${encodeURIComponent(unitId)}` : "";
+    api
+      .get<unknown>(`/api/courses/${trackId}/level${q}`)
+      .then((res) => !cancelled && setLevelState(parseLevelState(res)))
+      .catch(() => !cancelled && setLevelState(null))
+      .finally(() => !cancelled && setLevelLoaded(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [trackId, unitId, objectiveId]);
+  // Back from the level settings: pick up a level changed there (quietly;
+  // the first load above is what the guess step waits for).
+  const levelFocusSeen = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!levelFocusSeen.current) {
+        levelFocusSeen.current = true;
+        return;
+      }
+      const q = unitId ? `?unitId=${encodeURIComponent(unitId)}` : "";
+      api
+        .get<unknown>(`/api/courses/${trackId}/level${q}`)
+        .then((res) => {
+          const next = parseLevelState(res);
+          if (next) setLevelState(next);
+        })
+        .catch(() => {});
+    }, [trackId, unitId])
+  );
+  const flow = levelState ? lessonFlowFor(levelState.effective, levelState.levelFlow) : STANDARD_FLOW;
+  const flowOn = !!levelState?.levelFlow;
+  // REQ-252 (design 8): first-party lesson step events, fire and forget,
+  // each once per screen visit. Never answer text (the server keeps only
+  // fixed keys).
+  const loggedEvents = useRef<Set<string>>(new Set());
+  const guessShownAt = useRef<number | null>(null);
+  const logLessonEvent = useCallback(
+    (event: string, detail: Record<string, unknown> = {}, onceKey: string = event) => {
+      if (!userIdRef.current || loggedEvents.current.has(onceKey)) return;
+      loggedEvents.current.add(onceKey);
+      api
+        .post(`/api/objectives/${objectiveId}/lesson-event`, {
+          event,
+          detail: { ...detail, level: levelState?.effective, flow: flowOn },
+        })
+        .catch(() => {});
+    },
+    [objectiveId, levelState?.effective, flowOn]
+  );
+  // REQ-252 / REQ-253: the Key terms sheet opened and closed, with how long
+  // it stayed open. Every opening is counted (a numbered once-key).
+  const keyTermsOpenedAt = useRef<number | null>(null);
+  const keyTermsOpens = useRef(0);
+  const onKeyTermsOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        keyTermsOpens.current += 1;
+        keyTermsOpenedAt.current = Date.now();
+        logLessonEvent("key_terms_opened", {}, `key_terms_opened:${keyTermsOpens.current}`);
+      } else if (keyTermsOpenedAt.current !== null) {
+        const seconds = Math.round((Date.now() - keyTermsOpenedAt.current) / 1000);
+        keyTermsOpenedAt.current = null;
+        logLessonEvent("key_terms_closed", { seconds }, `key_terms_closed:${keyTermsOpens.current}`);
+      }
+    },
+    [logLessonEvent]
+  );
+  const guessSeconds = () => (guessShownAt.current ? Math.round((Date.now() - guessShownAt.current) / 1000) : undefined);
+
   const loadLesson = useCallback(() => {
     setError(null);
     setLesson(null);
@@ -261,6 +379,8 @@ export default function LessonFlow() {
     setNext(null);
     setReached(null);
     setChecks({});
+    loggedEvents.current = new Set();
+    guessShownAt.current = null;
     restoredFor.current = null;
     lastSavedStep.current = null;
     restoredPosition.current = FRESH_POSITION;
@@ -401,7 +521,9 @@ export default function LessonFlow() {
     const key = snapshotStorageKey(userId, objectiveId);
     const path = `/api/objectives/${objectiveId}/progress`;
     cancelPending();
-    if (!isResumable(step)) {
+    // REQ-250 (FAIL-1641): "Try it" is saved as the graded Solo step.
+    const savedStep = savedStepFor(step);
+    if (!savedStep) {
       AsyncStorage.removeItem(key).catch(() => {});
       // REQ-101 (FAIL-092): clearedAt lets the server ignore a save that was
       // sent before this delete but arrives after it.
@@ -411,10 +533,10 @@ export default function LessonFlow() {
       lastSavedStep.current = step;
       return;
     }
-    lastSavedStep.current = step;
+    lastSavedStep.current = savedStep;
     const snap: LessonSnapshot = {
       v: 2,
-      step,
+      step: savedStep,
       guess,
       guessFeedback,
       confidence,
@@ -452,6 +574,117 @@ export default function LessonFlow() {
       .then((res) => setReached(res.mastery.status))
       .catch(() => setReached(null));
   }, [step, objectiveId]);
+
+  // REQ-252 (design 8): where learners stop. A step reached, each Teach card
+  // reached, and the guess shown (with when, for the time spent on it).
+  useEffect(() => {
+    if (!lesson || restoring || !levelLoaded) return;
+    if (step === "guess") {
+      if (guessShownAt.current === null) guessShownAt.current = Date.now();
+      logLessonEvent("guess_shown", { kind: flow.oneTapHunch && lesson && hunchQuestion(lesson) ? "option" : "typed" });
+    } else {
+      logLessonEvent("lesson_step_reached", { step }, `step:${step}`);
+    }
+  }, [step, lesson, restoring, levelLoaded, flow.oneTapHunch, logLessonEvent]);
+  useEffect(() => {
+    if (step !== "teach" || restoring) return;
+    logLessonEvent("teach_card_viewed", { card: teachState.card }, `card:${teachState.card}`);
+  }, [step, teachState.card, restoring, logLessonEvent]);
+
+  // REQ-252: after a solo answer, the unit may move up a level from the
+  // evidence (backend lib/learner-level.ts). Asked once per lesson visit, on
+  // the done screen; a change comes back as a notice with Undo.
+  // REQ-256: `suggest: true` says this build can show the move-down
+  // suggestion; when nothing moved up, one may come back instead.
+  useEffect(() => {
+    if (step !== "done" || !checks.solo?.result || !unitId || levelChecked.current === objectiveId) return;
+    levelChecked.current = objectiveId;
+    api
+      .post<{ change: unknown; suggestion?: unknown }>(`/api/courses/${trackId}/level/check`, { unitId, suggest: true })
+      .then((res) => {
+        setLevelNotice(parseLevelChange(res.change));
+        setLevelDown(parseLevelDownSuggestion(res.suggestion));
+      })
+      .catch(() => {});
+  }, [step, checks.solo?.result, unitId, trackId, objectiveId]);
+  function applyLevelState(res: unknown) {
+    const next = parseLevelState(res);
+    if (next && unitId) setLevelState({ ...next, effective: next.units.find((u) => u.unitId === unitId)?.level ?? next.courseLevel ?? next.suggestion.level });
+  }
+  async function answerLevelDown(answer: "yes" | "not_now"): Promise<LevelChange | null> {
+    if (!levelDown) return null;
+    const res = await api.post<{ change?: unknown; state?: unknown }>(`/api/courses/${trackId}/level/suggestion`, {
+      unitId: levelDown.unitId,
+      answer,
+    });
+    applyLevelState(res.state);
+    return parseLevelChange(res.change);
+  }
+  async function undoLevelDown(change: LevelChange) {
+    applyLevelState(await api.post<unknown>(`/api/courses/${trackId}/level/changes/${change.id}`, { action: "undo" }));
+  }
+  async function answerLevelNotice(action: "seen" | "undo") {
+    if (!levelNotice) return;
+    const res = await api.post<unknown>(`/api/courses/${trackId}/level/changes/${levelNotice.id}`, { action });
+    const next = parseLevelState(res);
+    if (next && unitId) setLevelState({ ...next, effective: next.units.find((u) => u.unitId === unitId)?.level ?? next.courseLevel ?? next.suggestion.level });
+    setLevelNotice(null);
+  }
+  // REQ-255: the fallback for a course never asked why the learner is taking
+  // it: a one-tap card above the lesson, never in its way. Answering or "Not
+  // now" is saved (both count as asked, so no later lesson shows it). The
+  // lesson already open keeps the level it started with -- a change mid-way
+  // would swap the guess step under the learner -- and the answer applies from
+  // the next lesson.
+  const [goalCard, setGoalCard] = useState<LessonGoalCardState>("ask");
+  const [goalCardDone, setGoalCardDone] = useState<string | null>(null);
+  const [goalCardSaving, setGoalCardSaving] = useState(false);
+  const [goalCardError, setGoalCardError] = useState<string | null>(null);
+  // REQ-256: the server counts the lessons the card was shown in and stops
+  // it after two unanswered (recorded dismissed, reason auto). Asked once per
+  // lesson, only while the course has never been asked; nothing shows until
+  // it answers, and a failed ask shows the card as before.
+  const [goalCardServer, setGoalCardServer] = useState<GoalCardServer>("unknown");
+  const goalCardAsked = useRef<string | null>(null);
+  useEffect(() => {
+    setGoalCard("ask");
+    setGoalCardDone(null);
+    setGoalCardError(null);
+    setGoalCardServer("unknown");
+  }, [trackId, objectiveId]);
+  useEffect(() => {
+    if (!levelLoaded || !levelState || levelState.answered || goalCardAsked.current === objectiveId) return;
+    const asked = objectiveId;
+    goalCardAsked.current = asked;
+    // Not cancelled when the level state reloads (that would leave the card
+    // unknown for good); only an answer for another lesson is dropped.
+    api
+      .post<unknown>(`/api/courses/${trackId}/level/goal-card`, { objectiveId: asked })
+      .then((res) => {
+        if (goalCardAsked.current !== asked) return;
+        const show = goalCardAllowed(res);
+        setGoalCardServer(show ? "show" : "hide");
+        if (!show) setLevelState((prev) => (prev ? { ...prev, answered: true } : prev));
+      })
+      .catch(() => goalCardAsked.current === asked && setGoalCardServer("show"));
+  }, [levelLoaded, levelState, trackId, objectiveId]);
+  async function answerGoalCard(body: Record<string, unknown>, outcome: "saved" | "dismissed") {
+    setGoalCardSaving(true);
+    setGoalCardError(null);
+    try {
+      const next = parseLevelState(await api.put<unknown>(`/api/courses/${trackId}/level`, body));
+      setGoalCard(outcome);
+      setGoalCardDone(lessonGoalDone(outcome, next?.courseLevel ?? null, !!next?.levelFlow));
+      if (next) setLevelState((prev) => (prev ? { ...prev, answered: true, goal: next.goal } : prev));
+    } catch (err) {
+      setGoalCardError(friendlyError(err));
+    } finally {
+      setGoalCardSaving(false);
+    }
+  }
+  function openLevelSettings() {
+    router.push({ pathname: `/course/${trackId}/level`, params: unitId ? { unitId } : {} });
+  }
 
   // Called right before advancing past "teach". Usually a no-op: the learner
   // spends real time reading guess+teach, which is normally longer than
@@ -515,6 +748,7 @@ export default function LessonFlow() {
   function submitGuess() {
     setStep("teach");
     if (!guess.trim()) return;
+    logLessonEvent("guess_answered", { kind: "typed", seconds: guessSeconds() });
     setGuessFeedbackLoading(true);
     api
       .post<{ feedback: string; guessMatch?: GuessMatch | null }>(`/api/objectives/${objectiveId}/guess-feedback`, {
@@ -533,6 +767,23 @@ export default function LessonFlow() {
   }
 
   function skipGuess() {
+    logLessonEvent("guess_skipped", { seconds: guessSeconds() });
+    setStep("teach");
+  }
+
+  // REQ-252: the one-tap hunch (New, level-aware flow). No model call and
+  // nothing graded: the pick is kept as the guess (for before/after) and
+  // the screen answers with one line.
+  function pickHunch(source: "guided" | "lesson", choice: string) {
+    logLessonEvent("guess_answered", { kind: "option", seconds: guessSeconds() });
+    setGuess(choice);
+    setTeachState((t) => ({ ...t, hunch: source }));
+    setStep("teach");
+  }
+  function noIdeaHunch() {
+    logLessonEvent("guess_answered", { kind: "no_idea", seconds: guessSeconds() });
+    setGuess("");
+    setTeachState((t) => ({ ...t, hunch: "no_idea" }));
     setStep("teach");
   }
 
@@ -540,25 +791,67 @@ export default function LessonFlow() {
   // The new clientAttemptId makes it a new attempt; the server records it as
   // a repeat (assisted), which TRY_AGAIN_NOTE tells the learner up front.
   function tryAgain() {
+    // REQ-252: a later right answer is credited as a comeback.
+    setTeachState((t) => ({ ...t, soloRetried: true }));
     setCheck("solo", emptyCheck("solo"));
     setStep("solo");
   }
 
-  // REQ-101 (FAIL-096): see src/lib/courseReturn.ts.
-  function backToCourse() {
+  // The stack from the bottom up to and including this screen, as paths.
+  function stackPaths(): string[] {
     const state = navigation.getState();
-    const stackPaths = (state?.routes ?? [])
+    return (state?.routes ?? [])
       .slice(0, (state?.index ?? 0) + 1)
       .map((r) => routePath(r.name, r.params as Record<string, unknown> | undefined))
       .filter((p): p is string => p !== null);
-    if (planCourseReturn(trackId, stackPaths) === "dismissTo") router.dismissTo(`/course/${trackId}`);
+  }
+
+  // REQ-101 (FAIL-096): see src/lib/courseReturn.ts.
+  function backToCourse() {
+    if (planCourseReturn(trackId, stackPaths()) === "dismissTo") router.dismissTo(`/course/${trackId}`);
     else router.push(`/course/${trackId}`);
   }
+
+  // REQ-250 (FAIL-1640): a way out on every step, whatever the history (see
+  // src/lib/lessonExit.ts). Each sends the pending account save first; the
+  // device copy is already written, and leaving also flushes on unmount.
+  const exitLesson = useGoBack(lessonExitFallback(trackId));
+  function saveAndExit() {
+    flushServerSave();
+    exitLesson();
+  }
+  function goHome() {
+    flushServerSave();
+    if (homeExitMode(stackPaths()) === "dismissTo") router.dismissTo(HOME);
+    else router.replace(HOME);
+  }
+  function openProgress() {
+    flushServerSave();
+    router.push(courseProgressPath(trackId));
+  }
+  const headerOptions = {
+    title: objectiveTitle ?? "Lesson",
+    headerLeft: () => (
+      <IconButton
+        icon="chevron-left"
+        accessibilityLabel="Save and exit"
+        accessibilityHint="Leaves the lesson. Your place is saved."
+        onPress={saveAndExit}
+        size={48}
+      />
+    ),
+    headerRight: () => (
+      <IconButton icon="bar-chart-2" accessibilityLabel="Course progress" onPress={openProgress} size={48} />
+    ),
+  };
 
   const headerTitle = objectiveTitle ?? "Lesson";
   const notYet = soloOutcome(checks.solo) === "not-yet";
   // REQ-106 (research #12): a suggestion only; the learner always chooses.
-  const plan = fadingPlan({ guessed: !!guess.trim(), guessMatch: teachState.guessMatch, history: learnerHistory });
+  // REQ-252: with the level-aware flow on, New sees the full worked example
+  // and Experienced is offered "Skip guided" by default (still a choice).
+  const plan = levelFadingPlan(flow, { guessed: !!guess.trim(), guessMatch: teachState.guessMatch, history: learnerHistory });
+  const hunch = lesson && flow.oneTapHunch ? hunchQuestion(lesson) : null;
   const cards = lesson ? usableCards(lesson.teachCards) : null;
   const guidedSkipped = !checks.fade?.result && (step === "solo" || step === "lab" || step === "done");
   const scrollToTop = useCallback(() => scrollRef.current?.scrollTo({ y: 0, animated: false }), []);
@@ -567,6 +860,7 @@ export default function LessonFlow() {
     if (await ensurePracticeReady()) setStep("fade");
   }
   async function skipToSolo() {
+    logLessonEvent("guided_skipped");
     practiceNext.current = "solo";
     if (await ensurePracticeReady()) setStep("solo");
   }
@@ -580,15 +874,15 @@ export default function LessonFlow() {
   if (error) {
     return (
       <Screen>
-        <Stack.Screen options={{ title: headerTitle }} />
+        <Stack.Screen options={headerOptions} />
         <ErrorBanner message={error} onRetry={loadLesson} />
       </Screen>
     );
   }
-  if (!lesson || restoring) {
+  if (!lesson || restoring || (!levelLoaded && step === "guess")) {
     return (
       <Screen>
-        <Stack.Screen options={{ title: headerTitle }} />
+        <Stack.Screen options={headerOptions} />
         <Loading label={lesson ? "Picking up where you left off..." : "Generating lesson (first visit only)..."} />
       </Screen>
     );
@@ -596,10 +890,61 @@ export default function LessonFlow() {
 
   return (
     <Screen scrollRef={scrollRef}>
-      <Stack.Screen options={{ title: headerTitle }} />
+      <Stack.Screen options={headerOptions} />
       <StepHeader step={step} steps={stepsFor(labPrompt)} guidedSkipped={guidedSkipped} />
+      {/* REQ-253: Key terms, a constant reference at every step. REQ-252:
+          New learners in a pilot course see it opened once at the start of
+          the lesson; opening and closing it are logged. Keyed by objective so
+          the next lesson starts fresh. */}
+      <KeyTermsButton
+        key={objectiveId}
+        objectiveId={objectiveId}
+        initiallyOpen={openKeyTermsAtStart(flow, step)}
+        onOpenChange={onKeyTermsOpenChange}
+      />
+      {/* REQ-250: says the learner may leave; the header has the way out. */}
+      {showLeaveNote(step) ? <Muted style={styles.leaveNote}>{LEAVE_NOTE}</Muted> : null}
+      {/* REQ-252: the learner's level for this unit (pilot courses), one tap
+          to change it; New learners see the mastery ladder fill as they go. */}
+      {levelState && flowOn ? (
+        <View style={styles.levelRow}>
+          <LevelChip level={levelState.effective} onPress={openLevelSettings} />
+        </View>
+      ) : null}
+      {/* REQ-255: why they're taking the course, once, if never asked. */}
+      {levelLoaded && showsCountedGoalCard(levelState, goalCard, goalCardServer) ? (
+        <LessonGoalCard
+          done={goalCardDone}
+          saving={goalCardSaving}
+          error={goalCardError}
+          onAnswer={(goal: CourseGoal) => answerGoalCard({ goal, via: "lesson" }, "saved")}
+          onDismiss={() => answerGoalCard({ dismiss: true, via: "lesson" }, "dismissed")}
+        />
+      ) : null}
+      {flow.oneTapHunch && step !== "guess" && step !== "done" ? (
+        <LadderView
+          compact
+          ladder={ladderFor({
+            status: null,
+            reachedTeach: true,
+            explainDone: teachState.explainDone,
+            guidedVerdict: checks.fade?.result?.verdict ?? null,
+            soloVerdict: checks.solo?.result?.verdict ?? null,
+          })}
+        />
+      ) : null}
 
-      {step === "guess" && (
+      {step === "guess" && hunch ? (
+        // REQ-252: New learners in a pilot course: one tap, no typing.
+        <HunchStep
+          question={hunch}
+          onPick={(c) => pickHunch(hunch.source, c)}
+          onNoIdea={noIdeaHunch}
+          onSkip={skipGuess}
+        />
+      ) : null}
+
+      {step === "guess" && !hunch && (
         <GuessStep
           prompt={lesson.guessPrompt}
           value={guess}
@@ -615,7 +960,9 @@ export default function LessonFlow() {
             <Feather name="book-open" size={18} color={colors.accent} />
             <H2>Teaching</H2>
           </View>
-          {guess ? (
+          {teachState.hunch ? (
+            <HunchNote hunch={teachState.hunch} choice={guess} />
+          ) : guess ? (
             <>
               <Muted>Your guess</Muted>
               <Body>{guess}</Body>
@@ -648,6 +995,7 @@ export default function LessonFlow() {
                 <>
                   <TeachFooter
                     plan={plan}
+                    skipNote={flow.offerSkipGuided ? SKIP_GUIDED_LEVEL_NOTE : SKIP_GUIDED_NOTE}
                     loading={practiceLoading}
                     onGuided={goToGuided}
                     onSkip={skipToSolo}
@@ -669,6 +1017,7 @@ export default function LessonFlow() {
               <Body>{lesson.teach}</Body>
               <TeachFooter
                 plan={plan}
+                skipNote={flow.offerSkipGuided ? SKIP_GUIDED_LEVEL_NOTE : SKIP_GUIDED_NOTE}
                 loading={practiceLoading}
                 onGuided={goToGuided}
                 onSkip={skipToSolo}
@@ -690,7 +1039,7 @@ export default function LessonFlow() {
         // worked example, every step, before one with a step missing. Open by
         // default, one tap to hide; nothing is required.
         <Card>
-          <Muted style={{ fontSize: 12 }}>{FULL_EXAMPLE_NOTE}</Muted>
+          <Muted style={{ fontSize: 12 }}>{flow.fullExampleFirst ? FULL_EXAMPLE_LEVEL_NOTE : FULL_EXAMPLE_NOTE}</Muted>
           <Collapsible label="Full worked example" initiallyOpen>
             <FullExample cards={cards} teach={lesson.teach} />
           </Collapsible>
@@ -785,6 +1134,47 @@ export default function LessonFlow() {
             />
           ) : null}
           {notYet ? null : <Muted style={{ textAlign: "center" }}>{masteryAdvice(reached)}</Muted>}
+          {/* REQ-252: an automatic level change is never silent. */}
+          {levelNotice ? (
+            <LevelNotice
+              change={levelNotice}
+              flow={flowOn}
+              onSeen={() => answerLevelNotice("seen")}
+              onUndo={() => answerLevelNotice("undo")}
+            />
+          ) : null}
+          {/* REQ-256: a suggestion to move this unit down, never a change. */}
+          {levelDown ? <LevelDownCard suggestion={levelDown} onAnswer={answerLevelDown} onUndo={undoLevelDown} /> : null}
+          {/* REQ-252: progress signals for the pilot courses. */}
+          {flowOn ? (
+            <DoneProgress
+              canDo={
+                checks.solo?.result?.verdict === "correct"
+                  ? canDoSentence(headerTitle, { hinted: checks.solo.result.assistReason === "hint" })
+                  : null
+              }
+              beforeAfter={beforeAfter({
+                guess,
+                teach: teachState,
+                guided: checks.fade,
+                solo: checks.solo,
+                guidedChoices: lesson.fadeChoices,
+              })}
+              comeback={comebackLine({
+                title: headerTitle,
+                guided: checks.fade,
+                solo: checks.solo,
+                soloRetried: teachState.soloRetried === true,
+              })}
+              ladder={ladderFor({
+                status: reached,
+                reachedTeach: true,
+                explainDone: teachState.explainDone,
+                guidedVerdict: checks.fade?.result?.verdict ?? null,
+                soloVerdict: checks.solo?.result?.verdict ?? null,
+              })}
+            />
+          ) : null}
           {notYet ? (
             <>
               <Button label="Try again" icon="rotate-ccw" onPress={tryAgain} />
@@ -873,6 +1263,15 @@ export default function LessonFlow() {
           <LabCard objectiveId={objectiveId} userId={userId} />
         </Card>
       )}
+
+      {/* REQ-250: the same way out as the header, where a long step ends,
+          and Home. The done screen has its own. */}
+      {showLeaveNote(step) ? (
+        <View style={styles.leaveRow}>
+          <Button label="Save and exit" variant="link" icon="log-out" fullWidth={false} onPress={saveAndExit} />
+          <Button label="Home" variant="link" icon="home" fullWidth={false} onPress={goHome} />
+        </View>
+      ) : null}
 
       {/* REQ-093: lesson-wide report at any step, filed as a Support ticket
           (the per-question report, REQ-114, sits under each answered check). */}
@@ -971,12 +1370,15 @@ function LabStep({
 // the learner may skip Guided (research #12); it is offered, never applied.
 function TeachFooter({
   plan,
+  skipNote,
   loading,
   onGuided,
   onSkip,
   onCoach,
 }: {
   plan: ReturnType<typeof fadingPlan>;
+  // REQ-252: why skipping is offered (a close guess, or the Experienced level).
+  skipNote: string;
   loading: boolean;
   onGuided: () => void;
   onSkip: () => void;
@@ -986,7 +1388,7 @@ function TeachFooter({
     <>
       {plan === "offer-skip" ? (
         <View style={styles.suggestion}>
-          <Muted style={{ color: colors.text, fontSize: 13 }}>{SKIP_GUIDED_NOTE}</Muted>
+          <Muted style={{ color: colors.text, fontSize: 13 }}>{skipNote}</Muted>
           <Button label="Skip guided — go straight to the solo check" icon="skip-forward" loading={loading} onPress={onSkip} />
           <Button label="Do guided practice" variant="ghost" icon="compass" loading={loading} onPress={onGuided} />
         </View>
@@ -1611,6 +2013,11 @@ function FormatOption({ label, selected, onPress }: { label: string; selected: b
 
 const styles = StyleSheet.create({
   cardHeadingRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  // REQ-250: the "your place is saved" line and the way out at the bottom.
+  leaveNote: { fontSize: 12, textAlign: "center" },
+  leaveRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", columnGap: spacing.md },
+  // REQ-252: the level chip and the Key terms slot under the step header.
+  levelRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: spacing.sm },
   // Sits apart from the plain guess/explanation text below it so it reads as
   // commentary on what was just typed, not a continuation of it.
   guessFeedback: {

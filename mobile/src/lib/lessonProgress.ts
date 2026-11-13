@@ -30,7 +30,18 @@ export interface TeachState {
   explain: string;
   explainDone: boolean;
   guessMatch: GuessMatch | null;
+  // REQ-252: the one-tap hunch (level-aware flow, New learners): which
+  // question it was asked on ("guided": the Guided item; "lesson": a hunch
+  // written for the lesson) or "no_idea". The option picked is `guess`.
+  // Absent for a typed guess or a skip, so older positions read the same.
+  hunch?: Hunch;
+  // REQ-252: the learner took "Try again" after a missed Solo check, so a
+  // later correct answer is credited as a comeback. Absent until then.
+  soloRetried?: boolean;
 }
+
+export type Hunch = "guided" | "lesson" | "no_idea";
+const HUNCHES: readonly string[] = ["guided", "lesson", "no_idea"];
 
 export const EMPTY_TEACH: TeachState = { card: 0, explain: "", explainDone: false, guessMatch: null };
 
@@ -45,6 +56,8 @@ export function parseTeachState(v: unknown): TeachState {
     explain: typeof o.explain === "string" ? o.explain.slice(0, MAX_EXPLAIN) : "",
     explainDone: o.explainDone === true,
     guessMatch: typeof o.guessMatch === "string" && GUESS_MATCHES.includes(o.guessMatch) ? (o.guessMatch as GuessMatch) : null,
+    ...(typeof o.hunch === "string" && HUNCHES.includes(o.hunch) ? { hunch: o.hunch as Hunch } : {}),
+    ...(o.soloRetried === true ? { soloRetried: true } : {}),
   };
 }
 
@@ -274,6 +287,17 @@ export function attemptIdFor(
 // finished, so reopening it should start a fresh attempt -- both clear.
 export function isResumable(step: string): step is ResumableStep {
   return RESUMABLE.includes(step);
+}
+
+// REQ-250 (FAIL-1641): the step a position is saved as. The optional "Try it"
+// step (REQ-096) comes after a graded Solo check but was not resumable, so
+// leaving there deleted the saved place and the lesson reopened at Guess. It
+// is saved as "solo" (the account copy's step column allows only the three
+// resumable steps, and no migration is needed): the graded Solo check comes
+// back as it was, one "Continue" away from "Try it". null means "clear".
+export function savedStepFor(step: string): ResumableStep | null {
+  if (step === "lab") return "solo";
+  return isResumable(step) ? step : null;
 }
 
 // REQ-101 (FAIL-091): resuming waited on the account copy with no limit, so

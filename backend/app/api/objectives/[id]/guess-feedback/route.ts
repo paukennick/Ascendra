@@ -13,6 +13,8 @@ import {
 import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { requireCourseAccessForObjective } from "@/lib/entitlements";
+import { recordEvent } from "@/lib/events";
+import { isGuessMatch } from "@/lib/learner-level-rules";
 
 // REQ-202: seconds this route may run (one fast-model call). Never above 300, the Hobby
 // plan ceiling with Fluid compute (docs/billing.md, "Function duration").
@@ -45,7 +47,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await requireStudyNotice(user.id);
     // REQ-129: 404 for an objective in another user's private track, before
     // anything is read, rate-limited or sent to Anthropic.
-    if (!(await taughtObjective(id, user.id))) return notFound("Objective not found");
+    const taught = await taughtObjective(id, user.id);
+    if (!taught) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     await requireCourseAccessForObjective(user.id, id); // REQ-122: Free studies one course
 
@@ -83,7 +86,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     });
 
     // REQ-106: guessMatch only steers the optional "skip Guided" / "full
-    // worked example" suggestion in the app. Not a verdict, not recorded.
+    // worked example" suggestion in the app. Not a verdict and never shown.
+    // REQ-256: the label alone (close, partial or off -- never the guess
+    // text) is kept as a learner event, one of the two signals behind the
+    // move-down suggestion ("every guess off", lib/learner-level-rules.ts).
+    // Best effort: a failed record never costs the learner the feedback.
+    if (isGuessMatch(guessMatch)) {
+      await recordEvent(user.id, "guess_matched", { trackId: taught.track_id, objectiveId: taught.id, detail: { match: guessMatch } }).catch(
+        () => {}
+      );
+    }
     return ok({ feedback, guessMatch: guessMatch ?? null });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);

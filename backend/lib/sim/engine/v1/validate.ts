@@ -23,6 +23,7 @@ import type {
   StateVar,
   TableView,
   Value,
+  VitalTile,
 } from "./types.ts";
 import type { Ast } from "./parser.ts";
 import { parseCached, parseTemplate, ParseError } from "./parser.ts";
@@ -115,8 +116,28 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
     adherenceTarget: { value: 80, tighter: "higher", note: "adherence >= 80%" },
     adherenceRecovered: { value: 60, tighter: "higher", note: "adherence 60-79%" },
   },
-  security: {},
-  infrastructure: {},
+  // REQ-231 (docs/sims.md 9.2, 20.1, 22.7): an incident in the security
+  // console. Target: contained before the attacker reaches the impact stage
+  // (exfiltration or encryption), at most `containSpread` hosts or identities
+  // newly compromised after the first alert, evidence preserved before anything is wiped or rebuilt;
+  // recovered: contained after partial spread, or late, with evidence kept;
+  // harm: impact reached beyond the authored threshold, or evidence destroyed
+  // before it was collected. Times are sim seconds from the first alert.
+  security: {
+    containWindow: { value: 3600, tighter: "lower", note: "contained <= 60 min after the first alert" },
+    containSpread: { value: 0, tighter: "lower", note: "assets newly compromised after the first alert (spread); none is the target" },
+  },
+  // REQ-237 (docs/sims.md 9.2, 20.1, 22.10): an outage on the terminal and
+  // network screen. Target: the service restored within the outage window
+  // with no new fault introduced; recovered: restored late, or with an
+  // authored side effect (a second fault, a change that will not survive a
+  // reboot); harm: the outage spread to the authored secondary service, or a
+  // destructive command was run (data deleted, a config erased, a node wiped).
+  // Times are sim seconds from the first report.
+  infrastructure: {
+    restoreWindow: { value: 3600, tighter: "lower", note: "service restored <= 60 min after the first report" },
+    newFaults: { value: 0, tighter: "lower", note: "faults the fix itself introduced; none is the target" },
+  },
   data: {},
   // REQ-225 (docs/sims.md 9.2, 20.2): a session with a client. Target: the
   // session's safety or diagnostic task done within its window with the
@@ -128,6 +149,17 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
     allianceTarget: { value: 6, tighter: "higher", note: "rapport >= 6/10 at the close of the session" },
     allianceRecovered: { value: 3, tighter: "higher", note: "rapport below this at the close is a rupture" },
     safetyWindow: { value: 1200, tighter: "lower", note: "the critical safety question asked <= 20 min after the cue" },
+  },
+  // REQ-232 (docs/sims.md 9.2, 22.8): a physical therapy treatment session.
+  // Target: the session's goal reached with every stopping rule respected and
+  // any red flag escalated in time; recovered: the goal partly reached, or a
+  // stopping rule crossed and acted on late, or a red flag escalated by a
+  // slower route; harm: a fall, syncope, an embolism or a red flag left
+  // unescalated. Times are sim seconds.
+  "physical-therapy": {
+    stopWindow: { value: 120, tighter: "lower", note: "activity stopped or eased <= 2 min after a stopping rule is crossed" },
+    spo2Floor: { value: 88, tighter: "higher", note: "SpO2 below this during activity is a stopping rule (APTA acute care guide 2021)" },
+    escalateWindow: { value: 900, tighter: "lower", note: "a red flag reported to the medical team <= 15 min after it is found" },
   },
 };
 
@@ -1362,6 +1394,29 @@ function merge(a: EffectAcc, b: EffectAcc): void {
   a.afterExprs.push(...b.afterExprs);
 }
 
+// One list of vital-sign tiles (bedside, and the treatment session's vitals).
+function tileChecks(doc: ScenarioDoc, tiles: VitalTile[], at: string, root: Scope, info: DocInfo, col: Collector): void {
+  const ids = new Set<string>();
+  tiles.forEach((tile, i) => {
+    const path = `${at}[${i}]`;
+    if (ids.has(tile.id)) col.error(path, `duplicate tile id ${tile.id}`);
+    ids.add(tile.id);
+    if (!tile.spokenLabel) col.error(path, "needs a spokenLabel");
+    if (typeof tile.unit !== "string") col.error(path, "needs a unit");
+    if (!tile.announce || !Array.isArray(tile.announce.bands)) col.error(path, "needs announce bands");
+    const values = Array.isArray(tile.value) ? tile.value : [tile.value];
+    for (const v of values) checkOne(v, root, WHERE_TICK, `${path}.value`, info, col, "scalar");
+    if (tile.sub) checkTemplate(tile.sub, root, WHERE_TICK, `${path}.sub`, info, col);
+    if (tile.hiddenUntil) checkOne(tile.hiddenUntil, root, WHERE_TICK, `${path}.hiddenUntil`, info, col, "bool");
+    if (tile.trend) {
+      if (!(doc.history ?? {})[tile.trend.history]) col.error(`${path}.trend`, `history "${tile.trend.history}" does not exist`);
+      const w = parseDuration(tile.trend.window);
+      if (w === null || w % info.dt !== 0) col.error(`${path}.trend.window`, "must be a multiple of the tick");
+      if (!(tile.trend.threshold > 0)) col.error(`${path}.trend.threshold`, "must be positive");
+    }
+  });
+}
+
 function screenCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
   const s = doc.screen;
   if (!s || typeof s.type !== "string") {
@@ -1374,25 +1429,7 @@ function screenCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collecto
       col.error("screen.bedside", "a bedside screen needs tiles");
       return;
     }
-    const ids = new Set<string>();
-    s.bedside.tiles.forEach((tile, i) => {
-      const path = `screen.bedside.tiles[${i}]`;
-      if (ids.has(tile.id)) col.error(path, `duplicate tile id ${tile.id}`);
-      ids.add(tile.id);
-      if (!tile.spokenLabel) col.error(path, "needs a spokenLabel");
-      if (typeof tile.unit !== "string") col.error(path, "needs a unit");
-      if (!tile.announce || !Array.isArray(tile.announce.bands)) col.error(path, "needs announce bands");
-      const values = Array.isArray(tile.value) ? tile.value : [tile.value];
-      for (const v of values) checkOne(v, root, WHERE_TICK, `${path}.value`, info, col, "scalar");
-      if (tile.sub) checkTemplate(tile.sub, root, WHERE_TICK, `${path}.sub`, info, col);
-      if (tile.hiddenUntil) checkOne(tile.hiddenUntil, root, WHERE_TICK, `${path}.hiddenUntil`, info, col, "bool");
-      if (tile.trend) {
-        if (!(doc.history ?? {})[tile.trend.history]) col.error(`${path}.trend`, `history "${tile.trend.history}" does not exist`);
-        const w = parseDuration(tile.trend.window);
-        if (w === null || w % info.dt !== 0) col.error(`${path}.trend.window`, "must be a multiple of the tick");
-        if (!(tile.trend.threshold > 0)) col.error(`${path}.trend.threshold`, "must be positive");
-      }
-    });
+    tileChecks(doc, s.bedside.tiles, "screen.bedside.tiles", root, info, col);
     for (const w of s.bedside.waveforms ?? []) {
       for (const n of [w.from.hr, w.from.sys, w.from.dia]) if (n && !doc.derived[n] && !doc.state[n]) col.error("screen.bedside.waveforms", `"${n}" is not a state or derived value`);
       if (w.from.flat) checkOne(w.from.flat, root, WHERE_TICK, "screen.bedside.waveforms.flat", info, col, "bool");
@@ -1421,6 +1458,41 @@ function screenCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collecto
       if (meterIds.has(m.id)) col.error(`screen.board.meters[${i}]`, `duplicate meter id ${m.id}`);
       meterIds.add(m.id);
       checkTemplate(m.value, root, WHERE_TICK, `screen.board.meters[${i}].value`, info, col);
+    });
+  }
+  // REQ-232: the treatment session's bindings: the vitals exactly as bedside
+  // tiles, the patient, activity, measures, dosage and the stopping rules.
+  if (s.type === "treatment-session" && !s.treatment) col.error("screen.treatment", "a treatment-session screen needs its patient bindings");
+  if (s.treatment) {
+    const tr = s.treatment;
+    if (!tr.patient || !tr.patient.name) col.error("screen.treatment.patient", "needs the patient's name");
+    else checkTemplate(tr.patient.presentation, root, WHERE_TICK, "screen.treatment.patient.presentation", info, col);
+    if (!tr.vitals.length) col.error("screen.treatment.vitals", "needs at least one vital sign (heart rate, blood pressure, SpO2, RPE, pain)");
+    tileChecks(doc, tr.vitals, "screen.treatment.vitals", root, info, col);
+    if (tr.activity) checkTemplate(tr.activity, root, WHERE_TICK, "screen.treatment.activity", info, col);
+    const ids = new Set<string>(tr.vitals.map((v) => v.id));
+    const unique = (id: string, path: string): void => {
+      if (ids.has(id)) col.error(path, `duplicate id ${id}`);
+      ids.add(id);
+    };
+    (tr.measures ?? []).forEach((m, i) => {
+      const path = `screen.treatment.measures[${i}]`;
+      unique(m.id, path);
+      checkTemplate(m.result, root, WHERE_TICK, `${path}.result`, info, col);
+      checkOne(m.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+      if (m.flag) checkOne(m.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+    });
+    (tr.dosage?.items ?? []).forEach((it, j) => {
+      checkOne(it.when, root, WHERE_TICK, `screen.treatment.dosage.items[${j}].when`, info, col, "bool");
+      checkTemplate(it.label, root, WHERE_TICK, `screen.treatment.dosage.items[${j}].label`, info, col);
+    });
+    if (!tr.rules.length) col.error("screen.treatment.rules", "needs at least one stopping or escalation rule");
+    tr.rules.forEach((r, i) => {
+      const path = `screen.treatment.rules[${i}]`;
+      unique(r.id, path);
+      if (!r.label) col.error(path, "needs a label");
+      checkTemplate(r.text, root, WHERE_TICK, `${path}.text`, info, col);
+      checkOne(r.met, root, WHERE_TICK, `${path}.met`, info, col, "bool");
     });
   }
   // REQ-225: the client session's bindings, checked like tile bindings.
@@ -1454,6 +1526,113 @@ function screenCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collecto
       checkTemplate(it.label, root, WHERE_TICK, `screen.session.record.items[${j}].label`, info, col);
     });
   }
+  consoleCheck(doc, root, info, col);
+  terminalCheck(doc, root, info, col);
+}
+
+// REQ-237 (docs/sims.md 20.1, 22.10): the terminal screen's bindings,
+// checked like the console's. Display only: nothing here changes stepping.
+export const TERMINAL_TONES: readonly string[] = ["up", "degraded", "down", "out"];
+const T_TTONE: Ty = { k: "enum", values: [...TERMINAL_TONES] };
+
+function terminalCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "terminal" && !s.terminal) col.error("screen.terminal", "a terminal screen needs its prompt, output line, node and link bindings");
+  const t = s.terminal;
+  if (!t) return;
+  const ids = new Set<string>();
+  const unique = (id: string, path: string): void => {
+    if (ids.has(id)) col.error(path, `duplicate id ${id}`);
+    ids.add(id);
+  };
+  if (typeof t.prompt !== "string" || !t.prompt) col.error("screen.terminal.prompt", "needs the shell prompt");
+  else checkTemplate(t.prompt, root, WHERE_TICK, "screen.terminal.prompt", info, col);
+  if (!Array.isArray(t.nodes) || !t.nodes.length) col.error("screen.terminal.nodes", "needs at least one node (a host, a device, a cluster node, a service)");
+  if (!Array.isArray(t.lines)) col.error("screen.terminal.lines", "needs a lines list (it may be empty)");
+  if (!Array.isArray(t.links)) col.error("screen.terminal.links", "needs a links list (it may be empty)");
+  (t.nodes ?? []).forEach((n, i) => {
+    const path = `screen.terminal.nodes[${i}]`;
+    unique(n.id, path);
+    if (!n.spokenLabel) col.error(path, "needs a spokenLabel");
+    if (!n.kind) col.error(`${path}.kind`, "says what it is (web server, switch, worker node, ...)");
+    checkTemplate(n.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(n.tone, root, WHERE_TICK, `${path}.tone`, info, col, T_TTONE);
+  });
+  const nodeIds = new Set((t.nodes ?? []).map((n) => n.id));
+  (t.links ?? []).forEach((l, i) => {
+    const path = `screen.terminal.links[${i}]`;
+    unique(l.id, path);
+    if (!nodeIds.has(l.from)) col.error(`${path}.from`, `no node ${l.from}`);
+    if (!nodeIds.has(l.to)) col.error(`${path}.to`, `no node ${l.to}`);
+    if (l.from === l.to) col.error(path, "a link joins two different nodes");
+    if (!l.label) col.error(`${path}.label`, "names the link in words (uplink trunk, VPN tunnel, ...)");
+    checkTemplate(l.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(l.tone, root, WHERE_TICK, `${path}.tone`, info, col, T_TTONE);
+  });
+  (t.lines ?? []).forEach((l, i) => {
+    const path = `screen.terminal.lines[${i}]`;
+    unique(l.id, path);
+    checkTemplate(l.text, root, WHERE_TICK, `${path}.text`, info, col);
+    checkOne(l.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(l.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+    if (l.error) checkOne(l.error, root, WHERE_TICK, `${path}.error`, info, col, "bool");
+  });
+  (t.meters ?? []).forEach((m, i) => {
+    unique(m.id, `screen.terminal.meters[${i}]`);
+    checkTemplate(m.value, root, WHERE_TICK, `screen.terminal.meters[${i}].value`, info, col);
+  });
+}
+
+// REQ-231 (docs/sims.md 20.1, 22.7): the security console's bindings,
+// checked like the session's. Display only: nothing here changes stepping.
+export const CONSOLE_TONES: readonly string[] = ["ok", "watch", "bad", "held"];
+export const CONSOLE_SEVERITIES: readonly string[] = ["critical", "high", "medium", "low"];
+const T_TONE: Ty = { k: "enum", values: [...CONSOLE_TONES] };
+
+function consoleCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "security-console" && !s.console) col.error("screen.console", "a security console needs its alert, event and asset bindings");
+  const c = s.console;
+  if (!c) return;
+  const ids = new Set<string>();
+  const unique = (id: string, path: string): void => {
+    if (ids.has(id)) col.error(path, `duplicate id ${id}`);
+    ids.add(id);
+  };
+  if (!Array.isArray(c.alerts) || !c.alerts.length) col.error("screen.console.alerts", "needs at least one alert");
+  if (!Array.isArray(c.assets) || !c.assets.length) col.error("screen.console.assets", "needs at least one asset (a host, an account, a cloud identity)");
+  if (!Array.isArray(c.events)) col.error("screen.console.events", "needs an events list (it may be empty)");
+  (c.alerts ?? []).forEach((a, i) => {
+    const path = `screen.console.alerts[${i}]`;
+    unique(a.id, path);
+    if (CONSOLE_SEVERITIES.indexOf(a.severity) < 0) col.error(`${path}.severity`, `must be one of ${CONSOLE_SEVERITIES.join(", ")}`);
+    checkTemplate(a.title, root, WHERE_TICK, `${path}.title`, info, col);
+    if (a.detail) checkTemplate(a.detail, root, WHERE_TICK, `${path}.detail`, info, col);
+    checkTemplate(a.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(a.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(a.open, root, WHERE_TICK, `${path}.open`, info, col, "bool");
+    checkOne(a.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+  });
+  (c.events ?? []).forEach((e, i) => {
+    const path = `screen.console.events[${i}]`;
+    unique(e.id, path);
+    if (!e.source) col.error(`${path}.source`, "names the log the line came from");
+    checkTemplate(e.text, root, WHERE_TICK, `${path}.text`, info, col);
+    checkOne(e.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(e.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+  });
+  (c.assets ?? []).forEach((a, i) => {
+    const path = `screen.console.assets[${i}]`;
+    unique(a.id, path);
+    if (!a.spokenLabel) col.error(path, "needs a spokenLabel");
+    if (!a.kind) col.error(`${path}.kind`, "says what it is (workstation, file server, user account, ...)");
+    checkTemplate(a.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(a.tone, root, WHERE_TICK, `${path}.tone`, info, col, T_TONE);
+  });
+  (c.meters ?? []).forEach((m, i) => {
+    unique(m.id, `screen.console.meters[${i}]`);
+    checkTemplate(m.value, root, WHERE_TICK, `screen.console.meters[${i}].value`, info, col);
+  });
 }
 
 // ---- interval arithmetic for the longest-skip bound (4.3) ----
@@ -1675,7 +1854,7 @@ function addMonths(iso: string, months: number): string {
 
 function sourceStaleness(doc: ScenarioDoc, col: Collector, now: string | undefined): void {
   if (!now) return;
-  const defaultMonths = doc.outcome.profile === "clinical" || doc.outcome.profile === "clinical-session" || doc.outcome.profile === "cloud" ? 6 : 12;
+  const defaultMonths = doc.outcome.profile === "clinical" || doc.outcome.profile === "clinical-session" || doc.outcome.profile === "physical-therapy" || doc.outcome.profile === "cloud" ? 6 : 12;
   const check = (path: string, s: Source | undefined): void => {
     if (!s || !isIsoDate(s.checkedAt)) return;
     const due = s.recheckBy && isIsoDate(s.recheckBy) ? s.recheckBy : addMonths(s.checkedAt, defaultMonths);

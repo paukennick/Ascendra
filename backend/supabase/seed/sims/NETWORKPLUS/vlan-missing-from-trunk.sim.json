@@ -1,0 +1,1350 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "vlan-missing-from-trunk",
+  "title": "Outage: floor 2 PCs get 169.254 addresses after a switch swap",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "noc@laptop:~$",
+      "lines": [
+        {
+          "id": "tickets",
+          "text": "08:30 help desk: 23 tickets from floor 2, PCs say 'No internet'; floor 2 phones and all of floor 1 work",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "mgmtGone",
+          "text": "Connection to ACC-SW2 (10.99.0.12) closed by remote host",
+          "when": "not isNull(voiceDroppedAt)",
+          "at": "timeAt(voiceDroppedAt)",
+          "error": "true"
+        },
+        {
+          "id": "phonesGone",
+          "text": "call manager: 31 phones on floor 2 unregistered",
+          "when": "not isNull(voiceDroppedAt)",
+          "at": "timeAt(voiceDroppedAt)",
+          "error": "true"
+        },
+        {
+          "id": "reloadLine",
+          "text": "ACC-SW2: %SYS-5-RELOAD: Reload requested; floor 2 offline while it boots",
+          "when": "not isNull(reloadAt)",
+          "at": "timeAt(reloadAt)",
+          "error": "true"
+        },
+        {
+          "id": "payrollLine",
+          "text": "09:15 payroll: floor 2 missed the submission cutoff; this week's pay run is late",
+          "when": "not isNull(payrollMissedAt)",
+          "at": "timeAt(payrollMissedAt)",
+          "error": "true"
+        },
+        {
+          "id": "leaseLine",
+          "text": "DHCP1: lease 10.20.20.57 to PC-F2-14",
+          "when": "not isNull(verifiedAt)",
+          "at": "timeAt(verifiedAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "core",
+          "label": "CORE1",
+          "spokenLabel": "core switch CORE1",
+          "kind": "Layer 3 core switch, DHCP relay",
+          "status": "Routing VLANs 10, 20, 30, 99; relays DHCP to DHCP1",
+          "tone": "\"up\""
+        },
+        {
+          "id": "sw1",
+          "label": "ACC-SW1",
+          "spokenLabel": "floor 1 switch ACC-SW1",
+          "kind": "Access switch, floor 1",
+          "status": "All VLANs passing",
+          "tone": "\"up\""
+        },
+        {
+          "id": "sw2",
+          "label": "ACC-SW2",
+          "spokenLabel": "floor 2 switch ACC-SW2",
+          "kind": "Access switch, floor 2 (replaced last night)",
+          "status": "Uplink allows VLANs {vlan20On ? (voiceLost ? \"20\" : \"20,30,99\") : \"30,99\"}{changedSinceSave ? \"; running config not saved\" : \"\"}",
+          "tone": "voiceLost ? \"down\" : vlan20On ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "dhcp",
+          "label": "DHCP1",
+          "spokenLabel": "DHCP server DHCP1",
+          "kind": "DHCP server, VLAN 99",
+          "status": "Scope 10.20.20.0/24: 98 leased, 141 free",
+          "tone": "\"up\""
+        },
+        {
+          "id": "pcs",
+          "label": "Floor 2 PCs (VLAN 20)",
+          "spokenLabel": "floor 2 PCs",
+          "kind": "Staff VLAN 20, 10.20.20.0/24",
+          "status": "{vlan20On ? (isNull(verifiedAt) ? \"VLAN 20 passes; PCs need a renew\" : \"Leases renewing\") : \"No DHCP answer: 169.254 addresses\"}",
+          "tone": "vlan20On ? \"up\" : \"down\""
+        },
+        {
+          "id": "phones",
+          "label": "Floor 2 phones (VLAN 30)",
+          "spokenLabel": "floor 2 phones",
+          "kind": "Voice VLAN 30",
+          "status": "{voiceLost ? \"Unregistered\" : \"Registered\"}",
+          "tone": "voiceLost ? \"down\" : \"up\""
+        },
+        {
+          "id": "payroll",
+          "label": "Payroll cutoff 09:15",
+          "spokenLabel": "the 09:15 payroll cutoff",
+          "kind": "Business deadline (floor 2 team)",
+          "status": "{not isNull(payrollMissedAt) ? \"Missed\" : vlan20On ? \"On track\" : \"Floor 2 cannot submit\"}",
+          "tone": "not isNull(payrollMissedAt) ? \"down\" : vlan20On ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "up2",
+          "from": "sw2",
+          "to": "core",
+          "label": "Uplink trunk Gi1/0/48 to Gi1/0/2",
+          "status": "802.1Q trunk; allowed {vlan20On ? (voiceLost ? \"20\" : \"20,30,99\") : \"30,99\"}",
+          "tone": "voiceLost ? \"down\" : vlan20On ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "up1",
+          "from": "sw1",
+          "to": "core",
+          "label": "Uplink trunk, floor 1",
+          "status": "802.1Q trunk; all VLANs",
+          "tone": "\"up\""
+        },
+        {
+          "id": "relay",
+          "from": "core",
+          "to": "dhcp",
+          "label": "DHCP relay",
+          "status": "Forwarding requests it receives",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "allowedM",
+          "label": "ACC-SW2 uplink allowed VLANs",
+          "value": "{vlan20On ? (voiceLost ? \"20\" : \"20,30,99\") : \"30,99\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Diagnosing network service issues: switching, routing, and address pool exhaustion",
+  "secondaryObjectives": [
+    "Switching technologies: VLANs, spanning tree, MTU, and jumbo frames",
+    "Using troubleshooting tools and protocols: protocol analyzers, CLI tools, cable testers, and Wi-Fi analyzers"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA Network+ (V9), exam N10-009: domains Networking concepts 23%, Network implementation 20%, Network operations 19%, Network security 14%, Network troubleshooting 24%; launched 2024-06-20",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/network/",
+      "note": "Relevant text: troubleshooting covers 'identifying the problem, establishing a theory, testing, planning, and implementing a solution,' 'verifying functionality, and documenting findings'; network services issues include 'switching issues (STP, VLAN assignment, ACLs), routing issues (routing table and default routes)'. Objective titles 5.1 'Explain the troubleshooting methodology', 5.3 'Given a scenario, troubleshoot common issues with network services', 5.5 'Given a scenario, use the appropriate tool or protocol to solve networking issues' read in CompTIA's N10-009 objectives comparison flyer (April 2024, partners.comptia.org). Both read through summarizing fetches on 2026-11-11; the objectives PDF itself was not reachable. The course objective titles are the course seed's (2026-11-07)."
+    },
+    {
+      "cite": "Cisco, Interface and Hardware Component Command Reference, Cisco IOS XE Release 3SE (Catalyst 3850 Switches): switchport trunk",
+      "checkedAt": "2026-11-11",
+      "url": "https://www3-realm.cisco.com/en/US/docs/ios-xml/ios/interface/command/ir-xe-3se-3850-cr-book_chapter_01101.html",
+      "note": "Relevant text: allowed vlan vlan-list 'Sets the list of allowed VLANs that transmit traffic from this interface in tagged format when in trunking mode'; add 'Adds the defined list of VLANs to those currently set instead of replacing the list'; remove and except likewise act 'instead of replacing the list'. Read through a summarizing fetch on 2026-11-11. That a bare list replaces the allowed list is read from those keyword descriptions; the page does not state it in one sentence. The show command output layouts in the scenario are authored renderings in the IOS style, not copied from a device."
+    },
+    {
+      "cite": "IETF RFC 3927, Dynamic Configuration of IPv4 Link-Local Addresses (2005)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc3927",
+      "note": "Relevant text: a host picks an address 'in the range from 169.254.1.0 to 169.254.254.255 inclusive'; link-local addresses 'should therefore only be used where stable, routable addresses are not available'; 'A router MUST NOT forward a packet with an IPv4 Link-Local source or destination address.' Read in primary text on 2026-11-11."
+    },
+    {
+      "cite": "Microsoft Learn, ipconfig (Windows commands), last updated 2023-02-03",
+      "checkedAt": "2026-11-11",
+      "url": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/ipconfig",
+      "note": "Relevant text: ipconfig 'displays Internet Protocol version 4 (IPv4) and IPv6 addresses, subnet mask, and default gateway for all adapters'; /renew 'Renews DHCP configuration for all adapters'; it shows which values were 'configured by DHCP, Automatic Private IP Addressing (APIPA), or an alternate configuration'. Read through a summarizing fetch on 2026-11-11. The exact renew failure wording in the scenario is an authored rendering."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network technician at Larkspur Insurance, a fictional company. Last night a contractor replaced ACC-SW2, the floor 2 access switch, loading its configuration from a template. At 08:30 floor 2's PCs cannot reach anything; floor 2's IP phones work, and floor 1 is fine. The floor 2 payroll team must submit by 09:15. Find the fault and fix it without breaking anything else.",
+    "handover": [
+      "VLAN 20 is staff PCs (10.20.20.0/24), VLAN 30 voice, VLAN 99 management (you reach ACC-SW2 over SSH on VLAN 99). CORE1 routes the VLANs and relays DHCP to DHCP1.",
+      "ACC-SW2's uplink Gi1/0/48 is an 802.1Q trunk to CORE1 Gi1/0/2. Reaching ACC-SW2's console means walking to the floor 2 closet."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, device or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "08:30",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "payrollDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-237)",
+        "checkedAt": "2026-11-11",
+        "note": "How many operator minutes each command or change takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. The payroll cutoff is 09:15, 45 minutes after the first report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "ipconfigAt": {
+      "type": "time",
+      "init": null
+    },
+    "renewFails": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "scopeAt": {
+      "type": "time",
+      "init": null
+    },
+    "vlanBriefAt": {
+      "type": "time",
+      "init": null
+    },
+    "trunk2At": {
+      "type": "time",
+      "init": null
+    },
+    "trunkCoreAt": {
+      "type": "time",
+      "init": null
+    },
+    "runCfgAt": {
+      "type": "time",
+      "init": null
+    },
+    "dhcpRestarts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "vlan20On": {
+      "type": "bool",
+      "init": false
+    },
+    "voiceLost": {
+      "type": "bool",
+      "init": false
+    },
+    "voiceDroppedAt": {
+      "type": "time",
+      "init": null
+    },
+    "consoleAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "saved": {
+      "type": "bool",
+      "init": false
+    },
+    "changedSinceSave": {
+      "type": "bool",
+      "init": false
+    },
+    "reloadAt": {
+      "type": "time",
+      "init": null
+    },
+    "reloadedUnsaved": {
+      "type": "bool",
+      "init": false
+    },
+    "faultsAdded": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "payrollMissedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "trunk",
+        "pool",
+        "dhcpServer",
+        "accessVlan"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "swReachable": {
+      "expr": "not voiceLost or not isNull(consoleAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "ipconfig",
+        "renew",
+        "scope",
+        "dhcpRestart",
+        "coreSvi",
+        "coreTrunk",
+        "vlanBrief",
+        "sw2Trunk",
+        "runCfg",
+        "configTrunk",
+        "console",
+        "save",
+        "reload",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "ipconfig": {
+      "label": "PC-F2-14 ipconfig",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "ipconfigAt",
+          "to": "t"
+        },
+        {
+          "output": "C:\\> ipconfig\nEthernet adapter Ethernet:\n   {not isNull(verifiedAt) ? \"IPv4 Address. . . . . . . . . . . : 10.20.20.57\" : \"Autoconfiguration IPv4 Address. . : 169.254.118.9\"}\n   Subnet Mask . . . . . . . . . . . : {not isNull(verifiedAt) ? \"255.255.255.0\" : \"255.255.0.0\"}\n   Default Gateway . . . . . . . . . : {not isNull(verifiedAt) ? \"10.20.20.1\" : \"\"}"
+        },
+        {
+          "if": "isNull(verifiedAt)",
+          "then": [
+            {
+              "finding": "169.254.x.x with no gateway is a link-local (APIPA) address: no DHCP server answered this PC."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "renew": {
+      "label": "PC-F2-14 ipconfig /renew",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "vlan20On",
+          "then": [
+            {
+              "if": "isNull(verifiedAt)",
+              "then": [
+                {
+                  "set": "verifiedAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "output": "C:\\> ipconfig /renew\nEthernet adapter Ethernet:\n   IPv4 Address. . . . . . . . . . . : 10.20.20.57\n   Default Gateway . . . . . . . . . : 10.20.20.1"
+            },
+            {
+              "log": "PC-F2-14 has a lease and its gateway.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "add": "renewFails",
+              "by": "1"
+            },
+            {
+              "output": "C:\\> ipconfig /renew\nAn error occurred while renewing interface Ethernet : unable to contact your DHCP server. Request has timed out."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "scope": {
+      "label": "DHCP1 Get-DhcpServerv4ScopeStatistics",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "scopeAt",
+          "to": "t"
+        },
+        {
+          "output": "PS C:\\> Get-DhcpServerv4ScopeStatistics\nScopeId        Free  InUse  PercentageInUse\n10.10.10.0      132    107  44.77\n10.20.20.0      141     98  41.00\n10.30.30.0      190     62  24.60"
+        },
+        {
+          "finding": "The VLAN 20 scope has 141 free addresses: not pool exhaustion."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "dhcpRestart": {
+      "label": "DHCP1 Restart-Service DHCPServer",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "add": "dhcpRestarts",
+          "by": "1"
+        },
+        {
+          "output": "PS C:\\> Restart-Service DHCPServer"
+        },
+        {
+          "log": "The DHCP service restarted; floor 1 renewals paused for a moment. Floor 2 still gets nothing.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "coreSvi": {
+      "label": "CORE1# show ip interface brief | include Vlan",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "CORE1# show ip interface brief | include Vlan\nVlan10   10.10.10.1   YES NVRAM  up  up\nVlan20   10.20.20.1   YES NVRAM  up  up\nVlan30   10.30.30.1   YES NVRAM  up  up\nVlan99   10.99.0.1    YES NVRAM  up  up"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "coreTrunk": {
+      "label": "CORE1# show interfaces trunk",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "trunkCoreAt",
+          "to": "t"
+        },
+        {
+          "output": "CORE1# show interfaces trunk\nPort      Mode  Encapsulation  Status    Native vlan\nGi1/0/1   on    802.1q         trunking  1\nGi1/0/2   on    802.1q         trunking  1\n\nPort      Vlans allowed on trunk\nGi1/0/1   1-4094\nGi1/0/2   1-4094"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "vlanBrief": {
+      "label": "ACC-SW2# show vlan brief",
+      "group": "Look",
+      "available": "not busy and (swReachable)",
+      "why": "ACC-SW2 is not reachable over SSH: its management VLAN is off the uplink. Use the console, or wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "vlanBriefAt",
+          "to": "t"
+        },
+        {
+          "output": "ACC-SW2# show vlan brief\nVLAN Name     Status    Ports\n1    default  active\n20   STAFF    active    Gi1/0/1-24\n30   VOICE    active    Gi1/0/1-24\n99   MGMT     active"
+        },
+        {
+          "finding": "Floor 2's access ports are in VLAN 20 with voice VLAN 30, as they should be."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sw2Trunk": {
+      "label": "ACC-SW2# show interfaces trunk",
+      "group": "Look",
+      "available": "not busy and (swReachable)",
+      "why": "ACC-SW2 is not reachable over SSH: its management VLAN is off the uplink. Use the console, or wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "trunk2At",
+          "to": "t"
+        },
+        {
+          "output": "ACC-SW2# show interfaces trunk\nPort      Mode  Encapsulation  Status    Native vlan\nGi1/0/48  on    802.1q         trunking  1\n\nPort      Vlans allowed on trunk\nGi1/0/48  {vlan20On ? (voiceLost ? \"20\" : \"20,30,99\") : \"30,99\"}"
+        },
+        {
+          "if": "not vlan20On",
+          "then": [
+            {
+              "finding": "ACC-SW2's uplink carries VLANs 30 and 99 only: VLAN 20 never reaches CORE1, so DHCP requests from floor 2 PCs go nowhere."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "runCfg": {
+      "label": "ACC-SW2# show running-config interface Gi1/0/48",
+      "group": "Look",
+      "available": "not busy and (swReachable)",
+      "why": "ACC-SW2 is not reachable over SSH: its management VLAN is off the uplink. Use the console, or wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "runCfgAt",
+          "to": "t"
+        },
+        {
+          "output": "ACC-SW2# show running-config interface Gi1/0/48\ninterface GigabitEthernet1/0/48\n description UPLINK CORE1 Gi1/0/2\n switchport trunk allowed vlan {vlan20On ? (voiceLost ? \"20\" : \"20,30,99\") : \"30,99\"}\n switchport mode trunk"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "configTrunk": {
+      "label": "ACC-SW2(config-if)#",
+      "group": "Fix",
+      "available": "not busy and (swReachable)",
+      "why": "ACC-SW2 is not reachable over SSH: its management VLAN is off the uplink. Use the console, or wait for the running command to finish.",
+      "params": [
+        {
+          "id": "line",
+          "kind": "choice",
+          "label": "Interface Gi1/0/48 command",
+          "options": [
+            {
+              "value": "add20",
+              "label": "switchport trunk allowed vlan add 20"
+            },
+            {
+              "value": "only20",
+              "label": "switchport trunk allowed vlan 20"
+            },
+            {
+              "value": "full",
+              "label": "switchport trunk allowed vlan 20,30,99"
+            },
+            {
+              "value": "add3099",
+              "label": "switchport trunk allowed vlan add 30,99"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "changedSinceSave",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "line == \"add20\"",
+              "then": [
+                {
+                  "set": "vlan20On",
+                  "to": "true"
+                },
+                {
+                  "output": "ACC-SW2#(config-if) switchport trunk allowed vlan add 20"
+                },
+                {
+                  "log": "VLAN 20 added to the uplink's allowed list; 30 and 99 kept.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "line == \"full\"",
+              "then": [
+                {
+                  "set": "vlan20On",
+                  "to": "true"
+                },
+                {
+                  "set": "voiceLost",
+                  "to": "false"
+                },
+                {
+                  "output": "ACC-SW2#(config-if) switchport trunk allowed vlan 20,30,99"
+                },
+                {
+                  "log": "The uplink's allowed list is now 20,30,99.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "line == \"only20\"",
+              "then": [
+                {
+                  "set": "vlan20On",
+                  "to": "true"
+                },
+                {
+                  "if": "not voiceLost",
+                  "then": [
+                    {
+                      "set": "voiceLost",
+                      "to": "true"
+                    },
+                    {
+                      "add": "faultsAdded",
+                      "by": "1"
+                    },
+                    {
+                      "if": "isNull(voiceDroppedAt)",
+                      "then": [
+                        {
+                          "set": "voiceDroppedAt",
+                          "to": "t"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "output": "ACC-SW2#(config-if) switchport trunk allowed vlan 20"
+                },
+                {
+                  "log": "The allowed list was replaced by VLAN 20 alone: voice VLAN 30 and management VLAN 99 stopped crossing the uplink. Floor 2's phones dropped, and so did your SSH session.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "voiceLost",
+                  "to": "false"
+                },
+                {
+                  "output": "ACC-SW2#(config-if) switchport trunk allowed vlan add 30,99"
+                },
+                {
+                  "log": "VLANs 30 and 99 are back on the uplink.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "vlan20On and isNull(fixedAt)",
+          "then": [
+            {
+              "set": "fixedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "console": {
+      "label": "walk to the floor 2 closet and connect to ACC-SW2's console",
+      "group": "Fix",
+      "available": "not busy and (isNull(consoleAt))",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "consoleAt",
+          "to": "t"
+        },
+        {
+          "output": "noc@laptop:~$ screen /dev/ttyUSB0 9600\nACC-SW2 con0 is now available\nACC-SW2>"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "save": {
+      "label": "ACC-SW2# copy running-config startup-config",
+      "group": "Fix",
+      "available": "not busy and (swReachable)",
+      "why": "ACC-SW2 is not reachable over SSH: its management VLAN is off the uplink. Use the console, or wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "saved",
+          "to": "true"
+        },
+        {
+          "set": "changedSinceSave",
+          "to": "false"
+        },
+        {
+          "output": "ACC-SW2# copy running-config startup-config\nDestination filename [startup-config]?\nBuilding configuration...\n[OK]"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "reload": {
+      "label": "ACC-SW2# reload",
+      "group": "Fix",
+      "available": "not busy and (swReachable)",
+      "why": "ACC-SW2 is not reachable over SSH: its management VLAN is off the uplink. Use the console, or wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(reloadAt)",
+          "then": [
+            {
+              "set": "reloadAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "ACC-SW2# reload\nProceed with reload? [confirm]"
+        },
+        {
+          "if": "changedSinceSave",
+          "then": [
+            {
+              "set": "reloadedUnsaved",
+              "to": "true"
+            },
+            {
+              "set": "vlan20On",
+              "to": "false"
+            },
+            {
+              "set": "voiceLost",
+              "to": "false"
+            },
+            {
+              "set": "changedSinceSave",
+              "to": "false"
+            },
+            {
+              "log": "ACC-SW2 rebooted from its saved configuration: the unsaved fix is gone, VLAN 20 is off the uplink again, and floor 2's phones were down while it booted.",
+              "kind": "alarm"
+            }
+          ],
+          "else": [
+            {
+              "add": "faultsAdded",
+              "by": "1"
+            },
+            {
+              "log": "ACC-SW2 rebooted: every call on floor 2 dropped while it booted.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 600",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "noc@laptop:~$ sleep 600"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "trunk",
+                  "label": "VLAN 20 missing from ACC-SW2's uplink trunk allowed list (template)"
+                },
+                {
+                  "value": "pool",
+                  "label": "The VLAN 20 DHCP pool was exhausted"
+                },
+                {
+                  "value": "dhcpServer",
+                  "label": "The DHCP service had stopped answering"
+                },
+                {
+                  "value": "accessVlan",
+                  "label": "Floor 2's access ports were in the wrong VLAN"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: cause {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-237)",
+        "checkedAt": "2026-11-11",
+        "note": "How many operator minutes each command or change takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "payroll",
+      "when": "t >= payrollDelay and phase == \"incident\" and not vlan20On",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "payrollMissedAt",
+          "to": "t"
+        },
+        {
+          "log": "09:15: floor 2 missed the payroll cutoff.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: what the 169.254 addresses told you, where the fault was and how you proved it, and why your change could not break anything else.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Symptom",
+          "criteria": "Reads 169.254.x.x with no gateway as a link-local address a host takes when no DHCP server answers, and uses the working phones and floor 1 to narrow it to VLAN 20 on floor 2.",
+          "modelAnswer": "169.254 with no gateway means the PCs got no DHCP answer and gave themselves link-local addresses. Phones on the same ports and all of floor 1 worked, so DHCP itself and the access ports were fine; only VLAN 20 from floor 2 was cut off."
+        },
+        {
+          "label": "Fault and proof",
+          "criteria": "Finds VLAN 20 missing from the allowed list of ACC-SW2's uplink trunk with show interfaces trunk (and the DHCP scope not exhausted).",
+          "modelAnswer": "show interfaces trunk on ACC-SW2 listed 30,99 as allowed on Gi1/0/48; the template left out 20. The DHCP scope had 141 free addresses, so it was not exhaustion."
+        },
+        {
+          "label": "Safe change",
+          "criteria": "Uses switchport trunk allowed vlan add 20 (or the full list), explains that a bare list replaces the allowed VLANs and would drop voice and management, saves the configuration and verifies with a renew.",
+          "modelAnswer": "I used allowed vlan add 20, because a bare 'allowed vlan 20' replaces the list and would have dropped voice VLAN 30 and my own management VLAN 99. Then I saved it and renewed a floor 2 PC, which got 10.20.20.57 and its gateway."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-11",
+          "note": "Fixed with time to spare before the 09:15 payroll cutoff; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-11",
+          "note": "No second fault: dropped voice or management, or an unneeded reload."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not vlan20On",
+      "class": "harm",
+      "rationale": "Closing while floor 2's PCs still have no addresses leaves the floor unable to work; it is never a safe outcome.",
+      "source": {
+        "cite": "IETF RFC 3927, Dynamic Configuration of IPv4 Link-Local Addresses (2005)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.rfc-editor.org/rfc/rfc3927",
+        "note": "Relevant text: a host picks an address 'in the range from 169.254.1.0 to 169.254.254.255 inclusive'; link-local addresses 'should therefore only be used where stable, routable addresses are not available'; 'A router MUST NOT forward a packet with an IPv4 Link-Local source or destination address.' Read in primary text on 2026-11-11."
+      }
+    }
+  },
+  "endings": {
+    "voiceDropped": {
+      "label": "The fix took down floor 2's phones",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(voiceDroppedAt)",
+      "narrative": "Replacing the allowed list with VLAN 20 alone dropped voice and management: floor 2's phones went down and the switch could only be reached from its console."
+    },
+    "reloadedUnsaved": {
+      "label": "Reloaded without saving",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and reloadedUnsaved",
+      "narrative": "ACC-SW2 was reloaded with the fix unsaved. It came back from the template, VLAN 20 was off the uplink again, and floor 2 lost every call while it booted."
+    },
+    "payrollMissed": {
+      "label": "The outage cost the payroll cutoff",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(payrollMissedAt)",
+      "narrative": "Floor 2 was still offline at 09:15 and missed the payroll cutoff."
+    },
+    "stillDown": {
+      "label": "Closed with floor 2 still down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not vlan20On",
+      "narrative": "The outage was closed while floor 2's PCs still had 169.254 addresses."
+    },
+    "fixed": {
+      "label": "Fixed at the trunk",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and vlan20On and timeAt(fixedAt) <= restoreWindow and faultsAdded <= newFaults and saved and not changedSinceSave and not isNull(verifiedAt) and not isNull(trunk2At) and timeAt(trunk2At) <= timeAt(fixedAt)",
+      "narrative": "VLAN 20 crosses the uplink again, nothing else changed, the configuration is saved and a floor 2 PC has its lease."
+    },
+    "fixedGaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Floor 2 works, but the fix was late, guessed, unsaved, unverified or cost a reload."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "voiceDropped",
+    "reloadedUnsaved",
+    "payrollMissed",
+    "stillDown",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "layer2First",
+        "label": "Found VLAN 20 missing on the uplink trunk before changing it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(trunk2At) and (isNull(fixedAt) or timeAt(trunk2At) <= timeAt(fixedAt))",
+            "score": "met",
+            "why": "show interfaces trunk showed the allowed list first."
+          },
+          {
+            "when": "not isNull(trunk2At)",
+            "score": "partial",
+            "why": "The trunk was checked only after the change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The uplink's allowed VLANs were never checked."
+          }
+        ]
+      },
+      {
+        "id": "additive",
+        "label": "Added VLAN 20 without removing the others",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(voiceDroppedAt) and not reloadedUnsaved and faultsAdded == 0",
+            "score": "met",
+            "why": "Voice and management never dropped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{not isNull(voiceDroppedAt) ? \"A bare allowed list replaced voice and management.\" : \"A reload dropped every call on floor 2.\"}"
+          }
+        ]
+      },
+      {
+        "id": "fixedFast",
+        "label": "Floor 2 back within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "vlan20On and timeAt(fixedAt) <= restoreWindow",
+            "score": "met",
+            "why": "Fixed {timeAt(fixedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "vlan20On",
+            "score": "partial",
+            "why": "Fixed, but {timeAt(fixedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "VLAN 20 still does not cross the uplink."
+          }
+        ]
+      },
+      {
+        "id": "savedC",
+        "label": "Saved the change to the startup configuration",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "saved and not changedSinceSave",
+            "score": "met",
+            "why": "copy running-config startup-config after the change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The fix lives only in the running configuration."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Verified with a renew on a floor 2 PC",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "PC-F2-14 got 10.20.20.57 and its gateway."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No floor 2 PC was seen to get a lease."
+          }
+        ]
+      },
+      {
+        "id": "noBlindRestart",
+        "label": "No DHCP restarts the evidence did not call for",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dhcpRestarts == 0",
+            "score": "met",
+            "why": "DHCP was left alone: floor 1 kept getting leases."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The DHCP service was restarted though floor 1 proved it worked."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"trunk\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written symptom, proof and safe change",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToFix",
+        "label": "Minutes until VLAN 20 crossed the uplink",
+        "value": "isNull(fixedAt) ? -1 : timeAt(fixedAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "faultsK",
+        "label": "Faults the fix introduced",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "restartsK",
+        "label": "DHCP restarts",
+        "value": "dhcpRestarts",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "ipconfig on a floor 2 PC: 169.254, no gateway, so no DHCP answer. Phones and floor 1 work, and the VLAN 20 scope has free addresses."
+      },
+      {
+        "at": "5-10 min",
+        "text": "On ACC-SW2, show vlan brief is right; show interfaces trunk lists 30,99 on Gi1/0/48; CORE1's side allows everything."
+      },
+      {
+        "at": "10-14 min",
+        "text": "switchport trunk allowed vlan add 20, copy running-config startup-config, ipconfig /renew on PC-F2-14."
+      },
+      {
+        "at": "After",
+        "text": "Record the template's allowed list as the cause, and fix the template."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: fixed at the trunk",
+        "body": "You read 169.254 as no DHCP answer, followed it to the uplink's allowed list and added VLAN 20 without touching the others, then saved and verified."
+      },
+      "fixedGaps": {
+        "headline": "Fixed, with gaps",
+        "body": "Floor 2 works. The criteria show what it cost: time, a change before the evidence, an unsaved fix or a reload."
+      },
+      "voiceDropped": {
+        "headline": "The fix broke voice",
+        "body": "switchport trunk allowed vlan with a bare list replaces the list; add appends. Replacing it took voice and your own management VLAN off the uplink."
+      },
+      "reloadedUnsaved": {
+        "headline": "Reloaded without saving",
+        "body": "A reload boots the startup configuration. Save first, and do not reload a working access switch in business hours."
+      },
+      "payrollMissed": {
+        "headline": "The outage reached payroll",
+        "body": "Floor 1 and the phones working said DHCP was fine. The uplink trunk's allowed list was one show command away."
+      },
+      "stillDown": {
+        "headline": "Closed too soon",
+        "body": "Floor 2's PCs still had link-local addresses. Fix, then renew a PC before you close."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "169.254 addresses with no gateway mean no DHCP answer. Phones on the same ports and floor 1 working rule out the DHCP server and the access ports; the scope has free addresses, so it is not exhaustion. show interfaces trunk on ACC-SW2 shows VLAN 20 missing from Gi1/0/48's allowed list. Add it with switchport trunk allowed vlan add 20 (a bare list replaces the list and would drop voice and management), save with copy running-config startup-config, and verify with ipconfig /renew on a floor 2 PC."
+  }
+}

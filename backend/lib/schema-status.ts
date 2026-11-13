@@ -447,6 +447,38 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                          where c.slug = 'mental-health' and s.slug = 'psychology-licensure') as ok`,
   },
   {
+    // REQ-252: the level routes, the lesson event route and the seed's
+    // level_flow flag read these.
+    migration: "078_learner_levels.sql",
+    what: "learner_course_profiles, learner_unit_levels, learner_level_changes, subject_tracks.level_flow and the learner_events detail column and phase 1 events (levels, the per-course goal question, lesson measurement)",
+    sql: `select to_regclass('public.learner_course_profiles') is not null
+             and to_regclass('public.learner_unit_levels') is not null
+             and to_regclass('public.learner_level_changes') is not null
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'subject_tracks' and column_name = 'level_flow')
+             and exists(select 1 from pg_constraint where conname = 'learner_events_event_078') as ok`,
+  },
+  {
+    // REQ-253: the Key terms route reads and writes lesson_primers, and a
+    // primer held back is logged in item_holdbacks as item_kind 'primer'.
+    migration: "079_lesson_primers.sql",
+    what: "lesson_primers (Key terms in a lesson) and item_kind 'primer' on item_holdbacks",
+    sql: `select to_regclass('public.lesson_primers') is not null
+             and exists(select 1 from pg_constraint where conname = 'item_holdbacks_item_kind_067'
+                         and pg_get_constraintdef(oid) like '%''primer''%') as ok`,
+  },
+  {
+    // REQ-256: the level check, the suggestion route, the goal-card route and
+    // the guess-feedback route write these events and the 'suggested' reason.
+    migration: "080_level_down_suggestions.sql",
+    what: "learner_events guess_matched, level_down_suggested, level_down_declined and goal_card_shown, and learner_level_changes reason 'suggested' (the move-down suggestion and the lesson goal card's showings)",
+    // Both checks keep 078's names (FAIL-1793); the probe reads what they allow.
+    sql: `select exists(select 1 from pg_constraint where conname = 'learner_events_event_078'
+                         and pg_get_constraintdef(oid) like '%''goal_card_shown''%')
+             and exists(select 1 from pg_constraint where conname = 'learner_level_changes_reason_check'
+                         and pg_get_constraintdef(oid) like '%''suggested''%') as ok`,
+  },
+  {
     // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
     migration: "074_independent_confirmation.sql",
     what: "the 074 mastery_detail() (Independent needs a second unassisted correct answer 24 h after the first)",

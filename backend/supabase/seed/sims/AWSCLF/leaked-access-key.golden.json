@@ -1,0 +1,511 @@
+{
+  "slug": "leaked-access-key",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: CloudTrail, every Region and the bill; key deactivated with the quarantine kept, attacker user disabled, snapshots then termination, a custom policy, root MFA",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "trail",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "regions",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bill",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "respQ",
+          "choice": "right",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deactivateKey",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "disableAttacker",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "terminate",
+          "params": {
+            "how": "snap"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ciPolicyFix",
+          "params": {
+            "pol": "custom"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rootMfaOn",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 13,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 14,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "scope": "met",
+          "key": "met",
+          "persist": "met",
+          "least": "met",
+          "evidence": "met",
+          "root": "met",
+          "resp": "met"
+        },
+        "kpis": {
+          "fraud": 410,
+          "spend": 1910,
+          "changes": 4
+        },
+        "stateHash": "5883f6fb5c4a6f83"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "powerUser",
+      "title": "Contains it all but swaps AdministratorAccess for PowerUserAccess and terminates without snapshots",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "trail",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "regions",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bill",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "respQ",
+          "choice": "right",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deactivateKey",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "disableAttacker",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "terminate",
+          "params": {
+            "how": "now"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ciPolicyFix",
+          "params": {
+            "pol": "power"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 2,
+          "to": 2880,
+          "seq": 12,
+          "tick": 1440
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 3,
+          "to": 4320,
+          "seq": 13,
+          "tick": 2880
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 63,
+        "criteria": {
+          "scope": "met",
+          "key": "met",
+          "persist": "met",
+          "least": "partial",
+          "evidence": "missed",
+          "root": "missed",
+          "resp": "met"
+        },
+        "kpis": {
+          "fraud": 410,
+          "spend": 1910,
+          "changes": 4
+        },
+        "stateHash": "2216c367bc03d058"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "missedUser",
+      "title": "Failure: skips CloudTrail, so never finds support-admin; the attacker relaunches from it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "regions",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bill",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "respQ",
+          "choice": "wrong",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deactivateKey",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "terminate",
+          "params": {
+            "how": "snap"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ciPolicyFix",
+          "params": {
+            "pol": "custom"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "pathOpen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "scope": "partial",
+          "key": "met",
+          "persist": "missed",
+          "least": "met",
+          "evidence": "met",
+          "root": "missed",
+          "resp": "missed"
+        },
+        "kpis": {
+          "fraud": 410,
+          "spend": 1910,
+          "changes": 3
+        },
+        "stateHash": "fa8e649da91565c6"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "unquarantine",
+      "title": "Failure: cleans up, then detaches the quarantine so the pipeline works, leaving the leaked key active",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "trail",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "regions",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "disableAttacker",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "terminate",
+          "params": {
+            "how": "snap"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "removeQuarantine",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rootMfaOn",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 9,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "pathOpen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 64,
+        "criteria": {
+          "scope": "met",
+          "key": "missed",
+          "persist": "met",
+          "least": "missed",
+          "evidence": "met",
+          "root": "met",
+          "resp": "na"
+        },
+        "kpis": {
+          "fraud": 410,
+          "spend": 1910,
+          "changes": 3
+        },
+        "stateHash": "ccea2357bb6e2152"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "keyOnly",
+      "title": "Failure: deactivates the key and tightens the policy but never looks for what the key launched; the instances run on",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "deactivateKey",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ciPolicyFix",
+          "params": {
+            "pol": "custom"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runWeek",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "dayT",
+          "instance": 1,
+          "to": 1440,
+          "seq": 5,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "overrun",
+        "class": "harm",
+        "rating": "bad",
+        "score": 33,
+        "criteria": {
+          "scope": "missed",
+          "key": "met",
+          "persist": "missed",
+          "least": "met",
+          "evidence": "na",
+          "root": "missed",
+          "resp": "na"
+        },
+        "kpis": {
+          "fraud": 2090,
+          "spend": 3590,
+          "changes": 2
+        },
+        "stateHash": "580cb33052f224d9"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}

@@ -8,7 +8,13 @@
 #   estimate  no model call, no write: per-track lesson count and the UPPER-BOUND
 #             cost, and where max_usd would cut off (the default)
 #   submit    creates the intro batch for `tracks` (in priority order, whole
-#             units, never past max_usd). Refuses if max_usd is blank.
+#             units, never past max_usd). Refuses if max_usd is blank. With
+#             `limit` blank it is a FULL run and also needs confirm_full_run
+#             ticked (REQ-248): run a trial (limit 25) first, collect it, and
+#             check that most lessons were saved.
+#   content   lessons (the default) or primers (REQ-253: the "Key terms" of
+#             objectives that already have a lesson and no primer; ONE batch,
+#             so collect needs no intro_batch_id). Same modes, same max_usd rule.
 #   collect   batch_id = the batch to collect. An ended INTRO batch checks the
 #             teaching texts and starts the practice batch; an ended PRACTICE
 #             batch (also give intro_batch_id) fact-checks and saves the
@@ -32,6 +38,11 @@ on:
         type: choice
         options: [estimate, submit, collect]
         default: estimate
+      content:
+        description: "lessons | primers (REQ-253: Key terms for objectives that have a lesson; one batch, no intro_batch_id)"
+        type: choice
+        options: [lessons, primers]
+        default: lessons
       tracks:
         description: "Track codes in PRIORITY order, comma-separated (blank: every track, estimate only)"
         type: string
@@ -52,6 +63,10 @@ on:
         description: "Hard cap in USD on the UPPER-BOUND cost; required for submit and collect"
         type: string
         default: "110"
+      confirm_full_run:
+        description: "submit with limit blank (a full run): tick only after a trial run was collected and most of its lessons were saved"
+        type: boolean
+        default: false
 concurrency:
   group: pregenerate
   cancel-in-progress: false
@@ -59,7 +74,7 @@ permissions:
   contents: read
 jobs:
   pregenerate:
-    name: Pre-generate (${{ inputs.mode }})
+    name: Pre-generate ${{ inputs.content }} (${{ inputs.mode }})
     runs-on: ubuntu-latest
     environment: production-database
     # A collect fact-checks each lesson one after another (about 15 seconds each).
@@ -68,22 +83,26 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check the secrets and the inputs
         env:
           PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
           ANTHROPIC_PREGEN_API_KEY: ${{ secrets.ANTHROPIC_PREGEN_API_KEY }}
           MODE: ${{ inputs.mode }}
+          CONTENT: ${{ inputs.content }}
           TRACKS: ${{ inputs.tracks }}
           LIMIT: ${{ inputs.limit }}
           BATCH_ID: ${{ inputs.batch_id }}
           INTRO_BATCH_ID: ${{ inputs.intro_batch_id }}
           MAX_USD: ${{ inputs.max_usd }}
+          CONFIRM_FULL_RUN: ${{ inputs.confirm_full_run }}
         run: |
           fail() { echo "::error::$1"; exit 1; }
           test -n "$PROD_DATABASE_URL" || fail "Add PROD_DATABASE_URL to the production-database environment."
           test -n "$ANTHROPIC_PREGEN_API_KEY" || fail "Add ANTHROPIC_PREGEN_API_KEY to the production-database environment (a key from the Console workspace 'pregen' with a spend limit). Runbook: Pre-generating lessons."
           echo "$MODE" | grep -Eq '^(estimate|submit|collect)$' || fail "mode must be estimate, submit or collect."
+          echo "$CONTENT" | grep -Eq '^(lessons|primers)$' || fail "content must be lessons or primers."
+          if [ "$CONTENT" = "primers" ] && [ -n "$INTRO_BATCH_ID" ]; then fail "intro_batch_id is only for lesson batches; a primer batch is collected on its own."; fi
           if [ -n "$TRACKS" ]; then echo "$TRACKS" | grep -Eq '^[A-Za-z0-9_-]+(,[A-Za-z0-9_-]+)*$' || fail "tracks must be comma-separated track codes."; fi
           if [ -n "$LIMIT" ]; then echo "$LIMIT" | grep -Eq '^[1-9][0-9]*$' || fail "limit must be a positive whole number."; fi
           if [ -n "$MAX_USD" ]; then echo "$MAX_USD" | grep -Eq '^[0-9]+(\.[0-9]+)?$' || fail "max_usd must be a dollar amount such as 110."; fi
@@ -92,12 +111,15 @@ jobs:
           if [ "$MODE" = "submit" ]; then
             test -n "$TRACKS" || fail "submit needs tracks (in priority order); it never submits the whole catalog."
             test -n "$MAX_USD" || fail "submit needs max_usd."
+            if [ -z "$LIMIT" ] && [ "$CONFIRM_FULL_RUN" != "true" ]; then
+              fail "submit with limit blank is a full run: run a trial first (limit 25), collect it, check most lessons were saved, then tick confirm_full_run. Runbook: Pre-generating lessons."
+            fi
           fi
           if [ "$MODE" = "collect" ]; then
             test -n "$BATCH_ID" || fail "collect needs batch_id."
             test -n "$MAX_USD" || fail "collect needs max_usd (the same cap as the submit)."
           fi
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -110,14 +132,17 @@ jobs:
           # Only if production pins a model (ANTHROPIC_MODEL in Vercel); blank = the app's default.
           ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
           MODE: ${{ inputs.mode }}
+          CONTENT: ${{ inputs.content }}
           TRACKS: ${{ inputs.tracks }}
           LIMIT: ${{ inputs.limit }}
           BATCH_ID: ${{ inputs.batch_id }}
           INTRO_BATCH_ID: ${{ inputs.intro_batch_id }}
           MAX_USD: ${{ inputs.max_usd }}
+          CONFIRM_FULL_RUN: ${{ inputs.confirm_full_run }}
           SUMMARY: ${{ runner.temp }}/pregen-summary.json
         run: |
           set -- --summary "$SUMMARY"
+          if [ "$CONTENT" = "primers" ]; then set -- "$@" --primers; fi
           case "$MODE" in
             submit) set -- "$@" --submit ;;
             collect) set -- "$@" --collect "$BATCH_ID" ;;
@@ -126,6 +151,7 @@ jobs:
           if [ -n "$LIMIT" ]; then set -- "$@" --limit "$LIMIT"; fi
           if [ -n "$MAX_USD" ]; then set -- "$@" --max-usd "$MAX_USD"; fi
           if [ -n "$INTRO_BATCH_ID" ]; then set -- "$@" --intro-batch "$INTRO_BATCH_ID"; fi
+          if [ "$MODE" = "submit" ] && [ "$CONFIRM_FULL_RUN" = "true" ]; then set -- "$@" --confirm-full-run; fi
           npm run --silent pregen -- "$@"
       - name: Summary (counts only)
         if: always()
@@ -137,7 +163,7 @@ jobs:
           fi
       - name: Upload the summary
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: pregen-summary
           path: ${{ runner.temp }}/pregen-summary.json

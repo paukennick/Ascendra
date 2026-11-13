@@ -430,6 +430,17 @@ wave is reviewed and learners' flags and results show which labs work. The
 pilot follows (d) unit by unit for the five full pilot courses (the content
 test checks it).
 
+**Deliberate top-ups (REQ-234, 2026-11-11).** The plan sizes a course from
+the wording of its objectives, so an outline written in "describe" verbs
+gets one lab a unit even when the exam rewards practice. DP-900 (4 labs)
+and ABPTS pelvic and women's health (5) were topped up to 8 each.
+`LAB_PLAN_TOP_UPS` in `scripts/generate-labs-lib.ts` holds the per-unit
+counts; `unitPlan` never returns less than the plan or more than
+`hybridUnitCap` for a unit, and ignores a top-up whose length no longer
+matches the course's units, so the density tests fail if the course is
+reshaped. Adding a course there is a content decision: record why in the
+lab file's header.
+
 ## The pilot (authored, `needs_expert_review`)
 
 | Course | Labs | Per unit (d) | Outline |
@@ -449,6 +460,9 @@ test checks it).
 | NPTE-PT (REQ-147) | 20 (7 build, 13 case) | 3/3/2/2 then 1 per domain | [FSBPT 2024 PT content outline](https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PT-Test-Content-Outline-Bullets.pdf) |
 | NPTE-PTA (REQ-147) | 19 (6 build, 13 case) | 3/3/2 then 1 per domain | [FSBPT 2024 PTA content outline](https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PTA-Test-Content-Outline-Bullets.pdf) |
 | DPT (REQ-147) | 14 (4 build, 10 case) | 2/2/2/2/2/2/1/1 (unweighted units) | [CAPTE 2024 PT standards](https://www.capteonline.org/globalassets/capte-docs/2024-capte-pt-standards-required-elements.pdf) |
+| CompTIA A+ Core 1 (REQ-234) | 10 (4 build, 6 case) | 2/2/2/1/3 | [220-1201 V15 objectives](https://lecbyo.files.cmp.optimizely.com/download/34be017cb73211ef8985a6f347fbf652) |
+| CompTIA A+ Core 2 (REQ-234) | 10 (6 build, 4 case) | 3/3/2/2 | [220-1202 V15 objectives](https://lecbyo.files.cmp.optimizely.com/download/cefedfb2b8a511ef809306d06d323538) |
+| EPPP Part 1 (REQ-234) | 14 (6 build, 8 case) | 1/2/2/2/2/2/1/2 | [ASPPB content areas](https://asppb.net/?p=235) |
 
 That is 133 authored labs (80 in the first pilot, 53 for physical therapy). The CCRN Pediatric and Neonatal sets (Nick's
 decision 13) follow (d) unit by unit (the content test checks it) and name
@@ -668,6 +682,29 @@ paramedic instead). The Clinical Judgment unit's three cases in each course
 walk the test plan's six steps. Doses follow the NASEMSO Model Guidelines
 v3.0 and the AHA 2025 adult ALS guideline (read 2026-11-09). All 24 are
 `needs_expert_review`.
+
+### NBCC counseling exams: NCE and NCMHCE (REQ-239)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| NCE | 12 (5 build, 7 case) | 2/2/3/1/3/1 | [NCE content outline (2023)](https://www.nbcc.org/assets/exam/nce_content_outline.pdf) (read 2026-11-11) |
+| NCMHCE | 12 (2 build, 10 case) | 2/2/2/2/2/2 | [NCMHCE content outline (revised 2025-10-08)](https://www.nbcc.org/assets/exam/ncmhce_content_outline.pdf) (read 2026-11-11) |
+
+Files `seed/labs/nbcc-nce.ts` and `nbcc-ncmhce.ts`, checked by
+`lib/labs-nbcc.test.ts` (hybrid density unit by unit, one lab per objective,
+the clinical safety note, fictional people, a value source or a reason on
+every lab). The NCMHCE outline gives Areas of Clinical Focus no item-level
+weight (it is assessed through the cases), so its weights are 15/25/0/15/30/15;
+`apportion()` treats any zero weight as "weights unknown" and splits the six
+extra labs evenly, which is why every NCMHCE unit has two. A weighted split
+over the five nonzero domains would give 2/2/1/2/3/2 instead (a decision for
+Nick, not changed here). The NCMHCE case labs take the exam's shape: the
+brief is the intake summary and later steps are counseling sessions. Values
+(ACA Code of Ethics 2014, the VA PTSD criteria page, SAMHSA 988, the ASAM
+Criteria page) are in `value-sources.ts`, read 2026-11-11. NBCC's new
+blueprints take effect 2027-07-01, so both outlines are rechecked by
+2027-04-01. All 24 are `needs_expert_review` until a licensed professional
+counselor approves them.
 
 ## Expert review before launch
 

@@ -43,6 +43,15 @@ export interface UnitSource extends SourceRef {
   // (lib/current-facts.ts), so a lesson cannot teach an older value than the
   // course's own lab.
   keyValues?: string[];
+  // REQ-235: the official outline statements this unit is built on, as
+  // printed at this source on checkedAt (an exam guide's task statements, an
+  // exam objective's numbered heading, a regulation's curriculum line). The
+  // lesson writer and the fact-checker are given the same statements
+  // (lib/current-facts.ts), so both work from the outline's own wording, not
+  // from our paraphrased objective titles. Headings only where the outline is
+  // copyrighted (the repo's paraphrase rule, e.g. tracks/nursing.ts header);
+  // full text where it is public domain (42 CFR).
+  outline?: string[];
 }
 
 // Vendor exam a certification track is aligned to. Mirrors the credential_*
@@ -138,6 +147,10 @@ export interface SeedTrack {
   credential?: SeedCredential;
   sourceUrl?: string;
   sourceVerifiedAt?: string; // ISO timestamp
+  // The seed writes both dates with coalesce (seed-lib.ts): a value can be
+  // set but never cleared. To end a review, set a later contentReviewDueAt;
+  // deleting the line leaves the old date in the database and the course
+  // shows "Review due" for good (FAIL-1540, DP-300).
   contentReviewDueAt?: string; // ISO timestamp
   // REQ-142: what a course with no exam is built on, so the currency report
   // dates it instead of listing it as a course with no outline. Seed-only (no
@@ -154,6 +167,13 @@ export interface SeedTrack {
   // disclaimerVersion when that wording materially changes and everyone is
   // asked again rather than being treated as having agreed to new text.
   requiresAcknowledgement?: boolean;
+  // REQ-252 (migration 078): switch on the level-aware lesson flow (the
+  // one-tap hunch and full worked example for New learners, "Skip guided"
+  // offered to Experienced ones). Python and JavaScript (phase 1), then DPT, PTPREREQ,
+  // CCRNADULT and AWSSAA (REQ-257), then AWSMLA, SECPLUS and CNA (REQ-258), as
+  // their Key terms were written. The
+  // seed sets subject_tracks.level_flow and never clears it.
+  levelFlow?: boolean;
   disclaimerKey?: string;
   disclaimerVersion?: number;
 
@@ -165,6 +185,19 @@ export interface SeedTrack {
   hiddenReason?: string; // seed-only, why (with the guideline URL)
 }
 
+// REQ-245: the MSCS bridge checked against current sources on 2026-11-11.
+// It has no exam, so its frame is the ACM/IEEE-CS/AAAI curriculum guideline
+// CS2023 (Computer Science Curricula 2023, January 2024; the full report
+// read as HTML from csed.acm.org), whose knowledge units name every topic in
+// these units except two that the standard texts below carry: the
+// comparison-sort lower bound (MIT 6.006 Lecture 5) and multiversion
+// concurrency control (Database System Concepts 7e, 18.7). Each unit's
+// sources and key values are in MSCS_UNIT_SOURCES after the track; every one
+// was read on the date it carries. One objective was reworded (FAIL-1561);
+// the units, their order and the other objectives are unchanged.
+const MSCS_CHECKED = "2026-11-11";
+const MSCS_VERIFIED_AT = "2026-11-11T00:00:00Z";
+
 export const MSCS_TRACK: SeedTrack = {
   code: "MSCS",
   title: "MSCS Foundations Coach",
@@ -172,20 +205,27 @@ export const MSCS_TRACK: SeedTrack = {
     "15-week graduate-CS bridge covering algorithms, data structures, discrete math, OS, computer architecture, database theory, ML math, cybersecurity, HCI/UX, and big data.",
   trackType: "graduate",
   subcategorySlug: "software-engineering",
+  freshnessModel: "academic_foundational",
+  // REQ-245: verified 2026-11-11 against the dated unit sources below
+  // (MSCS_UNIT_SOURCES); reviewed yearly like the other academic courses.
+  sourceVerifiedAt: MSCS_VERIFIED_AT,
+  contentReviewDueAt: "2027-11-11T00:00:00Z",
   // REQ-142: no exam -- a 15-week bridge the course defines itself (its units
   // below are the syllabus). Recorded so the currency report dates it rather
   // than listing it as a course with no outline.
   curriculum: {
     kind: "self_defined",
     name: "MSCS Foundations Coach 15-week bridge syllabus",
-    version: "15-week plan, Sept 15-Dec 28, 2026",
+    // REQ-245 (Nick, 2026-11-11): for any learner, so weeks are numbered,
+    // not dated (the units were labeled for one Sept 15-Dec 28, 2026 run).
+    version: "15-week plan",
     url: "https://github.com/paukennick/Ascendra/blob/master/backend/supabase/seed/data.ts",
-    checkedAt: "2026-11-08",
+    checkedAt: MSCS_CHECKED,
   },
   units: [
     {
       title: "Complexity & computational thinking",
-      rangeLabel: "Sept 15-21",
+      rangeLabel: "Week 1",
       gate: "Given unfamiliar short Python functions, estimate time and auxiliary-space complexity and justify each answer.",
       objectives: [
         "Define an algorithm and input size",
@@ -198,7 +238,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Core data structures",
-      rangeLabel: "Sept 22-28",
+      rangeLabel: "Week 2",
       gate: "Choose a data structure for a new problem, defend the choice, and explain the cost of rejected alternatives.",
       objectives: [
         "Explain arrays, linked lists, stacks, queues, deques, hash tables, sets, trees, heaps",
@@ -209,7 +249,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Discrete mathematics I",
-      rangeLabel: "Sept 29-Oct 5",
+      rangeLabel: "Week 3",
       gate: "Read symbolic notation, translate it into plain language, and construct a basic valid argument.",
       objectives: [
         "Propositions and predicates",
@@ -223,7 +263,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Sorting, recursion, and recurrences",
-      rangeLabel: "Oct 6-12",
+      rangeLabel: "Week 4",
       gate: "Choose an appropriate sorting approach for a stated constraint and explain average/worst-case behavior.",
       objectives: [
         "Trace recursion and identify base cases",
@@ -236,7 +276,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Graph foundations",
-      rangeLabel: "Oct 13-19",
+      rangeLabel: "Week 5",
       gate: "Select BFS or DFS for a new task and explain the result and complexity.",
       objectives: [
         "Vertices and edges",
@@ -249,7 +289,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Graph algorithms & design strategies",
-      rangeLabel: "Oct 20-26",
+      rangeLabel: "Week 6",
       gate: "Recognize whether an unfamiliar problem suggests traversal, greedy choice, divide and conquer, or dynamic programming, and defend the classification.",
       objectives: [
         "Shortest paths",
@@ -263,7 +303,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Computer architecture",
-      rangeLabel: "Oct 27-Nov 2",
+      rangeLabel: "Week 7",
       gate: "Explain how logic gates compose into arithmetic and stateful memory, then trace the conceptual path from a high-level instruction to machine execution and identify where the OS participates.",
       objectives: [
         "Binary and hex representation",
@@ -284,7 +324,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Operating systems",
-      rangeLabel: "Nov 3-9",
+      rangeLabel: "Week 8",
       gate: "Explain a process, system call, and context switch accurately, then diagnose a simple race condition or deadlock scenario and explain how synchronization changes correctness and performance.",
       objectives: [
         "Programs vs processes",
@@ -309,7 +349,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Databases and data systems",
-      rangeLabel: "Nov 10-16",
+      rangeLabel: "Week 9",
       gate: "Select an appropriate data model for a new use case and explain transactional, indexing, consistency, and operational tradeoffs.",
       objectives: [
         "Relational model",
@@ -327,7 +367,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Math & foundations for machine learning",
-      rangeLabel: "Nov 17-23",
+      rangeLabel: "Week 10",
       gate: "Explain the mathematical role of vectors, similarity, probability, and gradients in plain language and apply them to small examples.",
       objectives: [
         "Linear algebra: scalars/vectors/matrices, dot product, matrix multiplication, transpose, magnitude/distance, cosine similarity",
@@ -338,10 +378,14 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Cybersecurity I: cryptography & secure protocols",
-      rangeLabel: "Nov 24-30",
+      rangeLabel: "Week 11",
       gate: "Explain what a certificate chain actually proves, why hashing alone doesn't secure a password, and defend the choice of symmetric vs asymmetric encryption for a stated scenario.",
       objectives: [
-        "Symmetric vs asymmetric encryption, and why both exist together (e.g. TLS)",
+        // REQ-245 (FAIL-1561): was "Symmetric vs asymmetric encryption, and
+        // why both exist together (e.g. TLS)". TLS 1.3 has no public-key
+        // encryption of a session key (static RSA key transport was removed);
+        // it uses public-key cryptography for key agreement and signatures.
+        "Symmetric vs asymmetric cryptography, and how TLS 1.3 uses both: public-key key agreement and signatures, symmetric encryption for the data",
         "Hashing vs encryption -- what each guarantees and what neither does",
         "Digital signatures and what they actually prove",
         "Key exchange (Diffie-Hellman) at a conceptual level",
@@ -351,7 +395,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Cybersecurity II: network defense & threat modeling",
-      rangeLabel: "Dec 1-7",
+      rangeLabel: "Week 12",
       gate: "Threat-model an unfamiliar system and defend which controls matter most, using the vocabulary a security course expects.",
       objectives: [
         "TCP/IP layers and where common attacks target each one",
@@ -364,7 +408,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "HCI/UX: usability, interaction design & user research",
-      rangeLabel: "Dec 8-14",
+      rangeLabel: "Week 13",
       gate: "Apply the 10 heuristics to an unfamiliar interface without being told which ones are relevant and justify a concrete design change by name.",
       objectives: [
         "Nielsen's 10 usability heuristics",
@@ -381,7 +425,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Big data systems & data mining",
-      rangeLabel: "Dec 15-21",
+      rangeLabel: "Week 14",
       gate: "Explain why a MapReduce-shaped solution helps (or doesn't) for a stated problem, and distinguish 'data mining' from 'machine learning'.",
       objectives: [
         "What actually makes data 'big' (volume/velocity/variety) vs just large",
@@ -393,7 +437,7 @@ export const MSCS_TRACK: SeedTrack = {
     },
     {
       title: "Final integration",
-      rangeLabel: "Dec 22-28",
+      rangeLabel: "Week 15",
       gate: "Defend the chosen architecture flow layer by layer -- 'AWS handles it' is never sufficient.",
       objectives: [
         "Integrate algorithms, data structures, OS, architecture, and database theory into one architecture flow",
@@ -403,6 +447,115 @@ export const MSCS_TRACK: SeedTrack = {
     },
   ],
 };
+
+// REQ-245 (FAIL-1560): the MSCS units' dated sources, by unit title, all
+// read 2026-11-11. Seed-only: the lesson writer and the fact-checker get them
+// through lib/current-facts.ts, and the currency report dates them. Key
+// values are what a writer might otherwise remember from an older version.
+// No `outline`: the course has no official outline (CS2023 is a curriculum
+// guideline, cited by knowledge unit in the title).
+const mscsRef = (title: string, url: string, keyValues?: string[]): UnitSource => ({
+  title,
+  url,
+  kind: "reference",
+  checkedAt: MSCS_CHECKED,
+  ...(keyValues ? { keyValues } : {}),
+});
+const CS2023_URL = "https://csed.acm.org/wp-content/uploads/2025/11/CS2023-Report.htm";
+const cs2023 = (units: string, keyValues?: string[]) =>
+  mscsRef(`ACM/IEEE-CS/AAAI, Computer Science Curricula 2023 (CS2023, January 2024), knowledge units ${units}`, CS2023_URL, keyValues);
+const MIT_6006 = (lectures: string, keyValues?: string[]) =>
+  mscsRef(`MIT OpenCourseWare 6.006 Introduction to Algorithms (Spring 2020), lecture notes ${lectures}`, "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/", keyValues);
+const LEVIN = mscsRef("Oscar Levin, Discrete Mathematics: An Open Introduction, 4th edition (chapters 0-1, 4.5-4.6, 5)", "https://discrete.openmathbooks.org/dmoi4/");
+const NAND2TETRIS = mscsRef("Nand2Tetris course (projects 1-5: Boolean logic, Boolean arithmetic, memory, machine language, computer architecture)", "https://www.nand2tetris.org/course");
+const OSTEP = mscsRef("Arpaci-Dusseau, Operating Systems: Three Easy Pieces, version 1.10 (virtualization, concurrency, persistence)", "https://pages.cs.wisc.edu/~remzi/OSTEP/", [
+  "deadlock needs all four conditions at once: mutual exclusion, hold-and-wait, no preemption, circular wait; preventing any one prevents deadlock (OSTEP ch. 32, Common Concurrency Problems)",
+]);
+const DB_BOOK = mscsRef("Silberschatz, Korth and Sudarshan, Database System Concepts, 7th edition (2019), table of contents", "https://www.db-book.com/", [
+  "normal forms 7.3; B+-tree index files 14.3; transaction isolation levels 17.8; lock-based protocols 18.1; multiversion schemes (MVCC) 18.7; snapshot isolation 18.8; data partitioning 21.2 and replication 21.4; graph databases 10.6",
+]);
+const MML = mscsRef("Deisenroth, Faisal and Ong, Mathematics for Machine Learning (Cambridge University Press, 2020), Part I", "https://mml-book.github.io/");
+const TLS13 = mscsRef("IETF RFC 9846, The Transport Layer Security (TLS) Protocol Version 1.3 (July 2026)", "https://www.rfc-editor.org/rfc/rfc9846.txt", [
+  "RFC 9846 (July 2026) is the current TLS 1.3 specification; it obsoletes RFC 8446 (August 2018) and RFC 5246 (TLS 1.2)",
+  "TLS 1.3 removed static RSA and Diffie-Hellman cipher suites: every public-key key exchange is ephemeral (EC)DHE and gives forward secrecy; the server proves its identity with a certificate and a signature (CertificateVerify)",
+  "all handshake messages after the ServerHello are encrypted; application data is protected with symmetric AEAD ciphers",
+]);
+const NIST_CSF = mscsRef("NIST Cybersecurity Framework (CSF) 2.0, NIST CSWP 29 (February 26, 2024)", "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf", [
+  "CSF 2.0 has six functions: Govern (GV), Identify (ID), Protect (PR), Detect (DE), Respond (RS), Recover (RC); Govern is new in 2.0",
+]);
+const SP_800_53 = mscsRef("NIST SP 800-53 Rev. 5, Security and Privacy Controls (release 5.2.0, August 27, 2025)", "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final", [
+  "SP 800-53 Rev. 5 groups its controls into 20 families (Access Control through Supply Chain Risk Management); the current minor release is 5.2.0 (August 27, 2025)",
+]);
+const STRIDE = mscsRef("Microsoft Learn, Threat Modeling Tool threats (STRIDE)", "https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats", [
+  "STRIDE: Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege",
+]);
+const NNG_HEURISTICS = mscsRef("Nielsen Norman Group, 10 Usability Heuristics for User Interface Design (Jakob Nielsen, 1994; last reviewed January 30, 2024)", "https://www.nngroup.com/articles/ten-usability-heuristics/", [
+  "the ten heuristics as currently named: visibility of system status; match between the system and the real world; user control and freedom; consistency and standards; error prevention; recognition rather than recall; flexibility and efficiency of use; aesthetic and minimalist design; help users recognize, diagnose, and recover from errors; help and documentation",
+]);
+const NNG_GULFS = mscsRef("Nielsen Norman Group, The Two UX Gulfs: Evaluation and Execution", "https://www.nngroup.com/articles/two-ux-gulfs-evaluation-execution/", [
+  "the terms gulf of execution and gulf of evaluation were coined in 1986 by Hutchins, Hollan and Norman; Norman's The Design of Everyday Things made them widely known",
+]);
+const WCAG = mscsRef("W3C WAI, WCAG 2 Overview", "https://www.w3.org/WAI/standards-guidelines/wcag/", [
+  "WCAG 2.2 is the current W3C Recommendation (5 October 2023, updated 12 December 2024): 13 guidelines under four principles, perceivable, operable, understandable and robust; it adds 9 success criteria and makes 4.1.1 Parsing obsolete; WCAG 3 is still a draft",
+]);
+const MAPREDUCE = mscsRef("Dean and Ghemawat, MapReduce: Simplified Data Processing on Large Clusters (OSDI 2004)", "https://research.google/pubs/mapreduce-simplified-data-processing-on-large-clusters/");
+const NIST_BIG_DATA = mscsRef("NIST SP 1500-1r2, NIST Big Data Interoperability Framework: Volume 1, Definitions", "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1500-1r2.pdf", [
+  "NIST defines big data as extensive datasets, primarily in the characteristics of volume, velocity, variety and/or variability, that require a scalable architecture; the classic three Vs are volume, velocity and variety, and NIST adds variability",
+]);
+
+export const MSCS_UNIT_SOURCES: Readonly<Record<string, readonly UnitSource[]>> = {
+  "Complexity & computational thinking": [
+    cs2023("AL-Complexity", [
+      "CS2023's representative growth classes: O(1) array access; O(log n) binary search; O(n) linear search; O(n log n) mergesort; O(n^2) selection sort; O(n^c) polynomial, e.g. O(n^3) Gaussian elimination; O(2^n) all subsets; O(n!) all permutations",
+    ]),
+    MIT_6006("1-2"),
+  ],
+  "Core data structures": [
+    cs2023("AL-Foundational"),
+    MIT_6006("2, 4-8", ["hash tables give expected O(1) time operations (amortized if dynamic), not a worst-case guarantee; the expectation comes from choosing the hash function at random from a universal family (6.006 Lecture 5 review)"]),
+  ],
+  "Discrete mathematics I": [cs2023("MSF-Discrete"), LEVIN],
+  "Sorting, recursion, and recurrences": [
+    cs2023("AL-Foundational, AL-Strategies, MSF-Discrete"),
+    MIT_6006("3, 5", ["comparison sort lower bound: a comparison sort's decision tree needs at least n! leaves, so its height is at least log(n!) = Omega(n log n); merge sort is optimal in the comparison model (6.006 Lecture 5)"]),
+  ],
+  "Graph foundations": [
+    cs2023("AL-Foundational"),
+    MIT_6006("9-10", ["BFS and DFS each run in O(|V| + |E|) time with adjacency lists (6.006 Lectures 9-10)"]),
+  ],
+  "Graph algorithms & design strategies": [
+    cs2023("AL-Foundational, AL-Strategies"),
+    MIT_6006("11-13, 15-18", ["Dijkstra's algorithm requires non-negative edge weights, w(e) >= 0; Bellman-Ford handles negative weights (6.006 Lectures 12-13)"]),
+  ],
+  "Computer architecture": [
+    cs2023("AR-Representation, AR-Assembly, AR-Memory, AR-IO, AR-Organization", ["CS2023 names x86, ARM and RISC-V as instruction set architecture examples (AR-Assembly)"]),
+    NAND2TETRIS,
+  ],
+  "Operating systems": [cs2023("OS-Principles, OS-Concurrency, OS-Scheduling, OS-Process, OS-Memory, OS-Files, OS-Virtualization"), OSTEP],
+  "Databases and data systems": [cs2023("DM-Core, DM-Relational, DM-Processing, DM-Internals, DM-Distributed"), DB_BOOK],
+  "Math & foundations for machine learning": [cs2023("MSF-Linear, MSF-Probability, MSF-Statistics, MSF-Calculus, AI-ML"), MML],
+  "Cybersecurity I: cryptography & secure protocols": [cs2023("SEC-Crypto, NC-Security"), TLS13],
+  "Cybersecurity II: network defense & threat modeling": [
+    cs2023("NC-Fundamentals, NC-Security, SEC-Foundations, SEC-Coding, SEC-Engineering, SEC-Governance"),
+    STRIDE,
+    NIST_CSF,
+    SP_800_53,
+  ],
+  "HCI/UX: usability, interaction design & user research": [
+    cs2023("HCI-User, HCI-Accessibility, HCI-Evaluation, HCI-Design"),
+    NNG_HEURISTICS,
+    NNG_GULFS,
+    WCAG,
+  ],
+  "Big data systems & data mining": [
+    cs2023("DM-Core, DM-Analytics, DM-Distributed, PDC-Algorithms"),
+    MAPREDUCE,
+    mscsRef("Silberschatz, Korth and Sudarshan, Database System Concepts, 7th edition, chapters 10 (Big Data: MapReduce) and 11.4 (Data Mining)", "https://www.db-book.com/"),
+    NIST_BIG_DATA,
+  ],
+  "Final integration": [cs2023("NC-Fundamentals, SEC-Foundations, SEC-Engineering, DM-Distributed"), TLS13, STRIDE],
+};
+for (const unit of MSCS_TRACK.units) unit.sources = [...(MSCS_UNIT_SOURCES[unit.title] ?? [])];
 
 // REQ-102: the five CompTIA tracks in this file predate the `credential`
 // block, so the app had no exam code, format, or passing score for them --
@@ -442,8 +595,84 @@ const COMPTIA_VERIFIED_AT = "2026-11-07T00:00:00Z";
 // REQ-220 (FAIL-1130): two IAM lines sat outside SY0-701's 4.6; retired in
 // place (row ids and history kept) and taught by the appended 4.6 lines.
 const SECPLUS_V7_PLACEMENT_RETIRED_AT = "2026-11-10T00:00:00Z";
+// REQ-235 (batch H wave 1): each unit names the SY0-701 objectives it covers,
+// by CompTIA's numbered headings (headings only; the bullets stay
+// paraphrased in the objectives, the repo's copyright rule). Read 2026-11-11
+// from "CompTIA Security+ SY0-701 Certification Exam: Exam Objectives
+// Version 5.0" (Copyright 2023 CompTIA), the unaltered PDF republished at the
+// URL below (CompTIA serves its copy behind a form on
+// https://www.comptia.org/en-us/certifications/security/v7/). The writer and
+// the fact-checker get these statements (lib/current-facts.ts).
+const SY0701_PDF = "https://laurelridgeworkforce.com/wp-content/uploads/2025/01/CompTIA-Security-SY0-701-Exam-Objectives-1.pdf";
+const sy0701 = (domain: string, outline: string[]): UnitSource => ({
+  title: `CompTIA Security+ SY0-701 Exam Objectives V5.0, domain ${domain}`,
+  url: SY0701_PDF,
+  kind: "exam_outline",
+  checkedAt: "2026-11-11",
+  outline,
+});
+export const SECPLUS_UNIT_SOURCES: Record<string, UnitSource[]> = {
+  "General Security Concepts": [
+    sy0701("1.0", [
+      "1.1 Compare and contrast various types of security controls.",
+      "1.2 Summarize fundamental security concepts.",
+      "1.3 Explain the importance of change management processes and the impact to security.",
+      "1.4 Explain the importance of using appropriate cryptographic solutions.",
+    ]),
+  ],
+  "Threats, Vulnerabilities, and Mitigations": [
+    sy0701("2.0", [
+      "2.1 Compare and contrast common threat actors and motivations.",
+      "2.2 Explain common threat vectors and attack surfaces.",
+      "2.3 Explain various types of vulnerabilities.",
+      "2.4 Given a scenario, analyze indicators of malicious activity.",
+      "2.5 Explain the purpose of mitigation techniques used to secure the enterprise.",
+    ]),
+  ],
+  "Security Architecture": [
+    sy0701("3.0", [
+      "3.1 Compare and contrast security implications of different architecture models.",
+      "3.2 Given a scenario, apply security principles to secure enterprise infrastructure.",
+      "3.3 Compare and contrast concepts and strategies to protect data.",
+      "3.4 Explain the importance of resilience and recovery in security architecture.",
+    ]),
+  ],
+  "Security Operations": [
+    sy0701("4.0", [
+      "4.1 Given a scenario, apply common security techniques to computing resources.",
+      "4.2 Explain the security implications of proper hardware, software, and data asset management.",
+      "4.3 Explain various activities associated with vulnerability management.",
+      "4.4 Explain security alerting and monitoring concepts and tools.",
+      "4.5 Given a scenario, modify enterprise capabilities to enhance security.",
+      "4.6 Given a scenario, implement and maintain identity and access management.",
+      "4.7 Explain the importance of automation and orchestration related to secure operations.",
+      "4.8 Explain appropriate incident response activities.",
+      "4.9 Given a scenario, use data sources to support an investigation.",
+    ]),
+  ],
+  "Security Program Management and Oversight": [
+    sy0701("5.0", [
+      "5.1 Summarize elements of effective security governance.",
+      "5.2 Explain elements of the risk management process.",
+      "5.3 Explain the processes associated with third-party risk assessment and management.",
+      "5.4 Summarize elements of effective security compliance.",
+      "5.5 Explain types and purposes of audits and assessments.",
+      "5.6 Given a scenario, implement security awareness practices.",
+    ]),
+  ],
+};
+// REQ-235 (G5 follow-up, Nick-approved): SY0-701 covers business impact
+// analysis (RTO, RPO, MTTR, MTBF) in 5.2 and backups, sites and continuity in
+// 3.4, not in domain 4. Security Operations' "Business continuity and
+// disaster recovery" line is retired in place (row id and history kept); the
+// material is taught by the 3.4 line in Security Architecture and the 5.2
+// line in Program Management, which already name every term, and the BIA lab
+// moves to the 5.2 line.
+const SECPLUS_BCDR_MOVED_AT = "2026-11-11T00:00:00Z";
 export const SECPLUS_TRACK: SeedTrack = {
   code: "SECPLUS",
+  // REQ-258 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
+  levelFlow: true,
   title: "Prep for CompTIA Security+",
   description:
     "CompTIA Security+ SY0-701 exam prep across 5 weighted domains, with PBQ scenario drilling. SY0-701 can be booked in English until 2027-06-11 (Japanese, Portuguese, Spanish and Thai until 2027-08-13); for SY0-801 (from 2026-11-17) take Prep for CompTIA Security+ (V8).",
@@ -480,6 +709,7 @@ export const SECPLUS_TRACK: SeedTrack = {
   units: [
     {
       title: "General Security Concepts",
+      sources: SECPLUS_UNIT_SOURCES["General Security Concepts"],
       weight: 12,
       gate: "Given an unfamiliar scenario, name which CIA-triad property and which control type/category apply, and explain a PKI or authentication choice without hand-waving the mechanism.",
       objectives: [
@@ -522,6 +752,7 @@ export const SECPLUS_TRACK: SeedTrack = {
     },
     {
       title: "Threats, Vulnerabilities, and Mitigations",
+      sources: SECPLUS_UNIT_SOURCES["Threats, Vulnerabilities, and Mitigations"],
       weight: 22,
       gate: "Given a log excerpt, alert, or short scenario, name the specific threat/attack/vulnerability at work, name the indicator that gives it away, and recommend a concrete mitigation.",
       objectives: [
@@ -546,6 +777,7 @@ export const SECPLUS_TRACK: SeedTrack = {
     },
     {
       title: "Security Architecture",
+      sources: SECPLUS_UNIT_SOURCES["Security Architecture"],
       weight: 18,
       gate: "Given a system design, identify a missing architectural control and explain what specific failure it prevents.",
       objectives: [
@@ -586,8 +818,12 @@ export const SECPLUS_TRACK: SeedTrack = {
     },
     {
       title: "Security Operations",
+      sources: SECPLUS_UNIT_SOURCES["Security Operations"],
       weight: 28,
-      gate: "Given an incident scenario, correctly sequence the response, prioritize a vulnerability, or reason about an RTO/RPO or forensics constraint -- not just name the vocabulary.",
+      // REQ-235: RTO/RPO left the gate with the BCDR line (now 3.4 and 5.2).
+      gate: "Given an incident scenario, correctly sequence the response, prioritize a vulnerability, or reason about a forensics constraint -- not just name the vocabulary.",
+      // REQ-235: index 6 (business continuity and DR) moved to 3.4 / 5.2.
+      objectiveRetiredAt: [null, null, null, null, null, null, SECPLUS_BCDR_MOVED_AT, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
       objectives: [
         "Security monitoring, log analysis, and SIEM/SOAR fundamentals",
         "Incident response process and the NIST incident response lifecycle",
@@ -620,7 +856,7 @@ export const SECPLUS_TRACK: SeedTrack = {
         "Look up a recent published CVE for an app/OS you use (nvd.nist.gov) and note its CVSS score.",
         "Write a short chain-of-custody log template for a hypothetical piece of evidence.",
         null,
-        "Draft a one-page BIA outline for a small hypothetical business.",
+        null, // REQ-235: the BIA lab moved to 5.2 (Program Management)
         null,
         null,
         null,
@@ -640,6 +876,7 @@ export const SECPLUS_TRACK: SeedTrack = {
     },
     {
       title: "Security Program Management and Oversight",
+      sources: SECPLUS_UNIT_SOURCES["Security Program Management and Oversight"],
       weight: 20,
       gate: "Given a governance or compliance scenario, name the right instrument and correctly reason about risk math or third-party exposure.",
       objectives: [
@@ -659,7 +896,8 @@ export const SECPLUS_TRACK: SeedTrack = {
         "Audits and assessments: attestation; internal audit (compliance, audit committee, self-assessments); external audit (regulatory, examinations, assessment, independent third-party audit); penetration testing (physical, offensive, defensive, integrated; known environment, partially known environment, unknown environment; reconnaissance, passive and active)",
         "Security awareness practices: phishing campaigns, recognizing a phishing attempt, and responding to reported suspicious messages; anomalous behavior recognition (risky, unexpected, unintentional); user guidance and training (policy/handbooks, situational awareness, insider threat, password management, removable media and cables, social engineering, operational security, hybrid/remote work environments); reporting and monitoring (initial, recurring); program development and execution",
       ],
-      labs: [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+      // REQ-235: the BIA lab sits on the 5.2 line (index 9), where SY0-701 tests BIA.
+      labs: [null, null, null, null, null, null, null, null, null, "Draft a one-page BIA outline for a small hypothetical business.", null, null, null, null],
     },
   ],
 };
@@ -1017,10 +1255,95 @@ export const SECPLUSV8_TRACK: SeedTrack = {
 };
 
 // ---------------------------------------------------------------------------
+// REQ-244: the Python and JavaScript courses verified against their language
+// references on 2026-11-11. Every page below was read in full that day at its
+// own URL (no summaries). Each unit's objectives, gate and key facts were
+// compared with them: nothing teaches a removed or outdated feature as
+// current, so no objective changed. What a lesson writer would otherwise get
+// wrong from memory of an older version is pinned as the unit's keyValues
+// (lib/current-facts.ts gives them to the writer and the fact-checker).
+//
+// Review date: Nick, 2026-11-11, chose the repo's 12-month default for the
+// technology_aligned courses (over tying each to its next language release),
+// matching the curriculum source's own re-check at checkedAt + 12 months
+// (COURSE_RECHECK_MONTHS).
+// ---------------------------------------------------------------------------
+const LANG_CHECKED = "2026-11-11";
+const LANG_VERIFIED_AT = "2026-11-11T00:00:00Z";
+const LANG_REVIEW_DUE_AT = "2027-11-11T00:00:00Z";
+const langRef = (title: string, url: string, keyValues?: string[]): UnitSource =>
+  keyValues ? { title, url, kind: "reference", checkedAt: LANG_CHECKED, keyValues } : { title, url, kind: "reference", checkedAt: LANG_CHECKED };
+
+const PY = {
+  versions: langRef("Status of Python versions (Python Developer's Guide)", "https://devguide.python.org/versions/", [
+    "Python 3.15 is the newest feature release (3.15.0 released 2026-10-09; 3.15.2, released 2026-10-25, is the current release on python.org/downloads)",
+    "3.14 and 3.15 are the bugfix branches; 3.11, 3.12 and 3.13 get security fixes only; 3.10 reached end of life on 2026-10-01",
+    "Python 3.16 is scheduled for 2027-10-06 (PEP 826)",
+  ]),
+  docs: langRef("The Python documentation (Python 3.15.2)", "https://docs.python.org/3/"),
+  controlFlow: langRef("The Python Tutorial: More Control Flow Tools", "https://docs.python.org/3/tutorial/controlflow.html"),
+  glossary: langRef("Python glossary: parameter, global interpreter lock", "https://docs.python.org/3/glossary.html", [
+    "There are five kinds of parameter: positional-or-keyword, positional-only (before a / in the parameter list), keyword-only (after * or *args), var-positional (*args) and var-keyword (**kwargs)",
+  ]),
+  sys: langRef("sys: getrecursionlimit and setrecursionlimit", "https://docs.python.org/3/library/sys.html", [
+    "The recursion limit is read with sys.getrecursionlimit() and changed with sys.setrecursionlimit(); the highest possible limit is platform-dependent",
+  ]),
+  dataStructures: langRef("The Python Tutorial: Data Structures", "https://docs.python.org/3/tutorial/datastructures.html"),
+  whatsNew315: langRef("What's new in Python 3.15", "https://docs.python.org/3/whatsnew/3.15.html", [
+    "New in 3.15 only: a built-in frozendict (PEP 814), immutable and hashable when its keys and values are, not a subclass of dict",
+    "New in 3.15 only: * and ** unpacking inside comprehensions and generator expressions (PEP 798), e.g. [*L for L in lists]; on 3.14 and earlier write the nested comprehension or itertools.chain",
+  ]),
+  inputOutput: langRef("The Python Tutorial: Input and Output (reading and writing files)", "https://docs.python.org/3/tutorial/inputoutput.html"),
+  open: langRef("Built-in functions: open()", "https://docs.python.org/3/library/functions.html#open", [
+    "Since Python 3.15 (PEP 686) text files opened without an encoding argument use UTF-8 regardless of the system locale; on 3.14 and earlier the default was the locale encoding",
+    "Pass encoding=\"utf-8\" explicitly for code that must behave the same on every supported version; encoding=\"locale\" asks for the locale encoding; PYTHONUTF8=0 or -X utf8=0 restores the old default",
+  ]),
+  errors: langRef("The Python Tutorial: Errors and Exceptions", "https://docs.python.org/3/tutorial/errors.html", [
+    "Since Python 3.14 (PEP 765) a return, break or continue that leaves a finally block raises a SyntaxWarning: it silently discards the exception or return value from the try block",
+    "Since Python 3.14 (PEP 758) several exception types may be listed without parentheses (except TimeoutError, ConnectionRefusedError:) only when there is no as clause; the parenthesized tuple form works on every version",
+  ]),
+  classes: langRef("The Python Tutorial: Classes", "https://docs.python.org/3/tutorial/classes.html", [
+    "A name with two leading underscores (at most one trailing) inside a class is name-mangled to _ClassName__name; it is a convention against accidental clashes, not access control",
+  ]),
+  modules: langRef("The Python Tutorial: Modules and packages", "https://docs.python.org/3/tutorial/modules.html"),
+  venv: langRef("The Python Tutorial: Virtual Environments and Packages", "https://docs.python.org/3/tutorial/venv.html", [
+    "Create an environment with python -m venv <dir> and install into it with python -m pip install",
+    "New in 3.15 only: explicit lazy imports with the lazy soft keyword (lazy import json, PEP 810) defer loading until first use; a plain import statement is unchanged",
+  ]),
+  functools: langRef("functools: higher-order functions", "https://docs.python.org/3/library/functools.html", [
+    "reduce lives in functools (from functools import reduce); it is not a built-in in Python 3",
+  ]),
+  itertools: langRef("itertools: functions creating iterators", "https://docs.python.org/3/library/itertools.html"),
+  typing: langRef("typing: support for type hints", "https://docs.python.org/3/library/typing.html"),
+  whatsNew314: langRef("What's new in Python 3.14", "https://docs.python.org/3.14/whatsnew/3.14.html", [
+    "Since Python 3.14 (PEP 649, PEP 749) annotations are evaluated lazily, only when something asks for them, unless from __future__ import annotations is used",
+  ]),
+  pdb: langRef("pdb: the Python debugger", "https://docs.python.org/3/library/pdb.html", [
+    "Call the built-in breakpoint() to stop in pdb at that line",
+  ]),
+  pep8: langRef("PEP 8: Style Guide for Python Code", "https://peps.python.org/pep-0008/"),
+  pytest: langRef("pytest documentation", "https://docs.pytest.org/en/stable/"),
+  freeThreading: langRef("Python support for free threading (HOWTO)", "https://docs.python.org/3/howto/free-threading-python.html", [
+    "The standard CPython build has a global interpreter lock: only one thread runs Python bytecode at a time, though the GIL is released during I/O and by some extensions in heavy computation",
+    "The free-threaded build (GIL disabled) has existed since 3.13 and has been officially supported but optional since 3.14 (PEP 779); it is a separate build, not the default, and some extension modules re-enable the GIL",
+  ]),
+  asyncio: langRef("asyncio: asynchronous I/O", "https://docs.python.org/3/library/asyncio.html", [
+    "Start a program's top-level coroutine with asyncio.run(main())",
+    "The asyncio event-loop policy system (get_event_loop_policy, set_event_loop_policy and the policy classes) is deprecated and scheduled for removal in 3.16; choose a loop with asyncio.run(..., loop_factory=...) instead",
+  ]),
+  profiling: langRef("What's new in Python 3.15: PEP 799 profiling package", "https://docs.python.org/3/whatsnew/3.15.html#pep-799-a-dedicated-profiling-package", [
+    "In Python 3.15 the deterministic profiler is profiling.tracing (relocated from cProfile, PEP 799); cProfile remains as an alias, and is the name that works on 3.14 and earlier",
+    "The pure-Python profile module is deprecated in 3.15 and scheduled for removal in 3.17; do not teach it as the profiler to use",
+  ]),
+};
+
+// ---------------------------------------------------------------------------
 // Python: intro -> intermediate -> advanced progression, one language track.
 // ---------------------------------------------------------------------------
 export const PYTHON_TRACK: SeedTrack = {
   code: "PYTHON",
+  // REQ-252: phase 1 pilot of the level-aware lesson flow.
+  levelFlow: true,
   title: "Python Programming Coach",
   description:
     "9-week intro-to-advanced Python progression: syntax and control flow through OOP, the standard library, functional patterns, testing/typing, and concurrency.",
@@ -1028,20 +1351,27 @@ export const PYTHON_TRACK: SeedTrack = {
   subcategorySlug: "programming-languages",
   // REQ-142: no exam; built on the language itself. Python 3.15 is the newest
   // feature release (3.15.0 on 2026-10-09; docs.python.org shows "Python
-  // 3.15.2 documentation", python.org/downloads, read 2026-11-08). Nothing in
-  // the units below depends on a 3.15-only feature.
+  // 3.15.2 documentation", python.org/downloads, first read 2026-11-08).
+  // Nothing in the units below depends on a 3.15-only feature.
+  // REQ-244: re-read 2026-11-11 (the docs, the devguide's version table and
+  // python.org/downloads still say what is recorded here) and every unit
+  // compared with the pages in its sources.
+  freshnessModel: "technology_aligned",
+  sourceVerifiedAt: LANG_VERIFIED_AT,
+  contentReviewDueAt: LANG_REVIEW_DUE_AT,
   curriculum: {
     kind: "language_reference",
     name: "The Python documentation (docs.python.org)",
     version: "Python 3.15",
     url: "https://docs.python.org/3/",
-    checkedAt: "2026-11-08",
+    checkedAt: LANG_CHECKED,
   },
   units: [
     {
       title: "Syntax, variables & control flow",
       rangeLabel: "Week 1",
       gate: "Given an unfamiliar short Python script, trace its execution by hand and predict its output, including any conditional branches or loop iterations.",
+      sources: [PY.versions, PY.docs, PY.controlFlow],
       objectives: [
         "Variables, dynamic typing, and Python's core built-in types (int, float, str, bool, None)",
         "Operators: arithmetic, comparison, logical, and operator precedence",
@@ -1055,6 +1385,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Functions & scope",
       rangeLabel: "Week 2",
       gate: "Write a function with default and keyword arguments, explain what its scope can and cannot see, and predict the behavior of a mutable-default-argument bug.",
+      sources: [PY.glossary, PY.sys, PY.controlFlow],
       objectives: [
         "Defining functions: positional, keyword, default, and *args/**kwargs parameters",
         "Return values vs. side effects; functions that implicitly return None",
@@ -1068,6 +1399,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Core data structures",
       rangeLabel: "Week 3",
       gate: "Given a data-shape problem, choose the correct built-in container (list/tuple/dict/set), justify the choice, and write the comprehension that builds it in one line.",
+      sources: [PY.dataStructures, PY.whatsNew315],
       objectives: [
         "Lists: indexing, slicing, mutation, and common methods",
         "Tuples and immutability; when to prefer a tuple over a list",
@@ -1081,6 +1413,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Strings, files & error handling",
       rangeLabel: "Week 4",
       gate: "Given a program that must read a file and may fail, write correct exception handling that fails safely, and explain which exception type it should catch and why.",
+      sources: [PY.inputOutput, PY.open, PY.errors],
       objectives: [
         "String methods: splitting, joining, formatting, searching",
         "Reading and writing text files; the with statement and context managers",
@@ -1093,6 +1426,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Object-oriented programming",
       rangeLabel: "Week 5",
       gate: "Design a small class hierarchy for a stated problem, correctly use inheritance vs. composition, and explain what each dunder method you used actually does.",
+      sources: [PY.classes],
       objectives: [
         "Classes, instances, attributes, and methods",
         "__init__, self, and instance vs. class attributes",
@@ -1106,6 +1440,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Modules, packages & the standard library",
       rangeLabel: "Week 6",
       gate: "Set up an isolated virtual environment for a project, install a real dependency, and explain the difference between a module, a package, and a distributed library.",
+      sources: [PY.modules, PY.venv],
       objectives: [
         "Importing modules and packages; relative vs. absolute imports",
         "Organizing a project into modules and packages with __init__.py",
@@ -1118,6 +1453,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Functional patterns & iterators",
       rangeLabel: "Week 7",
       gate: "Given a data-processing task, write it as a generator pipeline instead of loading everything into memory, and explain why that matters at scale.",
+      sources: [PY.functools, PY.itertools, PY.glossary],
       objectives: [
         "Iterators and the iterator protocol (__iter__, __next__)",
         "Generators and yield; generator expressions",
@@ -1131,6 +1467,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Testing, debugging & typing",
       rangeLabel: "Week 8",
       gate: "Given a small buggy module, write a failing test that reproduces the bug, fix the bug, and add type hints that would have caught the class of error statically.",
+      sources: [PY.pytest, PY.pdb, PY.typing, PY.whatsNew314, PY.pep8],
       objectives: [
         "Writing unit tests with pytest: assertions, fixtures, parametrization",
         "Debugging techniques: reading tracebacks, using a debugger, print-driven debugging tradeoffs",
@@ -1142,6 +1479,7 @@ export const PYTHON_TRACK: SeedTrack = {
       title: "Concurrency, performance & a capstone project",
       rangeLabel: "Week 9",
       gate: "Explain when threading, multiprocessing, or asyncio is the right tool for a stated I/O-bound or CPU-bound problem, and justify your choice against the alternatives.",
+      sources: [PY.freeThreading, PY.asyncio, PY.profiling],
       objectives: [
         "The Global Interpreter Lock (GIL) and what it does and doesn't limit",
         "Threading for I/O-bound work vs. multiprocessing for CPU-bound work",
@@ -1154,11 +1492,66 @@ export const PYTHON_TRACK: SeedTrack = {
   ],
 };
 
+const MDN = "https://developer.mozilla.org/en-US/docs/";
+const JS = {
+  ecma262: langRef("ECMA-262 ECMAScript Language Specification (Ecma International)", "https://ecma-international.org/publications-and-standards/standards/ecma-262/", [
+    "The current edition is ECMA-262 17th edition, ECMAScript 2026, June 2026; a new edition is published every June",
+  ]),
+  var: langRef("MDN: var", `${MDN}Web/JavaScript/Reference/Statements/var`, [
+    "A var declaration is hoisted to the top of its function or script but its initialization is not: before the assignment runs the variable is undefined",
+  ]),
+  equality: langRef("MDN: Equality comparisons and sameness", `${MDN}Web/JavaScript/Guide/Equality_comparisons_and_sameness`),
+  arrow: langRef("MDN: Arrow function expressions", `${MDN}Web/JavaScript/Reference/Functions/Arrow_functions`, [
+    "Arrow functions have no own this, arguments or super binding (they use the enclosing scope's) and should not be used as methods",
+  ]),
+  thisRef: langRef("MDN: this", `${MDN}Web/JavaScript/Reference/Operators/this`),
+  let: langRef("MDN: let", `${MDN}Web/JavaScript/Reference/Statements/let`, [
+    "let, const and class bindings are in a temporal dead zone from the start of the block until the declaration runs; reading them earlier throws a ReferenceError",
+  ]),
+  closures: langRef("MDN: Closures", `${MDN}Web/JavaScript/Guide/Closures`),
+  structuredClone: langRef("MDN: structuredClone()", `${MDN}Web/API/Window/structuredClone`, [
+    "structuredClone(value) makes a deep copy with the structured clone algorithm and is Baseline (widely available); spread and Object.assign copy only one level",
+  ]),
+  events: langRef("MDN: Introduction to events", `${MDN}Learn_web_development/Core/Scripting/Events`),
+  preventDefault: langRef("MDN: Event.preventDefault()", `${MDN}Web/API/Event/preventDefault`),
+  executionModel: langRef("MDN: JavaScript execution model (job queue and event loop)", `${MDN}Web/JavaScript/Reference/Execution_model`, [
+    "A completed asynchronous action (a promise then() handler, a setTimeout callback, an event handler) runs as a job from the queue once the call stack is empty; HTML event loops split jobs into tasks and microtasks, and the microtask queue is drained before the next task is taken",
+  ]),
+  promise: langRef("MDN: Promise", `${MDN}Web/JavaScript/Reference/Global_Objects/Promise`),
+  fetch: langRef("MDN: Using the Fetch API", `${MDN}Web/API/Fetch_API/Using_Fetch`, [
+    "fetch() rejects on errors such as a network failure or a bad scheme, but an HTTP error status such as 404 still fulfills with a Response, so check response.ok (true for 200-299) or response.status before reading the body",
+  ]),
+  modules: langRef("MDN: JavaScript modules", `${MDN}Web/JavaScript/Guide/Modules`, [
+    "In the browser load a module with <script type=\"module\">; in Node.js use the .mjs extension or \"type\": \"module\" in the nearest package.json",
+  ]),
+  classes: langRef("MDN: Classes", `${MDN}Web/JavaScript/Reference/Classes`),
+  finished: langRef("TC39 finished proposals", "https://github.com/tc39/proposals/blob/main/finished-proposals.md", [
+    "Temporal and explicit resource management (using declarations) are finished proposals listed for ECMAScript 2027, not part of ECMAScript 2026; say which engines support them before relying on them",
+  ]),
+  prototypes: langRef("MDN: Inheritance and the prototype chain", `${MDN}Web/JavaScript/Guide/Inheritance_and_the_prototype_chain`, [
+    "Read and set an object's prototype with Object.getPrototypeOf / Object.setPrototypeOf, or create one with Object.create; MDN describes the __proto__ accessor as non-standard, so new code should not use it",
+  ]),
+  jest: langRef("Jest: Getting Started", "https://jestjs.io/docs/getting-started"),
+  nodeTest: langRef("Node.js API: test runner (node:test)", "https://nodejs.org/api/test.html", [
+    "Node.js has a built-in test runner, node:test, stable since Node.js 20",
+  ]),
+  nodeReleases: langRef("Node.js releases", "https://nodejs.org/en/about/previous-releases", [
+    "Node.js 26 is the Active LTS line (LTS since 2026-10-28); 24 and 22 are in maintenance (22 ends 2027-04-30); 20 reached end of life on 2026-04-30",
+    "Production applications should use Active LTS or Maintenance LTS releases; from Node.js 27 there is one major release a year and every major becomes LTS",
+  ]),
+  nodeModules: langRef("Node.js API: CommonJS modules", "https://nodejs.org/api/modules.html", [
+    "require() can load an ES module (no longer experimental as of Node.js 25.4.0) only if that module is fully synchronous, with no top-level await",
+  ]),
+  nodeEsm: langRef("Node.js API: ECMAScript modules", "https://nodejs.org/api/esm.html"),
+};
+
 // ---------------------------------------------------------------------------
 // JavaScript: intro -> intermediate -> advanced progression, one language track.
 // ---------------------------------------------------------------------------
 export const JAVASCRIPT_TRACK: SeedTrack = {
   code: "JAVASCRIPT",
+  // REQ-252: phase 1 pilot of the level-aware lesson flow.
+  levelFlow: true,
   title: "JavaScript Programming Coach",
   description:
     "9-week intro-to-advanced JavaScript progression: syntax and the DOM through async patterns, ES6+, prototypes, testing/tooling, and Node.js.",
@@ -1166,19 +1559,24 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
   subcategorySlug: "programming-languages",
   // REQ-142: no exam; built on the language standard. ECMA-262 17th edition,
   // ECMAScript 2026, June 2026, is the current edition on Ecma's page (read
-  // 2026-11-08).
+  // 2026-11-08). REQ-244: re-read 2026-11-11, still the current edition, and
+  // every unit compared with the MDN, TC39 and Node.js pages in its sources.
+  freshnessModel: "technology_aligned",
+  sourceVerifiedAt: LANG_VERIFIED_AT,
+  contentReviewDueAt: LANG_REVIEW_DUE_AT,
   curriculum: {
     kind: "language_reference",
     name: "ECMA-262 ECMAScript Language Specification",
     version: "ECMAScript 2026 (17th edition, June 2026)",
     url: "https://ecma-international.org/publications-and-standards/standards/ecma-262/",
-    checkedAt: "2026-11-08",
+    checkedAt: LANG_CHECKED,
   },
   units: [
     {
       title: "Syntax, variables & control flow",
       rangeLabel: "Week 1",
       gate: "Given an unfamiliar short JS snippet using var, let, and const, predict its output and explain any hoisting or scoping surprise it contains.",
+      sources: [JS.ecma262, JS.var, JS.equality],
       objectives: [
         "Variables: var vs. let vs. const, and why hoisting makes var risky",
         "Primitive types, typeof, and type coercion pitfalls (== vs. ===)",
@@ -1191,6 +1589,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "Functions & scope",
       rangeLabel: "Week 2",
       gate: "Write both a function declaration and an equivalent arrow function for a stated task, and explain a concrete case where the difference in `this` binding would matter.",
+      sources: [JS.arrow, JS.thisRef, JS.let, JS.closures],
       objectives: [
         "Function declarations vs. function expressions vs. arrow functions",
         "Parameters: default values, rest parameters",
@@ -1203,6 +1602,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "Objects & arrays",
       rangeLabel: "Week 3",
       gate: "Given a nested object and array of data, write a transformation using destructuring, spread, and array methods (map/filter/reduce) without a manual for-loop.",
+      sources: [JS.structuredClone],
       objectives: [
         "Object literals, property access, and shorthand syntax",
         "Array methods: map, filter, reduce, find, some, every",
@@ -1215,6 +1615,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "The DOM & events",
       rangeLabel: "Week 4",
       gate: "Given a page layout, write vanilla JS that selects the right elements, updates the DOM in response to a user event, and avoids common event-handling bugs (e.g. missing preventDefault).",
+      sources: [JS.events, JS.preventDefault],
       objectives: [
         "Selecting and traversing the DOM (querySelector, closest, parent/child access)",
         "Creating, modifying, and removing DOM nodes",
@@ -1227,6 +1628,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "Asynchronous JavaScript",
       rangeLabel: "Week 5",
       gate: "Given a sequence of dependent network calls, write it correctly with async/await including error handling, and explain what the event loop is doing while it waits.",
+      sources: [JS.executionModel, JS.promise, JS.fetch],
       objectives: [
         "The event loop, call stack, and task queue (conceptual model)",
         "Callbacks and callback hell -- what async/await actually replaces",
@@ -1239,6 +1641,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "ES6+ features & modules",
       rangeLabel: "Week 6",
       gate: "Refactor a script that uses global variables and string concatenation into ES modules with template literals and proper imports/exports.",
+      sources: [JS.modules, JS.classes, JS.finished],
       objectives: [
         "Template literals and tagged templates",
         "ES modules: import/export, default vs. named exports",
@@ -1251,6 +1654,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "Prototypes, higher-order functions & patterns",
       rangeLabel: "Week 7",
       gate: "Explain the prototype chain for a given object, predict a property lookup, and rewrite a repeated pattern using a higher-order function.",
+      sources: [JS.prototypes],
       objectives: [
         "The prototype chain and how method lookup actually works",
         "Object.create and prototypal inheritance vs. classical inheritance",
@@ -1263,6 +1667,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "Testing & tooling",
       rangeLabel: "Week 8",
       gate: "Given a small buggy function, write a failing Jest test that reproduces the bug, fix it, and explain what a linter/bundler in your toolchain would have caught earlier.",
+      sources: [JS.jest, JS.nodeTest],
       objectives: [
         "Writing unit tests with Jest: assertions, mocks, test structure",
         "Debugging in browser devtools and Node (breakpoints, console techniques)",
@@ -1275,6 +1680,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
       title: "Node.js & building a small API",
       rangeLabel: "Week 9",
       gate: "Build a minimal Node HTTP/Express endpoint that accepts a request, validates input, and returns JSON -- and explain what happens if two requests arrive concurrently.",
+      sources: [JS.nodeReleases, JS.nodeModules, JS.nodeEsm],
       objectives: [
         "Node.js runtime basics: modules, the require/import system, npm scripts",
         "Building a simple HTTP server or Express route",
@@ -1991,9 +2397,24 @@ export const SECURITYX_TRACK: SeedTrack = {
 const CMPCBS_RETIRED_AT = "2026-11-09T00:00:00Z";
 const R = CMPCBS_RETIRED_AT;
 const CMPCBS_CHECKED = "2026-11-09";
+// REQ-245: the day the taught units were re-checked against their sources and
+// the course was verified. A reference re-read that day carries this date; one
+// that could not be re-read keeps CMPCBS_CHECKED (cppreference answered with a
+// browser challenge, so the C++ units also cite Microsoft's C++ language
+// reference, read that day), and the retired units' references were not
+// re-read (retired units are not taught).
+const CMPCBS_VERIFIED = "2026-11-11";
+const CMPCBS_VERIFIED_AT = "2026-11-11T00:00:00Z";
 const ref = (title: string, url: string): UnitSource => ({ title, url, kind: "reference", checkedAt: CMPCBS_CHECKED });
+const reread = (title: string, url: string, keyValues?: string[]): UnitSource => ({
+  title,
+  url,
+  kind: "reference",
+  checkedAt: CMPCBS_VERIFIED,
+  ...(keyValues ? { keyValues } : {}),
+});
 const CMPCBS_SRC = {
-  writing: ref("OpenStax, Writing Guide with Handbook (2021)", "https://openstax.org/books/writing-guide/pages/preface"),
+  writing: reread("OpenStax, Writing Guide with Handbook (2021)", "https://openstax.org/books/writing-guide/pages/preface"),
   apa: ref("APA Style, Author-date citation system", "https://apastyle.apa.org/style-grammar-guidelines/citations/basic-principles/author-date"),
   mla: ref("Purdue OWL, MLA In-Text Citations: The Basics", "https://owl.purdue.edu/owl/research_and_citation/mla_style/mla_formatting_and_style_guide/mla_in_text_citations_the_basics.html"),
   hebrewBible: ref("Christine Hayes, Introduction to the Old Testament (Hebrew Bible), Open Yale Courses RLST 145, Lecture 1", "https://oyc.yale.edu/node/1724"),
@@ -2002,24 +2423,38 @@ const CMPCBS_SRC = {
   worldHistory2: ref("OpenStax, World History Volume 2 (2022), 5.1 The Protestant Reformation", "https://openstax.org/books/world-history-volume-2/pages/5-1-the-protestant-reformation"),
   brooks: ref("Christopher Brooks, Western Civilization: A Concise History I, 11.9 Orthodoxy and Heresy (LibreTexts)", "https://human.libretexts.org/Bookshelves/History/World_History/Book:_Western_Civilization_-_A_Concise_History_I_(Brooks)/11:_The_Late_Empire_and_Christianity/11.09:_Orthodoxy_and_Heresy"),
   hanneken: ref("Todd Hanneken, Theological Questions (open textbook, 2022; written from a Catholic perspective)", "https://open.umn.edu/opentextbooks/textbooks/theological-questions"),
-  introCs: ref("OpenStax, Introduction to Computer Science (2024)", "https://openstax.org/books/introduction-computer-science/pages/preface"),
-  calc1: ref("OpenStax, Calculus Volume 1", "https://openstax.org/books/calculus-volume-1/pages/preface"),
-  calc2: ref("OpenStax, Calculus Volume 2", "https://openstax.org/books/calculus-volume-2/pages/preface"),
-  calc3: ref("OpenStax, Calculus Volume 3", "https://openstax.org/books/calculus-volume-3/pages/preface"),
-  stats: ref("OpenStax, Introductory Statistics 2e", "https://openstax.org/books/introductory-statistics-2e/pages/preface"),
-  discrete: ref("Oscar Levin, Discrete Mathematics: An Open Introduction", "https://discrete.openmathbooks.org/"),
-  mactutor: ref("MacTutor History of Mathematics Archive, University of St Andrews", "https://mathshistory.st-andrews.ac.uk/"),
-  linear: ref("Robert Beezer, A First Course in Linear Algebra", "https://linear.pugetsound.edu/"),
-  linearOcw: ref("MIT OpenCourseWare 18.06 Linear Algebra (Spring 2010)", "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/"),
-  numerical: ref("MIT OpenCourseWare 18.330 Introduction to Numerical Analysis (Spring 2012)", "https://ocw.mit.edu/courses/18-330-introduction-to-numerical-analysis-spring-2012/"),
-  abstract: ref("Thomas Judson, Abstract Algebra: Theory and Applications", "https://judsonbooks.org/abstract-algebra-theory-and-applications/"),
-  diffEq: ref("William F. Trench, Elementary Differential Equations", "https://digitalcommons.trinity.edu/mono/8"),
-  probability: ref("Charles Grinstead and J. Laurie Snell, Introduction to Probability", "https://chance.dartmouth.edu/book.html"),
-  forecasting: ref("Rob Hyndman and George Athanasopoulos, Forecasting: Principles and Practice, 3rd edition", "https://otexts.com/fpp3/"),
-  infoSystems: ref("David Bourgeois, Information Systems for Business and Beyond (2019)", "https://open.umn.edu/opentextbooks/textbooks/189"),
+  introCs: reread("OpenStax, Introduction to Computer Science (2024)", "https://openstax.org/books/introduction-computer-science/pages/preface"),
+  calc1: reread("OpenStax, Calculus Volume 1", "https://openstax.org/books/calculus-volume-1/pages/preface"),
+  calc2: reread("OpenStax, Calculus Volume 2", "https://openstax.org/books/calculus-volume-2/pages/preface"),
+  calc3: reread("OpenStax, Calculus Volume 3", "https://openstax.org/books/calculus-volume-3/pages/preface"),
+  stats: reread("OpenStax, Introductory Statistics 2e", "https://openstax.org/books/introductory-statistics-2e/pages/preface"),
+  discrete: reread("Oscar Levin, Discrete Mathematics: An Open Introduction, 4th edition", "https://discrete.openmathbooks.org/"),
+  mactutor: reread("MacTutor History of Mathematics Archive, University of St Andrews", "https://mathshistory.st-andrews.ac.uk/"),
+  linear: reread("Robert Beezer, A First Course in Linear Algebra", "https://linear.pugetsound.edu/"),
+  linearOcw: reread("MIT OpenCourseWare 18.06 Linear Algebra (Spring 2010)", "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/"),
+  numerical: reread("MIT OpenCourseWare 18.330 Introduction to Numerical Analysis (Spring 2012)", "https://ocw.mit.edu/courses/18-330-introduction-to-numerical-analysis-spring-2012/"),
+  abstract: reread("Thomas Judson, Abstract Algebra: Theory and Applications", "https://judsonbooks.org/abstract-algebra-theory-and-applications/"),
+  diffEq: reread("William F. Trench, Elementary Differential Equations", "https://digitalcommons.trinity.edu/mono/8"),
+  probability: reread("Charles Grinstead and J. Laurie Snell, Introduction to Probability", "https://chance.dartmouth.edu/book.html"),
+  forecasting: reread("Rob Hyndman and George Athanasopoulos, Forecasting: Principles and Practice, 3rd edition", "https://otexts.com/fpp3/"),
+  infoSystems: reread("David Bourgeois, Information Systems for Business and Beyond (2019)", "https://open.umn.edu/opentextbooks/textbooks/189"),
   cpp: ref("cppreference.com, C++ language reference", "https://en.cppreference.com/w/cpp/language"),
-  dataStructures: ref("Pat Morin, Open Data Structures (C++ edition)", "https://opendatastructures.org/ods-cpp/"),
-  nistCsf: ref("NIST Cybersecurity Framework 2.0", "https://www.nist.gov/cyberframework"),
+  dataStructures: reread("Pat Morin, Open Data Structures (C++ edition)", "https://opendatastructures.org/ods-cpp/"),
+  nistCsf: reread("NIST Cybersecurity Framework 2.0", "https://www.nist.gov/cyberframework", [
+    "CSF 2.0 (NIST CSWP 29, February 26, 2024) has six functions: Govern, Identify, Protect, Detect, Respond, Recover; Govern is new in 2.0",
+  ]),
+  // REQ-245 (FAIL-1563): references added where a unit's objectives went
+  // beyond what its cited text covers. Each read 2026-11-11.
+  cs2023: reread("ACM/IEEE-CS/AAAI, Computer Science Curricula 2023 (CS2023), knowledge units NC-Fundamentals, SEP-IP, SEP-Privacy, SEP-Security", "https://csed.acm.org/wp-content/uploads/2025/11/CS2023-Report.htm"),
+  appliedDiscrete: reread("Al Doerr and Ken Levasseur, Applied Discrete Structures, 3rd edition, version 3-14 (June 2026): Boolean algebra (ch. 13), matrix algebra (ch. 5), algorithms (appendix A)", "https://discretemath.org/"),
+  numericalComputation: reread("Tobin Driscoll and Richard Braun, Fundamentals of Numerical Computation (online edition): error and conditioning (ch. 1), linear systems (ch. 2), roots (ch. 4), interpolation, differentiation and integration (ch. 5), initial-value problems (ch. 6)", "https://fncbook.com/"),
+  modeling: reread("SIAM, Math Modeling: Getting Started and Getting Solutions (Bliss, Kavanagh, Galluzzo and Levy, 2014): defining the problem, assumptions, building, analyzing and assessing a model", "https://m3challenge.siam.org/resources/modeling-handbook"),
+  technicalWriting: reread("Technical Writing Essentials (Suzan Last; adapted by Robin L. Potter and Tricia Hylton), CC BY 4.0", "https://pressbooks.senecapolytechnic.ca/technicalwriting"),
+  attack: reread("MITRE ATT&CK, Enterprise tactics (ATT&CK v20.1)", "https://attack.mitre.org/tactics/enterprise/", [
+    "ATT&CK v20.1 (current from October 13, 2026) lists 15 Enterprise tactics: Reconnaissance, Resource Development, Initial Access, Execution, Persistence, Privilege Escalation, Stealth, Defense Impairment, Credential Access, Discovery, Lateral Movement, Collection, Command and Control, Exfiltration, Impact",
+    "TA0005 is now named Stealth (blending in without touching security controls), and Defense Impairment (TA0112, created April 14, 2026) covers degrading or disabling security controls and monitoring; older material calls this area Defense Evasion",
+  ]),
+  msCpp: reread("Microsoft Learn, C++ Language Reference (standard C++ with Microsoft-specific notes)", "https://learn.microsoft.com/en-us/cpp/cpp/cpp-language-reference"),
 } as const;
 
 export const CMPCBS_TRACK: SeedTrack = {
@@ -2029,6 +2464,12 @@ export const CMPCBS_TRACK: SeedTrack = {
     "The foundation courses of a bachelor's degree in computer science and computational mathematics, taught as general courses from open textbooks: calculus through differential equations, discrete math, linear algebra, probability and statistics, numerical methods, C++ programming, data structures, information systems and security. Not affiliated with any university; your school's catalog sets its own requirements.",
   trackType: "graduate",
   subcategorySlug: "software-engineering",
+  freshnessModel: "academic_foundational",
+  // REQ-245: every taught unit checked against its references on 2026-11-11
+  // (one objective reworded, FAIL-1562; references added, FAIL-1563);
+  // reviewed yearly like the other academic courses.
+  sourceVerifiedAt: CMPCBS_VERIFIED_AT,
+  contentReviewDueAt: "2027-11-11T00:00:00Z",
   // REQ-195: the course outline is this seed; each unit names its own dated
   // references in `sources`.
   curriculum: {
@@ -2036,7 +2477,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     name: "Computer Science Degree Foundations outline (general courses taught from open textbooks)",
     version: "REQ-195, 2026-11-09",
     url: "https://github.com/paukennick/Ascendra/blob/master/backend/supabase/seed/data.ts",
-    checkedAt: CMPCBS_CHECKED,
+    checkedAt: CMPCBS_VERIFIED,
   },
   units: [
     // 0: reframed (objective 0); the elective-choice lines are retired.
@@ -2117,7 +2558,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Networking and database fundamentals",
         "Computing ethics: intellectual property, privacy, and computer crime",
       ],
-      sources: [CMPCBS_SRC.introCs],
+      sources: [CMPCBS_SRC.introCs, CMPCBS_SRC.cs2023],
     },
     {
       title: "Calculus I",
@@ -2154,7 +2595,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Statistical inference: estimation and hypothesis testing",
         "Regression and correlation between data sets",
       ],
-      sources: [CMPCBS_SRC.stats],
+      sources: [CMPCBS_SRC.stats, CMPCBS_SRC.probability],
     },
     {
       title: "Discrete Mathematics",
@@ -2167,7 +2608,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Matrices and algorithmic thinking",
         "Mathematical induction and combinatorics",
       ],
-      sources: [CMPCBS_SRC.discrete],
+      sources: [CMPCBS_SRC.discrete, CMPCBS_SRC.appliedDiscrete],
     },
     {
       title: "History of Mathematics",
@@ -2205,7 +2646,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Solving linear systems numerically",
         "Error analysis",
       ],
-      sources: [CMPCBS_SRC.numerical],
+      sources: [CMPCBS_SRC.numerical, CMPCBS_SRC.numericalComputation],
     },
     {
       title: "Abstract Algebra",
@@ -2223,7 +2664,11 @@ export const CMPCBS_TRACK: SeedTrack = {
       gate: "Find and classify the critical points of a function of two variables, and evaluate a line or surface integral, using Green's, Stokes' or the Divergence Theorem where it applies.",
       objectives: [
         "Limits, continuity, and differentiation for functions of several variables",
-        "Integration and power series in several variables",
+        // REQ-245 (FAIL-1562): was "Integration and power series in several
+        // variables". A multivariable calculus course (and its source,
+        // OpenStax Calculus Volume 3, chapter 5) teaches multiple integrals;
+        // power series are single-variable (Calculus Volume 2, chapter 6).
+        "Multiple integration: double and triple integrals and change of variables",
         "Optimization in several variables",
         "Analytic geometry of curves and surfaces",
         "Vector fields and integration along curves and surfaces",
@@ -2263,7 +2708,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Critiquing model assumptions and limitations",
         "Simulation-based methods",
       ],
-      sources: [CMPCBS_SRC.diffEq, CMPCBS_SRC.calc2],
+      sources: [CMPCBS_SRC.diffEq, CMPCBS_SRC.calc2, CMPCBS_SRC.modeling, CMPCBS_SRC.probability],
     },
     {
       title: "Regression and Forecasting",
@@ -2296,7 +2741,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Business process management concepts",
         "Technical writing for information systems documentation",
       ],
-      sources: [CMPCBS_SRC.infoSystems],
+      sources: [CMPCBS_SRC.infoSystems, CMPCBS_SRC.technicalWriting],
     },
     {
       title: "Programming in C++ I",
@@ -2308,7 +2753,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Control flow: loops and conditionals",
         "Writing and using functions",
       ],
-      sources: [CMPCBS_SRC.cpp],
+      sources: [CMPCBS_SRC.cpp, CMPCBS_SRC.msCpp],
     },
     {
       title: "Programming in C++ II",
@@ -2320,7 +2765,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Internal sorting algorithms",
         "Internal searching algorithms",
       ],
-      sources: [CMPCBS_SRC.cpp, CMPCBS_SRC.dataStructures],
+      sources: [CMPCBS_SRC.cpp, CMPCBS_SRC.dataStructures, CMPCBS_SRC.msCpp],
     },
     {
       title: "Data Structures and Algorithms",
@@ -2334,7 +2779,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Recursion as a problem-solving technique",
         "Implementing abstract data types with C++ classes",
       ],
-      sources: [CMPCBS_SRC.dataStructures, CMPCBS_SRC.cpp],
+      sources: [CMPCBS_SRC.dataStructures, CMPCBS_SRC.cpp, CMPCBS_SRC.msCpp],
     },
     {
       title: "Information Security",
@@ -2346,7 +2791,7 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Common attacker tactics and how controls get bypassed",
         "Defensive strategies and countermeasures",
       ],
-      sources: [CMPCBS_SRC.nistCsf, CMPCBS_SRC.introCs],
+      sources: [CMPCBS_SRC.nistCsf, CMPCBS_SRC.introCs, CMPCBS_SRC.attack],
     },
     // 26-27: degree logistics. Retired. The two residency lines named the
     // school; they are reworded (retired rows are not taught, so no

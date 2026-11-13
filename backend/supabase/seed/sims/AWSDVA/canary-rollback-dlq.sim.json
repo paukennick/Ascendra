@@ -1,0 +1,1121 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "canary-rollback-dlq",
+  "title": "The canary that rolled back",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "fn",
+          "label": "Function send-receipt (us-east-2)",
+          "spokenLabel": "Lambda function send-receipt in us-east-2",
+          "items": [
+            {
+              "label": "Alias live: {live == \"old\" ? \"version 41\" : (live == \"fixed\" ? \"version 43\" : \"version 42 (failing)\")}",
+              "when": "true"
+            },
+            {
+              "label": "Invoked asynchronously by the order service, about 400 events a minute",
+              "when": "true"
+            },
+            {
+              "label": "Execution role: {perm == \"scoped\" ? \"+ ssm:GetParameter on /prod/receipts/template-v2\" : (perm == \"broad\" ? \"+ AmazonSSMReadOnlyAccess (all parameters)\" : \"no SSM permission\")}",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "deploy",
+          "label": "Deployment (AWS SAM + CodeDeploy)",
+          "spokenLabel": "Deployment with SAM and CodeDeploy",
+          "items": [
+            {
+              "label": "DeploymentPreference: {mode == \"canary\" ? \"Canary10Percent5Minutes with the alias-errors alarm\" : (mode == \"allAtOnce\" ? \"AllAtOnce with the alarm\" : \"Canary10Percent5Minutes, alarm removed\")}",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "dlq",
+          "label": "Dead-letter queue",
+          "spokenLabel": "Dead-letter queue",
+          "items": [
+            {
+              "label": "send-receipt-dlq (SQS, 2-day retention): {dlq} events",
+              "when": "true"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "dlq",
+          "label": "Events in the DLQ",
+          "value": "{dlq}"
+        },
+        {
+          "id": "lost",
+          "label": "Receipts lost",
+          "value": "{lost}"
+        },
+        {
+          "id": "attempts",
+          "label": "Deploy attempts today",
+          "value": "{attempts}"
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshooting deployment failures from output logs",
+  "secondaryObjectives": [
+    "Handling Lambda event lifecycles and errors with destinations and dead-letter queues",
+    "Automatic and manual rollback with AWS CloudFormation and AWS CodeDeploy",
+    "Defining permissions for IAM principals: users, roles, and services"
+  ],
+  "sources": [
+    {
+      "cite": "Ascendra AWSDVA course catalog (backend/supabase/seed/tracks/aws.ts), built from the exam guide",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03.html",
+      "note": "The objective and secondary objectives are the course's own titles, from the DVA-C03 outline at the course's source URL. Not re-fetched for this scenario."
+    },
+    {
+      "cite": "AWS. Lambda Developer Guide: Error handling for asynchronous invocation",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-error-handling.html",
+      "note": "Read 2026-11-11: 'If the function returns an error, by default Lambda attempts to run it two more times, with a one-minute wait between the first two attempts, and two minutes between the second and third attempts'; throttling (429) and system errors (500-series) are retried 'for up to 6 hours by default'; 'When an event expires or fails all processing attempts, Lambda discards it' unless a dead-letter queue or on-failure destination keeps it."
+    },
+    {
+      "cite": "AWS. Lambda Developer Guide: Capturing records of asynchronous invocations (dead-letter queues)",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html",
+      "note": "Read 2026-11-11: a DLQ (SQS standard queue or SNS standard topic) 'is used when an event fails all processing attempts'; Lambda sends 'the event to the dead-letter queue as-is', with RequestID, ErrorCode and ErrorMessage ('The first 1 KB of the error message') attributes; 'To reprocess events in a dead-letter queue, you can set it as an event source for your Lambda function. Alternatively, you can manually retrieve the events.'"
+    },
+    {
+      "cite": "AWS. CodeDeploy User Guide: Deployment configurations (AWS Lambda compute platform)",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html",
+      "note": "Read 2026-11-11: CodeDeployDefault.LambdaCanary10Percent5Minutes 'Shifts 10 percent of traffic in the first increment. The remaining 90 percent is deployed five minutes later'; LambdaAllAtOnce 'Shifts all traffic to the updated Lambda functions at once'."
+    },
+    {
+      "cite": "AWS. SAM Developer Guide: Deploying serverless applications gradually",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/automating-updates-to-serverless-apps.html",
+      "note": "Read 2026-11-11: with DeploymentPreference, 'if your pre-traffic or post-traffic tests fail, or if a CloudWatch alarm is triggered, CodeDeploy rolls back your deployment'; Alarms 'automatically roll back your deployment'; AutoPublishAlias publishes a new version and points the alias at it."
+    },
+    {
+      "cite": "AWS. Amazon SQS API Reference: SetQueueAttributes",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SetQueueAttributes.html",
+      "note": "Read 2026-11-11: MessageRetentionPeriod 'from 60 (1 minute) to 1,209,600 (14 days). Default: 345,600 (4 days)'. The scenario's DLQ was created with 2 days."
+    },
+    {
+      "cite": "AWS. IAM User Guide: Security best practices in IAM",
+      "checkedAt": "2026-11-11",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html",
+      "note": "Read 2026-11-11: AWS managed policies 'might not grant least-privilege permissions for your specific use cases'; reduce permissions further with customer managed policies specific to the use case."
+    }
+  ],
+  "brief": {
+    "situation": "Monday 14:20. You deployed version 42 of send-receipt, the Lambda function that emails order receipts, with AWS SAM in us-east-2 (Ohio). At 14:02 CloudFormation reported UPDATE_ROLLBACK_COMPLETE: the canary was rolled back. The alias is back on version 41, and the dead-letter queue has events in it.",
+    "handover": [
+      "The order service invokes send-receipt asynchronously, about 400 events a minute. Version 42 adds a new receipt template read from Parameter Store.",
+      "The SAM template deploys with Canary10Percent5Minutes and an alarm on the alias's Errors metric.",
+      "The DLQ is an SQS queue created with a 2-day retention period. Product wants version 42's template live today."
+    ],
+    "howItWorks": [
+      "Learner-paced: nothing moves until you act. Read the output and logs, fix, redeploy, then run the next days.",
+      "The board shows which version serves and how it deploys; the meters show the DLQ and lost receipts.",
+      "Before you run the next days you are asked what failed and how you fixed it. The debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T14:20",
+    "tick": "1min",
+    "maxDuration": "8d",
+    "calendar": "date"
+  },
+  "params": {
+    "canaryEvents": {
+      "value": 120,
+      "unit": "events",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Events that failed on version 42 during the canary: 10% of about 400 a minute for the 3 minutes before the alarm rolled it back."
+      }
+    },
+    "fullBroken": {
+      "value": 18000,
+      "unit": "events",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "Events that fail if a broken version takes all traffic for the 45 minutes until the order team notices missing receipts."
+      }
+    },
+    "dlqRetention": {
+      "value": 172800,
+      "unit": "s",
+      "source": {
+        "cite": "AWS. Amazon SQS API Reference: SetQueueAttributes",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SetQueueAttributes.html",
+        "note": "Read 2026-11-11: MessageRetentionPeriod 'from 60 (1 minute) to 1,209,600 (14 days). Default: 345,600 (4 days)'. The scenario's DLQ was created with 2 days."
+      }
+    },
+    "dayWait": {
+      "value": 86400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step of the week."
+      }
+    }
+  },
+  "state": {
+    "stackAt": {
+      "type": "time",
+      "init": null
+    },
+    "deployAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "dlqAt": {
+      "type": "time",
+      "init": null
+    },
+    "perm": {
+      "type": "enum",
+      "values": [
+        "none",
+        "scoped",
+        "broad"
+      ],
+      "init": "none"
+    },
+    "mode": {
+      "type": "enum",
+      "values": [
+        "canary",
+        "allAtOnce",
+        "noAlarm"
+      ],
+      "init": "canary"
+    },
+    "live": {
+      "type": "enum",
+      "values": [
+        "old",
+        "fixed",
+        "broken"
+      ],
+      "init": "old"
+    },
+    "attempts": {
+      "type": "number",
+      "init": 1,
+      "min": 0,
+      "max": 50
+    },
+    "dlq": {
+      "type": "number",
+      "init": 120,
+      "min": 0,
+      "max": 1000000
+    },
+    "lost": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "redriven": {
+      "type": "bool",
+      "init": false
+    },
+    "brokenFull": {
+      "type": "bool",
+      "init": false
+    },
+    "retryAnswer": {
+      "type": "enum",
+      "values": [
+        "none",
+        "right",
+        "wrong"
+      ],
+      "init": "none"
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedBlind": {
+      "type": "bool",
+      "init": false
+    },
+    "changes": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "weekStarted": {
+      "type": "bool",
+      "init": false
+    },
+    "weekDone": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "investigated": {
+      "expr": "not isNull(logsAt) and (not isNull(stackAt) or not isNull(deployAt))"
+    },
+    "investigatedFirst": {
+      "expr": "investigated and not changedBlind"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Investigate and change",
+      "clock": "turns",
+      "actions": [
+        "stackEvents",
+        "deployEvents",
+        "functionLogs",
+        "dlqPeek",
+        "grantSsm",
+        "setStrategy",
+        "redeploy",
+        "redrive",
+        "purge",
+        "runWeek"
+      ]
+    },
+    "week": {
+      "label": "The week",
+      "clock": "turns",
+      "actions": []
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "stackEvents": {
+      "label": "CloudFormation: the stack's events",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(stackAt)",
+          "then": [
+            {
+              "set": "stackAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "14:00 UPDATE_IN_PROGRESS SendReceiptAliaslive. 14:02 UPDATE_FAILED SendReceiptAliaslive: 'CodeDeploy deployment d-7QX2 failed (Deployment was stopped because of an alarm).' 14:04 UPDATE_ROLLBACK_COMPLETE."
+        },
+        {
+          "log": "Stack events: the alarm stopped the CodeDeploy deployment; they do not say why the alarm fired.",
+          "kind": "find"
+        }
+      ]
+    },
+    "deployEvents": {
+      "label": "CodeDeploy: deployment d-7QX2",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(deployAt)",
+          "then": [
+            {
+              "set": "deployAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Canary10Percent5Minutes. 13:59 10% of traffic to version 42. 14:02 alarm send-receipt-live-errors in ALARM (Errors > 0 for 2 of 2 one-minute periods). Deployment stopped; traffic returned to version 41."
+        },
+        {
+          "log": "CodeDeploy: version 42 raised errors on its 10% within two minutes.",
+          "kind": "find"
+        }
+      ]
+    },
+    "functionLogs": {
+      "label": "CloudWatch Logs Insights: errors from version 42",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(logsAt)",
+          "then": [
+            {
+              "set": "logsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "filter @logStream like /\\[42\\]/ and @message like /Error/: 361 matches, all the same: 'AccessDeniedException: User: arn:aws:sts::111122223333:assumed-role/send-receipt-role/send-receipt is not authorized to perform: ssm:GetParameter on resource: arn:aws:ssm:us-east-2:111122223333:parameter/prod/receipts/template-v2'."
+        },
+        {
+          "log": "Logs: version 42 cannot read its new parameter; the execution role lacks ssm:GetParameter.",
+          "kind": "find"
+        },
+        {
+          "if": "retryAnswer == \"none\"",
+          "then": [
+            {
+              "prompt": "retryQ"
+            }
+          ]
+        }
+      ]
+    },
+    "dlqPeek": {
+      "label": "Peek at the DLQ's messages",
+      "group": "Investigate",
+      "effects": [
+        {
+          "if": "isNull(dlqAt)",
+          "then": [
+            {
+              "set": "dlqAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "{dlq} messages, each the original order event with attributes RequestID, ErrorCode 200 and ErrorMessage 'AccessDeniedException ... ssm:GetParameter ...'. Oldest sent 13:59; retention 2 days."
+        },
+        {
+          "log": "DLQ: every failed event is a customer's receipt; they expire 2 days after arriving.",
+          "kind": "find"
+        }
+      ]
+    },
+    "grantSsm": {
+      "label": "Add SSM read permission to the function's execution role (in the SAM template)",
+      "group": "Change",
+      "available": "perm == \"none\"",
+      "why": "Already granted.",
+      "params": [
+        {
+          "id": "scope",
+          "kind": "choice",
+          "label": "Permission",
+          "options": [
+            {
+              "value": "scoped",
+              "label": "ssm:GetParameter on the one parameter's ARN"
+            },
+            {
+              "value": "broad",
+              "label": "The AWS managed AmazonSSMReadOnlyAccess policy"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "perm",
+          "to": "scope"
+        },
+        {
+          "log": "{perm == \"scoped\" ? \"Template: SSMParameterReadPolicy for the one parameter /prod/receipts/template-v2.\" : \"Template: AmazonSSMReadOnlyAccess on the role: every parameter in the account.\"}"
+        }
+      ]
+    },
+    "setStrategy": {
+      "label": "Change the deployment strategy",
+      "group": "Change",
+      "available": "true",
+      "why": "Not available now.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Strategy",
+          "options": [
+            {
+              "value": "canary",
+              "label": "Canary10Percent5Minutes with the alarm (as now)"
+            },
+            {
+              "value": "allAtOnce",
+              "label": "AllAtOnce, to get it out faster"
+            },
+            {
+              "value": "noAlarm",
+              "label": "Keep the canary, remove the alarm so it cannot roll back"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "set": "mode",
+          "to": "how"
+        },
+        {
+          "log": "{mode == \"canary\" ? \"DeploymentPreference: Canary10Percent5Minutes with the errors alarm.\" : (mode == \"allAtOnce\" ? \"DeploymentPreference: AllAtOnce; the alarm stays.\" : \"DeploymentPreference: Canary10Percent5Minutes with the alarm removed, so errors cannot roll it back.\")}",
+          "kind": "sys"
+        }
+      ]
+    },
+    "redeploy": {
+      "label": "sam deploy the fix",
+      "group": "Change",
+      "available": "live != \"fixed\"",
+      "why": "The fixed version is live.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "add": "attempts",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "perm != \"none\"",
+              "then": [
+                {
+                  "set": "live",
+                  "to": "\"fixed\""
+                },
+                {
+                  "log": "Version 43 deployed ({mode == \"canary\" ? \"10% for 5 minutes, alarm quiet, then 100%\" : \"traffic shifted\"}). Receipts use the new template.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "mode == \"canary\"",
+              "then": [
+                {
+                  "add": "dlq",
+                  "by": "canaryEvents"
+                },
+                {
+                  "log": "Same error on the canary's 10%; the alarm rolls it back again. 120 more events in the DLQ.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "live",
+                  "to": "\"broken\""
+                },
+                {
+                  "set": "brokenFull",
+                  "to": "true"
+                },
+                {
+                  "add": "dlq",
+                  "by": "fullBroken"
+                },
+                {
+                  "log": "Version 43 takes all traffic and fails every receipt with the same AccessDeniedException; nothing rolls it back. 45 minutes later the order team notices: 18,000 events in the DLQ.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "redrive": {
+      "label": "Redrive the DLQ through the live alias",
+      "group": "Recover",
+      "available": "dlq > 0",
+      "why": "The DLQ is empty.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "if": "live == \"broken\"",
+          "then": [
+            {
+              "log": "The live version fails them again; after retries they return to the DLQ.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "set": "dlq",
+              "to": "0"
+            },
+            {
+              "set": "redriven",
+              "to": "true"
+            },
+            {
+              "log": "DLQ events sent back through the live alias; every receipt delivered.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    "purge": {
+      "label": "Purge the DLQ: those receipts are old now",
+      "group": "Recover",
+      "available": "dlq > 0",
+      "why": "The DLQ is empty.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not investigated",
+          "then": [
+            {
+              "set": "changedBlind",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "changes",
+          "by": "1"
+        },
+        {
+          "add": "lost",
+          "by": "dlq"
+        },
+        {
+          "set": "dlq",
+          "to": "0"
+        },
+        {
+          "log": "DLQ purged: {lost} customers will not get a receipt.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "runWeek": {
+      "label": "Close out and run the next days",
+      "group": "Run",
+      "available": "true",
+      "why": "Not available now.",
+      "effects": [
+        {
+          "set": "weekStarted",
+          "to": "true"
+        },
+        {
+          "reason": "plan"
+        },
+        {
+          "phase": "week"
+        },
+        {
+          "schedule": "dayT",
+          "after": "dayWait",
+          "with": {
+            "d": "1"
+          }
+        },
+        {
+          "log": "Live: {live}. DLQ {dlq} events, {lost} receipts lost.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "prompts": {
+    "retryQ": {
+      "title": "Before the DLQ",
+      "context": "Each of these events failed with a function error. How many times did Lambda run it before sending it to the DLQ?",
+      "choices": [
+        {
+          "id": "right",
+          "label": "Three times: the first try and two retries, about 1 and 2 minutes apart",
+          "effects": [
+            {
+              "set": "retryAnswer",
+              "to": "\"right\""
+            }
+          ],
+          "feedback": "Right. For a function error on an asynchronous invocation, Lambda retries twice by default, then discards the event or sends it to the DLQ or an on-failure destination."
+        },
+        {
+          "id": "wrong",
+          "label": "Over and over for up to 6 hours",
+          "effects": [
+            {
+              "set": "retryAnswer",
+              "to": "\"wrong\""
+            }
+          ],
+          "feedback": "No. The 6-hour retry window applies to throttling and system errors. A function error gets two retries by default."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "dayT": {
+      "label": "the next day",
+      "wait": {
+        "skipLabel": "the next day"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "d": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-11",
+        "note": "One day per step; the DLQ's 2-day retention runs out on Wednesday afternoon."
+      },
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "timer.with.d == 1",
+              "then": [
+                {
+                  "if": "dlq > 0",
+                  "then": [
+                    {
+                      "log": "Tuesday: {dlq} events still in the DLQ; customers ask support where their receipts are.",
+                      "kind": "sys"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "Tuesday: the DLQ is empty; no receipt complaints.",
+                      "kind": "good"
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "2"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "timer.with.d == 2",
+              "then": [
+                {
+                  "if": "dlq > 0",
+                  "then": [
+                    {
+                      "add": "lost",
+                      "by": "dlq"
+                    },
+                    {
+                      "set": "dlq",
+                      "to": "0"
+                    },
+                    {
+                      "log": "Wednesday 14:00: the DLQ's 2-day retention expires; {lost} receipts are gone for good.",
+                      "kind": "bad"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "Wednesday: nothing waiting in the DLQ.",
+                      "kind": "sys"
+                    }
+                  ]
+                },
+                {
+                  "schedule": "dayT",
+                  "after": "dayWait",
+                  "with": {
+                    "d": "3"
+                  }
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Thursday: {live == \"fixed\" ? \"version 43 has run clean for three days\" : \"version 41 still serves; the new template is not live\"}.",
+                  "kind": "sys"
+                },
+                {
+                  "set": "weekDone",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "plan": {
+      "question": "Before you run the next days: what made the deployment fail, how did you find it, and how did you fix it without losing receipts or the safety net?",
+      "parts": [
+        {
+          "label": "The cause, from the logs",
+          "criteria": "Traces the rollback from the stack events (alarm stopped CodeDeploy) to the function's own logs: AccessDeniedException on ssm:GetParameter for the new parameter; notes the failed events went to the DLQ after two retries.",
+          "modelAnswer": "The stack only says an alarm stopped the deployment. CodeDeploy shows the alias Errors alarm fired on the 10% canary, and the function's logs show why: the execution role cannot call ssm:GetParameter on the new template parameter. Those events failed three times and went to the DLQ."
+        },
+        {
+          "label": "The fix and the recovery",
+          "criteria": "Grants ssm:GetParameter on the one parameter only; keeps the canary and its alarm; redeploys; redrives the DLQ through a working version before the 2-day retention expires; never purges it.",
+          "modelAnswer": "Add read access to that one parameter in the template, keep Canary10Percent5Minutes with its alarm, and redeploy. Then redrive the DLQ through the live alias so every receipt goes out, well inside the 2-day retention."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "rtoMinutes": {
+        "value": 15,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-11",
+          "note": "Default RTO in the cloud profile; a broken version at 100% for 45 minutes is beyond it."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "weekDone and live == \"old\"",
+      "class": "recovered",
+      "rationale": "Nothing broke, but the release never landed: a miss, recovered, never target.",
+      "source": {
+        "cite": "docs/sims.md 3.1 (cloud)",
+        "checkedAt": "2026-11-11",
+        "note": "A requirement missed without harm is recovered."
+      }
+    }
+  },
+  "endings": {
+    "broken": {
+      "label": "A broken release reached every customer",
+      "class": "harm",
+      "when": "brokenFull",
+      "terminal": true,
+      "narrative": "With nothing to roll it back, the failing version took all traffic for 45 minutes: 18,000 receipts failed, well past the 15-minute RTO."
+    },
+    "fixed": {
+      "label": "Fixed from the logs, nothing lost",
+      "class": "target",
+      "when": "weekDone and live == \"fixed\" and investigatedFirst and perm == \"scoped\" and mode == \"canary\" and redriven and lost == 0",
+      "terminal": true,
+      "narrative": "Thursday: version 43 serves the new template, every receipt from Monday was delivered, and the canary still guards the next release."
+    },
+    "partly": {
+      "label": "Shipped, by a rougher route",
+      "class": "recovered",
+      "when": "weekDone",
+      "terminal": true,
+      "narrative": "Thursday: live {live}, {lost} receipts lost. Something was missed: the logs first, a narrow permission, the canary, or the DLQ."
+    },
+    "time_up": {
+      "label": "The week ran out",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The week ended without a decision."
+    }
+  },
+  "endingOrder": [
+    "broken",
+    "fixed",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "investigate",
+        "label": "Read the deployment output and the function's logs before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "investigatedFirst",
+            "score": "met",
+            "why": "Stack or CodeDeploy events, then the function's own logs, first."
+          },
+          {
+            "when": "investigated",
+            "score": "partial",
+            "why": "Read the logs, but after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the logs."
+          }
+        ]
+      },
+      {
+        "id": "perm",
+        "label": "Fixed the cause with a least-privilege permission",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "perm == \"scoped\"",
+            "score": "met",
+            "why": "ssm:GetParameter on the one parameter."
+          },
+          {
+            "when": "perm == \"broad\"",
+            "score": "partial",
+            "why": "Fixed, but the role can now read every parameter."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never fixed."
+          }
+        ]
+      },
+      {
+        "id": "canary",
+        "label": "Kept the canary and its rollback alarm",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mode == \"canary\"",
+            "score": "met",
+            "why": "Canary10Percent5Minutes with the errors alarm."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed the safety net that caught the failure."
+          }
+        ]
+      },
+      {
+        "id": "dlq",
+        "label": "Redrove the DLQ before it expired",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "redriven and lost == 0",
+            "score": "met",
+            "why": "Every failed receipt delivered."
+          },
+          {
+            "when": "redriven",
+            "score": "partial",
+            "why": "Redriven, but some receipts were lost."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{lost} receipts lost."
+          }
+        ]
+      },
+      {
+        "id": "retry",
+        "label": "Knew how Lambda retries an asynchronous function error",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "retryAnswer == \"right\"",
+            "score": "met",
+            "why": "Two retries, then the DLQ."
+          },
+          {
+            "when": "retryAnswer == \"wrong\"",
+            "score": "missed",
+            "why": "Confused it with the 6-hour throttling window."
+          },
+          {
+            "when": "true",
+            "score": "na",
+            "why": "Not asked."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: the cause from the logs, the fix and the recovery",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "lost",
+        "label": "Receipts lost",
+        "value": "lost",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "attempts",
+        "label": "Deploy attempts",
+        "value": "attempts",
+        "format": "number",
+        "expert": "2"
+      },
+      {
+        "id": "changes",
+        "label": "Changes made",
+        "value": "changes",
+        "format": "number",
+        "expert": "3"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Monday 14:20",
+        "text": "Stack events: an alarm stopped CodeDeploy. CodeDeploy: the canary's 10% raised errors. Logs Insights on version 42: AccessDeniedException on ssm:GetParameter. The DLQ: 120 receipts, 2-day retention."
+      },
+      {
+        "at": "Monday 14:35",
+        "text": "Grant ssm:GetParameter on the one parameter in the SAM template; keep the canary and alarm; sam deploy."
+      },
+      {
+        "at": "Monday 14:50",
+        "text": "Version 43 passes its canary. Redrive the DLQ through the live alias. The trade-off: five more minutes per release for a canary that catches the next mistake on 10% of traffic."
+      }
+    ],
+    "debrief": {
+      "broken": {
+        "headline": "A broken release reached every customer",
+        "body": "The canary and its alarm limited the first failure to 10% of traffic for three minutes. Redeploying without the fix and without that safety net sent every receipt into the same AccessDeniedException."
+      },
+      "fixed": {
+        "headline": "Fixed from the logs, nothing lost",
+        "body": "You followed the failure from the stack to CodeDeploy to the function's logs, fixed it with the narrowest permission, kept the canary and recovered every receipt from the DLQ. That is the expert path."
+      },
+      "partly": {
+        "headline": "Shipped, by a rougher route",
+        "body": "Check whether you read the logs before changing things, whether the permission is limited to the one parameter, whether the canary kept its alarm, and whether the DLQ was redriven before it expired."
+      },
+      "time_up": {
+        "headline": "No decision",
+        "body": "The release waits and the DLQ ages."
+      }
+    },
+    "modelReasoning": "CloudFormation reports the symptom (an alarm stopped the CodeDeploy deployment), CodeDeploy says which alarm and when, and only the function's own logs say why: version 42's role cannot call ssm:GetParameter on its new parameter. Failed asynchronous events are retried twice and then sent to the DLQ, so the receipts are not lost yet, but the queue's 2-day retention is a deadline. Fix the cause with a permission on that one parameter, keep the canary and its alarm that limited the damage, redeploy, then redrive the DLQ through the working alias. Removing the alarm or shipping all at once trades a safe rollback for a full outage."
+  }
+}

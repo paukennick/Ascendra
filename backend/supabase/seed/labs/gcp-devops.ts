@@ -50,7 +50,10 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
   trackCode: "GCPDEVOPS",
   sources: [
     source("https://services.google.com/fh/files/misc/professional_cloud_devops_engineer_exam_guide_english.pdf", "exam_outline", "2026-11-07"),
-    source("https://cloud.google.com/learn/certification/cloud-devops-engineer", "exam_outline", "2026-11-07"),
+    // REQ-244: the guide live on 2026-11-23, which the labs' objectives follow, and the
+    // certification page, both re-read 2026-11-11.
+    source("https://services.google.com/fh/files/misc/112326_professional_cloud_devops_engineer_exam_guide_english.pdf", "exam_outline", "2026-11-11"),
+    source("https://cloud.google.com/learn/certification/cloud-devops-engineer", "exam_outline", "2026-11-11"),
     source("https://sre.google/workbook/alerting-on-slos/", "reference", "2026-11-07"),
     source("https://docs.cloud.google.com/stackdriver/docs/solutions/slo-monitoring/alerting-on-budget-burn-rate", "reference", "2026-11-07"),
     source("https://docs.cloud.google.com/architecture/infra-reliability-guide/building-blocks", "reference", "2026-11-07"),

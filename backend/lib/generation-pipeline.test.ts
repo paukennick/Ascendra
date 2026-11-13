@@ -206,7 +206,7 @@ describe("R10: a dated current-facts block per course, from the seed", () => {
     assert.match(b, /Syllabus: Computer Science Degree Foundations outline .*, version REQ-195, 2026-11-09\./);
     assert.doesNotMatch(b, /Reference for this unit/);
     const u = currentFactsBlock(byCode("CMPCBS"), "Calculus I")!;
-    assert.match(u, /Reference for this unit: OpenStax, Calculus Volume 1 \(https:\/\/openstax\.org\/[^)]+\), checked 2026-11-09\./);
+    assert.match(u, /Reference for this unit: OpenStax, Calculus Volume 1 \(https:\/\/openstax\.org\/[^)]+\), checked 2026-11-11\./);
   });
   test("every catalog course builds a block or none, without throwing; it reaches the prompt framing", () => {
     for (const t of CATALOG_TRACKS) currentFactsBlock(t);

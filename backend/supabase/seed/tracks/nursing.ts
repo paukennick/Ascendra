@@ -24,7 +24,76 @@
 // the learner accepts a course-specific disclaimer, recorded against their
 // account, before any lesson is taught.
 
-import type { SeedTrack } from "../data";
+import type { SeedTrack, UnitSource } from "../data";
+
+// REQ-235 (batch H wave 1): each CNA unit names the curriculum line of 42
+// CFR 483.152(b) it is built on, as the regulation prints it (federal text,
+// public domain, so quoted in full), read through the eCFR versioner API on
+// 2026-11-11 (as of 2026-11-01). Residents' rights also carries the abuse
+// reporting deadlines of 42 CFR 483.12(c)(1), read the same way and day.
+// The writer and the fact-checker get both (lib/current-facts.ts).
+const CFR_483_152 = "https://www.ecfr.gov/current/title-42/section-483.152";
+const cna152 = (para: string, outline: string[], keyValues?: string[]): UnitSource => ({
+  title: `42 CFR 483.152(${para}), requirements for approval of a nurse aide training and competency evaluation program`,
+  url: CFR_483_152,
+  kind: "reference",
+  checkedAt: "2026-11-11",
+  outline,
+  ...(keyValues ? { keyValues } : {}),
+});
+export const CNA_UNIT_SOURCES: Record<string, UnitSource[]> = {
+  "Before resident contact": [
+    cna152(
+      "b)(1",
+      [
+        "At least a total of 16 hours of training in the following areas prior to any direct contact with a resident: communication and interpersonal skills; infection control; safety/emergency procedures, including the Heimlich maneuver; promoting residents' independence; and respecting residents' rights.",
+      ],
+      [
+        "a state-approved program is no less than 75 clock hours of training, including at least 16 hours of supervised practical training under the direct supervision of an RN or LPN (483.152(a)); states may require more",
+        "students do not perform any services for which they have not trained and been found proficient by the instructor",
+      ]
+    ),
+  ],
+  "Basic nursing skills": [
+    cna152("b)(2", [
+      "Basic nursing skills: taking and recording vital signs; measuring and recording height and weight; caring for the residents' environment; recognizing abnormal changes in body functioning and the importance of reporting such changes to a supervisor; and caring for residents when death is imminent.",
+    ]),
+  ],
+  "Personal care skills": [
+    cna152("b)(3", [
+      "Personal care skills, including, but not limited to: bathing; grooming, including mouth care; dressing; toileting; assisting with eating and hydration; proper feeding techniques; skin care; and transfers, positioning, and turning.",
+    ]),
+  ],
+  "Mental health and social service needs": [
+    cna152("b)(4", [
+      "Mental health and social service needs: modifying aide's behavior in response to residents' behavior; awareness of developmental tasks associated with the aging process; how to respond to resident behavior; allowing the resident to make personal choices, providing and reinforcing other behavior consistent with the resident's dignity; and using the resident's family as a source of emotional support.",
+    ]),
+  ],
+  "Care of cognitively impaired residents": [
+    cna152("b)(5", [
+      "Care of cognitively impaired residents: techniques for addressing the unique needs and behaviors of individual with dementia (Alzheimer's and others); communicating with cognitively impaired residents; understanding the behavior of cognitively impaired residents; appropriate responses to the behavior of cognitively impaired residents; and methods of reducing the effects of cognitive impairments.",
+    ]),
+  ],
+  "Basic restorative services": [
+    cna152("b)(6", [
+      "Basic restorative services: training the resident in self care according to the resident's abilities; use of assistive devices in transferring, ambulation, eating, and dressing; maintenance of range of motion; proper turning and positioning in bed and chair; bowel and bladder training; and care and use of prosthetic and orthotic devices.",
+    ]),
+  ],
+  "Residents' rights": [
+    cna152("b)(7", [
+      "Residents' rights: providing privacy and maintenance of confidentiality; promoting the residents' right to make personal choices to accommodate their needs; giving assistance in resolving grievances and disputes; providing needed assistance in getting to and participating in resident and family groups and other activities; maintaining care and security of residents' personal possessions; promoting the resident's right to be free from abuse, mistreatment, and neglect and the need to report any instances of such treatment to appropriate facility staff; and avoiding the need for restraints in accordance with current professional standards.",
+    ]),
+    {
+      title: "42 CFR 483.12(c)(1), reporting alleged violations",
+      url: "https://www.ecfr.gov/current/title-42/section-483.12",
+      kind: "reference",
+      checkedAt: "2026-11-11",
+      keyValues: [
+        "the facility reports alleged abuse, neglect, exploitation or mistreatment immediately, but not later than 2 hours after the allegation is made if it involves abuse or serious bodily injury, and not later than 24 hours otherwise; the aide's duty (483.152(b)(7)) is to report any instance to the appropriate facility staff",
+      ],
+    },
+  ],
+};
 
 const NCSBN_PROVIDER = {
   providerSlug: "ncsbn",
@@ -1276,6 +1345,8 @@ const AACN_PROVIDER = {
 // ---------------------------------------------------------------------------
 export const CNA_TRACK: SeedTrack = {
   code: "CNA",
+  // REQ-258 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
+  levelFlow: true,
   title: "Certified Nursing Assistant Coach",
   description:
     "Nurse aide training built on the federal requirements at 42 CFR 483.152 -- the sixteen hours that must come before you ever touch a resident, then basic nursing and personal care skills, cognition, restorative services and residents' rights.",
@@ -1317,13 +1388,18 @@ export const CNA_TRACK: SeedTrack = {
       // older abdominal-thrusts-only rule. Value as recorded in
       // seed/labs/ems-sources.ts (AHA_2025_ADULT_BLS, read on cpr.heart.org).
       sources: [
+        ...CNA_UNIT_SOURCES["Before resident contact"],
         {
           title: "AHA 2025 Guidelines for CPR and ECC, Part 7: Adult Basic Life Support (Circulation 2025;152(suppl 2):S448-S478)",
           url: "https://doi.org/10.1161/CIR.0000000000001369",
           kind: "clinical_guideline",
-          checkedAt: "2026-11-08",
+          // REQ-235 (G5 follow-up): re-read 2026-11-11 on AHA's guideline
+          // page (cpr.heart.org, Part 7, sections 10.1-10.2): unchanged; the
+          // unresponsive-victim steps added.
+          checkedAt: "2026-11-11",
           keyValues: [
             "severe foreign-body airway obstruction in a responsive adult: repeated cycles of 5 back blows, then 5 abdominal thrusts, until the object comes out or the person becomes unresponsive",
+            "if the adult becomes unresponsive: start CPR beginning with chest compressions and activate the emergency response system; remove a visible object when opening the airway for breaths; no blind finger sweeps",
           ],
         },
       ],
@@ -1354,6 +1430,7 @@ export const CNA_TRACK: SeedTrack = {
     },
     {
       title: "Basic nursing skills",
+      sources: CNA_UNIT_SOURCES["Basic nursing skills"],
       rangeLabel: "42 CFR 483.152(b)(2)",
       weight: 18,
       gate: "Take an accurate set of measurements, notice when something has changed, and report it to the nurse without editorializing.",
@@ -1382,6 +1459,7 @@ export const CNA_TRACK: SeedTrack = {
     },
     {
       title: "Personal care skills",
+      sources: CNA_UNIT_SOURCES["Personal care skills"],
       rangeLabel: "42 CFR 483.152(b)(3)",
       weight: 20,
       gate: "Provide personal care that is clean, safe and unhurried, and that leaves the resident's dignity intact.",
@@ -1415,6 +1493,7 @@ export const CNA_TRACK: SeedTrack = {
     },
     {
       title: "Mental health and social service needs",
+      sources: CNA_UNIT_SOURCES["Mental health and social service needs"],
       rangeLabel: "42 CFR 483.152(b)(4)",
       weight: 13,
       gate: "Respond to a resident's behavior by changing your own approach first, rather than managing the resident.",
@@ -1439,6 +1518,7 @@ export const CNA_TRACK: SeedTrack = {
     },
     {
       title: "Care of cognitively impaired residents",
+      sources: CNA_UNIT_SOURCES["Care of cognitively impaired residents"],
       rangeLabel: "42 CFR 483.152(b)(5)",
       weight: 13,
       gate: "Meet a resident with dementia where they are: reduce the demand, not the person.",
@@ -1462,6 +1542,7 @@ export const CNA_TRACK: SeedTrack = {
     },
     {
       title: "Basic restorative services",
+      sources: CNA_UNIT_SOURCES["Basic restorative services"],
       rangeLabel: "42 CFR 483.152(b)(6)",
       weight: 10,
       gate: "Help a resident keep or regain function, matching the help to what they can still do for themselves.",
@@ -1487,6 +1568,7 @@ export const CNA_TRACK: SeedTrack = {
     },
     {
       title: "Residents' rights",
+      sources: CNA_UNIT_SOURCES["Residents' rights"],
       rangeLabel: "42 CFR 483.152(b)(7)",
       weight: 8,
       gate: "Name what a resident is entitled to, and what you must do the moment you suspect it has been violated.",

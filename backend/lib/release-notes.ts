@@ -85,6 +85,199 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // 2026-11-12 (d): REQ-249 sims badge, REQ-250 Save and exit, REQ-251
+    // fairer answer choices, REQ-252/255/256 levels and the goal question,
+    // REQ-253 Key terms, REQ-257 level-aware lessons in four more courses.
+    // The course list in the levels item must match the seed's levelFlow
+    // tracks (lib/level-flow-tracks.test.ts); change both together.
+    id: "2026-11-12-d",
+    date: "2026-11-12",
+    covers: ["REQ-249", "REQ-250", "REQ-251", "REQ-252", "REQ-253", "REQ-255", "REQ-256", "REQ-257", "REQ-258"],
+    title: "Lessons that meet you at your level",
+    items: [
+      {
+        icon: "compass",
+        headline: "A level for every course",
+        body:
+          "Tell us why you're taking a course and it starts at New, Some background or Experienced. " +
+          "Your level moves up when your answers show it, with an Undo, and you can change it any time.",
+      },
+      {
+        icon: "trending-up",
+        headline: "Lessons shaped by your level",
+        body:
+          "In Python, JavaScript, DPT, PT prerequisites, CCRN, AWS SAA and MLA, Security+ and CNA, New learners " +
+          "get a quick hunch and the full worked example first. Experienced learners can skip guided practice.",
+      },
+      {
+        icon: "book-open",
+        headline: "Key terms in every lesson",
+        body: "Tap Key terms for the words a lesson uses, each in plain language with an example and the exam's wording.",
+      },
+      {
+        icon: "rotate-ccw",
+        headline: "Save and exit any time",
+        body: "Leave a lesson at any step and pick up where you left off.",
+      },
+      {
+        icon: "check-circle",
+        headline: "Fairer answer choices",
+        body: "Practice questions are written so the right answer is less often the longest one or given away by words like \"always\".",
+      },
+      {
+        icon: "zap",
+        headline: "Find courses with simulations",
+        body: "Course cards show how many sims a course has, and Explore can show only those courses.",
+        requires: "sims",
+      },
+    ],
+  },
+  {
+    // 2026-11-12 (c): REQ-243 Settings Notifications, REQ-244/245 course
+    // verification, REQ-246 pilot coach allowance. The coach item is true only
+    // with AI_PILOT_COACH_MESSAGES_PER_DAY=10 and AI_PILOT_GRADED_ANSWERS_PER_DAY=20
+    // set in production; change this note if those change.
+    id: "2026-11-12-c",
+    date: "2026-11-12",
+    covers: ["REQ-243", "REQ-244", "REQ-245", "REQ-246"],
+    title: "The coach opens up for the pilot",
+    items: [
+      {
+        icon: "compass",
+        headline: "Ask the coach, 10 times a day",
+        body:
+          "During the pilot everyone can send the AI coach 10 messages a day and get 20 typed answers graded, " +
+          "up from none and 3. Lessons, practice and review stay unlimited.",
+      },
+      {
+        icon: "bell",
+        headline: "Notifications in one place",
+        body: "Settings now has a Notifications section with Study reminders and Email together.",
+      },
+      {
+        icon: "check-circle",
+        headline: "Every course is verified",
+        body:
+          "Python, JavaScript, DP-300, GCP DevOps, MSCS, CS degree foundations and PT prerequisites were checked " +
+          "against current sources. Two outdated objectives were corrected.",
+      },
+    ],
+  },
+  {
+    // Wave 2 (2026-11-12 UTC): REQ-237 terminal screen, REQ-238 security,
+    // REQ-239 NCE/NCMHCE, REQ-240 nursing, REQ-241 EMS, REQ-242 AWS. Gated
+    // whole on sims: four of its five items are sims (FAIL-1271 rule).
+    id: "2026-11-12-b",
+    date: "2026-11-12",
+    covers: ["REQ-237", "REQ-238", "REQ-239", "REQ-240", "REQ-241", "REQ-242"],
+    requires: "sims",
+    title: "Outages, incidents and two counseling courses",
+    items: [
+      {
+        icon: "tool",
+        headline: "Fix the outage at a terminal",
+        body:
+          "Linux+, Network+ and CKA get a new terminal and network map. Run commands to find out why /var is full, " +
+          "a VLAN went missing or a pod keeps crashing, while the outage clock runs.",
+      },
+      {
+        icon: "shield",
+        headline: "Incidents for advanced security exams",
+        body:
+          "CySA+, PenTest+, SecurityX and SecAI+ each get two incidents on the security console. " +
+          "The attacker keeps moving while you work.",
+      },
+      {
+        icon: "book-open",
+        headline: "Prep for the NCE and NCMHCE",
+        body:
+          "Two new counseling courses built on NBCC's current outlines, with 12 labs each and five client " +
+          "sessions, from a first intake to a substance use assessment. For learners 18 and over.",
+      },
+      {
+        icon: "zap",
+        headline: "More cases for nursing and EMS",
+        body:
+          "Six bedside cases for LPN, ADN and BSN nurses, and eight for EMS from EMR to paramedic, " +
+          "with scene time and transport on the clock.",
+      },
+      {
+        icon: "trending-up",
+        headline: "Nine more AWS scenarios",
+        body:
+          "Machine Learning Engineer, Cloud Practitioner, Developer and CloudOps get new board cases, from a " +
+          "fraud model that went quiet to an access key leaked on GitHub, worked at your own pace.",
+      },
+    ],
+  },
+  {
+    // Wave 1 (2026-11-12 UTC): REQ-231 security console, REQ-232 treatment
+    // session, REQ-233 nine more sims, REQ-235 batch H sources. Gated whole on
+    // sims: three of its four items are sims (FAIL-1271 rule).
+    id: "2026-11-12",
+    date: "2026-11-12",
+    covers: ["REQ-231", "REQ-232", "REQ-233", "REQ-235"],
+    requires: "sims",
+    title: "New practice scenarios in five more courses",
+    items: [
+      {
+        icon: "shield",
+        headline: "Security+ incidents",
+        body:
+          "Contain a phished account, a ransomware outbreak and a leaked cloud key on a new security console. " +
+          "The attacker keeps moving while you work, so the order you act in matters.",
+      },
+      {
+        icon: "eye",
+        headline: "Physical therapy sessions",
+        body:
+          "Doctor of Physical Therapy has three sessions where vitals respond to activity: ICU mobility, " +
+          "gait after a knee replacement, and balance after a stroke.",
+      },
+      {
+        icon: "zap",
+        headline: "Nine more cases",
+        body:
+          "New cases for CCRN Pediatric and Neonatal, NCLEX-RN and NCLEX-PN, and a second AWS Solutions Architect " +
+          "scenario about a surprise network bill.",
+      },
+      {
+        icon: "check-circle",
+        headline: "Sharper lessons in launch courses",
+        body:
+          "Seven courses now teach from the official exam outline and dated sources, so fewer lessons " +
+          "are held back for a second check.",
+      },
+    ],
+  },
+  {
+    // REQ-234 (labs for A+ and the EPPP; DP-900 and pelvic health top-ups).
+    // The lead may fold this into the day's combined note when merging.
+    id: "2026-11-11-d",
+    date: "2026-11-11",
+    covers: ["REQ-234"],
+    title: "Hands-on labs for A+ and the EPPP",
+    items: [
+      {
+        icon: "tool",
+        headline: "Labs for CompTIA A+ and the EPPP",
+        body:
+          "CompTIA A+ Core 1 and Core 2 now have ten troubleshooting labs each, and the EPPP has fourteen, " +
+          "from reading a lithium level to walking an ethics decision.",
+      },
+      {
+        icon: "book-open",
+        headline: "More labs in two courses",
+        body: "Azure Data Fundamentals and Pelvic & Women's Health each have eight labs now, up from four and five.",
+      },
+      {
+        icon: "check-circle",
+        headline: "Matched to the current exams",
+        body: "The A+ labs follow CompTIA's current V15 objectives, and the EPPP labs cover all eight Part 1 domains.",
+      },
+    ],
+  },
+  {
     // REQ-222, REQ-223, REQ-225 and REQ-227, merged 2026-11-11 (UTC). The whole
     // note is about sims, so it is gated as one; REQ-226 rides in 2026-11-11-b.
     id: "2026-11-11-c",

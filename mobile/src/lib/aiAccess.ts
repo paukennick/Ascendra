@@ -5,13 +5,22 @@
 // refused AI request carries `aiAccess: { state, feature, ... }`.
 //
 // Nothing here offers a plan or a price: these show while billing is off.
+//
+// REQ-246: during the pilot a limited learner may get a daily coach count
+// (`ai.coachPerDay`, a number above 0); the coach box then shows, and the
+// server refuses past the count with `aiAccess.state: "coach_limit"`. An older
+// server sends no coachPerDay, which means no coach for a limited learner, as
+// before.
 
+export const AI_ACCESS_STATES = ["limited_preview", "graded_limit", "coach_limit", "paused", "preparing"] as const;
 export type AiAccessMode = "all" | "granted" | "paid";
-export type AiAccessState = "limited_preview" | "graded_limit" | "paused" | "preparing";
+export type AiAccessState = (typeof AI_ACCESS_STATES)[number];
 
 export interface AiAccessInfo {
   mode: AiAccessMode;
   full: boolean;
+  // REQ-246: the pilot's coach messages a day for a limited learner, or null.
+  coachPerDay: number | null;
 }
 
 // From user.ai. Anything missing or malformed is "full AI" (an older server,
@@ -20,13 +29,22 @@ export function parseAiAccess(v: unknown): AiAccessInfo | null {
   if (!v || typeof v !== "object") return null;
   const a = v as Record<string, unknown>;
   if (a.mode !== "all" && a.mode !== "granted" && a.mode !== "paid") return null;
-  return { mode: a.mode, full: a.full !== false };
+  const n = a.coachPerDay;
+  const coachPerDay = typeof n === "number" && Number.isFinite(n) && n > 0 ? n : null;
+  return { mode: a.mode, full: a.full !== false, coachPerDay };
 }
 
 // Whether the coach and new lesson versions are open to this learner.
 export function hasFullAi(user: { ai?: unknown } | null | undefined): boolean {
   const a = parseAiAccess(user?.ai);
   return a === null || a.full;
+}
+
+// REQ-246: whether the coach's message box shows -- full AI, or the pilot's
+// daily coach count. New lesson versions still follow hasFullAi.
+export function coachOpen(user: { ai?: unknown } | null | undefined): boolean {
+  const a = parseAiAccess(user?.ai);
+  return a === null || a.full || (a.coachPerDay ?? 0) > 0;
 }
 
 export interface AiAccessSignal {
@@ -44,7 +62,7 @@ export function aiAccessSignal(status: number, data: unknown): AiAccessSignal | 
   const d = data as Record<string, any>;
   const a = d.aiAccess;
   if (!a || typeof a !== "object") return null;
-  if (!["limited_preview", "graded_limit", "paused", "preparing"].includes(a.state)) return null;
+  if (!(AI_ACCESS_STATES as readonly string[]).includes(a.state)) return null;
   return {
     state: a.state,
     feature: typeof a.feature === "string" ? a.feature : "",
@@ -78,6 +96,10 @@ export function aiAccessMessage(s: AiAccessSignal): string {
       return s.feature === "coach" ? `${COACH_PREVIEW_TITLE}.` : REGENERATE_PREVIEW_NOTE;
     case "graded_limit":
       return "You've used today's AI-graded typed answers. More open up tomorrow; multiple choice and review keep working.";
+    case "coach_limit":
+      return s.limit !== null
+        ? `You've used today's ${s.limit} coach messages. More open up tomorrow; lessons, practice and review keep working.`
+        : "You've used today's coach messages. More open up tomorrow; lessons, practice and review keep working.";
     case "paused":
       return "The AI coach and new lesson versions are paused for today. Everything else keeps working.";
     case "preparing":

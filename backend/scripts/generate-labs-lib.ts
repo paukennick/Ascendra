@@ -83,6 +83,19 @@ export function apportion(n: number, weights: (number | null)[]): number[] {
 // Labs per unit for one track under a policy. Never more labs in a unit than
 // it has performance objectives (one lab per objective at most), except that
 // the floor of 1 (fixed, hybrid) applies to any unit with an objective at all.
+// REQ-234 (2026-11-11): courses topped up above the hybrid plan on purpose.
+// The verb heuristic finds almost no performance objective in a "describe"
+// outline (DP-900) or in the knowledge and professional units of an ABPTS
+// outline (pelvic and women's health), which left those courses with 4 and
+// 5 labs. A top-up is per unit, in unit order; unitPlan keeps every unit at
+// least at the plan and at most at hybridUnitCap, and ignores a top-up whose
+// length no longer matches the course's units (the density tests then fail,
+// so a reshaped course is noticed).
+export const LAB_PLAN_TOP_UPS: Readonly<Record<string, readonly number[]>> = {
+  DP900: [2, 2, 2, 2],
+  ABPTSPWCS: [2, 3, 3],
+};
+
 export function unitPlan(track: PlanTrack, policy: DensityPolicy, opts = POLICY_DEFAULTS): number[] {
   const perf = track.units.map((u) => u.objectives.filter((o) => isPerformanceObjective(o, track.family)).length);
   const has = track.units.map((u) => (u.objectives.length > 0 ? 1 : 0));
@@ -95,11 +108,15 @@ export function unitPlan(track: PlanTrack, policy: DensityPolicy, opts = POLICY_
       return perf;
     case "hybrid": {
       const extras = apportion(opts.hybridExtras, track.units.map((u) => u.weight));
-      return track.units.map((_, i) => {
+      const base = track.units.map((_, i) => {
         if (!has[i]) return 0;
         const room = Math.max(0, Math.min(opts.hybridUnitCap, Math.max(perf[i], 1)) - 1);
         return 1 + Math.min(extras[i], room);
       });
+      // REQ-234: a deliberate top-up never goes below the plan or above the cap.
+      const top = LAB_PLAN_TOP_UPS[track.code];
+      if (!top || top.length !== base.length) return base;
+      return base.map((n, i) => (has[i] ? Math.min(opts.hybridUnitCap, Math.max(n, top[i])) : 0));
     }
   }
 }

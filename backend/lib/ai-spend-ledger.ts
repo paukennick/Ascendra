@@ -66,6 +66,11 @@ export const PURPOSE_POOL: Record<AiPurpose, AiPool> = {
   // global ceiling too (lib/ai-spend-gate.ts, lib/ai-budget.ts).
   pregen: "coach",
   pregen_fact_check: "coach",
+  pregen_retry: "coach",
+  // REQ-253: the Key terms primer, live on first use (a shared item, like
+  // lesson_intro), and its batch pre-generation (operator, never reserved).
+  primer: "coach",
+  pregen_primer: "coach",
 };
 
 export function poolOf(purpose: string): AiPool {

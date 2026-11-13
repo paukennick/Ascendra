@@ -1,0 +1,1199 @@
+{
+  "slug": "pediatric-dka-cerebral-edema",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: fluids and potassium at once, insulin infusion at 1 h with no bolus, hourly checks, dextrose at 300, mannitol 5 minutes after the headache without a CT",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "noBolus",
+          "choice": "no",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "dexNotStop",
+          "choice": "dex",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "seq": 8,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "ins": "std"
+          },
+          "seq": 9,
+          "tick": 1810
+        },
+        {
+          "type": "chapter",
+          "chapter": "insulinRunning",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 1870
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 11,
+          "tick": 2410
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 12,
+          "tick": 3610
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 13,
+          "tick": 3610
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 14,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 15,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 16,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 17,
+          "tick": 10810
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 18,
+          "tick": 10810
+        },
+        {
+          "type": "act",
+          "action": "dextrose",
+          "seq": 19,
+          "tick": 10870
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 20,
+          "tick": 14410
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 21,
+          "tick": 14410
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 22,
+          "tick": 14410
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 23,
+          "tick": 15910
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "brain",
+            "bg": "full",
+            "rec": "osmo"
+          },
+          "seq": 24,
+          "tick": 15910
+        },
+        {
+          "type": "teach",
+          "prompt": "noCt",
+          "choice": "treat",
+          "seq": 25,
+          "tick": 15910
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 15,
+          "to": 16030,
+          "seq": 26,
+          "tick": 15910
+        },
+        {
+          "type": "act",
+          "action": "osmo",
+          "params": {
+            "drug": "mannitol"
+          },
+          "seq": 27,
+          "tick": 16030
+        },
+        {
+          "type": "chapter",
+          "chapter": "edemaTreated",
+          "choice": "continue",
+          "seq": 28,
+          "tick": 16030
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 29,
+          "tick": 18010
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 30,
+          "tick": 18010
+        }
+      ],
+      "expect": {
+        "ending": "resolving",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "cerebral": "met",
+          "potassium": "met",
+          "insulin": "met",
+          "dextrose": "met",
+          "neuroChecks": "met",
+          "escalate": "met",
+          "labs": "met",
+          "noBicarb": "met",
+          "glucoseHourly": "met"
+        },
+        "kpis": {
+          "toOsmo": 430,
+          "lowestK": 4.5,
+          "insStart": 1810,
+          "neuroChecks": 7,
+          "worstGcs": 12
+        },
+        "stateHash": "7e255387292a54dc"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "lateOsmo",
+      "title": "Good DKA care at 0.05 U/kg/h, but the edema is treated 25 minutes after the first sign",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "noBolus",
+          "choice": "no",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "dexNotStop",
+          "choice": "dex",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "seq": 8,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "ins": "low"
+          },
+          "seq": 9,
+          "tick": 1810
+        },
+        {
+          "type": "chapter",
+          "chapter": "insulinRunning",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 1870
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 11,
+          "tick": 2410
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 12,
+          "tick": 3610
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 13,
+          "tick": 3610
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 14,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 15,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 16,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 17,
+          "tick": 10810
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 18,
+          "tick": 10810
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 19,
+          "tick": 14410
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 20,
+          "tick": 14410
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 21,
+          "tick": 14410
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 22,
+          "tick": 17110
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "brain",
+            "bg": "full",
+            "rec": "osmo"
+          },
+          "seq": 23,
+          "tick": 17110
+        },
+        {
+          "type": "teach",
+          "prompt": "noCt",
+          "choice": "treat",
+          "seq": 24,
+          "tick": 17110
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 15,
+          "to": 17230,
+          "seq": 25,
+          "tick": 17110
+        },
+        {
+          "type": "act",
+          "action": "osmo",
+          "params": {
+            "drug": "mannitol"
+          },
+          "seq": 26,
+          "tick": 17230
+        },
+        {
+          "type": "chapter",
+          "chapter": "edemaTreated",
+          "choice": "continue",
+          "seq": 27,
+          "tick": 17230
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 28,
+          "tick": 18010
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 29,
+          "tick": 18010
+        }
+      ],
+      "expect": {
+        "ending": "resolvingLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "cerebral": "partial",
+          "potassium": "met",
+          "insulin": "met",
+          "dextrose": "missed",
+          "neuroChecks": "met",
+          "escalate": "partial",
+          "labs": "met",
+          "noBicarb": "met",
+          "glucoseHourly": "met"
+        },
+        "kpis": {
+          "toOsmo": 1630,
+          "lowestK": 5.5,
+          "insStart": 1810,
+          "neuroChecks": 7,
+          "worstGcs": 10
+        },
+        "stateHash": "b5c8f83491bf3520"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "ctFirst",
+      "title": "Insulin bolus at handover and a CT before mannitol",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "noBolus",
+          "choice": "no",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "dexNotStop",
+          "choice": "dex",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "seq": 8,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "ins": "bolus"
+          },
+          "seq": 9,
+          "tick": 70
+        },
+        {
+          "type": "chapter",
+          "chapter": "insulinRunning",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 130
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 11,
+          "tick": 670
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 12,
+          "tick": 3610
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 13,
+          "tick": 3610
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 14,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 15,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 16,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "dextrose",
+          "seq": 17,
+          "tick": 7270
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 18,
+          "tick": 10810
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 19,
+          "tick": 10810
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 20,
+          "tick": 14410
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 21,
+          "tick": 14410
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 22,
+          "tick": 14410
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 23,
+          "tick": 15850
+        },
+        {
+          "type": "act",
+          "action": "ct",
+          "seq": 24,
+          "tick": 15850
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "brain",
+            "bg": "full",
+            "rec": "osmo"
+          },
+          "seq": 25,
+          "tick": 17650
+        },
+        {
+          "type": "teach",
+          "prompt": "noCt",
+          "choice": "treat",
+          "seq": 26,
+          "tick": 17650
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 16,
+          "to": 17770,
+          "seq": 27,
+          "tick": 17650
+        },
+        {
+          "type": "act",
+          "action": "osmo",
+          "params": {
+            "drug": "mannitol"
+          },
+          "seq": 28,
+          "tick": 17770
+        },
+        {
+          "type": "chapter",
+          "chapter": "edemaTreated",
+          "choice": "continue",
+          "seq": 29,
+          "tick": 17770
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 30,
+          "tick": 18010
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 31,
+          "tick": 18010
+        }
+      ],
+      "expect": {
+        "ending": "time_up",
+        "class": "harm",
+        "rating": "bad",
+        "score": 70,
+        "criteria": {
+          "cerebral": "missed",
+          "potassium": "met",
+          "insulin": "missed",
+          "dextrose": "met",
+          "neuroChecks": "met",
+          "escalate": "partial",
+          "labs": "met",
+          "noBicarb": "met",
+          "glucoseHourly": "met"
+        },
+        "kpis": {
+          "toOsmo": 2170,
+          "lowestK": 4.2,
+          "insStart": 70,
+          "neuroChecks": 7,
+          "worstGcs": 9
+        },
+        "stateHash": "a34a8f340d981fa6"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "waitForCt",
+      "title": "Hourly checks only, so the headache waits for the next check; then a CT before mannitol",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "noBolus",
+          "choice": "no",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "dexNotStop",
+          "choice": "dex",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "seq": 8,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "ins": "std"
+          },
+          "seq": 9,
+          "tick": 1810
+        },
+        {
+          "type": "chapter",
+          "chapter": "insulinRunning",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 1870
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 11,
+          "tick": 2410
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 12,
+          "tick": 3610
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 13,
+          "tick": 3610
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 14,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 15,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 16,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 17,
+          "tick": 10810
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 18,
+          "tick": 10810
+        },
+        {
+          "type": "act",
+          "action": "dextrose",
+          "seq": 19,
+          "tick": 10870
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 20,
+          "tick": 14410
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 21,
+          "tick": 14410
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 22,
+          "tick": 14410
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 23,
+          "tick": 16750
+        },
+        {
+          "type": "act",
+          "action": "ct",
+          "seq": 24,
+          "tick": 16750
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "brain",
+            "bg": "full",
+            "rec": "osmo"
+          },
+          "seq": 25,
+          "tick": 18550
+        },
+        {
+          "type": "teach",
+          "prompt": "noCt",
+          "choice": "treat",
+          "seq": 26,
+          "tick": 18550
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 17,
+          "to": 18670,
+          "seq": 27,
+          "tick": 18550
+        },
+        {
+          "type": "act",
+          "action": "osmo",
+          "params": {
+            "drug": "mannitol"
+          },
+          "seq": 28,
+          "tick": 18670
+        },
+        {
+          "type": "chapter",
+          "chapter": "edemaTreated",
+          "choice": "continue",
+          "seq": 29,
+          "tick": 18670
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 30,
+          "tick": 18670
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 31,
+          "tick": 18670
+        }
+      ],
+      "expect": {
+        "ending": "herniation",
+        "class": "harm",
+        "rating": "bad",
+        "score": 80,
+        "criteria": {
+          "cerebral": "missed",
+          "potassium": "met",
+          "insulin": "met",
+          "dextrose": "met",
+          "neuroChecks": "met",
+          "escalate": "partial",
+          "labs": "met",
+          "noBicarb": "met",
+          "glucoseHourly": "met"
+        },
+        "kpis": {
+          "toOsmo": 3070,
+          "lowestK": 4.5,
+          "insStart": 1810,
+          "neuroChecks": 7,
+          "worstGcs": 8
+        },
+        "stateHash": "04aee7e4b4bfb5d3"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "noPotassium",
+      "title": "Failure: insulin with no potassium in the fluid",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "noBolus",
+          "choice": "no",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "dexNotStop",
+          "choice": "dex",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "ins": "std"
+          },
+          "seq": 8,
+          "tick": 1810
+        },
+        {
+          "type": "chapter",
+          "chapter": "insulinRunning",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 1870
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 10,
+          "tick": 2410
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 11,
+          "tick": 3610
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 12,
+          "tick": 3610
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 13,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 14,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 15,
+          "tick": 7210
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 16,
+          "tick": 10810
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 17,
+          "tick": 10810
+        },
+        {
+          "type": "act",
+          "action": "dextrose",
+          "seq": 18,
+          "tick": 10870
+        }
+      ],
+      "expect": {
+        "ending": "arrhythmia",
+        "class": "harm",
+        "rating": "bad",
+        "score": 55,
+        "criteria": {
+          "cerebral": "missed",
+          "potassium": "missed",
+          "insulin": "met",
+          "dextrose": "met",
+          "neuroChecks": "partial",
+          "escalate": "missed",
+          "labs": "met",
+          "noBicarb": "met",
+          "glucoseHourly": "partial"
+        },
+        "kpis": {
+          "toOsmo": -1,
+          "lowestK": 3.5,
+          "insStart": 1810,
+          "neuroChecks": 4,
+          "worstGcs": 15
+        },
+        "stateHash": "78edb2437007d49e"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "missedEdema",
+      "title": "Failure: no hourly neuro checks, insulin stopped as the glucose fell, bicarbonate, and the headache never acted on",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "glucoseCheck",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "dexNotStop",
+          "choice": "dex",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "ins": "std"
+          },
+          "seq": 6,
+          "tick": 1810
+        },
+        {
+          "type": "act",
+          "action": "bicarb",
+          "seq": 7,
+          "tick": 1810
+        },
+        {
+          "type": "chapter",
+          "chapter": "insulinRunning",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 1870
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 9,
+          "tick": 2410
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "seq": 10,
+          "tick": 3610
+        }
+      ],
+      "expect": {
+        "ending": "herniation",
+        "class": "harm",
+        "rating": "bad",
+        "score": 20,
+        "criteria": {
+          "cerebral": "missed",
+          "potassium": "met",
+          "insulin": "met",
+          "dextrose": "missed",
+          "neuroChecks": "missed",
+          "escalate": "missed",
+          "labs": "missed",
+          "noBicarb": "missed",
+          "glucoseHourly": "missed"
+        },
+        "kpis": {
+          "toOsmo": -1,
+          "lowestK": 0,
+          "insStart": 1810,
+          "neuroChecks": 1,
+          "worstGcs": 8
+        },
+        "stateHash": "9371e5f2c80897de"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}

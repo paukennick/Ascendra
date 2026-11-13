@@ -9,6 +9,7 @@ import {
   aiAccessMessage,
   aiAccessSignal,
   aiAccessSignalOf,
+  coachOpen,
   hasFullAi,
   parseAiAccess,
 } from "./aiAccess.ts";
@@ -29,7 +30,45 @@ describe("user.ai", () => {
     assert.equal(hasFullAi({ ai: { mode: "granted", full: true } }), true);
     assert.equal(hasFullAi({ ai: { mode: "granted", full: false } }), false);
     assert.equal(hasFullAi({ ai: { mode: "paid", full: false } }), false);
-    assert.deepEqual(parseAiAccess({ mode: "granted", full: false }), { mode: "granted", full: false });
+    assert.deepEqual(parseAiAccess({ mode: "granted", full: false }), { mode: "granted", full: false, coachPerDay: null });
+  });
+});
+
+describe("REQ-246: the pilot's daily coach count", () => {
+  test("coachPerDay is read when a positive number, else null", () => {
+    assert.equal(parseAiAccess({ mode: "granted", full: false, coachPerDay: 10 })?.coachPerDay, 10);
+    for (const v of [null, undefined, 0, -1, "10", NaN]) {
+      assert.equal(parseAiAccess({ mode: "granted", full: false, coachPerDay: v })?.coachPerDay, null, String(v));
+    }
+  });
+  test("the coach box shows for full AI or a daily coach count above 0", () => {
+    assert.equal(coachOpen(null), true, "default mode");
+    assert.equal(coachOpen({ ai: { mode: "granted", full: true, coachPerDay: null } }), true);
+    assert.equal(coachOpen({ ai: { mode: "granted", full: false, coachPerDay: 10 } }), true);
+    assert.equal(coachOpen({ ai: { mode: "paid", full: false, coachPerDay: 1 } }), true);
+    assert.equal(coachOpen({ ai: { mode: "granted", full: false, coachPerDay: null } }), false);
+    assert.equal(coachOpen({ ai: { mode: "granted", full: false, coachPerDay: 0 } }), false);
+  });
+  test("an older server sends no coachPerDay: today's behavior", () => {
+    assert.equal(coachOpen({ ai: { mode: "granted", full: false } }), false);
+    assert.equal(coachOpen({ ai: { mode: "granted", full: true } }), true);
+  });
+  test("the pilot count opens only the coach, not new lesson versions", () => {
+    assert.equal(hasFullAi({ ai: { mode: "granted", full: false, coachPerDay: 10 } }), false);
+  });
+  test("a coach_limit refusal is read, shows the server's words, with a calm fallback", () => {
+    const body = {
+      error: "You've used today's 10 coach messages. More open up in about 5 hours; lessons, practice and review keep working.",
+      aiAccess: { state: "coach_limit", feature: "coach", mode: "granted", resetsAt: "2026-11-13T03:00:00.000Z", limit: 10, used: 10 },
+    };
+    const s = aiAccessSignalOf(err(429, body))!;
+    assert.equal(s.state, "coach_limit");
+    assert.equal(s.limit, 10);
+    assert.equal(aiAccessMessage(s), body.error);
+    const fallback = aiAccessMessage(aiAccessSignal(429, { aiAccess: { state: "coach_limit", feature: "coach", limit: 10 } })!);
+    assert.match(fallback, /today's 10 coach messages.*keep working/);
+    assert.doesNotMatch(fallback, /\bPlus\b|\bPro\b|upgrade|\$|price|\bplans?\b|subscri/i);
+    assert.match(aiAccessMessage(aiAccessSignal(429, { aiAccess: { state: "coach_limit", feature: "coach" } })!), /today's coach messages/);
   });
 });
 

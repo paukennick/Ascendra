@@ -14,9 +14,12 @@ import {
   aiAccessMode,
   aiLimited,
   ceilingVerdict,
+  coachLimitMessage,
   globalDailyCeilingUsd,
   gradedPreviewMessage,
   nextUtcDayStart,
+  pilotCoachMessagesPerDay,
+  pilotGradedAnswersPerDay,
   utcDayStart,
   type AiAccessBody,
   type AiAccessMode,
@@ -74,8 +77,12 @@ export async function aiLimitedFor(userId: string, env: Env = process.env): Prom
 // ---------------------------------------------------------------------------
 
 // Coach chat and lesson regenerate: a 403 with the limited-preview message
-// when the mode gives this learner the Free AI experience.
+// when the mode gives this learner the Free AI experience. REQ-246: the coach
+// is let through when AI_PILOT_COACH_MESSAGES_PER_DAY is above 0 (it is then
+// counted by consumeCoachMessage below). No database read for the coach in
+// that case, nor in the default configuration.
 export async function requireAiFeature(userId: string, feature: "coach" | "regenerate", env: Env = process.env): Promise<void> {
+  if (feature === "coach" && pilotCoachMessagesPerDay(env) > 0) return;
   if (!(await aiLimitedFor(userId, env))) return;
   throw new AiAccessError(feature === "coach" ? COACH_PREVIEW_MESSAGE : REGENERATE_PREVIEW_MESSAGE, 403, {
     state: "limited_preview",
@@ -102,9 +109,39 @@ export function releaseOnce(use: AllowanceUse): AllowanceUse {
   };
 }
 
+// REQ-246: one coach message. When the mode gives this learner the Free AI
+// experience and AI_PILOT_COACH_MESSAGES_PER_DAY is above 0, it is counted per
+// rolling day in allowance_uses (kind coach_message, the plans' rows), with a
+// 429 { aiAccess: coach_limit } at the limit and no upsell; the plan count does
+// not ALSO run, so one message is never counted twice. Otherwise `billing`
+// runs: the plan count (REQ-122) exactly as before, a no-op with billing off.
+// The caller gives the use back on every path that saves no reply.
+export async function consumeCoachMessage(
+  userId: string,
+  billing: () => Promise<AllowanceUse>,
+  env: Env = process.env
+): Promise<AllowanceUse> {
+  const limit = pilotCoachMessagesPerDay(env);
+  if (limit > 0 && (await aiLimitedFor(userId, env))) {
+    const mode = aiAccessMode(env);
+    return recordCountedUse(userId, "coach_message", limit, (used, resetsAt) =>
+      new AiAccessError(coachLimitMessage(limit, whenPhrase(new Date(resetsAt))), 429, {
+        state: "coach_limit",
+        feature: "coach",
+        mode,
+        resetsAt,
+        limit,
+        used,
+      })
+    );
+  }
+  return billing();
+}
+
 // An AI-graded written answer (grade_open, explain-back, lab written parts,
 // sim reasoning, PBQ, unit check). When the mode gives this learner the Free
-// AI experience it is counted against Free's daily graded-answer allowance
+// AI experience it is counted against AI_PILOT_GRADED_ANSWERS_PER_DAY
+// (REQ-246) when set, else Free's daily graded-answer allowance
 // (BILLING_ALLOWANCE_GRADED_ANSWER_FREE, 3), with a 429 { aiAccess:
 // graded_limit } at the limit and no upsell. Otherwise `billing` runs: the
 // route's own plan count (REQ-122) exactly as before, or nothing (null) for a
@@ -116,7 +153,9 @@ export async function consumeGradedAnswer(
   env: Env = process.env
 ): Promise<AllowanceUse> {
   if (await aiLimitedFor(userId, env)) {
-    const limit = allowanceLimit("graded_answer", "free", env);
+    // REQ-246: the pilot's own count first, so raising it never changes
+    // Free's count once billing is on.
+    const limit = pilotGradedAnswersPerDay(env) ?? allowanceLimit("graded_answer", "free", env);
     if (limit === null) return NO_USE; // the Free count was set to "none"
     const mode = aiAccessMode(env);
     return recordCountedUse(userId, "graded_answer", limit, (used, resetsAt) =>
@@ -209,13 +248,17 @@ export async function requireSharedLessonRoom(userId: string, env: Env = process
 
 // What the app needs to show a gated feature before the learner tries it.
 // null in the default configuration (no field is added to the response).
+// REQ-246: `coachPerDay` is the pilot's daily coach count for a limited
+// learner when it is above 0 (the coach box shows), otherwise null.
 export async function aiAccessSummary(
   userId: string,
   env: Env = process.env
-): Promise<{ mode: AiAccessMode; full: boolean } | null> {
+): Promise<{ mode: AiAccessMode; full: boolean; coachPerDay: number | null } | null> {
   const mode = aiAccessMode(env);
   if (mode === "all") return null;
-  return { mode, full: !(await aiLimitedFor(userId, env)) };
+  const full = !(await aiLimitedFor(userId, env));
+  const pilot = pilotCoachMessagesPerDay(env);
+  return { mode, full, coachPerDay: !full && pilot > 0 ? pilot : null };
 }
 
 export type { AiFeature };
