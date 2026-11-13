@@ -12,14 +12,8 @@ export const SPELLING_SCOPE = ["backend/supabase/seed", "backend/app", "backend/
 
 // Repo-relative path prefixes left out, each with its reason.
 export const SPELLING_EXCLUDED: ReadonlyArray<[string, string]> = [
-  // Nick, 2026-11-10: the Terms and Privacy text changes only with the next
-  // version update (the process note in backend/lib/legal.ts); the US
-  // spellings go in then, not as a forced re-accept now.
-  ["mobile/src/content/legal.ts", "legal text: US spellings go in with the next Terms/Privacy version"],
-  ["mobile/app/(legal)/", "legal screens: as above"],
-  ["backend/lib/legal.ts", "legal versions: as above"],
-  ["backend/app/api/legal/", "legal acceptance: as above"],
-  ["backend/app/api/onboarding/terms/", "legal acceptance: as above"],
+  // The legal text moved to US spelling with the 2026-11-13 version (REQ-260),
+  // as REQ-220 planned, so it is checked like the rest of the app.
   // A sim version's text is part of its content hash and golden replays
   // (docs/sims.md); existing versions are left as published.
   ["backend/supabase/seed/sims/", "published sim versions (docs/sims.md versioning)"],

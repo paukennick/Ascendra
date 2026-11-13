@@ -63,7 +63,7 @@ test("what each kind of client may accept: legacy all, an undeclared headered bu
   const undeclared = UNDECLARED_LEGAL_VERSIONS.terms;
   const legacyOnly = LEGACY_LEGAL_VERSIONS.terms;
   // no X-Ascendra-App: every generation still in the field
-  assert.deepEqual(acceptableTermsVersions({ legacy: true }), [cur, PREVIOUS_TERMS_VERSION, legacyOnly].filter((v, i, a) => a.indexOf(v) === i));
+  assert.deepEqual(acceptableTermsVersions({ legacy: true }), [cur, PREVIOUS_TERMS_VERSION, undeclared, legacyOnly].filter((v, i, a) => a.indexOf(v) === i));
   // X-Ascendra-App without X-Ascendra-Legal (builds from REQ-175 to REQ-205)
   assert.deepEqual(acceptableTermsVersions({ legacy: false }), [cur, undeclared]);
   assert.equal(isAcceptableTermsVersion(undeclared, { legacy: false }), true, "no 400 loop for an installed headered build");

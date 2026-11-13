@@ -68,9 +68,9 @@ describe("US English spelling (REQ-220)", () => {
     assert.deepEqual(got, ["pick a colour"]);
   });
 
-  test("every excluded path says why, and the legal text is excluded until its next version", () => {
+  test("every excluded path says why, and the legal text is checked since its 2026-11-13 version (REQ-260)", () => {
     for (const [p, why] of SPELLING_EXCLUDED) assert.ok(why.length > 10, p);
-    assert.ok(spellingExcluded("mobile/src/content/legal.ts"));
+    assert.ok(!spellingExcluded("mobile/src/content/legal.ts"));
   });
 
   test("no British spelling in learner-facing string content (FAIL-1138)", () => {
