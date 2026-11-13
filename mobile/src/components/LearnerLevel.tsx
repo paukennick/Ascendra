@@ -38,6 +38,13 @@ import {
   hunchFeedback,
   ladderAnnouncement,
   levelChangeNotice,
+  levelDownDone,
+  levelDownQuestion,
+  levelDownSnoozed,
+  levelDownUndone,
+  levelDownWhat,
+  LEVEL_DOWN_NOT_NOW,
+  LEVEL_DOWN_YES,
   levelMeaning,
   ratingChoices,
   suggestionFor,
@@ -47,6 +54,7 @@ import {
   type Ladder,
   type Level,
   type LevelChange,
+  type LevelDownSuggestion,
   type LevelState,
 } from "@/lib/learnerLevel";
 import type { Hunch } from "@/lib/lessonProgress";
@@ -186,6 +194,101 @@ export function LevelNotice({
       <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
         <Button label="OK" size="sm" fullWidth={false} onPress={run(onSeen)} />
         <Button label="Undo" size="sm" variant="ghost" icon="rotate-ccw" fullWidth={false} onPress={run(onUndo)} />
+      </View>
+      {error ? <ErrorBanner message={error} /> : null}
+    </View>
+  );
+}
+
+// REQ-256: the move-down SUGGESTION on the done screen (never automatic).
+// Yes moves this unit down one level and then offers Undo; Not now snoozes it
+// for the unit for a week. Specific (the unit, what changes) and kind.
+export function LevelDownCard({
+  suggestion,
+  onAnswer,
+  onUndo,
+}: {
+  suggestion: LevelDownSuggestion;
+  onAnswer: (answer: "yes" | "not_now") => Promise<LevelChange | null>;
+  onUndo: (change: LevelChange) => Promise<unknown>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<{ text: string; change: LevelChange | null } | null>(null);
+  const run = async (fn: () => Promise<void>) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  if (done) {
+    return (
+      <View style={styles.note}>
+        <LiveAnnouncement message={done.text} />
+        <Muted style={{ color: colors.text, fontSize: 13 }}>{done.text}</Muted>
+        {done.change ? (
+          <Button
+            label="Undo"
+            size="sm"
+            variant="ghost"
+            icon="rotate-ccw"
+            fullWidth={false}
+            disabled={busy}
+            onPress={() =>
+              run(async () => {
+                await onUndo(done.change!);
+                setDone({ text: levelDownUndone(done.change!), change: null });
+              })
+            }
+          />
+        ) : null}
+        {error ? <ErrorBanner message={error} /> : null}
+      </View>
+    );
+  }
+  const question = levelDownQuestion(suggestion);
+  return (
+    <View style={styles.notice}>
+      <LiveAnnouncement message={question} />
+      <View style={styles.headingRow}>
+        <Feather name="life-buoy" size={16} color={colors.accent} />
+        <Text style={styles.goalCardTitle} accessibilityRole="header">
+          {question}
+        </Text>
+      </View>
+      <Muted style={{ fontSize: 13 }}>{levelDownWhat(suggestion)}</Muted>
+      <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+        <Button
+          label={LEVEL_DOWN_YES}
+          size="sm"
+          fullWidth={false}
+          disabled={busy}
+          onPress={() =>
+            run(async () => {
+              const change = await onAnswer("yes");
+              setDone({ text: change ? levelDownDone(change) : levelDownSnoozed(), change });
+            })
+          }
+        />
+        <Button
+          label={LEVEL_DOWN_NOT_NOW}
+          accessibilityLabel={`${LEVEL_DOWN_NOT_NOW}: keep this unit at ${LEVEL_NAMES[suggestion.fromLevel]}`}
+          size="sm"
+          variant="ghost"
+          fullWidth={false}
+          disabled={busy}
+          onPress={() =>
+            run(async () => {
+              await onAnswer("not_now");
+              setDone({ text: levelDownSnoozed(), change: null });
+            })
+          }
+        />
       </View>
       {error ? <ErrorBanner message={error} /> : null}
     </View>

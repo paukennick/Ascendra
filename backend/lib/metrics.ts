@@ -100,3 +100,91 @@ export function formatMetrics(m: MetricsSummary): string {
     `Small numbers swing a lot; read percentages with their counts.`,
   ].join("\n");
 }
+
+// ---------------------------------------------------------------------------
+// REQ-256: the per-course goal question (REQ-252, asked where the course is
+// picked since REQ-255), from the course_goal_set events it already writes
+// -- no new tracking. Read-only. docs/learner-levels.md, "Watching the goal
+// question", carries the same query to run by hand; a test keeps the two the
+// same.
+//   via       where it was asked: intake, start, lesson, settings, or "none"
+//             (a REQ-252 build, or an event from before REQ-255)
+//   answered / skipped / dismissed
+//             the outcome (an event from before REQ-255 has no outcome and
+//             was always an answer); dismissed_auto is the lesson card
+//             recorded dismissed after two lessons without an answer
+//   start_settled / start_no_lesson
+//             Start-course sheets older than an hour (so the lesson has had
+//             time to begin), and of those, how many were not followed by a
+//             lesson start (learner_events lesson_started: a first answer or
+//             a saved position) in that course afterwards. A sheet closed
+//             without a tap writes nothing, so it is not counted at all.
+// ---------------------------------------------------------------------------
+export const GOAL_QUESTION_SQL = `
+with g as (
+  select e.user_id, e.track_id, e.created_at,
+         coalesce(e.detail->>'via', 'none') as via,
+         coalesce(e.detail->>'outcome', 'answered') as outcome,
+         e.detail->>'reason' as reason
+    from learner_events e
+   where e.event = 'course_goal_set'
+     and e.created_at >= now() - make_interval(days => $1)
+)
+select g.via,
+       count(*)::int as total,
+       count(*) filter (where g.outcome = 'answered')::int as answered,
+       count(*) filter (where g.outcome = 'skipped')::int as skipped,
+       count(*) filter (where g.outcome = 'dismissed')::int as dismissed,
+       count(*) filter (where g.outcome = 'dismissed' and g.reason = 'auto')::int as dismissed_auto,
+       count(*) filter (where g.via = 'start' and g.created_at < now() - interval '1 hour')::int as start_settled,
+       count(*) filter (where g.via = 'start' and g.created_at < now() - interval '1 hour' and not exists (
+         select 1 from learner_events l
+          where l.user_id = g.user_id and l.track_id = g.track_id
+            and l.event = 'lesson_started' and l.created_at >= g.created_at))::int as start_no_lesson
+  from g
+ group by g.via
+ order by g.via
+`;
+
+export interface GoalQuestionRow {
+  via: string;
+  total: number;
+  answered: number;
+  skipped: number;
+  dismissed: number;
+  dismissedAuto: number;
+  startSettled: number;
+  startNoLesson: number;
+}
+
+export async function goalQuestionSummary(run: Run, days = 30): Promise<GoalQuestionRow[]> {
+  const rows = await run(GOAL_QUESTION_SQL, [days]);
+  return rows.map((r) => ({
+    via: String(r.via ?? "none"),
+    total: Number(r.total ?? 0),
+    answered: Number(r.answered ?? 0),
+    skipped: Number(r.skipped ?? 0),
+    dismissed: Number(r.dismissed ?? 0),
+    dismissedAuto: Number(r.dismissed_auto ?? 0),
+    startSettled: Number(r.start_settled ?? 0),
+    startNoLesson: Number(r.start_no_lesson ?? 0),
+  }));
+}
+
+export function formatGoalQuestion(rows: GoalQuestionRow[], days: number): string {
+  const lines = [`Goal question (course_goal_set) in the last ${days} days`];
+  if (rows.length === 0) return [...lines, `  No answers, skips or dismissals yet.`].join("\n");
+  const start = rows.find((r) => r.via === "start");
+  lines.push(
+    `  Start-course sheets with no lesson start after: ${pct(start?.startNoLesson ?? 0, start?.startSettled ?? 0)}` +
+      ` (sheets older than an hour; a sheet closed without a tap is not recorded)`
+  );
+  for (const r of rows) {
+    lines.push(
+      `  via ${r.via}: ${r.total} -- answered ${r.answered}, skip rate ${pct(r.skipped, r.total)}, ` +
+        `dismiss rate ${pct(r.dismissed, r.total)}` +
+        (r.dismissedAuto ? ` (${r.dismissedAuto} dismissed automatically after two lessons)` : "")
+    );
+  }
+  return lines.join("\n");
+}

@@ -1,9 +1,10 @@
 // REQ-119: `npm run metrics [-- --days 30]` -- activation, D1/D7 retention,
-// reviews per active learner and reported exam results (lib/metrics.ts).
+// reviews per active learner and reported exam results (lib/metrics.ts);
+// REQ-256: and the goal question's outcomes by where it was asked.
 // Read-only. Uses DATABASE_URL like the other scripts.
 import "../supabase/seed/env-local";
 import { query, queryOne, closePool } from "../lib/db";
-import { formatMetrics, metricsSummary } from "../lib/metrics";
+import { formatGoalQuestion, formatMetrics, goalQuestionSummary, metricsSummary } from "../lib/metrics";
 
 async function main() {
   const i = process.argv.indexOf("--days");
@@ -14,6 +15,10 @@ async function main() {
     ? (await queryOne<{ applied_at: Date }>(`select applied_at from schema_migrations where filename = '048_product_basics.sql'`))?.applied_at ?? null
     : null;
   console.log(formatMetrics(await metricsSummary((sql, p) => query(sql, p), days, since)));
+  // REQ-256: the goal question's drop-off and skip/dismiss rates by where it
+  // was asked. Needs 078 (learner_events.detail).
+  console.log("");
+  console.log(formatGoalQuestion(await goalQuestionSummary((sql, p) => query(sql, p), days), days));
 }
 
 main()
