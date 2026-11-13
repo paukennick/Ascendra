@@ -58,7 +58,8 @@ const normOption = (s: string) =>
 // An option that looks like code (a backtick or code symbols) is compared
 // exactly, with only whitespace runs collapsed. Plain-language options keep
 // the loose comparison above, so "Use IAM roles." still duplicates "use IAM roles".
-const CODE_LIKE = /[`=(){}\[\]<>;]/;
+// FAIL-1762: string literals ("ERROR: disk full") and concatenation (a + b) are code too.
+const CODE_LIKE = /[`=(){}\[\]<>;"+]/;
 export const optionKey = (s: string): string =>
   CODE_LIKE.test(s) ? `code:${s.normalize("NFKC").replace(/\s+/g, " ").trim()}` : normOption(s);
 

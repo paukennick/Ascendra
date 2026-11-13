@@ -11,3 +11,8 @@ test("problemKind strips quoted text and numbers, keeping the validator's wordin
   assert.equal(problemKind('Solo question has a duplicate option ("Use IAM roles for EC2").'), 'Solo question has a duplicate option ("…").');
   assert.ok(problemKind("x".repeat(500)).length <= 140);
 });
+
+test("FAIL-1761: an option that itself holds quotes leaks nothing", () => {
+  const k = problemKind('Guided question has a duplicate option (""ERROR: disk full"").');
+  assert.ok(!/disk|ERROR/.test(k), k);
+});
