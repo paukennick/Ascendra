@@ -706,6 +706,31 @@ blueprints take effect 2027-07-01, so both outlines are rechecked by
 2027-04-01. All 24 are `needs_expert_review` until a licensed professional
 counselor approves them.
 
+
+### Python and Linux depth courses (REQ-292)
+
+Nick (2026-11-14): "go deeper in Python and Linux". Four sets, all
+`needs_expert_review`, at the hybrid density unit by unit
+(`lib/depth-courses.test.ts`), one lab per objective, both kinds in every set:
+
+| Course | Labs | Per unit | Built on |
+|---|---|---|---|
+| Python for Automation and Scripting (PYAUTO) | 16 | 2/2/2/2/2/2/1/1/1/1 | Python 3.15 docs, pytest 9.2 |
+| Python for Data Analysis (PYDATA) | 14 | 2/2/2/2/2/1/1/1/1 | pandas 3.1, NumPy 2.5, Matplotlib 3.11 |
+| Linux Fundamentals (LINUXFUND) | 16 | 2/2/2/2/2/2/1/1/1/1 | man-pages 6.19, FHS 3.0, apt(8), DNF reference |
+| Prep for the LFCS (LFCS) | 11 | 3/2/2/2/2 | [LFCS Domains & Competencies](https://training.linuxfoundation.org/certification/linux-foundation-certified-sysadmin-lfcs/) |
+
+The courses without an exam have equal unit weights, so the six extras go to
+the earliest units with room (PYDATA's unit 6 has no objective the
+performance heuristic counts, so its extra is dropped). Linux and LFCS labs
+use `command` parts where one command is the answer (a leading `sudo` is a
+separate accepted form); the LFCS labs leave the two sim objectives (boot
+recovery, LVM) to the terminal sims. Python and pandas behaviors quoted in
+model answers were run on CPython 3.13.18 with pandas 3.0.5, NumPy 2.5.3 and
+Matplotlib 3.11.2 on 2026-11-14 (nothing depends on a 3.14/3.15-only
+feature); command options were checked against their man pages the same day.
+A Python or Linux practitioner must read each before it is approved.
+
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as

@@ -34,6 +34,8 @@ import { REDHAT_TRACKS } from "./tracks/redhat-openshift";
 import { EMS_TRACKS } from "./tracks/ems";
 import { EPPP_TRACKS } from "./tracks/eppp";
 import { NBCC_TRACKS } from "./tracks/nbcc";
+import { PYTHON_DEPTH_TRACKS } from "./tracks/python-depth";
+import { LINUX_DEPTH_TRACKS } from "./tracks/linux";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -75,6 +77,10 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...EPPP_TRACKS,
   // REQ-239: NBCC counseling licensure, NCE and NCMHCE (same category).
   ...NBCC_TRACKS,
+  // REQ-292: Python for Automation and Scripting, Python for Data Analysis.
+  ...PYTHON_DEPTH_TRACKS,
+  // REQ-292: Linux Fundamentals and the Linux Foundation LFCS.
+  ...LINUX_DEPTH_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the

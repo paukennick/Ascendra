@@ -174,6 +174,20 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CKA", "apiserver-static-pod-bad-flag"),
   entry("SECPLUS", "firewall-change-backout"),
   // ---- end REQ-297 ----
+  // ---- REQ-292: LFCS and Linux Fundamentals cases on the terminal screen.
+  // Keep these entries together. ----
+  entry("LFCS", "fstab-uuid-typo-emergency"),
+  entry("LFCS", "lvm-database-volume-full"),
+  entry("LFCS", "report-workers-starve-api"),
+  entry("LFCS", "clock-skew-blocks-logins"),
+  entry("LFCS", "sale-traffic-third-backend"),
+  entry("LFCS", "service-no-restart-after-update"),
+  entry("LINUXFUND", "shared-folder-permission-denied"),
+  entry("LINUXFUND", "web-service-fails-after-edit"),
+  entry("LINUXFUND", "nightly-backup-missing"),
+  entry("PYAUTO", "debug-log-fills-var"),
+  entry("PYDATA", "board-orders-by-region"),
+  // ---- end REQ-292 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
