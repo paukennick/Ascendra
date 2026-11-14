@@ -338,3 +338,52 @@ describe("REQ-292: LFCS and Linux Fundamentals terminal cases", () => {
     }
   });
 });
+
+// REQ-292: the Python data case runs on the terminal screen with a Python
+// prompt and the `data` outcome profile (docs/sims.md 20: harm is a wrong
+// result shipped; sending nothing is safe with no progress).
+describe("REQ-292: Python for Data Analysis on the terminal screen", () => {
+  const e = ALL_DOCUMENTS.find((x) => x.course === "PYDATA" && x.slug === "board-orders-by-region")!;
+  const d = loadDocument(e);
+
+  test("valid, data profile, Python prompt, engine 1.2, dated sources, on a catalog objective", () => {
+    assert.deepEqual(validateScenario(d).map(String), []);
+    assert.equal(d.screen.type, "terminal");
+    assert.equal(d.outcome.profile, "data");
+    assert.equal((d.screen as any).terminal.prompt, ">>>");
+    assert.equal(d.engine.minor, 2);
+    assert.ok(d.endingOrder && d.endingOrder.length >= 2);
+    assert.ok(d.sources.every((s) => s.checkedAt === "2026-11-14"));
+    const titles = new Set(activeUnits(CATALOG_TRACKS.find((t) => t.code === "PYDATA")!).flatMap((u) => u.objectives));
+    assert.ok(titles.has(d.objective));
+    for (const s of d.secondaryObjectives ?? []) assert.ok(titles.has(s), s);
+    assert.ok(selectionFor({ objective: d.objective, unitTitle: "", unitWeight: null, weightsAreExam: false }).qualifies);
+    const errs = lintScenario(d, { now: "2026-11-14", safetyFamily: "general" }).filter((p) => p.level === "error");
+    assert.deepEqual(errs, []);
+  });
+
+  test("goldens reach every ending but time_up and score every criterion met and missed", () => {
+    const g = JSON.parse(readFileSync(e.golden!, "utf8")) as GoldenFile;
+    const endings = new Set(g.paths.map((p) => p.expect.ending));
+    for (const k of Object.keys(d.endings)) if (k !== "time_up") assert.ok(endings.has(k), k);
+    for (const c of d.scoring.criteria) {
+      const seen = new Set(g.paths.map((p) => p.expect.criteria?.[c.id]));
+      assert.ok(seen.has("met") && seen.has("missed"), c.id);
+    }
+  });
+
+  test("count() skips missing values, groupby drops missing keys, size(dropna=False) counts every row", () => {
+    const r = driver(d);
+    assert.equal(r.value("tableTotal"), 19804);
+    r.act("sizeDrop");
+    assert.equal(r.value("tableTotal"), 44298);
+    r.act("sizeAll");
+    assert.equal(r.value("tableTotal"), 48210);
+    r.act("check");
+    assert.notEqual(r.value("assertedAt"), null);
+    const x = driver(d);
+    x.act("dropna");
+    x.act("sizeAll");
+    assert.notEqual(x.value("tableTotal"), 48210, "rows dropped from df stay dropped");
+  });
+});
