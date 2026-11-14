@@ -86,6 +86,7 @@ import { PCEP_LABS } from "./python-pcep";
 import { PCAP_LABS } from "./python-pcap";
 import { SQL_LABS } from "./dev-sql";
 import { TSNODE_LABS } from "./dev-tsnode";
+import { PL300_LABS } from "./microsoft-pl300";
 import { MSHI_LABS } from "./informatics-mshi";
 import { MSCS_LABS } from "./academic-mscs";
 import { CMPCBS_LABS } from "./academic-cmpcbs";
@@ -265,4 +266,5 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   PCAP_LABS,
   SQL_LABS,
   TSNODE_LABS,
+  PL300_LABS,
 ].map(withValueSources);
