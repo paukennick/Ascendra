@@ -13,7 +13,7 @@ import { VALUE_SOURCES } from "../supabase/seed/labs/value-sources";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
 import { unitPlan, type PlanTrack } from "../scripts/generate-labs-lib";
 
-export const SPECIALTY_CODES = ["PCCN", "CEN"] as const;
+export const SPECIALTY_CODES = ["CMSRN", "CEN", "PCCN"] as const;
 const tracks = new Map(CATALOG_TRACKS.map((t) => [t.code, t]));
 const setOf = (code: string) => LAB_SETS.find((s) => s.trackCode === code)!;
 
@@ -59,7 +59,7 @@ describe("REQ-275..278: nursing specialty lab sets", () => {
         assert.ok(!(own.length > 0 && lab.noValueSource), `${code}/${lab.slug}: not both`);
         for (const s of own) {
           assert.match(s.checkedAt, /^\d{4}-\d{2}-\d{2}$/);
-          assert.equal(s.kind, "clinical_guideline");
+          assert.ok(s.kind === "clinical_guideline" || s.kind === "reference", `${lab.slug}: ${s.kind}`);
         }
       }
     });

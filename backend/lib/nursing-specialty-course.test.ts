@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
 import { PCCN_TRACK, PCCN_SIM_OBJECTIVES } from "../supabase/seed/tracks/pccn";
 import { CEN_TRACK, CEN_SIM_OBJECTIVES } from "../supabase/seed/tracks/cen";
+import { CMSRN_TRACK, CMSRN_SIM_OBJECTIVES } from "../supabase/seed/tracks/cmsrn";
 import { courseCategoryOf } from "./billing-config";
 import { clinicalReasoningFrame } from "./prompts";
 import type { SeedTrack } from "../supabase/seed/data";
@@ -131,5 +132,43 @@ describe("REQ-276: Prep for the Certified Emergency Nurse (CEN) Exam", () => {
     const kv = CEN_TRACK.units[10].sources!.flatMap((s) => s.keyValues ?? []).join("\n");
     assert.match(kv, /SpO2 <92%/);
     assert.match(kv, /medical screening examination/);
+  });
+});
+
+describe("REQ-275: Prep for the CMSRN Exam", () => {
+  test("in the catalog once, as a gated nursing specialty certification in the clinical plan, MSNCB as provider", () => {
+    commonChecks(CMSRN_TRACK, "Prep for the Certified Medical-Surgical Registered Nurse (CMSRN) Exam", "nursing-specialty-certifications", /not affiliated with or endorsed by the Medical-Surgical Nursing Certification Board/);
+    assert.equal(CMSRN_TRACK.credential?.providerSlug, "msncb");
+  });
+
+  test("units are MSNCB's five 2023 blueprint domains at 32/15/17/15/21", () => {
+    assert.deepEqual(
+      activeUnits(CMSRN_TRACK).map((u) => [u.title, u.weight]),
+      [
+        ["Patient/Care Management", 32],
+        ["Holistic Patient Care", 15],
+        ["Elements of Interprofessional Care", 17],
+        ["Professional Concepts", 15],
+        ["Nursing Teamwork and Collaboration", 21],
+      ]
+    );
+    const items = CMSRN_TRACK.units.map((u) => Number(/\((\d+) of 125 scored items\)/.exec(u.sources![0].title)![1]));
+    assert.deepEqual(items, [40, 19, 21, 19, 26]);
+    assert.equal(sum(items), 125);
+  });
+
+  test("the credential states MSNCB's format, passing standard and eligibility as read 2026-11-14", () => {
+    const c = CMSRN_TRACK.credential!;
+    assert.equal(c.durationMinutes, 180);
+    assert.match(c.questionFormat!, /150 multiple-choice questions in 3 hours: 125 scored and 25 unscored/);
+    assert.match(c.passingScorePolicy!, /standard score of 95/);
+    assert.match(c.recommendedExperience!, /2,000 practice hours/);
+  });
+
+  test("sim objectives exist with exactly these titles; the Code of Ethics is the 2025 revision", () => {
+    const where = (o: string) => CMSRN_TRACK.units.filter((u) => u.objectives.includes(o)).map((u) => u.title);
+    assert.deepEqual(where(CMSRN_SIM_OBJECTIVES.postopBleed), ["Patient/Care Management"]);
+    assert.deepEqual(where(CMSRN_SIM_OBJECTIVES.delegation), ["Nursing Teamwork and Collaboration"]);
+    assert.ok(CMSRN_TRACK.units[3].objectives.some((o) => /Code of Ethics for Nurses \(2025 revision\)/.test(o)));
   });
 });

@@ -3,5 +3,6 @@
 import type { SeedLabSet } from "./types";
 import { PCCN_LABS } from "./pccn";
 import { CEN_LABS } from "./cen";
+import { CMSRN_LABS } from "./cmsrn";
 
-export const NURSING_SPECIALTY_LAB_SETS: readonly SeedLabSet[] = [PCCN_LABS, CEN_LABS];
+export const NURSING_SPECIALTY_LAB_SETS: readonly SeedLabSet[] = [CMSRN_LABS, CEN_LABS, PCCN_LABS];

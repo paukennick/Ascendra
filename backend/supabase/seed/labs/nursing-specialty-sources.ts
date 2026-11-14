@@ -32,6 +32,8 @@ export const USPSTF_OSTEOPOROSIS_2025 = g("https://www.uspreventiveservicestaskf
 export const USPSTF_HTN_2021 = g("https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/hypertension-in-adults-screening");
 // GINA 2026 (May 2026), read through The Limbic's report (2026-06-09); GINA's
 // own page (read 2026-11-14) dates the executive summary 2026-10-23.
+// ANA news release on the 2025 Code of Ethics revision.
+export const ANA_CODE_2025 = source("https://www.nursingworld.org/news/news-releases/2025/code-of-ethics-for-nurses/", "reference", R);
 export const GINA_2026 = g("https://ginasthma.org/reports/");
 
 // Carried from the repo's earlier readings (dates as read then).
@@ -88,5 +90,18 @@ export const NURSING_SPECIALTY_VALUE_SOURCES: Record<string, Record<string, Sour
     "cen-chemical-eye-burn": { none: "Irrigates to a near-neutral pH as the endpoint; quotes no numeric pH or volume." },
     "cen-carbon-monoxide-cyanide": { none: "Names criteria for discussing hyperbaric oxygen qualitatively; the lactate is the case's own reading." },
     "cen-esi-waiting-room": [ESI_V5],
+  },
+  CMSRN: {
+    "cmsrn-postop-hemorrhage": { none: CASE_DATA },
+    "cmsrn-hypoglycemia-protocol": [ADA_HYPOGLYCEMIA],
+    "cmsrn-restraint-alternatives": [CFR_482_13],
+    "cmsrn-code-status-conversation": { none: NO_VALUE },
+    "cmsrn-health-literacy-teaching": { none: "Teaches warfarin safety without a dose or INR target." },
+    "cmsrn-medication-reconciliation": { none: "Its doses are the fictional patient's list, not doses the lab teaches." },
+    "cmsrn-readmission-risk": { none: NO_VALUE },
+    "cmsrn-who-first": { none: CASE_DATA },
+    "cmsrn-moral-distress": [ANA_CODE_2025],
+    "cmsrn-delegation-five-rights": [NCSBN_ANA_DELEGATION],
+    "cmsrn-disaster-surge": { none: NO_VALUE },
   },
 };
