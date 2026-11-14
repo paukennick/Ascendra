@@ -17888,6 +17888,79 @@
       "prevention_rules": [],
       "prevention_notes": "The existing equality test caught it; a new study-emphasis course must add its code to lib/readiness.ts (now noted in the REQ-287 entry)",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1980",
+      "date": "2026-11-14",
+      "title": "Golden builder accepted a document the schema refuses (teaching choice ids starting with a digit)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "npm run sim:golden -- steps ccrn-se wrote goldens; sims:lint then failed: teaching.levQ.choices.0.id: an id is ^[a-z][a-zA-Z0-9_]{0,47}$ (ids '20', '60').",
+      "how_detected": "sims:lint while authoring",
+      "root_cause": "The golden driver loads and runs the document through the engine without the zod schema, and the engine does not care about id spelling, so a document that will not seed still produces goldens; only the linter checks the schema.",
+      "requirement": "REQ-296",
+      "affected": [
+        "backend/supabase/seed/sims/CCRNADULT/status-epilepticus-after-craniotomy.sim.json"
+      ],
+      "fix_summary": "Renamed the choice ids (by20, at60) and rebuilt the goldens.",
+      "fix_commits": [],
+      "regression_tests": [
+        "lib/sim/clinical-coverage.test.ts registered",
+        "valid",
+        "on its screen",
+        "a fitting objective"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run sims:lint (or the coverage test's schema parse) after every golden build; never treat a successful golden build as validation.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1981",
+      "date": "2026-11-14",
+      "title": "A source URL written from memory instead of from a page that was read",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The first draft of the status epilepticus case cited the CCRN handbook at a URL (aacn.org/certification/get-certified/ccrn-adult) that no earlier case or this session had read; the course's own cases cite the handbook PDF URL.",
+      "how_detected": "author check of every source against the earlier documents before commit",
+      "root_cause": "The author filled in a plausible-looking citation for a relayed source instead of copying the citation the earlier case recorded, which breaks the rule that every source is read or relayed with its date.",
+      "requirement": "REQ-296",
+      "affected": [
+        "backend/supabase/seed/sims/CCRNADULT/status-epilepticus-after-craniotomy.sim.json"
+      ],
+      "fix_summary": "Copied the exact cite, URL and date from the REQ-222 CCRN cases and marked it relayed; every REQ-296 source note now starts with how it was read (Read ... or Relayed ...).",
+      "fix_commits": [],
+      "regression_tests": [
+        "lib/sim/clinical-coverage.test.ts sources say how they were read"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A relayed source is copied verbatim from the document that read it; a source note starts with Read or Relayed.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1983",
+      "date": "2026-11-14",
+      "title": "Adding a DPT sim broke the REQ-232 treatment-session tests",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "DPT_TREATMENT_DOCUMENTS was every DPT entry, while lib/sim/treatment.test.ts asserts exactly 3 documents and DPT_OBJECTIVES lists only the first set's objectives, so a fourth DPT sim fails those tests and the treatment dbtest seeds no objective for it.",
+      "how_detected": "author review of documents.ts before registering the DPT case",
+      "root_cause": "The first set was defined by course, not by name, so it silently grew with every new DPT sim.",
+      "requirement": "REQ-296",
+      "affected": [
+        "backend/lib/sim/documents.ts"
+      ],
+      "fix_summary": "DPT_TREATMENT_DOCUMENTS names the three REQ-232 slugs.",
+      "fix_commits": [],
+      "regression_tests": [
+        "lib/sim/clinical-coverage.test.ts DPT: the REQ-232 first set stays three documents",
+        "lib/sim/treatment.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Fixed test sets are named by slug, never by course.",
+      "recurrence_of": ""
     }
   ]
 }
