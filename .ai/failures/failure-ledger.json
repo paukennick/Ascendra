@@ -17432,6 +17432,32 @@
       "prevention_rules": [],
       "prevention_notes": "Adding a table to lib/recheck-stored.ts or lib/recheck-guard.ts means adding its grant and recheck_read policy in the same migration; the recheck-role DB suite fails if it is missing. Run the whole test:db before committing a migration, not only the new table's suite.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2040",
+      "date": "2026-11-14",
+      "title": "Settings > About showed a version from a different source than the one the app sends",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Settings > About read Constants.expoConfig?.version with a \"1.0.0\" fallback while every request sent APP_VERSION (src/lib/appVersion.ts): a build where the native config was missing or older would show a version the server never saw, and support could not match a report to a version.",
+      "how_detected": "Reading the code for the REQ-300 versioning policy",
+      "root_cause": "Two sources for one fact. REQ-175 added APP_VERSION for the X-Ascendra-App header and a test that it equals app.json, but the older Settings row kept reading expo-constants; nothing checked the screen used the same constant, and package.json and the lockfile were not compared either.",
+      "requirement": "REQ-300",
+      "affected": [
+        "mobile/app/(app)/settings.tsx",
+        "mobile/src/lib/appVersion.ts"
+      ],
+      "fix_summary": "Settings shows APP_VERSION; one test pins APP_VERSION, app.json, package.json and package-lock.json together.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/appVersion.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "docs/versioning.md says the version is set in four places that a test compares, and that a screen shows APP_VERSION, never a second source.",
+      "recurrence_of": ""
     }
   ]
 }

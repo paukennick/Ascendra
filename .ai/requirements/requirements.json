@@ -9728,6 +9728,83 @@
       "risk_notes": [
         "Part 1 already shipped in REQ-252 (nothing built). Part 2 live (migration 082). Part 3 built and OFF (migration 083): no course on, nothing generated, no model called. Visuals and device behavior not checked."
       ]
+    },
+    {
+      "id": "REQ-299",
+      "category": "feature",
+      "title": "What's new opens once as a dialog; earlier updates live on a Release notes screen",
+      "description": "Nick 2026-11-14: Make the What's new pop up in a dialog box, and other previous updates become Release Notes. The newest unseen note appears once as an accessible centered dialog (focus trap, Esc and a Close button, a screen-reader title, reduced motion respected, web and phone); every note, newest first and grouped by date, is on a Release notes screen reached from Settings > About and from the dialog. Seen-state per account and the requires gates are unchanged. Each note shows the app version it shipped in.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/release-notes.ts",
+        "backend/lib/release-notes.test.ts",
+        "mobile/src/components/WhatsNew.tsx",
+        "mobile/src/lib/whatsNew.ts",
+        "mobile/app/(app)/release-notes.tsx",
+        "mobile/app/(app)/whats-new.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/src/content/legal.ts",
+        "docs"
+      ],
+      "acceptance_criteria": [
+        "The newest unseen note shows once in a centered dialog with a title a screen reader reads; Esc",
+        "the Close button",
+        "Got it and the backdrop all close it and mark it seen; reduce motion turns the animation off",
+        "Release notes lists every note newest first grouped by date with each note's app version",
+        "Settings > About and the dialog both open Release notes; /whats-new still opens it",
+        "Seen-state and requires gating behave as before; lib/ship-notes.test.ts still passes"
+      ],
+      "validation_required": [
+        "backend lib/release-notes.test.ts and ship-notes.test.ts",
+        "mobile src/lib/whatsNew.test.ts",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "mobile/src/content/legal.ts FAQ",
+        ".ai/playbooks/release.md",
+        "docs/versioning.md"
+      ],
+      "risk_notes": [
+        "Dialog, Release notes screen, Settings link, redirect, FAQ; mobile whatsNew tests and backend release-notes tests pass"
+      ]
+    },
+    {
+      "id": "REQ-300",
+      "category": "feature",
+      "title": "Application versioning policy and the code that enforces it",
+      "description": "Nick 2026-11-14: write docs/versioning.md and implement the code parts. One app version (semver) with one source of truth, shown in Settings > About and sent as X-Ascendra-App; its relation to the Expo runtime version, OTA updates and store builds, the client protocol number and the Terms version headers; the backend compatibility window (MIN_APP_VERSION and the 426 update prompt, reused); when to bump major, minor, patch; how release notes and the CHANGELOG carry the version; git tags; deprecation steps. A friendly update prompt: web reloads, native tries an over-the-air update first and otherwise opens the store.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "docs/versioning.md",
+        "mobile/src/lib/appVersion.ts",
+        "mobile/src/components/UpdateRequired.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "backend/lib/release-notes.ts",
+        "backend/lib/client-version.ts"
+      ],
+      "acceptance_criteria": [
+        "docs/versioning.md covers every point in the request",
+        "Settings > About shows the same version the app sends",
+        "APP_VERSION app.json package.json and the lockfile cannot drift (test)",
+        "every release note carries a valid app version in non-increasing order",
+        "the update screen on a phone tries an OTA update before showing the store button and web reloads"
+      ],
+      "validation_required": [
+        "mobile src/lib/appVersion.test.ts",
+        "backend lib/release-notes.test.ts",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/versioning.md",
+        "CHANGELOG.md",
+        ".ai/playbooks/release.md"
+      ],
+      "risk_notes": [
+        "docs/versioning.md; version source test; appVersion on notes; OTA-first update prompt. No app.json/eas.json change"
+      ]
     }
   ]
 }
