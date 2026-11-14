@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet, numericPart } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, selectPart, orderPart } from "./types";
 import { source } from "../sources";
 
 // REQ-150: PMI-SP (PMI Scheduling Professional; current ECO when checked on
@@ -410,6 +410,48 @@ export const PMISP_LABS: SeedLabSet = {
               "Formal update",
               "Says the scope and schedule baselines (and any change to the schedule management plan, such as weekly reporting until go-live) are changed only through an approved change request, then communicated to all affected stakeholders.",
               "Raise a change request for the reduced scope and the October release; once the steering group approves, rebaseline and update the plan to weekly schedule reporting until go-live, and tell staff and students what will and won't be available on day one."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Schedule Monitoring and
+    // Controlling (35%) gets its third lab. Values are the fictional
+    // project's own.
+    {
+      slug: "sp-baseline-change-control",
+      objective: "Updating the schedule model and documenting baseline changes through formal change-control processes",
+      kind: "build",
+      title: "Put a baseline change through change control, and spot the shortcuts",
+      brief:
+        "On the Stonebridge Hospital wing build (fictional), the client added a second MRI suite, adding an estimated 18 working days to the fit-out path. The scheduler's change log for the month shows:\n\n1. CR-014 raised by the client: second MRI suite, impact analysis attached.\n2. Planner moved the baseline finish of 'Fit-out level 2' by 18 days directly in the tool, 'to keep variance clean'.\n3. CR-014 approved by the change control board on the 12th.\n4. Forecast dates updated weekly from progress, baseline untouched.\n5. A subcontractor's delay re-baselined by email from the site manager.\n6. New baseline BL-03 saved with the CR number, old baseline BL-02 kept for comparison.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Change log and durations are the fictional project's, given in the brief; no outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the entries that bypass change control, order the proper steps for CR-014, and explain why the baseline is protected.",
+          parts: [
+            selectPart(
+              "Entries that bypass change control",
+              "Met: exactly entry 2 (baseline edited directly before approval) and entry 5 (re-baselined by email). One right and none wrong is partly there.",
+              "Changing a baseline date in the tool, before and outside the approval, hides the variance the baseline exists to show. A re-baseline by email from one person skips the impact analysis and the board. Raising the CR with analysis, the board's approval, weekly forecast updates against an untouched baseline, and saving a new numbered baseline while keeping the old one are all correct practice.",
+              {
+                display: "list",
+                lines: ["1. CR-014 raised with impact analysis attached", "2. Baseline finish moved 18 days directly in the tool, to keep variance clean", "3. CR-014 approved by the change control board", "4. Forecast dates updated weekly from progress, baseline untouched", "5. Subcontractor delay re-baselined by email from the site manager", "6. BL-03 saved with the CR number; BL-02 kept for comparison"],
+                correct: [1, 4],
+              }
+            ),
+            orderPart(
+              "Steps for CR-014",
+              "Met: exactly -- log the change request; analyze schedule impact on a copy of the model (what-if); submit the analysis to the change control board; on approval, update the schedule model with the new work; save a new baseline linked to the CR, keeping the old one; communicate the new baseline and update the change log. One item out of place is partly there.",
+              "The request is logged first, its schedule impact is analyzed on a what-if copy (never the live baseline), and the board decides. Only an approved change goes into the model, after which the new baseline is saved with its CR reference and the old baseline kept, so the history can be reconstructed. Stakeholders are then told what changed and why.",
+              ["Log the change request", "Analyze the schedule impact on a what-if copy of the model", "Submit the analysis to the change control board", "On approval, add the new work to the schedule model", "Save a new baseline linked to the CR, keeping the old one", "Communicate the new baseline and update the change log"]
+            ),
+            part(
+              "Why the baseline is protected",
+              "The baseline is the approved reference for measuring performance (variances, SPI, earned schedule) and for contractual and forensic analysis; changing it informally erases real slippage, breaks EVM and the performance measurement baseline, and loses the audit trail needed for claims; approved scope changes justify a new baseline, but performance problems (like the subcontractor's delay) are managed as variance and recovery, not re-baselined away; entry 5 should be reversed and the delay reported.",
+              "The baseline is the yardstick: schedule variance, SPI and earned schedule are all measured against it, and in a dispute it is the record of what was agreed when. Edit it informally and real slippage disappears from the reports, earned value stops meaning anything, and the trail a claims or delay analysis needs is gone. A new baseline is right when the scope changes through approval, as CR-014 did. The subcontractor's delay is different: it is a performance problem to report and recover, so entry 5 should be reversed, BL-02 or BL-03 restored as the measure, and the delay shown as variance with a recovery plan."
             ),
           ],
         },
