@@ -9595,6 +9595,58 @@
         "Website analytics still not disclosed and not installed; a later version adds both together",
         "No lawyer has reviewed this text"
       ]
+    },
+    {
+      "id": "REQ-261",
+      "category": "legal",
+      "title": "Website analytics on the web app (Vercel Web Analytics and Speed Insights) with Privacy Policy and Cookies 2026-11-14",
+      "description": "Nick 2026-11-11: add Vercel Web Analytics and Speed Insights together with a Privacy Policy version that discloses visitor analytics. They load inside the Expo web app (web platform only, never the native app), once at start, with a beforeSend that strips the query string and fragment and replaces id- and token-like path segments; neither loads when Global Privacy Control or Do Not Track is set; no custom events, nothing user-identifying; off unless EXPO_PUBLIC_WEB_ANALYTICS is on (build-webapp.sh turns it on for Vercel production builds). Privacy sections 2, 3, 4 and 6 and the Cookies page are 2026-11-14 (Terms stay 2026-11-13); the old pair moves to PREVIOUS_LEGAL_VERSIONS and the one before it to EARLIER_LEGAL_VERSIONS.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/src/lib/analyticsPrivacy.ts",
+        "mobile/src/lib/webAnalytics.ts",
+        "mobile/src/lib/webAnalytics.web.ts",
+        "mobile/app/_layout.tsx",
+        "mobile/package.json",
+        "mobile/package-lock.json",
+        "mobile/src/content/legal.ts",
+        "mobile/src/lib/legal.ts",
+        "backend/lib/legal.ts",
+        "backend/app/delete-account/page.tsx",
+        "backend/scripts/build-webapp.sh",
+        "docs/legal/data-inventory.md",
+        "docs/web-analytics.md",
+        "docs/ops/csp.md",
+        "docs/development.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Analytics loads on the web build only and once",
+        "Redaction removes the query string and fragment and replaces ids and tokens in every URL both scripts send",
+        "Global Privacy Control or Do Not Track loads neither script",
+        "The Content-Security-Policy allows the scripts and their endpoints without widening",
+        "Privacy 2 3 4 and 6 and Cookies disclose it only with the cookieless and GPC and DNT facts",
+        "Privacy and Cookies are 2026-11-14 and the Terms 2026-11-13 and no installed build is stranded"
+      ],
+      "validation_required": [
+        "mobile npm test and tsc",
+        "backend npm test and tsc",
+        "backend test:db legal suites",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/web-analytics.md",
+        "docs/legal/data-inventory.md",
+        "docs/ops/csp.md"
+      ],
+      "risk_notes": [
+        "Vercel serves the scripts so their behavior can change without a deploy here",
+        "Analytics and Speed Insights must be enabled in the Vercel dashboard before data appears",
+        "The referrer is sent by Vercel and cannot be redacted by beforeSend",
+        "The Cookies page still describes the web sign-in token as session storage (waiting for Nick)"
+      ]
     }
   ]
 }

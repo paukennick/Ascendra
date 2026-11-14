@@ -40,7 +40,21 @@
 // version: everyone agrees once more. The text moves to US spelling with this
 // version (REQ-220). Website analytics are NOT added here: the old PRs (#115,
 // #116) would only have covered the few server-rendered token pages, not the
-// web app; they need their own design and their own version.
+// web app; they need their own design and their own version. (Added in
+// 2026-11-14, below.)
+//
+// 2026-11-14 (REQ-261, Nick, decided 2026-11-11): website analytics. The web
+// version of Ascendra loads Vercel Web Analytics and Speed Insights
+// (cookieless; mobile/src/lib/webAnalytics.web.ts): the page address with the
+// query string and fragment removed and id-like path parts replaced
+// (analyticsPrivacy.ts), and nothing at all when the browser sends Global
+// Privacy Control or Do Not Track. The mobile app has no analytics. Privacy
+// sections 2, 3, 4 and 6 disclose it and the Cookies page says it stores
+// nothing on the device, so those two documents are version 2026-11-14. The
+// Terms don't change and stay 2026-11-13: backend/lib/legal.ts asks everyone to
+// accept the Privacy Policy once more and nothing else. The sentence that
+// says analytics must be disclosed alongside the cookieless and Global Privacy
+// Control facts is tested (src/lib/legalPrivacy.test.ts).
 
 import { TRADEMARK_OWNERS } from "../lib/vendor";
 
@@ -200,8 +214,8 @@ export const TERMS: LegalDoc = {
 // while paid plans are off.
 export const PRIVACY: LegalDoc = {
   title: "Privacy Policy",
-  version: "2026-11-13",
-  updated: "November 13, 2026",
+  version: "2026-11-14",
+  updated: "November 14, 2026",
   intro:
     "This policy explains what Ascendra stores about you, why, who else handles it, how long it is kept, and what you can do about it. It describes what the app actually stores and sends today.",
   sections: [
@@ -223,7 +237,7 @@ export const PRIVACY: LegalDoc = {
     {
       title: "2. What we don't collect",
       body: [
-        "No advertising or cross-site tracking, no analytics trackers, and no sale or sharing of personal data for advertising. The app itself has no crash-reporting tracker in it; the server's error reports are described in section 4. Biometric unlock is handled entirely by your device's operating system; Ascendra only learns whether it succeeded. Study reminders, if you turn them on, are scheduled on your phone; we don't receive them and use no push service.",
+        "No advertising or cross-site tracking, and no sale or sharing of personal data for advertising. We use analytics only on the website: the web version of Ascendra uses Vercel's cookieless website analytics, with no cookies and nothing stored on your device, and it is not loaded at all if your browser sends Global Privacy Control or Do Not Track (sections 3 and 4). It runs on the web app's pages, not on the pages our emailed links open. The mobile app has no analytics software and no crash-reporting tracker in it; the server's error reports are described in section 4. Biometric unlock is handled entirely by your device's operating system; Ascendra only learns whether it succeeded. Study reminders, if you turn them on, are scheduled on your phone; we don't receive them and use no push service.",
       ],
     },
     {
@@ -233,6 +247,7 @@ export const PRIVACY: LegalDoc = {
         "• To check you're old enough for courses meant for adults (mental health courses).",
         "• To teach: tracking progress, choosing what to show next, grading answers and running the AI coach.",
         "• To check, in aggregate and only ourselves, that Ascendra is actually helping people learn.",
+        "• To see, in aggregate, which pages of the website are used and how fast they load, so we can fix what is slow (section 4).",
         "• To answer support requests and fix reported content.",
         "• To send account email: verification, password resets and security alerts. We don't send marketing email.",
       ],
@@ -242,7 +257,7 @@ export const PRIVACY: LegalDoc = {
       body: [
         "We don't sell your data. These companies process it on our behalf, under their own terms. Because some are in the United States, your data may be processed there as well as in Canada:",
         "• Supabase — hosts the database holding everything above, in Canada.",
-        "• Vercel — runs the website and the server the app talks to, in the United States.",
+        "• Vercel — runs the website and the server the app talks to, in the United States. On the website only, it also provides cookieless analytics (Web Analytics and Speed Insights). For each page you open, your browser sends it the page's address with the query string and anything after a # removed and any part that looks like an ID or a token replaced (for example /course/:id/lesson/:id), the site that sent you (the referrer), how fast the page loaded and which element of the page was slowest (a technical name such as h1), and how fast your connection is; Vercel also sees your browser, operating system, device type and approximate location (country, region and city). It sets no cookies and stores nothing on your device. It tells visitors apart only with a hash of the request that it discards after 24 hours, so it cannot identify you or follow you across sites, and it receives no name, email address or account ID from us. If your browser sends Global Privacy Control or Do Not Track, the analytics scripts are not loaded.",
         "• Anthropic (United States) — the AI provider (Claude models). What it receives is described in section 5.",
         "• Resend — sends account email, receives the email you send to our support address, and delivers support requests and that email to our support inbox, with your email address.",
         "• Expo — delivers app updates to the mobile app.",
@@ -272,6 +287,7 @@ export const PRIVACY: LegalDoc = {
         "• Used or expired one-time codes: 7 days after they expire.",
         "• Email address change requests (so the link we send to your old address can still cancel one): 30 days after they expire.",
         `• AI request counts (section 5): ${AI_COUNTS_MONTHS} months after the request, then deleted.`,
+        "• Website page-view and speed figures (section 4): anonymous, held by Vercel under its own schedule. They are not linked to your account, so they are not in your export and are not removed when you delete your account.",
         "• Encrypted nightly database backups: 30 days, then GitHub deletes them.",
         "• Copies of tables we make inside our own database before a major update, so we can undo it: 30 days, then removed by a weekly clean-up, so never more than 37 days.",
         "Backups: each night we save an encrypted copy of the whole database, including the data in section 1, with GitHub as the backup storage provider. Only we hold the key. If we ever restore a backup, we delete the accounts that were deleted after it was made.",
@@ -280,6 +296,7 @@ export const PRIVACY: LegalDoc = {
         "• The record that a question was reported, with your note erased and no link to you (the question, the reason chosen and the date): kept with no end date, so the fix is not lost. It holds nothing about you.",
         "• Backups already made, which still contain your account: the encrypted nightly backups for at most 30 days after you delete it, and the pre-update copies for at most 37 days. They are not used for anything else, and they are deleted as a whole.",
         "• Our AI provider (Anthropic): inputs and outputs within 30 days, longer only as described in section 5.",
+        "• Website page-view and speed figures at Vercel (section 4): anonymous, never linked to your account, kept under Vercel's own schedule. There is nothing to find or remove by account.",
         "• Sentry: any error report that was sent about a request of yours, for as long as Sentry's own schedule keeps it. It holds no account ID or name.",
         "• Our support inbox, and Resend: the email you sent to our support address, and the copy of any support request we emailed to the inbox, until we delete them. There is no fixed period; ask us at the contact address and we will delete the ones from you. Resend keeps the messages it received under its own schedule.",
         "• Billing records: paid plans are not switched on, so there are none. This section will be updated before they are.",
@@ -316,22 +333,28 @@ export const PRIVACY: LegalDoc = {
 
 export const COOKIES: LegalDoc = {
   title: "Cookies & Device Storage",
-  version: "2026-11-07",
-  updated: "November 7, 2026",
+  version: "2026-11-14",
+  updated: "November 14, 2026",
   sections: [
     {
       title: "What we store on your device",
       body: [
-        "Ascendra uses no advertising, tracking or analytics cookies. To keep you signed in it stores:",
+        "Ascendra uses no advertising or tracking cookies. To keep you signed in it stores:",
         "• In the mobile app: your sign-in token, kept in the operating system's secure storage (iOS Keychain or Android Keystore). If you turn on biometric unlock, a second copy of the token that your device only releases after a fingerprint, face or passcode check, plus a setting that remembers you turned it on.",
         "• On the web: your sign-in token in the browser's session storage, which the browser clears when you close it.",
         "It also keeps your own study work in progress on the device, so nothing is lost if the app closes: unsent answer drafts, your place in a lesson or scenario, and your study reminder settings. Drafts and reminder settings stay on the device; your place in a lesson is also saved to your account so it follows you to another device. Signing out removes all of it from the device.",
       ],
     },
     {
+      title: "Website analytics store nothing on your device",
+      body: [
+        "The web version of Ascendra uses Vercel's cookieless website analytics to count which pages are used and how fast they load. They set no cookies and keep nothing in your browser's local or session storage. The Privacy Policy (sections 3 and 4) says what they receive. The mobile app has no analytics. If your browser sends Global Privacy Control or Do Not Track, the analytics are not loaded at all.",
+      ],
+    },
+    {
       title: "Why there is no consent banner",
       body: [
-        "Storage that is strictly necessary to keep you signed in and keep your own work doesn't need a consent banner. If we ever add anything optional, such as analytics, this page and a consent prompt will come first.",
+        "Storage that is strictly necessary to keep you signed in and keep your own work doesn't need a consent banner. The website analytics store nothing on your device and are not loaded at all if your browser sends Global Privacy Control or Do Not Track, so there is nothing to ask you about either. If we ever add anything that does store data on your device and isn't strictly necessary, this page and a consent prompt will come first.",
       ],
     },
     {

@@ -60,6 +60,15 @@ trap '[ "$had_env_local" = "1" ] && mv "$ENV_LOCAL_BAK" "$ENV_LOCAL"; true' EXIT
 
 cd "$MOBILE_DIR"
 rm -rf dist
+# REQ-261: visitor analytics (Vercel Web Analytics + Speed Insights, loaded
+# by the web app only, mobile/src/lib/webAnalytics.web.ts). On for Vercel
+# production builds, off for previews and local builds. A value already set
+# in the environment (on / off) wins, so it can be turned off for a deploy
+# with no code change: docs/web-analytics.md.
+if [ -z "${EXPO_PUBLIC_WEB_ANALYTICS:-}" ]; then
+  if [ "${VERCEL_ENV:-}" = "production" ]; then EXPO_PUBLIC_WEB_ANALYTICS=on; else EXPO_PUBLIC_WEB_ANALYTICS=off; fi
+fi
+export EXPO_PUBLIC_WEB_ANALYTICS
 # REQ-177: the build id the web bundle compares with GET /api/version, so a
 # tab left open learns a new deploy is out (mobile/src/lib/webVersion.ts).
 # Empty outside Vercel; the check then does nothing.

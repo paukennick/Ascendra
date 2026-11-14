@@ -124,20 +124,53 @@ below).
 | Web: httpOnly cookie `ascendra_rt` set by the server (REQ-192, `lib/auth/refreshCookie.ts`) | sign-in token, unreadable by page scripts | a browser-session cookie with no Max-Age: cleared when the browser closes. The web app keeps no token in `sessionStorage` or `localStorage` (an older one found there is moved into the cookie once) |
 | Web: `localStorage` | lock markers (`autoLock.ts`) | when the page locks after time away |
 
-No analytics, advertising or tracking cookies, in-app crash reporting or advertising identifiers; the one cookie is the sign-in cookie above (server-side error reports: see Sentry below). The Cookies page (`mobile/src/content/legal.ts`) still says the web token is in session storage: that text is waiting for Nick (REQ-228).
+No analytics, advertising or tracking cookies, in-app crash reporting or advertising identifiers; the one cookie is the sign-in cookie above (server-side error reports: see Sentry below). REQ-261 (2026-11-14): the web app also loads Vercel's cookieless Web Analytics and Speed Insights; they set no cookie and, as the app calls them, write nothing to `localStorage` or `sessionStorage` (see "Website analytics" below). The mobile app has no analytics. The Cookies page (`mobile/src/content/legal.ts`) still says the web token is in session storage: that text is waiting for Nick (REQ-228).
 
 ## Outside services (processors)
 
 | Service | Receives | Notes |
 |---|---|---|
 | Supabase | the whole database | hosting, Canada |
-| Vercel | all API traffic | hosting, United States (no region set in `vercel.json`, so Vercel's default US region; confirm in the project settings); request logs on Vercel's side |
+| Vercel | all API traffic; and, from REQ-261, the web app's page views and page-speed figures (Web Analytics, Speed Insights), in the redacted form under "Website analytics" below | hosting, United States (no region set in `vercel.json`, so Vercel's default US region; confirm in the project settings); request logs on Vercel's side; analytics figures are anonymous and held under Vercel's schedule |
 | Anthropic API | coach messages and history (`/api/chat`), written answers for grading (`/api/grade`), pre-lesson guesses (`guess-feedback`), explain-it-back, lab reports and lab step answers, scenario answers (`/api/pbq`), written review answers, unit-check answers, sim reasoning; lesson generation sends only course and objective titles | commercial terms: not used for training; deleted within 30 days unless kept for usage-policy enforcement or law (privacy.claude.com, checked 2026-11-04). Every route above requires the study notice on the server (REQ-205) |
 | Resend | account email; support requests with the user's email as reply-to; from REQ-197 (once switched on) the service emails; **inbound (REQ-205): mail sent to the support address**, which Resend receives and passes to `/api/inbound/email` | Resend keeps received messages under its own schedule |
 | Google | sign-in, only if chosen; **the mailbox behind `SUPPORT_FORWARD_TO`** if it is a Gmail address (the support inbox) | the inbox holds the email people sent to the support address and the support notifications, with no fixed retention period |
 | Expo | app update requests from the mobile app | |
 | GitHub | the nightly backup (REQ-200): the whole database, encrypted with age; GitHub never has the key | Actions artifact, kept 30 days; the manifest (counts) is encrypted too, and the only plaintext beside the backup is a format number and two sha256 values |
 | **Sentry (conditional)** | **only when `ERROR_TRACKER_DSN` is set** (`lib/error-tracker.ts`): the error's name, message (500 characters), stack, request id, route, environment. Never request bodies, headers, tokens, or the learner's id | Nick plans to turn it on, so the Privacy Policy lists Sentry as a processor (section 4) and the delete-account page says its reports follow Sentry's own schedule. If it is never turned on, remove those lines in the same change. An error message can include a fragment of the data being handled. Set the project's retention in Sentry to what you want to stand behind |
+
+## Website analytics (REQ-261, 2026-11-14)
+
+Vercel Web Analytics and Speed Insights, loaded by the web app only
+(`mobile/src/lib/webAnalytics.web.ts`; the native file is empty), once when the
+page loads, and only when the build has `EXPO_PUBLIC_WEB_ANALYTICS=on`
+(`docs/web-analytics.md`). Not loaded on the server-rendered pages (reset
+password, verify email, confirm email change, delete account, unsubscribe).
+Not loaded at all when the browser sends Global Privacy Control or Do Not
+Track (checked once at page load).
+
+What leaves the browser, after `beforeSend` (`mobile/src/lib/analyticsPrivacy.ts`):
+
+| Field | Value |
+|---|---|
+| page address | origin and path only: no query string, no fragment; any path part that looks like an id or a token (UUID, number, 12+ hex, base64-like, email address) is replaced by `:id`, so `/course/<uuid>/lesson/<uuid>?x=1#y` is sent as `/course/:id/lesson/:id` |
+| referrer | the page that linked here, only when it is another site (Vercel's script leaves out a referrer on the same host); the app cannot redact it |
+| Speed Insights | the redacted address, Core Web Vitals (TTFB, FCP, LCP, CLS, INP) with their values, the connection type (for example `4g`), and for LCP, CLS and INP a CSS selector of the slowest element (for example `h1.css-...`; no text) |
+| set by Vercel from the request | time, browser, operating system, device type, country, region and city; a daily visitor hash of the request that Vercel discards after 24 hours |
+
+No custom events and no identify, group or cookie calls (a test fails if the
+loader names any). Nothing about the account: no user id, email or name is
+ever passed to either script. Nothing is stored on the device (observed in a
+browser on 2026-11-13: no cookie, nothing in `localStorage` or
+`sessionStorage`). The scripts come from this site's own origin
+(`/_vercel/insights/script.js`, `/_vercel/speed-insights/script.js`), which the
+app's Content-Security-Policy already allows (`docs/ops/csp.md`).
+
+Account deletion and export: nothing to do. The figures are anonymous and are
+not linked to an account, so they are not in the export and survive deletion;
+the Privacy Policy (sections 2, 3, 4 and 6) and the delete-account page say so.
+Vercel keeps them under its own schedule (which depends on the Vercel plan; not
+checked).
 
 ## Retention jobs
 
