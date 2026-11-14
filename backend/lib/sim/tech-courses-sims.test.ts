@@ -33,7 +33,7 @@ function visibleStrings(v: unknown, out: string[] = []): string[] {
 }
 
 describe("REQ-269 sims for the new technology courses", () => {
-  test("two per course, authored scenarios", { skip: MINE.length < 8 ? "SC500 and AI200 sims pending" : false }, () => {
+  test("two per course, authored scenarios", () => {
     for (const c of Object.keys(SCREEN)) assert.equal(MINE.filter((e) => e.course === c).length, 2, c);
     for (const e of MINE) {
       assert.equal(e.kind, "scenario");

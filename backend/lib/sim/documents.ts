@@ -165,6 +165,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("TSNODE", "node-type-stripping-enum-crash"),
   entry("SC500", "sc500-illicit-consent-grant"),
   entry("SC500", "sc500-backup-vault-sabotage"),
+  entry("AI200", "ai200-containerapp-keyvault-revision"),
+  entry("AI200", "ai200-kql-checkout-latency"),
   // ---- end REQ-269 ----
 ];
 
