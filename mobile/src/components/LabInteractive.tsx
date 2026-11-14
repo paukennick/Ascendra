@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { PanResponder, Pressable, Text, TextInput, View, type LayoutChangeEvent } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { Body, IconButton, MIN_TOUCH, Muted } from "@/components/ui";
+import { answerListProps } from "@/components/StudyShortcuts";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import {
   COMMAND_MAX,
@@ -239,7 +240,10 @@ function SelectField({ input, value, onChange }: Props & { input: Extract<Intera
   const picked = selectFrom(value, input);
   const mono = input.display !== "list";
   return (
-    <View style={{ gap: 2, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, backgroundColor: mono ? colors.bg : colors.cardAlt, padding: spacing.xs }}>
+    <View
+      style={{ gap: 2, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, backgroundColor: mono ? colors.bg : colors.cardAlt, padding: spacing.xs }}
+      {...answerListProps}
+    >
       {input.header ? (
         <Text style={{ color: colors.muted, fontFamily: fonts.monoMedium, fontSize: 12, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs }} accessibilityRole="header">
           {input.header}

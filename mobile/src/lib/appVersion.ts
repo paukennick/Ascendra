@@ -6,10 +6,15 @@
 // (backend/lib/client-version.ts): the server lets those accept the previous
 // Terms version, and asks this build for the current one.
 //
-// APP_VERSION equals `expo.version` in app.json (src/lib/appVersion.test.ts
-// checks). The server compares it with MIN_APP_VERSION; below it, requests
-// are answered 426 { code: "update_required" } and the app shows the
-// "Update required" screen (components/UpdateRequired.tsx).
+// REQ-300 (docs/versioning.md): the ONE app version. `expo.version` in app.json
+// is where it is set (the stores and Expo read it there); this constant mirrors
+// it because the running JavaScript can't read app.json cheaply, and
+// package.json and package-lock.json carry it too. appVersion.test.ts fails
+// when any of the four differ, and Settings > About shows this constant, i.e.
+// exactly what the server is sent. The server compares it with MIN_APP_VERSION;
+// below it, requests are answered 426 { code: "update_required" } and the app
+// shows the "Update required" screen (components/UpdateRequired.tsx,
+// src/lib/updatePrompt.ts).
 export const APP_VERSION = "2.0.0";
 
 export const APP_VERSION_HEADER = "X-Ascendra-App";

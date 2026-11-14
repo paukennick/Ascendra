@@ -9730,6 +9730,226 @@
       ]
     },
     {
+      "id": "REQ-298",
+      "category": "feature",
+      "title": "Full-length mock exams: per-course official exam facts, honest short form, review screen, pass-score reporting",
+      "description": "Owner 2026-11-14. Mock exam = the course's real exam: question count, time limit, domain weights, item types where supported. Per-course facts config (backend/lib/mock-exam-facts.ts) records each exam's facts with source and the day read; courses without an entry fall back to the seeded question_format text and say so. Assembly from the shared bank weighted by domain (largest remainder, official blueprint weights only when the course has them), no repeat within a mock (same item or same stem), items the learner answered or was just served are last choice. When the bank cannot fill every domain the learner gets an honest short form (count and reason, time scaled) and the start screen and a report script show how many items a full form needs and what pre-generating them costs at 3.5 cents an item (report only; nothing generated). Results report the pass score honestly: a scaled/percent number only where the body publishes one, never converted to the official scale. Exam-day experience: server clock, flag/review screen with filters, free navigation, no pause on a timed mock (leaving keeps the clock running), results by domain feeding readiness through counted attempts, review of every answer with its explanation. Plans: Plus one mock a month, Pro unlimited, billing off (everyone Pro) - already in billing-config; unchanged. Hooks left for the N/P/F keyboard builder.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/mock-exam-facts.ts",
+        "backend/lib/mock-form.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/exam-formats.ts",
+        "backend/scripts/mock-bank-report.ts",
+        "mobile/app/(app)/course/[trackId]/exam.tsx",
+        "mobile/src/components/ExamStartFacts.tsx",
+        "mobile/src/components/ExamReview.tsx",
+        "mobile/src/lib/examPractice.ts",
+        "mobile/src/types/exam.ts",
+        "mobile/src/content/legal.ts"
+      ],
+      "acceptance_criteria": [
+        "per-course facts have a source URL and a read date",
+        "a mock has the exam's question count and time when published",
+        "domain allocation sums to the form size",
+        "no item or stem repeats within a mock",
+        "short form shows count and reason",
+        "shortfall and cost computed per course",
+        "pass line never claims the official scale without a published scale",
+        "timer states tested",
+        "review screen filters unanswered and flagged",
+        "FAQ entry",
+        "CHANGELOG learner-facing entry"
+      ],
+      "validation_required": [
+        "mock-exam-facts.test.ts",
+        "mock-form.test.ts",
+        "exam-formats.test.ts",
+        "exam-plan.test.ts",
+        "mobile examPractice.test.ts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog",
+        "faq",
+        "docs/mock-exams.md"
+      ],
+      "risk_notes": [
+        "Official facts change; each entry carries the day read and the review-due date",
+        "Short forms until the bank is pre-generated; generation on mock start stays on (decision for owner)",
+        "PBQ and simulation items are not reproduced",
+        "No pause or scheduled break is simulated",
+        "Built 2026-11-14; DB tests run on a throwaway Postgres; device and screen-reader testing of the review screen still needed"
+      ]
+    },
+    {
+      "id": "REQ-291",
+      "category": "design",
+      "title": "Mastery decay and predicted recall: design and persona simulation (no production change)",
+      "description": "Nick, 2026-11-10: explore per-learner predicted recall (FSRS-style, fitted from each learner's own review history) with a 'needs a refresh' state instead of silent demotion, exam-day predicted recall in readiness, and the per-course goal question as the starting prior (not job titles); the goal sets starting decay, plan pacing, 'what changed' emphasis and review load, and the learner's own history takes over. Approved next step: a short design plus a persona simulation before building. Delivered: docs/mastery-decay-design.md, backend/lib/memory-model.ts (FSRS-6 formulas, goal/level prior, one-parameter personal fit, refresh flag, exam-day recall; not imported by production code), backend/lib/decay-sim.ts and backend/scripts/decay-sim.ts (npm run sim:decay; fixed_v1 vs proposed vs hybrid for 8 personas, simulation with assumed forgetting curves, not learner data).",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "docs/mastery-decay-design.md",
+        "backend/lib/memory-model.ts",
+        "backend/lib/memory-model.test.ts",
+        "backend/lib/decay-sim.ts",
+        "backend/lib/decay-sim.test.ts",
+        "backend/scripts/decay-sim.ts",
+        "backend/package.json",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Design covers model choice cold start fitting needs-a-refresh exam-day recall migration data cost risks and open decisions",
+        "Simulation is deterministic and states it uses assumed forgetting curves",
+        "No production behavior changes (schedulerFor still returns fixed_v1)",
+        "Unit tests pass"
+      ],
+      "validation_required": [
+        "npm test",
+        "tsc",
+        "npm run sim:decay",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/mastery-decay-design.md"
+      ],
+      "risk_notes": [
+        "Simulated numbers depend on assumed curves",
+        "Model is overconfident under the slow-growth assumption"
+      ]
+    },
+    {
+      "id": "REQ-299",
+      "category": "feature",
+      "title": "What's new opens once as a dialog; earlier updates live on a Release notes screen",
+      "description": "Nick 2026-11-14: Make the What's new pop up in a dialog box, and other previous updates become Release Notes. The newest unseen note appears once as an accessible centered dialog (focus trap, Esc and a Close button, a screen-reader title, reduced motion respected, web and phone); every note, newest first and grouped by date, is on a Release notes screen reached from Settings > About and from the dialog. Seen-state per account and the requires gates are unchanged. Each note shows the app version it shipped in.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/release-notes.ts",
+        "backend/lib/release-notes.test.ts",
+        "mobile/src/components/WhatsNew.tsx",
+        "mobile/src/lib/whatsNew.ts",
+        "mobile/app/(app)/release-notes.tsx",
+        "mobile/app/(app)/whats-new.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/src/content/legal.ts",
+        "docs"
+      ],
+      "acceptance_criteria": [
+        "The newest unseen note shows once in a centered dialog with a title a screen reader reads; Esc",
+        "the Close button",
+        "Got it and the backdrop all close it and mark it seen; reduce motion turns the animation off",
+        "Release notes lists every note newest first grouped by date with each note's app version",
+        "Settings > About and the dialog both open Release notes; /whats-new still opens it",
+        "Seen-state and requires gating behave as before; lib/ship-notes.test.ts still passes"
+      ],
+      "validation_required": [
+        "backend lib/release-notes.test.ts and ship-notes.test.ts",
+        "mobile src/lib/whatsNew.test.ts",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "mobile/src/content/legal.ts FAQ",
+        ".ai/playbooks/release.md",
+        "docs/versioning.md"
+      ],
+      "risk_notes": [
+        "Dialog, Release notes screen, Settings link, redirect, FAQ; mobile whatsNew tests and backend release-notes tests pass"
+      ]
+    },
+    {
+      "id": "REQ-300",
+      "category": "feature",
+      "title": "Application versioning policy and the code that enforces it",
+      "description": "Nick 2026-11-14: write docs/versioning.md and implement the code parts. One app version (semver) with one source of truth, shown in Settings > About and sent as X-Ascendra-App; its relation to the Expo runtime version, OTA updates and store builds, the client protocol number and the Terms version headers; the backend compatibility window (MIN_APP_VERSION and the 426 update prompt, reused); when to bump major, minor, patch; how release notes and the CHANGELOG carry the version; git tags; deprecation steps. A friendly update prompt: web reloads, native tries an over-the-air update first and otherwise opens the store.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "docs/versioning.md",
+        "mobile/src/lib/appVersion.ts",
+        "mobile/src/components/UpdateRequired.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "backend/lib/release-notes.ts",
+        "backend/lib/client-version.ts"
+      ],
+      "acceptance_criteria": [
+        "docs/versioning.md covers every point in the request",
+        "Settings > About shows the same version the app sends",
+        "APP_VERSION app.json package.json and the lockfile cannot drift (test)",
+        "every release note carries a valid app version in non-increasing order",
+        "the update screen on a phone tries an OTA update before showing the store button and web reloads"
+      ],
+      "validation_required": [
+        "mobile src/lib/appVersion.test.ts",
+        "backend lib/release-notes.test.ts",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/versioning.md",
+        "CHANGELOG.md",
+        ".ai/playbooks/release.md"
+      ],
+      "risk_notes": [
+        "docs/versioning.md; version source test; appVersion on notes; OTA-first update prompt. No app.json/eas.json change"
+      ]
+    },
+    {
+      "id": "REQ-290",
+      "category": "feature",
+      "title": "Study keyboard shortcuts on the web (K1): 1-4 / A-D choose, Enter, N/P/F in exams, Space pauses sims, ? lists them, off switch in Settings",
+      "description": "Nick, 2026-11-09: study keyboard shortcuts. 1-4 or A-D pick an answer, Enter submits and goes next, Esc closes, N/P/F in exams (next, previous, flag), Space pauses sims, ? lists the shortcuts. Single-key shortcuts act only while focus is in the question area, never in a text field, never with Ctrl/Alt/Meta, and can be turned off in Settings (WCAG 2.1.4 Character Key Shortcuts). Web only: React Native exposes no hardware-keyboard key events to Views on phones. Covers lesson checks, Today's review, Quiz me, comparison practice, exams and mocks, lab steps with a select-lines part, and sims. Screen-reader friendly: Enter and Space are left to buttons and links, the ? list is a labelled dialog that returns focus.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/lib/studyShortcuts.ts",
+        "mobile/src/lib/studyShortcutsDom.ts",
+        "mobile/src/lib/useStudyShortcutsSetting.ts",
+        "mobile/src/components/StudyShortcuts.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/app/(app)/course/[trackId]/exam.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/app/(app)/course/[trackId]/quiz.tsx",
+        "mobile/app/(app)/course/[trackId]/compare.tsx",
+        "mobile/app/(app)/course/[trackId]/lab/[labId].tsx",
+        "mobile/app/(app)/course/[trackId]/sim/[simId].tsx",
+        "mobile/app/(app)/review-session.tsx",
+        "mobile/src/components/teachSteps.tsx",
+        "mobile/src/content/legal.ts",
+        "mobile/e2e/README.md",
+        "CHANGELOG.md",
+        "backend/lib/release-notes.ts"
+      ],
+      "acceptance_criteria": [
+        "Key rules are pure and tested: modifiers",
+        "repeat",
+        "composing",
+        "text fields and controls are never intercepted",
+        "Enter and Space are left to buttons and links",
+        "The setting defaults on and an off switch stops every shortcut including ?",
+        "The ? list is a labelled dialog and Esc closes it",
+        "FAQ entry and CHANGELOG (learner-facing) with a What's new note"
+      ],
+      "validation_required": [
+        "mobile npm test",
+        "mobile npm run typecheck",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "mobile/src/content/legal.ts FAQ",
+        "mobile/e2e/README.md"
+      ],
+      "risk_notes": [
+        "Not run in a real browser against the full app unless the e2e was run",
+        "Screen readers in browse mode may take letter keys before the page sees them",
+        "Space on a sim button stays the button's own"
+      ]
+    },
+    {
       "id": "REQ-296",
       "category": "content",
       "title": "Clinical sims coverage map and more sims for existing clinical courses (launch courses first)",
