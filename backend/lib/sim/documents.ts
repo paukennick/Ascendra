@@ -167,6 +167,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("GCPCDL", "bigquery-dashboard-bill"),
   band("SECPLUS", "vuln-prioritization-kev-edge-secplus"),
   band("SECPLUS", "alert-triage-lolbin-hunt-secplus"),
+  entry("AWSSAA", "waf-login-flood-sqli"),
   // ---- end REQ-297 ----
 ];
 

@@ -28,6 +28,7 @@ export const WAVE3: readonly { course: string; slug: string; screen: string; pro
   { course: "GCPCDL", slug: "bigquery-dashboard-bill", screen: "board", profile: "cloud" },
   { course: "SECPLUS", slug: "vuln-prioritization-kev-edge-secplus", screen: "security-console", profile: "security", kind: "band" },
   { course: "SECPLUS", slug: "alert-triage-lolbin-hunt-secplus", screen: "security-console", profile: "security", kind: "band" },
+  { course: "AWSSAA", slug: "waf-login-flood-sqli", screen: "board", profile: "security" },
 ];
 
 const entryOf = (slug: string) => ALL_DOCUMENTS.find((e) => e.slug === slug)!;
@@ -273,5 +274,40 @@ describe("what each wave 3 case teaches", () => {
     cut.act("revokeDash");
     while (cut.minutes() < 301) cut.act("watch");
     assert.notEqual(cut.value("reviewFailedAt"), null);
+  });
+
+  test("AWS SAA: a security group cannot deny; a 2,000 limit blocks nothing; a 300 limit stops the flood until the botnet goes around an open origin", () => {
+    const d = docOf("waf-login-flood-sqli");
+    const sg = driver(d);
+    sg.act("sgDeny");
+    assert.equal(sg.value("floodAtOrigin"), true);
+    const high = driver(d);
+    high.act("createAcl");
+    high.act("rateRule", { limit: "high" });
+    assert.equal(high.value("floodAtOrigin"), true);
+    const open = driver(d);
+    open.act("createAcl");
+    open.act("rateRule", { limit: "right" });
+    assert.equal(open.value("floodAtOrigin"), false);
+    while (open.minutes() < 31) open.act("watch");
+    assert.notEqual(open.value("bypassAt"), null, "the botnet hits the ALB's own DNS name");
+    assert.equal(open.value("floodAtOrigin"), true);
+    open.act("originLock");
+    assert.equal(open.value("floodAtOrigin"), false, "only CloudFront reaches the origin");
+    assert.equal(open.value("campusBlockedAt"), null);
+  });
+
+  test("AWS SAA: the injection reaches the data at 45 minutes unless the SQL database rule group blocks it; a limit of 10 blocks customers", () => {
+    const d = docOf("waf-login-flood-sqli");
+    const late = driver(d);
+    while (late.minutes() < 46) late.act("watch");
+    assert.notEqual(late.value("dataOutAt"), null);
+    const ok = driver(d);
+    ok.act("createAcl");
+    ok.act("sqliRule");
+    ok.act("rateRule", { limit: "low" });
+    assert.notEqual(ok.value("campusBlockedAt"), null);
+    while (ok.minutes() < 46) ok.act("watch");
+    assert.equal(ok.value("dataOutAt"), null);
   });
 });
