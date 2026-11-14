@@ -1,6 +1,6 @@
 // REQ-109: pure helpers for the practice-exam screen (sprints and mock
 // exams). Kept out of the screen so they can be tested with node --test.
-import type { ExamFormat, ExamItem, ExamResponse } from "../types/exam.ts";
+import type { ExamFormat, ExamItem, ExamMockState, ExamProfile, ExamResponse } from "../types/exam.ts";
 
 // Ordering without drag: move the step at `index` up (-1) or down (+1).
 // Returns a new array; a move past either end changes nothing.
@@ -131,4 +131,123 @@ export function navLabel(i: number, item: Pick<ExamItem, "answered" | "flagged">
 // been confirmed.
 export function examLeaveGuard(allowLeave: boolean, signedIn: boolean): boolean {
   return !allowLeave && signedIn;
+}
+
+// ---------------------------------------------------------------------------
+// REQ-298: the review screen, the timer's states, the start screen's summary,
+// and the actions a keyboard layer can drive.
+// ---------------------------------------------------------------------------
+
+export type ReviewFilter = "all" | "unanswered" | "flagged";
+
+export interface ReviewRow {
+  index: number; // position in the list of questions, 0-based
+  number: number; // the number shown, 1-based
+  unitTitle: string;
+  answered: boolean;
+  flagged: boolean;
+  label: string; // spoken: "Question 4, not answered, flagged for review. Domain."
+}
+
+// The review screen's list, in question order. "unanswered" and "flagged" are
+// the two lists a real exam's review screen offers; a question can be in both.
+export function reviewRows(
+  items: Pick<ExamItem, "answered" | "flagged" | "unitTitle">[],
+  filter: ReviewFilter
+): ReviewRow[] {
+  return items
+    .map((it, index) => ({
+      index,
+      number: index + 1,
+      unitTitle: it.unitTitle,
+      answered: it.answered,
+      flagged: it.flagged,
+      label: `${navLabel(index, it)}. ${it.unitTitle}. Opens the question.`,
+    }))
+    .filter((r) => (filter === "unanswered" ? !r.answered : filter === "flagged" ? r.flagged : true));
+}
+
+// Spoken when the filter changes (LiveAnnouncement), so the new list is not silent.
+export function reviewFilterAnnouncement(filter: ReviewFilter, shown: number): string {
+  const what = filter === "unanswered" ? "unanswered" : filter === "flagged" ? "flagged" : "";
+  if (!shown) return filter === "all" ? "No questions." : `No ${what} questions.`;
+  return `${shown} ${what ? what + " " : ""}question${shown === 1 ? "" : "s"} shown.`;
+}
+
+// The clock's states. "low" is the last minute (the clock turns to the warning
+// colour); "expired" means the server's deadline has passed and the answers
+// saved so far are being submitted. An untimed session has no clock.
+export type TimerState = "untimed" | "running" | "low" | "expired";
+
+export const LOW_TIME_SECONDS = 60;
+
+export function timerState(remainingSecondsLeft: number | null): TimerState {
+  if (remainingSecondsLeft == null) return "untimed";
+  if (remainingSecondsLeft <= 0) return "expired";
+  return remainingSecondsLeft <= LOW_TIME_SECONDS ? "low" : "running";
+}
+
+export interface MockStartSummary {
+  short: boolean;
+  title: string; // "Full-length form: 65 questions" / "Short form: 38 of 65 questions"
+  timeLine: string; // minutes, and how they were set
+  lines: string[]; // plain sentences, in reading order
+}
+
+// The mock card's words, from what the server said about the exam and the
+// bank. Never says "official" for a length that was not read from a source,
+// and never hides a short form.
+export function mockStartSummary(profile: ExamProfile, state: ExamMockState | null): MockStartSummary {
+  const m = profile.mock;
+  const requested = profile.mockQuestions;
+  const canBuild = state ? state.canBuild : requested;
+  const short = !!state?.short && canBuild < requested;
+  const pace = profile.secondsPerQuestion;
+  const minutes = profile.durationMinutes;
+  const timedMinutes = short && pace ? Math.round((pace * canBuild) / 60) : minutes;
+  const timeLine = timedMinutes
+    ? `${timedMinutes} minutes${short ? ", the exam's pace" : m?.confirmed ? ", like the real exam" : ""}${m?.minutesNote ? " (see the note below)" : ""}.`
+    : "The exam's time limit isn't published, so a timed mock allows 90 seconds a question.";
+  const title = short
+    ? `Short form: ${canBuild} of ${requested} questions`
+    : m?.practiceOnly
+      ? `Mixed practice test: ${requested} questions`
+      : `Full-length form: ${requested} questions`;
+  const lines: string[] = [];
+  if (m?.note) lines.push(m.note);
+  if (short && state?.reason) lines.push(state.reason);
+  if (short && state?.thinDomains.length) {
+    lines.push(
+      `Thinnest: ${state.thinDomains
+        .slice(0, 3)
+        .map((d) => `${d.title} (${d.have} of ${d.need})`)
+        .join("; ")}.`
+    );
+  }
+  if (m) {
+    lines.push(
+      m.weights === "exam_blueprint"
+        ? `Questions follow the exam's published domain weights.`
+        : "No body publishes weights for this exam, so questions follow our own study emphasis, not the exam's."
+    );
+  }
+  if (m?.minutesNote) lines.push(m.minutesNote);
+  if (m?.notReproduced) lines.push(`Not in the mock: ${m.notReproduced}.`);
+  if (state && state.repeats > 0 && !short) {
+    lines.push(`${state.repeats} of these are questions you've seen before, so they count for less toward your mastery.`);
+  }
+  return { short, title, timeLine, lines };
+}
+
+// What a keyboard layer (the N / P / F shortcuts) drives. The practice screen
+// builds one of these from its own state and keeps it current; a handler
+// should call these and nothing else, so the screen's rules (save before
+// leaving a question, the clock, the review screen) stay in one place.
+export interface ExamNavActions {
+  previous: () => void; // P
+  next: () => void; // N
+  toggleFlag: () => void; // F
+  openReview: () => void;
+  closeReview: () => void;
+  submit: () => void;
 }
