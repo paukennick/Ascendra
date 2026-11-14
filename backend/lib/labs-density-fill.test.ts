@@ -22,6 +22,7 @@ export const FILLED: Readonly<Record<string, readonly string[]>> = {
   APLUS_CORE1: ["aplus1-cloud-model-by-scenario"],
   NETWORKPLUS: ["route-selection-default-and-pat"],
   LINUXPLUS: ["firewalld-open-https-permanently"],
+  PENTESTPLUS: ["critical-finding-escalation", "read-nmap-service-scan", "password-attack-findings", "session-cookie-weaknesses", "persistence-scoping-and-removal"],
 };
 
 export function ruleFor(code: string): number[] {
