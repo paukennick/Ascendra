@@ -163,10 +163,11 @@ describe("FAIL-1800: AZ-500 and AZ-204 retired WITH replacements", () => {
 });
 
 // Lab sets: the hybrid plan unit by unit, one lab per objective.
-const LAB_CODES = ["PCEP", "PCAP"];
+const LAB_CODES = ["PCEP", "PCAP", "SQL"];
 const EXPECTED_PLAN: Record<string, number[]> = {
   PCEP: [2, 2, 3, 2, 2],
   PCAP: [2, 2, 1, 3, 2, 2],
+  SQL: [2, 2, 2, 2, 2, 2, 1, 1],
 };
 
 describe("REQ-264..268: lab sets", () => {

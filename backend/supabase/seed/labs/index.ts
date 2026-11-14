@@ -84,6 +84,7 @@ import { JAVASCRIPT_LABS } from "./dev-javascript";
 // REQ-264..268 (2026-11-14): new tech courses.
 import { PCEP_LABS } from "./python-pcep";
 import { PCAP_LABS } from "./python-pcap";
+import { SQL_LABS } from "./dev-sql";
 import { MSHI_LABS } from "./informatics-mshi";
 import { MSCS_LABS } from "./academic-mscs";
 import { CMPCBS_LABS } from "./academic-cmpcbs";
@@ -261,4 +262,5 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   // REQ-264..268: PCEP, PCAP, SQL, TSNODE, PL300, SC500, AI200.
   PCEP_LABS,
   PCAP_LABS,
+  SQL_LABS,
 ].map(withValueSources);
