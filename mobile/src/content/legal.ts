@@ -237,7 +237,7 @@ export const PRIVACY: LegalDoc = {
     {
       title: "2. What we don't collect",
       body: [
-        "No advertising or cross-site tracking, and no sale or sharing of personal data for advertising. The one analytics we use is on the website: the web version of Ascendra uses Vercel's cookieless website analytics, with no cookies and nothing stored on your device, and it is not loaded at all if your browser sends Global Privacy Control or Do Not Track (sections 3 and 4). It runs on the web app's pages, not on the pages our emailed links open. The mobile app has no analytics software and no crash-reporting tracker in it; the server's error reports are described in section 4. Biometric unlock is handled entirely by your device's operating system; Ascendra only learns whether it succeeded. Study reminders, if you turn them on, are scheduled on your phone; we don't receive them and use no push service.",
+        "No advertising or cross-site tracking, and no sale or sharing of personal data for advertising. We use analytics only on the website: the web version of Ascendra uses Vercel's cookieless website analytics, with no cookies and nothing stored on your device, and it is not loaded at all if your browser sends Global Privacy Control or Do Not Track (sections 3 and 4). It runs on the web app's pages, not on the pages our emailed links open. The mobile app has no analytics software and no crash-reporting tracker in it; the server's error reports are described in section 4. Biometric unlock is handled entirely by your device's operating system; Ascendra only learns whether it succeeded. Study reminders, if you turn them on, are scheduled on your phone; we don't receive them and use no push service.",
       ],
     },
     {
