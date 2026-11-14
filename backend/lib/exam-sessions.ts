@@ -327,7 +327,7 @@ async function recentlyServed(userId: string, trackId: string): Promise<Set<stri
   const rows = await query<{ item_id: string }>(
     `select distinct si.item_id
        from exam_session_items si join exam_sessions s on s.id = si.session_id
-      where s.user_id = $1 and s.track_id = $2 and s.started_at > now() - make_interval(days => $3::int)`,
+      where s.user_id = $1 and s.track_id = $2 and s.created_at > now() - make_interval(days => $3::int)`,
     [userId, trackId, RECENT_DAYS]
   );
   return new Set(rows.map((r) => r.item_id));
