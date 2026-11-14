@@ -9780,6 +9780,43 @@
         "Screen readers in browse mode may take letter keys before the page sees them",
         "Space on a sim button stays the button's own"
       ]
+    },
+    {
+      "id": "REQ-291",
+      "category": "design",
+      "title": "Mastery decay and predicted recall: design and persona simulation (no production change)",
+      "description": "Nick, 2026-11-10: explore per-learner predicted recall (FSRS-style, fitted from each learner's own review history) with a 'needs a refresh' state instead of silent demotion, exam-day predicted recall in readiness, and the per-course goal question as the starting prior (not job titles); the goal sets starting decay, plan pacing, 'what changed' emphasis and review load, and the learner's own history takes over. Approved next step: a short design plus a persona simulation before building. Delivered: docs/mastery-decay-design.md, backend/lib/memory-model.ts (FSRS-6 formulas, goal/level prior, one-parameter personal fit, refresh flag, exam-day recall; not imported by production code), backend/lib/decay-sim.ts and backend/scripts/decay-sim.ts (npm run sim:decay; fixed_v1 vs proposed vs hybrid for 8 personas, simulation with assumed forgetting curves, not learner data).",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "docs/mastery-decay-design.md",
+        "backend/lib/memory-model.ts",
+        "backend/lib/memory-model.test.ts",
+        "backend/lib/decay-sim.ts",
+        "backend/lib/decay-sim.test.ts",
+        "backend/scripts/decay-sim.ts",
+        "backend/package.json",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Design covers model choice cold start fitting needs-a-refresh exam-day recall migration data cost risks and open decisions",
+        "Simulation is deterministic and states it uses assumed forgetting curves",
+        "No production behavior changes (schedulerFor still returns fixed_v1)",
+        "Unit tests pass"
+      ],
+      "validation_required": [
+        "npm test",
+        "tsc",
+        "npm run sim:decay",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/mastery-decay-design.md"
+      ],
+      "risk_notes": [
+        "Simulated numbers depend on assumed curves",
+        "Model is overconfident under the slow-growth assumption"
+      ]
     }
   ]
 }
