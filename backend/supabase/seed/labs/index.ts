@@ -128,6 +128,8 @@ import { APLUS_CORE2_LABS } from "./comptia-aplus-core2";
 import { EPPP_LABS } from "./eppp";
 import { NCE_LABS } from "./nbcc-nce";
 import { NCMHCE_LABS } from "./nbcc-ncmhce";
+import { ISC2CC_LABS } from "./isc2-cc";
+import { CISSP_LABS } from "./isc2-cissp";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -255,4 +257,7 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   // REQ-239: NBCC counseling exams.
   NCE_LABS,
   NCMHCE_LABS,
+  // REQ-271..273: ISC2, ISACA and EC-Council security courses.
+  ISC2CC_LABS,
+  CISSP_LABS,
 ].map(withValueSources);
