@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, selectPart, matchPart, numericPart, orderPart } from "./types";
 import { source } from "../sources";
 
 // REQ-161: MSCS Foundations Coach (MSCS), the 15-week graduate-CS bridge
@@ -594,6 +594,172 @@ export const MSCS_LABS: SeedLabSet = {
               "Three failures",
               "One per layer with the outcome: network (DNS or balancer failure -> multiple balancer addresses / health checks and anycast, or an outage); application (an API server dies mid-request -> stateless servers behind the balancer mean a retry lands elsewhere; a leaked signing key -> every token can be forged, rotate keys and short expiries); data (primary database fails -> failover to a replica with possible loss of unreplicated writes, or the cache serves stale data until TTL; cache cluster fails -> database takes full load, needs capacity or graceful degradation). States which failures the design survives and which it does not.",
               "Network: the load balancer or DNS fails. With health-checked balancers in two zones and a short DNS TTL the phone reaches another; with one balancer the service is down for everyone, however healthy the API is. Application: an API server crashes mid-request. Because the servers are stateless the client's retry lands on another server and succeeds -- that is why the state lives in the token, the cache and the database, not on the server. If instead the identity service's signing key leaks, every token in the world can be forged until the key is rotated and old tokens expire, which is why expiries are short and keys are rotated. Data: the primary database dies. A replica is promoted; writes acknowledged in the last moments before failover may be lost unless replication was synchronous, and the cache keeps answering from memory for its TTL -- the service survives, slightly stale and briefly read-only. 'The cloud handles it' is true only for the parts someone configured to be handled, and each of these is a decision with a cost."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, units 2-6 take the remaining extra
+    // labs (no exam weights, so the six extras go to the earliest units).
+    // Every answer below was computed with Python 3.13.18 on 2026-11-14
+    // (heap checks, truth-table count, DFS order, topological orders).
+    {
+      slug: "spot-the-broken-heaps",
+      objective: "Explain tree balance and heap invariants",
+      kind: "build",
+      title: "Which arrays are valid min-heaps?",
+      brief:
+        "A priority queue for a fictional ride-dispatch service stores a binary min-heap in an array: the children of index i are at 2i + 1 and 2i + 2. A bug report says some saved queues are corrupt. Six saved arrays:\n\n[2, 5, 3, 9, 6, 4, 8]\n[1, 3, 2, 7, 4, 2, 5]\n[4, 6, 5, 7, 9, 3, 8]\n[1, 2, 3, 4, 5, 6, 7]\n[3, 3, 4, 9, 3, 5, 6]\n[2, 8, 3, 9, 7, 4, 1]",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Every answer is computed from the arrays in the brief (checked in Python on 2026-11-14); no outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the arrays that break the min-heap property, then explain the invariant and how insert restores it.",
+          parts: [
+            selectPart(
+              "Arrays that are not min-heaps",
+              "Met: exactly [4, 6, 5, 7, 9, 3, 8] and [2, 8, 3, 9, 7, 4, 1]. One right and none wrong is partly there.",
+              "In [4, 6, 5, 7, 9, 3, 8] the 5 at index 2 has the child 3 at index 5, which is smaller. In [2, 8, 3, 9, 7, 4, 1] the 3 at index 2 has the child 1 at index 6. The other four satisfy parent <= child everywhere; equal values (the repeated 2s and 3s) are allowed, and a sorted array is always a valid min-heap.",
+              {
+                display: "list",
+                lines: ["[2, 5, 3, 9, 6, 4, 8]", "[1, 3, 2, 7, 4, 2, 5]", "[4, 6, 5, 7, 9, 3, 8]", "[1, 2, 3, 4, 5, 6, 7]", "[3, 3, 4, 9, 3, 5, 6]", "[2, 8, 3, 9, 7, 4, 1]"],
+                correct: [2, 5],
+              }
+            ),
+            part(
+              "The invariant and insert",
+              "States the heap-order property (every parent <= its children, so the minimum is at index 0) and the shape property (a complete tree, filled left to right, which the array layout gives); notes siblings are unordered, so a heap is not sorted. Insert: append at the end, then sift up -- swap with the parent while smaller -- at most the tree height, O(log n). Contrasts with balance in search trees (heights kept O(log n) by rotations) if asked.",
+              "Two invariants: heap order -- each parent is no larger than its children, so the minimum sits at index 0 -- and shape -- the tree is complete, filled level by level from the left, which is exactly what storing it in an array without gaps gives. Nothing orders siblings, so a heap is not a sorted array (though a sorted array is a heap). To insert, append the value at the end (shape kept), then sift up: while it is smaller than its parent at (i - 1) // 2, swap. A complete tree with n nodes has height floor(log2 n), so insert and extract-min are O(log n). That is the heap's form of balance; a search tree keeps balance differently, by rotations."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "truth-table-and-equivalences",
+      objective: "Truth tables and logical equivalence",
+      kind: "build",
+      title: "Count the true rows, then match the equivalences",
+      brief:
+        "A fictional access-control rule reads: allow when (p AND NOT q) OR r, where p = 'user is staff', q = 'account is suspended', r = 'request comes from the break-glass console'. A reviewer wants the truth table counted and three rewrites of related statements checked before the rule ships.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "The count is computed over all 8 rows (checked in Python on 2026-11-14); the equivalences are standard laws of propositional logic.",
+      steps: [
+        {
+          text: "",
+          ask: "Give the number of rows where the rule allows access, match each statement to its equivalent, and show one equivalence with a truth table or law.",
+          parts: [
+            numericPart("Rows where access is allowed", "Met: 5 exactly.", "r true gives 4 rows. With r false, only p = T and q = F is true: 1 more row. 4 + 1 = 5 of 8.", { answer: 5, tolerance: 0, unit: "rows" }),
+            matchPart(
+              "Equivalent statement",
+              "Met: all three right -- NOT (p AND q) is (NOT p) OR (NOT q); p -> q is (NOT q) -> (NOT p); p -> q is (NOT p) OR q. Two right is partly there.",
+              "The first is De Morgan's law. An implication is equivalent to its contrapositive, and also to NOT p OR q. The converse q -> p is NOT equivalent to p -> q, which is why it is the distractor.",
+              {
+                leftHeading: "Statement",
+                rightHeading: "Equivalent",
+                left: ["NOT (p AND q)", "p -> q (as a contrapositive)", "p -> q (without an arrow)"],
+                right: ["(NOT p) OR (NOT q)", "(NOT q) -> (NOT p)", "(NOT p) OR q", "q -> p"],
+                pairs: [0, 1, 2],
+              }
+            ),
+            part(
+              "One equivalence shown",
+              "Proves one of the three, e.g. a four-row truth table for p -> q and (NOT p) OR q giving T, F, T, T in both columns, or a chain of laws; states that two formulas are equivalent when they agree on every row. Explains why the converse fails (p = F, q = T).",
+              "p -> q against (NOT p) OR q, rows (p, q):\n(T, T): T and T\n(T, F): F and F\n(F, T): T and T\n(F, F): T and T\nThe columns agree on all four rows, so the formulas are equivalent. The converse q -> p differs at p = F, q = T (the implication is true, the converse false), so it is not equivalent -- a common slip when rewriting access rules."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "choose-a-sort-by-property",
+      objective: "Compare insertion/merge/quick/heap sort",
+      kind: "build",
+      title: "Pick the sort for four situations",
+      brief:
+        "A fictional library-catalog team needs sorting in four places:\n\nA. Records already sorted by title must be re-sorted by author, keeping titles in order within each author.\nB. An embedded device must sort in place with a guaranteed O(n log n) worst case and almost no extra memory.\nC. A list of 30 items that is nearly sorted, re-sorted after each small edit.\nD. General in-memory sorting where average speed matters most and the worst case can be made unlikely with random pivots.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Uses the standard complexity and stability properties of the four algorithms; no outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each situation to its sort, then explain stability with situation A.",
+          parts: [
+            matchPart(
+              "Sort for each situation",
+              "Met: all four right -- A merge sort (stable, O(n log n)); B heap sort (in place, O(n log n) worst case); C insertion sort (close to O(n) on nearly sorted input, tiny overhead); D quicksort with random pivots (fast average, O(n^2) worst case made unlikely). Three right is partly there.",
+              "Merge sort is stable, so equal authors keep their title order. Heap sort is in place with an O(n log n) worst case, though not stable. Insertion sort does about n comparisons when only a few items are out of place. Quicksort is usually fastest in practice; random pivots make its O(n^2) worst case improbable. Selection sort wins none of these.",
+              {
+                leftHeading: "Situation",
+                rightHeading: "Sort",
+                left: ["A: re-sort by author, keep title order within an author", "B: in place, guaranteed O(n log n), almost no extra memory", "C: 30 nearly sorted items", "D: best average speed, worst case made unlikely"],
+                right: ["Merge sort", "Heap sort", "Insertion sort", "Quicksort with random pivots", "Selection sort"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            part(
+              "Stability, with A",
+              "Defines a stable sort as one that keeps records with equal keys in their original relative order; shows with an example that sorting title-sorted records by author with a stable sort leaves each author's titles alphabetical, while an unstable sort (heap sort, typical quicksort) may shuffle them; notes this is how multi-key sorts are built (sort by the secondary key, then stably by the primary).",
+              "A sort is stable if records with equal keys come out in the same relative order they went in. Start with titles in order: (Austen, Emma), (Bronte, Jane Eyre), (Austen, Persuasion). A stable sort by author gives (Austen, Emma), (Austen, Persuasion), (Bronte, Jane Eyre) -- each author's titles still alphabetical. An unstable sort may output Persuasion before Emma, because nothing tells it to keep their order. That is the standard trick for sorting on two keys: sort by the secondary key first, then stably by the primary."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "dfs-order-by-hand",
+      objective: "DFS",
+      kind: "build",
+      title: "Run depth-first search by hand",
+      brief:
+        "A fictional build tool walks a dependency graph from module A with depth-first search, taking neighbors in alphabetical order and skipping any vertex already visited. The directed edges are:\n\nA -> B, A -> C\nB -> D, B -> E\nC -> F\nE -> F, E -> G\n\nD, F and G have no outgoing edges.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "The visit orders were computed by running DFS and BFS on this graph in Python on 2026-11-14; no outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Put the vertices in the order DFS first visits them, then contrast with BFS and give the complexity.",
+          parts: [
+            orderPart(
+              "DFS visit order",
+              "Met: exactly A, B, D, E, F, G, C. Up to two single moves from that is partly there.",
+              "Start at A, go to its first neighbor B, then B's first neighbor D (a dead end), back to B and on to E, then E's F and G. Back at A, C is next; its only neighbor F is already visited. Order: A, B, D, E, F, G, C.",
+              ["A", "B", "D", "E", "F", "G", "C"]
+            ),
+            part(
+              "BFS contrast and complexity",
+              "BFS from A with the same neighbor order visits level by level: A, B, C, D, E, F, G (F reached first from C at distance 2); DFS goes deep first using a stack (or recursion), BFS uses a queue and finds fewest-edge paths. Both run in O(V + E) with adjacency lists (each vertex and edge handled once); O(V^2) with an adjacency matrix. Mentions DFS uses: cycle detection, topological order, connected components.",
+              "BFS uses a queue and visits by distance: A; then B, C; then D, E, F; then G -- order A, B, C, D, E, F, G. Note F is reached from C at distance 2 in BFS but only after E in DFS. DFS follows one path as deep as it goes before backtracking (a stack, or recursion); BFS gives shortest paths in edge count. With adjacency lists both are O(V + E): every vertex is visited once and every edge looked at once (O(V^2) with a matrix). DFS is the tool for cycle detection, topological sorting and finding components."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "topological-order-of-courses",
+      objective: "Topological sorting",
+      kind: "build",
+      title: "Order the course plan, then find the cycle",
+      brief:
+        "A fictional degree planner lists prerequisites as edges 'X -> Y' meaning X must come before Y:\n\nDiscreteMath -> Intro\nIntro -> DataStructures\nDiscreteMath -> DataStructures\nDataStructures -> Algorithms\nAlgorithms -> OS\nAlgorithms -> Compilers\nOS -> Compilers\n\nAn adviser later adds 'Compilers -> DataStructures' by mistake.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "The ordering was checked by enumerating all orders in Python on 2026-11-14 (exactly one satisfies every edge); no outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Put the six courses in topological order, then explain what the adviser's edge does and how an algorithm detects it.",
+          parts: [
+            orderPart(
+              "Topological order",
+              "Met: exactly DiscreteMath, Intro, DataStructures, Algorithms, OS, Compilers (the only order that satisfies every edge). One item out of place is partly there.",
+              "DiscreteMath has no prerequisites, so it is first. Intro needs only DiscreteMath. DataStructures needs both. Algorithms needs DataStructures; OS needs Algorithms; Compilers needs both Algorithms and OS, so it is last. The OS -> Compilers edge is what makes this order the only one.",
+              ["DiscreteMath", "Intro", "DataStructures", "Algorithms", "OS", "Compilers"]
+            ),
+            part(
+              "The bad edge and detection",
+              "Compilers -> DataStructures creates a cycle (DataStructures -> Algorithms -> OS -> Compilers -> DataStructures), so no topological order exists and the plan is impossible. Detection: Kahn's algorithm (repeatedly remove vertices with in-degree 0; if vertices remain, there is a cycle) or DFS with three colors (an edge to a vertex still on the recursion stack -- a back edge -- means a cycle); both O(V + E). The planner should reject the edge and name the cycle.",
+              "The new edge closes a loop: DataStructures -> Algorithms -> OS -> Compilers -> DataStructures. A topological order exists only for a directed acyclic graph, so with the cycle no valid plan exists -- each of those four courses would have to come before itself. Kahn's algorithm catches it: keep taking courses with no remaining prerequisites; after DiscreteMath and Intro, every remaining course still has one, so the algorithm stops with four left, which proves a cycle. DFS finds it too, as a back edge to a vertex still on the current path. Either way it is O(V + E), and the planner should refuse the edge and show the loop."
             ),
           ],
         },
