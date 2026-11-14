@@ -1,0 +1,1280 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sc500-backup-vault-sabotage",
+  "title": "Incident: a backup admin account is deleting backups at 02:00",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "stopA",
+          "severity": "high",
+          "title": "Backup data deleted for 4 production VMs on vault bv-prod (stop protection with delete data) by backup admin r.khan",
+          "detail": "From 198.51.100.23, an address r.khan has never used, at 01:58.",
+          "when": "true",
+          "at": "0",
+          "status": "{attackerActive ? (isNull(activityAt) ? \"New\" : \"Investigating\") : \"Contained\"}",
+          "open": "attackerActive"
+        },
+        {
+          "id": "softA",
+          "severity": "critical",
+          "title": "Soft delete disabled on vault bv-prod by r.khan",
+          "when": "not isNull(softOffAt)",
+          "at": "timeAt(softOffAt)",
+          "status": "Done",
+          "open": "isNull(purgedAt)"
+        },
+        {
+          "id": "muaBlockA",
+          "severity": "medium",
+          "title": "Blocked: r.khan tried to disable soft delete on bv-prod; MUA requires Resource Guard authorization",
+          "when": "not isNull(muaBlockedAt)",
+          "at": "timeAt(muaBlockedAt)",
+          "status": "Blocked",
+          "open": "false"
+        },
+        {
+          "id": "purgeA",
+          "severity": "critical",
+          "title": "Soft-deleted backup data for 4 VMs permanently deleted",
+          "when": "not isNull(purgedAt)",
+          "at": "timeAt(purgedAt)",
+          "status": "Unrecoverable",
+          "open": "true"
+        },
+        {
+          "id": "ransomA",
+          "severity": "critical",
+          "title": "Defender for Servers: ransomware encrypting files on 4 production VMs",
+          "when": "not isNull(encryptedAt)",
+          "at": "timeAt(encryptedAt)",
+          "status": "Encrypting",
+          "open": "true"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Sign-in logs",
+          "text": "01:52 r.khan signed in from 198.51.100.23 (new country, new device); MFA satisfied by an approved push",
+          "when": "not isNull(signinAt)",
+          "at": "timeAt(signinAt)"
+        },
+        {
+          "id": "e2",
+          "source": "Vault activity",
+          "text": "01:55 backup policy 'daily-30d' retention changed to 1 day; 01:58 stop protection and delete data: app01, app02, db01, files01",
+          "when": "not isNull(activityAt)",
+          "at": "timeAt(activityAt)"
+        },
+        {
+          "id": "e3",
+          "source": "Vault activity",
+          "text": "Backup items for app01, app02, db01, files01 are in the soft-deleted state (kept 14 days)",
+          "when": "not isNull(activityAt)",
+          "at": "timeAt(activityAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Vault activity",
+          "text": "Undelete and resume protection: app01, app02, db01, files01",
+          "when": "not isNull(resumedAt)",
+          "at": "timeAt(resumedAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "acct",
+          "label": "r.khan",
+          "spokenLabel": "Backup admin account r.khan",
+          "kind": "User with Backup Contributor on bv-prod",
+          "status": "{isNull(acctOffAt) ? \"Active; in use from 198.51.100.23\" : \"Sign-in blocked, sessions revoked\"}",
+          "tone": "isNull(acctOffAt) ? \"bad\" : \"held\""
+        },
+        {
+          "id": "vault",
+          "label": "bv-prod",
+          "spokenLabel": "Backup vault bv-prod",
+          "kind": "Backup vault",
+          "status": "{not isNull(softOffAt) ? \"Soft delete OFF\" : \"Soft delete on (14 days)\"}; {muaOn ? \"MUA on\" : \"MUA off\"}",
+          "tone": "not isNull(softOffAt) ? \"bad\" : muaOn ? \"held\" : \"watch\""
+        },
+        {
+          "id": "items",
+          "label": "4 VM backups",
+          "spokenLabel": "Backups of the four production VMs",
+          "kind": "Backup items",
+          "status": "{not isNull(purgedAt) ? \"Permanently deleted\" : not isNull(resumedAt) ? \"Protected again\" : \"Soft-deleted (recoverable)\"}",
+          "tone": "not isNull(purgedAt) ? \"bad\" : not isNull(resumedAt) ? \"ok\" : \"watch\""
+        },
+        {
+          "id": "vms",
+          "label": "app01, app02, db01, files01",
+          "spokenLabel": "The four production VMs",
+          "kind": "Production VMs",
+          "status": "{not isNull(encryptedAt) ? \"Being encrypted\" : vmsOff ? \"Shut down by you\" : \"Running\"}",
+          "tone": "not isNull(encryptedAt) ? \"bad\" : vmsOff ? \"watch\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "recM",
+          "label": "Restorable VM backups",
+          "value": "{isNull(purgedAt) ? 4 : 0|0dp} of 4"
+        },
+        {
+          "id": "caseM",
+          "label": "Case folder",
+          "value": "{isNull(evidenceAt) ? \"empty\" : \"vault activity and sign-in logs exported\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Hardening backups with Azure Backup security features such as soft delete and multi-user authorization",
+  "secondaryObjectives": [
+    "Assigning built-in roles, building custom Azure and Entra roles, and removing overprivileged assignments"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, 'Multi-user authorization using Resource Guard' (Azure Backup), last updated 2026-10-09",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/azure/backup/multi-user-authorization-concept",
+      "note": "Relevant text: MUA 'add[s] a layer of protection to critical operations on your Recovery Services vaults and Backup vaults', using 'another Azure resource called Resource Guard'; critical operations include 'Disable soft delete or security features', 'Remove MUA protection' and 'Modify policy' to 'reduce retention'; 'you can place Resource Guard in a subscription or tenant that's different from the one that contains the vaults', and the backup admin 'must not have Contributor, Backup MUA Admin, or Backup MUA Operator permissions' on it. Read through a summarizing fetch on 2026-11-14."
+    },
+    {
+      "cite": "Microsoft Learn, 'Secure by default with Azure Backup' (soft delete), last updated 2026-08-14",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/azure/backup/secure-by-default",
+      "note": "Relevant text: 'The retention period is 14 days by default. You can extend it up to 180 days'; soft delete is enforced in regions where secure-by-default is in preview or GA, but 'For a Backup vault, in regions other than Australia East, West Central US, and East Asia, you still have the option to disable soft delete from the Azure portal.' Read through a summarizing fetch on 2026-11-14. The scenario's vault is one where soft delete can still be turned off, which is why MUA matters."
+    },
+    {
+      "cite": "Microsoft Graph v1.0, user: revokeSignInSessions (last updated 2025-07-23)",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/graph/api/user-revokesigninsessions?view=graph-rest-1.0",
+      "note": "Relevant text: 'Invalidates all the refresh tokens issued to applications for a user (and session cookies in a user's browser)'; 'there might be a small delay of a few minutes before tokens are revoked.' Read through a summarizing fetch on 2026-11-14."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security engineer on call at Fernhill Analytics, a fictional company on Azure. At 02:05 an alert says the backup admin account r.khan, signed in from an address it has never used, deleted the backup data of four production VMs on the backup vault bv-prod. Deleting backups first is a common step before ransomware. The deleted backups are soft-deleted for 14 days, but on this vault soft delete can still be turned off. Contain the account, protect what can still be recovered, keep the evidence and report.",
+    "handover": [
+      "You own a Resource Guard in the separate security subscription; nobody in the backup team has rights on it. MUA is not yet turned on for bv-prod.",
+      "You have the Security Administrator role in Entra ID and Backup Contributor on bv-prod."
+    ],
+    "howItWorks": [
+      "Each task takes analyst time: choose it, then let the work finish, which moves the clock by the minutes that task takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you declare the incident contained, you notify, write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "02:05",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "softDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. The attacker turns soft delete off at 02:20."
+      }
+    },
+    "purgeDelay": {
+      "value": 1320,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. With soft delete off, the attacker permanently deletes the soft-deleted items at 02:27."
+      }
+    },
+    "ransomDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. Ransomware runs on the VMs at 02:50."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "signinAt": {
+      "type": "time",
+      "init": null
+    },
+    "activityAt": {
+      "type": "time",
+      "init": null
+    },
+    "acctOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "muaAt": {
+      "type": "time",
+      "init": null
+    },
+    "softOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "muaBlockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "purgedAt": {
+      "type": "time",
+      "init": null
+    },
+    "resumedAt": {
+      "type": "time",
+      "init": null
+    },
+    "resumeWasted": {
+      "type": "bool",
+      "init": false
+    },
+    "encryptedAt": {
+      "type": "time",
+      "init": null
+    },
+    "vmsOff": {
+      "type": "bool",
+      "init": false
+    },
+    "vmsOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "retentionAt": {
+      "type": "time",
+      "init": null
+    },
+    "allOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "internal",
+        "nobody"
+      ],
+      "init": "none"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "adminCompromised",
+        "insider",
+        "bug"
+      ],
+      "init": "none"
+    },
+    "preventDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "muaGuard",
+        "newVault",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "attackerActive": {
+      "expr": "isNull(acctOffAt)"
+    },
+    "muaOn": {
+      "expr": "not isNull(muaAt)"
+    },
+    "spread": {
+      "expr": "isNull(softOffAt) ? 0 : 1"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "signins",
+        "activity",
+        "disableAcct",
+        "enableMua",
+        "resume",
+        "retention",
+        "shutdownVms",
+        "preserve",
+        "escalate",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "signins": {
+      "label": "Review r.khan's recent sign-ins",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "if": "isNull(signinAt)",
+          "then": [
+            {
+              "set": "signinAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "r.khan signed in at 01:52 from 198.51.100.23, a new country and device, after approving an MFA push: a takeover, not the admin at work.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "activity": {
+      "label": "Review the vault's activity log for critical operations",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "if": "isNull(activityAt)",
+          "then": [
+            {
+              "set": "activityAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At 01:55 the backup policy's retention was cut to 1 day; at 01:58 protection was stopped with delete data for 4 VMs. Their backups are soft-deleted, recoverable for 14 days.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "disableAcct": {
+      "label": "Block sign-in for r.khan and revoke its sessions",
+      "group": "Contain",
+      "available": "not busy and isNull(acctOffAt)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(acctOffAt)",
+          "then": [
+            {
+              "set": "acctOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "r.khan is blocked from signing in and its refresh tokens are revoked; revocation can take a few minutes to apply everywhere.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "enableMua": {
+      "label": "Turn on MUA for bv-prod with the Resource Guard in the security subscription",
+      "group": "Harden",
+      "available": "not busy and isNull(muaAt)",
+      "why": "Already on.",
+      "effects": [
+        {
+          "if": "isNull(muaAt)",
+          "then": [
+            {
+              "set": "muaAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "MUA is on: disabling soft delete, removing MUA or cutting retention on bv-prod now needs authorization on a Resource Guard the backup team cannot touch.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "resume": {
+      "label": "Undelete the 4 backup items and resume protection",
+      "group": "Recover",
+      "available": "not busy and isNull(resumedAt)",
+      "why": "Already protected.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "not isNull(purgedAt)",
+              "then": [
+                {
+                  "log": "There is nothing to undelete: the backup data was permanently deleted.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "attackerActive",
+              "then": [
+                {
+                  "set": "resumeWasted",
+                  "to": "true"
+                },
+                {
+                  "log": "You undelete the items and resume protection; minutes later r.khan stops protection with delete data again.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "if": "isNull(resumedAt)",
+                  "then": [
+                    {
+                      "set": "resumedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "The 4 backup items are undeleted and protected again with their existing recovery points.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "retention": {
+      "label": "Restore the backup policy's retention to 30 days",
+      "group": "Recover",
+      "available": "not busy and isNull(retentionAt)",
+      "why": "Already restored.",
+      "effects": [
+        {
+          "if": "isNull(retentionAt)",
+          "then": [
+            {
+              "set": "retentionAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Policy 'daily-30d' is back to 30 days.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "shutdownVms": {
+      "label": "Shut down all four production VMs",
+      "group": "Contain",
+      "available": "not busy and not vmsOff",
+      "why": "Already shut down.",
+      "effects": [
+        {
+          "set": "vmsOff",
+          "to": "true"
+        },
+        {
+          "if": "isNull(vmsOffAt)",
+          "then": [
+            {
+              "set": "vmsOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The four production VMs are shut down: the shop and the warehouse system are offline for everyone.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "preserve": {
+      "label": "Export the vault activity log, Entra sign-in and audit logs to the case folder",
+      "group": "Evidence",
+      "available": "not busy and isNull(evidenceAt)",
+      "why": "Already exported.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Vault activity, sign-in and audit logs are exported to the case folder with hashes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Page the incident lead: likely ransomware staging",
+      "group": "Escalate",
+      "available": "not busy and isNull(escalatedAt)",
+      "why": "Already paged.",
+      "effects": [
+        {
+          "if": "isNull(escalatedAt)",
+          "then": [
+            {
+              "set": "escalatedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The incident lead is paged and takes over coordination; the server team starts checking the VMs.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Watch the console for 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Declare the incident contained and write the report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident phase and start the report.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "full",
+              "label": "Incident lead, IT leadership and the service owners of the four systems"
+            },
+            {
+              "value": "internal",
+              "label": "The backup team only"
+            },
+            {
+              "value": "nobody",
+              "label": "No one"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"full\" ? \"incident lead, IT leadership and the service owners\" : who == \"internal\" ? \"the backup team only\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "adminCompromised",
+                  "label": "A backup admin account was taken over (MFA push approved) and used to destroy backups ahead of ransomware"
+                },
+                {
+                  "value": "insider",
+                  "label": "The backup admin acted deliberately"
+                },
+                {
+                  "value": "bug",
+                  "label": "An Azure Backup fault"
+                }
+              ]
+            },
+            {
+              "id": "prevent",
+              "label": "Prevention",
+              "options": [
+                {
+                  "value": "muaGuard",
+                  "label": "MUA with Resource Guard in a separate subscription, soft delete that cannot be turned off, phishing-resistant MFA for admins"
+                },
+                {
+                  "value": "newVault",
+                  "label": "Move backups to a new vault"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing needed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "preventDoc",
+          "to": "prevent"
+        },
+        {
+          "log": "Recorded: cause {cause}, prevention {prevent}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "not attackerActive and isNull(allOffAt)",
+          "then": [
+            {
+              "set": "allOffAt",
+              "to": "t"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "softOff",
+      "when": "t >= softDelay and phase == \"incident\" and attackerActive",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "muaOn",
+          "then": [
+            {
+              "if": "isNull(muaBlockedAt)",
+              "then": [
+                {
+                  "set": "muaBlockedAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "r.khan tried to disable soft delete on bv-prod. MUA blocked it: no Resource Guard authorization.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "if": "isNull(softOffAt)",
+              "then": [
+                {
+                  "set": "softOffAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "r.khan disabled soft delete on bv-prod.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "purge",
+      "when": "t >= purgeDelay and phase == \"incident\" and attackerActive and not isNull(softOffAt) and isNull(resumedAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(purgedAt)",
+          "then": [
+            {
+              "set": "purgedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "r.khan permanently deleted the soft-deleted backup data of the four VMs. It cannot be recovered.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "ransom",
+      "when": "t >= ransomDelay and phase == \"incident\" and attackerActive and not vmsOff",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(encryptedAt)",
+          "then": [
+            {
+              "set": "encryptedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Ransomware is encrypting files on app01, app02, db01 and files01.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident report: what the attacker was doing and why, what you did first and why in that order, and how bv-prod is protected against the next compromised admin.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What was happening",
+          "criteria": "Recognizes deleting backups (and cutting retention, disabling soft delete) as staging for ransomware by a taken-over admin account, from the sign-in and the vault's critical operations.",
+          "modelAnswer": "r.khan was signed in from a new country after an approved MFA push, cut retention and deleted the backups of four VMs: destroying recovery before ransomware."
+        },
+        {
+          "label": "Order of actions",
+          "criteria": "Contains the account first (block sign-in, revoke sessions), protects soft delete with MUA, and only then undeletes and resumes protection, because undeleting while the attacker is in is undone; keeps evidence; avoids taking production down when containing the identity is enough.",
+          "modelAnswer": "I blocked r.khan and revoked its sessions, turned on MUA with the Resource Guard in the security subscription so soft delete could not be disabled, then undeleted the four items and resumed protection, restored retention and exported the logs."
+        },
+        {
+          "label": "Hardening",
+          "criteria": "MUA with a Resource Guard the backup team cannot control (separate subscription or tenant), soft delete kept on with longer retention, phishing-resistant MFA and least privilege for backup admins.",
+          "modelAnswer": "bv-prod keeps MUA with a Resource Guard in another subscription that backup admins have no rights on, soft delete stays on with longer retention, and backup admins move to phishing-resistant MFA and just-in-time roles."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 900,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 15 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Contained before the attacker's 02:20 attempt on soft delete; the scenario's own timing."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "No further vault security setting changed by the attacker after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and attackerActive",
+      "class": "harm",
+      "rationale": "Closing while the taken-over admin account still works leaves the backups and the VMs at the attacker's mercy; it is never a safe outcome.",
+      "source": {
+        "cite": "Microsoft Learn, 'Multi-user authorization using Resource Guard' (Azure Backup), last updated 2026-10-09",
+        "checkedAt": "2026-11-14",
+        "url": "https://learn.microsoft.com/en-us/azure/backup/multi-user-authorization-concept",
+        "note": "Relevant text: MUA 'add[s] a layer of protection to critical operations on your Recovery Services vaults and Backup vaults', using 'another Azure resource called Resource Guard'; critical operations include 'Disable soft delete or security features', 'Remove MUA protection' and 'Modify policy' to 'reduce retention'; 'you can place Resource Guard in a subscription or tenant that's different from the one that contains the vaults', and the backup admin 'must not have Contributor, Backup MUA Admin, or Backup MUA Operator permissions' on it. Read through a summarizing fetch on 2026-11-14."
+      }
+    }
+  },
+  "endings": {
+    "purged": {
+      "label": "Backups permanently deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(purgedAt)",
+      "narrative": "Soft delete was turned off and the four VMs' backups were permanently deleted. There is nothing to restore from."
+    },
+    "encrypted": {
+      "label": "Ransomware ran",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(encryptedAt)",
+      "narrative": "The attacker still held r.khan at 02:50 and ransomware ran on the four production VMs."
+    },
+    "stillIn": {
+      "label": "Closed with the account still active",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and attackerActive",
+      "narrative": "The incident was closed while r.khan still worked for the attacker."
+    },
+    "contained": {
+      "label": "Contained, backups safe",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not isNull(allOffAt) and timeAt(allOffAt) <= containWindow and spread <= containSpread and muaOn and not isNull(resumedAt) and not resumeWasted and not isNull(evidenceAt) and not vmsOff and not isNull(signinAt)",
+      "narrative": "The account was cut off within minutes, MUA guarded the vault, the four backups were undeleted and protected again, the logs were kept and production never went down."
+    },
+    "containedLate": {
+      "label": "Contained, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The attacker is out and the backups exist, but containment came late, soft delete was turned off, production was shut down, or a step was missed."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "purged",
+    "encrypted",
+    "stillIn",
+    "contained",
+    "containedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "containFast",
+        "label": "Cut off the account within 15 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(acctOffAt) and timeAt(acctOffAt) <= containWindow",
+            "score": "met",
+            "why": "r.khan blocked {timeAt(acctOffAt) / 60|0dp} min after the alert."
+          },
+          {
+            "when": "not isNull(acctOffAt)",
+            "score": "partial",
+            "why": "Blocked, but {timeAt(acctOffAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The account was never blocked."
+          }
+        ]
+      },
+      {
+        "id": "backupsSafe",
+        "label": "Kept the backups recoverable and protected again",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(resumedAt) and isNull(purgedAt)",
+            "score": "met",
+            "why": "Undeleted and protected again."
+          },
+          {
+            "when": "isNull(purgedAt)",
+            "score": "partial",
+            "why": "Still recoverable, but not undeleted and protected again."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The backups were permanently deleted."
+          }
+        ]
+      },
+      {
+        "id": "mua",
+        "label": "Guarded the vault with MUA and an independent Resource Guard",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "muaOn and (isNull(softOffAt) or timeAt(muaAt) <= timeAt(softOffAt))",
+            "score": "met",
+            "why": "MUA was on before the attacker could disable soft delete."
+          },
+          {
+            "when": "muaOn",
+            "score": "partial",
+            "why": "MUA came on after soft delete was already off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "MUA was never turned on."
+          }
+        ]
+      },
+      {
+        "id": "orderRight",
+        "label": "Contained before recovering",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not resumeWasted and not isNull(resumedAt)",
+            "score": "met",
+            "why": "Undeleted only once the attacker was out."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{resumeWasted ? \"Undeleted while the attacker was still in, who deleted again.\" : \"The backups were never undeleted.\"}"
+          }
+        ]
+      },
+      {
+        "id": "noOutage",
+        "label": "Contained without taking production down",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not vmsOff",
+            "score": "met",
+            "why": "Production stayed up; containing the identity was enough."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The four production VMs were shut down."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Exported the evidence",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "met",
+            "why": "Vault and sign-in logs are in the case folder."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing was exported."
+          }
+        ]
+      },
+      {
+        "id": "notifiedCrit",
+        "label": "Notified the right people",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified == \"full\"",
+            "score": "met",
+            "why": "Incident lead, IT leadership and service owners."
+          },
+          {
+            "when": "notified == \"internal\"",
+            "score": "partial",
+            "why": "The backup team only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one was notified."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the prevention accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"adminCompromised\" and preventDoc == \"muaGuard\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"adminCompromised\"",
+            "score": "partial",
+            "why": "The cause is right; the prevention is not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written attack, order of actions and hardening",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToContain",
+        "label": "Minutes until the account was blocked",
+        "value": "isNull(acctOffAt) ? -1 : timeAt(acctOffAt) / 60",
+        "format": "number",
+        "expert": "5 or less"
+      },
+      {
+        "id": "recK",
+        "label": "Restorable VM backups at the end",
+        "value": "isNull(purgedAt) ? 4 : 0",
+        "format": "number",
+        "expert": "4"
+      },
+      {
+        "id": "outageK",
+        "label": "Production VMs you shut down",
+        "value": "vmsOff ? 4 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-3 min",
+        "text": "Sign-ins: r.khan from a new country after an approved push. This is a takeover."
+      },
+      {
+        "at": "3-6 min",
+        "text": "Block r.khan's sign-in and revoke its sessions."
+      },
+      {
+        "at": "6-11 min",
+        "text": "Turn on MUA with the Resource Guard in the security subscription, so soft delete cannot be turned off by any backup admin."
+      },
+      {
+        "at": "11-30 min",
+        "text": "Read the vault's activity, undelete and resume protection of the four VMs, restore retention, export the logs, page the incident lead."
+      }
+    ],
+    "debrief": {
+      "contained": {
+        "headline": "Good: contained, backups safe",
+        "body": "Deleting backups is ransomware's first move. You cut off the identity, put the vault's security settings behind a Resource Guard, then recovered the soft-deleted backups."
+      },
+      "containedLate": {
+        "headline": "Contained, with gaps",
+        "body": "The attacker is out. The criteria show what slipped: time, soft delete turned off, a recovery the attacker undid, production shut down, or a step missed."
+      },
+      "purged": {
+        "headline": "Backups gone",
+        "body": "Soft delete only protects while it is on. Block the account first and put MUA in front of the vault's security settings."
+      },
+      "encrypted": {
+        "headline": "Ransomware ran",
+        "body": "The account that deleted the backups was the way in. Blocking it and revoking its sessions takes three minutes."
+      },
+      "stillIn": {
+        "headline": "Closed too soon",
+        "body": "r.khan still worked for the attacker."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A backup admin signed in from a new country after an approved MFA push, cut retention and deleted four VMs' backups: ransomware staging. Block the account and revoke its sessions first; turn on MUA with the Resource Guard in the separate subscription so disabling soft delete, removing MUA or cutting retention needs authorization the backup team cannot give; then undelete and resume protection (doing it while the attacker is in is undone), restore retention, export the logs and escalate. Shutting down production is not needed once the identity is contained."
+  }
+}

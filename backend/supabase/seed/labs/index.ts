@@ -86,6 +86,14 @@ import { ABPTSSCS_LABS } from "./pt-abpts-sports";
 import { ABPTSWMS_LABS } from "./pt-abpts-wound";
 import { PYTHON_LABS } from "./dev-python";
 import { JAVASCRIPT_LABS } from "./dev-javascript";
+// REQ-264..268 (2026-11-14): new tech courses.
+import { PCEP_LABS } from "./python-pcep";
+import { PCAP_LABS } from "./python-pcap";
+import { SQL_LABS } from "./dev-sql";
+import { TSNODE_LABS } from "./dev-tsnode";
+import { PL300_LABS } from "./microsoft-pl300";
+import { SC500_LABS } from "./microsoft-sc500";
+import { AI200_LABS } from "./microsoft-ai200";
 import { MSHI_LABS } from "./informatics-mshi";
 import { MSCS_LABS } from "./academic-mscs";
 import { CMPCBS_LABS } from "./academic-cmpcbs";
@@ -265,4 +273,12 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   PYDATA_LABS,
   LINUXFUND_LABS,
   LFCS_LABS,
+  // REQ-264..268: PCEP, PCAP, SQL, TSNODE, PL300, SC500, AI200.
+  PCEP_LABS,
+  PCAP_LABS,
+  SQL_LABS,
+  TSNODE_LABS,
+  PL300_LABS,
+  SC500_LABS,
+  AI200_LABS,
 ].map(withValueSources);

@@ -188,6 +188,18 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("PYAUTO", "debug-log-fills-var"),
   entry("PYDATA", "board-orders-by-region"),
   // ---- end REQ-292 ----
+  // ---- REQ-269: sims for the new technology courses (SQL and TSNODE on the
+  // terminal screen, SC500 on the security console, AI200 on the terminal).
+  // Keep these entries together. ----
+  entry("SQL", "sql-slow-login-seq-scan"),
+  entry("SQL", "sql-flash-sale-oversold"),
+  entry("TSNODE", "node-env-file-silent-exit"),
+  entry("TSNODE", "node-type-stripping-enum-crash"),
+  entry("SC500", "sc500-illicit-consent-grant"),
+  entry("SC500", "sc500-backup-vault-sabotage"),
+  entry("AI200", "ai200-containerapp-keyvault-revision"),
+  entry("AI200", "ai200-kql-checkout-latency"),
+  // ---- end REQ-269 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
