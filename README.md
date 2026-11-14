@@ -119,6 +119,7 @@ How Ascendra is built, run, tested and deployed lives outside this page:
 - [docs/operations-runbook.md](docs/operations-runbook.md) and [docs/deploy-runbook-integration.md](docs/deploy-runbook-integration.md): running and deploying production
 - [docs/sims.md](docs/sims.md) and [docs/labs.md](docs/labs.md): how sims and labs are designed and graded
 - [docs/release-2026-11-11.md](docs/release-2026-11-11.md) and [CHANGELOG.md](CHANGELOG.md): release notes and every change, newest first
+- [docs/versioning.md](docs/versioning.md): the app version, over-the-air updates against store builds, the supported-version window and when to bump
 - [`.ai/context-brief.md`](.ai/context-brief.md): the engineering rules, requirements registry and checklists the project is built under
 
 ## License

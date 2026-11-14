@@ -4,6 +4,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
 import { ReportProblem } from "@/components/ReportProblem";
+import { ChoiceKey, StudyShortcutArea, answerListProps } from "@/components/StudyShortcuts";
 import type { ReviewAnswerResult, ReviewSession, ReviewSessionItem } from "@/types";
 import { Body, Button, Card, EmptyState, ErrorBanner, H2, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
 import { colors, radius, spacing } from "@/lib/theme";
@@ -218,6 +219,29 @@ export default function ReviewSessionScreen() {
         </Card>
       ) : (
         <Card elevated>
+          {/* REQ-290: with the choices showing, 1-9 or A-D pick, Enter checks and then goes on (web). */}
+          <StudyShortcutArea
+            surface="check"
+            style={{ gap: spacing.sm }}
+            choices={!result && choices ? choices.length : 0}
+            onChoose={(i) => {
+              if (busy || !choices || i >= choices.length) return false;
+              setPicked(i);
+              return `Selected ${i + 1}. ${choices[i]}`;
+            }}
+            onEnter={() => {
+              if (busy) return false;
+              if (result) {
+                resetQuestion();
+                return true;
+              }
+              if (choices && picked != null) {
+                void submit("mc");
+                return true;
+              }
+              return false;
+            }}
+          >
           <Muted numberOfLines={2}>
             {item!.unitTitle} · {item!.objectiveTitle}
           </Muted>
@@ -231,7 +255,7 @@ export default function ReviewSessionScreen() {
 
           {!result ? (
             choices ? (
-              <View style={{ gap: spacing.sm }} accessibilityRole="radiogroup">
+              <View style={{ gap: spacing.sm }} accessibilityRole="radiogroup" {...answerListProps}>
                 {choices.map((c, i) => (
                   <Pressable
                     key={i}
@@ -239,9 +263,10 @@ export default function ReviewSessionScreen() {
                     accessibilityRole="radio"
                     accessibilityLabel={c}
                     accessibilityState={{ checked: picked === i }}
-                    style={[styles.choice, picked === i && styles.choiceActive]}
+                    style={[styles.choice, picked === i && styles.choiceActive, { flexDirection: "row", alignItems: "center", gap: spacing.sm }]}
                   >
                     <Body style={{ flex: 1 }}>{c}</Body>
+                    <ChoiceKey index={i} />
                   </Pressable>
                 ))}
                 <Button label="Check" icon="send" loading={busy} disabled={busy || picked == null} onPress={() => submit("mc")} />
@@ -287,6 +312,7 @@ export default function ReviewSessionScreen() {
               </View>
             </View>
           )}
+          </StudyShortcutArea>
         </Card>
       )}
     </Screen>

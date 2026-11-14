@@ -14,6 +14,7 @@ import {
   type ReleaseNoteGate,
 } from "./release-notes";
 import { unseenNoteIds } from "./whats-new";
+import { compareSemver, parseSemver } from "./client-version";
 
 const ID = /^\d{4}-\d{2}-\d{2}(-[a-z])?$/;
 
@@ -29,6 +30,23 @@ describe("release notes are well formed", () => {
     }
     for (let i = 1; i < ids.length; i++) assert.ok(ids[i - 1] > ids[i], `${ids[i - 1]} before ${ids[i]}`);
     assert.equal(LATEST_RELEASE_NOTE_ID, ids[0]);
+  });
+
+  // REQ-300: each note says which app version it shipped in (docs/versioning.md).
+  test("every note carries a plain semver app version that never goes down as notes get newer, nor above the app's own", () => {
+    const appJson = JSON.parse(readFileSync(join(__dirname, "..", "..", "mobile", "app.json"), "utf8"));
+    const current = parseSemver(appJson.expo.version)!.version;
+    let newer = current;
+    for (const n of RELEASE_NOTES) {
+      assert.match(n.appVersion, /^\d{1,4}\.\d{1,4}\.\d{1,4}$/, `${n.id}: ${n.appVersion} is plain x.y.z`);
+      const v = parseSemver(n.appVersion)!.version;
+      assert.ok(compareSemver(v, newer) <= 0, `${n.id}: ${n.appVersion} is above ${newer.join(".")}, the version of the note before it (or the app)`);
+      newer = v;
+    }
+  });
+
+  test("a note sent to the app names its app version", () => {
+    for (const n of visibleReleaseNotes()) assert.equal(n.appVersion, RELEASE_NOTES.find((r) => r.id === n.id)!.appVersion);
   });
 
   test("titles, items, headlines and bodies stay within their lengths", () => {
@@ -83,6 +101,7 @@ describe("gates", () => {
     {
       id: "2027-01-02",
       date: "2027-01-02",
+      appVersion: "2.2.0",
       title: "Gated",
       requires: "billing",
       items: [{ headline: "a", body: "a." }],
@@ -90,13 +109,14 @@ describe("gates", () => {
     {
       id: "2027-01-01",
       date: "2027-01-01",
+      appVersion: "2.1.0",
       title: "Mixed",
       items: [
         { headline: "open", body: "x." },
         { headline: "billing", body: "y.", requires: "billing" },
       ],
     },
-    { id: "2026-12-01", date: "2026-12-01", title: "Only gated", items: [{ headline: "z", body: "z.", requires: "billing" }] },
+    { id: "2026-12-01", date: "2026-12-01", appVersion: "2.0.0", title: "Only gated", items: [{ headline: "z", body: "z.", requires: "billing" }] },
   ];
   const closed = (g: ReleaseNoteGate | undefined) => g === undefined;
   const open = () => true;
@@ -159,7 +179,7 @@ describe("REQ-228 gates", () => {
 });
 
 describe("unseen notes", () => {
-  const e = (id: string): ReleaseNote => ({ id, date: id.slice(0, 10), title: id, items: [] });
+  const e = (id: string): ReleaseNote => ({ id, date: id.slice(0, 10), appVersion: "2.0.0", title: id, items: [] });
   const entries = [e("2027-02-01"), e("2026-12-24-b"), e("2026-12-24"), e("2026-11-07")];
   test("never dismissed: only the newest, once", () => {
     assert.deepEqual(unseenNoteIds(entries, null), ["2027-02-01"]);
