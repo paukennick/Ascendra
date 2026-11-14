@@ -168,6 +168,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("SECPLUS", "vuln-prioritization-kev-edge-secplus"),
   band("SECPLUS", "alert-triage-lolbin-hunt-secplus"),
   entry("AWSSAA", "waf-login-flood-sqli"),
+  entry("AWSSOA", "rds-update-without-where-pitr"),
   // ---- end REQ-297 ----
 ];
 

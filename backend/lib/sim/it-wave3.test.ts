@@ -29,6 +29,7 @@ export const WAVE3: readonly { course: string; slug: string; screen: string; pro
   { course: "SECPLUS", slug: "vuln-prioritization-kev-edge-secplus", screen: "security-console", profile: "security", kind: "band" },
   { course: "SECPLUS", slug: "alert-triage-lolbin-hunt-secplus", screen: "security-console", profile: "security", kind: "band" },
   { course: "AWSSAA", slug: "waf-login-flood-sqli", screen: "board", profile: "security" },
+  { course: "AWSSOA", slug: "rds-update-without-where-pitr", screen: "board", profile: "cloud" },
 ];
 
 const entryOf = (slug: string) => ALL_DOCUMENTS.find((e) => e.slug === slug)!;
@@ -309,5 +310,41 @@ describe("what each wave 3 case teaches", () => {
     assert.notEqual(ok.value("campusBlockedAt"), null);
     while (ok.minutes() < 46) ok.act("watch");
     assert.equal(ok.value("dataOutAt"), null);
+  });
+
+  test("AWS SOA: a copy restored to the latest restorable time still has the bad UPDATE; a copy on the default security group cannot be reached", () => {
+    const d = docOf("rds-update-without-where-pitr");
+    const latest = driver(d);
+    latest.act("pauseRefunds");
+    latest.act("restore", { point: "latest", sg: "custom" });
+    while (latest.value("restoredReady") !== true) latest.act("watch");
+    latest.act("repair");
+    while (latest.value("repairing") === true) latest.act("watch");
+    assert.equal(latest.value("repaired"), false);
+    const sg = driver(d);
+    sg.act("restore", { point: "pre", sg: "default" });
+    while (sg.value("restoredReady") !== true) sg.act("watch");
+    sg.act("repair");
+    assert.equal(sg.value("repairFailed"), true);
+    assert.equal(sg.value("repairing"), false);
+  });
+
+  test("AWS SOA: a column repair from 13:51 loses nothing; switching to the copy loses every order since; the refund worker refunds until paused", () => {
+    const d = docOf("rds-update-without-where-pitr");
+    const ok = driver(d);
+    ok.act("pauseRefunds");
+    ok.act("restore", { point: "pre", sg: "custom" });
+    while (ok.value("restoredReady") !== true) ok.act("watch");
+    ok.act("repair");
+    while (ok.value("repairing") === true) ok.act("watch");
+    assert.equal(ok.value("repaired"), true);
+    assert.equal(ok.value("lostMin"), 0);
+    assert.equal(ok.value("refundsOut"), 0);
+    const swap = driver(d);
+    swap.act("restore", { point: "pre", sg: "custom" });
+    while (swap.value("restoredReady") !== true) swap.act("watch");
+    swap.act("swap");
+    assert.ok((swap.value("lostMin") as number) > 5);
+    assert.ok((swap.value("refundsOut") as number) >= 1500, "three runs of 500 in the first 30 minutes");
   });
 });
