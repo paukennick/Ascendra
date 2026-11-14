@@ -372,7 +372,7 @@ const LFCS_FORMAT = ref("Important Instructions: LFCS (docs.linuxfoundation.org)
 
 // The objectives the LFCS terminal sims attach to, by exact title.
 export const LFCS_SIM_OBJECTIVES = {
-  fstab: "Recover a system that will not boot because of a bad fstab entry, a damaged filesystem or a failing service, using the emergency and rescue targets",
+  fstab: "Troubleshoot and recover a system that will not boot because of a bad fstab entry, a damaged filesystem or a failing service, using the emergency and rescue targets",
   lvm: "Create and extend LVM physical volumes, volume groups and logical volumes, growing the filesystem with them",
 } as const;
 

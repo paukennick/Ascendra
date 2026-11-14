@@ -1,0 +1,166 @@
+// REQ-292: the two LFCS outages on the terminal screen (docs/sims.md 22.16):
+// boot to emergency mode on a mistyped fstab UUID, and a full database
+// volume grown online with LVM. The same bar as the Linux+ and CKA cases
+// (lib/sim/terminal.test.ts, REQ-237): valid, infrastructure profile, engine
+// 1.2 with an ending order, learner-paced, 3-4 critical criteria, endings in
+// all three classes, goldens that reach every ending but time_up and score
+// every criterion met and missed, commands bounded, no lint error; plus the
+// teaching facts each case turns on.
+import { test, describe } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { ALL_DOCUMENTS, loadDocument } from "./documents.ts";
+import { applyCommand, createRun, lintScenario, readValue, validateScenario, waits } from "./engine/v1/index.ts";
+import type { Command, ScenarioDoc } from "./engine/v1/index.ts";
+import type { GoldenFile } from "./engine/v1/validate.ts";
+import type { Run } from "./engine/v1/engine.ts";
+import { clientDocument } from "./content-hash.ts";
+import { backslashEscapeProblems, safetyFamilyOf, secondsUnitProblems } from "./lint.ts";
+import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
+import { LFCS_SIM_OBJECTIVES } from "../../supabase/seed/tracks/linux";
+import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
+
+const LFCS = ALL_DOCUMENTS.filter((e) => e.course === "LFCS");
+const docOf = (slug: string): ScenarioDoc => loadDocument(LFCS.find((e) => e.slug === slug)!);
+
+function driver(doc: ScenarioDoc) {
+  const run: Run = createRun(doc, 1);
+  let seq = 0;
+  const send = (c: Record<string, unknown>) => {
+    const r = applyCommand(run, { ...c, seq: ++seq, tick: run.state.tick } as Command);
+    assert.ok(r.ok, `${JSON.stringify(c)}: ${r.ok ? "" : r.reason}`);
+  };
+  return {
+    act: (action: string) => {
+      send({ type: "act", action });
+      while (readValue(run, "busy") === true && run.state.phase === "incident") {
+        const w = waits(run)[0];
+        send({ type: "skip", timer: w.timer, instance: w.instance, to: w.due });
+      }
+    },
+    value: (n: string) => readValue(run, n),
+  };
+}
+
+describe("REQ-292: LFCS terminal outages", () => {
+  test("two cases, each valid, on the terminal screen, infrastructure profile, engine 1.2, learner-paced, dated sources", () => {
+    assert.deepEqual(LFCS.map((e) => e.slug), ["fstab-uuid-typo-emergency", "lvm-database-volume-full"]);
+    for (const e of LFCS) {
+      const d = loadDocument(e);
+      assert.deepEqual(validateScenario(d).map(String), [], e.slug);
+      assert.equal(e.kind, "scenario");
+      assert.equal(e.source, "authored");
+      assert.equal(d.screen.type, "terminal");
+      assert.equal(d.outcome.profile, "infrastructure");
+      assert.equal(d.engine.minor, 2);
+      assert.ok(d.endingOrder && d.endingOrder.length >= 2);
+      assert.ok(!Object.values(d.phases).some((p) => p.clock === "running"), `${e.slug}: learner-paced`);
+      assert.equal(safetyFamilyOf(d), "general");
+      const crit = d.scoring.criteria.filter((c) => c.critical).length;
+      assert.ok(crit >= 3 && crit <= 4, `${e.slug}: ${crit} critical criteria`);
+      const classes = new Set(Object.values(d.endings).filter((x) => x.terminal).map((x) => x.class));
+      for (const k of ["target", "recovered", "harm"]) assert.ok(classes.has(k as never), `${e.slug}: ${k}`);
+      for (const k of Object.keys(d.endings)) assert.ok(d.scoring.debrief[k], `${e.slug}: debrief for ${k}`);
+      assert.deepEqual(secondsUnitProblems(d), [], e.slug);
+      assert.deepEqual(backslashEscapeProblems(d), [], e.slug);
+      assert.ok(d.sources.every((s) => s.checkedAt === "2026-11-14"), `${e.slug}: sources dated`);
+      assert.match(d.sources[0].url!, /linux-foundation-certified-sysadmin-lfcs/);
+    }
+  });
+
+  test("each case is on its own LFCS objective, by the exact title the course exports", () => {
+    const track = CATALOG_TRACKS.find((t) => t.code === "LFCS")!;
+    const titles = new Set(activeUnits(track).flatMap((u) => u.objectives));
+    assert.equal(docOf("fstab-uuid-typo-emergency").objective, LFCS_SIM_OBJECTIVES.fstab);
+    assert.equal(docOf("lvm-database-volume-full").objective, LFCS_SIM_OBJECTIVES.lvm);
+    for (const e of LFCS) {
+      const d = loadDocument(e);
+      assert.ok(titles.has(d.objective), d.objective);
+      assert.ok(isPerformanceObjective(d.objective, "general"), d.objective);
+      for (const s of d.secondaryObjectives ?? []) assert.ok(titles.has(s), `${e.slug}: ${s}`);
+    }
+  });
+
+  test("the goldens reach every ending but time_up, every rating, and score every criterion both met and missed", () => {
+    for (const e of LFCS) {
+      const d = loadDocument(e);
+      const g = JSON.parse(readFileSync(e.golden!, "utf8")) as GoldenFile;
+      assert.ok(g.paths.length >= 5 && g.paths.length <= 6, `${e.slug}: 5-6 golden paths`);
+      const endings = new Set(g.paths.map((p) => p.expect.ending));
+      for (const k of Object.keys(d.endings)) if (k !== "time_up") assert.ok(endings.has(k), `${e.slug}: no golden path reaches ${k}`);
+      const ratings = new Set(g.paths.map((p) => p.expect.rating));
+      for (const r of ["good", "bad"]) assert.ok(ratings.has(r as never), `${e.slug}: ${r}`);
+      for (const c of d.scoring.criteria) {
+        const seen = new Set(g.paths.map((p) => p.expect.criteria?.[c.id]));
+        assert.ok(seen.has("met") && seen.has("missed"), `${e.slug}: ${c.id} met and missed (${[...seen].join(",")})`);
+      }
+    }
+  });
+
+  test("commands are bounded, and the client document keeps the bindings and drops the rubric", () => {
+    for (const e of LFCS) {
+      const d = loadDocument(e);
+      for (const id of d.phases.incident.actions) for (const p of d.actions[id].params ?? []) assert.equal(p.kind, "choice", `${e.slug}.${id}`);
+      const c = clientDocument(d) as unknown as Record<string, any>;
+      assert.ok(c.screen.terminal.nodes.length >= 1);
+      assert.equal(c.scoring, undefined);
+    }
+  });
+
+  test("fstab: editing needs root remounted rw, and a fixed fstab boots only after daemon-reload", () => {
+    const r = driver(docOf("fstab-uuid-typo-emergency"));
+    r.act("fixUuid");
+    assert.equal(r.value("uuidFixedAt"), null, "root is read-only in emergency mode");
+    r.act("remountRw");
+    r.act("fixUuid");
+    assert.notEqual(r.value("uuidFixedAt"), null);
+    r.act("continueBoot");
+    assert.equal(r.value("bootedAt"), null, "systemd still has the old mount unit");
+    assert.equal(r.value("failedBoots"), 1);
+    r.act("remountRw");
+    r.act("daemonReload");
+    r.act("continueBoot");
+    assert.notEqual(r.value("bootedAt"), null);
+    assert.equal(r.value("dataOk"), true);
+  });
+
+  test("fstab: commenting the line out boots the host without the data disk", () => {
+    const r = driver(docOf("fstab-uuid-typo-emergency"));
+    r.act("remountRw");
+    r.act("commentOut");
+    r.act("daemonReload");
+    r.act("continueBoot");
+    assert.notEqual(r.value("bootedAt"), null);
+    assert.equal(r.value("dataOk"), false);
+    assert.equal(r.value("faultsAdded"), 1);
+  });
+
+  test("LVM: lvextend has nothing to allocate until vgextend, and without -r the filesystem stays 20G", () => {
+    const r = driver(docOf("lvm-database-volume-full"));
+    r.act("lvextend");
+    assert.equal(r.value("lvGrownAt"), null, "no free extents in vg_data");
+    r.act("vgextend");
+    r.act("lvextend");
+    assert.notEqual(r.value("lvGrownAt"), null);
+    assert.equal(r.value("grown"), false, "the XFS filesystem is still 20G");
+    r.act("resize2fs");
+    assert.equal(r.value("grown"), false, "resize2fs does not grow XFS");
+    r.act("xfsGrowfs");
+    assert.equal(r.value("grown"), true);
+  });
+
+  test("LVM: pvcreate -ff on the in-use disk breaks the volume group", () => {
+    const r = driver(docOf("lvm-database-volume-full"));
+    r.act("pvcreateForce");
+    r.act("vgextend");
+    assert.equal(r.value("vgExtended"), false);
+    assert.equal(r.value("faultsAdded"), 1);
+  });
+
+  test("no lint error on either document", () => {
+    for (const e of LFCS) {
+      const errs = lintScenario(loadDocument(e), { now: "2026-11-14", safetyFamily: "general" }).filter((p) => p.level === "error");
+      assert.deepEqual(errs, [], e.slug);
+    }
+  });
+});

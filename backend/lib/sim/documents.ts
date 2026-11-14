@@ -156,6 +156,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTPARAMEDIC", "inferior-stemi-cath-alert"),
   entry("NREMTPARAMEDIC", "infant-respiratory-failure"),
   // ---- end REQ-241 ----
+  // ---- REQ-292: LFCS outages on the terminal screen. Keep these entries
+  // together. ----
+  entry("LFCS", "fstab-uuid-typo-emergency"),
+  entry("LFCS", "lvm-database-volume-full"),
+  // ---- end REQ-292 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
