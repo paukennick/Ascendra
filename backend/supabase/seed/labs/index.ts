@@ -145,6 +145,8 @@ import { ISC2CC_LABS } from "./isc2-cc";
 import { CISSP_LABS } from "./isc2-cissp";
 import { CISM_LABS } from "./isaca-cism";
 import { CEH_LABS } from "./eccouncil-ceh";
+// REQ-275..278: nursing specialty and advanced practice courses.
+import { NURSING_SPECIALTY_LAB_SETS } from "./nursing-specialty";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -290,4 +292,5 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   CISSP_LABS,
   CISM_LABS,
   CEH_LABS,
+  ...NURSING_SPECIALTY_LAB_SETS,
 ].map(withValueSources);

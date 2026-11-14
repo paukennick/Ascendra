@@ -42,6 +42,8 @@ import { MICROSOFT_2026_TRACKS } from "./tracks/microsoft-2026";
 import { ISC2_TRACKS } from "./tracks/isc2";
 import { ISACA_TRACKS } from "./tracks/isaca";
 import { ECCOUNCIL_TRACKS } from "./tracks/eccouncil";
+// REQ-275..278: nursing specialty and advanced practice certifications.
+import { NURSING_SPECIALTY_TRACKS } from "./tracks/nursing-specialty";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -98,6 +100,8 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...ISC2_TRACKS,
   ...ISACA_TRACKS,
   ...ECCOUNCIL_TRACKS,
+  // REQ-275..278: CMSRN, CEN, PCCN and the two FNP exams (AANPCB, ANCC).
+  ...NURSING_SPECIALTY_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the
