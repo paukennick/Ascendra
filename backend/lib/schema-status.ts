@@ -512,6 +512,19 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                          and pg_get_constraintdef(oid) like '%''lesson_variant''%') as ok`,
   },
   {
+    // REQ-301: every review is followed by a savepointed write of the shadow
+    // prediction (lib/decay-shadow.ts). The code tolerates the columns being
+    // absent (the write is skipped and logged), so this is a soft dependency:
+    // without it nothing is stored for calibration, and nothing else breaks.
+    migration: "085_review_shadow_prediction.sql",
+    what: "review_log.predicted_recall and the model_* columns (the shadow-mode predicted recall and the model state it used, REQ-301; without them no prediction is stored and calibration has nothing to read)",
+    sql: `select (select count(*) from information_schema.columns
+                    where table_schema = 'public' and table_name = 'review_log'
+                      and column_name in ('predicted_recall', 'model_stability', 'model_difficulty', 'model_k',
+                                          'model_fit_stage', 'model_goal', 'model_level', 'model_version', 'model_source')) = 9
+             and exists(select 1 from pg_constraint where conname = 'review_log_shadow_085' and conrelid = 'review_log'::regclass) as ok`,
+  },
+  {
     // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
     migration: "074_independent_confirmation.sql",
     what: "the 074 mastery_detail() (Independent needs a second unassisted correct answer 24 h after the first)",

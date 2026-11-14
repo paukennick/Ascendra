@@ -6900,7 +6900,7 @@
       "id": "REQ-197",
       "category": "product/engagement",
       "title": "Smart study reminders, service emails, dictation tip, next store build plan",
-      "description": "Nick-approved 2026-11-09. (1) Local study reminders built from GET /api/reminders/plan: one topic a day ranked Needs review, then days overdue x exam weight, then lapses (fixed_v1 ladder; DuePriority interface for FSRS later); title '<course>: <topic>' <=40, body 'Due for review \u00b7 N questions, ~M min[ \u00b7 exam in D days]' <=60; never 'fading' or a percentage; skip days with nothing due; at most one a day within quiet hours; device-only 'Show topic on lock screen' (default on). Web has none and says so. (2) Exam change notice, exam countdown (14 and 3 days, readiness or 'unconfirmed', 3 weakest), opt-in weekly digest (List-Unsubscribe one-click; refuses without MAIL_POSTAL_ADDRESS and DIGEST_EMAIL_FROM) via Resend; per-kind preference, signed unsubscribe, verified addresses only, idempotent per user/kind/period; daily Vercel cron with CRON_SECRET, small batches; dark until SERVICE_EMAILS_ENABLED=true with the Privacy Policy update. (3) Migration 063 email_preferences and service_email_log. (4) No guilt or marketing copy, tested. (5) One-time keyboard dictation tip on lab, explain-back and coach fields (iOS/Android); fields no longer truncate. (6) docs/next-store-build-plan.md.",
+      "description": "Nick-approved 2026-11-09. (1) Local study reminders built from GET /api/reminders/plan: one topic a day ranked Needs review, then days overdue x exam weight, then lapses (fixed_v1 ladder; DuePriority interface for FSRS later); title '<course>: <topic>' <=40, body 'Due for review · N questions, ~M min[ · exam in D days]' <=60; never 'fading' or a percentage; skip days with nothing due; at most one a day within quiet hours; device-only 'Show topic on lock screen' (default on). Web has none and says so. (2) Exam change notice, exam countdown (14 and 3 days, readiness or 'unconfirmed', 3 weakest), opt-in weekly digest (List-Unsubscribe one-click; refuses without MAIL_POSTAL_ADDRESS and DIGEST_EMAIL_FROM) via Resend; per-kind preference, signed unsubscribe, verified addresses only, idempotent per user/kind/period; daily Vercel cron with CRON_SECRET, small batches; dark until SERVICE_EMAILS_ENABLED=true with the Privacy Policy update. (3) Migration 063 email_preferences and service_email_log. (4) No guilt or marketing copy, tested. (5) One-time keyboard dictation tip on lab, explain-back and coach fields (iOS/Android); fields no longer truncate. (6) docs/next-store-build-plan.md.",
       "priority": "high",
       "status": "needs_review",
       "minimum_access_scope": [
@@ -9211,7 +9211,7 @@
       "id": "REQ-250",
       "category": "defect",
       "title": "Leave a lesson at any step without losing your place",
-      "description": "Pilot tester (2026-11-12): 'once I'm in a lesson or objective, I can't navigate back to the dashboard or check my progress ... There should be a way to leave an objective, view my overall progress, or come back to it later without losing where I left off.' The lesson header gets Save and exit (back when there is history, else replace with the course page; mobile/src/lib/lessonExit.ts) and Course progress, on the loading and error states too; every step but done says 'Your place is saved \u2014 leave any time and pick up here.' and ends with Save and exit and Home. Each exit sends the pending account save first. Leaving at Try it keeps the place (saved as the graded Solo step, FAIL-1641). GET /api/courses/:id reports lesson_saved_at per objective within the 7-day resume window; the course and Mastery rows show In progress / Place saved and Continue opens the most recent saved place (FAIL-1642). Sims and exams keep their own exits. No migration.",
+      "description": "Pilot tester (2026-11-12): 'once I'm in a lesson or objective, I can't navigate back to the dashboard or check my progress ... There should be a way to leave an objective, view my overall progress, or come back to it later without losing where I left off.' The lesson header gets Save and exit (back when there is history, else replace with the course page; mobile/src/lib/lessonExit.ts) and Course progress, on the loading and error states too; every step but done says 'Your place is saved — leave any time and pick up here.' and ends with Save and exit and Home. Each exit sends the pending account save first. Leaving at Try it keeps the place (saved as the graded Solo step, FAIL-1641). GET /api/courses/:id reports lesson_saved_at per objective within the 7-day resume window; the course and Mastery rows show In progress / Place saved and Continue opens the most recent saved place (FAIL-1642). Sims and exams keep their own exits. No migration.",
       "priority": "high",
       "status": "completed",
       "minimum_access_scope": [
@@ -10012,6 +10012,56 @@
       ],
       "risk_notes": [
         "Read-only tools; a fetched page is still untrusted data, not instructions"
+      ]
+    },
+    {
+      "id": "REQ-301",
+      "category": "data",
+      "title": "Mastery decay step 1, shadow mode: store the memory model's predicted recall beside every review",
+      "description": "Nick approved all eight design recommendations on 2026-11-14 (docs/mastery-decay-design.md, Rollout). Shadow mode: stepSchedule (the only review_log writer) stores, in a savepoint that can never fail the review, the memory model's predicted recall at review time and the state it used (stability, difficulty, personal k, fit stage, goal, level, model version, source live or backfill) in nine nullable review_log columns (migration 085). Learners see nothing, scheduling stays fixed_v1, readiness unchanged. DECAY_SHADOW=off stops it. npm run decay:backfill replays history (dry run by default, only fills empty rows); npm run decay:calibration reports predicted vs observed recall by bucket, fit stage, goal, level and course category against the 5-point bar (docs/decay-shadow-calibration.md). Steps 2 (calibrate) and 3 (hybrid scheduling) are not built.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/085_review_shadow_prediction.sql",
+        "backend/lib/decay-shadow.ts",
+        "backend/lib/decay-shadow-backfill.ts",
+        "backend/lib/decay-calibration.ts",
+        "backend/lib/review-step.ts",
+        "backend/lib/schema-status.ts",
+        "backend/scripts/decay-calibration.ts",
+        "backend/scripts/decay-shadow-backfill.ts",
+        "backend/package.json",
+        "backend/.env.example",
+        "docs/mastery-decay-design.md",
+        "docs/decay-shadow-calibration.md",
+        "docs/operations-runbook.md",
+        "docs/legal/data-inventory.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every stepped review stores predicted recall and model state beside its outcome",
+        "A failing prediction never fails or changes the review",
+        "Learners see nothing and scheduling stays fixed_v1",
+        "Migration is additive and replay-safe with a schema probe and grants consistent with review_log",
+        "Backfill is a dry run by default and never overwrites",
+        "Calibration report compares predicted with observed against the 5-point bar"
+      ],
+      "validation_required": [
+        "backend/lib/decay-shadow.test.ts",
+        "backend/lib/decay-calibration.test.ts",
+        "backend/lib/memory-model.test.ts",
+        "backend/lib/decay-shadow.dbtest.ts",
+        "npm run test:db",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/mastery-decay-design.md",
+        "docs/decay-shadow-calibration.md"
+      ],
+      "risk_notes": [
+        "Unenrolled answers store no prediction",
+        "Backfilled rows use the course's current goal and level",
+        "Two extra reads and one update per review (2 s limit; DECAY_SHADOW=off)"
       ]
     }
   ]
