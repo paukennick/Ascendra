@@ -1,3 +1,5 @@
+// REQ-299: the newest unseen note opens once as a dialog ("What's new"); every
+// note is on the "Release notes" screen, newest first, grouped by date.
 // REQ-140: "What's new". The notes come from the server (GET /api/whats-new,
 // written in backend/lib/release-notes.ts); the app keeps no copy, so a note
 // can be added with a backend deploy alone. Pure helpers, tested in
@@ -14,6 +16,8 @@ export interface WhatsNewEntry {
   id: string;
   date: string;
   title: string;
+  // REQ-300: the app version the note shipped in; absent from an older server.
+  appVersion?: string;
   items: WhatsNewItem[];
 }
 
@@ -23,6 +27,7 @@ export interface WhatsNewState {
   seenId: string | null;
 }
 
+const PLAIN_SEMVER = /^\d{1,4}\.\d{1,4}\.\d{1,4}$/;
 const str = (v: unknown): v is string => typeof v === "string" && v.trim().length > 0;
 
 // Whatever the server sent, a well-formed state or null. A malformed entry or
@@ -45,7 +50,13 @@ export function parseWhatsNew(data: unknown): WhatsNewState | null {
       items.push({ headline: i.headline, body: i.body, ...(str(i.icon) ? { icon: i.icon } : {}) });
     }
     if (items.length === 0) continue;
-    entries.push({ id: e.id, date: str(e.date) ? e.date : e.id.slice(0, 10), title: e.title, items });
+    entries.push({
+      id: e.id,
+      date: str(e.date) ? e.date : e.id.slice(0, 10),
+      title: e.title,
+      ...(typeof e.appVersion === "string" && PLAIN_SEMVER.test(e.appVersion) ? { appVersion: e.appVersion } : {}),
+      items,
+    });
   }
   const known = new Set(entries.map((e) => e.id));
   const unseenIds = Array.isArray(d.unseenIds) ? d.unseenIds.filter((x): x is string => str(x) && known.has(x)) : [];
@@ -91,4 +102,46 @@ export function sessionDismissed(userId: string): Set<string> {
 }
 export function clearSessionDismissed(): void {
   dismissedByUser.clear();
+}
+
+// REQ-299: what the dialog and the Release notes screen say. One place, so the
+// two agree and a test can pin the words.
+export const WHATS_NEW_KICKER = "What's new";
+export const WHATS_NEW_CLOSE_LABEL = "Close what's new";
+export const WHATS_NEW_GOT_IT = "Got it";
+export const RELEASE_NOTES_LABEL = "Release notes";
+export const RELEASE_NOTES_LINK_LABEL = "See all release notes";
+export const RELEASE_NOTES_ROUTE = "/release-notes";
+export const RELEASE_NOTES_EMPTY = "Notes about new features will show up here.";
+
+// "Version 2.1.0", or null for a note that carries none (an older server).
+export function versionLabel(entry: Pick<WhatsNewEntry, "appVersion">): string | null {
+  return entry.appVersion ? `Version ${entry.appVersion}` : null;
+}
+
+// What a screen reader announces when the dialog opens: the kicker, the
+// note's title and when it is from.
+export function dialogA11yLabel(entry: WhatsNewEntry, dateText: string): string {
+  const v = versionLabel(entry);
+  return `${WHATS_NEW_KICKER}: ${entry.title}. ${dateText}${v ? `, ${v}` : ""}.`;
+}
+
+export interface DateGroup {
+  date: string; // YYYY-MM-DD
+  entries: WhatsNewEntry[];
+}
+
+// Release notes grouped by the date they shipped, newest day first and, within
+// a day, in the order the server sent them (newest first). Several notes on one
+// day (2026-11-12-a ... -d) share one date heading.
+export function groupByDate(entries: readonly WhatsNewEntry[]): DateGroup[] {
+  const byDate = new Map<string, WhatsNewEntry[]>();
+  for (const e of entries) {
+    const list = byDate.get(e.date);
+    if (list) list.push(e);
+    else byDate.set(e.date, [e]);
+  }
+  return [...byDate.entries()]
+    .map(([date, list]) => ({ date, entries: list }))
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 }

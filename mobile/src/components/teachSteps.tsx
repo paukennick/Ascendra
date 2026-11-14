@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { Body, Button, H3, Muted } from "@/components/ui";
+import { ChoiceKey, StudyShortcutArea, answerListProps } from "@/components/StudyShortcuts";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import { SKIP_CHECK_LABEL, stepCheckFeedback, stepsProgress, type TeachStepData } from "@/lib/teachSteps";
 
@@ -24,7 +25,23 @@ export function TeachSteps({ steps, onDone }: { steps: TeachStepData[]; onDone: 
   const resolved = state !== undefined;
 
   return (
-    <View style={{ gap: spacing.sm }}>
+    // REQ-290: 1-9 or A-D pick an answer, Enter goes to the next step once the check is done (web).
+    <StudyShortcutArea
+      surface="check"
+      style={{ gap: spacing.sm }}
+      choices={resolved ? 0 : step.check.choices.length}
+      onChoose={(i) => {
+        if (resolved || i >= step.check.choices.length) return false;
+        setDone((d) => ({ ...d, [p.index]: i }));
+        return true;
+      }}
+      onEnter={() => {
+        if (!resolved) return false;
+        if (p.isLast) onDone();
+        else setIndex(p.index + 1);
+        return true;
+      }}
+    >
       <View accessibilityLiveRegion="polite">
         <Muted>{p.label}</Muted>
       </View>
@@ -42,7 +59,7 @@ export function TeachSteps({ steps, onDone }: { steps: TeachStepData[]; onDone: 
       <View style={{ gap: 8, marginTop: spacing.xs }}>
         <Muted style={styles.blockLabel}>Quick check</Muted>
         <Body style={{ fontFamily: fonts.bodySemiBold }}>{step.check.question}</Body>
-        <View accessibilityRole="radiogroup" style={{ gap: 8 }}>
+        <View accessibilityRole="radiogroup" style={{ gap: 8 }} {...answerListProps}>
           {step.check.choices.map((c, i) => {
             const isPicked = picked === i;
             const isRight = fb != null && i === fb.correctIndex;
@@ -66,6 +83,7 @@ export function TeachSteps({ steps, onDone }: { steps: TeachStepData[]; onDone: 
                     </Muted>
                   ) : null}
                 </View>
+                {resolved ? null : <ChoiceKey index={i} />}
               </Pressable>
             );
           })}
@@ -95,7 +113,7 @@ export function TeachSteps({ steps, onDone }: { steps: TeachStepData[]; onDone: 
         />
       ) : null}
       {p.index > 0 ? <Button label="Back" variant="link" icon="arrow-left" onPress={() => setIndex(p.index - 1)} /> : null}
-    </View>
+    </StudyShortcutArea>
   );
 }
 

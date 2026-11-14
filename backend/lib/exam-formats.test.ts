@@ -117,6 +117,13 @@ describe("examQuestionCount", () => {
     assert.equal(examQuestionCount("Microsoft does not publish an exact question count"), null);
     assert.equal(examQuestionCount(null), null);
   });
+  test("FAIL-2020: a count that is a part of a section is not the exam's length (NSCA-CSCS read as 40)", () => {
+    const cscs =
+      "Two sections: Scientific Foundations, 1.5 hours, 80 scored + 15 unscored; Practical/Applied, 2.5 hours, 110 scored + 15 unscored with 30-40 video or image items. First-time candidates sit both";
+    assert.equal(examQuestionCount(cscs), null);
+    assert.equal(examQuestionCount("90 questions, including 30-40 performance-based items"), 90);
+    assert.equal(examQuestionCount("85 questions with 10 scored case studies"), 85);
+  });
 });
 
 describe("validateItemDraft", () => {
