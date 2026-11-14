@@ -9948,6 +9948,56 @@
         "Screen readers in browse mode may take letter keys before the page sees them",
         "Space on a sim button stays the button's own"
       ]
+    },
+    {
+      "id": "REQ-301",
+      "category": "data",
+      "title": "Mastery decay step 1, shadow mode: store the memory model's predicted recall beside every review",
+      "description": "Nick approved all eight design recommendations on 2026-11-14 (docs/mastery-decay-design.md, Rollout). Shadow mode: stepSchedule (the only review_log writer) stores, in a savepoint that can never fail the review, the memory model's predicted recall at review time and the state it used (stability, difficulty, personal k, fit stage, goal, level, model version, source live or backfill) in nine nullable review_log columns (migration 085). Learners see nothing, scheduling stays fixed_v1, readiness unchanged. DECAY_SHADOW=off stops it. npm run decay:backfill replays history (dry run by default, only fills empty rows); npm run decay:calibration reports predicted vs observed recall by bucket, fit stage, goal, level and course category against the 5-point bar (docs/decay-shadow-calibration.md). Steps 2 (calibrate) and 3 (hybrid scheduling) are not built.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/085_review_shadow_prediction.sql",
+        "backend/lib/decay-shadow.ts",
+        "backend/lib/decay-shadow-backfill.ts",
+        "backend/lib/decay-calibration.ts",
+        "backend/lib/review-step.ts",
+        "backend/lib/schema-status.ts",
+        "backend/scripts/decay-calibration.ts",
+        "backend/scripts/decay-shadow-backfill.ts",
+        "backend/package.json",
+        "backend/.env.example",
+        "docs/mastery-decay-design.md",
+        "docs/decay-shadow-calibration.md",
+        "docs/operations-runbook.md",
+        "docs/legal/data-inventory.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every stepped review stores predicted recall and model state beside its outcome",
+        "A failing prediction never fails or changes the review",
+        "Learners see nothing and scheduling stays fixed_v1",
+        "Migration is additive and replay-safe with a schema probe and grants consistent with review_log",
+        "Backfill is a dry run by default and never overwrites",
+        "Calibration report compares predicted with observed against the 5-point bar"
+      ],
+      "validation_required": [
+        "backend/lib/decay-shadow.test.ts",
+        "backend/lib/decay-calibration.test.ts",
+        "backend/lib/memory-model.test.ts",
+        "backend/lib/decay-shadow.dbtest.ts",
+        "npm run test:db",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/mastery-decay-design.md",
+        "docs/decay-shadow-calibration.md"
+      ],
+      "risk_notes": [
+        "Unenrolled answers store no prediction",
+        "Backfilled rows use the course's current goal and level",
+        "Two extra reads and one update per review (2 s limit; DECAY_SHADOW=off)"
+      ]
     }
   ]
 }

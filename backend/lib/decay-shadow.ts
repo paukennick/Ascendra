@@ -76,7 +76,7 @@ export function modelFingerprint(): string {
 }
 
 // DECAY_SHADOW (on unless off/0/false/no).
-export function shadowEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+export function shadowEnabled(env: Record<string, string | undefined> = process.env): boolean {
   const v = (env.DECAY_SHADOW ?? "").trim().toLowerCase();
   return !(v === "off" || v === "0" || v === "false" || v === "no");
 }

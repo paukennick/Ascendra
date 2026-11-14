@@ -17511,6 +17511,64 @@
       ],
       "prevention_notes": "Pre-completion checklist item 'Key handlers on the web' (REQ-290): anything that must see every key listens on the window in the capture phase. A static test pins capture-phase registration and removal.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2060",
+      "date": "2026-11-14",
+      "title": "Shadow-mode write inside a savepoint could leave a 2 s statement timeout on the rest of the review transaction (and a failed write could fail the review)",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Design review of the first shadow write: SET LOCAL statement_timeout made inside a savepoint is kept by RELEASE SAVEPOINT, so the review's remaining statements (and the caller's) would run under the 2 s shadow limit instead of the transaction's own; and any error in the extra reads or update (migration 085 not applied, timeout, model bug) would abort the transaction and fail the learner's review.",
+      "how_detected": "Unit test with a recording fake transaction and DB test with a failing trigger and a timeout-readback",
+      "root_cause": "The shadow work shares the review's transaction. Postgres undoes a SET LOCAL only on ROLLBACK TO the savepoint, not on RELEASE, and an uncaught statement error poisons the whole transaction; a try/catch alone is not enough without a savepoint.",
+      "requirement": "REQ-301",
+      "affected": [
+        "backend/lib/decay-shadow.ts::recordShadowPrediction",
+        "backend/lib/review-step.ts"
+      ],
+      "fix_summary": "recordShadowPrediction wraps all shadow statements in a savepoint, sets the 2 s limit, puts TX_STATEMENT_TIMEOUT_MS back before RELEASE, and on any error rolls back to the savepoint, logs one masked line (describeError) and returns false.",
+      "fix_commits": [
+        "681c85c4"
+      ],
+      "regression_tests": [
+        "backend/lib/decay-shadow.test.ts::recordShadowPrediction never fails the review (FAIL-2060)",
+        "backend/lib/decay-shadow.dbtest.ts::a failure in the shadow work never fails the review (FAIL-2060)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Any best-effort side write in a request transaction uses a savepoint, restores any SET LOCAL before release, and is tested with an injected failure plus a read-back of the setting.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2061",
+      "date": "2026-11-14",
+      "title": "Calibration bar failed a slice whose gap was exactly five points because of float noise",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "decay-calibration unit test: a slice with a gap of exactly 5.0 points was labelled over_predicts",
+      "how_detected": "backend/lib/decay-calibration.test.ts bar test",
+      "root_cause": "gapPoints is (meanPredicted - observed) * 100 in floating point, so an exact 0.05 difference came out as 5.000000000000004 and failed the <= 5 comparison.",
+      "requirement": "REQ-301",
+      "affected": [
+        "backend/lib/decay-calibration.ts::sliceOf"
+      ],
+      "fix_summary": "Compare against CALIBRATION_BAR_POINTS + 1e-9.",
+      "fix_commits": [
+        "6768fcaf"
+      ],
+      "regression_tests": [
+        "backend/lib/decay-calibration.test.ts::the bar is five points",
+        "either side",
+        "and it needs the minimum count (FAIL-2061)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A threshold on a computed float gets a tolerance, and the test pins the exact boundary.",
+      "recurrence_of": ""
     }
   ]
 }
