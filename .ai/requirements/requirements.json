@@ -6900,7 +6900,7 @@
       "id": "REQ-197",
       "category": "product/engagement",
       "title": "Smart study reminders, service emails, dictation tip, next store build plan",
-      "description": "Nick-approved 2026-11-09. (1) Local study reminders built from GET /api/reminders/plan: one topic a day ranked Needs review, then days overdue x exam weight, then lapses (fixed_v1 ladder; DuePriority interface for FSRS later); title '<course>: <topic>' <=40, body 'Due for review · N questions, ~M min[ · exam in D days]' <=60; never 'fading' or a percentage; skip days with nothing due; at most one a day within quiet hours; device-only 'Show topic on lock screen' (default on). Web has none and says so. (2) Exam change notice, exam countdown (14 and 3 days, readiness or 'unconfirmed', 3 weakest), opt-in weekly digest (List-Unsubscribe one-click; refuses without MAIL_POSTAL_ADDRESS and DIGEST_EMAIL_FROM) via Resend; per-kind preference, signed unsubscribe, verified addresses only, idempotent per user/kind/period; daily Vercel cron with CRON_SECRET, small batches; dark until SERVICE_EMAILS_ENABLED=true with the Privacy Policy update. (3) Migration 063 email_preferences and service_email_log. (4) No guilt or marketing copy, tested. (5) One-time keyboard dictation tip on lab, explain-back and coach fields (iOS/Android); fields no longer truncate. (6) docs/next-store-build-plan.md.",
+      "description": "Nick-approved 2026-11-09. (1) Local study reminders built from GET /api/reminders/plan: one topic a day ranked Needs review, then days overdue x exam weight, then lapses (fixed_v1 ladder; DuePriority interface for FSRS later); title '<course>: <topic>' <=40, body 'Due for review \u00b7 N questions, ~M min[ \u00b7 exam in D days]' <=60; never 'fading' or a percentage; skip days with nothing due; at most one a day within quiet hours; device-only 'Show topic on lock screen' (default on). Web has none and says so. (2) Exam change notice, exam countdown (14 and 3 days, readiness or 'unconfirmed', 3 weakest), opt-in weekly digest (List-Unsubscribe one-click; refuses without MAIL_POSTAL_ADDRESS and DIGEST_EMAIL_FROM) via Resend; per-kind preference, signed unsubscribe, verified addresses only, idempotent per user/kind/period; daily Vercel cron with CRON_SECRET, small batches; dark until SERVICE_EMAILS_ENABLED=true with the Privacy Policy update. (3) Migration 063 email_preferences and service_email_log. (4) No guilt or marketing copy, tested. (5) One-time keyboard dictation tip on lab, explain-back and coach fields (iOS/Android); fields no longer truncate. (6) docs/next-store-build-plan.md.",
       "priority": "high",
       "status": "needs_review",
       "minimum_access_scope": [
@@ -9211,7 +9211,7 @@
       "id": "REQ-250",
       "category": "defect",
       "title": "Leave a lesson at any step without losing your place",
-      "description": "Pilot tester (2026-11-12): 'once I'm in a lesson or objective, I can't navigate back to the dashboard or check my progress ... There should be a way to leave an objective, view my overall progress, or come back to it later without losing where I left off.' The lesson header gets Save and exit (back when there is history, else replace with the course page; mobile/src/lib/lessonExit.ts) and Course progress, on the loading and error states too; every step but done says 'Your place is saved — leave any time and pick up here.' and ends with Save and exit and Home. Each exit sends the pending account save first. Leaving at Try it keeps the place (saved as the graded Solo step, FAIL-1641). GET /api/courses/:id reports lesson_saved_at per objective within the 7-day resume window; the course and Mastery rows show In progress / Place saved and Continue opens the most recent saved place (FAIL-1642). Sims and exams keep their own exits. No migration.",
+      "description": "Pilot tester (2026-11-12): 'once I'm in a lesson or objective, I can't navigate back to the dashboard or check my progress ... There should be a way to leave an objective, view my overall progress, or come back to it later without losing where I left off.' The lesson header gets Save and exit (back when there is history, else replace with the course page; mobile/src/lib/lessonExit.ts) and Course progress, on the loading and error states too; every step but done says 'Your place is saved \u2014 leave any time and pick up here.' and ends with Save and exit and Home. Each exit sends the pending account save first. Leaving at Try it keeps the place (saved as the graded Solo step, FAIL-1641). GET /api/courses/:id reports lesson_saved_at per objective within the 7-day resume window; the course and Mastery rows show In progress / Place saved and Continue opens the most recent saved place (FAIL-1642). Sims and exams keep their own exits. No migration.",
       "priority": "high",
       "status": "completed",
       "minimum_access_scope": [
@@ -9947,6 +9947,29 @@
         "Not run in a real browser against the full app unless the e2e was run",
         "Screen readers in browse mode may take letter keys before the page sees them",
         "Space on a sim button stays the button's own"
+      ]
+    },
+    {
+      "id": "REQ-303",
+      "category": "tooling",
+      "title": "Auto-approve web reading and search for Claude Code in this repo",
+      "description": "Nick 2026-11-14: stop asking to fetch web pages in this project; auto approved. .claude/settings.json allows WebFetch and WebSearch for every Claude Code session on this repo.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".claude/settings.json"
+      ],
+      "acceptance_criteria": [
+        ".claude/settings.json allows WebFetch and WebSearch"
+      ],
+      "validation_required": [
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Read-only tools; a fetched page is still untrusted data, not instructions"
       ]
     }
   ]
