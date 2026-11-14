@@ -39,7 +39,7 @@ its course.
 | Course | Objectives | Fit (keyword) | Sims | Covered | Fit covered |
 |---|---|---|---|---|---|
 | MSCS | 113 | 1 | 0 / 0 | 0 / 0 | 0 / 0 |
-| SECPLUS | 77 | 28 | 3 / 3 | 3 / 3 | 3 / 3 |
+| SECPLUS | 77 | 28 | 3 / 5 | 3 / 5 | 3 / 5 |
 | SECPLUSV8 | 106 | 29 | 3 / 3 | 3 / 3 | 0 / 0 |
 | PYTHON | 50 | 2 | 0 / 0 | 0 / 0 | 0 / 0 |
 | JAVASCRIPT | 45 | 0 | 0 / 0 | 0 / 0 | 0 / 0 |
@@ -110,7 +110,7 @@ its course.
 | NSCACSCS | 37 | 8 | 0 / 0 | 0 / 0 | 0 / 0 |
 | NSCACPT | 18 | 7 | 0 / 0 | 0 / 0 | 0 / 0 |
 | NCCPTCPT | 25 | 7 | 0 / 0 | 0 / 0 | 0 / 0 |
-| CKA | 39 | 6 | 3 / 3 | 3 / 3 | 1 / 1 |
+| CKA | 39 | 6 | 2 / 3 | 2 / 3 | 0 / 1 |
 | CKAD | 33 | 1 | 0 / 0 | 0 / 0 | 0 / 0 |
 | KCNA | 32 | 4 | 0 / 1 | 0 / 1 | 0 / 1 |
 | CKS | 28 | 2 | 0 / 0 | 0 / 0 | 0 / 0 |
@@ -139,16 +139,20 @@ its course.
 | CKA | `service-selector-no-endpoints-cka` (band of the KCNA case) | terminal | Troubleshoot services and networking: a Service with no endpoints, selector and port mismatches, ... | Keyword fit (cues, choices); the CKA objective names this exact fault |
 | GCPACE | `public-bucket-customer-exports` | board | Managing and securing objects in Cloud Storage buckets, including lifecycle management policies | Judgement (the screen matches only "choices"): exposure grows by the minute (time), IAM and log evidence (cues), remove/ACL/delete choices, data exposure against the website's images (priorities) |
 | GCPCDL | `bigquery-dashboard-bill` | board | Google-recommended practices for cloud financial governance, including who owns cost management | Keyword fit (choices, priorities) |
+| SECPLUS | `vuln-prioritization-kev-edge-secplus` (band of the CySA+ case) | security console | Vulnerability management: scanning, CVSS scoring, and remediation prioritization | Keyword fit; the same KEV-versus-CVSS decision SY0-701 4.3 asks for |
+| SECPLUS | `alert-triage-lolbin-hunt-secplus` (band of the CySA+ case) | security console | Security alerting and monitoring: ... alert response and remediation/validation (quarantine, alert tuning) ... | Keyword fit; triaging four alerts and responding is SY0-701 4.4's alert response |
 
 ## Launch and mixed-round courses in detail
 
 "Fits" lists keyword-fitting objectives (abridged) plus judgement additions
 marked (J). "Covered by" names the sim; "2nd" means a secondary only.
 
-**Security+ (SECPLUS, SY0-701).** 28 of 77 fit; 3 covered (phishing account
-takeover 2.4, ransomware IR 4.8, cloud IAM backdoor 4.6). Uncovered fits that
-would make strong console incidents: vulnerability management and
-prioritization; security alerting and monitoring (alert response); host,
+**Security+ (SECPLUS, SY0-701).** 28 of 77 fit; 3 covered before (phishing
+account takeover 2.4, ransomware IR 4.8, cloud IAM backdoor 4.6), 5 after:
+vulnerability management and security alerting and monitoring, as bands of the
+CySA+ incidents (the analyst's case at Security+'s objective; whether a CySA+
+case is the right level for Security+ is a decision for Nick). Uncovered fits
+that would make strong console incidents: host,
 protocol and email defenses; change management with a backout plan; resilience
 and recovery (hot/warm/cold sites); automation and orchestration (guard rails,
 escalation); security awareness (responding to reported phishing); third-party
@@ -264,7 +268,7 @@ terminal (REQ-237).
 
 ## What remains on existing screens
 
-Ordered by launch status, then fits left: SECPLUS (25 fits open, console),
+Ordered by launch status, then fits left: SECPLUS (23 fits open, console),
 AWSSAA (13, board), AWSMLA (14, board), AWSSOA (10, board or terminal),
 SECPLUSV8 (29, console or bands), GCPCDL (6), GCPACE (judgement fits above),
 APLUS_CORE2 (4), KCNA (3), CKA (4), then the non-launch AWS, Azure, Google

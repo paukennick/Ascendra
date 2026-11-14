@@ -244,6 +244,7 @@ describe("what each wave 3 case teaches", () => {
     assert.equal(fix.value("imagesOk"), false);
     fix.act("makeImageBucket");
     assert.equal(fix.value("imagesOk"), true, "images are back once the 15-minute copy is done");
+    assert.ok((fix.value("imgDownMin") as number) >= 15, "the copy's 15 minutes count as image outage (FAIL-2001)");
     const pap = driver(d);
     pap.act("makeImageBucket");
     pap.act("enforcePap");

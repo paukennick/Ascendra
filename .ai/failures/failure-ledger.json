@@ -17432,6 +17432,55 @@
       "prevention_rules": [],
       "prevention_notes": "Adding a table to lib/recheck-stored.ts or lib/recheck-guard.ts means adding its grant and recheck_read policy in the same migration; the recheck-role DB suite fails if it is missing. Run the whole test:db before committing a migration, not only the new table's suite.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2000",
+      "date": "2026-11-14",
+      "title": "Course sim tests counted every sim of their course",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Adding a CKA band and SECPLUS bands made terminal.test.ts ('two per course', sources dated 2026-11-11, kind scenario) and security-console.test.ts (exactly three SECPLUS scenarios) fail, though the new documents were valid.",
+      "how_detected": "running lib/sim/terminal.test.ts after registering the CKA band",
+      "root_cause": "Both suites selected documents by course code, so they asserted facts about their own requirement's wave (counts, kinds, source dates) over every later sim of the same course.",
+      "requirement": "REQ-297",
+      "affected": [
+        "backend/lib/sim/terminal.test.ts",
+        "backend/lib/sim/security-console.test.ts"
+      ],
+      "fix_summary": "Each suite now filters by its own requirement's slugs (REQ237, REQ231); later waves carry their own suite (lib/sim/it-wave3.test.ts).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/terminal.test.ts",
+        "backend/lib/sim/security-console.test.ts",
+        "backend/lib/sim/it-wave3.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A wave's test file selects its documents by slug, not by course code (docs/sims.md 22.16 finding 4).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2001",
+      "date": "2026-11-14",
+      "title": "A task's result applied when the task started, not when it ended",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The first build of GCPACE/public-bucket-customer-exports had the product images back the moment the 15-minute copy began: 2 minutes of image outage on the expert path instead of 17, and the imagesUp criterion met too easily.",
+      "how_detected": "reviewing the expert path's KPIs after the first golden build",
+      "root_cause": "Action effects apply at the tick the action is taken; the work wait only moves the clock. A state change that the task's duration should delay has to come from a trigger at its end.",
+      "requirement": "REQ-297",
+      "affected": [
+        "backend/supabase/seed/sims/GCPACE/public-bucket-customer-exports.sim.json"
+      ],
+      "fix_summary": "The copy sets moveStartAt; a trigger sets imagesMoved at moveStartAt + moveDur (900 s), as the Digital Leader case's owner fix does.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/it-wave3.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.16 finding 3: results that take the task's time come from a trigger at its end.",
+      "recurrence_of": ""
     }
   ]
 }
