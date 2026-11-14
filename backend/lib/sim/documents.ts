@@ -171,6 +171,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AWSSOA", "rds-update-without-where-pitr"),
   entry("GCPACE", "cloud-run-bad-revision-rollback"),
   entry("LINUXPLUS", "systemd-dropin-breaks-export"),
+  entry("CKA", "apiserver-static-pod-bad-flag"),
   // ---- end REQ-297 ----
 ];
 

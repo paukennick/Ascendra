@@ -32,6 +32,7 @@ export const WAVE3: readonly { course: string; slug: string; screen: string; pro
   { course: "AWSSOA", slug: "rds-update-without-where-pitr", screen: "board", profile: "cloud" },
   { course: "GCPACE", slug: "cloud-run-bad-revision-rollback", screen: "board", profile: "cloud" },
   { course: "LINUXPLUS", slug: "systemd-dropin-breaks-export", screen: "terminal", profile: "infrastructure" },
+  { course: "CKA", slug: "apiserver-static-pod-bad-flag", screen: "terminal", profile: "infrastructure" },
 ];
 
 const entryOf = (slug: string) => ALL_DOCUMENTS.find((e) => e.slug === slug)!;
@@ -421,5 +422,39 @@ describe("what each wave 3 case teaches", () => {
     assert.equal(en.value("running"), false);
     while (en.minutes() < 46) en.act("watch");
     assert.notEqual(en.value("pickupMissedAt"), null);
+  });
+
+  test("CKA: kubectl and a kubelet restart cannot fix the static pod; editing the manifest brings the API back; a copy in the manifests directory is a second static pod", () => {
+    const d = docOf("apiserver-static-pod-bad-flag");
+    const k = driver(d);
+    k.act("fix", { change: "deleteMirror" });
+    k.act("fix", { change: "restartKubelet" });
+    k.act("watch");
+    assert.equal(k.value("apiUp"), false);
+    const ok = driver(d);
+    ok.act("backup");
+    ok.act("fix", { change: "editFlag" });
+    ok.act("watch");
+    assert.equal(ok.value("healthy"), true);
+    const dup = driver(d);
+    dup.act("fix", { change: "backupInDir" });
+    dup.act("fix", { change: "editFlag" });
+    dup.act("watch");
+    assert.equal(dup.value("apiUp"), true);
+    assert.equal(dup.value("healthy"), false);
+    dup.act("removeDup");
+    assert.equal(dup.value("healthy"), true);
+  });
+
+  test("CKA: kubeadm reset destroys the control plane; existing pods serve but the 09:15 peak needs the API", () => {
+    const d = docOf("apiserver-static-pod-bad-flag");
+    const r = driver(d);
+    r.act("fix", { change: "reset" });
+    r.act("fix", { change: "editFlag" });
+    r.act("watch");
+    assert.equal(r.value("healthy"), false);
+    const w = driver(d);
+    while (w.minutes() < 46) w.act("watch");
+    assert.notEqual(w.value("peakMissedAt"), null);
   });
 });
