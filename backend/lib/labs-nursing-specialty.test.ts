@@ -13,7 +13,7 @@ import { VALUE_SOURCES } from "../supabase/seed/labs/value-sources";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
 import { unitPlan, type PlanTrack } from "../scripts/generate-labs-lib";
 
-export const SPECIALTY_CODES = ["CMSRN", "CEN", "PCCN"] as const;
+export const SPECIALTY_CODES = ["CMSRN", "CEN", "PCCN", "FNPAANP", "FNPANCC"] as const;
 const tracks = new Map(CATALOG_TRACKS.map((t) => [t.code, t]));
 const setOf = (code: string) => LAB_SETS.find((s) => s.trackCode === code)!;
 
@@ -45,7 +45,7 @@ describe("REQ-275..278: nursing specialty lab sets", () => {
         assert.equal(lab.safetyNote, CLINICAL_SAFETY, lab.slug);
         assert.match(lab.brief, /fictional/i, lab.slug);
         assert.doesNotMatch(lab.steps.map((s) => s.ask).join(" "), /\byour (own )?(patient|client)s?\b/i, lab.slug);
-        assert.ok(lab.slug.startsWith(`${code.toLowerCase().replace(/^fnp(aanp|ancc)$/, "fnp")}-`), lab.slug);
+        assert.ok(lab.slug.startsWith(`${code.toLowerCase()}-`), lab.slug);
         assert.ok(lab.steps.some((s) => s.parts.some((p) => !p.interactive)), `${lab.slug}: clinical judgment keeps a written part`);
         assert.doesNotMatch(JSON.stringify(lab), /\b(expert|clinician|educator)s?\b.{0,40}\b(review|approv)/i, lab.slug);
       }
@@ -65,7 +65,11 @@ describe("REQ-275..278: nursing specialty lab sets", () => {
     });
   }
 
-  test("PCCN: 18 labs, 2/2/1/1/2/1/1/1/2/1/2/2", () => {
+  test("plans as built: CMSRN 11, CEN 17, PCCN 18, AANPCB FNP 10, ANCC FNP-BC 11", () => {
+    assert.deepEqual(perUnit("CMSRN"), [3, 2, 2, 2, 2]);
+    assert.deepEqual(perUnit("CEN"), [2, 2, 2, 2, 1, 2, 2, 1, 1, 1, 1]);
     assert.deepEqual(perUnit("PCCN"), [2, 2, 1, 1, 2, 1, 1, 1, 2, 1, 2, 2]);
+    assert.deepEqual(perUnit("FNPAANP"), [3, 3, 2, 2]);
+    assert.deepEqual(perUnit("FNPANCC"), [2, 2, 2, 3, 2]);
   });
 });

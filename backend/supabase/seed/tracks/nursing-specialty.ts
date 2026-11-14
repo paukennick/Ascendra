@@ -4,5 +4,6 @@ import type { SeedTrack } from "../data";
 import { PCCN_TRACKS } from "./pccn";
 import { CEN_TRACKS } from "./cen";
 import { CMSRN_TRACKS } from "./cmsrn";
+import { FNP_TRACKS } from "./fnp";
 
-export const NURSING_SPECIALTY_TRACKS: SeedTrack[] = [...CMSRN_TRACKS, ...CEN_TRACKS, ...PCCN_TRACKS];
+export const NURSING_SPECIALTY_TRACKS: SeedTrack[] = [...CMSRN_TRACKS, ...CEN_TRACKS, ...PCCN_TRACKS, ...FNP_TRACKS];

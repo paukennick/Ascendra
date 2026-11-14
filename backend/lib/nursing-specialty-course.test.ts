@@ -10,6 +10,7 @@ import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
 import { PCCN_TRACK, PCCN_SIM_OBJECTIVES } from "../supabase/seed/tracks/pccn";
 import { CEN_TRACK, CEN_SIM_OBJECTIVES } from "../supabase/seed/tracks/cen";
 import { CMSRN_TRACK, CMSRN_SIM_OBJECTIVES } from "../supabase/seed/tracks/cmsrn";
+import { FNPAANP_TRACK, FNPANCC_TRACK, FNP_SIM_OBJECTIVES } from "../supabase/seed/tracks/fnp";
 import { courseCategoryOf } from "./billing-config";
 import { clinicalReasoningFrame } from "./prompts";
 import type { SeedTrack } from "../supabase/seed/data";
@@ -170,5 +171,51 @@ describe("REQ-275: Prep for the CMSRN Exam", () => {
     assert.deepEqual(where(CMSRN_SIM_OBJECTIVES.postopBleed), ["Patient/Care Management"]);
     assert.deepEqual(where(CMSRN_SIM_OBJECTIVES.delegation), ["Nursing Teamwork and Collaboration"]);
     assert.ok(CMSRN_TRACK.units[3].objectives.some((o) => /Code of Ethics for Nurses \(2025 revision\)/.test(o)));
+  });
+});
+
+describe("REQ-278: two FNP courses, one per exam (AANPCB and ANCC)", () => {
+  test("both in the catalog once, under advanced practice nursing, gated, in the clinical plan", () => {
+    commonChecks(FNPAANP_TRACK, "Prep for the AANPCB Family Nurse Practitioner (FNP) Exam", "advanced-practice-nursing", /not affiliated with or endorsed by AANPCB/);
+    commonChecks(FNPANCC_TRACK, "Prep for the ANCC Family Nurse Practitioner (FNP-BC) Exam", "advanced-practice-nursing", /not affiliated with or endorsed by the American Nurses Credentialing Center/);
+    assert.notEqual(FNPAANP_TRACK.credential!.credentialSlug, FNPANCC_TRACK.credential!.credentialSlug);
+  });
+
+  test("AANPCB: four practice domains at the web blueprint's 32/26.5/26.5/15 (43/36/36/20 of 135), age bands as key values", () => {
+    assert.deepEqual(activeUnits(FNPAANP_TRACK).map((u) => [u.title, u.weight]), [["Assess", 32], ["Diagnose", 26.5], ["Plan", 26.5], ["Evaluate", 15]]);
+    const c = FNPAANP_TRACK.credential!;
+    assert.equal(c.durationMinutes, 180);
+    assert.match(c.questionFormat!, /150 multiple-choice questions in 3 hours: 135 scored and 15 unscored/);
+    assert.match(c.recommendedExperience!, /500 faculty-supervised/);
+    const kv = FNPAANP_TRACK.units[0].sources!.flatMap((x) => x.keyValues ?? []).join("\n");
+    assert.match(kv, /Older Adult 40 \(30%\)/);
+  });
+
+  test("ANCC: five domains at the TCO's printed 17/17/19/33/13 (99, explained), effective 2026-10-30, 3.5 hours", () => {
+    assert.deepEqual(
+      activeUnits(FNPANCC_TRACK).map((u) => [u.title, u.weight]),
+      [["Assessment", 17], ["Diagnosis", 17], ["Planning", 19], ["Implementation", 33], ["Evaluation", 13]]
+    );
+    const c = FNPANCC_TRACK.credential!;
+    assert.match(c.publishedWeightsNote!, /total 99/);
+    assert.equal(c.effectiveDate, "2026-10-30");
+    assert.equal(c.durationMinutes, 210);
+    assert.match(c.questionFormat!, /175 questions in 3.5 hours: 150 scored and 25 unscored/);
+    const impl = FNPANCC_TRACK.units[3];
+    assert.ok(impl.sources![0].outline!.some((l) => /artificial intelligence/.test(l)), "ANCC's 2026 outline names AI");
+  });
+
+  test("the blueprints differ materially, which is why there are two courses", () => {
+    assert.notEqual(FNPAANP_TRACK.units.length, FNPANCC_TRACK.units.length);
+    assert.notEqual(FNPAANP_TRACK.credential!.durationMinutes, FNPANCC_TRACK.credential!.durationMinutes);
+    assert.ok(!FNPAANP_TRACK.units.some((u) => /Implementation/.test(u.title)));
+  });
+
+  test("the red-flag sim objective is in both courses' diagnosis units; screening values are USPSTF's as read", () => {
+    assert.deepEqual(FNPAANP_TRACK.units.filter((u) => u.objectives.includes(FNP_SIM_OBJECTIVES.chestPain)).map((u) => u.title), ["Diagnose"]);
+    assert.deepEqual(FNPANCC_TRACK.units.filter((u) => u.objectives.includes(FNP_SIM_OBJECTIVES.chestPain)).map((u) => u.title), ["Diagnosis"]);
+    const kv = FNPANCC_TRACK.units[0].sources!.flatMap((x) => x.keyValues ?? []).join("\n");
+    assert.match(kv, /ages 45-49 \(B\) and 50-75 \(A\)/);
+    assert.match(kv, /biennial mammography ages 40-74/);
   });
 });
