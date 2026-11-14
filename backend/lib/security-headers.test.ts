@@ -47,6 +47,29 @@ describe("security headers", () => {
     const api = rules().find((r) => r.source === "/api/:path*")!;
     assert.match(header(api, "Content-Security-Policy")!, /^default-src 'none'/);
   });
+  // REQ-261: the web app's visitor analytics (Vercel Web Analytics and Speed
+  // Insights, loaded by the Expo app, mobile/src/lib/webAnalytics.web.ts) need
+  // no CSP change. Both scripts load from this site's own origin
+  // (/_vercel/insights/script.js and /_vercel/speed-insights/script.js, served
+  // by Vercel) and post to /_vercel/... on the same origin, so 'self' covers
+  // script-src and connect-src. If a package upgrade ever adds another host,
+  // mobile/src/lib/analyticsWiring.test.ts fails first.
+  test("analytics needs no widening: same-origin script-src and connect-src, no inline script, no other host", () => {
+    const d = Object.fromEntries(APP_CSP.split("; ").map((x: string) => [x.split(" ")[0], x.split(" ").slice(1)]));
+    assert.deepEqual(d["script-src"], ["'self'"]);
+    assert.deepEqual(d["connect-src"], ["'self'"]);
+    assert.ok(!/vercel/i.test(APP_CSP + NEXT_PAGE_CSP), "no Vercel host is allowed: the scripts are same-origin");
+    // the rule that sends the app policy matches the /_vercel/ paths too, so a
+    // same-origin analytics script is never served under a looser policy
+    const appRule = rules().find((r) => header(r, "Content-Security-Policy") === APP_CSP)!;
+    assert.ok(new RegExp(`^${appRule.source}$`).test("/_vercel/insights/script.js"));
+  });
+  test("the Next-rendered token pages carry no analytics", () => {
+    const { readFileSync } = require("node:fs") as typeof import("node:fs");
+    const { join } = require("node:path") as typeof import("node:path");
+    const files = ["app/layout.tsx", ...NEXT_RENDERED_PAGES.map((p: string) => `app/${p}/page.tsx`), "app/_components/LinkPage.tsx"];
+    for (const f of files) assert.ok(!/@vercel\/(analytics|speed-insights)/.test(readFileSync(join(process.cwd(), f), "utf8")), f);
+  });
   test("CSP_REPORT_ONLY=true switches to the report-only header, same policy", () => {
     const enforced = rules().find((r) => header(r, "Content-Security-Policy") === APP_CSP);
     const ro = rules({ CSP_REPORT_ONLY: "true" }).find((r) => header(r, "Content-Security-Policy-Report-Only") === APP_CSP);

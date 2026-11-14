@@ -63,6 +63,10 @@ export default function DeleteAccountPage() {
         <li>Text recently sent to our AI provider is deleted by them within 30 days.</li>
         <li>Error reports sent to Sentry, our error-reporting service, follow Sentry&apos;s own schedule. They hold no account ID or name.</li>
         <li>
+          Anonymous page-view and speed figures from the website&apos;s cookieless analytics at Vercel were never linked to
+          your account, so there is nothing to find or remove by account; Vercel keeps them under its own schedule.
+        </li>
+        <li>
           Email you sent to our support address, and copies of support requests emailed to our support inbox, stay
           there until we delete them. There is no fixed period; ask at the address above and we will delete yours.
         </li>

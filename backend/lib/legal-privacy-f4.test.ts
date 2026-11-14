@@ -86,6 +86,9 @@ describe("what the policy discloses (FAIL-902, FAIL-903)", () => {
     const page = read("backend", "app", "delete-account", "page.tsx");
     assert.doesNotMatch(page, /Nothing about you stays in our database/);
     for (const k of [/37 days/, /30 days/, /Sentry/, /support address/, /Billing records/, /RETENTION\.aiCallsMonths/]) assert.match(page, k);
+    // REQ-261: the website analytics figures survive deletion, anonymous, in both places.
+    assert.match(page, /page-view and speed figures[\s\S]*never linked to[\s\S]*your account/);
+    assert.match(privacy, /Website page-view and speed figures at Vercel \(section 4\): anonymous, never linked to your account/);
   });
   test("the data inventory lists every table and what survives deletion", () => {
     const inv = read("docs", "legal", "data-inventory.md");

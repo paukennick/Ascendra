@@ -83,7 +83,8 @@ describe("legacy clients and the Terms gate (REQ-175, FAIL-560)", () => {
     assert.notEqual(PREVIOUS_TERMS_VERSION, CURRENT_TERMS_VERSION);
     assert.ok(PREVIOUS_TERMS_VERSION < CURRENT_TERMS_VERSION);
     for (const d of ["terms", "privacy"] as const) {
-      assert.ok(PREVIOUS_LEGAL_VERSIONS[d] < LEGAL_VERSIONS[d]);
+      // REQ-261: one document can be bumped alone (the 2026-11-14 Privacy Policy), so a document may be unchanged.
+      assert.ok(PREVIOUS_LEGAL_VERSIONS[d] <= LEGAL_VERSIONS[d]);
       assert.ok(LEGACY_LEGAL_VERSIONS[d] < UNDECLARED_LEGAL_VERSIONS[d]);
     }
     assert.equal(UNDECLARED_LEGAL_VERSIONS.terms, "2026-11-09", "frozen: the text of builds that send X-Ascendra-App only");
@@ -146,14 +147,18 @@ describe("legacy clients and the Terms gate (REQ-175, FAIL-560)", () => {
 
     let s = await json(await onboardingGet(req(u, "current", "/api/onboarding")));
     assert.equal(s.terms.needsAcceptance, true);
-    assert.deepEqual(s.terms.pending, ["terms", "privacy"]);
+    // REQ-261: only the documents whose version changed are asked again (the 2026-11-14 bump moved the Privacy Policy alone).
+    const changed = (["terms", "privacy"] as const).filter((d) => PREVIOUS_LEGAL_VERSIONS[d] !== LEGAL_VERSIONS[d]);
+    assert.deepEqual(changed, ["privacy"], "this bump is the Privacy Policy alone");
+    assert.deepEqual(s.terms.pending, changed);
     assert.equal(s.terms.acceptedVersion, PREVIOUS_TERMS_VERSION, "the agree screen says the terms changed");
-    assert.deepEqual((await json(await meGet(req(u, "current", "/api/auth/me")))).user.legalPending, ["terms", "privacy"]);
+    assert.deepEqual((await json(await meGet(req(u, "current", "/api/auth/me")))).user.legalPending, changed);
 
     s = await json(await termsPost(req(u, "current", "/api/onboarding/terms", "POST", { version: CURRENT_TERMS_VERSION })));
     assert.equal(s.terms.needsAcceptance, false);
     assert.equal(s.terms.acceptedVersion, CURRENT_TERMS_VERSION);
-    assert.equal((await recorded(u)).length, 4, "both versions kept, each as accepted");
+    // Each version accepted is kept as accepted; an unchanged document keeps its one row.
+    assert.equal((await recorded(u)).length, 2 + changed.length, "the previous pair, and the changed document's new version");
   });
 
   test("a build that declares the current text cannot accept an older one, and a garbled header never widens", async () => {

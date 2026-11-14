@@ -39,9 +39,13 @@ const WEB_BUILD_ID = process.env.EXPO_PUBLIC_WEB_BUILD_ID ?? "";
 import { useAppUpdates } from "@/updates/useAppUpdates";
 import { AlertHost } from "@/lib/alert";
 import { installWebAutofillStyles } from "@/lib/webAutofillStyles";
+import { startWebAnalytics } from "@/lib/webAnalytics";
 import { colors, fonts, radius, shadow, spacing } from "@/lib/theme";
 
 installWebAutofillStyles();
+// REQ-261: visitor analytics, web build only (a no-op on the phone), once.
+// Skipped when the build has it off or the browser sends GPC / Do Not Track.
+startWebAnalytics();
 
 // Held until AuthProvider resolves whether a session exists AND fonts finish
 // loading, so the user never sees a flash of the wrong screen or a
