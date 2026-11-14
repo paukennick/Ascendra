@@ -32,13 +32,13 @@ names at all (main or secondary); sims on the course.
 
 | Course | Fitting | Main, before | Main, after | Any, before | Any, after | Sims before | Sims after |
 |---|---|---|---|---|---|---|---|
-| **NCLEXRN** | 111 | 1 | 1 | 3 | 3 | 2 | 2 |
-| **NCLEXPN** | 44 | 0 | 0 | 2 | 2 | 2 | 2 |
-| **CNA** | 7 | 1 | 1 | 2 | 2 | 2 | 2 |
+| **NCLEXRN** | 111 | 1 | 2 | 3 | 9 | 2 | 3 |
+| **NCLEXPN** | 44 | 0 | 1 | 2 | 5 | 2 | 3 |
+| **CNA** | 7 | 1 | 2 | 3 | 4 | 2 | 3 |
 | ADNRN | 31 | 2 | 2 | 2 | 2 | 2 | 2 |
 | BSNRN | 23 | 2 | 2 | 3 | 3 | 2 | 2 |
 | LPNVN | 24 | 2 | 2 | 2 | 2 | 2 | 2 |
-| **CCRNADULT** | 81 | 2 | 2 | 5 | 5 | 5 | 5 |
+| **CCRNADULT** | 81 | 2 | 3 | 5 | 7 | 5 | 6 |
 | CCRNPEDS | 54 | 2 | 2 | 7 | 7 | 2 | 2 |
 | CCRNNEO | 46 | 1 | 1 | 4 | 4 | 2 | 2 |
 
@@ -55,8 +55,8 @@ names at all (main or secondary); sims on the course.
 
 | Course | Fitting | Main, before | Main, after | Any, before | Any, after | Sims before | Sims after |
 |---|---|---|---|---|---|---|---|
-| **DPT** | 15 | 0 | 0 | 4 | 4 | 3 | 3 |
-| **PTPREREQ** | 2 | 0 | 0 | 0 | 0 | 0 | 0 |
+| **DPT** | 15 | 0 | 1 | 4 | 7 | 3 | 4 |
+| **PTPREREQ** | 2 | 0 | 1 | 0 | 1 | 0 | 1 |
 | NPTEPT | 32 | 0 | 0 | 0 | 0 | 0 | 0 |
 | NPTEPTA | 20 | 0 | 0 | 0 | 0 | 0 | 0 |
 | ABPTSCCS | 16 | 0 | 0 | 0 | 0 | 0 | 0 |
@@ -126,12 +126,12 @@ course's fitting objectives.
 - Manage aggression with the least restrictive measure that is safe, treat an emergency medication order as an interim step, and stay with the client afterwards to monitor its effect (none)
 - Recognize biological disasters -- outbreaks, pandemics and bioterrorism -- and apply epidemiology and public health principles to triage and care (none)
 - Keep electronic health information confidential, accurate and available, and spot and respond to a security breach (none)
-- Postpartum care, and assessing for hemorrhage and infection (none)
+- Postpartum care, and assessing for hemorrhage and infection (secondary: postpartum-hemorrhage-atony)
 - Comprehensive health assessment versus targeted screening (none)
 - Health history and risk assessment, including family and genetic history (none)
 - High-risk behaviors: identifying them and teaching prevention and treatment (none)
 - Name Erikson's psychosocial stages in order from trust versus mistrust onward, and recognize how an unresolved early stage can show up later in a client's behavior (none)
-- Recognize postpartum hemorrhage -- cumulative blood loss of 1,000 mL or more within 24 hours of birth, by either route -- measure blood loss quantitatively, and activate the hemorrhage team (none)
+- Recognize postpartum hemorrhage -- cumulative blood loss of 1,000 mL or more within 24 hours of birth, by either route -- measure blood loss quantitatively, and activate the hemorrhage team (main: postpartum-hemorrhage-atony)
 - Support early newborn care: skin-to-skin contact for the stable baby, delaying the first bath to protect temperature and blood sugar, and infant security banding (none)
 - Teach parents the newborn warning signs that need urgent care, such as a pause in breathing of 20 seconds or more, or any shorter pause with blue color, paleness or a slow heart rate, and safe sleep and car seat use (none)
 - Use the comprehensive geriatric assessment areas -- ADLs, IADLs, mental health, fall risk, pain, polypharmacy, nutrition, senses and care preferences -- to target health promotion for an older adult (none)
@@ -171,13 +171,13 @@ course's fitting objectives.
 - Teach a client on corticosteroids not to stop them abruptly because of the risk of adrenal insufficiency, and to report signs of infection; monitor potassium, sleep and weight (none)
 - Monitor opioid therapy with the NARCS U adverse effects in mind -- nausea, addiction, respiratory depression, constipation, sedation, urinary retention -- and treat respiratory depression with naloxone (none)
 - Know that ultra-rapid CYP2D6 metabolizers can turn codeine into too much morphine, risking life-threatening respiratory depression (none)
-- Assessing and responding to changes and trends in vital signs (none)
+- Assessing and responding to changes and trends in vital signs (secondary: postpartum-hemorrhage-atony)
 - Applying pathophysiology when measuring and interpreting vital signs (none)
 - Testing within the nurse's scope: ECG, point-of-care testing, fetal monitoring (none)
 - Risk assessment for falls, sensory impairment, mobility and skin integrity (none)
-- Recognizing a trend in the client's condition and intervening on it (none)
-- Monitoring for signs of bleeding (none)
-- Intervening on circulatory complications: hemorrhage, embolus, shock (none)
+- Recognizing a trend in the client's condition and intervening on it (secondary: postpartum-hemorrhage-atony)
+- Monitoring for signs of bleeding (secondary: postpartum-hemorrhage-atony)
+- Intervening on circulatory complications: hemorrhage, embolus, shock (secondary: postpartum-hemorrhage-atony)
 - Evaluating the client's response to a procedure or treatment (none)
 - Prioritize airway management and postoperative nausea and vomiting in the postanesthesia care unit, and give a clear handover from the surgical team (none)
 - Work with respiratory therapy and the provider to set oxygen saturation targets in an acute respiratory exacerbation, and monitor saturation and oxygen needs (none)
@@ -216,7 +216,7 @@ Sims on objectives the screen does not pass:
 - Monitor the work of assistive personnel and intervene or report when care is unsafe or incomplete (none)
 - Know that treating without consent can be battery, and that a breach of the duty of care that causes harm is the basis of a negligence claim (none)
 - Protect privacy: log off after each use, keep screens from view, keep conversations private, and access only the minimum information the job requires (none)
-- Organize and prioritize care by client need, using airway, breathing and circulation and Maslow's hierarchy to decide what comes first (none)
+- Organize and prioritize care by client need, using airway, breathing and circulation and Maslow's hierarchy to decide what comes first (secondary: first-dose-anaphylaxis)
 - Rank the possible explanations for a client's cues by how likely and how serious each is, and take the most urgent to the RN or provider (none)
 - Know that a sentinel event, such as a fall that causes death or permanent disability, is investigated by root cause analysis aimed at system causes, which is why prompt incident reports matter (secondary: med-pass-error-caught)
 - Emergency response plans and participation in drills (none)
@@ -238,12 +238,12 @@ Sims on objectives the screen does not pass:
 - Identify the signs of substance misuse, substance use disorder, withdrawal and overdose, including alcohol overdose and the added risk with opioids or sedatives (none)
 - Help de-escalate an angry or agitated client, and stay with or near the client after an emergency medication to monitor its effect (none)
 - Recognize that opioid use disorder can start with legitimate pain treatment (none)
-- Recognizing an allergic reaction and responding to it (none)
+- Recognizing an allergic reaction and responding to it (main: first-dose-anaphylaxis)
 - Pharmacological pain management and p.r.n. decisions within scope (none)
 - Teach a client on warfarin to keep vitamin K intake consistent, and know a higher INR means a greater bleeding risk (none)
 - Reinforce that corticosteroids must not be stopped suddenly because of the risk of adrenal insufficiency, and report signs of infection (none)
 - Risk assessment for falls and mobility (none)
-- Unexpected response to therapy, and recognizing complications early (none)
+- Unexpected response to therapy, and recognizing complications early (secondary: first-dose-anaphylaxis)
 - Recognize high potassium -- above 5.1 mEq/L -- by cramping, diarrhea and peaked T waves, and report it as a risk for dysrhythmia (none)
 - Recognize and report signs of rising intracranial pressure: headache, vomiting, falling level of consciousness, and Cushing's triad (none)
 - Tell DKA from HHS: DKA is acute with low mortality, while HHS develops over weeks with a much higher mortality rate (none)
@@ -260,9 +260,9 @@ Sims on objectives the screen does not pass:
 ### CNA
 
 - Safety and emergency procedures (main: resident-found-on-floor)
-- Recognizing an emergency and summoning help correctly (none)
-- Recognizing a measurement that falls outside the expected range (none)
-- Observation versus interpretation, and why the aide reports the first (secondary: resident-found-on-floor)
+- Recognizing an emergency and summoning help correctly (secondary: resident-chokes-at-lunch, resident-found-on-floor, evening-vitals-out-of-range)
+- Recognizing a measurement that falls outside the expected range (main: evening-vitals-out-of-range)
+- Observation versus interpretation, and why the aide reports the first (secondary: resident-found-on-floor, evening-vitals-out-of-range)
 - Skin care and recognizing early pressure injury (none)
 - Responding to behavior without escalating it (none)
 - Never use a physical or chemical restraint for discipline or staff convenience; a restraint may be used only to treat a medical symptom, the least restrictive way, for the shortest time (none)
@@ -416,7 +416,7 @@ Sims on objectives the screen does not pass:
 - In subarachnoid hemorrhage, recognize thunderclap headache, then monitor for rebleeding, vasospasm, hydrocephalus and seizures after the aneurysm is secured (none)
 - Recognize neurogenic shock after spinal cord injury -- hypotension with bradycardia from lost sympathetic tone rather than lost volume -- and anticipate vasopressor support (none)
 - Recognize autonomic dysreflexia in injuries at or above T6 (sudden severe hypertension, headache) and look first for a distended bladder or bowel (none)
-- Treat a seizure lasting 5 minutes or more as status epilepticus: support the airway, check glucose, give a benzodiazepine first, then escalate (none)
+- Treat a seizure lasting 5 minutes or more as status epilepticus: support the airway, check glucose, give a benzodiazepine first, then escalate (main: status-epilepticus-after-craniotomy)
 - Monitor patients on levetiracetam for its adverse effects, including mood change and suicidal ideation (none)
 - Recognize bacterial meningitis as an emergency and give antibiotics without delay while monitoring for raised intracranial pressure and septic shock (none)
 - Prevent post-intensive care syndrome with the ABCDEF bundle: pain control, paired awakening and breathing trials, light sedation, delirium management, early mobility and family engagement (none)
@@ -428,7 +428,7 @@ Sims on objectives the screen does not pass:
 - Sedation: indications, monitoring and safe management (none)
 - Assessing, evaluating and prioritizing data by the patient's immediate condition and anticipated needs (none)
 - Evaluating the patient's response to interventions (none)
-- Recognizing emergencies, initiating interventions and seeking assistance (none)
+- Recognizing emergencies, initiating interventions and seeking assistance (secondary: status-epilepticus-after-craniotomy)
 - Managing device alarms by the change in the patient's condition, not the alarm alone (none)
 - Explain how sepsis produces vasodilation, capillary leak and rising lactate, and recognize the early signs before hypotension (none)
 - Deliver early sepsis care: blood cultures, broad-spectrum antibiotics ideally within the first hour in shock or probable sepsis (after a rapid assessment when sepsis is only possible), source control, crystalloid resuscitation and vasopressors to a mean arterial pressure target (secondary: sepsis-to-septic-shock)
@@ -687,12 +687,12 @@ Sims on objectives the screen does not pass:
 - Administer and score the Berg Balance Scale (14 tasks scored 0 to 4, maximum 56), and use the total to judge fall risk and the likely need for an assistive device (none)
 - Screen older adults for fall risk with the 2025 APTA-Geriatrics measures and cut-offs (TUG over 11 s, 5 times sit-to-stand over 12 s, single-limb stance under 6.5 s, Berg under 50, gait speed under 1.0 m/s) (secondary: stroke-balance-fall-risk)
 - Select from the neurologic core outcome set -- Berg Balance Scale, ABC Scale, Functional Gait Assessment, 10 Meter Walk Test, 6-Minute Walk Test and 5 Times Sit-to-Stand -- for adults in neurologic rehabilitation (secondary: stroke-balance-fall-risk)
-- Coordination and gait examination: the Romberg test with eyes closed for proprioception versus station with eyes open, and cerebellar ataxia as a cause of abnormal findings (none)
+- Coordination and gait examination: the Romberg test with eyes closed for proprioception versus station with eyes open, and cerebellar ataxia as a cause of abnormal findings (main: dizziness-central-red-flags)
 - Measure orthostatic vital signs, recognizing orthostatic hypotension as a fall of at least 20 mm Hg systolic or 10 mm Hg diastolic within 3 minutes of standing (secondary: stroke-balance-fall-risk)
-- Determining a physical therapy diagnosis that guides management (none)
+- Determining a physical therapy diagnosis that guides management (secondary: dizziness-central-red-flags)
 - Monitoring and adjusting the plan of care to optimize health outcomes (secondary: icu-early-mobility)
 - Managing the delivery of care consistent with the practice environment's policies, including environmental emergencies (none)
-- Vestibular rehabilitation: supervised therapy for unilateral and bilateral hypofunction, gaze-stabilization doses from the guideline, and stopping when goals are met, symptoms resolve or progress plateaus (none)
+- Vestibular rehabilitation: supervised therapy for unilateral and bilateral hypofunction, gaze-stabilization doses from the guideline, and stopping when goals are met, symptoms resolve or progress plateaus (secondary: dizziness-central-red-flags)
 - Parkinson disease management: aerobic exercise at moderate to high intensity, balance and gait training, external cueing for freezing, and behavior-change approaches to raise physical activity (none)
 - Fall-prevention exercise for older adults: a minimum weekly dose of 150 minutes to 3 hours over 6 to 12 months with progressive, challenging balance training, inside a multifactorial program (none)
 - Assessing, documenting and minimizing safety risks for patients and providers, including facility safety policies (none)
@@ -719,7 +719,7 @@ Screened out by hand (recall only, no time, cue or consequence in the task):
 ### PTPREREQ
 
 - Apply the tissue repair sequence (inflammation with its four cardinal signs, then granulation tissue as new vessels grow, then scar or regenerated tissue) to a described wound or sprain (none)
-- Calculate pulse pressure and mean arterial pressure from a blood pressure reading, and interpret a narrow pulse pressure as a sign of low stroke volume (none)
+- Calculate pulse pressure and mean arterial pressure from a blood pressure reading, and interpret a narrow pulse pressure as a sign of low stroke volume (main: cycle-test-falling-pressure)
 
 Screened out by hand (recall only, no time, cue or consequence in the task):
 
