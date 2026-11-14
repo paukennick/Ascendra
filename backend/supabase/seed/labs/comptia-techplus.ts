@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet, orderPart } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, orderPart, numericPart, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-172: CompTIA Tech+ (FC0-U71).
@@ -290,6 +290,149 @@ export const TECHPLUS_LABS: SeedLabSet = {
               "Privacy",
               "Never write passwords on notes or share them; shared accounts move into the password manager's shared vault; passwords are changed if exposed (the admin password on the sticky note must be changed now).",
               "No sticky notes or sharing by message. Put shared logins in a shared vault in the manager. Change the admin password today because it was on display, and change any password you think was seen."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill to two labs in every domain. Number
+    // conversions were computed (Python int/hex/oct) on 2026-11-14.
+    {
+      slug: "techplus-number-systems",
+      objective: "Notational systems: binary, hexadecimal, decimal, and octal",
+      kind: "build",
+      title: "Convert the numbers on a network label",
+      brief:
+        "At the help desk of Rosemount Library (fictional) you are labeling equipment. A switch setting is shown in binary as 11010110, a color in the library's web theme is written #3F3F3F, and a colleague asks why file permissions on the Linux server are written as numbers like 755.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Conversions are arithmetic, computed on 2026-11-14; no outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Convert the binary value to decimal, match each notation to its base and digits, and explain the hexadecimal color.",
+          parts: [
+            numericPart("11010110 in decimal", "Met: 214 exactly.", "128 + 64 + 16 + 4 + 2 = 214. Reading 11010110 from the left the place values are 128, 64, 32, 16, 8, 4, 2, 1, and the 1s sit under 128, 64, 16, 4 and 2. In hexadecimal it is D6.", { answer: 214, tolerance: 0 }),
+            matchPart(
+              "Base and digits",
+              "Met: all four right -- binary: base 2, digits 0-1; octal: base 8, digits 0-7; decimal: base 10, digits 0-9; hexadecimal: base 16, digits 0-9 and A-F. Three right is partly there.",
+              "Each notation's base is how many digits it has. Hexadecimal needs six extra symbols, A to F, for ten to fifteen. Octal's 0-7 is why Linux permissions like 755 use it: each digit is exactly three bits (read, write, execute).",
+              {
+                leftHeading: "Notation",
+                rightHeading: "Base and digits",
+                left: ["Binary", "Octal", "Decimal", "Hexadecimal"],
+                right: ["Base 2, digits 0-1", "Base 8, digits 0-7", "Base 10, digits 0-9", "Base 16, digits 0-9 and A-F", "Base 12, digits 0-9 and A-B"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            part(
+              "The color #3F3F3F",
+              "Reads it as three hexadecimal bytes, red, green and blue, each 3F; 3F is 3 x 16 + 15 = 63 in decimal (00111111 in binary) out of a maximum of FF = 255, so the color is a dark gray because the three channels are equal and low. Notes one hex digit is four bits, which is why a byte is two hex digits.",
+              "#3F3F3F is three bytes in hexadecimal: red 3F, green 3F, blue 3F. 3F = 3 x 16 + 15 = 63 (binary 00111111), out of a possible FF = 255 per channel. Equal, low values for all three make a dark gray. Hex is popular for this because one hex digit is exactly four bits, so any byte is two digits."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "techplus-network-device-roles",
+      objective: "Networking basics: LAN vs. WAN, IP/MAC addresses, routers, switches, and firewalls",
+      kind: "build",
+      title: "Explain the small office network, box by box",
+      brief:
+        "Rosemount Library (fictional) has a branch with 12 public PCs and a staff laptop. A diagram shows: an ISP modem, then a router, then a firewall, then a 24-port switch, then the PCs. The branch manager wants a one-page explanation for volunteers, and asks what the two kinds of address on a PC's network details screen mean: 192.168.20.31 and 3C-52-82-1A-7F-04.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Classifies network devices and addresses; the addresses are fictional examples from a private range. No outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each item to its job, then explain the two addresses and LAN vs WAN for the volunteers.",
+          parts: [
+            matchPart(
+              "Job of each item",
+              "Met: all four right -- switch: connects the PCs inside the branch and forwards frames by MAC address; router: moves traffic between the branch network and other networks using IP addresses; firewall: allows or blocks traffic by rules; ISP modem: connects the branch to the provider's line. Three right is partly there.",
+              "The switch links the devices of one local network. The router sits between networks and picks where IP packets go next. The firewall applies the rules about which traffic may pass. The modem turns the provider's line into a connection the router can use. A wireless access point adds Wi-Fi, which this diagram does not show.",
+              {
+                leftHeading: "Item",
+                rightHeading: "Job",
+                left: ["24-port switch", "Router", "Firewall", "ISP modem"],
+                right: ["Connects the PCs inside the branch, forwarding by MAC address", "Moves traffic between networks using IP addresses", "Allows or blocks traffic according to rules", "Connects the branch to the provider's line", "Gives wireless devices access"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            part(
+              "Addresses and LAN vs WAN",
+              "192.168.20.31 is an IP address: a logical, assignable address (here a private one, used only inside the branch) that routers use to deliver traffic between networks, and it can change. 3C-52-82-1A-7F-04 is the MAC address: the network card's hardware address, used by the switch on the local network, normally fixed. LAN: the branch's own network in one building; WAN: the wide-area connections between sites and to the internet, through the ISP.",
+              "192.168.20.31 is the PC's IP address -- like a postal address that can be reassigned. It is a private address, used only inside the branch; the router lets the PCs share the branch's public address on the internet. 3C-52-82-1A-7F-04 is the MAC address, burned into the network card, like a serial number; the switch uses it to send traffic to the right port. The LAN is everything inside the branch, joined by the switch; the WAN is the connection out of the building -- to other branches and the internet -- through the router and the ISP."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "techplus-os-components",
+      objective: "OS components: file systems (NTFS, FAT32), interfaces (GUI, command line), utilities, and drivers",
+      kind: "build",
+      title: "Name the operating system part behind each fix",
+      brief:
+        "A volunteer at Rosemount Library (fictional) keeps a list of problems the help desk solved this month:\n\nA. A new scanner showed as 'Unknown device' until the manufacturer's software for it was installed.\nB. A USB stick had to be prepared so both the library's old camera and its Windows PCs could read it.\nC. A script to rename 400 files was run by typing commands instead of clicking.\nD. A slow PC was checked with the built-in tool that lists running programs and their memory use.\nE. A patron needed large folders of photos moved with clicks and drag-and-drop.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Classifies operating system components; quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each fix to the OS component it used, then explain the file system choice in B.",
+          parts: [
+            matchPart(
+              "Component for each fix",
+              "Met: all five right -- A: a driver; B: the file system (formatting); C: the command-line interface; D: a system utility (Task Manager or similar); E: the graphical user interface. Four right is partly there.",
+              "A driver lets the OS talk to a specific device. Formatting chooses the file system that organizes data on the stick. Typed commands use the command-line interface. A tool that shows running programs and memory is a system utility. Clicking and dragging is the graphical interface. The kernel is involved in everything but is not what was changed in any of these.",
+              {
+                leftHeading: "Fix",
+                rightHeading: "OS component",
+                left: ["A: scanner works after its software is installed", "B: USB stick prepared for camera and PCs", "C: 400 files renamed with typed commands", "D: running programs and memory checked", "E: photos moved by dragging"],
+                right: ["Driver", "File system", "Command-line interface", "System utility", "Graphical user interface", "Kernel"],
+                pairs: [0, 1, 2, 3, 4],
+              }
+            ),
+            part(
+              "File system choice in B",
+              "Explains a file system is how data is organized and tracked on a drive; NTFS is Windows' main file system with permissions, encryption and journaling, but many cameras and non-Windows devices cannot write it; FAT32 is older and very widely supported, so it suits a stick shared with an old camera, at the cost of no permissions and a limit on the size of a single file (so very large video files may need exFAT). Formatting erases the stick, so copy files off first.",
+              "A file system is the scheme the OS uses to store and find files on a drive. NTFS is what Windows uses for its own disks: it adds permissions, encryption and journaling, but many cameras and other devices cannot use it. FAT32 is older and readable almost everywhere, which is why the stick was formatted that way; the trade-offs are no file permissions and a cap on how big a single file can be, so a device that records very large videos may need exFAT instead. Formatting wipes the stick, so copy anything on it first."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "techplus-backup-plan",
+      objective: "Backup concepts: file system backups and local vs. other storage targets",
+      kind: "build",
+      title: "Plan backups for a branch's shared folder",
+      brief:
+        "Rosemount Library (fictional) keeps event flyers, volunteer rotas and the local-history photo archive in a shared folder on one PC in the back office. Last year a spilled drink killed a PC and a month of flyers was lost. The manager can use an external USB drive, the library's network storage at head office, and a cloud storage account.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Applies backup concepts to the fictional branch; quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each risk to the backup target that covers it, then write the backup plan.",
+          parts: [
+            matchPart(
+              "Target for each risk",
+              "Met: all three right -- the office PC dies: a local external drive (fast restore); fire or flood in the building: a copy away from the building (head-office network storage or cloud); ransomware encrypting everything connected: a copy kept disconnected or versioned so it cannot be overwritten. Two right is partly there.",
+              "A local drive restores quickly after a dead PC but burns with the building. An off-site copy survives a disaster at the branch. A copy that is unplugged or keeps old versions survives malware that encrypts every drive it can reach. A second folder on the same PC protects against none of them.",
+              {
+                leftHeading: "Risk",
+                rightHeading: "Backup target that covers it",
+                left: ["The office PC fails", "Fire or flood at the branch", "Ransomware encrypts everything it can reach"],
+                right: ["External USB drive at the branch", "Off-site copy: head-office storage or cloud", "A disconnected or versioned copy that cannot be overwritten", "A second folder on the same PC"],
+                pairs: [0, 1, 2],
+              }
+            ),
+            part(
+              "Backup plan",
+              "More than one copy, on different targets, one off-site: e.g. a scheduled nightly backup to head-office network storage or the cloud with version history, plus a weekly copy to the USB drive that is unplugged afterwards; names what is backed up (the shared folder, especially the irreplaceable photo archive) and who checks it; tests a restore regularly; protects the copies (encryption for cloud and the portable drive, limited access).",
+              "Keep several copies on different targets, with at least one away from the branch. Every night, back the shared folder up automatically to head-office storage or the cloud, with version history so an older copy can be restored after a mistake or ransomware. Every Friday, also copy it to the external drive, then unplug the drive and lock it away. The photo archive cannot be recreated, so check it is included. Name one person to look at the backup report each week, and once a month restore a few files to prove the backups work. Encrypt the portable drive and the cloud copy, and limit who can delete backups."
             ),
           ],
         },
