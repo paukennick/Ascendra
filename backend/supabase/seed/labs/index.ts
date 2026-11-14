@@ -2,6 +2,7 @@
 import type { SeedLabSet } from "./types";
 // REQ-292: the Python and Linux depth courses.
 import { PYAUTO_LABS } from "./python-automation";
+import { PYDATA_LABS } from "./python-data";
 import { AWSSAA_LABS } from "./awssaa";
 import { PMP_LABS } from "./pmp";
 import { NCLEXRN_LABS } from "./nclexrn";
@@ -259,4 +260,5 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   NCMHCE_LABS,
   // REQ-292: the Python and Linux depth courses.
   PYAUTO_LABS,
+  PYDATA_LABS,
 ].map(withValueSources);
