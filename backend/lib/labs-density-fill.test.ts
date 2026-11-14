@@ -42,6 +42,7 @@ export const FILLED: Readonly<Record<string, readonly string[]>> = {
   CCA: ["clustermesh-benefits-and-prereqs"],
   MSCS: ["spot-the-broken-heaps", "truth-table-and-equivalences", "choose-a-sort-by-property", "dfs-order-by-hand", "topological-order-of-courses"],
   MSHI: ["choose-the-observational-data-source"],
+  CMPCBS: ["derivative-rules-and-a-value", "improper-integrals-converge-or-not", "expected-value-and-variance-of-a-prize", "count-it-four-ways", "calculus-notation-and-the-priority-dispute"],
 };
 
 export function ruleFor(code: string): number[] {

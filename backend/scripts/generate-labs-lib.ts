@@ -124,6 +124,7 @@ export const LAB_PLAN_TOP_UPS: Readonly<Record<string, readonly number[]>> = {
   CCA: [2, 2, 2, 2, 2, 2, 1, 1],
   MSCS: [2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   MSHI: [2, 2, 2, 2, 2, 2, 1, 1, 1, 1],
+  CMPCBS: [2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 };
 
 export function unitPlan(track: PlanTrack, policy: DensityPolicy, opts = POLICY_DEFAULTS): number[] {
