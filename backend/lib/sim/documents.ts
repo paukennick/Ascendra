@@ -172,6 +172,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("GCPACE", "cloud-run-bad-revision-rollback"),
   entry("LINUXPLUS", "systemd-dropin-breaks-export"),
   entry("CKA", "apiserver-static-pod-bad-flag"),
+  entry("SECPLUS", "firewall-change-backout"),
   // ---- end REQ-297 ----
 ];
 

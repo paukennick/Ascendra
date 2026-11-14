@@ -33,6 +33,7 @@ export const WAVE3: readonly { course: string; slug: string; screen: string; pro
   { course: "GCPACE", slug: "cloud-run-bad-revision-rollback", screen: "board", profile: "cloud" },
   { course: "LINUXPLUS", slug: "systemd-dropin-breaks-export", screen: "terminal", profile: "infrastructure" },
   { course: "CKA", slug: "apiserver-static-pod-bad-flag", screen: "terminal", profile: "infrastructure" },
+  { course: "SECPLUS", slug: "firewall-change-backout", screen: "security-console", profile: "security" },
 ];
 
 const entryOf = (slug: string) => ALL_DOCUMENTS.find((e) => e.slug === slug)!;
@@ -456,5 +457,35 @@ describe("what each wave 3 case teaches", () => {
     const w = driver(d);
     while (w.minutes() < 46) w.act("watch");
     assert.notEqual(w.value("peakMissedAt"), null);
+  });
+
+  test("Security+: RDP stays open until the change is backed out, and the guessing succeeds at 35 minutes", () => {
+    const d = docOf("firewall-change-backout");
+    const late = driver(d);
+    while (late.minutes() < 36) late.act("watch");
+    assert.notEqual(late.value("compromisedAt"), null);
+    const ok = driver(d);
+    ok.act("backout");
+    while (ok.minutes() < 36) ok.act("watch");
+    assert.equal(ok.value("compromisedAt"), null);
+    assert.equal(ok.value("bruteAt"), null);
+  });
+
+  test("Security+: the corrected rule goes in only through the approved emergency change; a live edit works but is unapproved", () => {
+    const d = docOf("firewall-change-backout");
+    const ok = driver(d);
+    ok.act("backout");
+    ok.act("emergency");
+    assert.equal(d.actions.implement.available !== undefined, true);
+    while (ok.value("approvedAt") === null) ok.act("watch");
+    ok.act("implement");
+    ok.act("vendorTest");
+    assert.notEqual(ok.value("testedAt"), null);
+    const hot = driver(d);
+    hot.act("hotfix");
+    hot.act("vendorTest");
+    assert.notEqual(hot.value("testedAt"), null);
+    assert.equal(hot.value("correctUnapproved"), true);
+    assert.equal(hot.value("backedOut"), false);
   });
 });
