@@ -130,6 +130,7 @@ import { NCE_LABS } from "./nbcc-nce";
 import { NCMHCE_LABS } from "./nbcc-ncmhce";
 import { ISC2CC_LABS } from "./isc2-cc";
 import { CISSP_LABS } from "./isc2-cissp";
+import { CISM_LABS } from "./isaca-cism";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -260,4 +261,5 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   // REQ-271..273: ISC2, ISACA and EC-Council security courses.
   ISC2CC_LABS,
   CISSP_LABS,
+  CISM_LABS,
 ].map(withValueSources);
