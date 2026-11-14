@@ -8,7 +8,7 @@ this file and those pages together**.
 
 Rebuilt 2026-11-09 (REQ-205) from the table list of a database with every
 migration applied (migrations 001-070) and the foreign keys into `app_users`,
-and brought up to migration 081 on 2026-11-13 (REQ-259: 081 adds `app_users.date_of_birth` and `mature_course_acknowledgements`; REQ-228, 2026-11-11: 071-077
+and brought up to migration 083 on 2026-11-13 (REQ-262: 083 adds `lesson_content_variants` (shared, not personal), `subject_tracks.beginner_variants` and `attempts.lesson_variant` (which version of a lesson an answer was given to; no text); 082 adds `learner_teach_order`; REQ-259: 081 adds `app_users.date_of_birth` and `mature_course_acknowledgements`; REQ-228, 2026-11-11: 071-077
 add `mature_content_confirmations`, `mastery_backup_074`,
 `inbound_email_events` and `app_users.totp_last_step`; REQ-252: 078 adds
 `learner_course_profiles`, `learner_unit_levels`, `learner_level_changes`
@@ -69,6 +69,7 @@ row stays with its user link removed (and is listed under Kept after deletion).
 | `lesson_progress`, `lesson_progress_tombstones`, `lesson_hint_reveals` | place in a lesson; when a lesson step was finished or cleared; which Solo choices were revealed | resume across devices | while account open | nothing (cascade) | yes |
 | `learner_events`, `learner_onboarding` | learning milestones and, since REQ-252, lesson steps (a hunch shown, made or skipped, a Teach card reached, Guided skipped, Key terms opened, a level or goal set, and since REQ-255 the goal question answered, skipped or dismissed and where it was asked; since REQ-256 (080) the goal card shown in a lesson, a move-down suggestion and its "Not now", and a typed guess's match label (close, partial or off -- never the guess), with the level, a card number or seconds; no answer text); first-run state | checking Ascendra helps people learn | while account open | nothing (cascade) | yes |
 | `learner_course_profiles`, `learner_unit_levels`, `learner_level_changes` (REQ-252) | per course: the goal answer ("why are you taking this course?") and the level (New, Some background, Experienced); optional per-unit levels; each level change, who or what made it (the learner, mastery evidence, or since REQ-256 the learner accepting a move-down suggestion), and whether it was seen or undone | choosing how each lesson is taught (the solo check and mastery rule are the same at every level) | while account open | nothing (cascade) | yes |
+| `learner_teach_order` (REQ-262) | the lesson order (Explain first or Example first) the learner was randomly given, the one they use now, and when they chose it, if they did | choosing how a lesson's cards are ordered, and comparing the two orders (lesson events carry the order and whether it was assigned or chosen) | while account open | nothing (cascade) | yes |
 | `learner_intake`, `learner_intake_targets` (REQ-169) | study-profile answers: goal, experience, weekly hours, what it's for, up to five courses with exam dates | setting up the study plan | while account open | nothing (cascade) | yes |
 | `lab_runs`, `lab_run_steps` | lab runs and every graded step with the learner's answers | labs | while account open | nothing (cascade) | yes |
 | `sim_runs`, `sim_run_commands`, `sim_run_reasoning` | sim runs, every command sent, written reasoning with its grade | sims | while account open | nothing (cascade; commands via their run) | yes |
@@ -95,7 +96,7 @@ row stays with its user link removed (and is listed under Kept after deletion).
 
 ### Shared, not personal
 
-`lesson_content`, `lesson_primers`, `pbq_scenarios`, `coach_quiz_items`, `exam_items`,
+`lesson_content`, `lesson_content_variants`, `lesson_primers`, `pbq_scenarios`, `coach_quiz_items`, `exam_items`,
 `review_items`, `discrimination_items`, `unit_check_items`, `labs`,
 `lab_report_questions`, `sims`, `sim_versions`, `sim_reviews`, `item_status`,
 `item_holdbacks`, `item_quality_params`, `learned_set_attempts`, `concept_sets`,

@@ -187,6 +187,11 @@ export const EXPORT_SECTIONS = {
   unitLevels: "select track_id, unit_id, level, source, updated_at from learner_unit_levels where user_id = $1 order by track_id asc, unit_id asc",
   levelChanges: `select track_id, unit_id, from_level, to_level, reason, prior_unit_level, prior_unit_source, created_at, seen_at, undone_at
                    from learner_level_changes where user_id = $1 order by created_at asc, id asc`,
+  // REQ-262 (migration 082): the lesson order (Explain first / Example first):
+  // the one randomly assigned and the one in effect, and when the learner
+  // chose it, if they did.
+  teachOrder: `select assigned_order, teach_order, chosen_at, assigned_at, updated_at
+                 from learner_teach_order where user_id = $1 order by user_id asc`,
   // REQ-144: unrestricted access given to this account, and its audit trail
   // (who gave, changed or ended it, and when). The giver is named, not their
   // email address.

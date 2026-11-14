@@ -71,6 +71,9 @@ export const PURPOSE_POOL: Record<AiPurpose, AiPool> = {
   // lesson_intro), and its batch pre-generation (operator, never reserved).
   primer: "coach",
   pregen_primer: "coach",
+  // REQ-262: beginner lesson versions (off by default; scripts only).
+  lesson_variant: "coach",
+  lesson_variant_check: "coach",
 };
 
 export function poolOf(purpose: string): AiPool {

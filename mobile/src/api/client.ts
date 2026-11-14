@@ -88,9 +88,13 @@ export function reissuedAccessToken(data: unknown): string | null {
 // Protocol 2 (REQ-189): the app also renders interactive lab parts; below
 // 2 the server writes their options into the step text instead
 // (backend/lib/client-protocol.ts LAB_INTERACTIVE_PROTOCOL).
+// Protocol 3 (REQ-262): the app also shows a beginner lesson version (Teach in
+// small steps) and names it on grade, hint and report requests; below 3 the
+// server serves the standard lesson (backend/lib/client-protocol.ts
+// LESSON_VARIANT_PROTOCOL).
 // Raise it only together with the server's own check.
 export const CLIENT_PROTOCOL_HEADER = "X-Ascendra-Client";
-export const CLIENT_PROTOCOL = 2;
+export const CLIENT_PROTOCOL = 3;
 
 // REQ-175: the app build, sent on every request (src/lib/appVersion.ts).
 // src/updates/appIdentity.ts fills in the build and platform when the app

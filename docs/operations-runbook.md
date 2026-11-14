@@ -251,6 +251,11 @@ next deployment only.
   `LABS_SERVE_UNREVIEWED` (on unless `off`): labs waiting for expert review.
 - `ITEM_FACT_CHECK` (on unless `off`): the second-model check before generated
   items publish. Off lets them publish unchecked.
+- `TEACH_ORDER_TEST` (on unless `off`): the Explain first / Example first
+  test (REQ-262, docs/teach-order-test.md). On: a learner who has not chosen is
+  randomly given one lesson order, stored once. Off: they see Explain first and
+  their lessons record no order; a learner's own choice always stands. Note
+  the day it is switched for the analysis.
 - `CSP_REPORT_ONLY=true`: send the Content-Security-Policy as report-only
   (browser console logs, nothing blocked). Use it to trial a stricter policy;
   leave it unset in production.

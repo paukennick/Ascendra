@@ -1,6 +1,6 @@
 import { advanceDueSchedule } from "@/lib/review-step";
 import { queryOne, withTransaction, type TxClient } from "@/lib/db";
-import { getLessonFor } from "@/lib/lesson-store";
+import { resolveLesson, type LessonVersion } from "@/lib/lesson-variant";
 import { lessonItemKey } from "@/lib/choice-order";
 import { optionReasonsFor } from "@/lib/lesson-store";
 import { cleanText } from "@/lib/text-input";
@@ -89,6 +89,11 @@ export interface AttemptInput {
   // the same sim is a repeat (see simAssistReason, docs/sims.md 9.4).
   simId?: string | null;
   simRunId?: string | null;
+  // REQ-262 (migration 083): the beginner version of the lesson this Guided
+  // or Solo answer was given to ('new'); null or absent is the standard
+  // lesson. Only named in the insert when set, so grading keeps working on a
+  // database without the column.
+  lessonVariant?: "new" | null;
 }
 
 // "retry" (REQ-105): a revision written with the first answer's feedback and
@@ -285,6 +290,10 @@ export interface LessonCheck {
   // REQ-105: one reason per stored choice, or null for a lesson cached
   // before option reasons existed (grading then falls back to `why`).
   optionReasons: string[] | null;
+  // REQ-262: which version of the lesson this key belongs to. The grade route
+  // records it on the attempt (attempts.lesson_variant); the key, the question
+  // and the choices are all from that one version.
+  version: LessonVersion;
 }
 
 export type LessonCheckLookup =
@@ -293,13 +302,18 @@ export type LessonCheckLookup =
   | { status: "bad-stage" }
   | { status: "pending" };
 
+// REQ-262: `version` is the version of the lesson the learner was shown (the
+// app says so; absent is the standard lesson). The key comes from THAT version,
+// through the one resolver (lib/lesson-variant.ts); a beginner version that is
+// no longer available throws LessonVersionUnavailableError (409).
 export async function lessonCheckFor(
   userId: string,
   objectiveId: string,
-  stage: unknown
+  stage: unknown,
+  version: LessonVersion = "standard"
 ): Promise<LessonCheckLookup> {
   if (stage !== "fade" && stage !== "solo") return { status: "bad-stage" };
-  const found = await getLessonFor(userId, objectiveId);
+  const found = await resolveLesson(userId, objectiveId, { answered: version });
   if (!found) return { status: "no-lesson" };
   const r = found.row;
   const question = stage === "fade" ? r.fade_problem : r.solo_check;
@@ -319,6 +333,7 @@ export async function lessonCheckFor(
       why: why ?? "",
       teach: r.teach,
       optionReasons: optionReasonsFor(reasons, choices),
+      version: found.version,
     },
   };
 }
@@ -448,6 +463,8 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   if (input.labId) extraCols.push({ col: "lab_id", value: input.labId });
   // REQ-190: sim_id (migration 062), only named when set.
   if (input.simId) extraCols.push({ col: "sim_id", value: input.simId });
+  // REQ-262: lesson_variant (migration 083), only named when set (a beginner version).
+  if (input.lessonVariant) extraCols.push({ col: "lesson_variant", value: input.lessonVariant });
   const attemptRows = await query(
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,

@@ -9595,6 +9595,51 @@
         "Website analytics still not disclosed and not installed; a later version adds both together",
         "No lawyer has reviewed this text"
       ]
+    },
+    {
+      "id": "REQ-262",
+      "category": "feature",
+      "title": "Teaching learners at every level, phase 2: Explain first / Example first A/B test, beginner lesson variants (built, switched off)",
+      "description": "Phase 2 of the levels design (Nick, 2026-11-12 and 2026-11-13). Part 1, progress signals for newer learners: all four (mastery ladder, You can now, before/after, comeback credit) already shipped in REQ-252, nothing rebuilt. Part 2: a per-learner Explain first / Example first setting with a random, stable, recorded assignment for learners who have not chosen (ON by default, Nick 2026-11-13: no learners yet, so live from day one), changeable in Settings with the choice recorded (assigned vs chosen), the order recorded on lesson events, and a how-to-read doc and SQL (first-try accuracy, solo accuracy, Independent after 24h, time in Teach). Part 3: lesson_content_variants (new beginner versions), a single lesson-variant resolver, beginner prompts and checks, attempts that record the version answered with grading and review using the right key, a visible Skip check link, a per-course flag default off with no course on and no generation run, and clinical courses never getting beginner versions.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/082_teach_order.sql",
+        "backend/supabase/migrations/083_lesson_variants.sql",
+        "backend/lib/teach-order.ts",
+        "backend/lib/teach-order-results.ts",
+        "backend/app/api/account/teach-order",
+        "backend/lib/learner-level-rules.ts",
+        "mobile/src/lib/teachOrder.ts",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "docs/teach-order-test.md",
+        "docs/learner-levels.md"
+      ],
+      "acceptance_criteria": [
+        "Progress signals: report which already existed",
+        "A learner who has not chosen gets a random stable order recorded once",
+        "Changing it in Settings records that the learner chose",
+        "Lesson events carry the order and whether it was assigned or chosen",
+        "The results doc and its SQL match a test",
+        "Beginner variants are off for every course and refused for clinical courses in code",
+        "Attempts record the version answered and grading uses that version's key"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "mobile npm test",
+        "both typechecks",
+        "npm run test:db against a local Postgres",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/teach-order-test.md",
+        "docs/learner-levels.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Part 1 already shipped in REQ-252 (nothing built). Part 2 live (migration 082). Part 3 built and OFF (migration 083): no course on, nothing generated, no model called. Visuals and device behavior not checked."
+      ]
     }
   ]
 }

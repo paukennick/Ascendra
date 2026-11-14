@@ -14,6 +14,8 @@
 //   - ONE mastery bar for everyone: a level changes the path, never the
 //     solo check or the mastery rule.
 
+import { isTeachOrder, type TeachOrder } from "./teach-order-rules";
+
 export const LEVELS = ["new", "some", "experienced"] as const;
 export type Level = (typeof LEVELS)[number];
 
@@ -264,6 +266,11 @@ export interface LessonEventDetail {
   seconds?: number;
   card?: number;
   step?: (typeof STEPS)[number];
+  // REQ-262 (migration 082): the Teach order the lesson showed and where it
+  // came from. Absent for a lesson with no cards (the order changed nothing),
+  // for a build that doesn't send them, and when the request for it failed.
+  order?: TeachOrder;
+  order_source?: "assigned" | "chosen";
 }
 
 const intIn = (v: unknown, min: number, max: number) =>
@@ -280,5 +287,11 @@ export function lessonEventDetail(raw: unknown): LessonEventDetail {
   const card = intIn(r.card, 0, MAX_EVENT_CARD);
   if (card !== undefined) d.card = card;
   if (typeof r.step === "string" && (STEPS as readonly string[]).includes(r.step)) d.step = r.step as LessonEventDetail["step"];
+  // The order and its source go together or not at all: an order with no
+  // source could not be told apart from a choice in the results.
+  if (isTeachOrder(r.order) && (r.order_source === "assigned" || r.order_source === "chosen")) {
+    d.order = r.order;
+    d.order_source = r.order_source;
+  }
   return d;
 }

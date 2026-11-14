@@ -84,7 +84,12 @@ export type AiPurpose =
   // to the learner who opened it, like a shared lesson), and the batch rows
   // of primer pre-generation (one row per model, from the Batches usage).
   | "primer"
-  | "pregen_primer";
+  | "pregen_primer"
+  // REQ-262: the beginner version of a lesson (3 to 5 small steps) and the
+  // consistency check that reads it against the standard Teach. Built but
+  // switched off; written only by scripts/beginner-variants.ts.
+  | "lesson_variant"
+  | "lesson_variant_check";
 
 // REQ-208: the prefix every pre-generation purpose starts with, so the global
 // ceiling's sum can leave them out with one predicate.

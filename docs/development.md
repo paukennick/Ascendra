@@ -218,6 +218,7 @@ Every setting the server code reads, by name and purpose. Values live only in Ve
 | `AI_UNRESTRICTED_DAILY_CEILING_USD`, `OWNER_MONTHLY_AI_CAP_USD` | Safety caps for unrestricted accounts and owners |
 | `AI_MONTHLY_CAP_<PLAN>_USD` | Monthly AI cap per plan (used when billing is on, and for grants) |
 | `ITEM_FACT_CHECK` | `off` turns off the fact-check gate on generated questions |
+| `TEACH_ORDER_TEST` | `off` stops randomly assigning the Explain first / Example first lesson order (docs/teach-order-test.md) |
 | `CHAT_HISTORY_TOKEN_BUDGET` | Size of the coach history sent per message |
 | `AI_CALL_LOG` | `off` stops recording model calls in `ai_calls` |
 | `AI_PROVIDER`, `OLLAMA_BASE_URL`, `OLLAMA_MODEL` | Local-only alternative model; refused in production |
