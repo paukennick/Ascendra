@@ -111,6 +111,12 @@ export const LAB_PLAN_TOP_UPS: Readonly<Record<string, readonly number[]>> = {
   AZ305: [3, 2, 2, 3],
   GCPDBE: [3, 3, 2, 2],
   GCPMLE: [2, 2, 2, 2, 2, 2],
+  DATAPLUS: [2, 2, 3, 2, 2],
+  TECHPLUS: [2, 2, 2, 2, 2, 2],
+  AUTOOPSPLUS: [3, 3, 2, 2],
+  CLOUDNETX: [3, 3, 2, 2],
+  DATAAI: [2, 3, 2, 2, 2],
+  PROJECTPLUS: [3, 3, 2, 2],
 };
 
 export function unitPlan(track: PlanTrack, policy: DensityPolicy, opts = POLICY_DEFAULTS): number[] {

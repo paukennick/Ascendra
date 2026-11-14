@@ -29,6 +29,12 @@ export const FILLED: Readonly<Record<string, readonly string[]>> = {
   DP900: ["file-format-for-each-dataset", "ingestion-elt-pipeline-plan"],
   GCPDBE: ["read-replica-lag-and-routing"],
   GCPMLE: ["training-serving-preprocessing-skew"],
+  DATAPLUS: ["data-source-for-each-question", "cleanse-and-standardize-customer-list"],
+  TECHPLUS: ["techplus-number-systems", "techplus-network-device-roles", "techplus-os-components", "techplus-backup-plan"],
+  AUTOOPSPLUS: ["make-the-script-idempotent", "slo-error-budget-release-call"],
+  CLOUDNETX: ["availability-technology-for-each-need"],
+  DATAAI: ["distribution-for-each-process", "unsupervised-method-for-each-task", "crisp-dm-project-walkthrough"],
+  PROJECTPLUS: ["projectplus-charter-review", "projectplus-closing-sequence", "projectplus-quality-charts"],
 };
 
 export function ruleFor(code: string): number[] {
