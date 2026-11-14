@@ -163,6 +163,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("APLUS_CORE2", "home-office-laptop-malware"),
   entry("KCNA", "service-selector-no-endpoints"),
   entry("GCPACE", "public-bucket-customer-exports"),
+  entry("GCPCDL", "bigquery-dashboard-bill"),
   // ---- end REQ-297 ----
 ];
 

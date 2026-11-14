@@ -24,6 +24,7 @@ export const WAVE3: readonly { course: string; slug: string; screen: string; pro
   { course: "APLUS_CORE2", slug: "home-office-laptop-malware", screen: "security-console", profile: "security" },
   { course: "KCNA", slug: "service-selector-no-endpoints", screen: "terminal", profile: "infrastructure" },
   { course: "GCPACE", slug: "public-bucket-customer-exports", screen: "board", profile: "security" },
+  { course: "GCPCDL", slug: "bigquery-dashboard-bill", screen: "board", profile: "cloud" },
 ];
 
 const entryOf = (slug: string) => ALL_DOCUMENTS.find((e) => e.slug === slug)!;
@@ -242,5 +243,28 @@ describe("what each wave 3 case teaches", () => {
     pap.act("enforcePap");
     assert.equal(pap.value("exposed"), false);
     assert.equal(pap.value("imagesOk"), true, "the new public bucket is in another project");
+  });
+
+  test("GCP CDL: an alerts-only budget does not slow the spend; the owner's fix cuts it to cents an hour; cutting the dashboard off fails the review", () => {
+    const d = docOf("bigquery-dashboard-bill");
+    const alerts = driver(d);
+    const s0 = alerts.value("spend") as number;
+    alerts.act("ownerBudgetA");
+    alerts.act("watch");
+    alerts.act("watch");
+    assert.ok((alerts.value("spend") as number) - s0 > 40, "about $50 an hour keeps accruing");
+    const fix = driver(d);
+    fix.act("findOwner");
+    fix.act("meetOwner");
+    fix.act("ownerFix");
+    while (fix.value("dashFixed") !== true) fix.act("watch");
+    const s1 = fix.value("spend") as number;
+    fix.act("watch");
+    fix.act("watch");
+    assert.ok((fix.value("spend") as number) - s1 < 1);
+    const cut = driver(d);
+    cut.act("revokeDash");
+    while (cut.minutes() < 301) cut.act("watch");
+    assert.notEqual(cut.value("reviewFailedAt"), null);
   });
 });
