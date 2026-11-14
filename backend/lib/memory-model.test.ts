@@ -1,4 +1,4 @@
-// REQ-291: the proposed memory model (design only, not wired in).
+// REQ-291: the proposed memory model (design; REQ-301 stores its predictions in shadow mode, nothing decides from it yet).
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import {

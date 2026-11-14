@@ -1,7 +1,7 @@
 // REQ-301: shadow mode for the mastery decay model against a real Postgres
 // with every migration applied (085 included): the live write beside the
-// review, its failure isolation (FAIL-2060), the backfill and its equivalence
-// with the live write (FAIL-2061), the calibration report's numbers, the
+// review, its failure isolation and timeout restore (FAIL-2060), the backfill and
+// its equivalence with the live write, the calibration report's numbers, the
 // table check, the roles, and the account export.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 import { test, describe, before, after, beforeEach } from "node:test";

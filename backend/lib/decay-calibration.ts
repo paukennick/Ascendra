@@ -141,7 +141,8 @@ export function sliceOf(label: string, cells: CalibrationCell[]): Slice {
   const gapPoints = (meanPredicted - observed) * 100;
   let verdict: Slice["verdict"] = "too_few";
   if (n >= CALIBRATION_MIN_N) {
-    verdict = Math.abs(gapPoints) <= CALIBRATION_BAR_POINTS ? "within_bar" : gapPoints > 0 ? "over_predicts" : "under_predicts";
+    // 1e-9: a gap of exactly five points must not fail on float noise.
+    verdict = Math.abs(gapPoints) <= CALIBRATION_BAR_POINTS + 1e-9 ? "within_bar" : gapPoints > 0 ? "over_predicts" : "under_predicts";
   }
   return {
     label,
