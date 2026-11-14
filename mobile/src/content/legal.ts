@@ -470,8 +470,8 @@ export const ABOUT: LegalDoc = {
 
 export const FAQ: LegalDoc = {
   title: "FAQ",
-  version: "2026-11-13",
-  updated: "November 13, 2026",
+  version: "2026-11-14",
+  updated: "November 14, 2026",
   sections: [
     {
       title: "What is Ascendra?",
@@ -543,6 +543,13 @@ export const FAQ: LegalDoc = {
       title: "Why did I get signed out?",
       body: [
         "In the app you stay signed in: after time away it locks instead, and you unlock with your fingerprint, face or password. On the web, closing the browser signs you out, the page locks after time away, and 30 minutes without activity signs you out. You choose when it locks in Settings > Security > Lock Ascendra. Changing your password or choosing “Sign out of all devices” signs you out everywhere else.",
+      ],
+    },
+    {
+      title: "Where can I see what has changed?",
+      body: [
+        "When there's something new, a “What's new” window opens once on Home. Close it, tap “Got it” or press Escape and it won't open again for that note. Every update, newest first and grouped by date with the app version it came with, is under Settings > About > Release notes, and the window has a “See all release notes” button that goes there.",
+        "The app version is shown in the same place, under Settings > About. Most updates reach you by themselves; if a version is too old to keep working, Ascendra says so and, on the web, reloads, or on a phone, gets the update or opens your app store.",
       ],
     },
     {

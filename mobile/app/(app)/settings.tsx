@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Switch, View } from "react-native";
-import Constants from "expo-constants";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Card, ChoiceSheet, Divider, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
 import { LOCK_AFTER_OPTIONS, lockAfterLabel } from "@/lib/autoLock";
@@ -15,6 +14,8 @@ import { settingsRowValue } from "@/lib/discounts";
 import { reminderRowValue, type ReminderPrefs } from "@/lib/reminders";
 import { loadReminderPrefs, remindersSupported } from "@/lib/reminderScheduler";
 import { api } from "@/api/client";
+import { APP_VERSION } from "@/lib/appVersion";
+import { RELEASE_NOTES_LABEL, RELEASE_NOTES_ROUTE } from "@/lib/whatsNew";
 import {
   parseTeachOrder,
   TEACH_ORDER_LABELS,
@@ -237,12 +238,14 @@ export default function Settings() {
 
       <SectionHeader label="About" />
       <Card>
-        {/* REQ-140: every release note, newest first. */}
-        <ListRow icon="gift" label="What's new" onPress={() => router.push("/whats-new")} />
+        {/* REQ-299: every release note, newest first, grouped by date. */}
+        <ListRow icon="gift" label={RELEASE_NOTES_LABEL} onPress={() => router.push(RELEASE_NOTES_ROUTE)} />
         <Divider />
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        {/* REQ-300: the version the app sends as X-Ascendra-App (src/lib/appVersion.ts). The native
+            config it was read from before had a fallback and could differ from what the server sees (FAIL-2040). */}
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }} accessible accessibilityLabel={`Version ${APP_VERSION}`}>
           <Muted>Version</Muted>
-          <Muted>{Constants.expoConfig?.version ?? "1.0.0"}</Muted>
+          <Muted>{APP_VERSION}</Muted>
         </View>
         <Divider />
         <Muted>
