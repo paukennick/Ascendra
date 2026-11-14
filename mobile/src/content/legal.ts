@@ -470,8 +470,8 @@ export const ABOUT: LegalDoc = {
 
 export const FAQ: LegalDoc = {
   title: "FAQ",
-  version: "2026-11-13",
-  updated: "November 13, 2026",
+  version: "2026-11-14",
+  updated: "November 14, 2026",
   sections: [
     {
       title: "What is Ascendra?",
@@ -489,6 +489,14 @@ export const FAQ: LegalDoc = {
       title: "Who writes the lessons?",
       body: [
         "An AI model writes each lesson from the course objective, and the objectives come from official exam outlines and reviewed open textbooks. A separate AI fact-check reviews each lesson and question first; one that fails is held back and written again, and if it still can't be shown you're told why. They are not checked by a person before you see them, so they can be wrong — use “Report a problem” on any lesson that looks off.",
+      ],
+    },
+    {
+      title: "How does a mock exam work, and is my mock score my exam score?",
+      body: [
+        "A mock exam is built from the course's real exam: the same number of questions, the same time limit and the exam's published domain weights, using the question types we can show (multiple choice, choose two or three, ordering and matching). The mock's start screen names where we read them and the day. If we haven't confirmed a course's exam length against its official site yet, the mock says its length is approximate, and a course with no single exam (nurse aide evaluations, which each state sets, for example) gets a mixed practice test, not a copy of an exam.",
+        "Your mock score is the share of questions you got fully right. It is not a predicted exam score. Exams report a scaled score or pass or fail, the bodies don't publish how correct answers convert to it, and so we never turn your percentage into a scaled score or tell you whether you would pass. Where a body publishes a passing score we quote it as a fact. Simulations and hands-on questions on the real exam are not in a mock.",
+        "If we don't yet have enough checked questions to fill every domain, you get a short form instead, and the mock says how many questions it has and why. Its time is cut to match, so the pace is still the real exam's. The clock on a timed mock does not pause: it keeps running if you leave and come back, and your answers are saved either way. Before you submit there is a review screen that lists every question and filters the unanswered and flagged ones. Afterward you can go through every question with its explanation, and your answers count toward your mastery and readiness.",
       ],
     },
     {
