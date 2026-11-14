@@ -99,6 +99,7 @@ export const LAB_PLAN_TOP_UPS: Readonly<Record<string, readonly number[]>> = {
   // unit -- without the performance-verb cap, which had held these courses
   // at one lab per unit. Measured in docs/labs-coverage.md.
   PYTHON: [2, 2, 2, 2, 2, 2, 1, 1, 1],
+  JAVASCRIPT: [2, 2, 2, 2, 2, 2, 1, 1, 1],
 };
 
 export function unitPlan(track: PlanTrack, policy: DensityPolicy, opts = POLICY_DEFAULTS): number[] {

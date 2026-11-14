@@ -14,6 +14,7 @@ import { apportion, POLICY_DEFAULTS, LAB_PLAN_TOP_UPS } from "../scripts/generat
 // Courses the fill has brought up to the rule, with the slugs it added.
 export const FILLED: Readonly<Record<string, readonly string[]>> = {
   PYTHON: ["truthiness-stock-label", "unboundlocal-counter", "word-count-dict-patterns", "csv-to-json-inventory", "super-and-the-mro", "stdlib-for-an-on-call-script"],
+  JAVASCRIPT: ["coercion-cart-total", "closure-rate-limiter", "shallow-copy-leaks-edits", "event-loop-log-order", "nullish-settings-defaults"],
 };
 
 export function ruleFor(code: string): number[] {
