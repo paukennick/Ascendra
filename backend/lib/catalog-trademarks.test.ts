@@ -20,7 +20,7 @@ const COACH_ALLOWED = new Set([
 
 // Marks of the covered bodies, as they appeared in the old "<mark> Coach" titles.
 const MARKS =
-  /\b(AWS|Azure|Microsoft|Google Cloud|PMI|PMP|CAPM|PgMP|PfMP|CSPP|NCLEX|CCRN|NPTE|ABPTS|Clinical Specialist|Kubernetes|Prometheus|OpenTelemetry|GitOps|Argo|Cilium|Istio|Kyverno|Backstage|Cloud Native|Docker|DCA|Red Hat|OpenShift|NASM|ACE|ACSM|NSCA|CSCS|ISSA|NCCPT|CompTIA|NREMT|National Registry)\b/;
+  /\b(AWS|Azure|Microsoft|Google Cloud|PMI|PMP|CAPM|PgMP|PfMP|CSPP|NCLEX|CCRN|NPTE|ABPTS|Clinical Specialist|Kubernetes|Prometheus|OpenTelemetry|GitOps|Argo|Cilium|Istio|Kyverno|Backstage|Cloud Native|Docker|DCA|Red Hat|OpenShift|NASM|ACE|ACSM|NSCA|CSCS|ISSA|NCCPT|CompTIA|NREMT|National Registry|Scrum|PSM|CSM|ITIL|ASQ|CSSGB)\b/;
 
 const MS = /not affiliated with or endorsed by Microsoft\. Microsoft and Azure are trademarks of the Microsoft group of companies\.$/;
 const PMI = /not affiliated with or endorsed by PMI\. PMI (and \S+ are marks|is a mark) of Project Management Institute, Inc\./;
@@ -41,14 +41,14 @@ const BODIES: Body[] = [
   { name: "Linux Foundation", notice: LF, codes: ["CKA", "CKAD", "KCNA", "CKS", "KCSA", "PCA", "OTCA", "CGOA", "CAPA", "CCA", "ICA", "KCA", "CBA", "CNPA", "CNPE"] },
   { name: "Docker", notice: DOCKER, codes: ["DCA"] },
   { name: "Red Hat", notice: REDHAT, codes: ["EX188", "EX280"] },
-  { name: "Fitness", codes: ["NASMCPT", "ACECPT", "ACSMCPT", "NSCACSCS", "NSCACPT", "NCCPTCPT"] },
+  { name: "Fitness", codes: ["NASMCPT", "ACECPT", "ACSMCPT", "NSCACSCS", "NSCACPT", "NCCPTCPT", "NASMCNC"] },
 ];
 
 describe("catalog titles and exam bodies' trademarks (REQ-194)", () => {
   test("every covered course still exists under its original code, so mastery stays mapped", () => {
     const missing = BODIES.flatMap((b) => b.codes).filter((c) => !byCode.has(c));
     assert.deepEqual(missing, []);
-    assert.equal(BODIES.flatMap((b) => b.codes).length, 85);
+    assert.equal(BODIES.flatMap((b) => b.codes).length, 86);
   });
 
   test("covered courses are titled 'Prep for the ... Exam', never '<mark> Coach'", () => {

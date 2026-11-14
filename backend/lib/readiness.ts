@@ -115,7 +115,7 @@ const pct = (x: number) => Math.round(x * 100);
 // domainWeights: "study_emphasis"; lib/content-fixes-req220.test.ts keeps
 // this list equal to the seed's). Read from subject_tracks only, so every
 // database role that reads a course (the app, the re-check job) can use it.
-export const STUDY_EMPHASIS_TRACK_CODES = ["CNA", "LPNVN", "ADNRN", "BSNRN"] as const;
+export const STUDY_EMPHASIS_TRACK_CODES = ["CNA", "LPNVN", "ADNRN", "BSNRN", "PSMI", "CSM", "NASMCNC"] as const;
 // `st` is subject_tracks.
 export const STUDY_EMPHASIS_WEIGHTS_SQL = `(st.user_id is null and st.code in (${STUDY_EMPHASIS_TRACK_CODES.map((c) => `'${c}'`).join(", ")}))`;
 

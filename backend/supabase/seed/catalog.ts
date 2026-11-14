@@ -34,6 +34,7 @@ import { REDHAT_TRACKS } from "./tracks/redhat-openshift";
 import { EMS_TRACKS } from "./tracks/ems";
 import { EPPP_TRACKS } from "./tracks/eppp";
 import { NBCC_TRACKS } from "./tracks/nbcc";
+import { PM_FRAMEWORK_TRACKS } from "./tracks/pm-frameworks";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -75,6 +76,9 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...EPPP_TRACKS,
   // REQ-239: NBCC counseling licensure, NCE and NCMHCE (same category).
   ...NBCC_TRACKS,
+  // REQ-280: Scrum (PSM I, CSM), ITIL 4 Foundation and ASQ Six Sigma Green
+  // Belt (migration 084 subcategories; ITIL under IT Certifications).
+  ...PM_FRAMEWORK_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the

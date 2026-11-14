@@ -435,6 +435,21 @@ const SAMHSA_988 = source("https://www.samhsa.gov/mental-health/988", "reference
 // specific names or level numbers to ASAM).
 const ASAM_CRITERIA = source("https://www.asam.org/asam-criteria/about-the-asam-criteria", "reference", R239);
 
+// --- REQ-281 (2026-11-14): NASM Certified Nutrition Coach ---------------------
+// Read 2026-11-14 at the URL given. DGA 2025-2030 (released 2026-01-07):
+// protein 1.2-1.6 g/kg/day; no added sugars recommended, at most 10 g in one
+// meal. National Academies DRI summary tables: AMDR fat 20-35% of energy;
+// protein RDA 0.8 g/kg; Atwater 4/4/9 (and 7 for alcohol) as the tables'
+// energy basis. FDA supplement Q&A (updated 2026-08-27): no premarket
+// approval; structure/function claims need the disclaimer; disease claims
+// make a product a drug.
+const R281 = "2026-11-14";
+const DGA_2025 = source("https://cdn.realfood.gov/DGA.pdf", "reference", R281);
+const NASEM_AMDR = source("https://www.ncbi.nlm.nih.gov/books/NBK56068/table/summarytables.t5/?report=objectonly", "reference", R281);
+const NASEM_MACRO = source("https://www.ncbi.nlm.nih.gov/books/NBK56068/table/summarytables.t4/?report=objectonly", "reference", R281);
+const FDA_SUPPLEMENTS = source("https://www.fda.gov/food/information-consumers-using-dietary-supplements/questions-and-answers-dietary-supplements", "reference", R281);
+const CNC_SCOPE = source("https://www.nasm.org/products/single-complex/nasm-certified-nutrition-coach/CNC301K", "reference", R281);
+
 export const VALUE_SOURCES: Record<string, ValueSources> = {
   CCRNADULT: {
     "post-cabg-tamponade": [STS_RESUSCITATION_2017, AHA_CARDIOGENIC_SHOCK_2017],
@@ -913,6 +928,19 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "ncmhce-family-triangulation": { none: CONCEPTS_ONLY },
     "ncmhce-cultural-humility": [ACA_CODE_2014],
     "ncmhce-alliance-rupture": { none: CONCEPTS_ONLY },
+  },
+  // REQ-281 (2026-11-14): NASM Certified Nutrition Coach.
+  NASMCNC: {
+    "nasmcnc-refer-or-coach": [CNC_SCOPE],
+    "nasmcnc-headline-red-flags": { none: "Judges study design from the case's own facts; quotes no value." },
+    "nasmcnc-calories-from-macros": [NASEM_AMDR],
+    "nasmcnc-protein-range": [NASEM_MACRO, DGA_2025],
+    "nasmcnc-supplement-question": [FDA_SUPPLEMENTS],
+    "nasmcnc-oars-match": { none: "Names motivational interviewing skills; quotes no value." },
+    "nasmcnc-behavior-goal": { none: "Goal-setting from the case's own facts; quotes no value." },
+    "nasmcnc-label-added-sugar": [DGA_2025],
+    "nasmcnc-supplement-claims": [FDA_SUPPLEMENTS],
+    "nasmcnc-weight-management-case": [CNC_SCOPE],
   },
 };
 
