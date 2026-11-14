@@ -9728,6 +9728,48 @@
       "risk_notes": [
         "Part 1 already shipped in REQ-252 (nothing built). Part 2 live (migration 082). Part 3 built and OFF (migration 083): no course on, nothing generated, no model called. Visuals and device behavior not checked."
       ]
+    },
+    {
+      "id": "REQ-297",
+      "category": "content",
+      "title": "IT sims wave 3: coverage map and more sims for existing non-clinical courses",
+      "description": "Nick (2026-11-14): 'Build more sims, no need to limit number, build what covers the material.' Selection rule (2026-11-10): a sim fits a sub-objective when time matters, there are cues to read, choices have consequences, or priorities compete. Map every existing non-clinical course (AWS, GCP, Azure, CompTIA, Kubernetes/CNCF, data/AI, PMI/Project+, fitness) against the rule and the sims that exist (docs/sims-coverage-it.md), then build learner-paced sims for uncovered fitting objectives on the existing screens (terminal, security console, board), launch and mixed-round courses first, each with golden paths built by npm run sim:golden -- steps (the #153 pattern). Families whose screen does not exist (project dashboard, data and code console, client trainer) are listed as proposals with the sims they would unlock, not built. Engine 1.2 with endingOrder, times in seconds, no engine, renderer, schema or migration change.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/it-wave3.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims-coverage-it.md",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "docs/sims-coverage-it.md maps every existing non-clinical course before and after",
+        "each new scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion both met and missed",
+        "every objective title exists in its course catalog",
+        "golden paths end the same in written reversed and jsonb key order",
+        "times are stored in seconds"
+      ],
+      "validation_required": [
+        "sims lint for the new documents",
+        "storage-order test",
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims-coverage-it.md",
+        "docs/sims.md 22.16",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "scenario timings are teaching values",
+        "sources read 2026-11-14 some only through summaries",
+        "new documents enter expert review",
+        "the keyword screen under-counts fitting objectives so the map adds a stated judgement"
+      ]
     }
   ]
 }

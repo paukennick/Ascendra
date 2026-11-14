@@ -156,6 +156,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTPARAMEDIC", "inferior-stemi-cath-alert"),
   entry("NREMTPARAMEDIC", "infant-respiratory-failure"),
   // ---- end REQ-241 ----
+  // ---- REQ-297 (IT sims, wave 3): more learner-paced sims for the existing
+  // non-clinical courses on the existing terminal, security console and
+  // board screens (docs/sims-coverage-it.md). Keep these entries together. ----
+  entry("APLUS_CORE1", "rogue-dhcp-soho-office"),
+  // ---- end REQ-297 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
