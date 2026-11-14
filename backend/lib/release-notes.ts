@@ -87,12 +87,13 @@ export const RELEASE_NOTES: ReleaseNote[] = [
   {
     // 2026-11-12 (d): REQ-249 sims badge, REQ-250 Save and exit, REQ-251
     // fairer answer choices, REQ-252/255/256 levels and the goal question,
-    // REQ-253 Key terms, REQ-257 level-aware lessons in four more courses.
+    // REQ-253 Key terms, REQ-257 level-aware lessons in four more courses
+    // (REQ-258, REQ-263 added more).
     // The course list in the levels item must match the seed's levelFlow
     // tracks (lib/level-flow-tracks.test.ts); change both together.
     id: "2026-11-12-d",
     date: "2026-11-12",
-    covers: ["REQ-249", "REQ-250", "REQ-251", "REQ-252", "REQ-253", "REQ-255", "REQ-256", "REQ-257", "REQ-258"],
+    covers: ["REQ-249", "REQ-250", "REQ-251", "REQ-252", "REQ-253", "REQ-255", "REQ-256", "REQ-257", "REQ-258", "REQ-263"],
     title: "Lessons that meet you at your level",
     items: [
       {
@@ -106,8 +107,8 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         icon: "trending-up",
         headline: "Lessons shaped by your level",
         body:
-          "In Python, JavaScript, DPT, PT prerequisites, CCRN, AWS SAA and MLA, Security+ and CNA, New learners " +
-          "get a quick hunch and the full worked example first. Experienced learners can skip guided practice.",
+          "In Python, JavaScript, DPT, PT prerequisites, CCRN, AWS SAA and MLA, Security+, CNA, NCLEX-RN and NCLEX-PN, " +
+          "New learners get a quick hunch and the full worked example first. Experienced learners can skip guided practice.",
       },
       {
         icon: "book-open",
