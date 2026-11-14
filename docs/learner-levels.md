@@ -232,7 +232,13 @@ an order at random once (`learner_teach_order`, migration 082) and keeps it in
 every course; choosing is recorded (`chosen_at`). It runs in every course and
 does not touch the level flow: what New and Experienced get around Guided is
 unchanged. Lesson events carry `order` and `order_source` in `detail`. How to
-read the results, and the query: docs/teach-order-test.md.
+read the results, and the query: docs/teach-order-test.md. A beginner lesson
+version (below, switched off) is outside the order test.
+
+## Beginner lesson versions (REQ-262, phase 2, switched off)
+
+Teach in 3 to 5 small steps with a quick check each, for New learners, per
+course, never in clinical courses. Built and off: docs/beginner-variants.md.
 
 ## Switching the flow on for more courses
 

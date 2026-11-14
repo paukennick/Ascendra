@@ -173,3 +173,7 @@ so read it only for lessons well over a day old) and **time in Teach**
 (pure rules), `app/api/account/teach-order/route.ts`,
 `teach-order-results.ts` (the query above), migration 082. App:
 `mobile/src/lib/teachOrder.ts`, the lesson screen, and Settings.
+
+## Beginner lesson versions are outside this test
+
+When beginner versions are switched on for a course (docs/beginner-variants.md; off today), a New learner served one sees Teach as small steps and the order setting does not apply; the app records no `order` on those lessons' events, so they never appear in the results above.

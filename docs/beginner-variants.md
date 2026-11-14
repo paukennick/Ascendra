@@ -64,6 +64,36 @@ the server as always.
 Review and the exam-bank copy of answered lesson checks use the standard lesson
 only.
 
+## In the app (client protocol 3)
+
+`mobile/src/lib/teachSteps.ts` (pure, tested) and
+`mobile/src/components/teachSteps.tsx`, used by the lesson screen only when the
+payload says `version: "beginner"` and carries 3 to 5 well-formed steps:
+
+- Teach is one small step at a time: plain explanation, everyday example, the
+  exam's words, then a quick check with instant feedback that says why the
+  picked option is right or wrong. "Skip check" is a visible link until the
+  check is answered; Next is allowed either way, so a check never blocks the
+  lesson.
+- After the last step comes the worked example card (with its self-explanation
+  prompt), then the usual way on to Guided. The definition, why and mistake
+  cards are replaced by the steps.
+- The grade, hint and report requests send `lessonVariant: "new"`; a standard
+  lesson sends nothing, so an older server sees no new field.
+- A 409 `lesson_changed` shows the server's message with a "Reload lesson"
+  button: the lesson is re-read, answers given to the old version are dropped
+  and the learner starts again at Teach.
+- Malformed steps are never shown: the standard cards display instead.
+- The app now sends `X-Ascendra-Client: 3` (was 2). The server serves a
+  beginner version only to protocol 3 and up, so older installed builds keep
+  the standard lesson.
+
+**The Explain first / Example first setting does not apply to a beginner
+version** (its Teach is the steps, with the example card after), and its
+lesson events carry no `order`, so they are not counted in that comparison
+(`docs/teach-order-test.md`). Where both are on, New learners in a switched-on
+course leave the order test and the other levels stay in it.
+
 ## Clinical courses never get beginner versions
 
 Enforced in code, not by convention, at three places:

@@ -58,7 +58,7 @@
 -- busy moment fails the migration cleanly (nothing applied, re-run it).
 --
 -- ROLLBACK (deploy the earlier backend first):
---   drop table if exists lesson_content_variants;
+--   drop table if exists lesson_content_variants;   (its content_recheck grant and policy go with it)
 --   alter table attempts drop constraint if exists attempts_lesson_variant_083;
 --   alter table attempts drop column if exists lesson_variant;
 --   alter table subject_tracks drop column if exists beginner_variants;
@@ -119,6 +119,20 @@ begin
   if exists (select 1 from pg_roles where rolname = 'anon')
      and exists (select 1 from pg_roles where rolname = 'authenticated') then
     revoke all on lesson_content_variants from anon, authenticated;
+  end if;
+end $$;
+
+-- The re-check job (lib/recheck-stored.ts) reads every stored lesson, this
+-- table's variants included, as content_recheck (064): read only, no learner
+-- column here, so the same grant and policy as lesson_content. Without it the
+-- job's lesson pass fails with "permission denied for table
+-- lesson_content_variants" (found by lib/recheck-role.dbtest.ts).
+do $$
+begin
+  if exists (select 1 from pg_roles where rolname = 'content_recheck') then
+    grant select on lesson_content_variants to content_recheck;
+    drop policy if exists recheck_read on lesson_content_variants;
+    create policy recheck_read on lesson_content_variants for select to content_recheck using (true);
   end if;
 end $$;
 

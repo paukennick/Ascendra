@@ -83,6 +83,8 @@ import {
 } from "@/lib/lessonFeedback";
 import { Collapsible, FeedbackPanel, NextStep, OptionReasons } from "@/components/feedback";
 import { TeachCards } from "@/components/teachCards";
+import { TeachSteps } from "@/components/teachSteps";
+import { beginnerSteps, exampleCardsOnly, isLessonChanged, lessonVariantFields } from "@/lib/teachSteps";
 import { effectiveOrder, orderCards, orderEventDetail, parseTeachOrder, type TeachOrderState } from "@/lib/teachOrder";
 import { LabCard } from "@/components/labReport";
 import {
@@ -327,7 +329,12 @@ export default function LessonFlow() {
       cancelled = true;
     };
   }, [objectiveId]);
-  const hasCards = !!(lesson && usableCards(lesson.teachCards));
+  // REQ-262: a beginner version's Teach is the small steps, so the lesson order
+  // setting does not apply to it: its events carry no `order`, so they are not
+  // counted in the Explain first / Example first comparison.
+  const steps = lesson ? beginnerSteps(lesson) : null;
+  const [stepsDone, setStepsDone] = useState(false);
+  const hasCards = !!(lesson && usableCards(lesson.teachCards)) && !steps;
   const orderDetail = orderEventDetail(teachOrder, hasCards);
   // REQ-252 (design 8): first-party lesson step events, fire and forget,
   // each once per screen visit. Never answer text (the server keeps only
@@ -733,6 +740,23 @@ export default function LessonFlow() {
     }
   }
 
+  // REQ-262: the server said the version this lesson was shown as is gone (409
+  // lesson_changed). Re-read the lesson, drop the answers given to the old
+  // version, and start again at Teach on whatever the server now serves.
+  async function reloadLesson() {
+    try {
+      const res = await api.get<{ lesson: LessonContent; practicePending?: boolean }>(`/api/objectives/${objectiveId}/lesson`);
+      setLesson(res.lesson);
+      setPracticePending(!!res.practicePending);
+      setChecks({});
+      setTeachState(EMPTY_TEACH);
+      setStepsDone(false);
+      setStep("teach");
+    } catch (err) {
+      setError(friendlyError(err));
+    }
+  }
+
   async function regenerateLesson() {
     if (regenInFlight.current) return;
     regenInFlight.current = true;
@@ -753,6 +777,7 @@ export default function LessonFlow() {
       setGuessFeedbackLoading(false);
       setChecks({});
       setTeachState(EMPTY_TEACH);
+      setStepsDone(false);
       setStep("guess");
     } catch (err) {
       // Nothing was reset: the learner keeps the finished lesson they have.
@@ -878,6 +903,10 @@ export default function LessonFlow() {
   // REQ-262: the learner's order (Example first moves the worked example to
   // the front; nothing else changes).
   const cards = standardCards ? orderCards(standardCards, effectiveOrder(teachOrder)) : null;
+  // REQ-262: after the beginner steps only the worked example card follows.
+  const teachCards = steps ? exampleCardsOnly(standardCards) : cards;
+  // Named on grade, hint and report so the server uses this version's key.
+  const variantFields = lessonVariantFields(lesson);
   const guidedSkipped = !checks.fade?.result && (step === "solo" || step === "lab" || step === "done");
   const scrollToTop = useCallback(() => scrollRef.current?.scrollTo({ y: 0, animated: false }), []);
   async function goToGuided() {
@@ -1009,10 +1038,19 @@ export default function LessonFlow() {
               ) : null}
             </>
           ) : null}
-          {cards ? (
+          {steps && !stepsDone ? (
+            // REQ-262: the beginner version, one small step and quick check at a time.
+            <TeachSteps
+              steps={steps}
+              onDone={() => {
+                setStepsDone(true);
+                scrollToTop();
+              }}
+            />
+          ) : teachCards ? (
             // REQ-106: short cards. The way on to practice sits under the last card.
             <TeachCards
-              data={cards}
+              data={teachCards}
               state={teachState}
               onChange={setTeachState}
               onCardChange={scrollToTop}
@@ -1036,10 +1074,15 @@ export default function LessonFlow() {
               }
             />
           ) : (
-            // A lesson cached before cards: one block of text, as before.
+            // A lesson cached before cards: one block of text, as before. (A
+            // beginner version with no worked example card goes straight on.)
             <>
-              <Muted>Explanation</Muted>
-              <Body>{lesson.teach}</Body>
+              {steps ? null : (
+                <>
+                  <Muted>Explanation</Muted>
+                  <Body>{lesson.teach}</Body>
+                </>
+              )}
               <TeachFooter
                 plan={plan}
                 skipNote={flow.offerSkipGuided ? SKIP_GUIDED_LEVEL_NOTE : SKIP_GUIDED_NOTE}
@@ -1089,6 +1132,8 @@ export default function LessonFlow() {
           // REQ-133: back to the explanation; the guess and the graded
           // answer are kept, so coming forward again shows the same result.
           onReread={() => setStep("teach")}
+          variantFields={variantFields}
+          onLessonChanged={reloadLesson}
         />
       )}
 
@@ -1114,6 +1159,8 @@ export default function LessonFlow() {
           onStateChange={(st) => setCheck("solo", st)}
           onDone={() => setStep(stepAfterSolo(labPrompt))}
           onTryAgain={tryAgain}
+          variantFields={variantFields}
+          onLessonChanged={reloadLesson}
         />
       )}
 
@@ -1504,7 +1551,13 @@ function CheckStep({
   onDone,
   onReread,
   onTryAgain,
+  variantFields,
+  onLessonChanged,
 }: {
+  // REQ-262: names the beginner version when it is the one shown.
+  variantFields: { lessonVariant: "new" } | Record<string, never>;
+  // 409 lesson_changed: reload the lesson (the server says it was updated).
+  onLessonChanged: () => Promise<unknown>;
   kind: "fade" | "solo";
   promptText: string;
   // Guided: from the lesson, already in this learner's shown order. Solo:
@@ -1558,21 +1611,24 @@ function CheckStep({
   // recorded) whenever the check is in multiple-choice mode.
   const [hintChoices, setHintChoices] = useState<string[] | null>(null);
   const [hintLoading, setHintLoading] = useState(false);
+  const [lessonChanged, setLessonChanged] = useState(false);
   const choices = givenChoices ?? hintChoices;
   const loadHint = useCallback(async () => {
     setHintLoading(true);
     setError(null);
     try {
-      const res = await api.post<{ choices: string[] }>(`/api/objectives/${objectiveId}/hint`, { stage: "solo" });
+      const res = await api.post<{ choices: string[] }>(`/api/objectives/${objectiveId}/hint`, { stage: "solo", ...variantFields });
       setHintChoices(res.choices);
       return true;
     } catch (err) {
+      setLessonChanged(isLessonChanged(err));
       setError(gradeSubmitError(err));
       return false;
     } finally {
       setHintLoading(false);
     }
-  }, [objectiveId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [objectiveId, variantFields.lessonVariant]);
   useEffect(() => {
     if (kind === "solo" && mode === "mc" && !hintChoices && !hintLoading && !error) loadHint();
   }, [kind, mode, hintChoices, hintLoading, error, loadHint]);
@@ -1607,6 +1663,7 @@ function CheckStep({
         // REQ-105: a revision names the missed attempt it revises.
         ...(format === "open" && firstResult?.attemptId ? { retryOf: firstResult.attemptId } : {}),
         confidence,
+        ...variantFields,
       });
       onStateChange({
         ...sent,
@@ -1626,6 +1683,7 @@ function CheckStep({
         },
       });
     } catch (err) {
+      setLessonChanged(isLessonChanged(err));
       setError(gradeSubmitError(err));
       setSubmitFailed(true);
     } finally {
@@ -1792,7 +1850,13 @@ function CheckStep({
           )}
 
 
-          {error ? <ErrorBanner message={error} /> : null}
+          {error ? (
+            lessonChanged ? (
+              <ErrorBanner message={error} onRetry={onLessonChanged} retryLabel="Reload lesson" />
+            ) : (
+              <ErrorBanner message={error} />
+            )
+          ) : null}
         </>
       )}
 
@@ -1833,7 +1897,7 @@ function CheckStep({
           <MisconceptionNote diagnosis={result.diagnosis} />
           <RefresherOffer objectiveId={objectiveId} verdict={result.verdict} />
           {/* REQ-114: report a wrong key or unclear question on this check. */}
-          <ReportProblem target={{ kind: "lesson", objectiveId, stage: kind }} />
+          <ReportProblem target={{ kind: "lesson", objectiveId, stage: kind, ...variantFields }} />
           {/* REQ-134: the key arrives only with the verdict. After a
               free-response miss, show the expected answer too. */}
           {mode === "open" && result.verdict !== "correct" && result.correctAnswer ? (
