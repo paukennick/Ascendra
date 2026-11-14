@@ -6,6 +6,7 @@ import * as Crypto from "expo-crypto";
 import { useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
 import { ReportProblem } from "@/components/ReportProblem";
+import { ChoiceKey, StudyShortcutArea, answerListProps } from "@/components/StudyShortcuts";
 import { Body, Button, Card, EmptyState, ErrorBanner, H1, LiveAnnouncement, Loading, Muted, Screen, VERDICT_LABEL, VerdictBadge } from "@/components/ui";
 import { ComparisonCard, MisconceptionNote } from "@/components/Understanding";
 import { assistNote } from "@/lib/lessonFeedback";
@@ -192,7 +193,29 @@ function Quiz({ set, onClose }: { set: ComparisonSet; onClose: () => void }) {
   }
 
   return (
-    <View style={{ gap: spacing.sm }}>
+    // REQ-290: 1-9 or A-D pick, Enter checks and then asks another scenario (web).
+    <StudyShortcutArea
+      surface="check"
+      style={{ gap: spacing.sm }}
+      choices={question && !result ? question.options.length : 0}
+      onChoose={(i) => {
+        if (busy || !question || result || i >= question.options.length) return false;
+        setPicked(i);
+        return `Selected ${i + 1}. ${question.options[i]}`;
+      }}
+      onEnter={() => {
+        if (busy || !question) return false;
+        if (result) {
+          next();
+          return true;
+        }
+        if (picked !== null) {
+          void submit();
+          return true;
+        }
+        return false;
+      }}
+    >
       <Muted style={{ fontFamily: fonts.bodyBold }}>Which one fits?</Muted>
       {error ? <ErrorBanner message={error} onRetry={!question ? next : undefined} /> : null}
       {!question && busy ? <Loading /> : null}
@@ -200,7 +223,7 @@ function Quiz({ set, onClose }: { set: ComparisonSet; onClose: () => void }) {
         <>
           {seen ? <Muted>You've seen this one before, so it's practice — it won't change your level.</Muted> : null}
           <Body>{question.scenario}</Body>
-          <View accessibilityRole="radiogroup" style={{ gap: spacing.xs }}>
+          <View accessibilityRole="radiogroup" style={{ gap: spacing.xs }} {...answerListProps}>
             {question.options.map((opt, i) => {
               const isPicked = picked === i;
               const isRight = result && result.correctIndex === i;
@@ -229,6 +252,7 @@ function Quiz({ set, onClose }: { set: ComparisonSet; onClose: () => void }) {
                 >
                   <Feather name={mark} size={18} color={border} />
                   <Body style={{ flex: 1 }}>{opt}</Body>
+                  {result ? null : <ChoiceKey index={i} />}
                 </Pressable>
               );
             })}
@@ -252,6 +276,6 @@ function Quiz({ set, onClose }: { set: ComparisonSet; onClose: () => void }) {
           )}
         </>
       ) : null}
-    </View>
+    </StudyShortcutArea>
   );
 }

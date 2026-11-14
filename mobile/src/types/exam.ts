@@ -91,6 +91,10 @@ export interface ExamResults {
     coaching: string[];
   };
   evidence: { counted: number; repeats: number; line: string };
+  // REQ-298 (mock only): how the exam reports a result, in words, and whether
+  // the course's exam length was read from its source; and the form this was.
+  pass?: { line: string; confirmed: boolean } | null;
+  form?: { questions: number; examQuestions: number | null; short: boolean } | null;
 }
 
 export interface ExamSessionView {
@@ -104,6 +108,9 @@ export interface ExamSessionView {
     repeats: number;
     generatedCalls: number;
     generationFailed: boolean;
+    // REQ-298
+    short?: boolean;
+    shortReason?: string | null;
   } | null;
 }
 
@@ -116,6 +123,33 @@ export interface ExamProfile {
   durationMinutes: number | null;
   mockQuestions: number;
   secondsPerQuestion: number | null;
+  // REQ-298: the real exam behind the mock. Absent from an older server.
+  mock?: ExamMockInfo;
+}
+
+export interface ExamMockInfo {
+  confirmed: boolean;
+  practiceOnly: string | null;
+  note: string;
+  passPolicy: string;
+  scored: number | null;
+  questionsAreMaximum: boolean;
+  minutesNote: string | null;
+  notReproduced: string | null;
+  weights: "exam_blueprint" | "study_emphasis";
+  pauseRule: string;
+  sources: { title: string; url: string; readAt: string }[];
+}
+
+// What the bank can fill of a full-length mock right now (GET /api/exam/sessions).
+export interface ExamMockState {
+  requested: number;
+  canBuild: number;
+  freshAvailable: number;
+  repeats: number;
+  short: boolean;
+  reason: string | null;
+  thinDomains: { title: string; need: number; have: number }[];
 }
 
 export interface ExamSessionSummary {
