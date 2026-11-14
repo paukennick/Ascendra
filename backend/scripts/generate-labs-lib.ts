@@ -117,6 +117,11 @@ export const LAB_PLAN_TOP_UPS: Readonly<Record<string, readonly number[]>> = {
   CLOUDNETX: [3, 3, 2, 2],
   DATAAI: [2, 3, 2, 2, 2],
   PROJECTPLUS: [3, 3, 2, 2],
+  PMISP: [2, 3, 3, 1, 2],
+  CSPP: [2, 2, 3, 2, 2],
+  KCSA: [2, 2, 2, 2, 2, 2],
+  CAPA: [3, 3, 2, 2],
+  CCA: [2, 2, 2, 2, 2, 2, 1, 1],
 };
 
 export function unitPlan(track: PlanTrack, policy: DensityPolicy, opts = POLICY_DEFAULTS): number[] {

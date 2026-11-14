@@ -35,6 +35,11 @@ export const FILLED: Readonly<Record<string, readonly string[]>> = {
   CLOUDNETX: ["availability-technology-for-each-need"],
   DATAAI: ["distribution-for-each-process", "unsupervised-method-for-each-task", "crisp-dm-project-walkthrough"],
   PROJECTPLUS: ["projectplus-charter-review", "projectplus-closing-sequence", "projectplus-quality-charts"],
+  PMISP: ["sp-baseline-change-control"],
+  CSPP: ["cspp-governance-framework-fit"],
+  KCSA: ["compliance-scan-to-evidence"],
+  CAPA: ["argo-events-flow-order"],
+  CCA: ["clustermesh-benefits-and-prereqs"],
 };
 
 export function ruleFor(code: string): number[] {
