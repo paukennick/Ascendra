@@ -161,6 +161,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // docs/sims.md 22.16). Keep these entries together. ----
   entry("ISC2CC", "cc-triage-phish-correlation"),
   entry("ISC2CC", "cc-leaver-account-still-active"),
+  entry("CISSP", "cissp-web-tier-data-theft"),
+  entry("CISSP", "cissp-ransomware-recovery-site"),
   // ---- end REQ-274 ----
 ];
 

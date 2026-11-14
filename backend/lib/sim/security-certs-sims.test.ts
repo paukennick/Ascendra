@@ -16,7 +16,7 @@ import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 
 const COURSES = ["ISC2CC", "CISSP", "CISM", "CEH"] as const;
 // Courses whose sims are built so far (commit per course); all four at the end of REQ-274.
-const BUILT: readonly string[] = ["ISC2CC"];
+const BUILT: readonly string[] = ["ISC2CC", "CISSP"];
 const DOCS = ALL_DOCUMENTS.filter((e) => (COURSES as readonly string[]).includes(e.course));
 const docOf = (slug: string): ScenarioDoc => loadDocument(DOCS.find((e) => e.slug === slug)!);
 
@@ -140,5 +140,39 @@ describe("REQ-274: the attacker moves on the analyst's clock", () => {
     not.task("blockSender");
     while (not.minutes() < 42) not.task("watch");
     assert.equal(typeof not.value("victim2At"), "number");
+  });
+  test("CISSP incident: isolating WEB02 early keeps the shell off WEB03; imaging first does not", () => {
+    const fast = driver(docOf("cissp-web-tier-data-theft"));
+    fast.task("isolateWeb2");
+    while (fast.minutes() < 12) fast.task("watch");
+    assert.equal(fast.value("web3At"), null);
+    const slow = driver(docOf("cissp-web-tier-data-theft"));
+    slow.task("image");
+    assert.equal(typeof slow.value("web3At"), "number");
+  });
+
+  test("CISSP incident: a rebuilt server restored before the patch is reinfected", () => {
+    const d = driver(docOf("cissp-web-tier-data-theft"));
+    for (const a of ["isolateWeb2", "blockEgress", "image", "rebuild", "restore"]) d.task(a);
+    while (d.run.state.phase === "incident") d.task("watch");
+    assert.equal(typeof d.value("reinfectedAt"), "number");
+  });
+
+  test("CISSP recovery: unpaused replication carries the encryption to the warm site; a paused one keeps the clean point", () => {
+    const d = driver(docOf("cissp-ransomware-recovery-site"));
+    d.task("declare");
+    while (d.minutes() < 21) d.task("watch");
+    assert.equal(typeof d.value("replicaEncryptedAt"), "number");
+    const paused = driver(docOf("cissp-ransomware-recovery-site"));
+    paused.task("pauseRepl");
+    while (paused.minutes() < 21) paused.task("watch");
+    assert.equal(paused.value("replicaEncryptedAt"), null);
+  });
+
+  test("CISSP recovery: failing over before trust is rebuilt lets the stolen account follow", () => {
+    const d = driver(docOf("cissp-ransomware-recovery-site"));
+    for (const a of ["pauseRepl", "isolateBackup", "isolatePrimary", "declare"]) d.task(a);
+    d.task("failover");
+    assert.equal(typeof d.value("reinfectAt"), "number");
   });
 });
