@@ -144,6 +144,21 @@ export function toggleLine(selected: string[], id: string): string[] {
   return selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id];
 }
 
+// REQ-290: the answer after the learner presses key `index` (the keyboard
+// shortcuts) on a select-lines part: that numbered line toggled, as tapping it
+// does. Null when the line does not exist.
+export function toggleSelectLineAt(
+  raw: string,
+  input: Extract<InteractiveInput, { type: "select" }>,
+  index: number
+): { value: string; nowSelected: boolean } | null {
+  const line = Number.isInteger(index) ? input.lines[index] : undefined;
+  if (!line) return null;
+  const picked = selectFrom(raw, input);
+  const nowSelected = !picked.includes(line.id);
+  return { value: encodeSelect(toggleLine(picked, line.id), input), nowSelected };
+}
+
 export function encodeSelect(ids: string[], input: Extract<InteractiveInput, { type: "select" }>): string {
   // In display order, so the same picks are always the same answer string.
   const order = input.lines.map((c) => c.id);

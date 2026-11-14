@@ -530,6 +530,13 @@ export const FAQ: LegalDoc = {
       ],
     },
     {
+      title: "Are there keyboard shortcuts?",
+      body: [
+        "Yes, on the web (the phone app has none). While you are in a question, press 1 to 9 or A to D to choose an answer, Enter to check it and go on, and ? to see the list. In a timed sprint or mock exam, N goes to the next question, P to the previous one and F flags it; Enter goes on once you have answered. In a simulation, Space pauses the clock and runs it again when focus is on the simulation rather than on a button. Esc closes the list or any open dialog.",
+        "They never act while you are typing in a box, or with Ctrl, Alt or Command held, and Enter and Space still press the button or link you are on. To turn them off, use “Keyboard shortcuts” in Settings, under Study, or “Turn off keyboard shortcuts” in the list.",
+      ],
+    },
+    {
       title: "Can I turn on two-factor authentication?",
       body: ["Yes — in Settings, with an authenticator app or email codes. Each method gives you one-time backup codes."],
     },

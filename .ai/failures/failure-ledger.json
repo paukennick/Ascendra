@@ -17458,6 +17458,34 @@
       ],
       "prevention_notes": "docs/versioning.md says the version is set in four places that a test compares, and that a screen shows APP_VERSION, never a second source.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1900",
+      "date": "2026-11-14",
+      "title": "The web idle timer never saw a key that a handler stopped, so keyboard-only study could lock the app mid-question",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "AuthContext counted web activity with window keydown listeners in the bubble phase. React Native Web's Pressable already calls stopPropagation on Enter, and the study shortcuts stop every key they handle, so those keys never reached the window and never reset the idle clock. A learner answering with 1-9, A-D, N and Enter, and no mouse or Tab, would be locked after the lock timer (and signed out at 30 minutes) in the middle of an exam.",
+      "how_detected": "review of the REQ-290 design against the AuthContext idle code",
+      "root_cause": "The listeners were added without capture, so any handler between the target and the window that stops propagation hides the event from them. It was latent while the only keys stopped were Enter on a button, which a Tab press nearly always preceded. The shortcut design (REQ-290) stops handled keys on purpose, so it would have made it routine. Found in design review of REQ-290 before shipping, not reported by a learner.",
+      "requirement": "REQ-290",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib/studyShortcutsDom.ts"
+      ],
+      "fix_summary": "The five activity listeners are registered on the window with { passive: true, capture: true } and removed with { capture: true }, so nothing below them can hide a key from the idle timer.",
+      "fix_commits": [
+        "3f356825"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/studyShortcutsWiring.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist item 'Key handlers on the web' (REQ-290): anything that must see every key listens on the window in the capture phase. A static test pins capture-phase registration and removal.",
+      "recurrence_of": ""
     }
   ]
 }

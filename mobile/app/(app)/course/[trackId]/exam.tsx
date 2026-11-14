@@ -24,9 +24,12 @@ import {
   SectionHeader,
 } from "@/components/ui";
 import { ExamConfidence, ExamQuestion, FlagButton } from "@/components/ExamQuestion";
+import { StudyShortcutArea } from "@/components/StudyShortcuts";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import { whenLabel } from "@/lib/time";
 import {
+  examChoiceAnnouncement,
+  examChoiceResponse,
   examLeaveGuard,
   FORMAT_LABEL,
   formatClock,
@@ -492,12 +495,48 @@ function RunView({
       ) : null}
 
       <Card>
-        <Muted style={{ fontSize: 12 }}>
-          {item.unitTitle} · {FORMAT_LABEL[item.format]}
-        </Muted>
-        <ExamQuestion item={item} response={item.response} onChange={answer} />
-        <ExamConfidence value={item.confidence} onChange={(n) => update({ confidence: n }, { confidence: n })} />
-        <FlagButton flagged={item.flagged} onPress={() => update({ flagged: !item.flagged }, { flagged: !item.flagged })} />
+        {/* REQ-290: 1-9 or A-D choose, Enter goes on once answered, N and P move, F flags (web). */}
+        <StudyShortcutArea
+          surface="exam"
+          style={{ gap: spacing.sm }}
+          choices={item.format === "multiple_choice" || item.format === "multiple_response" ? item.choices?.length ?? 0 : 0}
+          onChoose={(i) => {
+            const r = examChoiceResponse(item, item.response, i);
+            if (!r) return false;
+            answer(r);
+            return examChoiceAnnouncement(item, item.response, r, i);
+          }}
+          onEnter={() => {
+            if (submitting || !item.answered) return false;
+            if (index < items.length - 1) {
+              go(index + 1);
+              return `Question ${index + 2} of ${items.length}.`;
+            }
+            setConfirm(true);
+            return true;
+          }}
+          onNext={() => {
+            if (submitting || index >= items.length - 1) return false;
+            go(index + 1);
+            return `Question ${index + 2} of ${items.length}.`;
+          }}
+          onPrevious={() => {
+            if (submitting || index === 0) return false;
+            go(index - 1);
+            return `Question ${index} of ${items.length}.`;
+          }}
+          onFlag={() => {
+            update({ flagged: !item.flagged }, { flagged: !item.flagged });
+            return item.flagged ? "Flag removed." : "Flagged for review.";
+          }}
+        >
+          <Muted style={{ fontSize: 12 }}>
+            {item.unitTitle} · {FORMAT_LABEL[item.format]}
+          </Muted>
+          <ExamQuestion item={item} response={item.response} onChange={answer} />
+          <ExamConfidence value={item.confidence} onChange={(n) => update({ confidence: n }, { confidence: n })} />
+          <FlagButton flagged={item.flagged} onPress={() => update({ flagged: !item.flagged }, { flagged: !item.flagged })} />
+        </StudyShortcutArea>
       </Card>
 
       <View style={{ flexDirection: "row", gap: spacing.sm }}>

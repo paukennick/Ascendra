@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, Switch, View } from "react-native";
+import { ActivityIndicator, Platform, Switch, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Card, ChoiceSheet, Divider, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
 import { LOCK_AFTER_OPTIONS, lockAfterLabel } from "@/lib/autoLock";
@@ -16,6 +16,8 @@ import { loadReminderPrefs, remindersSupported } from "@/lib/reminderScheduler";
 import { api } from "@/api/client";
 import { APP_VERSION } from "@/lib/appVersion";
 import { RELEASE_NOTES_LABEL, RELEASE_NOTES_ROUTE } from "@/lib/whatsNew";
+import { SHORTCUTS_SAVE_FAILED, SHORTCUTS_SETTINGS_LABEL, SHORTCUTS_SETTINGS_NOTE } from "@/lib/studyShortcuts";
+import { useStudyShortcutsSetting } from "@/lib/useStudyShortcutsSetting";
 import {
   parseTeachOrder,
   TEACH_ORDER_LABELS,
@@ -35,6 +37,11 @@ export default function Settings() {
     useAuth();
   const [lockSheet, setLockSheet] = useState(false);
   const [biometricBusy, setBiometricBusy] = useState(false);
+  // REQ-290: the study keyboard shortcuts (web only) can be turned off here.
+  const { enabled: shortcutsOn, setEnabled: setShortcutsOn } = useStudyShortcutsSetting();
+  async function toggleShortcuts(next: boolean) {
+    if (!(await setShortcutsOn(next))) Alert.alert("Couldn't save that", SHORTCUTS_SAVE_FAILED);
+  }
   const { config, me } = useBilling();
   const { status: discounts } = useDiscounts();
   const access = parseAccess(user?.access);
@@ -157,6 +164,27 @@ export default function Settings() {
         <ListRow icon="target" label="Study profile" value="Your goal, exams and study time" onPress={() => router.push("/settings/study-profile")} />
         <Divider />
         <ListRow icon="layers" label={TEACH_ORDER_ROW_LABEL} value={teachOrderRowValue(teachOrder)} onPress={() => setOrderSheet(true)} />
+        {/* REQ-290: keys need a hardware keyboard, which only the web has here. */}
+        {Platform.OS === "web" ? (
+          <>
+            <Divider />
+            <ListRow
+              icon="command"
+              label={SHORTCUTS_SETTINGS_LABEL}
+              right={
+                <Switch
+                  value={shortcutsOn}
+                  onValueChange={toggleShortcuts}
+                  trackColor={{ true: colors.accent, false: colors.border }}
+                  accessibilityRole="switch"
+                  accessibilityLabel={SHORTCUTS_SETTINGS_LABEL}
+                  accessibilityState={{ checked: shortcutsOn }}
+                />
+              }
+            />
+            <Muted style={{ fontSize: 12 }}>{SHORTCUTS_SETTINGS_NOTE}</Muted>
+          </>
+        ) : null}
       </Card>
 
       {/* REQ-243 (Nick, 2026-11-11): every kind of notification lives in one
