@@ -1,6 +1,8 @@
-// REQ-292: the two LFCS outages on the terminal screen (docs/sims.md 22.16):
-// boot to emergency mode on a mistyped fstab UUID, and a full database
-// volume grown online with LVM. The same bar as the Linux+ and CKA cases
+// REQ-292: the LFCS and Linux Fundamentals cases on the terminal screen
+// (docs/sims.md 22.16): boot to emergency mode on a mistyped fstab UUID and
+// a full database volume grown online with LVM (LFCS); a shared folder that
+// says Permission denied and a web server that will not start after an edit
+// (LINUXFUND). The same bar as the Linux+ and CKA cases
 // (lib/sim/terminal.test.ts, REQ-237): valid, infrastructure profile, engine
 // 1.2 with an ending order, learner-paced, 3-4 critical criteria, endings in
 // all three classes, goldens that reach every ending but time_up and score
@@ -20,7 +22,7 @@ import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
 import { LFCS_SIM_OBJECTIVES } from "../../supabase/seed/tracks/linux";
 import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 
-const LFCS = ALL_DOCUMENTS.filter((e) => e.course === "LFCS");
+const LFCS = ALL_DOCUMENTS.filter((e) => e.course === "LFCS" || e.course === "LINUXFUND");
 const docOf = (slug: string): ScenarioDoc => loadDocument(LFCS.find((e) => e.slug === slug)!);
 
 function driver(doc: ScenarioDoc) {
@@ -42,9 +44,12 @@ function driver(doc: ScenarioDoc) {
   };
 }
 
-describe("REQ-292: LFCS terminal outages", () => {
+describe("REQ-292: LFCS and Linux Fundamentals terminal cases", () => {
   test("two cases, each valid, on the terminal screen, infrastructure profile, engine 1.2, learner-paced, dated sources", () => {
-    assert.deepEqual(LFCS.map((e) => e.slug), ["fstab-uuid-typo-emergency", "lvm-database-volume-full"]);
+    assert.deepEqual(
+      LFCS.map((e) => `${e.course}/${e.slug}`),
+      ["LFCS/fstab-uuid-typo-emergency", "LFCS/lvm-database-volume-full", "LINUXFUND/shared-folder-permission-denied", "LINUXFUND/web-service-fails-after-edit"]
+    );
     for (const e of LFCS) {
       const d = loadDocument(e);
       assert.deepEqual(validateScenario(d).map(String), [], e.slug);
@@ -64,21 +69,23 @@ describe("REQ-292: LFCS terminal outages", () => {
       assert.deepEqual(secondsUnitProblems(d), [], e.slug);
       assert.deepEqual(backslashEscapeProblems(d), [], e.slug);
       assert.ok(d.sources.every((s) => s.checkedAt === "2026-11-14"), `${e.slug}: sources dated`);
-      assert.match(d.sources[0].url!, /linux-foundation-certified-sysadmin-lfcs/);
+      if (e.course === "LFCS") assert.match(d.sources[0].url!, /linux-foundation-certified-sysadmin-lfcs/);
     }
   });
 
-  test("each case is on its own LFCS objective, by the exact title the course exports", () => {
-    const track = CATALOG_TRACKS.find((t) => t.code === "LFCS")!;
-    const titles = new Set(activeUnits(track).flatMap((u) => u.objectives));
+  test("each case is on its own course objective (LFCS by the titles the course exports)", () => {
     assert.equal(docOf("fstab-uuid-typo-emergency").objective, LFCS_SIM_OBJECTIVES.fstab);
     assert.equal(docOf("lvm-database-volume-full").objective, LFCS_SIM_OBJECTIVES.lvm);
     for (const e of LFCS) {
+      const track = CATALOG_TRACKS.find((t) => t.code === e.course)!;
+      const titles = new Set(activeUnits(track).flatMap((u) => u.objectives));
       const d = loadDocument(e);
       assert.ok(titles.has(d.objective), d.objective);
       assert.ok(isPerformanceObjective(d.objective, "general"), d.objective);
       for (const s of d.secondaryObjectives ?? []) assert.ok(titles.has(s), `${e.slug}: ${s}`);
     }
+    const objs = LFCS.map((e) => `${e.course}:${loadDocument(e).objective}`);
+    assert.equal(new Set(objs).size, objs.length);
   });
 
   test("the goldens reach every ending but time_up, every rating, and score every criterion both met and missed", () => {
@@ -157,7 +164,36 @@ describe("REQ-292: LFCS terminal outages", () => {
     assert.equal(r.value("faultsAdded"), 1);
   });
 
-  test("no lint error on either document", () => {
+  test("permissions: id reads the group database, the old session does not have print; setgid is what keeps new files in the group", () => {
+    const r = driver(docOf("shared-folder-permission-denied"));
+    r.act("relog");
+    r.act("chgrp");
+    r.act("groupWrite");
+    assert.equal(r.value("teamOk"), true);
+    assert.equal(r.value("verifiedAt"), null);
+    r.act("verify");
+    assert.equal(r.value("verifiedAt"), null, "a new file still takes nora's group without setgid");
+    r.act("setgid");
+    r.act("verify");
+    assert.notEqual(r.value("verifiedAt"), null);
+  });
+
+  test("nginx: restarts fail until the line is fixed, and enabling is separate from starting", () => {
+    const r = driver(docOf("web-service-fails-after-edit"));
+    r.act("restart");
+    assert.equal(r.value("running"), false);
+    r.act("reinstall");
+    r.act("restart");
+    assert.equal(r.value("running"), false, "a reinstall keeps the edited site file");
+    r.act("fixLine");
+    r.act("nginxT");
+    r.act("restart");
+    assert.equal(r.value("shopUp"), true);
+    assert.equal(r.value("enabled"), false);
+    assert.equal(r.value("blindRestarts"), 2);
+  });
+
+  test("no lint error on any of these documents", () => {
     for (const e of LFCS) {
       const errs = lintScenario(loadDocument(e), { now: "2026-11-14", safetyFamily: "general" }).filter((p) => p.level === "error");
       assert.deepEqual(errs, [], e.slug);

@@ -156,10 +156,12 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTPARAMEDIC", "inferior-stemi-cath-alert"),
   entry("NREMTPARAMEDIC", "infant-respiratory-failure"),
   // ---- end REQ-241 ----
-  // ---- REQ-292: LFCS outages on the terminal screen. Keep these entries
-  // together. ----
+  // ---- REQ-292: LFCS and Linux Fundamentals cases on the terminal screen.
+  // Keep these entries together. ----
   entry("LFCS", "fstab-uuid-typo-emergency"),
   entry("LFCS", "lvm-database-volume-full"),
+  entry("LINUXFUND", "shared-folder-permission-denied"),
+  entry("LINUXFUND", "web-service-fails-after-edit"),
   // ---- end REQ-292 ----
 ];
 
