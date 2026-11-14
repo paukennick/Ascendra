@@ -22,6 +22,7 @@ import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
 export const WAVE3: readonly { course: string; slug: string; screen: string; profile: string }[] = [
   { course: "APLUS_CORE1", slug: "rogue-dhcp-soho-office", screen: "terminal", profile: "infrastructure" },
   { course: "APLUS_CORE2", slug: "home-office-laptop-malware", screen: "security-console", profile: "security" },
+  { course: "KCNA", slug: "service-selector-no-endpoints", screen: "terminal", profile: "infrastructure" },
 ];
 
 const entryOf = (slug: string) => ALL_DOCUMENTS.find((e) => e.slug === slug)!;
@@ -204,5 +205,23 @@ describe("what each wave 3 case teaches", () => {
     off.act("disableSr");
     off.act("educate");
     assert.equal(off.value("credsUploadedAt"), null);
+  });
+
+  test("KCNA: a live selector patch is undone by self-heal; a restart changes nothing; a revert in Git stays", () => {
+    const d = docOf("service-selector-no-endpoints");
+    const restart = driver(d);
+    restart.act("fix", { change: "restart" });
+    assert.equal(restart.value("serving"), false);
+    const live = driver(d);
+    live.act("fix", { change: "patchLive" });
+    assert.equal(live.value("serving"), true);
+    live.act("watch");
+    assert.equal(live.value("serving"), false, "self-heal applied Git's selector again");
+    const git = driver(d);
+    git.act("fix", { change: "gitRevert" });
+    git.act("watch");
+    git.act("watch");
+    assert.equal(git.value("serving"), true);
+    assert.equal(git.value("relapseAt"), null);
   });
 });

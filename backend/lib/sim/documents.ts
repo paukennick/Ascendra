@@ -161,6 +161,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // board screens (docs/sims-coverage-it.md). Keep these entries together. ----
   entry("APLUS_CORE1", "rogue-dhcp-soho-office"),
   entry("APLUS_CORE2", "home-office-laptop-malware"),
+  entry("KCNA", "service-selector-no-endpoints"),
   // ---- end REQ-297 ----
 ];
 
