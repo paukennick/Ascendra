@@ -9,13 +9,14 @@ import assert from "node:assert/strict";
 import { LAB_SETS } from "../supabase/seed/labs";
 import { SOURCE_KINDS } from "../supabase/seed/sources";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
-import { apportion, POLICY_DEFAULTS, LAB_PLAN_TOP_UPS } from "../scripts/generate-labs-lib";
+import { apportion, POLICY_DEFAULTS, LAB_PLAN_TOP_UPS, unitPlan } from "../scripts/generate-labs-lib";
 
 // Courses the fill has brought up to the rule, with the slugs it added.
 export const FILLED: Readonly<Record<string, readonly string[]>> = {
   PYTHON: ["truthiness-stock-label", "unboundlocal-counter", "word-count-dict-patterns", "csv-to-json-inventory", "super-and-the-mro", "stdlib-for-an-on-call-script"],
   JAVASCRIPT: ["coercion-cart-total", "closure-rate-limiter", "shallow-copy-leaks-edits", "event-loop-log-order", "nullish-settings-defaults"],
   SECPLUS: ["web-attack-log-triage"],
+  CNA: ["cna-sudden-confusion-report"],
 };
 
 export function ruleFor(code: string): number[] {
@@ -32,8 +33,11 @@ describe("lab density fill (REQ-295)", () => {
       const got = units.map((u) => set.labs.filter((l) => u.objectives.includes(l.objective)).length);
       const want = ruleFor(code);
       got.forEach((n, i) => assert.ok(n >= want[i], `${code} unit ${i + 1} (${units[i].title}): ${n} < ${want[i]}`));
-      // The plan the other density tests use agrees with the rule (a top-up).
-      if (LAB_PLAN_TOP_UPS[code]) assert.deepEqual([...LAB_PLAN_TOP_UPS[code]], want, `${code} top-up`);
+      // The plan the generator and the other density tests use agrees with
+      // the rule (through a LAB_PLAN_TOP_UPS entry where the verb heuristic
+      // alone plans fewer), so a later wave cannot plan this course down.
+      const plan = unitPlan({ code, family: "general", units: units.map((u) => ({ title: u.title, weight: u.weight ?? null, objectives: u.objectives })) }, "hybrid");
+      assert.deepEqual(plan, want, `${code}: unitPlan follows the rule${LAB_PLAN_TOP_UPS[code] ? "" : " (add a LAB_PLAN_TOP_UPS entry)"}`);
       const objectives = set.labs.map((l) => l.objective);
       assert.equal(new Set(objectives).size, objectives.length, `${code}: one lab per objective`);
       for (const slug of added) {
