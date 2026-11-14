@@ -17,6 +17,7 @@ import { consoleAlarmTexts, consoleNews, consoleSentence, type ConsoleView } fro
 import { TerminalPanel } from "@/sim/TerminalPanel";
 import { terminalAlarmTexts, terminalCommands, terminalErrors, terminalNews, terminalSentence, type TerminalView } from "@/sim/runtime/terminalView.ts";
 import { ReportProblem } from "@/components/ReportProblem";
+import { StudyShortcutArea } from "@/components/StudyShortcuts";
 import { localHash } from "@/sim/runtime/session.ts";
 import { ActionBar, ChapterCard, DebriefView, EventLog, LaunchCard, PaceControl, PromptCard, ReasoningCard, SessionPanel, SkipOffer, TeachingCard, TopologyPanel, TreatmentPanel, VitalsPanel, WaitsRow, sessionSentence, treatmentSentence } from "@/sim/SimPanels";
 import { launchView, needsLaunchChoice, paceChangeable, paceOptions, simClock, teachFeedback, teachOffer, type LaunchChoice } from "@/sim/runtime/pacing.ts";
@@ -167,7 +168,22 @@ export default function SimScreen() {
       {sim.status === "loading" ? <Loading label="Loading the run..." /> : null}
 
       {s && view ? (
-        <>
+        // REQ-290: Space pauses and runs the clock again while the focus is on the
+        // simulation itself (a button keeps its own Space); ? lists the keys (web).
+        // No key picks a decision: a choice here commits at once.
+        <StudyShortcutArea
+          surface="sim"
+          style={{ gap: spacing.md }}
+          onPause={() => {
+            if (view.mode !== "running" || view.ended || launching || !running) return false;
+            if (sim.paused) {
+              sim.resume();
+              return "Clock running.";
+            }
+            sim.pause("learner");
+            return "Paused.";
+          }}
+        >
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.sm }}>
             <View accessible accessibilityLabel={`${clock ? clock.spoken : `Sim time ${view.clock}`}. ${view.phaseLabel}.${sim.paused && view.mode === "running" ? " Paused." : ""}`}>
               {clock ? <H1>{clock.text}</H1> : <H2>{view.clock}</H2>}
@@ -259,7 +275,7 @@ export default function SimScreen() {
             target={{ kind: "sim", runId: s.runId }}
             resolve={() => ({ kind: "sim", runId: s.runId, tick: s.run.state.tick, stateHash: localHash(s) })}
           />
-        </>
+        </StudyShortcutArea>
       ) : null}
 
       {sim.status === "done" && sim.debrief ? (
