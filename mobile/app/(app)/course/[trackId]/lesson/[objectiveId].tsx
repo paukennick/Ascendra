@@ -13,6 +13,7 @@ import { masteryAdvice, SOLO_HINT_NOTE, SOLO_OPEN_NOTE } from "@/lib/masteryAdvi
 import { ReportProblem } from "@/components/ReportProblem";
 import { ReportLessonProblem } from "@/components/ReportLessonProblem";
 import { KeyTermsButton } from "@/components/KeyTerms";
+import { ChoiceKey, StudyShortcutArea, answerListProps } from "@/components/StudyShortcuts";
 import {
   Badge,
   Body,
@@ -1722,6 +1723,28 @@ function CheckStep({
 
   return (
     <Card elevated>
+      {/* REQ-290: 1-9 or A-D choose a multiple-choice answer, Enter checks it and, once there is a result, goes on (web). */}
+      <StudyShortcutArea
+        surface="check"
+        style={{ gap: spacing.sm }}
+        choices={mode === "mc" && choices && !result && !revising ? choices.length : 0}
+        onChoose={(i) => {
+          if (busy || !choices || i >= choices.length) return false;
+          setPicked(i);
+          return `Selected ${i + 1}. ${choices[i]}`;
+        }}
+        onEnter={() => {
+          if (result) {
+            onDone();
+            return true;
+          }
+          if (mode === "mc" && choices && picked != null && !busy && !revising) {
+            void submit("mc");
+            return true;
+          }
+          return false;
+        }}
+      >
       <View style={styles.cardHeadingRow}>
         <Feather name={kind === "fade" ? "compass" : "check-circle"} size={18} color={colors.accent} />
         <H2>{kind === "fade" ? "Guided practice" : "Solo check"}</H2>
@@ -1786,7 +1809,7 @@ function CheckStep({
               <Button label="Load the choices" icon="refresh-cw" variant="ghost" onPress={loadHint} />
             )
           ) : mode === "mc" && choices ? (
-            <View style={{ gap: 8 }} accessibilityRole="radiogroup">
+            <View style={{ gap: 8 }} accessibilityRole="radiogroup" {...answerListProps}>
               {choices.map((c, i) => (
                 <Pressable
                   key={i}
@@ -1800,6 +1823,7 @@ function CheckStep({
                     {picked === i ? <View style={styles.radioDot} /> : null}
                   </View>
                   <Body style={{ flex: 1 }}>{c}</Body>
+                  <ChoiceKey index={i} />
                 </Pressable>
               ))}
               <ConfidencePicker value={confidence} onChange={setConfidence} />
@@ -1996,6 +2020,7 @@ function CheckStep({
           {error ? <ErrorBanner message={error} /> : null}
         </View>
       )}
+      </StudyShortcutArea>
     </Card>
   );
 }

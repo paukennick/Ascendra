@@ -9728,6 +9728,58 @@
       "risk_notes": [
         "Part 1 already shipped in REQ-252 (nothing built). Part 2 live (migration 082). Part 3 built and OFF (migration 083): no course on, nothing generated, no model called. Visuals and device behavior not checked."
       ]
+    },
+    {
+      "id": "REQ-290",
+      "category": "feature",
+      "title": "Study keyboard shortcuts on the web (K1): 1-4 / A-D choose, Enter, N/P/F in exams, Space pauses sims, ? lists them, off switch in Settings",
+      "description": "Nick, 2026-11-09: study keyboard shortcuts. 1-4 or A-D pick an answer, Enter submits and goes next, Esc closes, N/P/F in exams (next, previous, flag), Space pauses sims, ? lists the shortcuts. Single-key shortcuts act only while focus is in the question area, never in a text field, never with Ctrl/Alt/Meta, and can be turned off in Settings (WCAG 2.1.4 Character Key Shortcuts). Web only: React Native exposes no hardware-keyboard key events to Views on phones. Covers lesson checks, Today's review, Quiz me, comparison practice, exams and mocks, lab steps with a select-lines part, and sims. Screen-reader friendly: Enter and Space are left to buttons and links, the ? list is a labelled dialog that returns focus.",
+      "priority": "medium",
+      "status": "pending",
+      "minimum_access_scope": [
+        "mobile/src/lib/studyShortcuts.ts",
+        "mobile/src/lib/studyShortcutsDom.ts",
+        "mobile/src/lib/useStudyShortcutsSetting.ts",
+        "mobile/src/components/StudyShortcuts.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/app/(app)/course/[trackId]/exam.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/app/(app)/course/[trackId]/quiz.tsx",
+        "mobile/app/(app)/course/[trackId]/compare.tsx",
+        "mobile/app/(app)/course/[trackId]/lab/[labId].tsx",
+        "mobile/app/(app)/course/[trackId]/sim/[simId].tsx",
+        "mobile/app/(app)/review-session.tsx",
+        "mobile/src/components/teachSteps.tsx",
+        "mobile/src/content/legal.ts",
+        "mobile/e2e/README.md",
+        "CHANGELOG.md",
+        "backend/lib/release-notes.ts"
+      ],
+      "acceptance_criteria": [
+        "Key rules are pure and tested: modifiers",
+        "repeat",
+        "composing",
+        "text fields and controls are never intercepted",
+        "Enter and Space are left to buttons and links",
+        "The setting defaults on and an off switch stops every shortcut including ?",
+        "The ? list is a labelled dialog and Esc closes it",
+        "FAQ entry and CHANGELOG (learner-facing) with a What's new note"
+      ],
+      "validation_required": [
+        "mobile npm test",
+        "mobile npm run typecheck",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "mobile/src/content/legal.ts FAQ",
+        "mobile/e2e/README.md"
+      ],
+      "risk_notes": [
+        "Not run in a real browser against the full app unless the e2e was run",
+        "Screen readers in browse mode may take letter keys before the page sees them",
+        "Space on a sim button stays the button's own"
+      ]
     }
   ]
 }

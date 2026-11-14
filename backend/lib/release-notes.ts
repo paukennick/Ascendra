@@ -85,6 +85,37 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // 2026-11-14: REQ-290 study keyboard shortcuts (web). The sims item is
+    // gated like every sims mention (lib/release-notes.test.ts).
+    id: "2026-11-14",
+    date: "2026-11-14",
+    covers: ["REQ-290"],
+    title: "Keyboard shortcuts for studying",
+    items: [
+      {
+        icon: "zap",
+        headline: "Answer from the keyboard",
+        body: "On the web, press 1 to 9 or A to D to choose an answer and Enter to check it and go on, in lessons, review, quizzes and lab steps.",
+      },
+      {
+        icon: "flag",
+        headline: "Move through an exam",
+        body: "In sprints and mock exams, N goes to the next question, P to the previous one and F flags it for review.",
+      },
+      {
+        icon: "info",
+        headline: "Press ? for the list",
+        body: "They never act while you type. Settings, under Study, has a switch to turn them off, and the phone app has none.",
+      },
+      {
+        icon: "clock",
+        headline: "Pause a sim with Space",
+        body: "In a sim, Space pauses the clock and runs it again when focus is on the sim itself rather than on a button.",
+        requires: "sims",
+      },
+    ],
+  },
+  {
     // 2026-11-12 (d): REQ-249 sims badge, REQ-250 Save and exit, REQ-251
     // fairer answer choices, REQ-252/255/256 levels and the goal question,
     // REQ-253 Key terms, REQ-257 level-aware lessons in four more courses
