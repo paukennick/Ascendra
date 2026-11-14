@@ -9728,6 +9728,59 @@
       "risk_notes": [
         "Part 1 already shipped in REQ-252 (nothing built). Part 2 live (migration 082). Part 3 built and OFF (migration 083): no course on, nothing generated, no model called. Visuals and device behavior not checked."
       ]
+    },
+    {
+      "id": "REQ-298",
+      "category": "feature",
+      "title": "Full-length mock exams: per-course official exam facts, honest short form, review screen, pass-score reporting",
+      "description": "Owner 2026-11-14. Mock exam = the course's real exam: question count, time limit, domain weights, item types where supported. Per-course facts config (backend/lib/mock-exam-facts.ts) records each exam's facts with source and the day read; courses without an entry fall back to the seeded question_format text and say so. Assembly from the shared bank weighted by domain (largest remainder, official blueprint weights only when the course has them), no repeat within a mock (same item or same stem), items the learner answered or was just served are last choice. When the bank cannot fill every domain the learner gets an honest short form (count and reason, time scaled) and the start screen and a report script show how many items a full form needs and what pre-generating them costs at 3.5 cents an item (report only; nothing generated). Results report the pass score honestly: a scaled/percent number only where the body publishes one, never converted to the official scale. Exam-day experience: server clock, flag/review screen with filters, free navigation, no pause on a timed mock (leaving keeps the clock running), results by domain feeding readiness through counted attempts, review of every answer with its explanation. Plans: Plus one mock a month, Pro unlimited, billing off (everyone Pro) - already in billing-config; unchanged. Hooks left for the N/P/F keyboard builder.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/mock-exam-facts.ts",
+        "backend/lib/mock-form.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/exam-formats.ts",
+        "backend/scripts/mock-bank-report.ts",
+        "mobile/app/(app)/course/[trackId]/exam.tsx",
+        "mobile/src/components/ExamStartFacts.tsx",
+        "mobile/src/components/ExamReview.tsx",
+        "mobile/src/lib/examPractice.ts",
+        "mobile/src/types/exam.ts",
+        "mobile/src/content/legal.ts"
+      ],
+      "acceptance_criteria": [
+        "per-course facts have a source URL and a read date",
+        "a mock has the exam's question count and time when published",
+        "domain allocation sums to the form size",
+        "no item or stem repeats within a mock",
+        "short form shows count and reason",
+        "shortfall and cost computed per course",
+        "pass line never claims the official scale without a published scale",
+        "timer states tested",
+        "review screen filters unanswered and flagged",
+        "FAQ entry",
+        "CHANGELOG learner-facing entry"
+      ],
+      "validation_required": [
+        "mock-exam-facts.test.ts",
+        "mock-form.test.ts",
+        "exam-formats.test.ts",
+        "exam-plan.test.ts",
+        "mobile examPractice.test.ts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog",
+        "faq",
+        "docs/mock-exams.md"
+      ],
+      "risk_notes": [
+        "Official facts change; each entry carries the day read and the review-due date",
+        "Short forms until the bank is pre-generated; generation on mock start stays on (decision for owner)",
+        "PBQ and simulation items are not reproduced",
+        "No pause or scheduled break is simulated"
+      ]
     }
   ]
 }
