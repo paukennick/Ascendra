@@ -30,3 +30,12 @@ grant select (objective_id, fade_problem, fade_choices, fade_correct_index, solo
 
 -- Write: staging only.
 grant insert on item_holdbacks, exec_check_runs to content_recheck;
+
+-- 083 (REQ-262, FAIL-1796): the re-check job also reads beginner lesson
+-- versions. Guarded, so a dump from before 083 still restores cleanly.
+do $$
+begin
+  if to_regclass('public.lesson_content_variants') is not null then
+    grant select on lesson_content_variants to content_recheck;
+  end if;
+end $$;
