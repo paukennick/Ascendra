@@ -4993,3 +4993,38 @@ narrative, and a server-only debrief body that repeated a client narrative
 word for word (the leak test in `lib/sim/documents.test.ts` caught it). `time_up` is reached by no golden path in any of the eight (every
 slow path ends earlier), so the linter's warning remains, as in the CCRN
 cases.
+
+### 22.16 LFCS outages on the terminal screen (REQ-292)
+
+Two cases for the Linux Foundation LFCS course on the terminal screen
+(22.10), authored without a prototype; golden paths by `npm run sim:golden
+-- steps lfcs-fstab` and `lfcs-lvm`; checked by `lib/sim/lfcs-terminal.test.ts`
+to the same bar as the Linux+ and CKA cases.
+
+| Course / slug | Objective (catalog title) | Critical criteria | Steps name |
+|---|---|---|---|
+| LFCS/fstab-uuid-typo-emergency | Troubleshoot and recover a system that will not boot because of a bad fstab entry, a damaged filesystem or a failing service, using the emergency and rescue targets | journal or fstab-against-blkid before any change; UUID corrected (not commented out, no xfs_repair -L); mount -a proved before continuing the boot; booted with the data disk within 30 min | lfcs-fstab |
+| LFCS/lvm-database-volume-full | Create and extend LVM physical volumes, volume groups and logical volumes, growing the filesystem with them | vgs and lsblk before any change; the in-use disk left alone (no pvcreate -ff); filesystem grown within 20 min | lfcs-lvm |
+
+What each case teaches: in emergency mode root is read-only until
+remounted; after an fstab edit, `systemctl daemon-reload` is what makes
+systemd regenerate the mount unit (systemd-fstab-generator(8)), so a boot
+continued without it fails the same way; commenting the line out boots the
+host with uploads landing on `/`. An LV cannot grow while its VG has no free
+extents; `lvextend` without `-r` leaves the XFS filesystem at its old size;
+`resize2fs` is not the XFS tool.
+
+**Sources** carry `checkedAt` 2026-11-14 and were read in full on man7.org
+(systemd.special(7), systemd.mount(5), systemd-fstab-generator(8), fstab(5),
+blkid(8), mount(8), xfs_repair(8), vgextend(8), pvcreate(8), lvextend(8),
+xfs_growfs(8)) and on the LFCS exam page. Marked `FLAG` in the documents:
+local-fs.target's OnFailure= wiring to emergency.target and systemd's
+90-second default device timeout (both standard behavior, not quoted from a
+page read), and resize2fs's exact error text. Command output layouts are
+authored in each tool's style.
+
+Candidates not built (listed for a later wave): Linux Fundamentals (a team
+folder that refuses writes: groups, setgid and a stale login session; a web
+service that will not start after a config edit, read from systemctl status
+and the journal), and Python for Automation (a cron job that works by hand
+but not from cron: PATH, the venv's interpreter and an unescaped `%`).
