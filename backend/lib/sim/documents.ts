@@ -210,6 +210,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CISM", "cism-payroll-supplier-breach"),
   entry("CISM", "cism-checkout-skimmer-containment"),
   // ---- end REQ-274 ----
+  // ---- REQ-282: NASM Certified Nutrition Coach client sessions (session
+  // renderer, clinical-session profile; CNC_SESSION_DOCUMENTS below) ----
+  entry("NASMCNC", "cnc-crash-diet-request"),
+  entry("NASMCNC", "cnc-greens-powder-warfarin"),
+  // ---- end REQ-282 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
@@ -301,3 +306,13 @@ export function loadDocument(e: DocumentEntry): ScenarioDoc {
 }
 
 export { entry as documentEntry, band as bandEntry };
+
+// REQ-282: the NASM-CNC coaching-session documents and the objective titles
+// they are registered to (active objectives of course NASMCNC; the course
+// seed exports the same titles as NASMCNC_SIM_OBJECTIVES).
+export const CNC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NASMCNC");
+export const CNC_OBJECTIVES: Readonly<Record<string, string>> = {
+  "cnc-crash-diet-request":
+    "Recognizing when to refer to a registered dietitian nutritionist or physician: a diagnosed condition, a suspected eating disorder, pregnancy or breastfeeding needs beyond general guidance, or medications affected by diet",
+  "cnc-greens-powder-warfarin": "Evaluating a supplement: how it is regulated, third-party testing, and when it is a question for a clinician",
+};

@@ -136,6 +136,7 @@ import { NREMTPARAMEDIC_LABS } from "./ems-paramedic";
 import { NREMTAEMT_LABS } from "./ems-aemt";
 // REQ-234: CompTIA A+ Core 1 and Core 2, and the EPPP.
 // REQ-239: the NCE and the NCMHCE.
+// REQ-280: Scrum (PSM I, CSM), ITIL 4 Foundation, ASQ CSSGB; REQ-281: NASM CNC.
 import { APLUS_CORE1_LABS } from "./comptia-aplus-core1";
 import { APLUS_CORE2_LABS } from "./comptia-aplus-core2";
 import { EPPP_LABS } from "./eppp";
@@ -148,6 +149,11 @@ import { CEH_LABS } from "./eccouncil-ceh";
 // REQ-275..278: nursing specialty and advanced practice courses.
 import { NURSING_SPECIALTY_LAB_SETS } from "./nursing-specialty";
 import { withValueSources } from "./value-sources";
+import { PSMI_LABS } from "./scrum-psmi";
+import { CSM_LABS } from "./scrum-csm";
+import { ITIL4FND_LABS } from "./itil4-foundation";
+import { CSSGB_LABS } from "./asq-cssgb";
+import { NASMCNC_LABS } from "./fitness-nasmcnc";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
 // here (value-sources.ts), apart from the lab content.
@@ -293,4 +299,10 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   CISM_LABS,
   CEH_LABS,
   ...NURSING_SPECIALTY_LAB_SETS,
+  // REQ-280 / REQ-281.
+  PSMI_LABS,
+  CSM_LABS,
+  ITIL4FND_LABS,
+  CSSGB_LABS,
+  NASMCNC_LABS,
 ].map(withValueSources);

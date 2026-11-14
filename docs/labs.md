@@ -802,6 +802,28 @@ epinephrine calculation, which follows the 2020 practice parameter as
 summarized in CCJM (2022); thresholds a source was not read for (heart
 failure weight gain, chronic cough, sinusitis day counts) are left to "the
 patient's team" or described without a number.
+### Scrum, ITIL, Six Sigma and nutrition coaching (REQ-280, REQ-281)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| PSMI | 12 (7 build, 5 case) | 2/2/2/2/2/2 | [Scrum.org PSM I focus areas](https://www.scrum.org/assessments/professional-scrum-master-i-certification) and the [2020 Scrum Guide](https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf) (read 2026-11-14) |
+| CSM | 12 (7 build, 5 case) | 2/2/3/2/1/2 | [CSM learning objectives (January 2022)](https://www.scrumalliance.org/media/certifications/los/csm_learning_objectives_2022.pdf) and Scrum Foundations (read 2026-11-14) |
+| ITIL4FND | 12 (9 build, 3 case) | 2/2/1/1/1/2/3 | ITIL 4 Foundation syllabus v1.4, read in a training organization's copy; [PeopleCert exam page](https://www.peoplecert.org/browse-certifications/it-governance-and-service-management/ITIL-1/itil-4-foundation-2565) (read 2026-11-14) |
+| CSSGB | 12 (10 build, 2 case) | 2/2/2/2/2/2 | [ASQ CSSGB Body of Knowledge (2022)](https://www.asq.org/cert/resource/pdf/certification/cssgb-cert-insert.pdf) (read 2026-11-14) |
+| NASMCNC | 10 (7 build, 3 case) | 2/3/2/3 | [NASM CNC course sections](https://www.nasm.org/products/single-complex/nasm-certified-nutrition-coach/CNC301K) (read 2026-11-14) |
+
+Files `seed/labs/scrum-psmi.ts`, `scrum-csm.ts`, `itil4-foundation.ts`,
+`asq-cssgb.ts` and `fitness-nasmcnc.ts`, checked by
+`lib/labs-pm-frameworks.test.ts` (hybrid density unit by unit, one lab per
+objective, both kinds, at least five labs per course with an interactive
+part, fictional organizations and people, the right safety note). PSM I, CSM
+and the CNC publish no weights, so their plans use our study-emphasis
+weights. The CSSGB numbers are computed from each lab's own data with the
+standard formulas and quote no outside threshold. The CNC labs keep to a
+coach's scope (referral for diagnosed conditions, disordered eating and
+medication questions) and take their values from the DGA 2025-2030, the
+National Academies DRI tables and FDA's supplement Q&A (`value-sources.ts`,
+read 2026-11-14). All 58 are `needs_expert_review`.
 
 ## Expert review before launch
 

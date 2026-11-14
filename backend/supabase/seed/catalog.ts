@@ -44,6 +44,7 @@ import { ISACA_TRACKS } from "./tracks/isaca";
 import { ECCOUNCIL_TRACKS } from "./tracks/eccouncil";
 // REQ-275..278: nursing specialty and advanced practice certifications.
 import { NURSING_SPECIALTY_TRACKS } from "./tracks/nursing-specialty";
+import { PM_FRAMEWORK_TRACKS } from "./tracks/pm-frameworks";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -102,6 +103,9 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...ECCOUNCIL_TRACKS,
   // REQ-275..278: CMSRN, CEN, PCCN and the two FNP exams (AANPCB, ANCC).
   ...NURSING_SPECIALTY_TRACKS,
+  // REQ-280: Scrum (PSM I, CSM), ITIL 4 Foundation and ASQ Six Sigma Green
+  // Belt (migration 084 subcategories; ITIL under IT Certifications).
+  ...PM_FRAMEWORK_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the

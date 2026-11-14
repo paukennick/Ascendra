@@ -512,6 +512,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                          and pg_get_constraintdef(oid) like '%''lesson_variant''%') as ok`,
   },
   {
+    // REQ-280: the PSM I, CSM and CSSGB tracks hang off these rows; the seed
+    // resolves them by slug and fails without them.
+    migration: "084_pm_agile_quality_taxonomy.sql",
+    what: "Agile and Scrum, and Quality and Six Sigma, subcategories under Project Management Certifications (seed)",
+    sql: `select (select count(*) from education_subcategories s join education_categories c on c.id = s.category_id
+                   where c.slug = 'project-management-certifications'
+                     and s.slug in ('agile-scrum-certifications', 'quality-six-sigma-certifications')) = 2 as ok`,
+  },
+  {
     // REQ-301: every review is followed by a savepointed write of the shadow
     // prediction (lib/decay-shadow.ts). The code tolerates the columns being
     // absent (the write is skipped and logged), so this is a soft dependency:
