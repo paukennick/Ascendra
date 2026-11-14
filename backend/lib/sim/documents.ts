@@ -163,6 +163,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("ISC2CC", "cc-leaver-account-still-active"),
   entry("CISSP", "cissp-web-tier-data-theft"),
   entry("CISSP", "cissp-ransomware-recovery-site"),
+  entry("CISM", "cism-payroll-supplier-breach"),
+  entry("CISM", "cism-checkout-skimmer-containment"),
   // ---- end REQ-274 ----
 ];
 

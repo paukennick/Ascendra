@@ -16,7 +16,7 @@ import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 
 const COURSES = ["ISC2CC", "CISSP", "CISM", "CEH"] as const;
 // Courses whose sims are built so far (commit per course); all four at the end of REQ-274.
-const BUILT: readonly string[] = ["ISC2CC", "CISSP"];
+const BUILT: readonly string[] = ["ISC2CC", "CISSP", "CISM"];
 const DOCS = ALL_DOCUMENTS.filter((e) => (COURSES as readonly string[]).includes(e.course));
 const docOf = (slug: string): ScenarioDoc => loadDocument(DOCS.find((e) => e.slug === slug)!);
 
@@ -174,5 +174,28 @@ describe("REQ-274: the attacker moves on the analyst's clock", () => {
     for (const a of ["pauseRepl", "isolateBackup", "isolatePrimary", "declare"]) d.task(a);
     d.task("failover");
     assert.equal(typeof d.value("reinfectAt"), "number");
+  });
+  test("CISM supplier: rotating the key stops the attacker and keeps payroll running; suspending alone blocks payroll and leaves the key valid", () => {
+    const r = driver(docOf("cism-payroll-supplier-breach"));
+    r.task("rotate");
+    assert.equal(r.value("attackerActive"), false);
+    assert.equal(r.value("payrollBlocked"), false);
+    const s = driver(docOf("cism-payroll-supplier-breach"));
+    s.task("suspend");
+    assert.equal(s.value("attackerActive"), true);
+    assert.equal(s.value("payrollBlocked"), true);
+  });
+
+  test("CISM containment: the hosted fallback stops capture with the store open; a domain block is evaded", () => {
+    const h = driver(docOf("cism-checkout-skimmer-containment"));
+    h.task("hosted");
+    assert.equal(h.value("skimActive"), false);
+    assert.equal(h.value("proportionate"), true);
+    const b = driver(docOf("cism-checkout-skimmer-containment"));
+    b.task("cspBlock");
+    assert.equal(b.value("skimActive"), false);
+    while (b.minutes() < 15) b.task("watch");
+    assert.equal(typeof b.value("switchAt"), "number");
+    assert.equal(b.value("skimActive"), true);
   });
 });

@@ -1,0 +1,962 @@
+{
+  "slug": "cism-checkout-skimmer-containment",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Reads the diff, saves the evidence, switches to the hosted page at 9 min, disables web-ed, removes the script, briefs the VP, notifies the acquirer, reads the CMS log",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readDiff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 9,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "hosted",
+          "seq": 5,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 14,
+          "seq": 6,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "disableAdmin",
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 17,
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "remove",
+          "seq": 9,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 20,
+          "seq": 10,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "consultOwner",
+          "seq": 11,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 24,
+          "seq": 12,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "acquirer",
+          "seq": 13,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 28,
+          "seq": 14,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "auditCms",
+          "seq": 15,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 33,
+          "seq": 16,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 17,
+          "tick": 33
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "owners"
+          },
+          "seq": 19,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "method": "hosted",
+            "duty": "acquirer"
+          },
+          "seq": 20,
+          "tick": 33
+        }
+      ],
+      "expect": {
+        "ending": "handled",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "stopped": "met",
+          "evidence": "met",
+          "proportionate": "met",
+          "root": "met",
+          "acquirer": "met",
+          "owner": "met",
+          "audit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToStop": 9,
+          "cards": 0,
+          "offlineMin": 0
+        },
+        "stateHash": "fcb1da18b0263cea"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "offlineFast",
+      "title": "Takes the whole store offline at 4 min without the VP, then saves, disables, removes and notifies the acquirer",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readDiff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "offline",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "disableAdmin",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 15,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "remove",
+          "seq": 9,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 18,
+          "seq": 10,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "acquirer",
+          "seq": 11,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 22,
+          "seq": 12,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 13,
+          "tick": 22
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "owners"
+          },
+          "seq": 15,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "method": "offline",
+            "duty": "acquirer"
+          },
+          "seq": 16,
+          "tick": 22
+        }
+      ],
+      "expect": {
+        "ending": "handledCostly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "stopped": "met",
+          "evidence": "met",
+          "proportionate": "missed",
+          "root": "met",
+          "acquirer": "met",
+          "owner": "missed",
+          "audit": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToStop": 4,
+          "cards": 0,
+          "offlineMin": 18
+        },
+        "stateHash": "de8f9cf6a7834121"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "removeFirst",
+      "title": "Deletes the script at 4 min before saving anything, then disables web-ed and switches to the hosted page",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readDiff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "remove",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "disableAdmin",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "hosted",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 15,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 9,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "owners"
+          },
+          "seq": 11,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "method": "hosted",
+            "duty": "none"
+          },
+          "seq": 12,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "evidenceLost",
+        "class": "harm",
+        "rating": "bad",
+        "score": 39,
+        "criteria": {
+          "stopped": "met",
+          "evidence": "missed",
+          "proportionate": "met",
+          "root": "met",
+          "acquirer": "missed",
+          "owner": "missed",
+          "audit": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToStop": 4,
+          "cards": 0,
+          "offlineMin": 0
+        },
+        "stateHash": "b7800f47922bc87a"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "cspOnly",
+      "title": "Blocks the skimmer's domain and watches: the script moves to a new domain and runs for the hour",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readDiff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "cspBlock",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 17,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 17,
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 17,
+          "seq": 8,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 27,
+          "seq": 10,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 37,
+          "seq": 12,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 37,
+          "seq": 13,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 14,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 47,
+          "seq": 15,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 16,
+          "tick": 47
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 57,
+          "seq": 17,
+          "tick": 47
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 18,
+          "tick": 57
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 67,
+          "seq": 19,
+          "tick": 57
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 20,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "nobody"
+          },
+          "seq": 21,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "method": "blockOnly",
+            "duty": "none"
+          },
+          "seq": 22,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "massTheft",
+        "class": "harm",
+        "rating": "bad",
+        "score": 11,
+        "criteria": {
+          "stopped": "missed",
+          "evidence": "missed",
+          "proportionate": "met",
+          "root": "missed",
+          "acquirer": "missed",
+          "owner": "missed",
+          "audit": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToStop": 4,
+          "cards": 3000,
+          "offlineMin": 0
+        },
+        "stateHash": "842128c549516682"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "hostedOnly",
+      "title": "Saves the evidence and switches to the hosted page fast, briefs the VP and the acquirer, but leaves web-ed active and the script in place",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readDiff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 9,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "hosted",
+          "seq": 5,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 14,
+          "seq": 6,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "consultOwner",
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 18,
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "acquirer",
+          "seq": 9,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 22,
+          "seq": 10,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 11,
+          "tick": 22
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "owners"
+          },
+          "seq": 13,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "method": "hosted",
+            "duty": "acquirer"
+          },
+          "seq": 14,
+          "tick": 22
+        }
+      ],
+      "expect": {
+        "ending": "leftOpen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 72,
+        "criteria": {
+          "stopped": "met",
+          "evidence": "met",
+          "proportionate": "met",
+          "root": "missed",
+          "acquirer": "met",
+          "owner": "met",
+          "audit": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minToStop": 9,
+          "cards": 0,
+          "offlineMin": 0
+        },
+        "stateHash": "633ebe8936f65dd1"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "lateHosted",
+      "title": "Investigates and briefs the VP first; the hosted switch at 18 min comes after about 120 cards were taken; then a clean finish",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readDiff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "auditCms",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 9,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "consultOwner",
+          "seq": 5,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 18,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 18,
+          "seq": 9,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "hosted",
+          "seq": 10,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 23,
+          "seq": 11,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "disableAdmin",
+          "seq": 12,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 26,
+          "seq": 13,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "remove",
+          "seq": 14,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 29,
+          "seq": 15,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "acquirer",
+          "seq": 16,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 33,
+          "seq": 17,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 18,
+          "tick": 33
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 19,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "owners"
+          },
+          "seq": 20,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "method": "hosted",
+            "duty": "acquirer"
+          },
+          "seq": 21,
+          "tick": 33
+        }
+      ],
+      "expect": {
+        "ending": "handledCostly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 89,
+        "criteria": {
+          "stopped": "partial",
+          "evidence": "met",
+          "proportionate": "met",
+          "root": "met",
+          "acquirer": "met",
+          "owner": "met",
+          "audit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToStop": 18,
+          "cards": 120,
+          "offlineMin": 0
+        },
+        "stateHash": "56d89b0564d85166"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}
