@@ -161,6 +161,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // below). Keep these entries together. ----
   entry("ASWBCLINICAL", "aswbc-suicide-violence-risk"),
   entry("ASWBCLINICAL", "aswbc-threat-identifiable-person"),
+  entry("ASWBMASTERS", "aswbm-involuntary-engagement"),
+  entry("ASWBMASTERS", "aswbm-child-abuse-report"),
   // ---- end REQ-288 ----
 ];
 
@@ -261,4 +263,6 @@ export const ASWB_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.fi
 export const ASWB_OBJECTIVES: Readonly<Record<string, string>> = {
   "aswbc-suicide-violence-risk": "Assess suicide and violence risk in a clinical social work session",
   "aswbc-threat-identifiable-person": "Respond to a client's threat against an identifiable person under the NASW Code and state law",
+  "aswbm-involuntary-engagement": "Engage an involuntary client and contract for goals",
+  "aswbm-child-abuse-report": "Make a mandated child abuse report and keep the family engaged",
 };

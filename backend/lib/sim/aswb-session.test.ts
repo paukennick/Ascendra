@@ -154,4 +154,25 @@ describe("the people layer in the ASWB cases", () => {
     w.act("explore");
     assert.equal(w.value("threatKnown"), true);
   });
+
+  test("the mandated client: his own goals come out only once he trusts you; goals written for him make an imposed contract", () => {
+    const cold = driver(docOf("aswbm-involuntary-engagement"));
+    cold.choose("reflect");
+    cold.act("askWants");
+    assert.equal(cold.value("goalFound"), false);
+    const imposed = driver(docOf("aswbm-involuntary-engagement"));
+    imposed.choose("persuade");
+    imposed.act("imposeGoals");
+    imposed.cont();
+    imposed.act("contract");
+    assert.equal(imposed.value("contractKind"), "imposed");
+  });
+
+  test("the child abuse report: reasonable cause is in the notes from the start, and a report can be made before the mother says anything", () => {
+    const d = driver(docOf("aswbm-child-abuse-report"));
+    d.choose("enough");
+    d.act("callNow");
+    assert.equal(d.value("reported"), true);
+    assert.equal(d.value("reportedWhen"), "session");
+  });
 });
