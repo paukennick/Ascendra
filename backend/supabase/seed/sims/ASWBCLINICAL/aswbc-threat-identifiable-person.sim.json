@@ -1,0 +1,1469 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "aswbc-threat-identifiable-person",
+  "title": "Session: 'he's going to regret it', a locked storage unit and a new pistol",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Trent Halvorsen",
+        "presentation": "{distress >= 6 ? \"Knee bouncing, jaw tight\" : distress >= 3 ? \"Restless, leaning forward\" : \"Quieter, shoulders down\"}; {rapport >= 6 ? \"he is talking to you straight\" : rapport >= 3 ? \"he weighs what to tell you\" : \"he has shut down\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "cue",
+          "label": "What he said",
+          "text": "Pruitt, his landlord, locked him out of his storage unit. 'He's going to regret it.'",
+          "when": "cuesHeard",
+          "alert": "cuesHeard and not exploreAsked"
+        },
+        {
+          "id": "threat",
+          "label": "Threat",
+          "text": "Bought a pistol Saturday; knows Pruitt's house on Alder; plans to go there Friday when Pruitt is back; 'he's going to pay'.",
+          "when": "threatKnown",
+          "alert": "threatKnown and notify == \"none\""
+        },
+        {
+          "id": "hist",
+          "label": "Past violence",
+          "text": "A bar fight at 22; the other man was hospitalized. Nothing since.",
+          "when": "historyKnown"
+        },
+        {
+          "id": "self",
+          "label": "Suicide screen",
+          "text": "Denies thoughts of killing himself.",
+          "when": "selfScreened"
+        },
+        {
+          "id": "means",
+          "label": "Pistol",
+          "text": "{meansOff ? \"His sister will hold it from tonight and text you.\" : \"Still with him.\"}",
+          "when": "threatKnown"
+        },
+        {
+          "id": "told",
+          "label": "Disclosure",
+          "text": "{premature ? \"You told him you would report a remark before you knew of any threat.\" : \"You told him you must notify Pruitt and the police, and why.\"}",
+          "when": "toldClient",
+          "alert": "premature"
+        }
+      ],
+      "record": {
+        "label": "Session note so far",
+        "items": [
+          {
+            "label": "Threat explored: {threatKnown ? \"actual threat, weapon, day and place\" : \"asked, not disclosed\"}",
+            "when": "exploreAsked"
+          },
+          {
+            "label": "Told the client before disclosing",
+            "when": "toldClient and threatKnown"
+          },
+          {
+            "label": "Pistol to his sister tonight",
+            "when": "meansOff"
+          },
+          {
+            "label": "Notified: {notify}; shared: {shared}",
+            "when": "notify != \"none\""
+          },
+          {
+            "label": "Documented: {recordDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Respond to a client's threat against an identifiable person under the NASW Code and state law",
+  "sources": [
+    {
+      "cite": "ASWB Examination Guidebook (August 2026), Clinical content outline: I Values and Ethics, 36% (IA confidentiality and its limits; IB 'Legal and ethical issues regarding mandatory reporting (e.g., abuse, threat of harm, impaired professionals, duty to warn)'); the 2026 blueprint in use from 2026-08-03",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aswb.org/wp-content/uploads/2026/05/2026-Social-Work-Licensing-Exam-Guidebook-5.4.2026.pdf",
+      "note": "Read in full 2026-11-14 for the course outline (REQ-286)."
+    },
+    {
+      "cite": "NASW Code of Ethics (approved 1996, revised 2021): 1.07(c) disclosure without consent when necessary to prevent serious, foreseeable, and imminent harm, the least amount of information necessary and only what is directly relevant; 1.07(d) tell the client about the disclosure and its consequences before disclosing, when feasible; 1.07(e) discuss the limits of confidentiality",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients",
+      "note": "Read 2026-11-14. NASW's Delegate Assembly votes on proposed amendments on 2026-11-18; recheck by 2026-12-15."
+    },
+    {
+      "cite": "RCW 71.05.120(3) (last amended 2020 c 302 s 11): the duty to warn or take reasonable precautions where the patient 'has communicated an actual threat of physical violence against a reasonably identifiable victim or victims'; discharged by reasonable efforts to communicate the threat to the victim or victims and to law enforcement personnel",
+      "checkedAt": "2026-11-14",
+      "url": "https://app.leg.wa.gov/rcw/default.aspx?cite=71.05.120",
+      "note": "Read 2026-11-14 (the statute's text, through the page)."
+    },
+    {
+      "cite": "Volk v. DeMeerleer, Washington Supreme Court No. 91387-1 (2016): once an outpatient relationship is a special relationship, the professional must use 'reasonable care, consistent with the standards of the mental health profession' to protect foreseeable victims, which may mean treatment, warning others, or seeking voluntary or involuntary commitment; foreseeability is a question of fact",
+      "checkedAt": "2026-11-14",
+      "url": "https://law.justia.com/cases/washington/supreme-court/2016/91387-1.html",
+      "note": "Read 2026-11-14 through a summary of the opinion's page."
+    },
+    {
+      "cite": "HHS, HIPAA FAQ 520 (45 CFR 164.512(j)): disclosure in good faith when necessary to prevent or lessen a serious and imminent threat, to a person reasonably able to prevent or lessen it, including 'the target of the threat' and law enforcement, consistent with applicable law and ethics; FAQ 3004: HIPAA itself does not require telling the patient at the time, but ethics rules and state law may",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.hhs.gov/hipaa/for-professionals/faq/520/does-hipaa-permit-a-health-care-provider-to-disclose-information-if-the-patient-is-a-danger/index.html",
+      "note": "Both FAQs read 2026-11-14 (FAQ 520 last reviewed 2013-07-26; FAQ 3004 last reviewed 2018-01-04)."
+    }
+  ],
+  "brief": {
+    "situation": "You are a licensed clinical social worker in an outpatient practice in Washington. Trent Halvorsen, 34 (a fictional client), an auto mechanic, has seen you for five sessions for anger and low mood since he was evicted in September. At intake you went over confidentiality and its limits, and he signed the practice's consent form. Today is Wednesday. You have 50 minutes.",
+    "handover": [
+      "Treatment plan: anger management, depressed mood; no violence in the past ten years by his report; no risk concerns so far."
+    ],
+    "howItWorks": [
+      "Choose what to ask and how to respond from the action groups. Trent answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "His rapport, distress and how much he discloses change with what you say. What he tells you depends on the trust you have built.",
+      "The hour ends at 50 minutes. After the session you write a short formulation, make any notifications and document."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "80min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-14",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-14",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-14",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "cuesHeard": {
+      "type": "bool",
+      "init": false
+    },
+    "limitsReviewed": {
+      "type": "bool",
+      "init": false
+    },
+    "exploreAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "threatKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "threatAt": {
+      "type": "time",
+      "init": null
+    },
+    "historyKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "selfScreened": {
+      "type": "bool",
+      "init": false
+    },
+    "promisedSecrecy": {
+      "type": "bool",
+      "init": false
+    },
+    "toldClient": {
+      "type": "bool",
+      "init": false
+    },
+    "toldAt": {
+      "type": "time",
+      "init": null
+    },
+    "premature": {
+      "type": "bool",
+      "init": false
+    },
+    "meansOff": {
+      "type": "bool",
+      "init": false
+    },
+    "crisisOffered": {
+      "type": "bool",
+      "init": false
+    },
+    "notify": {
+      "type": "enum",
+      "values": [
+        "none",
+        "both",
+        "police",
+        "victim",
+        "nobody"
+      ],
+      "init": "none"
+    },
+    "shared": {
+      "type": "enum",
+      "values": [
+        "none",
+        "threat",
+        "full"
+      ],
+      "init": "none"
+    },
+    "recordDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "brief",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "limits",
+        "explore",
+        "askHistory",
+        "askSelf",
+        "promise",
+        "disclose",
+        "meansPlan",
+        "offerCrisis",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "Open-ended check-in: 'What's been happening since last time?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "You have checked in.",
+      "effects": [
+        {
+          "log": "You ask an open question and give him room.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Pruitt changed the locks on me. Thursday. My tools, my dad's tools, are in that unit and he won't let me in.\" His knee is bouncing. \"He's going to regret it.\""
+        },
+        {
+          "set": "cuesHeard",
+          "to": "true"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Trent exhales. \"Yeah. Those tools are all I've got of my dad.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "limits": {
+      "label": "Remind him of the limits of confidentiality you went over at intake",
+      "group": "Address",
+      "available": "not talking and (not limitsReviewed)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You remind him, calmly, that what he says stays here except where someone is at serious risk, as you went over at intake.",
+          "kind": "act"
+        },
+        {
+          "set": "limitsReviewed",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "threatKnown",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "\"So now you tell me.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "He nods. \"I remember.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "explore": {
+      "label": "Ask what he means by 'regret it': any thoughts of hurting Pruitt, a plan, a weapon, when",
+      "group": "Ask about risk",
+      "available": "not talking and (cuesHeard and not threatKnown)",
+      "why": "Hear what he is saying first (or he has told you).",
+      "effects": [
+        {
+          "log": "You ask him plainly what he means, and whether he has thought about hurting Pruitt.",
+          "kind": "act"
+        },
+        {
+          "set": "exploreAsked",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 5",
+              "then": [
+                {
+                  "set": "threatKnown",
+                  "to": "true"
+                },
+                {
+                  "set": "threatAt",
+                  "to": "t"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "3"
+                },
+                {
+                  "add": "distress",
+                  "by": "1"
+                },
+                {
+                  "finding": "He looks straight at you. \"I bought a pistol Saturday. I know his house, on Alder. He's back from the coast Friday. I'm going over there and he's going to pay for what he did.\""
+                },
+                {
+                  "log": "An actual threat of physical violence against an identifiable person, with a weapon and a day.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "\"Figure of speech. Forget it.\" (He will not say more until he trusts you more.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askHistory": {
+      "label": "Ask about any past violence",
+      "group": "Ask about risk",
+      "available": "not talking and (cuesHeard and not historyKnown)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask whether he has ever hurt anyone.",
+          "kind": "act"
+        },
+        {
+          "set": "historyKnown",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Bar fight when I was 22. The other guy went to the hospital. Nothing since.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askSelf": {
+      "label": "Ask about thoughts of killing himself too",
+      "group": "Ask about risk",
+      "available": "not talking and (not selfScreened)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask directly whether he has thoughts of killing himself.",
+          "kind": "act"
+        },
+        {
+          "set": "selfScreened",
+          "to": "true"
+        },
+        {
+          "finding": "\"No. I'm not the one who should be sorry.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "promise": {
+      "label": "Tell him that what he says in here stays in here, whatever it is",
+      "group": "Address",
+      "available": "not talking and (not promisedSecrecy)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You tell him nothing he says will leave the room.",
+          "kind": "act"
+        },
+        {
+          "set": "promisedSecrecy",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "finding": "He relaxes a little."
+        },
+        {
+          "log": "A promise you cannot keep: confidentiality has limits (NASW 1.07(e)).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "disclose": {
+      "label": "Tell him you will be notifying Pruitt and the police about what he said",
+      "group": "Address",
+      "available": "not talking and (cuesHeard and not toldClient)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You tell Trent you will have to notify Pruitt and the police.",
+          "kind": "act"
+        },
+        {
+          "set": "toldClient",
+          "to": "true"
+        },
+        {
+          "set": "toldAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "threatKnown",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-1.5"
+                },
+                {
+                  "add": "distress",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "He swears and stands, then sits again. \"Do what you have to.\" Quieter: \"I don't want to go to prison over him.\""
+                },
+                {
+                  "log": "Told him before disclosing, as NASW 1.07(d) asks when feasible.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "premature",
+                  "to": "true"
+                },
+                {
+                  "add": "rapport",
+                  "by": "-3"
+                },
+                {
+                  "add": "distress",
+                  "by": "2"
+                },
+                {
+                  "finding": "\"For saying he'll regret it? I haven't said I'd do anything.\""
+                },
+                {
+                  "log": "No actual threat is known yet: disclosing now has no legal basis (RCW 71.05.120(3); NASW 1.07(c)).",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "meansPlan": {
+      "label": "Ask him to let someone he trusts hold the pistol, starting today",
+      "group": "Plan",
+      "available": "not talking and (threatKnown and not meansOff)",
+      "why": "Find out what he is planning first (or it is agreed).",
+      "effects": [
+        {
+          "log": "You ask whether someone he trusts could hold the pistol, starting today.",
+          "kind": "act"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 3",
+              "then": [
+                {
+                  "set": "meansOff",
+                  "to": "true"
+                },
+                {
+                  "add": "distress",
+                  "by": "-1"
+                },
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "A long pause. \"My sister. She can take it tonight. I'll have her text you.\""
+                },
+                {
+                  "log": "The weapon leaves his hands today: a reasonable precaution (Volk v. DeMeerleer).",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"Not a chance.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "offerCrisis": {
+      "label": "Offer a voluntary crisis evaluation today",
+      "group": "Plan",
+      "available": "not talking and (threatKnown and not crisisOffered)",
+      "why": "Offered.",
+      "effects": [
+        {
+          "log": "You offer a voluntary crisis evaluation today.",
+          "kind": "act"
+        },
+        {
+          "set": "crisisOffered",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"No. I'm not crazy, I'm angry. I'll come back tomorrow.\" (He agrees to a session tomorrow.)"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Make the notifications",
+      "group": "After the session",
+      "available": "notify == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Notification",
+          "fields": [
+            {
+              "id": "who",
+              "label": "Whom you contact",
+              "options": [
+                {
+                  "value": "both",
+                  "label": "Dale Pruitt and the local police"
+                },
+                {
+                  "value": "police",
+                  "label": "The police only"
+                },
+                {
+                  "value": "victim",
+                  "label": "Dale Pruitt only"
+                },
+                {
+                  "value": "nobody",
+                  "label": "Nobody; you will keep working with Trent"
+                }
+              ]
+            },
+            {
+              "id": "what",
+              "label": "What you tell them",
+              "options": [
+                {
+                  "value": "threat",
+                  "label": "The threat: who, the pistol, Friday, his address; that Trent is a client, and nothing else"
+                },
+                {
+                  "value": "full",
+                  "label": "The threat and his history, diagnosis and session notes"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notify",
+          "to": "who"
+        },
+        {
+          "set": "shared",
+          "to": "what"
+        },
+        {
+          "log": "Notified: {who}; shared: {what}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the threat and what you did",
+      "group": "Document",
+      "available": "not documented and notify != \"none\"",
+      "why": "Decide about the notifications first (or it is documented).",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "record",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "His words, the weapon and the day; your assessment; that you told him first; who you notified, when and what; the precautions agreed; your follow-up"
+                },
+                {
+                  "value": "brief",
+                  "label": "'Client made threats; police called'"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing; it would only hurt him later"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "recordDoc",
+          "to": "record"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: {record}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "End the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-14",
+        "note": "A 50-minute outpatient session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "The client stands, says this is not helping, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictDuty",
+      "when": "cuesHeard and phase == \"session\"",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "regretIt"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "regretIt": {
+      "title": "Predict (not scored)",
+      "context": "Trent says his landlord, Pruitt, is 'going to regret it'. In Washington, does that sentence by itself require you to warn Pruitt and the police?",
+      "choices": [
+        {
+          "id": "explore",
+          "label": "Not by itself: find out whether it is an actual threat first",
+          "effects": [
+            {
+              "log": "Prediction: explore first.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. RCW 71.05.120(3) turns on 'an actual threat of physical violence against a reasonably identifiable victim'. Pruitt is identifiable; whether there is a threat of violence is what you ask next."
+        },
+        {
+          "id": "warn",
+          "label": "Yes: he named the person",
+          "effects": [
+            {
+              "log": "Prediction: warn now.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not yet. Naming a person makes the victim identifiable; the duty also needs an actual threat of physical violence (RCW 71.05.120(3)). Explore it before you act."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your formulation: why Trent's statement became a duty to act, what you did to discharge it, and how you protected his confidentiality while you did.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The duty",
+          "criteria": "Separates the first remark (not yet a threat) from what he said once explored (a weapon, a place, a day against a named person), and names the basis: RCW 71.05.120(3) actual threat against an identifiable victim, NASW 1.07(c) serious, foreseeable, imminent harm, and Volk's reasonable care.",
+          "modelAnswer": "'He's going to regret it' was a cue, not a threat. Asked plainly, Trent said he bought a pistol, knows Pruitt's house and plans to go there Friday: an actual threat of physical violence against an identifiable person (RCW 71.05.120(3)) and serious, foreseeable and imminent harm (NASW 1.07(c)). Under Volk, I owe reasonable care to protect Pruitt."
+        },
+        {
+          "label": "Discharging it with the least disclosure",
+          "criteria": "Told him first (1.07(d)); notified both Pruitt and the police, which is how the statute is discharged; disclosed the threat only (1.07(c)); added precautions (the pistol to his sister, a voluntary crisis evaluation offered, a session tomorrow); documented.",
+          "modelAnswer": "I told Trent before disclosing what I would do and why (1.07(d)). I made reasonable efforts to tell Pruitt and the police, which discharges the statutory duty, and gave only the threat: his name, the pistol, Friday, the address, and that he is a client (1.07(c)). He agreed his sister would hold the pistol from tonight, declined a crisis evaluation, and agreed to come back tomorrow. I documented his words, my assessment and each step."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14"
+        }
+      },
+      "safetyWindow": {
+        "value": 900,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Tightened from the profile's 1200 s: the threat should be clear within the first 15 minutes so there is time to tell him, agree precautions and plan follow-up in the hour (author's scenario timing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and threatKnown and notify == \"nobody\" and not meansOff",
+      "class": "harm",
+      "rationale": "An actual threat with a weapon and a day: doing nothing leaves an identifiable person at foreseeable risk and the statutory duty undischarged.",
+      "source": {
+        "cite": "RCW 71.05.120(3) (last amended 2020 c 302 s 11): the duty to warn or take reasonable precautions where the patient 'has communicated an actual threat of physical violence against a reasonably identifiable victim or victims'; discharged by reasonable efforts to communicate the threat to the victim or victims and to law enforcement personnel",
+        "checkedAt": "2026-11-14",
+        "url": "https://app.leg.wa.gov/rcw/default.aspx?cite=71.05.120",
+        "note": "Read 2026-11-14 (the statute's text, through the page)."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "He walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Trent left mid-session, angry, with whatever he was planning still unknown to you."
+    },
+    "breach": {
+      "label": "Disclosed before there was a threat",
+      "class": "harm",
+      "when": "documented and not walkedOut and premature",
+      "terminal": true,
+      "narrative": "You told Trent you would report a remark before you knew what it meant. He stopped talking; the pistol and Friday were never said aloud, and nothing protects Pruitt."
+    },
+    "unexplored": {
+      "label": "The threat never surfaced",
+      "class": "harm",
+      "when": "documented and not walkedOut and not threatKnown",
+      "terminal": true,
+      "narrative": "Trent went home with a new pistol and a plan for Friday that nobody knows about."
+    },
+    "unprotected": {
+      "label": "Duty not discharged",
+      "class": "harm",
+      "when": "documented and not walkedOut and threatKnown and notify == \"nobody\"",
+      "terminal": true,
+      "narrative": "You knew of a pistol, an address and a day, and told no one. Pruitt does not know; neither do the police."
+    },
+    "partly": {
+      "label": "Partly protected",
+      "class": "recovered",
+      "when": "documented and not walkedOut and threatKnown and (notify == \"police\" or notify == \"victim\")",
+      "terminal": true,
+      "narrative": "{notify == \"police\" ? \"The police know; Pruitt does not.\" : \"Pruitt knows; the police do not.\"} The statute is discharged by reasonable efforts to reach both."
+    },
+    "overshared": {
+      "label": "Protected, but overshared",
+      "class": "recovered",
+      "when": "documented and not walkedOut and threatKnown and notify == \"both\" and shared == \"full\"",
+      "terminal": true,
+      "narrative": "Pruitt and the police were warned, but they now also hold Trent's diagnosis and session notes, which they did not need."
+    },
+    "protected": {
+      "label": "Protected, and the least disclosed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not walkedOut and threatKnown and timeAt(threatAt) <= safetyWindow and toldClient and notify == \"both\" and shared == \"threat\" and meansOff and historyKnown and selfScreened and not promisedSecrecy and recordDoc == \"full\" and rapport >= allianceRecovered",
+      "narrative": "Pruitt and the police know of the threat and nothing more; Trent heard it from you first, his sister has the pistol tonight, and he is coming back tomorrow."
+    },
+    "gaps": {
+      "label": "Protected, with gaps",
+      "class": "recovered",
+      "when": "documented and not walkedOut",
+      "terminal": true,
+      "narrative": "Pruitt and the police were warned, but parts of the assessment, the precautions or the record were late or missing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "breach",
+    "unexplored",
+    "unprotected",
+    "partly",
+    "overshared",
+    "protected",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "explored",
+        "label": "Explored the remark until the threat was clear, within 15 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "premature",
+            "score": "missed",
+            "why": "Acted on the remark before exploring it."
+          },
+          {
+            "when": "threatKnown and timeAt(threatAt) <= safetyWindow",
+            "score": "met",
+            "why": "Clear {timeAt(threatAt) / 60} min in."
+          },
+          {
+            "when": "threatKnown",
+            "score": "partial",
+            "why": "Clear only {timeAt(threatAt) / 60} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The threat never surfaced."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "discharged",
+        "label": "Warned the person and the police (RCW 71.05.120(3))",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notify == \"both\"",
+            "score": "met",
+            "why": "Both notified."
+          },
+          {
+            "when": "notify == \"police\" or notify == \"victim\"",
+            "score": "partial",
+            "why": "Only {notify} notified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody notified."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "leastInfo",
+        "label": "Disclosed the threat and nothing more (NASW 1.07(c))",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "shared == \"threat\"",
+            "score": "met",
+            "why": "Only the threat."
+          },
+          {
+            "when": "shared == \"full\"",
+            "score": "missed",
+            "why": "History, diagnosis and notes shared too."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing disclosed."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "toldFirst",
+        "label": "Told him before disclosing (NASW 1.07(d))",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "toldClient and threatKnown and not premature",
+            "score": "met",
+            "why": "He heard it from you first."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not told, or told before there was anything to disclose."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "precautions",
+        "label": "Precautions: the pistol out of his hands, his own risk screened, past violence asked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "meansOff and selfScreened and historyKnown",
+            "score": "met",
+            "why": "Pistol to his sister; suicide screen and history done."
+          },
+          {
+            "when": "meansOff or selfScreened or historyKnown",
+            "score": "partial",
+            "why": "Some precautions."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No precautions."
+          }
+        ]
+      },
+      {
+        "id": "noSecrecy",
+        "label": "No promise of secrecy",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "promisedSecrecy",
+            "score": "missed",
+            "why": "Promised what you cannot keep."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No such promise."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "Documented the threat and each step",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "recordDoc == \"full\"",
+            "score": "met",
+            "why": "Words, assessment, notifications and precautions on the record."
+          },
+          {
+            "when": "recordDoc == \"brief\"",
+            "score": "partial",
+            "why": "A line, not a record."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToThreat",
+        "label": "Minutes until the threat was clear",
+        "value": "isNull(threatAt) ? -1 : timeAt(threatAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "3 or more (hearing that you must warn costs some trust)"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Check in and reflect what the tools mean to him, so he trusts you enough to say more."
+      },
+      {
+        "at": "5-15 min",
+        "text": "Ask plainly what 'regret it' means: thoughts of hurting Pruitt, a plan, a weapon, a day. Ask about past violence and his own suicide risk."
+      },
+      {
+        "at": "15-40 min",
+        "text": "Tell him what you must do and why; agree the pistol goes to his sister tonight; offer a voluntary crisis evaluation and a session tomorrow."
+      },
+      {
+        "at": "After",
+        "text": "Notify Pruitt and the police with the threat only; document his words, your assessment and each step."
+      }
+    ],
+    "debrief": {
+      "protected": {
+        "headline": "Good: protected, with the least disclosed",
+        "body": "You explored before acting, told him first, warned Pruitt and the police with the threat only, and added precautions that keep him in care."
+      },
+      "gaps": {
+        "headline": "Protected, with gaps",
+        "body": "Both were warned, but the criteria below show what was late or missing."
+      },
+      "partly": {
+        "headline": "Half the duty",
+        "body": "Washington's statute is discharged by reasonable efforts to reach the victim and law enforcement; reaching only one leaves the other half undone."
+      },
+      "overshared": {
+        "headline": "More than was needed",
+        "body": "NASW 1.07(c): disclose the least information necessary and only what is directly relevant. The threat, not the chart."
+      },
+      "unprotected": {
+        "headline": "A known threat, and nobody told",
+        "body": "An actual threat against an identifiable person with a weapon and a day is the case RCW 71.05.120(3) and NASW 1.07(c) are written for."
+      },
+      "unexplored": {
+        "headline": "The threat stayed hidden",
+        "body": "'He's going to regret it' needed a plain follow-up question. Building enough trust to ask it is the skill."
+      },
+      "breach": {
+        "headline": "Disclosed too soon",
+        "body": "A remark is a cue; disclosure needs an actual threat (RCW 71.05.120(3)) or serious, foreseeable, imminent harm (NASW 1.07(c)). Acting first cost you the information you needed."
+      },
+      "walkout": {
+        "headline": "The alliance broke",
+        "body": "An angry client who feels judged leaves. Reflection first, then plain questions, keep him talking long enough to find out what he plans."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Treat 'he's going to regret it' as a cue: build enough trust to ask plainly about intent, plan, weapon and timing. Once Trent describes a pistol, an address and a day against a named person, it is an actual threat (RCW 71.05.120(3)) and serious, foreseeable, imminent harm (NASW 1.07(c)). Tell him first (1.07(d)), notify Pruitt and the police with the threat only, add precautions (the pistol to his sister, a crisis evaluation offered, a session tomorrow), and document each step."
+  }
+}

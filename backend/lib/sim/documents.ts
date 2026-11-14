@@ -156,6 +156,12 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTPARAMEDIC", "inferior-stemi-cath-alert"),
   entry("NREMTPARAMEDIC", "infant-respiratory-failure"),
   // ---- end REQ-241 ----
+  // ---- REQ-288: ASWB client sessions, courses ASWBCLINICAL and ASWBMASTERS
+  // (session renderer, clinical-session profile; ASWB_SESSION_DOCUMENTS
+  // below). Keep these entries together. ----
+  entry("ASWBCLINICAL", "aswbc-suicide-violence-risk"),
+  entry("ASWBCLINICAL", "aswbc-threat-identifiable-person"),
+  // ---- end REQ-288 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
@@ -247,3 +253,12 @@ export function loadDocument(e: DocumentEntry): ScenarioDoc {
 }
 
 export { entry as documentEntry, band as bandEntry };
+
+// REQ-288: the ASWB client-session documents and the objective titles they are
+// registered to (active objectives of their course; seed/tracks/aswb.ts exports
+// the same titles as ASWB_CLINICAL_SIM_OBJECTIVES and ASWB_MASTERS_SIM_OBJECTIVES).
+export const ASWB_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "ASWBCLINICAL" || e.course === "ASWBMASTERS");
+export const ASWB_OBJECTIVES: Readonly<Record<string, string>> = {
+  "aswbc-suicide-violence-risk": "Assess suicide and violence risk in a clinical social work session",
+  "aswbc-threat-identifiable-person": "Respond to a client's threat against an identifiable person under the NASW Code and state law",
+};
