@@ -17503,6 +17503,29 @@
       "prevention_rules": [],
       "prevention_notes": "Every varchar column the seed writes from a credential is now length-checked in the unit test",
       "recurrence_of": "FAIL-595"
+    },
+    {
+      "id": "FAIL-1883",
+      "date": "2026-11-14",
+      "title": "Jurisprudence course missing from the server's study-emphasis list",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/content-fixes-req220.test.ts: the server's list of study-emphasis courses is exactly the seed's -- failed after WAPSYCHJP set domainWeights study_emphasis",
+      "how_detected": "test (backend npm test)",
+      "root_cause": "The seed's domainWeights flag only nulls exam_domains weights; readiness, the study plan and the coach decide 'unweighted' from STUDY_EMPHASIS_TRACK_CODES in lib/readiness.ts, a second list by code. Without the code there, readiness would have weighted the jurisprudence units as if they were an exam blueprint",
+      "requirement": "REQ-287",
+      "affected": [
+        "backend/lib/readiness.ts"
+      ],
+      "fix_summary": "WAPSYCHJP added to STUDY_EMPHASIS_TRACK_CODES",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-fixes-req220.test.ts::the server's list of study-emphasis courses is exactly the seed's"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The existing equality test caught it; a new study-emphasis course must add its code to lib/readiness.ts (now noted in the REQ-287 entry)",
+      "recurrence_of": ""
     }
   ]
 }
