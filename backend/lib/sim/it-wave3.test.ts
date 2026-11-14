@@ -31,6 +31,7 @@ export const WAVE3: readonly { course: string; slug: string; screen: string; pro
   { course: "AWSSAA", slug: "waf-login-flood-sqli", screen: "board", profile: "security" },
   { course: "AWSSOA", slug: "rds-update-without-where-pitr", screen: "board", profile: "cloud" },
   { course: "GCPACE", slug: "cloud-run-bad-revision-rollback", screen: "board", profile: "cloud" },
+  { course: "LINUXPLUS", slug: "systemd-dropin-breaks-export", screen: "terminal", profile: "infrastructure" },
 ];
 
 const entryOf = (slug: string) => ALL_DOCUMENTS.find((e) => e.slug === slug)!;
@@ -385,5 +386,40 @@ describe("what each wave 3 case teaches", () => {
     safe.act("testTag");
     assert.equal(safe.value("tested43"), true);
     assert.equal(safe.value("unchargedOrders"), 0);
+  });
+
+  test("Linux+: the drop-in overrides the vendor unit; a hand edit needs daemon-reload; systemctl edit reloads; a stray directory writes to the wrong place", () => {
+    const d = docOf("systemd-dropin-breaks-export");
+    const vendor = driver(d);
+    vendor.act("fix", { change: "editVendor" });
+    vendor.act("reload");
+    vendor.act("start");
+    assert.equal(vendor.value("running"), false);
+    const rm = driver(d);
+    rm.act("fix", { change: "rmDropin" });
+    rm.act("start");
+    assert.equal(rm.value("running"), false, "systemd still has the old configuration loaded");
+    rm.act("reload");
+    rm.act("start");
+    assert.equal(rm.value("healthy"), true);
+    const edit = driver(d);
+    edit.act("fix", { change: "systemctlEdit" });
+    edit.act("start");
+    assert.equal(edit.value("healthy"), true);
+    const old = driver(d);
+    old.act("fix", { change: "mkdirOld" });
+    old.act("start");
+    assert.equal(old.value("running"), true);
+    assert.equal(old.value("healthy"), false);
+  });
+
+  test("Linux+: enabling does not start the service, and the 17:00 pickup needs the file in /srv/export", () => {
+    const d = docOf("systemd-dropin-breaks-export");
+    const en = driver(d);
+    en.act("fix", { change: "systemctlEdit" });
+    en.act("enable");
+    assert.equal(en.value("running"), false);
+    while (en.minutes() < 46) en.act("watch");
+    assert.notEqual(en.value("pickupMissedAt"), null);
   });
 });
