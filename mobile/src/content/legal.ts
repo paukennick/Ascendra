@@ -500,6 +500,13 @@ export const FAQ: LegalDoc = {
       ],
     },
     {
+      title: "Can I change whether lessons start with the explanation or the example?",
+      body: [
+        "Yes. In Settings, under Study, “Lesson order” lets you pick Explain first (what it is and why it matters, then the worked example) or Example first (the worked example, then the explanation). Both cover the same content and the same questions, and the solo check and mastery rules don't change. It's about what feels comfortable, not a learning style.",
+        "Ascendra is also trying both orders to learn which one helps people more. If you haven't picked one, we chose one for you at random, once, and it stays the same on every device and in every course until you change it. We keep which order you were given, which you picked and when, and your lessons' first-party milestones note which order you saw (no answer text).",
+      ],
+    },
+    {
       title: "Can I turn on two-factor authentication?",
       body: ["Yes — in Settings, with an authenticator app or email codes. Each method gives you one-time backup codes."],
     },

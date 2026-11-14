@@ -83,6 +83,7 @@ import {
 } from "@/lib/lessonFeedback";
 import { Collapsible, FeedbackPanel, NextStep, OptionReasons } from "@/components/feedback";
 import { TeachCards } from "@/components/teachCards";
+import { effectiveOrder, orderCards, orderEventDetail, parseTeachOrder, type TeachOrderState } from "@/lib/teachOrder";
 import { LabCard } from "@/components/labReport";
 import {
   FULL_EXAMPLE_NOTE,
@@ -307,6 +308,27 @@ export default function LessonFlow() {
   );
   const flow = levelState ? lessonFlowFor(levelState.effective, levelState.levelFlow) : STANDARD_FLOW;
   const flowOn = !!levelState?.levelFlow;
+  // REQ-262: this learner's Teach order (Explain first / Example first; the
+  // server assigns one at random the first time and keeps it, Settings can
+  // change it). Fetched once per lesson open and kept for the visit, like the
+  // level, so cards never reorder under the learner. If the request fails the
+  // lesson is the standard one and its events carry no order.
+  const [teachOrder, setTeachOrder] = useState<TeachOrderState | null>(null);
+  const [orderLoaded, setOrderLoaded] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    setOrderLoaded(false);
+    api
+      .get<unknown>("/api/account/teach-order")
+      .then((res) => !cancelled && setTeachOrder(parseTeachOrder(res)))
+      .catch(() => !cancelled && setTeachOrder(null))
+      .finally(() => !cancelled && setOrderLoaded(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [objectiveId]);
+  const hasCards = !!(lesson && usableCards(lesson.teachCards));
+  const orderDetail = orderEventDetail(teachOrder, hasCards);
   // REQ-252 (design 8): first-party lesson step events, fire and forget,
   // each once per screen visit. Never answer text (the server keeps only
   // fixed keys).
@@ -319,11 +341,11 @@ export default function LessonFlow() {
       api
         .post(`/api/objectives/${objectiveId}/lesson-event`, {
           event,
-          detail: { ...detail, level: levelState?.effective, flow: flowOn },
+          detail: { ...detail, level: levelState?.effective, flow: flowOn, ...orderDetail },
         })
         .catch(() => {});
     },
-    [objectiveId, levelState?.effective, flowOn]
+    [objectiveId, levelState?.effective, flowOn, orderDetail.order, orderDetail.order_source]
   );
   // REQ-252 / REQ-253: the Key terms sheet opened and closed, with how long
   // it stayed open. Every opening is counted (a numbered once-key).
@@ -578,18 +600,18 @@ export default function LessonFlow() {
   // REQ-252 (design 8): where learners stop. A step reached, each Teach card
   // reached, and the guess shown (with when, for the time spent on it).
   useEffect(() => {
-    if (!lesson || restoring || !levelLoaded) return;
+    if (!lesson || restoring || !levelLoaded || !orderLoaded) return;
     if (step === "guess") {
       if (guessShownAt.current === null) guessShownAt.current = Date.now();
       logLessonEvent("guess_shown", { kind: flow.oneTapHunch && lesson && hunchQuestion(lesson) ? "option" : "typed" });
     } else {
       logLessonEvent("lesson_step_reached", { step }, `step:${step}`);
     }
-  }, [step, lesson, restoring, levelLoaded, flow.oneTapHunch, logLessonEvent]);
+  }, [step, lesson, restoring, levelLoaded, orderLoaded, flow.oneTapHunch, logLessonEvent]);
   useEffect(() => {
-    if (step !== "teach" || restoring) return;
+    if (step !== "teach" || restoring || !orderLoaded) return;
     logLessonEvent("teach_card_viewed", { card: teachState.card }, `card:${teachState.card}`);
-  }, [step, teachState.card, restoring, logLessonEvent]);
+  }, [step, teachState.card, restoring, orderLoaded, logLessonEvent]);
 
   // REQ-252: after a solo answer, the unit may move up a level from the
   // evidence (backend lib/learner-level.ts). Asked once per lesson visit, on
@@ -852,7 +874,10 @@ export default function LessonFlow() {
   // and Experienced is offered "Skip guided" by default (still a choice).
   const plan = levelFadingPlan(flow, { guessed: !!guess.trim(), guessMatch: teachState.guessMatch, history: learnerHistory });
   const hunch = lesson && flow.oneTapHunch ? hunchQuestion(lesson) : null;
-  const cards = lesson ? usableCards(lesson.teachCards) : null;
+  const standardCards = lesson ? usableCards(lesson.teachCards) : null;
+  // REQ-262: the learner's order (Example first moves the worked example to
+  // the front; nothing else changes).
+  const cards = standardCards ? orderCards(standardCards, effectiveOrder(teachOrder)) : null;
   const guidedSkipped = !checks.fade?.result && (step === "solo" || step === "lab" || step === "done");
   const scrollToTop = useCallback(() => scrollRef.current?.scrollTo({ y: 0, animated: false }), []);
   async function goToGuided() {
@@ -879,7 +904,7 @@ export default function LessonFlow() {
       </Screen>
     );
   }
-  if (!lesson || restoring || (!levelLoaded && step === "guess")) {
+  if (!lesson || restoring || (!levelLoaded && step === "guess") || (!orderLoaded && (step === "guess" || step === "teach"))) {
     return (
       <Screen>
         <Stack.Screen options={headerOptions} />

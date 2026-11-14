@@ -222,6 +222,18 @@ the lesson intro schema, `guessChoices` (3 short plausible predictions for
 the existing `guessPrompt`, no key, no grading), which the app already
 prefers when present (`hunchQuestion`). Not generated in phase 1A.
 
+## Explain first / Example first (REQ-262, phase 2)
+
+A per-learner comfort setting and an A/B test, on from day one (Nick,
+2026-11-13). Settings, under Study, "Lesson order". Example first moves the
+worked-example card to the front of Teach; everything else, the solo check and
+the mastery rules included, is the same. A learner who has not chosen is given
+an order at random once (`learner_teach_order`, migration 082) and keeps it in
+every course; choosing is recorded (`chosen_at`). It runs in every course and
+does not touch the level flow: what New and Experienced get around Guided is
+unchanged. Lesson events carry `order` and `order_source` in `detail`. How to
+read the results, and the query: docs/teach-order-test.md.
+
 ## Switching the flow on for more courses
 
 ```sql

@@ -491,6 +491,13 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                          where table_schema = 'public' and table_name = 'app_users' and column_name = 'date_of_birth_entered_at') as ok`,
   },
   {
+    // REQ-262: GET/PUT /api/account/teach-order and every lesson open read it.
+    migration: "082_teach_order.sql",
+    what: "learner_teach_order (the Explain first / Example first order: the random assignment, the learner's own choice; in the account export)",
+    sql: `select to_regclass('public.learner_teach_order') is not null
+             and exists(select 1 from pg_constraint where conrelid = 'learner_teach_order'::regclass and contype = 'c') as ok`,
+  },
+  {
     // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
     migration: "074_independent_confirmation.sql",
     what: "the 074 mastery_detail() (Independent needs a second unassisted correct answer 24 h after the first)",
