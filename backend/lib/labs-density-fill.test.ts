@@ -20,6 +20,7 @@ export const FILLED: Readonly<Record<string, readonly string[]>> = {
   CNA: ["cna-sudden-confusion-report"],
   NASMCPT: ["emergency-on-the-gym-floor"],
   APLUS_CORE1: ["aplus1-cloud-model-by-scenario"],
+  NETWORKPLUS: ["route-selection-default-and-pat"],
 };
 
 export function ruleFor(code: string): number[] {
