@@ -23,6 +23,15 @@ import { LFCS_SIM_OBJECTIVES } from "../../supabase/seed/tracks/linux";
 import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 
 const LFCS = ALL_DOCUMENTS.filter((e) => e.course === "LFCS" || e.course === "LINUXFUND");
+// Nick (2026-11-14): sims follow coverage, not a count -- one per objective
+// that fits the selection rule (docs/sims-coverage-depth.md).
+const EXPECTED = [
+  "LFCS/fstab-uuid-typo-emergency",
+  "LFCS/lvm-database-volume-full",
+  "LFCS/report-workers-starve-api",
+  "LINUXFUND/shared-folder-permission-denied",
+  "LINUXFUND/web-service-fails-after-edit",
+];
 const docOf = (slug: string): ScenarioDoc => loadDocument(LFCS.find((e) => e.slug === slug)!);
 
 function driver(doc: ScenarioDoc) {
@@ -45,10 +54,10 @@ function driver(doc: ScenarioDoc) {
 }
 
 describe("REQ-292: LFCS and Linux Fundamentals terminal cases", () => {
-  test("two cases, each valid, on the terminal screen, infrastructure profile, engine 1.2, learner-paced, dated sources", () => {
+  test("each case valid, on the terminal screen, infrastructure profile, engine 1.2, learner-paced, dated sources", () => {
     assert.deepEqual(
       LFCS.map((e) => `${e.course}/${e.slug}`),
-      ["LFCS/fstab-uuid-typo-emergency", "LFCS/lvm-database-volume-full", "LINUXFUND/shared-folder-permission-denied", "LINUXFUND/web-service-fails-after-edit"]
+      EXPECTED
     );
     for (const e of LFCS) {
       const d = loadDocument(e);
@@ -191,6 +200,23 @@ describe("REQ-292: LFCS and Linux Fundamentals terminal cases", () => {
     assert.equal(r.value("shopUp"), true);
     assert.equal(r.value("enabled"), false);
     assert.equal(r.value("blindRestarts"), 2);
+  });
+
+  test("processes: renicing the parent leaves the workers at 0; renicing all nine frees the API without stopping the report", () => {
+    const r = driver(docOf("report-workers-starve-api"));
+    r.act("reniceParent");
+    assert.equal(r.value("apiFast"), false, "each process has its own nice value");
+    r.act("reniceAll");
+    assert.equal(r.value("apiFast"), true);
+    assert.equal(r.value("reportKilled"), false);
+  });
+
+  test("processes: SIGKILL to postgres turns a slow API into a failed one", () => {
+    const r = driver(docOf("report-workers-starve-api"));
+    r.act("killDb");
+    r.act("reniceAll");
+    assert.equal(r.value("apiFast"), false);
+    assert.equal(r.value("faultsAdded"), 1);
   });
 
   test("no lint error on any of these documents", () => {

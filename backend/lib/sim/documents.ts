@@ -160,6 +160,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // Keep these entries together. ----
   entry("LFCS", "fstab-uuid-typo-emergency"),
   entry("LFCS", "lvm-database-volume-full"),
+  entry("LFCS", "report-workers-starve-api"),
   entry("LINUXFUND", "shared-folder-permission-denied"),
   entry("LINUXFUND", "web-service-fails-after-edit"),
   // ---- end REQ-292 ----
