@@ -156,6 +156,12 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTPARAMEDIC", "inferior-stemi-cath-alert"),
   entry("NREMTPARAMEDIC", "infant-respiratory-failure"),
   // ---- end REQ-241 ----
+  // ---- REQ-274: security-console incidents for the non-CompTIA security
+  // courses (ISC2 CC, CISSP, ISACA CISM, EC-Council CEH; coverage table in
+  // docs/sims.md 22.16). Keep these entries together. ----
+  entry("ISC2CC", "cc-triage-phish-correlation"),
+  entry("ISC2CC", "cc-leaver-account-still-active"),
+  // ---- end REQ-274 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
