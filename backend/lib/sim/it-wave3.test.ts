@@ -23,6 +23,7 @@ export const WAVE3: readonly { course: string; slug: string; screen: string; pro
   { course: "APLUS_CORE1", slug: "rogue-dhcp-soho-office", screen: "terminal", profile: "infrastructure" },
   { course: "APLUS_CORE2", slug: "home-office-laptop-malware", screen: "security-console", profile: "security" },
   { course: "KCNA", slug: "service-selector-no-endpoints", screen: "terminal", profile: "infrastructure" },
+  { course: "GCPACE", slug: "public-bucket-customer-exports", screen: "board", profile: "security" },
 ];
 
 const entryOf = (slug: string) => ALL_DOCUMENTS.find((e) => e.slug === slug)!;
@@ -223,5 +224,23 @@ describe("what each wave 3 case teaches", () => {
     git.act("watch");
     assert.equal(git.value("serving"), true);
     assert.equal(git.value("relapseAt"), null);
+  });
+
+  test("GCP ACE: object ACLs do nothing on a uniform bucket; removing allUsers ends exposure and breaks images until the copy finishes", () => {
+    const d = docOf("public-bucket-customer-exports");
+    const acl = driver(d);
+    acl.act("objectAcl");
+    assert.equal(acl.value("exposed"), true);
+    const fix = driver(d);
+    fix.act("removePublic");
+    assert.equal(fix.value("exposed"), false);
+    assert.equal(fix.value("imagesOk"), false);
+    fix.act("makeImageBucket");
+    assert.equal(fix.value("imagesOk"), true, "images are back once the 15-minute copy is done");
+    const pap = driver(d);
+    pap.act("makeImageBucket");
+    pap.act("enforcePap");
+    assert.equal(pap.value("exposed"), false);
+    assert.equal(pap.value("imagesOk"), true, "the new public bucket is in another project");
   });
 });

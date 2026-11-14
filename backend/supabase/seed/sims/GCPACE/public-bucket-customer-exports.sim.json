@@ -1,0 +1,1140 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "public-bucket-customer-exports",
+  "title": "Incident: a bucket of customer exports was made public to share one file",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "data",
+          "label": "Bucket ridgeline-assets (project ridgeline-prod)",
+          "spokenLabel": "the ridgeline-assets bucket",
+          "items": [
+            {
+              "label": "IAM: allUsers has Storage Object Viewer (added last night)",
+              "when": "exportsPublic or imagesPublicHere"
+            },
+            {
+              "label": "Uniform bucket-level access: on (ACLs disabled)",
+              "when": "true"
+            },
+            {
+              "label": "exports/: 14 daily customer CSVs (names, emails, order history){exportsPublic ? \"; PUBLIC\" : \"\"}",
+              "when": "not exportsDeleted"
+            },
+            {
+              "label": "img/: 2,300 product images the website loads{imagesPublicHere ? \"; public\" : \"\"}",
+              "when": "not imagesMoved"
+            },
+            {
+              "label": "Public access prevention: enforced",
+              "when": "papOn"
+            },
+            {
+              "label": "Lifecycle rule: delete exports/ objects older than 7 days",
+              "when": "lifecycleOn"
+            },
+            {
+              "label": "Bucket deleted with everything in it",
+              "when": "exportsDeleted"
+            }
+          ]
+        },
+        {
+          "id": "pub",
+          "label": "Bucket ridgeline-public-img (project ridgeline-web)",
+          "spokenLabel": "the new public images bucket in project ridgeline-web",
+          "items": [
+            {
+              "label": "img/: product images, allUsers Storage Object Viewer",
+              "when": "imagesMoved"
+            },
+            {
+              "label": "Not created yet",
+              "when": "not imagesMoved"
+            }
+          ]
+        },
+        {
+          "id": "web",
+          "label": "Website shop.example.com",
+          "spokenLabel": "the website",
+          "items": [
+            {
+              "label": "{imagesOk ? \"Product images load\" : \"Product images broken (403)\"}",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "partner",
+          "label": "Partner (fulfillment vendor)",
+          "spokenLabel": "the partner",
+          "items": [
+            {
+              "label": "Needs today's export file by 12:00",
+              "when": "isNull(signedAt)"
+            },
+            {
+              "label": "Has a signed URL to today's file, valid 24 hours",
+              "when": "not isNull(signedAt)"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "exposed",
+          "label": "Minutes the exports have been public since discovery",
+          "value": "{round(exposedMin)}"
+        },
+        {
+          "id": "imgDown",
+          "label": "Minutes of broken product images",
+          "value": "{round(imgDownMin)}"
+        }
+      ]
+    }
+  },
+  "objective": "Managing and securing objects in Cloud Storage buckets, including lifecycle management policies",
+  "secondaryObjectives": [
+    "Configuring audit logs: VPC Flow Logs, audit logs, firewall logs"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Associate Cloud Engineer certification exam guide: Section 4 Ensuring successful operation of a cloud solution (~20%), 4.4 Managing storage and database solutions",
+      "checkedAt": "2026-11-14",
+      "url": "https://cloud.google.com/learn/certification/guides/cloud-engineer",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: 'Managing and securing objects in Cloud Storage buckets'; 'Setting object lifecycle management policies for Cloud Storage buckets'. Section weights: 1 ~20%, 2 ~17.5%, 3 ~25%, 4 ~20%, 5 ~17.5%."
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud Storage: Public access prevention (last updated 2026-11-10)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.cloud.google.com/storage/docs/public-access-prevention",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: it 'protects Cloud Storage buckets and objects from being accidentally exposed to the public'; existing allUsers and allAuthenticatedUsers grants 'remain in place but are overridden'; it can be enforced with the organization policy constraint storage.publicAccessPrevention; signed URLs 'are not affected by public access prevention'."
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud Audit Logs overview (last updated 2026-11-12)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.cloud.google.com/logging/docs/audit",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: 'Except for BigQuery, Data Access audit logs are disabled by default'; 'Publicly available resources that have the Identity and Access Management policies allAuthenticatedUsers or allUsers don't generate audit logs.' So nobody can list who read a public object."
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud Storage: Uniform bucket-level access (last updated 2026-10-30)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.cloud.google.com/storage/docs/uniform-bucket-level-access",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: 'Access Control Lists (ACLs) are disabled'; 'Requests to set, read, or modify bucket and object ACLs fail with 400 Bad Request errors.'"
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud Storage: Signed URLs (last updated 2026-11-10)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.cloud.google.com/storage/docs/access-control/signed-urls",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: signed URLs 'give time-limited access to a specific Cloud Storage resource'; 'The longest expiration value is 604800 seconds (7 days).'"
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud Storage: Object Lifecycle Management (last updated 2026-11-10)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.cloud.google.com/storage/docs/lifecycle",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: 'The Delete action deletes an object when the object meets all conditions'; 'The age condition is satisfied when a resource reaches the specified age (in days)'; actions run asynchronously, and 'Changes to a bucket's lifecycle configuration can take up to 24 hours to go into effect.'"
+    }
+  ],
+  "brief": {
+    "situation": "You are the cloud engineer for Ridgeline Outfitters, a fictional online store on Google Cloud. At 10:00 a security scan reports that bucket ridgeline-assets is public. Last night a developer granted allUsers Storage Object Viewer on the whole bucket so a fulfillment partner could download one export file. The bucket holds the website's product images, which are meant to be public, and fourteen daily exports of customer data, which are not.",
+    "handover": [
+      "The website loads product images straight from ridgeline-assets/img/. The partner needs today's export by 12:00.",
+      "The bucket uses uniform bucket-level access. The security lead wants exposure ended fast, the store owner wants the website working, and the privacy officer wants to know who read the files."
+    ],
+    "howItWorks": [
+      "The board shows the bucket, a second bucket if you create one, the website and the partner, with what is placed or running in each. Meters show exposure and broken images.",
+      "Each task takes your time: start it, then let it finish, which moves the clock by the minutes it takes. The bucket stays public on the same clock until you change it.",
+      "When you close the incident, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "240min",
+    "calendar": "clock"
+  },
+  "params": {
+    "moveDur": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. Creating the bucket, copying the images and repointing the website take 15 minutes."
+      }
+    },
+    "listedDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. 45 minutes after the scan, the bucket appears on a public bucket-search site if it is still open."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "iamAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "listAt": {
+      "type": "time",
+      "init": null
+    },
+    "exportsPublic": {
+      "type": "bool",
+      "init": true
+    },
+    "imagesPublicHere": {
+      "type": "bool",
+      "init": true
+    },
+    "imagesMoved": {
+      "type": "bool",
+      "init": false
+    },
+    "moveStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedPublicAt": {
+      "type": "time",
+      "init": null
+    },
+    "papOn": {
+      "type": "bool",
+      "init": false
+    },
+    "signedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lifecycleOn": {
+      "type": "bool",
+      "init": false
+    },
+    "exportsDeleted": {
+      "type": "bool",
+      "init": false
+    },
+    "aclTried": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "listedAt": {
+      "type": "time",
+      "init": null
+    },
+    "exposedMin": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000
+    },
+    "imgDownMin": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "whoDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "unknown",
+        "noOne",
+        "partnerOnly"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "imagesOk": {
+      "expr": "imagesMoved or (imagesPublicHere and not papOn)"
+    },
+    "exposed": {
+      "expr": "exportsPublic and not papOn and not exportsDeleted"
+    }
+  },
+  "processes": [
+    {
+      "id": "exposure",
+      "when": "exposed and phase == \"incident\"",
+      "update": {
+        "exposedMin": "exposedMin + dt / 60"
+      }
+    },
+    {
+      "id": "imgOut",
+      "when": "not imagesOk and phase == \"incident\"",
+      "update": {
+        "imgDownMin": "imgDownMin + dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "reviewIam",
+        "checkLogs",
+        "listObjects",
+        "removePublic",
+        "objectAcl",
+        "makeImageBucket",
+        "enforcePap",
+        "signedUrl",
+        "lifecycle",
+        "deleteBucket",
+        "escalate",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "reviewIam": {
+      "label": "Review the bucket's IAM policy and the change history",
+      "group": "Investigate",
+      "available": "not busy and (isNull(iamAt))",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(iamAt)",
+          "then": [
+            {
+              "set": "iamAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "gcloud storage buckets get-iam-policy gs://ridgeline-assets: allUsers has roles/storage.objectViewer on the whole bucket, added at 22:40 last night by the developer's account.",
+          "kind": "act"
+        },
+        {
+          "finding": "The grant is bucket-wide: every export is readable by anyone with the URL, not just the one file meant for the partner."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "checkLogs": {
+      "label": "Search Cloud Logging for who downloaded exports/",
+      "group": "Investigate",
+      "available": "not busy and (isNull(logsAt))",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(logsAt)",
+          "then": [
+            {
+              "set": "logsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Cloud Logging: no Data Access entries for reads of exports/: Data Access logs are off for Cloud Storage, and reads through an allUsers grant are not audit-logged anyway.",
+          "kind": "act"
+        },
+        {
+          "finding": "There is no way to list who read the exports while they were public: treat every export as possibly read."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "listObjects": {
+      "label": "List the bucket's objects and what each prefix is for",
+      "group": "Investigate",
+      "available": "not busy and (isNull(listAt))",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(listAt)",
+          "then": [
+            {
+              "set": "listAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "img/ has 2,300 product images the website loads; exports/ has 14 daily CSVs of customer names, emails and order history.",
+          "kind": "act"
+        },
+        {
+          "finding": "One bucket mixes data meant to be public with data that must not be: the fix has to separate them."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "removePublic": {
+      "label": "Remove the allUsers grant from ridgeline-assets",
+      "group": "Contain",
+      "available": "not busy and (exportsPublic)",
+      "why": "Already removed, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "exportsPublic",
+          "to": "false"
+        },
+        {
+          "set": "imagesPublicHere",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedPublicAt)",
+          "then": [
+            {
+              "set": "closedPublicAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "allUsers removed. The exports are private again; the website's product images now return 403 until they are served from somewhere public.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "objectAcl": {
+      "label": "Set the exports' object ACLs to private",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "add": "aclTried",
+          "by": "1"
+        },
+        {
+          "log": "400 Bad Request: uniform bucket-level access is on, so object ACLs cannot be set. Access is decided by IAM alone, and allUsers is still there.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "makeImageBucket": {
+      "label": "Create ridgeline-public-img in the separate ridgeline-web project, copy img/ to it, make it public and point the website at it",
+      "group": "Recover",
+      "available": "not busy and (isNull(moveStartAt))",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "moveStartAt",
+          "to": "t"
+        },
+        {
+          "log": "You create ridgeline-public-img and start copying 2,300 images (about 15 minutes with the website change).",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "enforcePap": {
+      "label": "Enforce public access prevention on ridgeline-assets (organization policy storage.publicAccessPrevention on the project)",
+      "group": "Contain",
+      "available": "not busy and (not papOn)",
+      "why": "Already enforced, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "papOn",
+          "to": "true"
+        },
+        {
+          "if": "isNull(closedPublicAt)",
+          "then": [
+            {
+              "set": "closedPublicAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Public access prevention is enforced: no public grant on this project's buckets takes effect{imagesMoved ? \"\" : \", including the website's images\"}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "signedUrl": {
+      "label": "Send the partner a signed URL to today's export (valid 24 hours)",
+      "group": "Communicate",
+      "available": "not busy and (isNull(signedAt) and not exportsDeleted)",
+      "why": "Done, or the file is gone.",
+      "effects": [
+        {
+          "if": "isNull(signedAt)",
+          "then": [
+            {
+              "set": "signedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The partner has time-limited access to the one file; nothing else is shared.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "lifecycle": {
+      "label": "Add a lifecycle rule: delete exports/ objects older than 7 days",
+      "group": "Recover",
+      "available": "not busy and (not lifecycleOn)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "lifecycleOn",
+          "to": "true"
+        },
+        {
+          "log": "Lifecycle rule added (it can take up to 24 hours to take effect): exports stop piling up.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "deleteBucket": {
+      "label": "Delete the bucket and everything in it",
+      "group": "Contain",
+      "available": "not busy and (not exportsDeleted)",
+      "why": "Already deleted.",
+      "effects": [
+        {
+          "set": "exportsDeleted",
+          "to": "true"
+        },
+        {
+          "set": "exportsPublic",
+          "to": "false"
+        },
+        {
+          "set": "imagesPublicHere",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedPublicAt)",
+          "then": [
+            {
+              "set": "closedPublicAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "ridgeline-assets is gone: the exports, today's file for the partner and every product image the website loads.",
+          "kind": "alarm"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Tell the security lead and privacy officer: exposure window, what was in it, and that reads cannot be listed",
+      "group": "Communicate",
+      "available": "not busy and (isNull(escalatedAt))",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(escalatedAt)",
+          "then": [
+            {
+              "set": "escalatedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The privacy officer opens a breach assessment for 14 exports exposed from 22:40.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "who",
+              "label": "Who read the exports while public",
+              "options": [
+                {
+                  "value": "unknown",
+                  "label": "Unknown: public reads are not audit-logged, so every export is treated as exposed"
+                },
+                {
+                  "value": "noOne",
+                  "label": "No one: the audit logs show no reads"
+                },
+                {
+                  "value": "partnerOnly",
+                  "label": "Only the partner, who had the link"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "whoDoc",
+          "to": "who"
+        },
+        {
+          "log": "Recorded: {who}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "listed",
+      "when": "t >= listedDelay and exposed and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "listedAt",
+          "to": "t"
+        },
+        {
+          "log": "10:45: ridgeline-assets appears on a public bucket-search site, with the export file names listed.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "moved",
+      "when": "not isNull(moveStartAt) and t >= timeAt(moveStartAt) + moveDur and not imagesMoved",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "imagesMoved",
+          "to": "true"
+        },
+        {
+          "log": "Product images are served from their own public bucket; the website points there.",
+          "kind": "good"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the exposure had to end first, how you kept the website working, what you can and cannot say about who read the files, and what stops it happening again.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Contain first",
+          "criteria": "Removes the bucket-wide allUsers grant (IAM, since uniform bucket-level access disables ACLs) as soon as the scope is confirmed, accepting a short image outage.",
+          "modelAnswer": "allUsers had Storage Object Viewer on the whole bucket, so every export was public. With uniform bucket-level access only IAM decides, so I removed the grant at once; broken images for a few minutes cost less than customer data staying public."
+        },
+        {
+          "label": "Who read it",
+          "criteria": "States that reads through allUsers are not audit-logged (and Data Access logs were off), so the exposure cannot be ruled out and goes to the privacy officer.",
+          "modelAnswer": "Public reads generate no audit logs, and Data Access logging was off for Cloud Storage, so nobody can list who read the exports. I treated all 14 as exposed and gave the privacy officer the window from 22:40."
+        },
+        {
+          "label": "Stop it recurring",
+          "criteria": "Separates public images into their own bucket, enforces public access prevention on the data, shares with the partner by signed URL, and limits retention with a lifecycle rule.",
+          "modelAnswer": "Images now live in their own public bucket, public access prevention is enforced on the data, the partner gets a signed URL that expires, and a lifecycle rule deletes exports after 7 days."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 900,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 15 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Customer data already public since 22:40; every further minute is avoidable exposure. The scenario's own timing."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "Not listed on a public bucket-search site; no data destroyed."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and exposed",
+      "class": "harm",
+      "rationale": "Closing with customer data still public is never a safe outcome.",
+      "source": {
+        "cite": "Google Cloud documentation, Cloud Storage: Public access prevention (last updated 2026-11-10)",
+        "checkedAt": "2026-11-14",
+        "url": "https://docs.cloud.google.com/storage/docs/public-access-prevention",
+        "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: it 'protects Cloud Storage buckets and objects from being accidentally exposed to the public'; existing allUsers and allAuthenticatedUsers grants 'remain in place but are overridden'; it can be enforced with the organization policy constraint storage.publicAccessPrevention; signed URLs 'are not affected by public access prevention'."
+      }
+    }
+  },
+  "endings": {
+    "destroyed": {
+      "label": "The bucket was deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and exportsDeleted",
+      "narrative": "Deleting the bucket ended the exposure by destroying the exports the partner and the business needed and every image the website loads; the breach assessment still has to happen."
+    },
+    "listed": {
+      "label": "The exports were listed publicly",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(listedAt)",
+      "narrative": "The bucket was still public when a bucket-search site listed it and its file names."
+    },
+    "stillPublic": {
+      "label": "Closed with the exports still public",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and exposed",
+      "narrative": "The allUsers grant is still in place: customer data is public."
+    },
+    "secured": {
+      "label": "Contained, separated and reported",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not exposed and not exportsDeleted and timeAt(closedPublicAt) <= containWindow and imagesMoved and papOn and not isNull(signedAt) and lifecycleOn and not isNull(escalatedAt) and whoDoc == \"unknown\"",
+      "narrative": "The exports were private within minutes, the images live in their own public bucket, public access prevention guards the data, the partner has a signed URL, and the privacy officer knows the reads cannot be listed."
+    },
+    "securedGaps": {
+      "label": "Contained, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The exports are private, but containment was slow, a guard was left out, or the record says more than the logs can show."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "destroyed",
+    "listed",
+    "stillPublic",
+    "secured",
+    "securedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fastContain",
+        "label": "Exports private within 15 minutes, with IAM",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not exposed and not exportsDeleted and timeAt(closedPublicAt) <= containWindow",
+            "score": "met",
+            "why": "Private {timeAt(closedPublicAt) / 60|0dp} min after the scan."
+          },
+          {
+            "when": "not exposed and not exportsDeleted",
+            "score": "partial",
+            "why": "Private, but {timeAt(closedPublicAt) / 60|0dp} min after the scan."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{exportsDeleted ? \"Exposure ended by destroying the data.\" : \"The exports are still public.\"}"
+          }
+        ]
+      },
+      {
+        "id": "separated",
+        "label": "Public images separated from private data, and public access prevention on the data",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "imagesMoved and papOn",
+            "score": "met",
+            "why": "Images in their own public bucket; the data's project refuses public grants."
+          },
+          {
+            "when": "imagesMoved or papOn",
+            "score": "partial",
+            "why": "{imagesMoved ? \"Separated, but nothing stops a public grant next time.\" : \"Public access prevention is on, but the website's images are broken.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The bucket still mixes public and private data with no guard."
+          }
+        ]
+      },
+      {
+        "id": "honestScope",
+        "label": "Told privacy that public reads cannot be listed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(escalatedAt) and whoDoc == \"unknown\"",
+            "score": "met",
+            "why": "Escalated; the record treats every export as possibly read."
+          },
+          {
+            "when": "not isNull(escalatedAt) or whoDoc == \"unknown\"",
+            "score": "partial",
+            "why": "{isNull(escalatedAt) ? \"The record is right, but privacy was never told.\" : \"Escalated, but the record claims more than the logs can show.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Privacy was not told, and the record claims the reads are known."
+          }
+        ]
+      },
+      {
+        "id": "partnerShare",
+        "label": "Shared the one file by signed URL",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(signedAt)",
+            "score": "met",
+            "why": "Time-limited access to one object."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The partner still has no safe way to get the file."
+          }
+        ]
+      },
+      {
+        "id": "retention",
+        "label": "Lifecycle rule limits how long exports are kept",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "lifecycleOn",
+            "score": "met",
+            "why": "Exports older than 7 days are deleted."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Exports keep piling up."
+          }
+        ]
+      },
+      {
+        "id": "imagesUp",
+        "label": "Kept the website's image outage short",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "imagesOk and imgDownMin <= 20",
+            "score": "met",
+            "why": "About {round(imgDownMin)} min of broken images."
+          },
+          {
+            "when": "imagesOk",
+            "score": "partial",
+            "why": "Images back after about {round(imgDownMin)} min."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The website's images are still broken."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written containment, scope and prevention",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "exposedK",
+        "label": "Minutes public after the scan",
+        "value": "round(exposedMin)",
+        "format": "number",
+        "expert": "under 10"
+      },
+      {
+        "id": "imgK",
+        "label": "Minutes of broken images",
+        "value": "round(imgDownMin)",
+        "format": "number",
+        "expert": "about 15"
+      },
+      {
+        "id": "aclK",
+        "label": "ACL attempts on a uniform bucket",
+        "value": "aclTried",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "Review the IAM policy (allUsers, bucket-wide) and list the prefixes: public images and private exports share one bucket."
+      },
+      {
+        "at": "5-7 min",
+        "text": "Remove allUsers at once; accept a short image outage."
+      },
+      {
+        "at": "7-25 min",
+        "text": "Images to their own public bucket; enforce public access prevention on the data project; signed URL to the partner."
+      },
+      {
+        "at": "25-38 min",
+        "text": "Lifecycle rule for exports; check the logs (none for public reads) and tell privacy the reads cannot be listed."
+      }
+    ],
+    "debrief": {
+      "secured": {
+        "headline": "Good: contained, separated, reported",
+        "body": "You ended the exposure with IAM first, put the images somewhere meant to be public, guarded the data, shared the one file safely and told privacy the truth about the logs."
+      },
+      "securedGaps": {
+        "headline": "Contained, with gaps",
+        "body": "The exports are private. The criteria show what was slow, missing, or overstated."
+      },
+      "destroyed": {
+        "headline": "Deleting destroyed the evidence and the business data",
+        "body": "Removing the allUsers grant ends public access in seconds; deleting the bucket also took the partner's file and the website's images."
+      },
+      "listed": {
+        "headline": "It was listed before you closed it",
+        "body": "Every minute public is exposure. Remove the grant first, then fix the website."
+      },
+      "stillPublic": {
+        "headline": "Closed while public",
+        "body": "With uniform bucket-level access, object ACLs cannot be set; only removing the IAM grant (or enforcing public access prevention) closes it."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A bucket-wide allUsers grant makes every export public. The bucket uses uniform bucket-level access, so ACLs cannot be set and only IAM matters: remove the grant at once and accept a short image outage, because customer data being public is worse than broken images. Then give the images their own public bucket, enforce public access prevention (storage.publicAccessPrevention) where the data lives, share the partner's one file with a signed URL, and add a lifecycle rule so exports do not pile up. Public reads are not audit-logged and Data Access logs were off, so nobody can say who read the files: report every export as possibly exposed."
+  }
+}
