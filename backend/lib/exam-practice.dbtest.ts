@@ -194,7 +194,8 @@ describe("a mock exam end to end", () => {
     // need 4 (1 call); 5 valid items per call, the invalid one rejected.
     assert.equal(modelCalls, 6);
     assert.equal((await query(`select 1 from exam_items where objective_id = any($1::uuid[])`, [Object.values(await objectiveIds())])).length, 30);
-    assert.deepEqual(body.preparation, { requested: 20, built: 20, fresh: 20, repeats: 0, generatedCalls: 6, generationFailed: false });
+    // REQ-298: a full form carries short: false and no reason.
+    assert.deepEqual(body.preparation, { requested: 20, built: 20, fresh: 20, repeats: 0, generatedCalls: 6, generationFailed: false, short: false, shortReason: null });
     assert.equal(body.items.length, 20);
     assert.equal(body.session.timeLimitSeconds, 2400, "full length gets the exam's full 40 minutes");
     assert.ok(body.session.deadlineAt);

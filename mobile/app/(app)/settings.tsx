@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, Switch, View } from "react-native";
-import Constants from "expo-constants";
+import { ActivityIndicator, Platform, Switch, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Card, ChoiceSheet, Divider, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
 import { LOCK_AFTER_OPTIONS, lockAfterLabel } from "@/lib/autoLock";
@@ -15,6 +14,10 @@ import { settingsRowValue } from "@/lib/discounts";
 import { reminderRowValue, type ReminderPrefs } from "@/lib/reminders";
 import { loadReminderPrefs, remindersSupported } from "@/lib/reminderScheduler";
 import { api } from "@/api/client";
+import { APP_VERSION } from "@/lib/appVersion";
+import { RELEASE_NOTES_LABEL, RELEASE_NOTES_ROUTE } from "@/lib/whatsNew";
+import { SHORTCUTS_SAVE_FAILED, SHORTCUTS_SETTINGS_LABEL, SHORTCUTS_SETTINGS_NOTE } from "@/lib/studyShortcuts";
+import { useStudyShortcutsSetting } from "@/lib/useStudyShortcutsSetting";
 import {
   parseTeachOrder,
   TEACH_ORDER_LABELS,
@@ -34,6 +37,11 @@ export default function Settings() {
     useAuth();
   const [lockSheet, setLockSheet] = useState(false);
   const [biometricBusy, setBiometricBusy] = useState(false);
+  // REQ-290: the study keyboard shortcuts (web only) can be turned off here.
+  const { enabled: shortcutsOn, setEnabled: setShortcutsOn } = useStudyShortcutsSetting();
+  async function toggleShortcuts(next: boolean) {
+    if (!(await setShortcutsOn(next))) Alert.alert("Couldn't save that", SHORTCUTS_SAVE_FAILED);
+  }
   const { config, me } = useBilling();
   const { status: discounts } = useDiscounts();
   const access = parseAccess(user?.access);
@@ -156,6 +164,27 @@ export default function Settings() {
         <ListRow icon="target" label="Study profile" value="Your goal, exams and study time" onPress={() => router.push("/settings/study-profile")} />
         <Divider />
         <ListRow icon="layers" label={TEACH_ORDER_ROW_LABEL} value={teachOrderRowValue(teachOrder)} onPress={() => setOrderSheet(true)} />
+        {/* REQ-290: keys need a hardware keyboard, which only the web has here. */}
+        {Platform.OS === "web" ? (
+          <>
+            <Divider />
+            <ListRow
+              icon="command"
+              label={SHORTCUTS_SETTINGS_LABEL}
+              right={
+                <Switch
+                  value={shortcutsOn}
+                  onValueChange={toggleShortcuts}
+                  trackColor={{ true: colors.accent, false: colors.border }}
+                  accessibilityRole="switch"
+                  accessibilityLabel={SHORTCUTS_SETTINGS_LABEL}
+                  accessibilityState={{ checked: shortcutsOn }}
+                />
+              }
+            />
+            <Muted style={{ fontSize: 12 }}>{SHORTCUTS_SETTINGS_NOTE}</Muted>
+          </>
+        ) : null}
       </Card>
 
       {/* REQ-243 (Nick, 2026-11-11): every kind of notification lives in one
@@ -237,12 +266,14 @@ export default function Settings() {
 
       <SectionHeader label="About" />
       <Card>
-        {/* REQ-140: every release note, newest first. */}
-        <ListRow icon="gift" label="What's new" onPress={() => router.push("/whats-new")} />
+        {/* REQ-299: every release note, newest first, grouped by date. */}
+        <ListRow icon="gift" label={RELEASE_NOTES_LABEL} onPress={() => router.push(RELEASE_NOTES_ROUTE)} />
         <Divider />
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        {/* REQ-300: the version the app sends as X-Ascendra-App (src/lib/appVersion.ts). The native
+            config it was read from before had a fallback and could differ from what the server sees (FAIL-2040). */}
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }} accessible accessibilityLabel={`Version ${APP_VERSION}`}>
           <Muted>Version</Muted>
-          <Muted>{Constants.expoConfig?.version ?? "1.0.0"}</Muted>
+          <Muted>{APP_VERSION}</Muted>
         </View>
         <Divider />
         <Muted>

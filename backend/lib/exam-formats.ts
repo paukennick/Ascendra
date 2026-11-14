@@ -109,6 +109,9 @@ export function examQuestionCount(questionFormat: string | null | undefined): nu
   let m: RegExpExecArray | null;
   while ((m = re.exec(t))) {
     if (/scored|unscored|pretest|clinical|stand-alone/i.test(m[3] ?? "")) continue;
+    // REQ-298 (FAIL-2020): "... 110 scored + 15 unscored with 30-40 video or
+    // image items" names a part of a section, not the exam's length.
+    if (/\b(?:with|including|of which|among them)\s+$/i.test(t.slice(Math.max(0, m.index - 14), m.index))) continue;
     const n = Number(m[2] ?? m[1]);
     if (n >= 5 && n <= 400) return n;
   }
