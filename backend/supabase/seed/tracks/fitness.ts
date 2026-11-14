@@ -735,6 +735,14 @@ export const CNC_SOURCES = {
   }),
 } as const;
 
+// REQ-282: the objectives the two coaching-session sims are registered to
+// (lib/sim/documents.ts CNC_OBJECTIVES names the same titles; a test compares).
+export const NASMCNC_SIM_OBJECTIVES = {
+  referral:
+    "Recognizing when to refer to a registered dietitian nutritionist or physician: a diagnosed condition, a suspected eating disorder, pregnancy or breastfeeding needs beyond general guidance, or medications affected by diet",
+  supplement: "Evaluating a supplement: how it is regulated, third-party testing, and when it is a question for a clinician",
+} as const;
+
 export const NASM_CNC_TRACK: SeedTrack = {
   ...COMMON,
   code: "NASMCNC",

@@ -17511,6 +17511,31 @@
       ],
       "prevention_notes": "Pre-completion checklist item 'Key handlers on the web' (REQ-290): anything that must see every key listens on the window in the capture phase. A static test pins capture-phase registration and removal.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1860",
+      "date": "2026-11-14",
+      "title": "A PSM I lab used the British spelling 'cancelled' in two learner-facing strings",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Two rubric strings in the Sprint-cancellation lab (seed/labs/scrum-psmi.ts) said 'cancelled'; the US English check failed on the branch.",
+      "how_detected": "backend us-spelling.test.ts during the REQ-282 run",
+      "root_cause": "The earlier REQ-280 commit was made before the full backend suite ran; the lab text was written by hand and not run through the spelling check.",
+      "requirement": "REQ-280",
+      "affected": [
+        "backend/supabase/seed/labs/scrum-psmi.ts"
+      ],
+      "fix_summary": "Both strings now say 'canceled'.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/us-spelling.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "backend/lib/us-spelling.test.ts"
+      ],
+      "prevention_notes": "Run backend npm test (which includes the US spelling check) before committing seed content.",
+      "recurrence_of": ""
     }
   ]
 }

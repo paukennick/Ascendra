@@ -232,8 +232,8 @@ export const PSMI_LABS: SeedLabSet = {
             ),
             part(
               "Grounds",
-              "States a Sprint may be cancelled when the Sprint Goal becomes obsolete, which this news makes likely.",
-              "A Sprint can be cancelled if its Sprint Goal becomes obsolete. A ban on the design makes this goal obsolete, so cancellation is a reasonable call for the Product Owner."
+              "States a Sprint may be canceled when the Sprint Goal becomes obsolete, which this news makes likely.",
+              "A Sprint can be canceled if its Sprint Goal becomes obsolete. A ban on the design makes this goal obsolete, so cancellation is a reasonable call for the Product Owner."
             ),
           ],
         },

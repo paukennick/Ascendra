@@ -10022,6 +10022,43 @@
         "Screen readers in browse mode may take letter keys before the page sees them",
         "Space on a sim button stays the button's own"
       ]
+    },
+    {
+      "id": "REQ-282",
+      "category": "content",
+      "title": "Sim coverage for the Scrum, ITIL, CSSGB and NASM-CNC courses: two CNC coaching sessions built, screens proposed for the rest",
+      "description": "Nick 2026-11-14: sims follow coverage, not a count; build every objective that fits the selection rule on an existing screen and propose screens for families that lack one. Built on the client session screen (session@1, clinical-session profile, engine 1.2): NASMCNC/cnc-crash-diet-request (referral for signs of disordered eating; NIMH 2024, NASM scope) and NASMCNC/cnc-greens-powder-warfarin (supplement on warfarin; NIH ODS vitamin K and WYNTK, FDA Q&A). Coverage table and proposed screens (project dashboard Sprint mode, service operations desk, process and data console, client trainer) in docs/sim-coverage-pm-frameworks-cnc.md. Two further CNC session candidates left unbuilt because their sources were not read (web reading switched off).",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/NASMCNC/",
+        "backend/scripts/sim-golden/cnc-crash-diet.steps.ts",
+        "backend/scripts/sim-golden/cnc-greens-warfarin.steps.ts",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/cnc-session.test.ts",
+        "backend/supabase/seed/tracks/fitness.ts",
+        "docs/sim-coverage-pm-frameworks-cnc.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each sim registered to an active NASMCNC objective by exact title",
+        "endings in all three classes and an explicit endingOrder",
+        "golden paths reach every ending but time_up and score every criterion met and missed, with Good, Mediocre and Bad runs",
+        "sources dated 2026-11-14",
+        "coverage table for all five courses"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog",
+        "docs/sim-coverage-pm-frameworks-cnc.md"
+      ],
+      "risk_notes": [
+        "Not run in the app's renderer or a browser; the session renderer is unchanged and the engine tests replay the golden paths.",
+        "Client models (rapport, distress, readiness) are teaching simplifications, as in the NBCC sessions."
+      ]
     }
   ]
 }
