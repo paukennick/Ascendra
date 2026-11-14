@@ -6,6 +6,7 @@ import * as Crypto from "expo-crypto";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import { ReportProblem } from "@/components/ReportProblem";
+import { StudyShortcutArea, answerListProps } from "@/components/StudyShortcuts";
 import type { QuizTurn } from "@/types/plan";
 import { Body, Button, Card, EmptyState, ErrorBanner, H1, H2, Loading, Muted, Screen } from "@/components/ui";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
@@ -105,9 +106,25 @@ export default function QuizScreen() {
 
       {turn ? (
         <Card>
+          {/* REQ-290: 1-4 or A-D answer at once (the same as tapping), Enter goes to the next question (web). */}
+          <StudyShortcutArea
+            surface="quiz"
+            style={{ gap: spacing.sm }}
+            choices={!closed && !busy ? Math.min(turn.choices.length, LETTERS.length) : 0}
+            onChoose={(i) => {
+              if (busy || closed || turn.status !== "open" || picked.includes(i) || i >= turn.choices.length) return false;
+              void answer(i);
+              return true;
+            }}
+            onEnter={() => {
+              if (!closed || busy) return false;
+              void next();
+              return true;
+            }}
+          >
           <Muted style={{ fontSize: 13 }}>On: {turn.objectiveTitle}</Muted>
           <H2>{turn.question}</H2>
-          <View style={{ gap: spacing.sm }}>
+          <View style={{ gap: spacing.sm }} {...answerListProps}>
             {turn.choices.map((c, i) => {
               const isRight = closed && turn.correctIndex === i;
               const tried = picked.includes(i);
@@ -164,6 +181,7 @@ export default function QuizScreen() {
             variant="link"
             onPress={() => router.push({ pathname: `/course/${trackId}/chat`, params: { trackTitle, unitId: turn.unitId } })}
           />
+          </StudyShortcutArea>
         </Card>
       ) : null}
     </Screen>

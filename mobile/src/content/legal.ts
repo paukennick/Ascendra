@@ -470,8 +470,8 @@ export const ABOUT: LegalDoc = {
 
 export const FAQ: LegalDoc = {
   title: "FAQ",
-  version: "2026-11-13",
-  updated: "November 13, 2026",
+  version: "2026-11-14",
+  updated: "November 14, 2026",
   sections: [
     {
       title: "What is Ascendra?",
@@ -489,6 +489,14 @@ export const FAQ: LegalDoc = {
       title: "Who writes the lessons?",
       body: [
         "An AI model writes each lesson from the course objective, and the objectives come from official exam outlines and reviewed open textbooks. A separate AI fact-check reviews each lesson and question first; one that fails is held back and written again, and if it still can't be shown you're told why. They are not checked by a person before you see them, so they can be wrong — use “Report a problem” on any lesson that looks off.",
+      ],
+    },
+    {
+      title: "How does a mock exam work, and is my mock score my exam score?",
+      body: [
+        "A mock exam is built from the course's real exam: the same number of questions, the same time limit and the exam's published domain weights, using the question types we can show (multiple choice, choose two or three, ordering and matching). The mock's start screen names where we read them and the day. If we haven't confirmed a course's exam length against its official site yet, the mock says its length is approximate, and a course with no single exam (nurse aide evaluations, which each state sets, for example) gets a mixed practice test, not a copy of an exam.",
+        "Your mock score is the share of questions you got fully right. It is not a predicted exam score. Exams report a scaled score or pass or fail, the bodies don't publish how correct answers convert to it, and so we never turn your percentage into a scaled score or tell you whether you would pass. Where a body publishes a passing score we quote it as a fact. Simulations and hands-on questions on the real exam are not in a mock.",
+        "If we don't yet have enough checked questions to fill every domain, you get a short form instead, and the mock says how many questions it has and why. Its time is cut to match, so the pace is still the real exam's. The clock on a timed mock does not pause: it keeps running if you leave and come back, and your answers are saved either way. Before you submit there is a review screen that lists every question and filters the unanswered and flagged ones. Afterward you can go through every question with its explanation, and your answers count toward your mastery and readiness.",
       ],
     },
     {
@@ -530,6 +538,13 @@ export const FAQ: LegalDoc = {
       ],
     },
     {
+      title: "Are there keyboard shortcuts?",
+      body: [
+        "Yes, on the web (the phone app has none). While you are in a question, press 1 to 9 or A to D to choose an answer, Enter to check it and go on, and ? to see the list. In a timed sprint or mock exam, N goes to the next question, P to the previous one and F flags it; Enter goes on once you have answered. In a simulation, Space pauses the clock and runs it again when focus is on the simulation rather than on a button. Esc closes the list or any open dialog.",
+        "They never act while you are typing in a box, or with Ctrl, Alt or Command held, and Enter and Space still press the button or link you are on. To turn them off, use “Keyboard shortcuts” in Settings, under Study, or “Turn off keyboard shortcuts” in the list.",
+      ],
+    },
+    {
       title: "Can I turn on two-factor authentication?",
       body: ["Yes — in Settings, with an authenticator app or email codes. Each method gives you one-time backup codes."],
     },
@@ -543,6 +558,13 @@ export const FAQ: LegalDoc = {
       title: "Why did I get signed out?",
       body: [
         "In the app you stay signed in: after time away it locks instead, and you unlock with your fingerprint, face or password. On the web, closing the browser signs you out, the page locks after time away, and 30 minutes without activity signs you out. You choose when it locks in Settings > Security > Lock Ascendra. Changing your password or choosing “Sign out of all devices” signs you out everywhere else.",
+      ],
+    },
+    {
+      title: "Where can I see what has changed?",
+      body: [
+        "When there's something new, a “What's new” window opens once on Home. Close it, tap “Got it” or press Escape and it won't open again for that note. Every update, newest first and grouped by date with the app version it came with, is under Settings > About > Release notes, and the window has a “See all release notes” button that goes there.",
+        "The app version is shown in the same place, under Settings > About. Most updates reach you by themselves; if a version is too old to keep working, Ascendra says so and, on the web, reloads, or on a phone, gets the update or opens your app store.",
       ],
     },
     {

@@ -5,6 +5,7 @@ import type { ExamItem, ExamResponse, Exhibit } from "@/types/exam";
 import { Body, Button, ChoiceSheet, Muted } from "@/components/ui";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import { formatInstruction, initialOrder, moveStep, toggleChoice } from "@/lib/examPractice";
+import { answerListProps } from "@/components/StudyShortcuts";
 
 // REQ-109: one exam-style question -- multiple choice, multiple response,
 // ordering, matching -- with its exhibit. Built for phones and screen
@@ -105,7 +106,7 @@ function Choices({
   const picked = multi ? response?.choices ?? [] : response?.choice != null ? [response.choice] : [];
   const right = new Set(item.correct?.choices ?? []);
   return (
-    <View style={{ gap: spacing.xs }} accessibilityRole={multi ? undefined : "radiogroup"}>
+    <View style={{ gap: spacing.xs }} accessibilityRole={multi ? undefined : "radiogroup"} {...answerListProps}>
       {(item.choices ?? []).map((c, i) => {
         const on = picked.includes(i);
         const isRight = review && right.has(i);
