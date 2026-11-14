@@ -165,6 +165,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CISSP", "cissp-ransomware-recovery-site"),
   entry("CISM", "cism-payroll-supplier-breach"),
   entry("CISM", "cism-checkout-skimmer-containment"),
+  entry("CEH", "ceh-arp-poisoning-finance-vlan"),
+  entry("CEH", "ceh-blind-sqli-search"),
   // ---- end REQ-274 ----
 ];
 
