@@ -156,6 +156,14 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTPARAMEDIC", "inferior-stemi-cath-alert"),
   entry("NREMTPARAMEDIC", "infant-respiratory-failure"),
   // ---- end REQ-241 ----
+  // ---- REQ-269: sims for the new technology courses (SQL and TSNODE on the
+  // terminal screen, SC500 on the security console, AI200 on the terminal).
+  // Keep these entries together. ----
+  entry("SQL", "sql-slow-login-seq-scan"),
+  entry("SQL", "sql-flash-sale-oversold"),
+  entry("TSNODE", "node-env-file-silent-exit"),
+  entry("TSNODE", "node-type-stripping-enum-crash"),
+  // ---- end REQ-269 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
