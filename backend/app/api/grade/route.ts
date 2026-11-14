@@ -14,6 +14,7 @@ import {
   type AttemptIdentity,
   type LessonCheck,
 } from "@/lib/grading-service";
+import { versionOfWire, wireOfVersion } from "@/lib/lesson-variant";
 import { ALREADY_REVISED, retryRefusal } from "@/lib/revision";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { taughtObjective, normUuid } from "@/lib/visibility";
@@ -91,6 +92,10 @@ export async function POST(req: Request) {
     if (kind !== "lesson") return badRequest("only lesson checks are graded here");
     if (typeof body?.objectiveId !== "string" || !body.objectiveId) return badRequest("objectiveId is required");
     if (stage !== "fade" && stage !== "solo") return badRequest("stage must be 'fade' or 'solo'");
+    // REQ-262: which version of the lesson the app showed ("new" is the
+    // beginner version; absent is the standard lesson).
+    const version = versionOfWire(body?.lessonVariant);
+    if (version === null) return badRequest("lessonVariant must be 'new' when sent");
     if (unitId !== undefined && unitId !== null && typeof unitId !== "string") return badRequest("unitId must be a string");
     const rawConfidence = body.confidence;
     if (rawConfidence != null && !(Number.isInteger(rawConfidence) && rawConfidence >= 1 && rawConfidence <= 5)) {
@@ -125,7 +130,7 @@ export async function POST(req: Request) {
     // REQ-122: a Free learner studies one course (no-op while billing is off).
     const courseTier = await requireCourseAccess(authUser.id, objective.track_id); // REQ-170: the tier on this course
 
-    const found = await lessonCheckFor(authUser.id, objectiveId, stage);
+    const found = await lessonCheckFor(authUser.id, objectiveId, stage, version);
     if (found.status === "no-lesson") return notFound("No lesson for this objective yet");
     if (found.status !== "ok") {
       return badRequest("This lesson's practice questions are still being generated -- try again in a moment.");
@@ -184,7 +189,8 @@ export async function POST(req: Request) {
     // unique index makes the slower one fail, and it returns the winner's.
     const record = (input: Parameters<typeof recordAttemptIdempotent>[0]) =>
       recordAttemptIdempotent({ ...input, clientAttemptId });
-    const common = { userId: authUser.id, unitId: objective.unit_id, objectiveId, kind: "lesson" as const, stage, confidence };
+    // REQ-262: the version answered is recorded with the attempt.
+    const common = { userId: authUser.id, unitId: objective.unit_id, objectiveId, kind: "lesson" as const, stage, confidence, lessonVariant: wireOfVersion(check.version) };
 
     const retryOf = body.retryOf ?? null;
     if (retryOf !== null && format !== "open") return badRequest("retryOf is only for a free-response revision");

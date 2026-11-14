@@ -4,7 +4,9 @@
 // addresses it; the server resolves the item from rows the learner owns.
 
 export type ReportTarget =
-  | { kind: "lesson"; objectiveId: string; stage: "fade" | "solo" }
+  // REQ-262: `lessonVariant: "new"` when the question is a beginner version's
+  // Guided item (absent = the standard lesson).
+  | { kind: "lesson"; objectiveId: string; stage: "fade" | "solo"; lessonVariant?: "new" }
   | { kind: "review"; sessionId: string; position: number }
   | { kind: "exam"; sessionId: string; position: number }
   | { kind: "quiz"; turnId: string }

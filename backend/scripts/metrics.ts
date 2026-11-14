@@ -1,9 +1,11 @@
 // REQ-119: `npm run metrics [-- --days 30]` -- activation, D1/D7 retention,
 // reviews per active learner and reported exam results (lib/metrics.ts);
 // REQ-256: and the goal question's outcomes by where it was asked.
+// REQ-262: and the Explain first / Example first test's results by arm.
 // Read-only. Uses DATABASE_URL like the other scripts.
 import "../supabase/seed/env-local";
 import { query, queryOne, closePool } from "../lib/db";
+import { formatTeachOrderResults, teachOrderResults } from "../lib/teach-order-results";
 import { formatGoalQuestion, formatMetrics, goalQuestionSummary, metricsSummary } from "../lib/metrics";
 
 async function main() {
@@ -19,6 +21,10 @@ async function main() {
   // was asked. Needs 078 (learner_events.detail).
   console.log("");
   console.log(formatGoalQuestion(await goalQuestionSummary((sql, p) => query(sql, p), days), days));
+  // REQ-262: the Explain first / Example first test (docs/teach-order-test.md).
+  // Needs 082 and the lesson events' order detail.
+  console.log("");
+  console.log(formatTeachOrderResults(await teachOrderResults((sql, p) => query(sql, p), days), days));
 }
 
 main()

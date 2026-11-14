@@ -17379,6 +17379,32 @@
       ],
       "prevention_notes": "A migration that widens an earlier migration's named check restates it under the SAME name (FAIL-1720, FAIL-1793) and a DB test replays the earlier migration after it.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1796",
+      "date": "2026-11-13",
+      "title": "083 added a table the re-check job reads but never granted it to the job's database role",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/recheck-role.dbtest.ts: 'the re-check stages as this role, and the item stays served' failed with 'permission denied for table lesson_content_variants' (42501). The stored-lesson pass of the re-check job (lib/recheck-stored.ts) reads every lesson table, and 083's new table had no grant or recheck_read policy for content_recheck.",
+      "how_detected": "npm run test:db (lib/recheck-role.dbtest.ts) before commit of part 3c; the earlier part 3a/3b runs covered only the new suites and a hand-picked few.",
+      "root_cause": "064 grants content_recheck SELECT table by table plus a recheck_read policy on each; a new table the job reads does not inherit them, and 083 was written and its own tests run as the owner, which can read everything. I added the table to recheck-stored.ts and recheck-guard.ts but not to the migration's grants. Found only when the whole DB suite was run, not the suites for the new table.",
+      "requirement": "REQ-262",
+      "affected": [
+        "backend/supabase/migrations/083_lesson_variants.sql",
+        "backend/lib/recheck-stored.ts"
+      ],
+      "fix_summary": "083 grants select on lesson_content_variants to content_recheck and creates the recheck_read policy (no learner column in the table), guarded on the role existing; replayed twice on a local database.",
+      "fix_commits": [
+        "334f043e"
+      ],
+      "regression_tests": [
+        "backend/lib/recheck-role.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Adding a table to lib/recheck-stored.ts or lib/recheck-guard.ts means adding its grant and recheck_read policy in the same migration; the recheck-role DB suite fails if it is missing. Run the whole test:db before committing a migration, not only the new table's suite.",
+      "recurrence_of": ""
     }
   ]
 }

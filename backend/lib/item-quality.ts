@@ -125,7 +125,7 @@ export function noteListedClaims(label: string, o: UncertaintyFields | null | un
 }
 
 export interface HoldbackInput {
-  kind: ItemKind | "lesson_intro" | "pbq" | "unit_check" | "primer";
+  kind: ItemKind | "lesson_intro" | "pbq" | "unit_check" | "primer" | "lesson_variant";
   objectiveId?: string | null;
   unitId?: string | null;
   trackId?: string | null;
@@ -303,6 +303,9 @@ export async function loadCheckItem(ref: ItemRef): Promise<CheckItem | null> {
            select ${col}_choices, ${col}_correct_index, ${q} from lesson_content where objective_id = $1
            union all
            select ${col}_choices, ${col}_correct_index, ${q} from lesson_content_overrides where objective_id = $1
+           union all
+           -- REQ-262: a beginner version's own Guided item (its Solo is the standard one).
+           select ${col}_choices, ${col}_correct_index, ${q} from lesson_content_variants where objective_id = $1
          ) l where ${q} = $2 limit 1`,
         [objectiveId, ref.question]
       );

@@ -52,7 +52,7 @@ export async function storedBefore(before: string, kinds: readonly ItemKind[] = 
     for (const r of rows) out.push({ ref: { kind, itemId: r.id, objectiveId: r.objective_id, question: r.question }, source });
   };
   if (kinds.includes("lesson")) {
-    for (const table of ["lesson_content", "lesson_content_overrides"]) {
+    for (const table of ["lesson_content", "lesson_content_overrides", "lesson_content_variants"]) {
       const rows = await query<{ objective_id: string; fade_problem: string; solo_check: string }>(
         `select objective_id, fade_problem, solo_check from ${table} t
           where generated_at < $1::date and not ${PERSON_MADE}`,
