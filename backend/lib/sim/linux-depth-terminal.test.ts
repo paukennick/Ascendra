@@ -29,6 +29,7 @@ const EXPECTED = [
   "LFCS/fstab-uuid-typo-emergency",
   "LFCS/lvm-database-volume-full",
   "LFCS/report-workers-starve-api",
+  "LFCS/clock-skew-blocks-logins",
   "LINUXFUND/shared-folder-permission-denied",
   "LINUXFUND/web-service-fails-after-edit",
 ];
@@ -216,6 +217,30 @@ describe("REQ-292: LFCS and Linux Fundamentals terminal cases", () => {
     r.act("killDb");
     r.act("reniceAll");
     assert.equal(r.value("apiFast"), false);
+    assert.equal(r.value("faultsAdded"), 1);
+  });
+
+  test("chrony: makestep has nothing to step without a source; a run-time source slews until makestep; a fixed chrony.conf steps at restart", () => {
+    const a = driver(docOf("clock-skew-blocks-logins"));
+    a.act("makestep");
+    assert.equal(a.value("clockOk"), false, "no selected source, no correction");
+    a.act("addRuntime");
+    assert.equal(a.value("synced"), true);
+    assert.equal(a.value("clockOk"), false, "makestep 1 3 no longer applies after 41 days: slewing");
+    a.act("makestep");
+    assert.equal(a.value("clockOk"), true);
+    const b = driver(docOf("clock-skew-blocks-logins"));
+    b.act("editConf");
+    b.act("restart");
+    assert.equal(b.value("clockOk"), true);
+    assert.equal(b.value("confFixed"), true);
+  });
+
+  test("chrony: widening the Kerberos clock skew lets logins in and counts as a new fault", () => {
+    const r = driver(docOf("clock-skew-blocks-logins"));
+    r.act("widenSkew");
+    assert.equal(r.value("loginsOk"), true);
+    assert.equal(r.value("clockOk"), false);
     assert.equal(r.value("faultsAdded"), 1);
   });
 
