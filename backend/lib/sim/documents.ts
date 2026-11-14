@@ -163,6 +163,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("SQL", "sql-flash-sale-oversold"),
   entry("TSNODE", "node-env-file-silent-exit"),
   entry("TSNODE", "node-type-stripping-enum-crash"),
+  entry("SC500", "sc500-illicit-consent-grant"),
+  entry("SC500", "sc500-backup-vault-sabotage"),
   // ---- end REQ-269 ----
 ];
 
