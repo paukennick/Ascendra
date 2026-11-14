@@ -13,7 +13,8 @@ import { colors, spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
 import { useLabDraft } from "@/lib/useLabDraft";
 import { InteractivePartField, InteractiveResult } from "@/components/LabInteractive";
-import { answerToSend, knownInput, partAnswered } from "@/lib/labInteractive";
+import { answerToSend, knownInput, partAnswered, toggleSelectLineAt } from "@/lib/labInteractive";
+import { StudyShortcutArea } from "@/components/StudyShortcuts";
 import {
   LAB_PART_MAX,
   PART_STATE_LABEL,
@@ -299,8 +300,31 @@ function StepForm({
   }
 
   const last = step.index === stepCount - 1;
+  // REQ-290: a step with exactly one select-lines part takes 1-9 or A-D to select
+  // or clear that numbered line, and Enter to check (web). With two such parts
+  // the key would be ambiguous, so no key picks.
+  const selectParts = inputs.flatMap((inp, i) => (inp && inp.type === "select" ? [i] : []));
+  const selectIdx = selectParts.length === 1 ? selectParts[0] : -1;
+  const selectInput = selectIdx >= 0 ? (inputs[selectIdx] as Extract<NonNullable<(typeof inputs)[number]>, { type: "select" }>) : null;
   return (
     <Card elevated>
+      <StudyShortcutArea
+        surface="lab"
+        style={{ gap: spacing.sm }}
+        choices={selectInput ? selectInput.lines.length : 0}
+        onChoose={(i) => {
+          if (busy || !selectInput) return false;
+          const r = toggleSelectLineAt(draft.parts[selectIdx] ?? "", selectInput, i);
+          if (!r) return false;
+          draft.setPart(selectIdx, r.value);
+          return `Line ${i + 1} ${r.nowSelected ? "selected" : "cleared"}.`;
+        }}
+        onEnter={() => {
+          if (busy || !ready) return false;
+          void submit();
+          return true;
+        }}
+      >
       <StepHeader step={step} stepCount={stepCount} />
       {step.parts.some((_, i) => !inputs[i]) ? <DictationHint /> : null}
       {step.parts.map((label, i) =>
@@ -335,6 +359,7 @@ function StepForm({
         disabled={busy || !ready}
         onPress={submit}
       />
+      </StudyShortcutArea>
     </Card>
   );
 }

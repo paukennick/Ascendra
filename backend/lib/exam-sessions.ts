@@ -2,7 +2,7 @@ import { randomInt } from "node:crypto";
 import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { isActive } from "@/lib/progress-sql";
 import { examBlueprintForTrack } from "@/lib/exam-blueprint";
-import { courseReadiness } from "@/lib/readiness";
+import { courseReadiness, weightsAreExamBlueprint } from "@/lib/readiness";
 import { recordAttemptTx } from "@/lib/grading-service";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { getModel, THINKING_HEADROOM_TOKENS } from "@/lib/anthropic";
@@ -55,6 +55,18 @@ import {
   type ReadinessSnapshot,
 } from "@/lib/exam-plan";
 import { calibrate } from "@/lib/exam-calibration";
+import { mockExamFactsFor, mockFormNote, passLine, passPolicyText, practiceOnlyFor, type MockExamFacts } from "@/lib/mock-exam-facts";
+import {
+  fillSlots,
+  formReadiness,
+  newFillState,
+  RECENT_DAYS,
+  shortFormText,
+  stemKey,
+  type FillState,
+  type SeenPolicy,
+  type UnitBank,
+} from "@/lib/mock-form";
 
 // REQ-109: timed sprints and mock exams.
 //
@@ -93,6 +105,13 @@ export class ExamSessionError extends Error {
 // up to ITEMS_PER_CALL items into the shared bank). A course with an empty
 // bank fills over a few mocks rather than one very slow start.
 export const MAX_GENERATIONS: Record<ExamMode, number> = { sprint: 4, mock: 12 };
+// REQ-298 (decision for the owner): a mock start may write bank items for
+// domains it cannot fill, within MAX_GENERATIONS and the spend gate, as it did
+// before (REQ-109). Set to false to build mocks from the existing bank only,
+// the way a pre-generated bank would be used; the start screen then shows a
+// short form until the bank is filled (scripts/mock-bank-report.ts says how
+// many items that takes and what it costs).
+export const MOCK_TOPS_UP_BANK = true;
 const GENERATION_CONCURRENCY = 4;
 // Per learner, per hour, so one account can't run up model cost.
 // REQ-202: 12, down from 40. At 40 an hour a sprint loop could start about 960
@@ -129,6 +148,29 @@ function shuffle<T>(xs: T[]): T[] {
 // What a course's exam looks like to this feature
 // ---------------------------------------------------------------------------
 
+export interface MockInfo {
+  // Whether the exam's length comes from a source we read (lib/mock-exam-facts.ts)
+  // rather than from the seeded text.
+  confirmed: boolean;
+  // A course with no single exam to match: its mock is a mixed practice test.
+  practiceOnly: string | null;
+  note: string; // one line: what the real exam is, and how the mock differs
+  passPolicy: string; // how the body reports a result, and what we do and don't claim
+  scored: number | null;
+  questionsAreMaximum: boolean;
+  minutesNote: string | null;
+  notReproduced: string | null;
+  // "exam_blueprint": the questions follow the exam's published domain weights.
+  // "study_emphasis": no body publishes weights, so they follow our emphasis.
+  weights: "exam_blueprint" | "study_emphasis";
+  // How the timed mock treats leaving and breaks (the same on every course).
+  pauseRule: string;
+  sources: { title: string; url: string; readAt: string }[];
+}
+
+export const MOCK_PAUSE_RULE =
+  "A timed mock has no pause: the clock runs from the moment you start, and it keeps running if you leave and come back, as it would if you walked out of the exam room. Your answers are saved either way. Scheduled breaks on the real exam are not simulated. An untimed mock has no clock.";
+
 export interface ExamProfile {
   examCode: string | null;
   credentialName: string | null;
@@ -139,15 +181,33 @@ export interface ExamProfile {
   mockQuestions: number; // what a mock here will have
   secondsPerQuestion: number | null;
   questionFormatText: string | null;
+  mock: MockInfo;
 }
 
-export async function examProfile(trackId: string): Promise<ExamProfile> {
-  const bp = await examBlueprintForTrack(trackId);
-  const { formats, exhibits } = examFormatsFromText(bp?.questionFormat ?? null);
-  const count = examQuestionCount(bp?.questionFormat ?? null);
-  const duration = bp?.durationMinutes ?? null;
+async function trackCode(trackId: string): Promise<string | null> {
+  // Catalog courses only: a learner's own course may reuse a catalog code.
+  const row = await queryOne<{ code: string | null }>(`select code from subject_tracks where id = $1 and user_id is null`, [trackId]);
+  return row?.code ?? null;
+}
+
+// The facts to build a mock from: the entry in lib/mock-exam-facts.ts when the
+// course has one, else what the seeded text says (a regular-expression read,
+// so flagged as approximate).
+export function profileFrom(opts: {
+  code: string | null;
+  blueprint: { examCode: string | null; credentialName: string | null; durationMinutes: number | null; questionFormat: string | null } | null;
+  weightsAreBlueprint: boolean;
+}): ExamProfile {
+  const bp = opts.blueprint;
+  const facts: MockExamFacts | null = mockExamFactsFor(opts.code);
+  const practice = practiceOnlyFor(opts.code);
+  const parsed = examFormatsFromText(bp?.questionFormat ?? null);
+  const formats = facts?.formats ?? parsed.formats;
+  const exhibits = facts?.exhibits ?? parsed.exhibits;
+  const count = facts ? facts.questions : practice ? null : examQuestionCount(bp?.questionFormat ?? null);
+  const duration = facts ? facts.minutes : practice ? null : (bp?.durationMinutes ?? null);
   return {
-    examCode: bp?.examCode ?? null,
+    examCode: facts?.examCode ?? bp?.examCode ?? null,
     credentialName: bp?.credentialName ?? null,
     formats,
     exhibits,
@@ -156,7 +216,25 @@ export async function examProfile(trackId: string): Promise<ExamProfile> {
     mockQuestions: Math.min(count ?? DEFAULT_MOCK_QUESTIONS, MAX_MOCK_QUESTIONS),
     secondsPerQuestion: examPaceSeconds(duration, count),
     questionFormatText: bp?.questionFormat ?? null,
+    mock: {
+      confirmed: !!facts,
+      practiceOnly: practice?.reason ?? null,
+      note: mockFormNote(facts, practice),
+      passPolicy: passPolicyText(facts),
+      scored: facts?.scored ?? null,
+      questionsAreMaximum: facts?.questionsAreMaximum ?? false,
+      minutesNote: facts?.minutesNote ?? null,
+      notReproduced: facts?.notReproduced ?? null,
+      weights: opts.weightsAreBlueprint ? "exam_blueprint" : "study_emphasis",
+      pauseRule: MOCK_PAUSE_RULE,
+      sources: (facts?.sources ?? (practice?.source ? [practice.source] : [])).map((x) => ({ title: x.title, url: x.url, readAt: x.readAt })),
+    },
   };
+}
+
+export async function examProfile(trackId: string): Promise<ExamProfile> {
+  const [bp, code, blueprintWeights] = await Promise.all([examBlueprintForTrack(trackId), trackCode(trackId), weightsAreExamBlueprint(trackId)]);
+  return profileFrom({ code, blueprint: bp, weightsAreBlueprint: blueprintWeights });
 }
 
 // ---------------------------------------------------------------------------
@@ -221,44 +299,38 @@ export function planSlots(mode: ExamMode, objectives: ActiveObjective[], total: 
   return slots;
 }
 
-interface FillState {
-  chosen: (ExamItemRow | null)[];
-  used: Set<string>;
-  formatCount: Map<ExamFormat, number>;
-}
-
+// Which of the learner's history an item may carry, tried strictest first
+// (lib/mock-form.ts). Items already in this form (or with the same stem) are
+// never used again, whatever the policy.
 function fill(
   slots: ActiveObjective[],
-  state: FillState,
+  state: FillState<ExamItemRow>,
   pool: ExamItemRow[],
   answered: Set<string>,
-  allowSeen: boolean,
-  // Second pass: any objective of the slot's unit, so the domain still gets
-  // its share when one objective has run out of items.
+  recent: ReadonlySet<string>,
+  policy: SeenPolicy,
   sameUnit = false
 ): number {
-  let placed = 0;
-  const unitOf = new Map(slots.map((s) => [s.id, s.unit_id]));
-  const byKey = new Map<string, ExamItemRow[]>();
-  for (const r of shuffle(pool)) {
-    const key = sameUnit ? unitOf.get(r.objective_id) ?? "" : r.objective_id;
-    byKey.set(key, [...(byKey.get(key) ?? []), r]);
-  }
-  slots.forEach((slot, i) => {
-    if (state.chosen[i]) return;
-    const candidates = (byKey.get(sameUnit ? slot.unit_id : slot.id) ?? []).filter(
-      (r) => !state.used.has(r.id) && (allowSeen || !isSeen(rowToItem(r), answered))
-    );
-    if (!candidates.length) return;
-    // Spread formats: the one furthest below its share goes next.
-    const score = (f: ExamFormat) => (state.formatCount.get(f) ?? 0) / FORMAT_SHARE[f];
-    const best = candidates.reduce((a, b) => (score(b.item_format) < score(a.item_format) ? b : a));
-    state.chosen[i] = best;
-    state.used.add(best.id);
-    state.formatCount.set(best.item_format, (state.formatCount.get(best.item_format) ?? 0) + 1);
-    placed++;
+  return fillSlots(slots, state, pool, {
+    policy,
+    answered: (r) => isSeen(rowToItem(r), answered),
+    recent,
+    sameUnit,
+    shuffle,
+    formatShare: FORMAT_SHARE,
   });
-  return placed;
+}
+
+// Items served to this learner on this course lately, whether or not they
+// answered them: they have seen the question.
+async function recentlyServed(userId: string, trackId: string): Promise<Set<string>> {
+  const rows = await query<{ item_id: string }>(
+    `select distinct si.item_id
+       from exam_session_items si join exam_sessions s on s.id = si.session_id
+      where s.user_id = $1 and s.track_id = $2 and s.created_at > now() - make_interval(days => $3::int)`,
+    [userId, trackId, RECENT_DAYS]
+  );
+  return new Set(rows.map((r) => r.item_id));
 }
 
 export function generationFormats(allowed: ExamFormat[], n = ITEMS_PER_CALL): ExamFormat[] {
@@ -272,6 +344,9 @@ export interface Preparation {
   repeats: number; // items they have (reduced credit)
   generatedCalls: number;
   generationFailed: boolean;
+  // REQ-298: a mock that could not be filled to the exam's length says so.
+  short: boolean;
+  shortReason: string | null;
 }
 
 async function runLimited<T>(tasks: (() => Promise<T>)[], limit: number): Promise<PromiseSettledResult<T>[]> {
@@ -318,9 +393,10 @@ export async function createSession(opts: {
   const objectiveIds = [...new Set(slots.map((s) => s.id))];
 
   const answered = await answeredQuestions(userId, objectiveIds);
-  const state: FillState = { chosen: new Array(slots.length).fill(null), used: new Set(), formatCount: new Map() };
+  const recent = await recentlyServed(userId, trackId);
+  const state: FillState<ExamItemRow> = newFillState<ExamItemRow>(slots.length);
   let pool = await bankItems(userId, objectiveIds, profile.formats);
-  fill(slots, state, pool, answered, false);
+  fill(slots, state, pool, answered, recent, "unseen");
 
   // Generate for objectives that still have an empty slot (shared bank).
   let generatedCalls = 0;
@@ -341,12 +417,13 @@ export async function createSession(opts: {
   // REQ-202: a learner whose AI budget cannot cover another generation draws
   // from the bank only -- no model call, and no rate-limit slot spent. Fails
   // closed: if the budget cannot be read the answer is "cannot afford".
+  const mayGenerate = opts.allowGeneration !== false && (mode === "sprint" || MOCK_TOPS_UP_BANK);
   let budgetPaused = false;
   let ceilingRefusal: AiAccessError | null = null;
-  if (missing.length && opts.allowGeneration !== false && !(await canAffordAiSpend(userId, "exam_items", generationEstimateUsd()))) {
+  if (missing.length && mayGenerate && !(await canAffordAiSpend(userId, "exam_items", generationEstimateUsd()))) {
     budgetPaused = true;
   }
-  if (missing.length && opts.allowGeneration !== false && !budgetPaused) {
+  if (missing.length && mayGenerate && !budgetPaused) {
     // Per-learner budget (auth_events, as lib/auth/rateLimit.ts counts it):
     // past it the session is built from what the bank already has.
     const row = await queryOne<{ n: number }>(
@@ -417,9 +494,9 @@ export async function createSession(opts: {
       console.warn(`[exam-sessions] item generation failed: ${(first.reason as Error)?.message ?? first.reason}`);
     }
     pool = await bankItems(userId, objectiveIds, profile.formats);
-    fill(slots, state, pool, answered, false);
+    fill(slots, state, pool, answered, recent, "unseen");
   }
-  fill(slots, state, pool, answered, false, true);
+  fill(slots, state, pool, answered, recent, "unseen", true);
   const fresh = state.chosen.filter(Boolean).length;
 
   // Still short: reuse items this learner has seen, including the lesson
@@ -429,8 +506,12 @@ export async function createSession(opts: {
       await copyAnsweredLessonChecks(userId, objectiveIds);
       pool = await bankItems(userId, objectiveIds, profile.formats);
     }
-    fill(slots, state, pool, answered, true);
-    fill(slots, state, pool, answered, true, true);
+    // Least recently met first: questions answered before but not served in
+    // the last RECENT_DAYS, then (only to fill the form) any other.
+    fill(slots, state, pool, answered, recent, "older");
+    fill(slots, state, pool, answered, recent, "older", true);
+    fill(slots, state, pool, answered, recent, "any");
+    fill(slots, state, pool, answered, recent, "any", true);
   }
 
   const picked = slots.map((s, i) => ({ slot: s, item: state.chosen[i] })).filter((x) => x.item) as {
@@ -554,8 +635,60 @@ export async function createSession(opts: {
     repeats,
     generatedCalls,
     generationFailed,
+    short: mode === "mock" && picked.length < total,
+    shortReason: mode === "mock" && picked.length < total ? shortFormText(picked.length, total) : null,
   };
   return { sessionId, preparation, replayed: false };
+}
+
+// ---------------------------------------------------------------------------
+// What the bank can fill, for the start screen (REQ-298)
+// ---------------------------------------------------------------------------
+
+// Reads the bank the way createSession does (same servable filter, same lesson
+// copies rule) but only counts: distinct questions per domain, and how many of
+// them this learner has not answered. No model call, no write.
+export async function mockFormState(userId: string, trackId: string, profile: ExamProfile) {
+  const objectives = await activeObjectives(trackId, userId);
+  if (!objectives.length) return null;
+  const units = await query<{ id: string; title: string; weight: string | number | null }>(
+    `select id, title, weight from course_units cu
+      where track_id = $1 and (retired_at is null or retired_at > now())`,
+    [trackId]
+  );
+  const items = await bankItems(userId, objectives.map((o) => o.id), profile.formats);
+  const answered = await answeredQuestions(userId, objectives.map((o) => o.id));
+  const unitOf = new Map(objectives.map((o) => [o.id, o.unit_id]));
+  const seenStems = new Map<string, { fresh: Set<string>; all: Set<string> }>();
+  for (const r of items) {
+    const unit = unitOf.get(r.objective_id);
+    if (!unit) continue;
+    const e = seenStems.get(unit) ?? { fresh: new Set<string>(), all: new Set<string>() };
+    const key = stemKey(r.stem);
+    e.all.add(key);
+    if (!isSeen(rowToItem(r), answered)) e.fresh.add(key);
+    seenStems.set(unit, e);
+  }
+  const banks: UnitBank[] = units.map((u) => ({
+    unitId: u.id,
+    title: u.title,
+    weight: u.weight == null ? null : Number(u.weight),
+    objectives: objectives.filter((o) => o.unit_id === u.id).length,
+    fresh: seenStems.get(u.id)?.fresh.size ?? 0,
+    total: seenStems.get(u.id)?.all.size ?? 0,
+  }));
+  const r = formReadiness(banks, profile.mockQuestions);
+  return {
+    requested: r.requested,
+    canBuild: r.canBuild,
+    freshAvailable: r.freshAvailable,
+    repeats: r.repeats,
+    short: r.short,
+    reason: r.short ? shortFormText(r.canBuild, r.requested) : null,
+    // Where the form is thin, for the start screen (domain, what a full form
+    // gives it, what the bank holds).
+    thinDomains: r.units.filter((u) => u.missing > 0).map((u) => ({ title: u.title, need: u.need, have: u.have })),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -667,11 +800,11 @@ export async function sessionView(sessionId: string, userId: string) {
       serverNow: new Date().toISOString(),
     },
     items,
-    results: submitted ? results(s, rows) : null,
+    results: submitted ? results(s, rows, s.mode === "mock" ? mockExamFactsFor(await trackCode(s.track_id)) : null) : null,
   };
 }
 
-function results(s: SessionRow, rows: SessionItemRow[]) {
+function results(s: SessionRow, rows: SessionItemRow[], facts: MockExamFacts | null) {
   const summaries: GradedItemSummary[] = rows.map((r) => ({
     unitId: r.unit_id,
     unitTitle: r.unit_title,
@@ -700,6 +833,13 @@ function results(s: SessionRow, rows: SessionItemRow[]) {
     domains: domainBreakdown(summaries),
     pacing: pacingSummary(summaries, { usedSeconds: used, timeLimitSeconds: s.time_limit_seconds, targetSeconds: target }),
     readiness: s.mode === "mock" ? compareWithReadiness(correct, n, s.readiness_before) : null,
+    // REQ-298: how the exam reports a result, and the form this was (full or
+    // short). The scaled score is never computed from the percentage.
+    pass: s.mode === "mock" ? { line: passLine(facts, { correct, total: n }), confirmed: facts != null } : null,
+    form:
+      s.mode === "mock"
+        ? { questions: n, examQuestions: s.exam_question_count, short: s.exam_question_count != null && n < s.exam_question_count }
+        : null,
     calibration: calibrate(rows.map((r) => ({ confidence: r.confidence, correct: r.credited === true }))),
     evidence: {
       counted,

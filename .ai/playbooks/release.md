@@ -41,8 +41,11 @@ through two releases because it was left for later (FAIL-1261).
    `backend/lib/release-notes.ts` (header rules there: newest first, id is
    the release date, plain warm words, only what master really ships). Put
    the REQ id in the note's `covers`. Gate an item on a feature flag with
-   `requires`; add a gate to `RELEASE_NOTE_GATES` for a new flag. Several
-   PRs released together may share one note. When a change is too small to
+   `requires`; add a gate to `RELEASE_NOTE_GATES` for a new flag. Give the
+   note its `appVersion`, the app version the release ships in
+   (docs/versioning.md; REQ-300). Learners see the newest unseen note once as
+   a dialog and every note on Settings > About > Release notes (REQ-299).
+   Several PRs released together may share one note. When a change is too small to
    announce, write `No What's new:` and the reason in the CHANGELOG entry.
 3. **Update every in-app text that describes the changed behavior**, in the
    same PR:

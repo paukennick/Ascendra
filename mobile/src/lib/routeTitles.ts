@@ -32,7 +32,9 @@ const ROUTES: [RegExp, string][] = [
   [/^\/settings\/discount$/, "Verified discount"],
   [/^\/plans$/, "Plans"],
   [/^\/support$/, "Support"],
-  [/^\/whats-new$/, "What's new"],
+  [/^\/release-notes$/, "Release notes"],
+  // REQ-299: the old name redirects to Release notes.
+  [/^\/whats-new$/, "Release notes"],
   [/^\/agree$/, "Before you continue"],
   [/^\/notice$/, "Before you start"],
   [/^\/welcome$/, "Welcome"],
