@@ -298,11 +298,11 @@ export const PCEP_TRACK: SeedTrack = {
       sources: [outline("PCEP-30-03 Exam Syllabus, section 2", PCEP_SYLLABUS, PCEP_OUTLINE.controlFlow, PCEP_FORMAT), PY_DOCS.controlFlow, PY_DOCS.walrus],
       objectives: [
         "Trace which branch of an if, if-else or if-elif-else chain runs, and spot branches that can never be reached",
-        "Combine and nest conditions so that every case in a stated rule takes the intended path",
+        "Write combined and nested conditions so that every case in a stated rule takes the intended path",
         "Write a while loop with a correct sentinel or counter, and recognize a condition that never becomes false",
         "Iterate over strings, lists and tuples with for, and count the iterations range(start, stop, step) produces",
         "Trace nested loops over grouped data and the order in which the inner and outer bodies run",
-        "Control a loop with break, continue and pass, and predict output when they are combined",
+        "Apply break, continue and pass to control a loop, and predict the output when they are combined",
         "Use an assignment expression (:=) in a while condition where it removes a repeated read",
       ],
     },
@@ -485,7 +485,7 @@ export const PCAP_TRACK: SeedTrack = {
       sources: [outline("PCAP-31-04 Exam Syllabus, section 2", PCAP_SYLLABUS, PCAP_OUTLINE.exceptions, PCAP_FORMAT), PY_DOCS.errors, PY_DOCS.builtinExceptions],
       objectives: [
         "Order except branches from specific to general, catch several types with a tuple, and read the caught object with as",
-        "Trace try, except, else and finally together for handled and unhandled exceptions",
+        "Analyze how try, except, else and finally run together for handled and unhandled exceptions",
         "Place an exception within the BaseException and Exception hierarchy and read its args",
         "Raise, re-raise with a bare raise, and trace an exception as it propagates through several calls",
         "Design a small hierarchy of custom exceptions that carry useful detail and handle them at the right level",

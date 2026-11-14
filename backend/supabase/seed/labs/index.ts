@@ -81,6 +81,9 @@ import { ABPTSSCS_LABS } from "./pt-abpts-sports";
 import { ABPTSWMS_LABS } from "./pt-abpts-wound";
 import { PYTHON_LABS } from "./dev-python";
 import { JAVASCRIPT_LABS } from "./dev-javascript";
+// REQ-264..268 (2026-11-14): new tech courses.
+import { PCEP_LABS } from "./python-pcep";
+import { PCAP_LABS } from "./python-pcap";
 import { MSHI_LABS } from "./informatics-mshi";
 import { MSCS_LABS } from "./academic-mscs";
 import { CMPCBS_LABS } from "./academic-cmpcbs";
@@ -255,4 +258,7 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   // REQ-239: NBCC counseling exams.
   NCE_LABS,
   NCMHCE_LABS,
+  // REQ-264..268: PCEP, PCAP, SQL, TSNODE, PL300, SC500, AI200.
+  PCEP_LABS,
+  PCAP_LABS,
 ].map(withValueSources);
