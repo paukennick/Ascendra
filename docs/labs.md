@@ -706,6 +706,29 @@ blueprints take effect 2027-07-01, so both outlines are rechecked by
 2027-04-01. All 24 are `needs_expert_review` until a licensed professional
 counselor approves them.
 
+### Nursing specialty and advanced practice: CMSRN, CEN, PCCN and FNP (REQ-275 to REQ-278)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| CMSRN | 11 | 3/2/2/2/2 | [MSNCB 2023 CMSRN Exam Blueprint](https://www.msncb.org/Portals/1/CMSRN%20Materials/2023%20CMSRN%20Exam%20Blueprint.pdf) (read 2026-11-14) |
+| CEN | 17 | 2/2/2/2/1/2/2/1/1/1/1 | [BCEN CEN content outline, effective July 2026](https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf) (read 2026-11-14) |
+| PCCN | 18 | 2/2/1/1/2/1/1/1/2/1/2/2 | [AACN PCCN Exam Handbook, July 2026](https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/pccnexamhandbook.pdf?la=en) (read 2026-11-14) |
+| AANPCB FNP | 10 | 3/3/2/2 | [AANPCB 2024 FNP blueprint](https://candidateportal.aanpcert.org/certs/fnp) (read 2026-11-14) |
+| ANCC FNP-BC | 11 | 2/2/2/3/2 | [ANCC FNP-BC test content outline, effective 2026-10-30](https://www.nursingworld.org/globalassets/study-aids/family-nurse-practitioner-tco_04062026.pdf) (read 2026-11-14) |
+
+Files `seed/labs/cmsrn.ts`, `cen.ts`, `pccn.ts` and `fnp.ts`, gathered in
+`seed/labs/nursing-specialty.ts`, with their value sources in
+`seed/labs/nursing-specialty-sources.ts` (merged into `VALUE_SOURCES`).
+`lib/labs-nursing-specialty.test.ts` checks the hybrid density unit by unit,
+one lab per objective, the clinical safety note, fictional people, a written
+part in every lab (clinical judgment is never only a control), and a value
+source or a reason on every lab. CEN weights are BCEN's item counts over 150
+to two decimals. No lab teaches a drug dose except the anaphylaxis
+epinephrine calculation, which follows the 2020 practice parameter as
+summarized in CCJM (2022); thresholds a source was not read for (heart
+failure weight gain, chronic cough, sinusitis day counts) are left to "the
+patient's team" or described without a number.
+
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as

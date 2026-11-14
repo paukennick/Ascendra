@@ -17432,6 +17432,59 @@
       "prevention_rules": [],
       "prevention_notes": "Adding a table to lib/recheck-stored.ts or lib/recheck-guard.ts means adding its grant and recheck_read policy in the same migration; the recheck-role DB suite fails if it is missing. Run the whole test:db before committing a migration, not only the new table's suite.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1840",
+      "date": "2026-11-14",
+      "title": "Copied outline headings passed the new course test because it compared headings with their letter prefix",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "CEN objective 'Noncardiac pulmonary edema' was BCEN's heading I verbatim, yet lib/nursing-specialty-course.test.ts passed; earlier PCCN objectives ('Ischemic bowel', 'Pancreatitis', 'Compartment syndrome', 'Rhabdomyolysis') matching unlettered AACN headings were caught.",
+      "how_detected": "a manual sweep (prefix-stripping script) while authoring CEN",
+      "root_cause": "commonChecks compared objectives to the outline lines as printed, so a lettered heading ('I. Noncardiac pulmonary edema') never equalled the copied objective. The NBCC test strips the letter prefix; the new test did not.",
+      "requirement": "REQ-276",
+      "affected": [
+        "backend/lib/nursing-specialty-course.test.ts",
+        "backend/supabase/seed/tracks/cen.ts",
+        "backend/supabase/seed/tracks/pccn.ts"
+      ],
+      "fix_summary": "The test strips a leading letter or number prefix before comparing; the five copied objectives were reworded in our own words before commit.",
+      "fix_commits": [
+        "bc12673d",
+        "e4daa45f"
+      ],
+      "regression_tests": [
+        "backend/lib/nursing-specialty-course.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Course tests that guard the copyright paraphrase rule compare headings without their enumeration prefix, as lib/nbcc-course.test.ts does.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1841",
+      "date": "2026-11-14",
+      "title": "Two new labs had numeric tolerances the content rules reject",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "labs.test.ts: 'tolerance is more than 10% of the answer' (CEN neonatal ventilation rate as a 30-60 range) and 'partialTolerance is more than 25% of the answer' (CEN epinephrine 0.5 mg).",
+      "how_detected": "npm test (lib/labs.test.ts content rules) while authoring",
+      "root_cause": "A guideline range (30-60/min) was forced into the numeric control, which only grades a point answer within 10%; a partial band was set wider than 25% of a small answer.",
+      "requirement": "REQ-276",
+      "affected": [
+        "backend/supabase/seed/labs/cen.ts"
+      ],
+      "fix_summary": "The ventilation-rate part became a select over in-range and out-of-range rates; the epinephrine part keeps a 0.01 mg tolerance and no partial band.",
+      "fix_commits": [
+        "bc12673d"
+      ],
+      "regression_tests": [
+        "backend/lib/labs.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A guideline range is graded with a select or a written part, not a numeric part (lib/lab-interactive.ts limits).",
+      "recurrence_of": ""
     }
   ]
 }
