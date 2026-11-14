@@ -1,0 +1,1268 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "service-selector-no-endpoints",
+  "title": "Outage: the shop returns 503 while every pod is Running",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "ops@shop-prod:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "09:15 alert: shop.example.com returns 503 for every request; the 10:00 flash sale email has already gone out",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "merged",
+          "text": "08:58 Git: merged 'tidy labels' (shop-web manifests); Argo CD synced shop-web",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "relapse",
+          "text": "Argo CD: shop-web OutOfSync, self-heal applied Git's Service again; shop.example.com returns 503",
+          "when": "not isNull(relapseAt)",
+          "at": "timeAt(relapseAt)",
+          "error": "true"
+        },
+        {
+          "id": "deleted",
+          "text": "deployment.apps \"shop-web\" deleted: every shop-web pod is terminating",
+          "when": "deploymentDeleted",
+          "at": "timeAt(deletedAt)",
+          "error": "true"
+        },
+        {
+          "id": "sale",
+          "text": "10:00 the flash sale started with the shop down; customers are getting 503",
+          "when": "not isNull(saleMissedAt)",
+          "at": "timeAt(saleMissedAt)",
+          "error": "true"
+        },
+        {
+          "id": "okLine",
+          "text": "shop.example.com: HTTP/2 200",
+          "when": "not isNull(verifiedAt)",
+          "at": "timeAt(verifiedAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "ing",
+          "label": "Ingress shop.example.com",
+          "spokenLabel": "the shop ingress",
+          "kind": "Ingress to Service shop-web port 80",
+          "status": "{serving ? \"Routing to pods\" : \"503: the Service has no endpoints\"}",
+          "tone": "serving ? \"up\" : \"down\""
+        },
+        {
+          "id": "svc",
+          "label": "Service shop-web",
+          "spokenLabel": "Service shop-web",
+          "kind": "ClusterIP",
+          "status": "Selector app={selectorOk ? \"shop-web\" : \"shopweb\"}; endpoints {serving ? \"3\" : \"none\"}",
+          "tone": "serving ? \"up\" : \"down\""
+        },
+        {
+          "id": "dep",
+          "label": "Deployment shop-web",
+          "spokenLabel": "Deployment shop-web",
+          "kind": "3 replicas, pod label app=shop-web{labeledPods ? \"; 3 relabeled pods run unmanaged\" : \"\"}",
+          "status": "{deploymentDeleted ? \"Deleted\" : \"3 of 3 Ready\"}",
+          "tone": "deploymentDeleted ? \"down\" : \"up\""
+        },
+        {
+          "id": "argo",
+          "label": "Argo CD app shop-web",
+          "spokenLabel": "the Argo CD application",
+          "kind": "Auto-sync with self-heal from Git",
+          "status": "{gitFixed ? \"Synced to the revert\" : patchedLive and isNull(relapseAt) ? \"OutOfSync: the live Service differs from Git\" : \"Synced (Git has app=shopweb)\"}",
+          "tone": "patchedLive and isNull(relapseAt) and not gitFixed ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "w2",
+          "label": "Node w2",
+          "spokenLabel": "node w2",
+          "kind": "Worker node",
+          "status": "CPU busy with the nightly report job",
+          "tone": "\"degraded\""
+        },
+        {
+          "id": "saleN",
+          "label": "Flash sale 10:00",
+          "spokenLabel": "the 10:00 flash sale",
+          "kind": "Business deadline",
+          "status": "{not isNull(saleMissedAt) ? \"Started with the shop down\" : serving ? \"Shop is up\" : \"Shop is down\"}",
+          "tone": "not isNull(saleMissedAt) ? \"down\" : serving ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "ing",
+          "to": "svc",
+          "label": "Ingress backend",
+          "status": "Configured",
+          "tone": "\"up\""
+        },
+        {
+          "id": "l2",
+          "from": "svc",
+          "to": "dep",
+          "label": "Selector to pod labels",
+          "status": "{serving ? \"Matches\" : \"Selects nothing\"}",
+          "tone": "serving ? \"up\" : \"down\""
+        },
+        {
+          "id": "l3",
+          "from": "argo",
+          "to": "svc",
+          "label": "Git to cluster",
+          "status": "Auto-sync, self-heal on",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "eps",
+          "label": "Ready endpoints behind shop-web",
+          "value": "{serving ? \"3\" : \"0\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshooting: where to look when a node, a Service or the control plane misbehaves, and the role of metrics-server and probes in detecting failure",
+  "secondaryObjectives": [
+    "Debugging a delivery: rolling back safely and recognizing configuration drift between Git and the cluster",
+    "Core concepts: namespaces, labels, selectors and annotations, and how Services, Deployments and policies select the Pods they act on"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF KCNA Curriculum (cncf/curriculum, pinned commit 0a8cc08a) and the Linux Foundation KCNA exam page",
+      "checkedAt": "2026-11-14",
+      "url": "https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate/",
+      "note": "The course's own outline sources (the catalog's curriculum PDF and exam page). This case was written against the course objective titles as the KCNA course seed records them; neither page was re-read for this case on 2026-11-14, so the outline wording is the seed's."
+    },
+    {
+      "cite": "Kubernetes documentation, Debug Services: 'Does the Service have any EndpointSlices?'",
+      "checkedAt": "2026-11-14",
+      "url": "https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/",
+      "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14 (the kubernetes.io page itself did not answer the fetch). Relevant text: 'Inside the Kubernetes system is a control loop which evaluates the selector of every Service and saves the results into one or more EndpointSlice objects'; 'If the ENDPOINTS column is <none>, you should check that the spec.selector field of your Service actually selects for metadata.labels values on your Pods. A common mistake is to have a typo or other error'."
+    },
+    {
+      "cite": "Kubernetes documentation, Service",
+      "checkedAt": "2026-11-14",
+      "url": "https://kubernetes.io/docs/concepts/services-networking/service/",
+      "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14. Relevant text: 'The controller for that Service continuously scans for Pods that match its selector, and then makes any necessary updates to the set of EndpointSlices for the Service.'"
+    },
+    {
+      "cite": "Kubernetes documentation, Resource metrics pipeline",
+      "checkedAt": "2026-11-14",
+      "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/",
+      "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14. Relevant text: HPA and VPA 'use data from the metrics API'; 'You can also view the resource metrics using the kubectl top command'; 'The Metrics API, and the metrics pipeline that it enables, only offers the minimum CPU and memory metrics to enable automatic scaling'."
+    },
+    {
+      "cite": "Argo CD documentation, Automated Sync Policy (argoproj/argo-cd master, docs/user-guide/auto_sync.md)",
+      "checkedAt": "2026-11-14",
+      "url": "https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/",
+      "note": "Read in primary text from the repository source on 2026-11-14. Relevant text: with 'selfHeal: true' Argo CD syncs 'when the live cluster's state deviates from the state defined in Git'; 'The automatic sync interval is determined by the timeout.reconciliation value in the argocd-cm ConfigMap, which defaults to 120s with added jitter of 60s for a maximum period of 3 minutes.' How soon self-heal reverts a live edit is not stated as a number there; the scenario's 3 minutes is the author's."
+    },
+    {
+      "cite": "Kubernetes documentation, ReplicaSet: Isolating Pods from a ReplicaSet",
+      "checkedAt": "2026-11-14",
+      "url": "https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/",
+      "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14. Relevant text: 'You can remove Pods from a ReplicaSet by changing their labels... Pods that are removed in this way will be replaced automatically'."
+    }
+  ],
+  "brief": {
+    "situation": "You are on call for a fictional online shop. At 09:15 shop.example.com started returning 503 for every request. A flash sale starts at 10:00 and the email has already gone out. At 08:58 someone merged a 'tidy labels' change to the shop-web manifests, and Argo CD synced it.",
+    "handover": [
+      "shop-web is a Deployment of 3 pods behind a ClusterIP Service and an Ingress. Argo CD keeps the cluster in sync with Git, with self-heal on: a change made only in the cluster is put back to what Git says.",
+      "Node w2 runs a nightly report job that keeps its CPU busy every morning."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes your time: run it, then let it finish, which moves the clock by the minutes it takes. The sale keeps coming on the same clock, and Argo CD keeps reconciling on it.",
+      "The map shows the Ingress, Service, Deployment, Argo CD and the nodes, each with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the shop restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:15",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "saleDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. The sale starts at 10:00, 45 minutes after the first alert."
+      }
+    },
+    "selfHealDelay": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Argo CD documentation, Automated Sync Policy",
+        "checkedAt": "2026-11-14",
+        "url": "https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/",
+        "note": "FLAG: the documentation gives the reconciliation interval (120 s plus up to 60 s jitter, at most 3 minutes) but no number for how soon self-heal reverts a live edit; 3 minutes is the author's teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "podsAt": {
+      "type": "time",
+      "init": null
+    },
+    "svcAt": {
+      "type": "time",
+      "init": null
+    },
+    "epsAt": {
+      "type": "time",
+      "init": null
+    },
+    "labelsAt": {
+      "type": "time",
+      "init": null
+    },
+    "topAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "diffAt": {
+      "type": "time",
+      "init": null
+    },
+    "selectorOk": {
+      "type": "bool",
+      "init": false
+    },
+    "gitFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "patchedLive": {
+      "type": "bool",
+      "init": false
+    },
+    "patchAt": {
+      "type": "time",
+      "init": null
+    },
+    "relapseAt": {
+      "type": "time",
+      "init": null
+    },
+    "labeledPods": {
+      "type": "bool",
+      "init": false
+    },
+    "deploymentDeleted": {
+      "type": "bool",
+      "init": false
+    },
+    "deletedAt": {
+      "type": "time",
+      "init": null
+    },
+    "restarts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "faultsAdded": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "fixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "saleMissedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "selector",
+        "node",
+        "image",
+        "ingress"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "serving": {
+      "expr": "(selectorOk or labeledPods) and not deploymentDeleted"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "getPods",
+        "describeSvc",
+        "getEps",
+        "showLabels",
+        "top",
+        "logs",
+        "argoDiff",
+        "fix",
+        "curl",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "getPods": {
+      "label": "kubectl get pods -l app=shop-web",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(podsAt)",
+          "then": [
+            {
+              "set": "podsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "$ kubectl get pods -l app=shop-web\n{deploymentDeleted ? \"No resources found in shop namespace.\" : \"NAME                       READY   STATUS    RESTARTS   AGE\"}\n{deploymentDeleted ? \"\" : \"shop-web-7c9d8f6b5-4kq2x   1/1     Running   0          19m\"}\n{deploymentDeleted ? \"\" : \"shop-web-7c9d8f6b5-9wz7m   1/1     Running   0          19m\"}\n{deploymentDeleted ? \"\" : \"shop-web-7c9d8f6b5-tn5vd   1/1     Running   0          19m\"}"
+        },
+        {
+          "if": "not deploymentDeleted",
+          "then": [
+            {
+              "finding": "All three pods are Running and Ready with no restarts: the pods and their readiness probes are fine."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "describeSvc": {
+      "label": "kubectl describe svc shop-web",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(svcAt)",
+          "then": [
+            {
+              "set": "svcAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "$ kubectl describe svc shop-web\nName:              shop-web\nSelector:          app={selectorOk ? \"shop-web\" : \"shopweb\"}\nType:              ClusterIP\nPort:              http  80/TCP\nTargetPort:        8080/TCP\nEndpoints:         {serving ? \"10.244.1.12:8080,10.244.2.7:8080,10.244.3.9:8080\" : \"<none>\"}"
+        },
+        {
+          "if": "not serving",
+          "then": [
+            {
+              "finding": "The Service has no endpoints, and its selector asks for app=shopweb."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "getEps": {
+      "label": "kubectl get endpointslices -l kubernetes.io/service-name=shop-web",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(epsAt)",
+          "then": [
+            {
+              "set": "epsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "$ kubectl get endpointslices -l kubernetes.io/service-name=shop-web\nNAME             ADDRESSTYPE   PORTS   ENDPOINTS\nshop-web-x8f2k   IPv4          {serving ? \"8080\" : \"<unset>\"}    {serving ? \"10.244.1.12,10.244.2.7,10.244.3.9\" : \"<none>\"}"
+        },
+        {
+          "if": "not serving",
+          "then": [
+            {
+              "finding": "No endpoints: the Service's selector matches no pod."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "showLabels": {
+      "label": "kubectl get pods --show-labels",
+      "group": "Look",
+      "available": "not busy and (not deploymentDeleted)",
+      "why": "There are no shop-web pods, or wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(labelsAt)",
+          "then": [
+            {
+              "set": "labelsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "$ kubectl get pods --show-labels\nNAME                       READY   STATUS    LABELS\nshop-web-7c9d8f6b5-4kq2x   1/1     Running   app={labeledPods ? \"shopweb\" : \"shop-web\"},pod-template-hash=7c9d8f6b5"
+        },
+        {
+          "finding": "The pods are labeled app=shop-web; the Service selects app=shopweb. The selector has a typo."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "top": {
+      "label": "kubectl top nodes",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(topAt)",
+          "then": [
+            {
+              "set": "topAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "$ kubectl top nodes\nNAME   CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%\nw1     610m         15%    5120Mi          32%\nw2     3290m        82%    7010Mi          44%\nw3     540m         13%    4870Mi          30%"
+        },
+        {
+          "finding": "w2 is busy, as it is every morning with the report job; the shop's pods are Ready, so CPU is not why every request gets 503."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "logs": {
+      "label": "kubectl logs deploy/shop-web --tail=5",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logsAt)",
+          "then": [
+            {
+              "set": "logsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "$ kubectl logs deploy/shop-web --tail=5\nlistening on :8080\nGET /ready 200\nGET /ready 200\nGET /ready 200\nGET /ready 200"
+        },
+        {
+          "finding": "Only the kubelet's readiness checks reach the pods: no customer requests arrive."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "argoDiff": {
+      "label": "argocd app diff shop-web",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(diffAt)",
+          "then": [
+            {
+              "set": "diffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "$ argocd app diff shop-web\n{patchedLive and isNull(relapseAt) and not gitFixed ? \"Service shop/shop-web: live selector app=shop-web, Git selector app=shopweb\" : \"(no differences: the live Service matches Git)\"}\n$ git log -1 --oneline -- k8s/shop-web/service.yaml\n{gitFixed ? \"e41b0c2 Revert 'tidy labels'\" : \"a7d93f1 tidy labels (app: shop-web -> app: shopweb in service.yaml only)\"}"
+        },
+        {
+          "finding": "The typo came from Git in this morning's 'tidy labels' change, and Argo CD will keep putting it back while Git has it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "fix": {
+      "label": "change something",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "params": [
+        {
+          "id": "change",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "gitRevert",
+              "label": "git revert the 'tidy labels' commit, push, and sync in Argo CD"
+            },
+            {
+              "value": "patchLive",
+              "label": "kubectl set selector on the live Service: app=shop-web"
+            },
+            {
+              "value": "labelPods",
+              "label": "kubectl label the running pods app=shopweb to match the Service"
+            },
+            {
+              "value": "deleteDeploy",
+              "label": "kubectl delete deployment shop-web so Argo CD recreates it"
+            },
+            {
+              "value": "restart",
+              "label": "kubectl rollout restart deployment shop-web"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "change == \"gitRevert\"",
+              "then": [
+                {
+                  "set": "gitFixed",
+                  "to": "true"
+                },
+                {
+                  "set": "selectorOk",
+                  "to": "true"
+                },
+                {
+                  "output": "$ git revert a7d93f1 && git push\n$ argocd app sync shop-web\nService shop/shop-web configured (selector app=shop-web)"
+                },
+                {
+                  "log": "Git has the right selector again and Argo CD synced it.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "change == \"patchLive\"",
+              "then": [
+                {
+                  "set": "selectorOk",
+                  "to": "true"
+                },
+                {
+                  "set": "patchedLive",
+                  "to": "true"
+                },
+                {
+                  "set": "patchAt",
+                  "to": "t"
+                },
+                {
+                  "output": "$ kubectl set selector svc shop-web app=shop-web\nservice/shop-web selector updated"
+                },
+                {
+                  "log": "The live Service now selects the pods; Git still has app=shopweb.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "change == \"labelPods\"",
+              "then": [
+                {
+                  "set": "labeledPods",
+                  "to": "true"
+                },
+                {
+                  "output": "$ kubectl label pods -l app=shop-web app=shopweb --overwrite\npod/shop-web-7c9d8f6b5-4kq2x labeled (and 2 more)"
+                },
+                {
+                  "log": "The three relabeled pods now match the Service, but no longer the ReplicaSet's selector: it starts three new app=shop-web pods, and the relabeled ones run unmanaged until someone deletes them.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "change == \"deleteDeploy\"",
+              "then": [
+                {
+                  "set": "deploymentDeleted",
+                  "to": "true"
+                },
+                {
+                  "set": "deletedAt",
+                  "to": "t"
+                },
+                {
+                  "add": "faultsAdded",
+                  "by": "1"
+                },
+                {
+                  "output": "$ kubectl delete deployment shop-web\ndeployment.apps \"shop-web\" deleted"
+                },
+                {
+                  "log": "Every shop-web pod is terminating. Nothing serves the shop now, whatever the Service selects.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "restarts",
+                  "by": "1"
+                },
+                {
+                  "output": "$ kubectl rollout restart deployment shop-web\ndeployment.apps/shop-web restarted"
+                },
+                {
+                  "log": "New pods come up Ready with the same labels; the Service still selects nothing.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "isNull(fixedAt) and (selectorOk or labeledPods) and not deploymentDeleted",
+          "then": [
+            {
+              "set": "fixedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "curl": {
+      "label": "curl -sI https://shop.example.com/",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "(selectorOk or labeledPods) and not deploymentDeleted",
+          "then": [
+            {
+              "if": "isNull(verifiedAt)",
+              "then": [
+                {
+                  "set": "verifiedAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "output": "$ curl -sI https://shop.example.com/\nHTTP/2 200"
+            }
+          ],
+          "else": [
+            {
+              "output": "$ curl -sI https://shop.example.com/\nHTTP/2 503"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 600",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "ops@shop-prod:~$ sleep 600"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the shop restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "selector",
+                  "label": "The Service selector typo (app=shopweb) merged in Git matched no pods"
+                },
+                {
+                  "value": "node",
+                  "label": "Node w2 was overloaded"
+                },
+                {
+                  "value": "image",
+                  "label": "A bad image in the new rollout"
+                },
+                {
+                  "value": "ingress",
+                  "label": "The Ingress controller failed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: cause {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "selfHeal",
+      "when": "patchedLive and not gitFixed and isNull(relapseAt) and t >= timeAt(patchAt) + selfHealDelay and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "relapseAt",
+          "to": "t"
+        },
+        {
+          "set": "selectorOk",
+          "to": "false"
+        },
+        {
+          "log": "Argo CD self-heal put the Service back to Git's app=shopweb: 503 again.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "sale",
+      "when": "t >= saleDelay and phase == \"incident\" and not serving",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "saleMissedAt",
+          "to": "t"
+        },
+        {
+          "log": "10:00: the flash sale started with the shop down.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: where you looked and what ruled things out, what the cause was and how you proved it, and why your fix will stay fixed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Where you looked",
+          "criteria": "Pods Running and Ready (probes passing) rule out the app; the busy node's kubectl top numbers are not the cause; the Service with no endpoints is the break between Ingress and pods.",
+          "modelAnswer": "All three pods were Running and Ready, so the readiness probes passed and the app was fine. kubectl top showed w2 busy, but that happens every morning and Ready pods were not getting traffic at all. kubectl describe svc showed Endpoints <none>."
+        },
+        {
+          "label": "Cause and proof",
+          "criteria": "Compares the Service selector (app=shopweb) with the pod labels (app=shop-web) and traces the typo to the merged Git change.",
+          "modelAnswer": "The Service selected app=shopweb and the pods are labeled app=shop-web, so the EndpointSlice controller found nothing. argocd app diff and git log showed the typo came in with the 'tidy labels' commit."
+        },
+        {
+          "label": "A fix that stays",
+          "criteria": "Fixes it in Git (revert) and syncs, explaining that a live patch or hand labels drift from Git and self-heal or the next rollout undoes them; verifies with a request.",
+          "modelAnswer": "I reverted the commit and synced, so Git and the cluster agree. A kubectl patch would have worked for three minutes until self-heal put Git's selector back; hand labels vanish with the next rollout. curl returned 200."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Restored with time to spare before the 10:00 sale; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No second fault: a deleted Deployment."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not serving",
+      "class": "harm",
+      "rationale": "Closing with the Service still selecting no pods leaves the shop answering 503; it is never a safe outcome.",
+      "source": {
+        "cite": "Kubernetes documentation, Debug Services: 'Does the Service have any EndpointSlices?'",
+        "checkedAt": "2026-11-14",
+        "url": "https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/",
+        "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14 (the kubernetes.io page itself did not answer the fetch). Relevant text: 'Inside the Kubernetes system is a control loop which evaluates the selector of every Service and saves the results into one or more EndpointSlice objects'; 'If the ENDPOINTS column is <none>, you should check that the spec.selector field of your Service actually selects for metadata.labels values on your Pods. A common mistake is to have a typo or other error'."
+      }
+    }
+  },
+  "endings": {
+    "deleted": {
+      "label": "The Deployment was deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and deploymentDeleted",
+      "narrative": "Deleting the Deployment terminated every working pod; the Service would still have selected nothing when they came back."
+    },
+    "saleMissed": {
+      "label": "The sale started with the shop down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(saleMissedAt)",
+      "narrative": "Customers from the sale email got 503 at 10:00."
+    },
+    "stillDown": {
+      "label": "Closed with the shop still down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not serving",
+      "narrative": "The Service still selects no pods; the shop answers 503."
+    },
+    "fixed": {
+      "label": "Fixed in Git",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and serving and gitFixed and not patchedLive and not labeledPods and timeAt(fixedAt) <= restoreWindow and faultsAdded <= newFaults and not isNull(verifiedAt) and (not isNull(svcAt) or not isNull(epsAt)) and (isNull(svcAt) or timeAt(svcAt) <= timeAt(fixedAt)) and (isNull(epsAt) or timeAt(epsAt) <= timeAt(fixedAt))",
+      "narrative": "Git has the right selector, the cluster matches it, the shop answers 200, and nothing else was disturbed."
+    },
+    "fixedGaps": {
+      "label": "Restored, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The shop answers, but the fix was late, guessed, made only in the cluster, or needed restarts."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "deleted",
+    "saleMissed",
+    "stillDown",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "endpointsFirst",
+        "label": "Found the Service had no endpoints before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "(not isNull(svcAt) or not isNull(epsAt)) and (isNull(fixedAt) or (isNull(svcAt) or timeAt(svcAt) <= timeAt(fixedAt)) and (isNull(epsAt) or timeAt(epsAt) <= timeAt(fixedAt))) and restarts == 0 and not deploymentDeleted",
+            "score": "met",
+            "why": "The empty endpoints were found first."
+          },
+          {
+            "when": "not isNull(svcAt) or not isNull(epsAt)",
+            "score": "partial",
+            "why": "The Service was checked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The Service's endpoints were never checked."
+          }
+        ]
+      },
+      {
+        "id": "fixInGit",
+        "label": "Fixed the selector in Git, not only in the cluster",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "gitFixed and not patchedLive and not labeledPods",
+            "score": "met",
+            "why": "Reverted in Git and synced: Git and the cluster agree."
+          },
+          {
+            "when": "gitFixed or patchedLive or labeledPods",
+            "score": "partial",
+            "why": "{gitFixed ? \"Fixed in Git only after a live change drifted.\" : \"Fixed only in the cluster: self-heal or the next rollout undoes it.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The selector was never fixed."
+          }
+        ]
+      },
+      {
+        "id": "fixedFast",
+        "label": "Shop serving within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "serving and timeAt(fixedAt) <= restoreWindow and isNull(relapseAt)",
+            "score": "met",
+            "why": "Serving {timeAt(fixedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "serving",
+            "score": "partial",
+            "why": "Serving, but late or after a relapse."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The shop still answers 503."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Verified with a request through the Ingress",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "curl returned 200."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No request was seen to succeed."
+          }
+        ]
+      },
+      {
+        "id": "noBlindRestart",
+        "label": "No restarts or deletions the evidence did not call for",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "restarts == 0 and not deploymentDeleted",
+            "score": "met",
+            "why": "The healthy pods were left alone."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{deploymentDeleted ? \"The Deployment was deleted.\" : \"Pods were restarted though they were Ready.\"}"
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"selector\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written triage, proof and lasting fix",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToFix",
+        "label": "Minutes until the shop served",
+        "value": "isNull(fixedAt) ? -1 : timeAt(fixedAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "restartsK",
+        "label": "Restarts",
+        "value": "restarts",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "faultsK",
+        "label": "Faults the fix introduced",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "kubectl get pods: 3/3 Running and Ready, no restarts. The app and its probes are fine."
+      },
+      {
+        "at": "2-4 min",
+        "text": "kubectl describe svc and the EndpointSlice: no endpoints; selector app=shopweb. --show-labels: the pods are app=shop-web."
+      },
+      {
+        "at": "4-8 min",
+        "text": "argocd app diff and git log: the typo came from 'tidy labels'. git revert, push, sync."
+      },
+      {
+        "at": "8-9 min",
+        "text": "curl returns 200. Record the cause; ask for a check in CI that every Service selects at least one pod template."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: fixed in Git",
+        "body": "Running, Ready pods and an empty endpoint list pointed at the selector; you found the typo, traced it to the merge and fixed it where Argo CD reads it."
+      },
+      "fixedGaps": {
+        "headline": "Restored, with gaps",
+        "body": "The shop answers. The criteria show what it cost: time, a live-only change that drifts from Git, or restarts the evidence did not call for."
+      },
+      "deleted": {
+        "headline": "Deleting made it worse",
+        "body": "The pods were healthy. Deleting the Deployment took them away, and the Service would still have selected nothing."
+      },
+      "saleMissed": {
+        "headline": "The sale started with the shop down",
+        "body": "Ready pods with no traffic and a 503 point at the Service. Its endpoints were one command away; restarts and kubectl top were not."
+      },
+      "stillDown": {
+        "headline": "Closed too soon",
+        "body": "The shop still answers 503. Check the Service's endpoints and selector, fix it, and curl before you close."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Every request gets 503 while all three pods are Running and Ready, so the app and its readiness probes are fine and the break is between the Ingress and the pods. kubectl describe svc shows Endpoints <none> and selector app=shopweb, while the pods are labeled app=shop-web: the selector matches nothing, so the EndpointSlice controller lists no pods. kubectl top shows a busy node, which is the morning report job and not the cause. The typo came from Git in the 'tidy labels' merge, and Argo CD with self-heal will keep applying it, so fix it in Git (revert and sync) rather than patching the live Service or labeling pods by hand, then confirm with a request through the Ingress."
+  }
+}

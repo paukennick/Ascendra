@@ -156,6 +156,24 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTPARAMEDIC", "inferior-stemi-cath-alert"),
   entry("NREMTPARAMEDIC", "infant-respiratory-failure"),
   // ---- end REQ-241 ----
+  // ---- REQ-297 (IT sims, wave 3): more learner-paced sims for the existing
+  // non-clinical courses on the existing terminal, security console and
+  // board screens (docs/sims-coverage-it.md). Keep these entries together. ----
+  entry("APLUS_CORE1", "rogue-dhcp-soho-office"),
+  entry("APLUS_CORE2", "home-office-laptop-malware"),
+  entry("KCNA", "service-selector-no-endpoints"),
+  band("CKA", "service-selector-no-endpoints-cka"),
+  entry("GCPACE", "public-bucket-customer-exports"),
+  entry("GCPCDL", "bigquery-dashboard-bill"),
+  band("SECPLUS", "vuln-prioritization-kev-edge-secplus"),
+  band("SECPLUS", "alert-triage-lolbin-hunt-secplus"),
+  entry("AWSSAA", "waf-login-flood-sqli"),
+  entry("AWSSOA", "rds-update-without-where-pitr"),
+  entry("GCPACE", "cloud-run-bad-revision-rollback"),
+  entry("LINUXPLUS", "systemd-dropin-breaks-export"),
+  entry("CKA", "apiserver-static-pod-bad-flag"),
+  entry("SECPLUS", "firewall-change-backout"),
+  // ---- end REQ-297 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they

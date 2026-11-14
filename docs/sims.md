@@ -4993,3 +4993,75 @@ narrative, and a server-only debrief body that repeated a client narrative
 word for word (the leak test in `lib/sim/documents.test.ts` caught it). `time_up` is reached by no golden path in any of the eight (every
 slow path ends earlier), so the linter's warning remains, as in the CCRN
 cases.
+
+### 22.16 IT sims wave 3: A+, KCNA and CKA, Google Cloud ACE and Digital Leader, Security+ bands (REQ-297)
+
+Nick, 2026-11-14: "Build more sims, no need to limit number, build what covers
+the material." The coverage map for every non-clinical course, before and
+after, is docs/sims-coverage-it.md. Five new documents and three bands on the
+existing terminal, security console and board screens and engine 1.2; no
+engine, renderer, schema or migration change. Each follows the pattern of
+22.7 and 22.10: learner-paced `turns` phases where every task costs minutes
+through one `work` wait, the problem's next step is an `interruptsSkip`
+trigger on the same clock, `endingOrder` with harm endings first, endings in
+all three classes, three critical criteria inside the `target` condition,
+KPIs, an expert path, a debrief per ending, one three-part reasoning moment
+and six golden paths built by `npm run sim:golden -- steps <name>` (every
+ending but `time_up`, every criterion met and missed, Good, Mediocre and Bad;
+checked by `lib/sim/it-wave3.test.ts`, which also has a behavior test per
+case).
+
+| Course / slug | Screen, profile | Core of the case | Steps name |
+|---|---|---|---|
+| APLUS_CORE1/rogue-dhcp-soho-office | terminal, infrastructure | A consultant's travel router answers DHCP on the office LAN; three PCs get 192.168.8.x. ipconfig /all against a working PC, the router's lease list, find and unplug it, renew every PC; a static address fixes one PC, a factory reset wipes the VPN forward and printer reservation; upload deadline at 60 min | aplus1-rogue |
+| APLUS_CORE2/home-office-laptop-malware | security console, security | 220-1202 2.6 in order on a Windows 11 Home laptop: verify, quarantine (network and the mapped NAS share) before the stealer's upload at 20 min, System Restore off, definitions by USB (reconnecting brings the share back), Defender Offline or safe mode, updates, a clean restore point, passwords from a clean device, educate; a decision card at 15 min on using the laptop for the bank | aplus2-malware |
+| KCNA/service-selector-no-endpoints | terminal, infrastructure | Every request 503 while 3/3 pods are Ready: Service selector `app=shopweb` against pod label `app=shop-web`, merged in Git; a live `kubectl set selector` is undone by Argo CD self-heal after 3 min (FLAG: the documentation gives no number), relabeling pods orphans them from the ReplicaSet, a Git revert stays; flash sale at 45 min | kcna-selector |
+| CKA/service-selector-no-endpoints-cka (band) | as KCNA | The KCNA case on CKA's "Troubleshoot services and networking: a Service with no endpoints ..." objective, with the CKA curriculum as an added source | cka-selector |
+| GCPACE/public-bucket-customer-exports | board, security | A bucket-wide allUsers grant exposes 14 customer exports beside the website's product images: remove the grant first (ACLs are off with uniform bucket-level access), images to their own bucket in another project (15 min), public access prevention, a signed URL for the partner, a lifecycle rule, and tell privacy that public reads are not audit-logged; listed on a bucket-search site at 45 min | gcpace-bucket |
+| GCPCDL/bigquery-dashboard-bill | board, cloud | A dashboard scans 2 TiB every 15 min ($50 an hour at $6.25 per TiB) on an unpartitioned table: billing reports and job history, the project owner's team fixes it by noon, Sales' review at 14:00 needs the dashboard, guardrails (50 TiB daily query quota, owner budget alerts, required labels, monthly review); disabling billing stops the whole project | gcpcdl-bill |
+| SECPLUS/vuln-prioritization-kev-edge-secplus (band) | as CYSAPLUS | The CySA+ KEV-versus-CVSS case on SY0-701 "Vulnerability management: scanning, CVSS scoring, and remediation prioritization" | secplus-vuln |
+| SECPLUS/alert-triage-lolbin-hunt-secplus (band) | as CYSAPLUS | The CySA+ alert triage case on SY0-701 "Security alerting and monitoring: ... alert response and remediation/validation" | secplus-triage |
+
+**Sources** carry `checkedAt` 2026-11-14 and say how each was read. Primary
+text: the CompTIA A+ 220-1201 (Version 1.2) and 220-1202 (Version 4.0)
+objectives PDFs, RFC 2131, the Kubernetes documentation as Markdown from
+kubernetes/website at commit 1bee6f03 (Debug Services, Service, Resource
+metrics pipeline, ReplicaSet; kubernetes.io itself did not answer the fetch),
+the Argo CD auto-sync page source, and the CKA Curriculum v1.37 PDF.
+Summarizing fetches: the CompTIA A+ Core 1 and Core 2, and Security+ V7 exam
+pages, Microsoft Learn ipconfig and Microsoft Defender Offline, the Google
+Cloud ACE and Cloud Digital Leader exam guides, and Google Cloud's public
+access prevention, Cloud Audit Logs, uniform bucket-level access, signed URLs,
+Object Lifecycle Management, BigQuery pricing, budgets, custom query quotas,
+partitioned tables and disabling billing pages. Not re-read: the KCNA
+curriculum (the course seed's wording is used), the SY0-701 objectives PDF.
+
+**Findings** (recorded, not worked around; none needed a code fix):
+
+1. **The A+ 220-1200 series does not test the troubleshooting methodology.**
+   The 220-1201 objectives PDF says the methodology "will not be tested" and
+   is a competency standard only, while APLUS_CORE1 has it as an objective (it
+   passes the keyword screen). The Core 1 sim sits on the tested 5.5 objective
+   instead. Whether the course keeps that objective is a course decision.
+2. **Google Cloud now has spend cap budgets.** The budgets page (updated
+   2026-11-10) says alerts-only budgets do not cap spending, and describes
+   spend cap budgets "if supported for your service". The Digital Leader case
+   uses an alerts-only budget and does not offer a spend cap, because the
+   supported services were not read; "budgets never cap spending" is no
+   longer true without that qualifier.
+3. **An effect that should land when a task ends fired when it started.**
+   Effects apply at the tick the action is taken, and the `work` wait only
+   moves the clock, so the first build of the bucket case had the images
+   back at once and two minutes of image outage instead of seventeen. A
+   result that takes the task's time now comes from a trigger at its end
+   (`moveStartAt` + `moveDur`, as the owner's fix in the Digital Leader case
+   does). Earlier cases accept the simplification for short tasks.
+4. **Course tests counted every sim of their course.** `terminal.test.ts`
+   ("two per course") and `security-console.test.ts` (three SECPLUS
+   scenarios) filtered by course code, so any later sim in CKA or SECPLUS
+   broke them. They now check their own requirement's slugs; later waves
+   carry their own test file.
+5. **Bands across certification levels.** The Security+ bands put a CySA+
+   analyst's incident on Security+ objectives, and the CKA band a KCNA
+   outage on a CKA objective. The decisions taught match the objectives, but
+   the level is the base's; a decision for Nick.
