@@ -12,10 +12,13 @@
 //   - ISACA press release, 2026-09-10, "ISACA Updates CISM Exam Content
 //     Outline, Factoring in Today's Technologies, Security Responsibilities"
 //     (https://www.isaca.org/about-us/newsroom/press-releases/2026/isaca-updates-cism-exam-content-outline-factoring-in-todays-technologies-security-responsibilities,
-//     read through a summarizing fetch, not the raw page): the updated exam
-//     is available from 2026-11-03; same four domains; more emphasis on
-//     strategy and program development; enterprise architecture and
-//     information security architecture are new content areas.
+//     first read through a summarizing fetch, then re-read as the raw page
+//     text the same day): the updated exam "will be available on 3 November
+//     2026"; "The four CISM domains will remain the same"; Domain 1 18,
+//     Domain 2 20, Domain 3 33, Domain 4 29 percent (agreeing with the
+//     outline page); "greater emphasis on information security strategy and
+//     program development"; "two new content areas: enterprise architecture
+//     and information security architecture".
 //   - ISACA Certification Exam Candidate Guide (2026 PDF,
 //     https://www.isaca.org/-/media/files/isacadp/project/isaca/certification/exam-candidate-guides/2026/exam-candidate-guide.pdf,
 //     read as text): CISM is 4 hours (240 minutes), 150 multiple-choice

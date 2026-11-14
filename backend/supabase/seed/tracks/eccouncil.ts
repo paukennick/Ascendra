@@ -26,7 +26,8 @@
 //     its review is due in three months (2027-02-14) rather than six, because
 //     a v14 could be announced at any time.
 //   - EC-Council trademark list, https://www.eccouncil.org/legal/trademarks/
-//     (read through a summarizing fetch): "CEH®" and "Certified Ethical
+//     (first read through a summarizing fetch, then re-read as the raw page
+//     text the same day): "CEH®" and "Certified Ethical
 //     Hacker®" are registered trademarks of EC-Council; "no rights or
 //     licenses are granted or implied without EC-Council's prior written
 //     permission". Descriptive title and an independence notice (REQ-194
