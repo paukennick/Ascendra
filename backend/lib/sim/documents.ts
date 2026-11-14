@@ -160,6 +160,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // non-clinical courses on the existing terminal, security console and
   // board screens (docs/sims-coverage-it.md). Keep these entries together. ----
   entry("APLUS_CORE1", "rogue-dhcp-soho-office"),
+  entry("APLUS_CORE2", "home-office-laptop-malware"),
   // ---- end REQ-297 ----
 ];
 

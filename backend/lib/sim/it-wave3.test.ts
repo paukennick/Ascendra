@@ -21,6 +21,7 @@ import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
 // course/slug -> the screen and profile it is built on
 export const WAVE3: readonly { course: string; slug: string; screen: string; profile: string }[] = [
   { course: "APLUS_CORE1", slug: "rogue-dhcp-soho-office", screen: "terminal", profile: "infrastructure" },
+  { course: "APLUS_CORE2", slug: "home-office-laptop-malware", screen: "security-console", profile: "security" },
 ];
 
 const entryOf = (slug: string) => ALL_DOCUMENTS.find((e) => e.slug === slug)!;
@@ -38,7 +39,13 @@ function driver(doc: ScenarioDoc) {
     run,
     act: (action: string, params?: Record<string, string>) => {
       send({ type: "act", action, ...(params ? { params } : {}) });
-      while (readValue(run, "busy") === true && run.state.phase === live && !run.state.ended) {
+      while (run.state.phase === live && !run.state.ended) {
+        // a decision card that opens during the work is answered with its first choice
+        if (run.state.openPrompt) {
+          send({ type: "choose", prompt: run.state.openPrompt, choice: doc.prompts![run.state.openPrompt].choices[0].id });
+          continue;
+        }
+        if (readValue(run, "busy") !== true) break;
         const w = waits(run)[0];
         send({ type: "skip", timer: w.timer, instance: w.instance, to: w.due });
       }
@@ -155,5 +162,47 @@ describe("what each wave 3 case teaches", () => {
     ok.act("fix", { change: "static" });
     while (ok.minutes() < 61) ok.act("watch");
     assert.equal(ok.value("deadlineMissedAt"), null);
+  });
+
+  test("A+ Core 2: a normal-mode scan or old definitions leave the trojan; updating over the network reconnects the laptop and its share", () => {
+    const d = docOf("home-office-laptop-malware");
+    const normal = driver(d);
+    normal.act("quarantine");
+    normal.act("updateDefs", { via: "usb" });
+    normal.act("scan", { kind: "normal" });
+    assert.equal(normal.value("infected"), true);
+    const old = driver(d);
+    old.act("quarantine");
+    old.act("scan", { kind: "offline" });
+    assert.equal(old.value("infected"), true, "month-old definitions miss it");
+    const net = driver(d);
+    net.act("quarantine");
+    net.act("updateDefs", { via: "network" });
+    assert.equal(net.value("connected"), true);
+    assert.equal(net.value("nasMapped"), true);
+    const ok = driver(d);
+    ok.act("quarantine");
+    ok.act("updateDefs", { via: "usb" });
+    ok.act("scan", { kind: "offline" });
+    assert.equal(ok.value("infected"), false);
+    assert.equal(ok.value("connected"), false);
+  });
+
+  test("A+ Core 2: the stealer uploads at 20 minutes only while the laptop is online and infected", () => {
+    const d = docOf("home-office-laptop-malware");
+    const online = driver(d);
+    online.act("investigate");
+    online.act("backup");
+    online.act("disableSr");
+    online.act("educate");
+    assert.ok(online.minutes() >= 20);
+    assert.notEqual(online.value("credsUploadedAt"), null);
+    const off = driver(d);
+    off.act("quarantine");
+    off.act("investigate");
+    off.act("backup");
+    off.act("disableSr");
+    off.act("educate");
+    assert.equal(off.value("credsUploadedAt"), null);
   });
 });
