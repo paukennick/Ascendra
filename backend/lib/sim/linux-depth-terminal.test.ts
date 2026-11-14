@@ -21,6 +21,7 @@ import { backslashEscapeProblems, safetyFamilyOf, secondsUnitProblems } from "./
 import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
 import { LFCS_SIM_OBJECTIVES } from "../../supabase/seed/tracks/linux";
 import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
+import { selectionFor } from "./generator/selection.ts";
 
 const LFCS = ALL_DOCUMENTS.filter((e) => e.course === "LFCS" || e.course === "LINUXFUND");
 // Nick (2026-11-14): sims follow coverage, not a count -- one per objective
@@ -94,7 +95,10 @@ describe("REQ-292: LFCS and Linux Fundamentals terminal cases", () => {
       const titles = new Set(activeUnits(track).flatMap((u) => u.objectives));
       const d = loadDocument(e);
       assert.ok(titles.has(d.objective), d.objective);
-      assert.ok(isPerformanceObjective(d.objective, "general"), d.objective);
+      // A hands-on objective (the labs' screen), or one the sim selection
+      // screen qualifies (Nick's rule, lib/sim/generator/selection.ts).
+      const qualifies = selectionFor({ objective: d.objective, unitTitle: "", unitWeight: null, weightsAreExam: false }).qualifies;
+      assert.ok(isPerformanceObjective(d.objective, "general") || qualifies, d.objective);
       for (const s of d.secondaryObjectives ?? []) assert.ok(titles.has(s), `${e.slug}: ${s}`);
     }
     const objs = LFCS.map((e) => `${e.course}:${loadDocument(e).objective}`);
