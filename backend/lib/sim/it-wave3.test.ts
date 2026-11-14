@@ -30,6 +30,7 @@ export const WAVE3: readonly { course: string; slug: string; screen: string; pro
   { course: "SECPLUS", slug: "alert-triage-lolbin-hunt-secplus", screen: "security-console", profile: "security", kind: "band" },
   { course: "AWSSAA", slug: "waf-login-flood-sqli", screen: "board", profile: "security" },
   { course: "AWSSOA", slug: "rds-update-without-where-pitr", screen: "board", profile: "cloud" },
+  { course: "GCPACE", slug: "cloud-run-bad-revision-rollback", screen: "board", profile: "cloud" },
 ];
 
 const entryOf = (slug: string) => ALL_DOCUMENTS.find((e) => e.slug === slug)!;
@@ -346,5 +347,43 @@ describe("what each wave 3 case teaches", () => {
     swap.act("swap");
     assert.ok((swap.value("lostMin") as number) > 5);
     assert.ok((swap.value("refundsOut") as number) >= 1500, "three runs of 500 in the first 30 minutes");
+  });
+
+  test("GCP ACE: update-traffic to the previous revision stops the errors at once; more instances do not; a rebuild takes 15 minutes", () => {
+    const d = docOf("cloud-run-bad-revision-rollback");
+    const scale = driver(d);
+    scale.act("scaleUp");
+    assert.ok((scale.value("errFrac") as number) > 0.07);
+    const rb = driver(d);
+    rb.act("rollback");
+    assert.equal(rb.value("errFrac"), 0);
+    assert.ok((rb.value("availability") as number) >= 99.9);
+    const re = driver(d);
+    re.act("rebuild");
+    assert.ok((re.value("errFrac") as number) > 0.07, "r42 serves while the build runs");
+    while (re.value("rebuilt") !== true) re.act("watch");
+    assert.equal(re.value("serving"), "r41");
+    assert.ok(re.minutes() >= 15);
+  });
+
+  test("GCP ACE: a fix deployed with all traffic charges the sandbox; with --no-traffic the tag test catches it first", () => {
+    const d = docOf("cloud-run-bad-revision-rollback");
+    const full = driver(d);
+    full.act("rollback");
+    full.act("logs");
+    full.act("deployFix", { mode: "full" });
+    while (full.value("deployed43") !== true) full.act("watch");
+    full.act("watch");
+    assert.equal(full.value("serving"), "r43");
+    assert.ok((full.value("unchargedOrders") as number) > 0);
+    const safe = driver(d);
+    safe.act("rollback");
+    safe.act("logs");
+    safe.act("deployFix", { mode: "noTraffic" });
+    while (safe.value("deployed43") !== true) safe.act("watch");
+    assert.equal(safe.value("serving"), "r41");
+    safe.act("testTag");
+    assert.equal(safe.value("tested43"), true);
+    assert.equal(safe.value("unchargedOrders"), 0);
   });
 });
