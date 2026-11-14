@@ -17432,6 +17432,77 @@
       "prevention_rules": [],
       "prevention_notes": "Adding a table to lib/recheck-stored.ts or lib/recheck-guard.ts means adding its grant and recheck_read policy in the same migration; the recheck-role DB suite fails if it is missing. Run the whole test:db before committing a migration, not only the new table's suite.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1880",
+      "date": "2026-11-14",
+      "title": "Numeric lab part's model answer spelled out its answer",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "labs.test.ts: WAPSYCHJP/wajp-sexual-misconduct-waiting-periods step 1 part 1: the model answer must state the answer (2)",
+      "how_detected": "test (lib/labs.test.ts content rules) while authoring",
+      "root_cause": "The model answer quoted the rule in prose ('a key party for two years'); interactiveProblems requires a numeric part's model answer to state the number as digits so the learner sees the graded value after grading",
+      "requirement": "REQ-287",
+      "affected": [
+        "backend/supabase/seed/labs/wa-psych-jurisprudence.ts"
+      ],
+      "fix_summary": "The model answer states '2 years'; the new labs test pins every Washington numeric answer to the rule it comes from",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts::every lab passes the content rules",
+        "backend/lib/labs-aswb-wajp.test.ts::the Washington numeric answers match the rules as read 2026-11-14"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "lib/lab-interactive.ts interactiveProblems already enforces it; the per-set test now also pins the values to cited rules",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1881",
+      "date": "2026-11-14",
+      "title": "Course test expected a paraphrase the source key value did not use",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "aswb-wajp-course.test.ts: input did not match /no later than 48 hours/",
+      "how_detected": "test while authoring",
+      "root_cause": "The test was written from memory of the statute's wording while the seeded key value quotes RCW 26.44.030(1)(h) as read ('in no case later than 48 hours'); the seed was right and the test wrong",
+      "requirement": "REQ-287",
+      "affected": [
+        "backend/lib/aswb-wajp-course.test.ts"
+      ],
+      "fix_summary": "The test matches the statute's own words",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/aswb-wajp-course.test.ts::key values carry the numbers the labs ask for"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Tests of legal key values match the statute's wording as recorded in the source, not a paraphrase",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1882",
+      "date": "2026-11-14",
+      "title": "Jurisprudence credential's standardRevision overflowed varchar(100) at seed time",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "npm run seed: error: value too long for type character varying(100) after ASWBMASTERS, while seeding the WAPSYCHJP credential exam row",
+      "how_detected": "seed on a throwaway Postgres 16 (migrate --all, seed twice)",
+      "root_cause": "credential_exams.standard_revision and objectives_revision are varchar(100) (migrations 007 and 014) but the blueprint test only checked examCode and examRevision lengths (FAIL-595), so a 117-character standardRevision on a non-exam (regulatory_licensure, no exam code) credential passed every unit test",
+      "requirement": "REQ-287",
+      "affected": [
+        "backend/supabase/seed/tracks/wa-psych-jurisprudence.ts",
+        "backend/lib/catalog-blueprints.test.ts"
+      ],
+      "fix_summary": "Shortened standardName, standardRevision and objectivesRevision; the blueprint test now checks standardRevision and objectivesRevision against 100 and standardName against 255",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-blueprints.test.ts::credential text fits its columns"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every varchar column the seed writes from a credential is now length-checked in the unit test",
+      "recurrence_of": "FAIL-595"
     }
   ]
 }

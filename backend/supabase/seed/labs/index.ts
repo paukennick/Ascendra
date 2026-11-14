@@ -128,6 +128,10 @@ import { APLUS_CORE2_LABS } from "./comptia-aplus-core2";
 import { EPPP_LABS } from "./eppp";
 import { NCE_LABS } from "./nbcc-nce";
 import { NCMHCE_LABS } from "./nbcc-ncmhce";
+// REQ-286: ASWB Clinical and Masters. REQ-287: Washington psychology jurisprudence.
+import { ASWB_CLINICAL_LABS } from "./aswb-clinical";
+import { ASWB_MASTERS_LABS } from "./aswb-masters";
+import { WAPSYCHJP_LABS } from "./wa-psych-jurisprudence";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -255,4 +259,8 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   // REQ-239: NBCC counseling exams.
   NCE_LABS,
   NCMHCE_LABS,
+  // REQ-286, REQ-287.
+  ASWB_CLINICAL_LABS,
+  ASWB_MASTERS_LABS,
+  WAPSYCHJP_LABS,
 ].map(withValueSources);

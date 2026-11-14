@@ -34,6 +34,8 @@ import { REDHAT_TRACKS } from "./tracks/redhat-openshift";
 import { EMS_TRACKS } from "./tracks/ems";
 import { EPPP_TRACKS } from "./tracks/eppp";
 import { NBCC_TRACKS } from "./tracks/nbcc";
+import { ASWB_TRACKS } from "./tracks/aswb";
+import { WA_JP_TRACKS } from "./tracks/wa-psych-jurisprudence";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -75,6 +77,10 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...EPPP_TRACKS,
   // REQ-239: NBCC counseling licensure, NCE and NCMHCE (same category).
   ...NBCC_TRACKS,
+  // REQ-286: ASWB social work licensing exams, Clinical and Masters (same category).
+  ...ASWB_TRACKS,
+  // REQ-287: Washington psychology jurisprudence exam (psychology licensure).
+  ...WA_JP_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the

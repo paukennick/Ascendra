@@ -25,6 +25,12 @@ describe("catalog exam blueprints", () => {
       if ((c.examRevision ?? "").length > 100) long.push(`${t.code} examRevision ${c.examRevision!.length}`);
       if ((c.examCode ?? "").length > 100) long.push(`${t.code} examCode`);
       if ((c.credentialType ?? "").length > 80) long.push(`${t.code} credentialType`);
+      // FAIL-1882 (REQ-287): standard_revision and objectives_revision are
+      // varchar(100) and standard_name varchar(255) (migrations 007, 014);
+      // a 117-character standardRevision failed only at seed time.
+      if ((c.standardRevision ?? "").length > 100) long.push(`${t.code} standardRevision ${c.standardRevision!.length}`);
+      if ((c.objectivesRevision ?? "").length > 100) long.push(`${t.code} objectivesRevision ${c.objectivesRevision!.length}`);
+      if ((c.standardName ?? "").length > 255) long.push(`${t.code} standardName ${c.standardName!.length}`);
     }
     assert.deepEqual(long, []);
   });

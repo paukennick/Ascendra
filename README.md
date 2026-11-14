@@ -26,7 +26,7 @@ Ascendra runs on iPhone, Android and the web.
 
 ## Who it's for
 
-Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **118 courses**:
+Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **121 courses**:
 
 - **IT and cloud (65):** 18 CompTIA, 15 Kubernetes and CNCF, 11 AWS, 11 Google Cloud and 10 Microsoft Azure certifications
 - **Physical therapy (14):** NPTE-PT, NPTE-PTA, the DPT pathway, the ABPTS specialist certifications and a PT school prerequisites refresher
@@ -35,7 +35,7 @@ Learners preparing for a specific exam who want to know whether they're actually
 - **Fitness (6):** NASM, ACE, ACSM, NSCA (CPT and CSCS) and NCCPT personal trainer certifications
 - **Emergency medical services (4):** NREMT Emergency Medical Responder, EMT, Advanced EMT and Paramedic
 - **Software development (4):** Python, JavaScript, Computer Science Degree Foundations and MSCS foundations
-- **Mental health (3):** the EPPP (psychology licensure) and the NCE and NCMHCE (counselor licensure), behind a one-time 18+ confirmation
+- **Mental health (6):** the EPPP and the Washington psychology jurisprudence exam (psychology licensure), the NCE and NCMHCE (counselor licensure), and the ASWB Clinical and Masters exams (social work licensure), each behind its own 18+ acknowledgment
 
 Exam-prep courses are named "Prep for the <official exam name> Exam"; Ascendra is not the exam body. Certification courses carry the exam's own domain weights, so you spend your time where the exam does.
 
