@@ -166,6 +166,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("LFCS", "service-no-restart-after-update"),
   entry("LINUXFUND", "shared-folder-permission-denied"),
   entry("LINUXFUND", "web-service-fails-after-edit"),
+  entry("LINUXFUND", "nightly-backup-missing"),
   // ---- end REQ-292 ----
 ];
 

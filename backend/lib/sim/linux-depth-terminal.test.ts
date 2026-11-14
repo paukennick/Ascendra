@@ -34,6 +34,7 @@ const EXPECTED = [
   "LFCS/service-no-restart-after-update",
   "LINUXFUND/shared-folder-permission-denied",
   "LINUXFUND/web-service-fails-after-edit",
+  "LINUXFUND/nightly-backup-missing",
 ];
 const docOf = (slug: string): ScenarioDoc => loadDocument(LFCS.find((e) => e.slug === slug)!);
 
@@ -286,6 +287,25 @@ describe("REQ-292: LFCS and Linux Fundamentals terminal cases", () => {
     v.act("daemonReload");
     assert.equal(v.value("policyLoaded"), true);
     assert.equal(v.value("durable"), false, "the vendor file is replaced by the next update");
+  });
+
+  test("journal: this boot's errors do not show a run before the reboot; unmounted, /mnt/backup is the root filesystem; the backup takes its 20 minutes", () => {
+    const a = driver(docOf("nightly-backup-missing"));
+    a.act("bootErr");
+    assert.equal(a.value("evidenceAt"), null);
+    a.act("prevErr");
+    assert.notEqual(a.value("evidenceAt"), null);
+    a.act("rsyncManual");
+    assert.equal(a.value("rootFilled"), true);
+    const b = driver(docOf("nightly-backup-missing"));
+    b.act("mount");
+    assert.equal(b.value("mounted"), false, "the old password is refused");
+    b.act("fixCred");
+    b.act("mount");
+    b.act("startBackup");
+    assert.equal(b.value("backupDone"), false, "still copying");
+    for (let i = 0; i < 4; i++) b.act("watch");
+    assert.equal(b.value("backupDone"), true);
   });
 
   test("no lint error on any of these documents", () => {
