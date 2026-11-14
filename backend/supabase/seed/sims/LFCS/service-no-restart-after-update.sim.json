@@ -609,16 +609,21 @@
           ]
         },
         {
-          "set": "policyIn",
-          "to": "\"usr\""
-        },
-        {
-          "set": "pendingReload",
-          "to": "true"
-        },
-        {
-          "set": "policyLoaded",
-          "to": "false"
+          "if": "policyIn != \"etc\"",
+          "then": [
+            {
+              "set": "policyIn",
+              "to": "\"usr\""
+            },
+            {
+              "set": "pendingReload",
+              "to": "true"
+            },
+            {
+              "set": "policyLoaded",
+              "to": "false"
+            }
+          ]
         },
         {
           "output": "root@billing1:~# sed -i '/^ExecStart=/a Restart=on-failure' /usr/lib/systemd/system/invoicer.service"

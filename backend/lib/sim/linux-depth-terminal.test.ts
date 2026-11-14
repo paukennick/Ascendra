@@ -280,7 +280,12 @@ describe("REQ-292: LFCS and Linux Fundamentals terminal cases", () => {
     assert.equal(b.value("durable"), true);
     b.act("editVendor");
     b.act("daemonReload");
-    assert.equal(b.value("durable"), false, "the vendor file is replaced by the next update");
+    assert.equal(b.value("durable"), true, "the drop-in in /etc still wins over the vendor file");
+    const v = driver(docOf("service-no-restart-after-update"));
+    v.act("editVendor");
+    v.act("daemonReload");
+    assert.equal(v.value("policyLoaded"), true);
+    assert.equal(v.value("durable"), false, "the vendor file is replaced by the next update");
   });
 
   test("no lint error on any of these documents", () => {
