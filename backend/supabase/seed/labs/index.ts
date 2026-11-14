@@ -4,6 +4,7 @@ import type { SeedLabSet } from "./types";
 import { PYAUTO_LABS } from "./python-automation";
 import { PYDATA_LABS } from "./python-data";
 import { LINUXFUND_LABS } from "./linux-fundamentals";
+import { LFCS_LABS } from "./lf-lfcs";
 import { AWSSAA_LABS } from "./awssaa";
 import { PMP_LABS } from "./pmp";
 import { NCLEXRN_LABS } from "./nclexrn";
@@ -263,4 +264,5 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   PYAUTO_LABS,
   PYDATA_LABS,
   LINUXFUND_LABS,
+  LFCS_LABS,
 ].map(withValueSources);
