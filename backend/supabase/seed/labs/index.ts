@@ -88,6 +88,7 @@ import { SQL_LABS } from "./dev-sql";
 import { TSNODE_LABS } from "./dev-tsnode";
 import { PL300_LABS } from "./microsoft-pl300";
 import { SC500_LABS } from "./microsoft-sc500";
+import { AI200_LABS } from "./microsoft-ai200";
 import { MSHI_LABS } from "./informatics-mshi";
 import { MSCS_LABS } from "./academic-mscs";
 import { CMPCBS_LABS } from "./academic-cmpcbs";
@@ -269,4 +270,5 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   TSNODE_LABS,
   PL300_LABS,
   SC500_LABS,
+  AI200_LABS,
 ].map(withValueSources);
