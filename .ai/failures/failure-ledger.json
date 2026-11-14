@@ -17432,6 +17432,29 @@
       "prevention_rules": [],
       "prevention_notes": "Adding a table to lib/recheck-stored.ts or lib/recheck-guard.ts means adding its grant and recheck_read policy in the same migration; the recheck-role DB suite fails if it is missing. Run the whole test:db before committing a migration, not only the new table's suite.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1800",
+      "date": "2026-11-14",
+      "title": "azure.ts said AZ-204 and AZ-500 retired with no active replacement",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "tracks/azure.ts header: AZ-204, AZ-500, DP-100 and AI-102 'all four retired with no active replacement exam as of this pass', so neither the developer nor the security engineer role had a Microsoft course",
+      "how_detected": "Status check before building (Nick's brief 2026-11-14), reading the Skills Hub post linked from both retired certification pages",
+      "root_cause": "The 2026-09-18 pass recorded the retirements from the certification pages but not Microsoft's announcement that names replacements (AI-200, SC-500, AI-300, AI-103, live from mid-2026); the claim was never re-checked, and the comment steered later builders away from the role",
+      "requirement": "REQ-268",
+      "affected": [
+        "backend/supabase/seed/tracks/azure.ts"
+      ],
+      "fix_summary": "Header names the replacements and where they are built; SC-500 and AI-200 courses added (tracks/microsoft-2026.ts)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/tech-courses-req264.test.ts::FAIL-1800: AZ-500 and AZ-204 retired WITH replacements"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A retirement note in a seed header names the replacement the vendor announces, or says the vendor names none with the page read; the regression test pins the corrected header and the replacement courses",
+      "recurrence_of": ""
     }
   ]
 }

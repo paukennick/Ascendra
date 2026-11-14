@@ -706,6 +706,33 @@ blueprints take effect 2027-07-01, so both outlines are rechecked by
 2027-04-01. All 24 are `needs_expert_review` until a licensed professional
 counselor approves them.
 
+### New technology courses (REQ-264 to REQ-268)
+
+| Course | Labs | Per unit (d) | Outline or reference |
+|---|---|---|---|
+| PCEP | 11 (all build) | 2/2/3/2/2 | [PCEP-30-03 syllabus](https://pythoninstitute.org/pcep-exam-syllabus) (read 2026-11-14) |
+| PCAP | 12 (11 build, 1 case) | 2/2/1/3/2/2 | [PCAP-31-04 syllabus](https://pythoninstitute.org/pcap-exam-syllabus) (read 2026-11-14) |
+| SQL | 14 (13 build, 1 case) | 2/2/2/2/2/2/1/1 | [PostgreSQL 18 documentation](https://www.postgresql.org/docs/current/) (read 2026-11-14) |
+| TSNODE | 13 (all build) | 2/2/2/2/2/2/1 | [TypeScript handbook](https://www.typescriptlang.org/docs/handbook/intro.html), [Node.js API](https://nodejs.org/api/) (read 2026-11-14) |
+| PL300 | 10 (9 build, 1 case) | 3/3/2/2 | [PL-300 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/pl-300) (read 2026-11-14) |
+| SC500 | 10 (9 build, 1 case) | 3/3/2/2 | [SC-500 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-500) (read 2026-11-14) |
+| AI200 | 10 (all build) | 3/3/2/2 | [AI-200 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ai-200) (read 2026-11-14) |
+
+Files `seed/labs/python-pcep.ts`, `python-pcap.ts`, `dev-sql.ts`,
+`dev-tsnode.ts`, `microsoft-pl300.ts`, `microsoft-sc500.ts` and
+`microsoft-ai200.ts`, checked by `lib/tech-courses-req264.test.ts` (hybrid
+density unit by unit, one lab per objective, dated sources, fictional
+organizations). SQL and TSNODE have no weights, so the six extras split
+evenly. How the code in them was checked, on 2026-11-14: Python snippets on
+CPython 3.13.18; SQL on a throwaway PostgreSQL 16.15 server (nothing relies
+on a 17/18-only feature); TypeScript with tsc 5.5.4 `--strict` and Node.js
+22.23.4 type stripping (TypeScript 7 and Node.js 26 were not installed on the
+shared machine, so their behavior comes from their documentation). DAX, KQL,
+pgvector SQL and Azure configuration were not executed; each uses only
+functions, operators and settings whose Microsoft Learn pages were read that
+day. SC-500 and AI-200 replace AZ-500 and AZ-204, which Microsoft retired on
+2026-08-31 and 2026-07-31. All 80 are `needs_expert_review`.
+
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as
