@@ -293,7 +293,7 @@ export const SQL_LABS: SeedLabSet = {
       kind: "build",
       title: "List everyone under a manager with WITH RECURSIVE",
       brief:
-        "Halyard Logistics (fictional) stores staff(id, name, manager_id):\n\n1 Rivera NULL\n2 Okoye 1\n3 Lind 1\n4 Park 2\n5 Haas 4\n6 Mendez 3\n\nHR needs Okoye and everyone who reports to Okoye at any depth, with the depth below Okoye.",
+        "Halyard Logistics (fictional) stores staff(id, name, manager_id):\n\n1 Rivera NULL\n2 Okoye 1\n3 Lind 1\n4 Park 2\n5 Haas 4\n6 Mendez 3\n7 Ng 5\n\nHR needs Okoye and everyone who reports to Okoye at any depth, with the depth below Okoye.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -307,14 +307,14 @@ export const SQL_LABS: SeedLabSet = {
             ),
             orderPart(
               "Rows, in depth order",
-              "Okoye 0, Park 1, Haas 2.",
-              "Okoye 0, Park 1, Haas 2. Lind and Mendez report through Rivera's other branch, so they are not included.",
-              ["Okoye (0)", "Park (1)", "Haas (2)", "(no more rows)"]
+              "Okoye 0, Park 1, Haas 2, Ng 3.",
+              "Okoye 0, Park 1, Haas 2, Ng 3. Lind and Mendez report through Rivera's other branch, so they are not included.",
+              ["Okoye (0)", "Park (1)", "Haas (2)", "Ng (3)"]
             ),
             part(
               "How it stops",
-              "Each pass joins only the rows added by the previous pass; when a pass adds no rows (Haas manages nobody) the recursion ends. A cycle in the data would loop forever with UNION ALL, so add a depth limit or use UNION/a CYCLE clause.",
-              "The recursive term sees only the rows from the previous iteration. After Haas, no staff row has manager_id 5, the iteration returns nothing and the query ends. If the data had a cycle, UNION ALL would never stop; guard with WHERE depth < 20, UNION, or the standard CYCLE clause."
+              "Each pass joins only the rows added by the previous pass; when a pass adds no rows (Ng manages nobody) the recursion ends. A cycle in the data would loop forever with UNION ALL, so add a depth limit or use UNION/a CYCLE clause.",
+              "The recursive term sees only the rows from the previous iteration. After Ng, no staff row has manager_id 7, the iteration returns nothing and the query ends. If the data had a cycle, UNION ALL would never stop; guard with WHERE depth < 20, UNION, or the standard CYCLE clause."
             ),
           ],
         },
