@@ -8,6 +8,50 @@
   "slug": "service-selector-no-endpoints-cka",
   "patch": {
     "objective": "Troubleshoot services and networking: a Service with no endpoints, selector and port mismatches, CoreDNS failures, NetworkPolicy blocks and a missing CNI",
-    "secondaryObjectives": []
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "CNCF CKA Curriculum v1.37 (cncf/curriculum, pinned commit 0a8cc08a): Troubleshooting 30%, Cluster Architecture, Installation and Configuration 25%, Services and Networking 20%, Workloads and Scheduling 15%, Storage 10%",
+        "checkedAt": "2026-11-14",
+        "url": "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKA_Curriculum_v1.37.pdf",
+        "note": "Read in primary text (the PDF) on 2026-11-14 for this CKA band of the KCNA outage. Relevant text under Troubleshooting (30%): 'Troubleshoot services and networking'. The longer objective wording is the CKA course seed's."
+      },
+      {
+        "cite": "CNCF KCNA Curriculum (cncf/curriculum, pinned commit 0a8cc08a) and the Linux Foundation KCNA exam page",
+        "checkedAt": "2026-11-14",
+        "url": "https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate/",
+        "note": "The course's own outline sources (the catalog's curriculum PDF and exam page). This case was written against the course objective titles as the KCNA course seed records them; neither page was re-read for this case on 2026-11-14, so the outline wording is the seed's."
+      },
+      {
+        "cite": "Kubernetes documentation, Debug Services: 'Does the Service have any EndpointSlices?'",
+        "checkedAt": "2026-11-14",
+        "url": "https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/",
+        "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14 (the kubernetes.io page itself did not answer the fetch). Relevant text: 'Inside the Kubernetes system is a control loop which evaluates the selector of every Service and saves the results into one or more EndpointSlice objects'; 'If the ENDPOINTS column is <none>, you should check that the spec.selector field of your Service actually selects for metadata.labels values on your Pods. A common mistake is to have a typo or other error'."
+      },
+      {
+        "cite": "Kubernetes documentation, Service",
+        "checkedAt": "2026-11-14",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/service/",
+        "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14. Relevant text: 'The controller for that Service continuously scans for Pods that match its selector, and then makes any necessary updates to the set of EndpointSlices for the Service.'"
+      },
+      {
+        "cite": "Kubernetes documentation, Resource metrics pipeline",
+        "checkedAt": "2026-11-14",
+        "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/",
+        "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14. Relevant text: HPA and VPA 'use data from the metrics API'; 'You can also view the resource metrics using the kubectl top command'; 'The Metrics API, and the metrics pipeline that it enables, only offers the minimum CPU and memory metrics to enable automatic scaling'."
+      },
+      {
+        "cite": "Argo CD documentation, Automated Sync Policy (argoproj/argo-cd master, docs/user-guide/auto_sync.md)",
+        "checkedAt": "2026-11-14",
+        "url": "https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/",
+        "note": "Read in primary text from the repository source on 2026-11-14. Relevant text: with 'selfHeal: true' Argo CD syncs 'when the live cluster's state deviates from the state defined in Git'; 'The automatic sync interval is determined by the timeout.reconciliation value in the argocd-cm ConfigMap, which defaults to 120s with added jitter of 60s for a maximum period of 3 minutes.' How soon self-heal reverts a live edit is not stated as a number there; the scenario's 3 minutes is the author's."
+      },
+      {
+        "cite": "Kubernetes documentation, ReplicaSet: Isolating Pods from a ReplicaSet",
+        "checkedAt": "2026-11-14",
+        "url": "https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/",
+        "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14. Relevant text: 'You can remove Pods from a ReplicaSet by changing their labels... Pods that are removed in this way will be replaced automatically'."
+      }
+    ]
   }
 }

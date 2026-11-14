@@ -26,6 +26,8 @@ export const WAVE3: readonly { course: string; slug: string; screen: string; pro
   { course: "CKA", slug: "service-selector-no-endpoints-cka", screen: "terminal", profile: "infrastructure", kind: "band" },
   { course: "GCPACE", slug: "public-bucket-customer-exports", screen: "board", profile: "security" },
   { course: "GCPCDL", slug: "bigquery-dashboard-bill", screen: "board", profile: "cloud" },
+  { course: "SECPLUS", slug: "vuln-prioritization-kev-edge-secplus", screen: "security-console", profile: "security", kind: "band" },
+  { course: "SECPLUS", slug: "alert-triage-lolbin-hunt-secplus", screen: "security-console", profile: "security", kind: "band" },
 ];
 
 const entryOf = (slug: string) => ALL_DOCUMENTS.find((e) => e.slug === slug)!;
@@ -84,7 +86,9 @@ describe("IT sims wave 3 (REQ-297)", () => {
       assert.ok(d.scoring.kpis.length >= 2 && d.scoring.expertPath.length >= 3, w.slug);
       assert.deepEqual(secondsUnitProblems(d), [], w.slug);
       assert.deepEqual(backslashEscapeProblems(d), [], w.slug);
-      assert.ok(d.sources.length >= 2 && d.sources.every((s) => s.checkedAt === "2026-11-14"), `${w.slug}: sources dated`);
+      // a band keeps its base's dated sources and adds its own course's outline, read for this wave
+      if (w.kind === "band") assert.equal(d.sources[0].checkedAt, "2026-11-14", `${w.slug}: band outline dated`);
+      else assert.ok(d.sources.length >= 2 && d.sources.every((s) => s.checkedAt === "2026-11-14"), `${w.slug}: sources dated`);
       assert.ok(Object.keys(d.reasoning).length === 1, `${w.slug}: one reasoning moment`);
     }
   });
@@ -121,12 +125,13 @@ describe("IT sims wave 3 (REQ-297)", () => {
     }
   });
 
-  test("no lint error; commands are bounded; nothing moves without an action; the client document drops the rubric", () => {
+  test("no lint error; terminal commands are bounded; nothing moves without an action; the client document drops the rubric", () => {
     for (const w of WAVE3) {
       const d = docOf(w.slug);
       const errs = lintScenario(d, { now: "2026-11-14", safetyFamily: "general" }).filter((p) => p.level === "error");
       assert.deepEqual(errs, [], w.slug);
-      for (const id of d.phases[d.initialPhase].actions) for (const p of d.actions[id].params ?? []) assert.equal(p.kind, "choice", `${w.slug}.${id}`);
+      // on the terminal every command's arguments are a bounded list (22.10)
+      if (w.screen === "terminal") for (const id of d.phases[d.initialPhase].actions) for (const p of d.actions[id].params ?? []) assert.equal(p.kind, "choice", `${w.slug}.${id}`);
       const r = driver(d);
       assert.equal(waits(r.run).length, 0, `${w.slug}: no wait pending at the start`);
       const c = clientDocument(d) as unknown as Record<string, any>;

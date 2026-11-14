@@ -165,6 +165,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("CKA", "service-selector-no-endpoints-cka"),
   entry("GCPACE", "public-bucket-customer-exports"),
   entry("GCPCDL", "bigquery-dashboard-bill"),
+  band("SECPLUS", "vuln-prioritization-kev-edge-secplus"),
+  band("SECPLUS", "alert-triage-lolbin-hunt-secplus"),
   // ---- end REQ-297 ----
 ];
 
