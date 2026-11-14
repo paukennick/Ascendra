@@ -39,6 +39,9 @@ import { LINUX_DEPTH_TRACKS } from "./tracks/linux";
 import { PYTHON_INSTITUTE_TRACKS } from "./tracks/python-institute";
 import { DEV_LANGUAGE_TRACKS } from "./tracks/dev-languages";
 import { MICROSOFT_2026_TRACKS } from "./tracks/microsoft-2026";
+import { ISC2_TRACKS } from "./tracks/isc2";
+import { ISACA_TRACKS } from "./tracks/isaca";
+import { ECCOUNCIL_TRACKS } from "./tracks/eccouncil";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -90,6 +93,11 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...PYTHON_INSTITUTE_TRACKS,
   ...DEV_LANGUAGE_TRACKS,
   ...MICROSOFT_2026_TRACKS,
+  // REQ-270..274: ISC2 (CC, CISSP), ISACA (CISM) and EC-Council (CEH)
+  // security certifications, under IT & Software > IT Certifications.
+  ...ISC2_TRACKS,
+  ...ISACA_TRACKS,
+  ...ECCOUNCIL_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the

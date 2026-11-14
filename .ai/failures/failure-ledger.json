@@ -17641,6 +17641,81 @@
       "prevention_rules": [],
       "prevention_notes": "A retirement note in a seed header names the replacement the vendor announces, or says the vendor names none with the page read; the regression test pins the corrected header and the replacement courses",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1820",
+      "date": "2026-11-14",
+      "title": "CEH format text quoted EC-Council's 'ECC Exam Centre' and failed the US English check",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/us-spelling.test.ts: 'backend/supabase/seed/tracks/eccouncil.ts: Centre -> Center' (twice) in the CEH questionFormat and format key value.",
+      "how_detected": "backend unit test (us-spelling) before commit",
+      "root_cause": "The vendor's proper name for its delivery channel uses British spelling; copying a vendor's wording into learner-facing text brings its spelling with it, and the allowed-names list in lib/us-spelling.ts does not hold it.",
+      "requirement": "REQ-273",
+      "affected": [
+        "backend/supabase/seed/tracks/eccouncil.ts"
+      ],
+      "fix_summary": "Described the channel instead of quoting the name ('EC-Council's own exam portal with remote proctoring'), so no shared allow-list change was needed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/us-spelling.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When a body's proper name has British spelling, describe it in our own words or add the name to the allowed proper names in lib/us-spelling.ts with a reason; the spelling test runs over every seed string.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1821",
+      "date": "2026-11-14",
+      "title": "Two CEH case labs had a later step with no new information (empty step text)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/labs.test.ts content rules: 'CEH/ceh-mobile-mdm: step 2 text is missing' and the same for ceh-ot-countermeasures.",
+      "how_detected": "backend unit test (labs.test.ts) before commit",
+      "root_cause": "A case lab's later step must reveal new information (lab-content.ts requires 10+ characters of step text on every case step); the second step was authored as a follow-up question only, as a build lab's single step is.",
+      "requirement": "REQ-273",
+      "affected": [
+        "backend/supabase/seed/labs/eccouncil-ceh.ts"
+      ],
+      "fix_summary": "Each second step now states what changed (the director's condition on personal data; the manager's agreement and constraint).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts::every lab passes the content rules",
+        "names a real active objective of its track",
+        "and has a unique slug"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "labContentProblems already refuses it; authors of case labs give every step after the first a sentence of new information.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1822",
+      "date": "2026-11-14",
+      "title": "CISSP objectivesRevision was 104 characters for a varchar(100) column; only the seed caught it",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "npm run seed on a fresh database: 'value too long for type character varying(100)' right after ISC2CC, while writing the CISSP credential_exams row; every unit test had passed.",
+      "how_detected": "seeding a throwaway Postgres 16 under /dev/shm (verify-common.md)",
+      "root_cause": "The blueprint test (FAIL-595) checks the length of examRevision, examCode and credentialType only; objectives_revision and standard_revision are also varchar(100) (migration 007), and the CISSP objectivesRevision listed every heading range (104 characters).",
+      "requirement": "REQ-271",
+      "affected": [
+        "backend/supabase/seed/tracks/isc2.ts",
+        "backend/lib/catalog-blueprints.test.ts"
+      ],
+      "fix_summary": "Shortened the CISSP objectivesRevision; the blueprint test now also checks objectives_revision, standard_revision, standard_name and the provider and credential slug and name lengths against their columns.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-blueprints.test.ts::credential text fits its columns (migration 007: exam_code",
+        "exam_revision",
+        "objectives_revision and standard_revision varchar(100)",
+        "credential_type varchar(80))"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every credential text field the seed writes to a varchar column is checked against its width in the unit test, so it fails before seed time.",
+      "recurrence_of": "FAIL-595"
     }
   ]
 }

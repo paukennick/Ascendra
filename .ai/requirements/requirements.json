@@ -10291,6 +10291,148 @@
         "SC-500 study guide has no change log or skills-measured date so changes must be spotted by re-reading",
         "A parallel security builder may also plan SC-500"
       ]
+    },
+    {
+      "id": "REQ-270",
+      "category": "content",
+      "title": "Security certification wave beyond CompTIA: ISC2, ISACA and EC-Council courses",
+      "description": "Nick 2026-11-14: build ISC2 CC, ISC2 CISSP, ISACA CISM and EC-Council CEH courses to the standard of the CompTIA security courses and the NBCC model PR (#154), verifying each current exam outline on the certifying body's site first. Shared decisions: the four courses sit under IT & Software > IT Certifications (migration 007, it_cloud plan), no migration; titles follow the descriptive 'Prep for the ... Exam' pattern (REQ-194) with each body's registered symbol and an independence notice; whether that use is acceptable under ISC2's, ISACA's and EC-Council's trademark statements (read 2026-11-14) is a decision for Nick.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/tracks/isc2.ts",
+        "backend/supabase/seed/tracks/isaca.ts",
+        "backend/supabase/seed/tracks/eccouncil.ts",
+        "backend/lib/security-certs-course.test.ts",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "four courses in the catalog once each under it-certifications",
+        "descriptive titles with independence notices",
+        "sourceVerifiedAt only after the outlines were read and compared"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "README.md",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "trademark use of ISC2/ISACA/EC-Council marks needs Nick's decision",
+        "CISSP outline changes 2027-04-15"
+      ]
+    },
+    {
+      "id": "REQ-271",
+      "category": "content",
+      "title": "ISC2 CC and CISSP courses and labs",
+      "description": "Prep for the ISC2 Certified in Cybersecurity (CC) Exam on the outline effective 2026-09-01 (five domains 24/17.3/20/21.3/17.3 as printed, adding to 99.9; CAT 100-125 items, 2 hours, 700/1000) and Prep for the CISSP Exam on the outline effective 2024-04-15 (eight domains 16/10/13/13/13/12/13/10; CAT 100-150 items, 3 hours, 700/1000; 25 pretest items; 95% confidence rule; no item review; retake 30/60/90 days), both read 2026-11-14 on isc2.org with the CAT FAQ. Every unit carries ISC2's numbered headings as outline statements and the format key values; every numbered heading maps to an objective. CISSP is reviewed by 2027-01-15, before ISC2's new outline of 2027-04-15 (read; not yet taught). Labs: CC 11, CISSP 14 by the hybrid plan.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/isc2.ts",
+        "backend/supabase/seed/labs/isc2-cc.ts",
+        "backend/supabase/seed/labs/isc2-cissp.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/security-certs-course.test.ts",
+        "backend/lib/labs-security-certs.test.ts"
+      ],
+      "acceptance_criteria": [
+        "CC and CISSP weights as published",
+        "outline headings on every unit",
+        "CISSP review due before 2027-04-15",
+        "hybrid lab density"
+      ],
+      "validation_required": [
+        "backend npm test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-272",
+      "category": "content",
+      "title": "ISACA CISM course and labs",
+      "description": "Prep for the CISM Exam on the content outline ISACA uses from 2026-11-03 (four domains 18/20/33/29, replacing 2022's 17/20/33/30; enterprise architecture and information security architecture new), 150 questions in 4 hours, scaled 200-800 with 450 passing (ISACA 2026 exam candidate guide), read 2026-11-14. Units carry ISACA's A/B subtopic headings and the supporting tasks (assigned to domains by our judgment). 10 labs by the hybrid plan, manager's view.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/isaca.ts",
+        "backend/supabase/seed/labs/isaca-cism.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/security-certs-course.test.ts",
+        "backend/lib/labs-security-certs.test.ts"
+      ],
+      "acceptance_criteria": [
+        "CISM weights 18/20/33/29",
+        "outline headings on every unit",
+        "hybrid lab density"
+      ],
+      "validation_required": [
+        "backend npm test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-273",
+      "category": "content",
+      "title": "EC-Council CEH course and labs",
+      "description": "Prep for the CEH Exam: 312-50, CEH v13, Exam Blueprint v5.0 (nine domains 6/17/15/24/14/5/10/5/5 as printed, adding to 101; 125 questions; 4 hours; cut score 60-85% by form), read 2026-11-14 on cert.eccouncil.org and eccouncil.org. Units carry the blueprint's sub-domain headings and question counts. Reviewed by 2027-02-14 because EC-Council releases a version every 12-18 months. 15 labs by the hybrid plan, PenTest+ framing: authorized engagements or the learner's own lab, recognition and countermeasures only, no payloads or tool invocations (tested).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/eccouncil.ts",
+        "backend/supabase/seed/labs/eccouncil-ceh.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/security-certs-course.test.ts",
+        "backend/lib/labs-security-certs.test.ts"
+      ],
+      "acceptance_criteria": [
+        "CEH weights as printed with the note",
+        "question counts total 125",
+        "no payloads in labs",
+        "hybrid lab density"
+      ],
+      "validation_required": [
+        "backend npm test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-274",
+      "category": "content",
+      "title": "Security-console flagship sims for CC, CISSP, CISM and CEH",
+      "description": "Two flagship sims per course on the existing security-console@1 screen (docs/sims.md 22.7, 22.11 pattern: learner-paced turns, outcome profile security, endingOrder, six golden paths). Not built in the REQ-270 wave (time went to four courses and 50 labs); candidates: CC alert triage of a compromised mailbox and a joiner-mover-leaver access cleanup; CISSP ransomware with a DR site decision (RTO vs cost) and a federation/IAM incident; CISM a supplier breach run as the security manager (notification, containment vs business impact) and an exception that turns into an incident; CEH an authorized engagement that finds a real attacker's web shell (stop and report) and a scope-boundary decision on a shared host. Each needs an exact catalog objective that passes isPerformanceObjective.",
+      "priority": "medium",
+      "status": "proposed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "doctor",
+        "validate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }

@@ -200,6 +200,16 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AI200", "ai200-containerapp-keyvault-revision"),
   entry("AI200", "ai200-kql-checkout-latency"),
   // ---- end REQ-269 ----
+  // ---- REQ-274: security-console incidents for the non-CompTIA security
+  // courses (ISC2 CC, CISSP, ISACA CISM, EC-Council CEH; coverage table in
+  // docs/sims.md 22.16). Keep these entries together. ----
+  entry("ISC2CC", "cc-triage-phish-correlation"),
+  entry("ISC2CC", "cc-leaver-account-still-active"),
+  entry("CISSP", "cissp-web-tier-data-theft"),
+  entry("CISSP", "cissp-ransomware-recovery-site"),
+  entry("CISM", "cism-payroll-supplier-breach"),
+  entry("CISM", "cism-checkout-skimmer-containment"),
+  // ---- end REQ-274 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
