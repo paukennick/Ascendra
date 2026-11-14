@@ -124,7 +124,7 @@ below).
 | Web: httpOnly cookie `ascendra_rt` set by the server (REQ-192, `lib/auth/refreshCookie.ts`) | sign-in token, unreadable by page scripts | a browser-session cookie with no Max-Age: cleared when the browser closes. The web app keeps no token in `sessionStorage` or `localStorage` (an older one found there is moved into the cookie once) |
 | Web: `localStorage` | lock markers (`autoLock.ts`) | when the page locks after time away |
 
-No analytics, advertising or tracking cookies, in-app crash reporting or advertising identifiers; the one cookie is the sign-in cookie above (server-side error reports: see Sentry below). REQ-261 (2026-11-14): the web app also loads Vercel's cookieless Web Analytics and Speed Insights; they set no cookie and, as the app calls them, write nothing to `localStorage` or `sessionStorage` (see "Website analytics" below). The mobile app has no analytics. The Cookies page (`mobile/src/content/legal.ts`) still says the web token is in session storage: that text is waiting for Nick (REQ-228).
+No analytics, advertising or tracking cookies, in-app crash reporting or advertising identifiers; the one cookie is the sign-in cookie above (server-side error reports: see Sentry below). REQ-261 (2026-11-14): the web app also loads Vercel's cookieless Web Analytics and Speed Insights; they set no cookie and, as the app calls them, write nothing to `localStorage` or `sessionStorage` (see "Website analytics" below). The mobile app has no analytics. The Cookies page and Privacy §9 describe the sign-in cookie since the 2026-11-14 version (Nick, Nov 14; REQ-228 closed).
 
 ## Outside services (processors)
 

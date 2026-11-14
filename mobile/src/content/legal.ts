@@ -318,7 +318,7 @@ export const PRIVACY: LegalDoc = {
     {
       title: "9. Security",
       body: [
-        "Passwords and backup codes are hashed and two-factor secrets are encrypted. In the app, sign-in tokens are kept in your device's secure storage; on the web, in browser storage that is cleared when you close the browser. The database's public data interface is switched off, so it can only be reached with our server's private credentials. No system is perfectly secure; if a breach affects your data, we will tell you as the law requires.",
+        "Passwords and backup codes are hashed and two-factor secrets are encrypted. In the app, sign-in tokens are kept in your device's secure storage; on the web, in a sign-in cookie that the page's scripts can't read and that your browser deletes when you close it. The database's public data interface is switched off, so it can only be reached with our server's private credentials. No system is perfectly secure; if a breach affects your data, we will tell you as the law requires.",
       ],
     },
     {
@@ -341,8 +341,8 @@ export const COOKIES: LegalDoc = {
       body: [
         "Ascendra uses no advertising or tracking cookies. To keep you signed in it stores:",
         "• In the mobile app: your sign-in token, kept in the operating system's secure storage (iOS Keychain or Android Keystore). If you turn on biometric unlock, a second copy of the token that your device only releases after a fingerprint, face or passcode check, plus a setting that remembers you turned it on.",
-        "• On the web: your sign-in token in the browser's session storage, which the browser clears when you close it.",
-        "It also keeps your own study work in progress on the device, so nothing is lost if the app closes: unsent answer drafts, your place in a lesson or scenario, and your study reminder settings. Drafts and reminder settings stay on the device; your place in a lesson is also saved to your account so it follows you to another device. Signing out removes all of it from the device.",
+        "• On the web: one cookie, `ascendra_rt`, holding your sign-in token. The page's scripts can't read it, your browser sends it only to our sign-in address, and the browser deletes it when you close it.",
+        "It also keeps your own study work in progress on the device, so nothing is lost if the app closes: unsent answer drafts, your place in a lesson or scenario, and your study reminder settings. Drafts and reminder settings stay on the device; your place in a lesson is also saved to your account so it follows you to another device. Signing out removes all of it from the device. Separately, for the device rather than your account, it remembers your app-lock choice and when the app was last used, so it knows when to lock; these stay until you clear the site's data or remove the app.",
       ],
     },
     {
