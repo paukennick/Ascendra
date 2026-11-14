@@ -1,15 +1,18 @@
 // REQ-297: golden paths for the KCNA Service selector outage on the terminal
 // screen (KCNA/service-selector-no-endpoints.sim.json). No prototype exists,
 // so the expectations are the engine's own results.
-import type { StepsSpec } from "./steps.ts";
+import type { StepPath, StepsSpec } from "./steps.ts";
 import { close, run, waitUntil } from "./terminal-helpers.ts";
 
 export const ENTRY = { course: "KCNA", slug: "service-selector-no-endpoints" };
 
 export function spec(): StepsSpec {
-  return {
-    slug: ENTRY.slug,
-    paths: [
+  return { slug: ENTRY.slug, paths: paths() };
+}
+
+// Shared with the CKA band (cka-selector.steps.ts).
+export function paths(): StepPath[] {
+  return [
       {
         id: "expert",
         title: "Pods Ready, Service has no endpoints, selector typo against the labels, traced to Git; revert, sync and curl",
@@ -97,6 +100,5 @@ export function spec(): StepsSpec {
           c.act("document", { cause: "node" });
         },
       },
-    ],
-  };
+  ];
 }

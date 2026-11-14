@@ -19,10 +19,11 @@ import { backslashEscapeProblems, safetyFamilyOf, secondsUnitProblems } from "./
 import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
 
 // course/slug -> the screen and profile it is built on
-export const WAVE3: readonly { course: string; slug: string; screen: string; profile: string }[] = [
+export const WAVE3: readonly { course: string; slug: string; screen: string; profile: string; kind?: "band" }[] = [
   { course: "APLUS_CORE1", slug: "rogue-dhcp-soho-office", screen: "terminal", profile: "infrastructure" },
   { course: "APLUS_CORE2", slug: "home-office-laptop-malware", screen: "security-console", profile: "security" },
   { course: "KCNA", slug: "service-selector-no-endpoints", screen: "terminal", profile: "infrastructure" },
+  { course: "CKA", slug: "service-selector-no-endpoints-cka", screen: "terminal", profile: "infrastructure", kind: "band" },
   { course: "GCPACE", slug: "public-bucket-customer-exports", screen: "board", profile: "security" },
   { course: "GCPCDL", slug: "bigquery-dashboard-bill", screen: "board", profile: "cloud" },
 ];
@@ -64,7 +65,7 @@ describe("IT sims wave 3 (REQ-297)", () => {
       const e = entryOf(w.slug);
       assert.ok(e, `${w.slug} registered`);
       assert.equal(e.course, w.course);
-      assert.equal(e.kind, "scenario");
+      assert.equal(e.kind, w.kind ?? "scenario");
       assert.equal(e.source, "authored");
       const d = loadDocument(e);
       assert.deepEqual(validateScenario(d).map(String), [], w.slug);
