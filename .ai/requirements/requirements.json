@@ -9730,6 +9730,97 @@
       ]
     },
     {
+      "id": "REQ-298",
+      "category": "feature",
+      "title": "Full-length mock exams: per-course official exam facts, honest short form, review screen, pass-score reporting",
+      "description": "Owner 2026-11-14. Mock exam = the course's real exam: question count, time limit, domain weights, item types where supported. Per-course facts config (backend/lib/mock-exam-facts.ts) records each exam's facts with source and the day read; courses without an entry fall back to the seeded question_format text and say so. Assembly from the shared bank weighted by domain (largest remainder, official blueprint weights only when the course has them), no repeat within a mock (same item or same stem), items the learner answered or was just served are last choice. When the bank cannot fill every domain the learner gets an honest short form (count and reason, time scaled) and the start screen and a report script show how many items a full form needs and what pre-generating them costs at 3.5 cents an item (report only; nothing generated). Results report the pass score honestly: a scaled/percent number only where the body publishes one, never converted to the official scale. Exam-day experience: server clock, flag/review screen with filters, free navigation, no pause on a timed mock (leaving keeps the clock running), results by domain feeding readiness through counted attempts, review of every answer with its explanation. Plans: Plus one mock a month, Pro unlimited, billing off (everyone Pro) - already in billing-config; unchanged. Hooks left for the N/P/F keyboard builder.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/mock-exam-facts.ts",
+        "backend/lib/mock-form.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/exam-formats.ts",
+        "backend/scripts/mock-bank-report.ts",
+        "mobile/app/(app)/course/[trackId]/exam.tsx",
+        "mobile/src/components/ExamStartFacts.tsx",
+        "mobile/src/components/ExamReview.tsx",
+        "mobile/src/lib/examPractice.ts",
+        "mobile/src/types/exam.ts",
+        "mobile/src/content/legal.ts"
+      ],
+      "acceptance_criteria": [
+        "per-course facts have a source URL and a read date",
+        "a mock has the exam's question count and time when published",
+        "domain allocation sums to the form size",
+        "no item or stem repeats within a mock",
+        "short form shows count and reason",
+        "shortfall and cost computed per course",
+        "pass line never claims the official scale without a published scale",
+        "timer states tested",
+        "review screen filters unanswered and flagged",
+        "FAQ entry",
+        "CHANGELOG learner-facing entry"
+      ],
+      "validation_required": [
+        "mock-exam-facts.test.ts",
+        "mock-form.test.ts",
+        "exam-formats.test.ts",
+        "exam-plan.test.ts",
+        "mobile examPractice.test.ts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog",
+        "faq",
+        "docs/mock-exams.md"
+      ],
+      "risk_notes": [
+        "Official facts change; each entry carries the day read and the review-due date",
+        "Short forms until the bank is pre-generated; generation on mock start stays on (decision for owner)",
+        "PBQ and simulation items are not reproduced",
+        "No pause or scheduled break is simulated",
+        "Built 2026-11-14; DB tests run on a throwaway Postgres; device and screen-reader testing of the review screen still needed"
+      ]
+    },
+    {
+      "id": "REQ-291",
+      "category": "design",
+      "title": "Mastery decay and predicted recall: design and persona simulation (no production change)",
+      "description": "Nick, 2026-11-10: explore per-learner predicted recall (FSRS-style, fitted from each learner's own review history) with a 'needs a refresh' state instead of silent demotion, exam-day predicted recall in readiness, and the per-course goal question as the starting prior (not job titles); the goal sets starting decay, plan pacing, 'what changed' emphasis and review load, and the learner's own history takes over. Approved next step: a short design plus a persona simulation before building. Delivered: docs/mastery-decay-design.md, backend/lib/memory-model.ts (FSRS-6 formulas, goal/level prior, one-parameter personal fit, refresh flag, exam-day recall; not imported by production code), backend/lib/decay-sim.ts and backend/scripts/decay-sim.ts (npm run sim:decay; fixed_v1 vs proposed vs hybrid for 8 personas, simulation with assumed forgetting curves, not learner data).",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "docs/mastery-decay-design.md",
+        "backend/lib/memory-model.ts",
+        "backend/lib/memory-model.test.ts",
+        "backend/lib/decay-sim.ts",
+        "backend/lib/decay-sim.test.ts",
+        "backend/scripts/decay-sim.ts",
+        "backend/package.json",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Design covers model choice cold start fitting needs-a-refresh exam-day recall migration data cost risks and open decisions",
+        "Simulation is deterministic and states it uses assumed forgetting curves",
+        "No production behavior changes (schedulerFor still returns fixed_v1)",
+        "Unit tests pass"
+      ],
+      "validation_required": [
+        "npm test",
+        "tsc",
+        "npm run sim:decay",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/mastery-decay-design.md"
+      ],
+      "risk_notes": [
+        "Simulated numbers depend on assumed curves",
+        "Model is overconfident under the slow-growth assumption"
+      ]
+    },
+    {
       "id": "REQ-299",
       "category": "feature",
       "title": "What's new opens once as a dialog; earlier updates live on a Release notes screen",
@@ -9804,43 +9895,6 @@
       ],
       "risk_notes": [
         "docs/versioning.md; version source test; appVersion on notes; OTA-first update prompt. No app.json/eas.json change"
-      ]
-    },
-    {
-      "id": "REQ-291",
-      "category": "design",
-      "title": "Mastery decay and predicted recall: design and persona simulation (no production change)",
-      "description": "Nick, 2026-11-10: explore per-learner predicted recall (FSRS-style, fitted from each learner's own review history) with a 'needs a refresh' state instead of silent demotion, exam-day predicted recall in readiness, and the per-course goal question as the starting prior (not job titles); the goal sets starting decay, plan pacing, 'what changed' emphasis and review load, and the learner's own history takes over. Approved next step: a short design plus a persona simulation before building. Delivered: docs/mastery-decay-design.md, backend/lib/memory-model.ts (FSRS-6 formulas, goal/level prior, one-parameter personal fit, refresh flag, exam-day recall; not imported by production code), backend/lib/decay-sim.ts and backend/scripts/decay-sim.ts (npm run sim:decay; fixed_v1 vs proposed vs hybrid for 8 personas, simulation with assumed forgetting curves, not learner data).",
-      "priority": "medium",
-      "status": "needs_review",
-      "minimum_access_scope": [
-        "docs/mastery-decay-design.md",
-        "backend/lib/memory-model.ts",
-        "backend/lib/memory-model.test.ts",
-        "backend/lib/decay-sim.ts",
-        "backend/lib/decay-sim.test.ts",
-        "backend/scripts/decay-sim.ts",
-        "backend/package.json",
-        "CHANGELOG.md"
-      ],
-      "acceptance_criteria": [
-        "Design covers model choice cold start fitting needs-a-refresh exam-day recall migration data cost risks and open decisions",
-        "Simulation is deterministic and states it uses assumed forgetting curves",
-        "No production behavior changes (schedulerFor still returns fixed_v1)",
-        "Unit tests pass"
-      ],
-      "validation_required": [
-        "npm test",
-        "tsc",
-        "npm run sim:decay",
-        "python3 omni gate"
-      ],
-      "documentation_required": [
-        "docs/mastery-decay-design.md"
-      ],
-      "risk_notes": [
-        "Simulated numbers depend on assumed curves",
-        "Model is overconfident under the slow-growth assumption"
       ]
     },
     {

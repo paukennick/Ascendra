@@ -47,8 +47,10 @@ describe("the screens that take study shortcuts", () => {
     const src = read("app/(app)/course/[trackId]/exam.tsx");
     for (const h of ["onChoose", "onEnter", "onNext", "onPrevious", "onFlag"]) assert.match(src, new RegExp(`${h}=`), h);
     assert.match(src, /if \(submitting \|\| !item\.answered\) return false/);
-    // Enter on the last question opens the confirmation; it never submits the exam itself.
-    assert.match(src, /setConfirm\(true\);\s*return true/);
+    // Enter on the last question opens the review screen (REQ-298); it never submits the exam itself.
+    assert.match(src, /actions\.openReview\(\);\s*return "Review your answers/);
+    // N, P and F drive the same moves as the buttons (REQ-298's ExamNavActions).
+    for (const a of ["actions.next()", "actions.previous()", "actions.toggleFlag()"]) assert.ok(src.includes(a), a);
     assert.doesNotMatch(src, /onEnter=\{[^}]*submit\(/);
   });
   test("a simulation takes Space only: no key picks a decision that commits at once", () => {

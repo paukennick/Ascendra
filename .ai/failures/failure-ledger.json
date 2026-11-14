@@ -17434,6 +17434,31 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-2020",
+      "date": "2026-11-14",
+      "title": "Mock length for NSCA-CSCS read as 40 questions: a sub-count taken as the exam length",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "examQuestionCount(NSCA-CSCS question_format) returned 40, so a mock for that course would have had 40 questions in 240 minutes; the real exam has two sections of 95 and 125 items.",
+      "how_detected": "Dumping the parsed question count for every seeded course while building REQ-298 and comparing with the seeded text.",
+      "root_cause": "The regular expression takes the first 'N questions|items' phrase that is not described as scored/unscored/pretest. 'with 30-40 video or image items' is a part of a section, and its upper bound (40) was read as the exam's length. Free-text vendor wording cannot be trusted to a pattern.",
+      "requirement": "REQ-298",
+      "affected": [
+        "backend/lib/exam-formats.ts",
+        "backend/lib/exam-sessions.ts"
+      ],
+      "fix_summary": "examQuestionCount skips a count introduced by 'with', 'including', 'of which' or 'among them'; the count is null for that text and the mock uses the stated default. Courses whose exam was read from the source have a typed entry (lib/mock-exam-facts.ts) that wins over the parse.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/exam-formats.test.ts",
+        "backend/lib/mock-exam-facts.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A course's mock length comes from lib/mock-exam-facts.ts when it has an entry; the test requires an entry to agree with the seed or say why it differs, so a parse error shows up as a test failure for every covered course.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-2040",
       "date": "2026-11-14",
       "title": "Settings > About showed a version from a different source than the one the app sends",
