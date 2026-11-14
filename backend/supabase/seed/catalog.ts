@@ -34,6 +34,9 @@ import { REDHAT_TRACKS } from "./tracks/redhat-openshift";
 import { EMS_TRACKS } from "./tracks/ems";
 import { EPPP_TRACKS } from "./tracks/eppp";
 import { NBCC_TRACKS } from "./tracks/nbcc";
+import { ISC2_TRACKS } from "./tracks/isc2";
+import { ISACA_TRACKS } from "./tracks/isaca";
+import { ECCOUNCIL_TRACKS } from "./tracks/eccouncil";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -75,6 +78,11 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...EPPP_TRACKS,
   // REQ-239: NBCC counseling licensure, NCE and NCMHCE (same category).
   ...NBCC_TRACKS,
+  // REQ-270..274: ISC2 (CC, CISSP), ISACA (CISM) and EC-Council (CEH)
+  // security certifications, under IT & Software > IT Certifications.
+  ...ISC2_TRACKS,
+  ...ISACA_TRACKS,
+  ...ECCOUNCIL_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the
