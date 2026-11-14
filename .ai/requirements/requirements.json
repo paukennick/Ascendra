@@ -9728,6 +9728,47 @@
       "risk_notes": [
         "Part 1 already shipped in REQ-252 (nothing built). Part 2 live (migration 082). Part 3 built and OFF (migration 083): no course on, nothing generated, no model called. Visuals and device behavior not checked."
       ]
+    },
+    {
+      "id": "REQ-296",
+      "category": "content",
+      "title": "Clinical sims coverage map and more sims for existing clinical courses (launch courses first)",
+      "description": "Nick (2026-11-14): 'Build more sims, no need to limit number, build what covers the material.' Selection rule (Nick, 2026-11-10): a sim fits a sub-objective when time matters, there are cues to read, choices have consequences, or priorities compete. Map every existing clinical course (nursing, EMS, PT, mental health) in docs/sims-coverage-clinical.md: which objectives fit and which existing sims cover them. Then build sims for uncovered fitting objectives, launch courses first (CCRNADULT, DPT, PTPREREQ, CNA, NCLEXRN, NCLEXPN), on the existing bedside, treatment-session and client-session screens, each with golden paths, dated guideline sources and literature-checked values. Engine rules: harm endings only where a guideline names them; at most three boluses at once; written reasoning scored; endingOrder for two or more conditional endings; ACLS per current AHA guidelines without copying AHA materials; client sessions learner-paced; running clinical cases at study pace. No engine, renderer, schema or migration change.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "docs/sims-coverage-clinical.md",
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "coverage map per clinical course with before and after counts",
+        "each new scenario lints with zero errors and replays its goldens",
+        "every outcome class reachable and every criterion both met and missed",
+        "every objective title exists in its course catalog",
+        "golden paths end the same in written reversed and jsonb key order",
+        "running clinical sims paced at study pace by default",
+        "client sessions learner-paced"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims-coverage-clinical.md",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "the keyword screen is a shortlist not a judgement",
+        "authored teaching-model numbers flagged in source notes",
+        "sources read only through summaries are marked"
+      ]
     }
   ]
 }
