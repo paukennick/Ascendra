@@ -7,9 +7,17 @@ import { globalDailyCeilingUsd } from "@/lib/ai-access-config";
 // keeps no copy, so a note is added or corrected with a backend deploy and no
 // app-store update.
 //
+// REQ-299 (Nick, 2026-11-14): the newest note the learner hasn't seen opens
+// once as a dialog on Home ("What's new"); every note, this one included,
+// stays on the "Release notes" screen (Settings > About), newest first and
+// grouped by date. Same data, same GET /api/whats-new and per-account "seen"
+// marker; only how the app presents it changed.
+//
 // Adding a release: put a new entry FIRST. Its id is the release date
 // (YYYY-MM-DD; add -b, -c ... for a second note on the same day) and never
-// changes once shipped: each learner's "seen" marker stores it. Write for
+// changes once shipped: each learner's "seen" marker stores it. Its
+// `appVersion` is the app version it ships in (docs/versioning.md: a
+// learner-facing release is at least a minor bump, a fix a patch). Write for
 // learners, in plain warm words, and only claim what that release really
 // ships (check CHANGELOG.md). An item about a feature that is switched off
 // takes `requires` so nobody reads about something they can't use.
@@ -64,6 +72,12 @@ export interface ReleaseNoteItem {
 export interface ReleaseNote {
   id: string;
   date: string; // YYYY-MM-DD, shown to learners
+  // REQ-300: the app version (plain semver x.y.z, docs/versioning.md) the app
+  // was at when this note shipped. Shown on the note ("Version 2.1.0"). It
+  // never goes down as notes get newer and is never above the version the app
+  // is at now (APP_VERSION, mobile/src/lib/appVersion.ts);
+  // lib/release-notes.test.ts checks both.
+  appVersion: string;
   title: string;
   items: ReleaseNoteItem[];
   requires?: ReleaseNoteGate;
@@ -85,6 +99,38 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // 2026-11-14: REQ-290 study keyboard shortcuts (web). The sims item is
+    // gated like every sims mention (lib/release-notes.test.ts).
+    id: "2026-11-14",
+    date: "2026-11-14",
+    appVersion: "2.0.0",
+    covers: ["REQ-290"],
+    title: "Keyboard shortcuts for studying",
+    items: [
+      {
+        icon: "zap",
+        headline: "Answer from the keyboard",
+        body: "On the web, press 1 to 9 or A to D to choose an answer and Enter to check it and go on, in lessons, review, quizzes and lab steps.",
+      },
+      {
+        icon: "flag",
+        headline: "Move through an exam",
+        body: "In sprints and mock exams, N goes to the next question, P to the previous one and F flags it for review.",
+      },
+      {
+        icon: "info",
+        headline: "Press ? for the list",
+        body: "They never act while you type. Settings, under Study, has a switch to turn them off, and the phone app has none.",
+      },
+      {
+        icon: "clock",
+        headline: "Pause a sim with Space",
+        body: "In a sim, Space pauses the clock and runs it again when focus is on the sim itself rather than on a button.",
+        requires: "sims",
+      },
+    ],
+  },
+  {
     // 2026-11-12 (d): REQ-249 sims badge, REQ-250 Save and exit, REQ-251
     // fairer answer choices, REQ-252/255/256 levels and the goal question,
     // REQ-253 Key terms, REQ-257 level-aware lessons in four more courses
@@ -93,6 +139,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // tracks (lib/level-flow-tracks.test.ts); change both together.
     id: "2026-11-12-d",
     date: "2026-11-12",
+    appVersion: "2.0.0",
     covers: ["REQ-249", "REQ-250", "REQ-251", "REQ-252", "REQ-253", "REQ-255", "REQ-256", "REQ-257", "REQ-258", "REQ-263"],
     title: "Lessons that meet you at your level",
     items: [
@@ -140,6 +187,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // set in production; change this note if those change.
     id: "2026-11-12-c",
     date: "2026-11-12",
+    appVersion: "2.0.0",
     covers: ["REQ-243", "REQ-244", "REQ-245", "REQ-246"],
     title: "The coach opens up for the pilot",
     items: [
@@ -170,6 +218,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // whole on sims: four of its five items are sims (FAIL-1271 rule).
     id: "2026-11-12-b",
     date: "2026-11-12",
+    appVersion: "2.0.0",
     covers: ["REQ-237", "REQ-238", "REQ-239", "REQ-240", "REQ-241", "REQ-242"],
     requires: "sims",
     title: "Outages, incidents and two counseling courses",
@@ -217,6 +266,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // sims: three of its four items are sims (FAIL-1271 rule).
     id: "2026-11-12",
     date: "2026-11-12",
+    appVersion: "2.0.0",
     covers: ["REQ-231", "REQ-232", "REQ-233", "REQ-235"],
     requires: "sims",
     title: "New practice scenarios in five more courses",
@@ -256,6 +306,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // The lead may fold this into the day's combined note when merging.
     id: "2026-11-11-d",
     date: "2026-11-11",
+    appVersion: "2.0.0",
     covers: ["REQ-234"],
     title: "Hands-on labs for A+ and the EPPP",
     items: [
@@ -283,6 +334,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // note is about sims, so it is gated as one; REQ-226 rides in 2026-11-11-b.
     id: "2026-11-11-c",
     date: "2026-11-11",
+    appVersion: "2.0.0",
     covers: ["REQ-222", "REQ-223", "REQ-225", "REQ-227"],
     requires: "sims",
     title: "Nine new practice scenarios",
@@ -314,6 +366,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // REQ-212/213, REQ-216 to REQ-220 and REQ-224, merged 2026-11-11 (UTC).
     id: "2026-11-11-b",
     date: "2026-11-11",
+    appVersion: "2.0.0",
     covers: ["REQ-212", "REQ-213", "REQ-216", "REQ-217", "REQ-218", "REQ-219", "REQ-220", "REQ-224", "REQ-226"],
     title: "A new course, and progress you can trust",
     items: [
@@ -365,6 +418,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // Release 2026-11-11, batches 11 to 17 (REQ-202 to REQ-209).
     id: "2026-11-11",
     date: "2026-11-11",
+    appVersion: "2.0.0",
     covers: ["REQ-202", "REQ-203", "REQ-204", "REQ-205", "REQ-206", "REQ-209"],
     title: "Sims at study pace, and a safer launch",
     items: [
@@ -418,6 +472,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // Release 2026-11-10, batches 1 to 10 (REQ-162 to REQ-201).
     id: "2026-11-10",
     date: "2026-11-10",
+    appVersion: "2.0.0",
     covers: ["REQ-162", "REQ-169", "REQ-174", "REQ-177", "REQ-182", "REQ-189", "REQ-190", "REQ-195", "REQ-197", "REQ-198", "REQ-199"],
     title: "New courses, quicker labs and a gentler lock",
     items: [
@@ -469,6 +524,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
   {
     id: "2026-11-07",
     date: "2026-11-07",
+    appVersion: "2.0.0",
     title: "Labs, honest progress and a calmer app",
     items: [
       {

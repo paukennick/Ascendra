@@ -538,6 +538,13 @@ export const FAQ: LegalDoc = {
       ],
     },
     {
+      title: "Are there keyboard shortcuts?",
+      body: [
+        "Yes, on the web (the phone app has none). While you are in a question, press 1 to 9 or A to D to choose an answer, Enter to check it and go on, and ? to see the list. In a timed sprint or mock exam, N goes to the next question, P to the previous one and F flags it; Enter goes on once you have answered. In a simulation, Space pauses the clock and runs it again when focus is on the simulation rather than on a button. Esc closes the list or any open dialog.",
+        "They never act while you are typing in a box, or with Ctrl, Alt or Command held, and Enter and Space still press the button or link you are on. To turn them off, use “Keyboard shortcuts” in Settings, under Study, or “Turn off keyboard shortcuts” in the list.",
+      ],
+    },
+    {
       title: "Can I turn on two-factor authentication?",
       body: ["Yes — in Settings, with an authenticator app or email codes. Each method gives you one-time backup codes."],
     },
@@ -551,6 +558,13 @@ export const FAQ: LegalDoc = {
       title: "Why did I get signed out?",
       body: [
         "In the app you stay signed in: after time away it locks instead, and you unlock with your fingerprint, face or password. On the web, closing the browser signs you out, the page locks after time away, and 30 minutes without activity signs you out. You choose when it locks in Settings > Security > Lock Ascendra. Changing your password or choosing “Sign out of all devices” signs you out everywhere else.",
+      ],
+    },
+    {
+      title: "Where can I see what has changed?",
+      body: [
+        "When there's something new, a “What's new” window opens once on Home. Close it, tap “Got it” or press Escape and it won't open again for that note. Every update, newest first and grouped by date with the app version it came with, is under Settings > About > Release notes, and the window has a “See all release notes” button that goes there.",
+        "The app version is shown in the same place, under Settings > About. Most updates reach you by themselves; if a version is too old to keep working, Ascendra says so and, on the web, reloads, or on a phone, gets the update or opens your app store.",
       ],
     },
     {

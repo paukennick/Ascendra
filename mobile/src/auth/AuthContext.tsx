@@ -685,7 +685,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
     const activityEvents = ["mousemove", "mousedown", "keydown", "scroll", "touchstart"];
-    activityEvents.forEach((evt) => window.addEventListener(evt, markActive, { passive: true }));
+    // REQ-290 (FAIL-1900): in the capture phase, so a handler that stops a key
+    // (the study shortcuts, a button pressed with Enter) cannot hide it from
+    // the idle timer; a learner working only on the keyboard was locked out.
+    activityEvents.forEach((evt) => window.addEventListener(evt, markActive, { passive: true, capture: true }));
     document.addEventListener("visibilitychange", onVisibility);
     const interval = setInterval(() => {
       const now = Date.now();
@@ -708,7 +711,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setWebIdleWarningSecondsLeft(remaining <= WEB_IDLE_WARNING_LEAD_MS ? Math.ceil(remaining / 1000) : null);
     }, 1000);
     return () => {
-      activityEvents.forEach((evt) => window.removeEventListener(evt, markActive));
+      activityEvents.forEach((evt) => window.removeEventListener(evt, markActive, { capture: true }));
       document.removeEventListener("visibilitychange", onVisibility);
       clearInterval(interval);
       setWebIdleWarningSecondsLeft(null);

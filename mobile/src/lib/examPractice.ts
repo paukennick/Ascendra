@@ -28,6 +28,41 @@ export function toggleChoice(selected: number[], index: number, max: number): nu
   return [...selected, index].sort((a, b) => a - b);
 }
 
+// REQ-290: the response after the learner presses answer key `index` (the
+// keyboard shortcuts) on a multiple choice or multiple response question. It
+// is what tapping that option does (ExamQuestion.tsx Choices). Null when the
+// key does nothing here: another format, or a key past the last choice.
+export function examChoiceResponse(
+  item: Pick<ExamItem, "format" | "choices" | "selectCount">,
+  current: ExamResponse | null,
+  index: number
+): ExamResponse | null {
+  const count = item.choices?.length ?? 0;
+  if (!Number.isInteger(index) || index < 0 || index >= count) return null;
+  if (item.format === "multiple_choice") return { choice: index };
+  if (item.format === "multiple_response") return { choices: toggleChoice(current?.choices ?? [], index, item.selectCount ?? 2) };
+  return null;
+}
+
+// What a screen reader hears after an answer key (the focus may not be on the
+// option, so nothing else says it happened).
+export function examChoiceAnnouncement(
+  item: Pick<ExamItem, "format" | "choices" | "selectCount">,
+  before: ExamResponse | null,
+  after: ExamResponse | null,
+  index: number
+): string {
+  const letter = "ABCDEF"[index] ?? String(index + 1);
+  const text = item.choices?.[index] ?? "";
+  if (item.format === "multiple_response") {
+    const was = before?.choices?.includes(index) ?? false;
+    const now = after?.choices?.includes(index) ?? false;
+    if (was && !now) return `Cleared ${letter}. ${text}`;
+    if (!was && !now) return `You can pick ${item.selectCount ?? 2} at most. Clear one first.`;
+  }
+  return `Selected ${letter}. ${text}`;
+}
+
 export function isAnswered(item: Pick<ExamItem, "format" | "selectCount">, r: ExamResponse | null): boolean {
   if (!r) return false;
   switch (item.format) {
