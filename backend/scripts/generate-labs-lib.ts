@@ -94,6 +94,11 @@ export function apportion(n: number, weights: (number | null)[]): number[] {
 export const LAB_PLAN_TOP_UPS: Readonly<Record<string, readonly number[]>> = {
   DP900: [2, 2, 2, 2],
   ABPTSPWCS: [2, 3, 3],
+  // REQ-295 (Nick, 2026-11-14): "build more labs" to the rule as he states
+  // it -- one per unit plus six per course by exam weight, at most three per
+  // unit -- without the performance-verb cap, which had held these courses
+  // at one lab per unit. Measured in docs/labs-coverage.md.
+  PYTHON: [2, 2, 2, 2, 2, 2, 1, 1, 1],
 };
 
 export function unitPlan(track: PlanTrack, policy: DensityPolicy, opts = POLICY_DEFAULTS): number[] {

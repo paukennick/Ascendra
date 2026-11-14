@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, selectPart, matchPart, numericPart, orderPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-161: Python Programming Coach (PYTHON), nine units, no exam blueprint.
@@ -323,6 +323,213 @@ export const PYTHON_LABS: SeedLabSet = {
               "Workload C (5,000 idle connections)",
               "asyncio: one thread, an event loop, each connection a coroutine that awaits; explains 5,000 OS threads would cost memory and context switches for connections that mostly wait, and processes are heavier still.",
               "asyncio. Each connection becomes a coroutine parked on await until data arrives; one event loop in one thread services thousands of them because idle connections cost a small object, not a stack. 5,000 threads would mean 5,000 stacks and constant context switching for sockets that are usually silent; 5,000 processes is out of the question. Threads are fine for a handful of blocking calls (A); for massive idle concurrency the event loop wins."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): the density fill. Units 1-6 take the six extra
+    // labs (no exam weights, so they go to the earliest units). Every snippet
+    // and output below was run on CPython 3.13.18 on 2026-11-14 and the
+    // values quoted are the ones observed.
+    {
+      slug: "truthiness-stock-label",
+      objective: "Conditional logic: if/elif/else and truthiness",
+      kind: "build",
+      title: "Find the two conditions that mislabel stock",
+      brief:
+        "Fernhill Hardware (fictional) labels stock on its shelf tags. None means the count has not been taken yet, 0 means sold out, 1-10 is 'in stock' and more than 10 is 'plenty'.\n\ndef stock_label(qty):\n    if not qty:\n        return \"unknown\"\n    elif qty > 0:\n        return \"in stock\"\n    elif qty > 10:\n        return \"plenty\"\n    else:\n        return \"sold out\"\n\nCalled with None, 0, 5 and 40 it returns unknown, unknown, in stock, in stock. Two of the four are wrong.",
+      safetyNote: GENERAL_SAFETY,
+      sources: [source("https://docs.python.org/3/library/stdtypes.html#truth-value-testing", "reference", "2026-11-14"), source("https://docs.python.org/3/reference/compound_stmts.html#the-if-statement", "reference", "2026-11-14")],
+      steps: [
+        {
+          text: "",
+          ask: "Tap the two lines that cause the wrong labels, then write the corrected function.",
+          parts: [
+            selectPart(
+              "Lines that cause the wrong labels",
+              "Met: exactly the two condition lines 'if not qty:' and 'elif qty > 0:'. One right and none wrong is partly there.",
+              "'if not qty:' treats 0 exactly like None, because 0 is falsy -- so a sold-out item reads 'unknown'. 'elif qty > 0:' comes before the > 10 test, so 40 takes the 'in stock' branch and the 'plenty' branch can never run. The 'elif qty > 10:' line is not wrong in itself; it is unreachable because of the line above it.",
+              {
+                display: "config",
+                lines: ["def stock_label(qty):", "    if not qty:", "        return \"unknown\"", "    elif qty > 0:", "        return \"in stock\"", "    elif qty > 10:", "        return \"plenty\"", "    else:", "        return \"sold out\""],
+                correct: [1, 3],
+              }
+            ),
+            part(
+              "Corrected function",
+              "Tests None explicitly (qty is None, not a truthiness test) and checks the larger bound before the smaller one (> 10 before > 0), so None, 0, 5 and 40 give unknown, sold out, in stock, plenty; 10 stays 'in stock'.",
+              "def stock_label(qty):\n    if qty is None:\n        return \"unknown\"\n    elif qty > 10:\n        return \"plenty\"\n    elif qty > 0:\n        return \"in stock\"\n    else:\n        return \"sold out\"\n\nNone, 0, 5, 40, 10, 11 -> unknown, sold out, in stock, plenty, in stock, plenty. 'is None' asks the question we mean; 'not qty' asks 'is it falsy', and 0, 0.0, '' and [] are all falsy. In an if/elif chain the first true test wins, so the narrower range goes first."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "unboundlocal-counter",
+      objective: "Local, enclosing, and global scope (the LEGB rule)",
+      kind: "build",
+      title: "Fix a counter that raises UnboundLocalError",
+      brief:
+        "Brightwater Events (fictional) counts badge scans with a closure:\n\ndef make_counter():\n    count = 0\n    def bump():\n        count += 1\n        return count\n    return bump\n\nscan = make_counter()\nscan()\n\nThe call fails with: UnboundLocalError: cannot access local variable 'count' where it is not associated with a value. A colleague says 'but count is right there in make_counter'.",
+      safetyNote: GENERAL_SAFETY,
+      sources: [source("https://docs.python.org/3/reference/executionmodel.html#resolution-of-names", "reference", "2026-11-14"), source("https://docs.python.org/3/reference/simple_stmts.html#the-nonlocal-statement", "reference", "2026-11-14")],
+      steps: [
+        {
+          text: "",
+          ask: "Match each name to the scope Python finds it in, explain the error, and give the fix.",
+          parts: [
+            matchPart(
+              "Where each name is found (LEGB)",
+              "Met: all four right -- the parameter n inside its own function is Local; count read (not assigned) inside bump is Enclosing; a module-level TAX_RATE read inside a function is Global; len is Built-in. Two or three right is partly there.",
+              "Python looks a name up in Local, then Enclosing function scopes, then Global (module), then Built-in. A parameter is local to its function. A name only read inside a nested function, and assigned in the outer one, is found in the enclosing scope. A module constant read in a function is global. len comes from builtins unless something shadows it.",
+              {
+                leftHeading: "Name, where it is used",
+                rightHeading: "Scope it resolves to",
+                left: ["n, a parameter, used inside def double(n): return n * 2", "count, only read inside bump(), assigned in make_counter()", "TAX_RATE, set at the top of the module, read inside a function", "len, called inside any function that never defines it"],
+                right: ["Local", "Enclosing", "Global", "Built-in"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            part(
+              "Why it fails, and the fix",
+              "Explains that 'count += 1' is an assignment, so the compiler makes count local to bump for the whole function body; reading it before any local value exists raises UnboundLocalError. Fix: declare 'nonlocal count' in bump (not global, which would look in the module and fail differently). After the fix three calls return 1, 2, 3.",
+              "Any assignment to a name inside a function -- including 'count += 1' -- makes that name local to the function at compile time. So inside bump, count is a local that has no value yet when += tries to read it. The fix is to say which count we mean:\n\ndef make_counter():\n    count = 0\n    def bump():\n        nonlocal count\n        count += 1\n        return count\n    return bump\n\nThree calls now return 1, 2, 3. 'global count' would be wrong: there is no module-level count, so it would raise NameError, and it would share one counter across every make_counter() call."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "word-count-dict-patterns",
+      objective: "Dictionaries: keys, values, items, lookups, and default patterns",
+      kind: "build",
+      title: "Count words without a KeyError",
+      brief:
+        "A support analyst at Larkspur Books (fictional) counts words in ticket subjects:\n\nwords = \"the cat and the hat and the bat\".split()\ncounts = {}\nfor w in words:\n    counts[w] += 1\n\nIt stops at once with KeyError: 'the'. The analyst also wants to group words by first letter for a second report.",
+      safetyNote: GENERAL_SAFETY,
+      sources: [source("https://docs.python.org/3/library/stdtypes.html#mapping-types-dict", "reference", "2026-11-14"), source("https://docs.python.org/3/library/collections.html", "reference", "2026-11-14")],
+      steps: [
+        {
+          text: "",
+          ask: "Match each lookup to what it does on a missing key, give the count for 'the', and write the fixed loop and the grouping.",
+          parts: [
+            matchPart(
+              "What each pattern does when the key is missing",
+              "Met: counts[k] raises KeyError; counts.get(k, 0) returns 0 and stores nothing; counts.setdefault(k, []) stores [] and returns it; a defaultdict(int) lookup stores 0 and returns it. Two or three right is partly there.",
+              "Plain indexing raises KeyError. get returns the default without changing the dict. setdefault inserts the default and returns the stored object, which is why setdefault(k, []).append(x) works. A defaultdict calls its factory (int() is 0) on a missing key and stores the result, even on a plain read.",
+              {
+                leftHeading: "Expression, key absent",
+                rightHeading: "Result",
+                left: ["counts[k]", "counts.get(k, 0)", "counts.setdefault(k, [])", "d[k] where d = defaultdict(int)"],
+                right: ["Raises KeyError", "Returns 0, dict unchanged", "Stores [] under k and returns it", "Stores 0 under k and returns it", "Returns None, dict unchanged"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            numericPart("Count for 'the'", "Met: 3 exactly.", "'the' appears three times in 'the cat and the hat and the bat', so counts['the'] is 3 after the fixed loop.", { answer: 3, tolerance: 0 }),
+            part(
+              "Fixed loop and the grouping",
+              "A count loop that cannot raise (counts[w] = counts.get(w, 0) + 1, or collections.Counter(words)); and a grouping by first letter using setdefault(w[0], []).append(w) or defaultdict(list). States the counts {'the': 3, 'cat': 1, 'and': 2, 'hat': 1, 'bat': 1}.",
+              "counts = {}\nfor w in words:\n    counts[w] = counts.get(w, 0) + 1\n# {'the': 3, 'cat': 1, 'and': 2, 'hat': 1, 'bat': 1}\n\nOr simply collections.Counter(words), whose most_common(2) is [('the', 3), ('and', 2)].\n\nby_letter = {}\nfor w in words:\n    by_letter.setdefault(w[0], []).append(w)\n# {'t': ['the', 'the', 'the'], 'c': ['cat'], 'a': ['and', 'and'], 'h': ['hat'], 'b': ['bat']}\n\nDicts keep insertion order, so keys appear in the order first seen."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "csv-to-json-inventory",
+      objective: "Working with CSV and JSON data via the standard library",
+      kind: "build",
+      title: "Total a CSV of stock and write a JSON summary",
+      brief:
+        "Harbor Lane Gifts (fictional) exports stock.csv:\n\nsku,qty,price\nA100,3,4.50\nB200,10,1.25\nC300,2,19.99\n\nA script is meant to write summary.json with the number of rows and the stock value (qty x price, summed):\n\nimport csv, json\nwith open(\"stock.csv\", newline=\"\") as f:\n    rows = list(csv.DictReader(f))\ntotal = sum(r[\"qty\"] * r[\"price\"] for r in rows)\nsummary = {\"items\": len(rows), \"value\": total}\nwith open(\"summary.json\") as f:\n    json.dump(summary, f)\n\nIt crashes before writing anything.",
+      safetyNote: GENERAL_SAFETY,
+      sources: [source("https://docs.python.org/3/library/csv.html", "reference", "2026-11-14"), source("https://docs.python.org/3/library/json.html", "reference", "2026-11-14")],
+      steps: [
+        {
+          text: "",
+          ask: "Tap the two lines that are wrong, give the stock value, and write the fixed script.",
+          parts: [
+            selectPart(
+              "Wrong lines",
+              "Met: exactly the sum line and the second open() line. One right and none wrong is partly there.",
+              "csv.DictReader gives every field as a str, so r[\"qty\"] * r[\"price\"] is str * str and raises TypeError: can't multiply sequence by non-int of type 'str'. The output file is opened without a mode, which means read mode: it fails on a missing file and could never be written. Opening the CSV with newline=\"\" is what the csv docs recommend, so that line is right.",
+              {
+                display: "config",
+                lines: ["import csv, json", "with open(\"stock.csv\", newline=\"\") as f:", "    rows = list(csv.DictReader(f))", "total = sum(r[\"qty\"] * r[\"price\"] for r in rows)", "summary = {\"items\": len(rows), \"value\": total}", "with open(\"summary.json\") as f:", "    json.dump(summary, f)"],
+                correct: [3, 5],
+              }
+            ),
+            numericPart("Stock value", "Met within 0.01 of 65.98.", "3 x 4.50 + 10 x 1.25 + 2 x 19.99 = 13.50 + 12.50 + 39.98 = 65.98. The float sum prints 65.97999999999999, so round it (or use decimal.Decimal for money).", { answer: 65.98, tolerance: 0.01, unit: "$" }),
+            part(
+              "Fixed script",
+              "Converts the fields (int(r[\"qty\"]) * float(r[\"price\"]), or Decimal), rounds the value for output, and opens summary.json with mode \"w\" before json.dump. Result written: {\"items\": 3, \"value\": 65.98}.",
+              "import csv, json\nwith open(\"stock.csv\", newline=\"\") as f:\n    rows = list(csv.DictReader(f))\ntotal = sum(int(r[\"qty\"]) * float(r[\"price\"]) for r in rows)\nsummary = {\"items\": len(rows), \"value\": round(total, 2)}\nwith open(\"summary.json\", \"w\") as f:\n    json.dump(summary, f)\n\nsummary.json then holds {\"items\": 3, \"value\": 65.98}. Without round() it would hold 65.97999999999999, because 0.1-style decimals are not exact in binary floats; decimal.Decimal(r[\"price\"]) avoids that for money."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "super-and-the-mro",
+      objective: "Inheritance, method overriding, and super()",
+      kind: "build",
+      title: "Follow super() through two mixins",
+      brief:
+        "Tidewater Billing (fictional) builds records from mixins:\n\nlog = []\nclass Record:\n    def __init__(self, record_id):\n        self.record_id = record_id\n    def save(self):\n        log.append(\"Record\")\nclass Timestamped(Record):\n    def save(self):\n        log.append(\"Timestamped\")\n        super().save()\nclass Audited(Record):\n    def save(self):\n        log.append(\"Audited\")\n        super().save()\nclass Invoice(Timestamped, Audited):\n    def __init__(self, record_id, amount):\n        self.amount = amount\n    def save(self):\n        log.append(\"Invoice\")\n        super().save()\n\ninv = Invoice(\"INV-7\", 120)\ninv.save()\n\nLater, printing inv.record_id raises AttributeError.",
+      safetyNote: GENERAL_SAFETY,
+      sources: [source("https://docs.python.org/3/library/functions.html#super", "reference", "2026-11-14"), source("https://docs.python.org/3/howto/mro.html", "reference", "2026-11-14")],
+      steps: [
+        {
+          text: "",
+          ask: "Put Invoice's method resolution order in sequence, then explain the AttributeError and fix it.",
+          parts: [
+            orderPart(
+              "Invoice.__mro__",
+              "Met: the exact order Invoice, Timestamped, Audited, Record, object. One item out of place is partly there.",
+              "Invoice.__mro__ is (Invoice, Timestamped, Audited, Record, object). super() means 'the next class in the instance's MRO', not 'my parent', so Timestamped's super().save() calls Audited.save, and log ends as ['Invoice', 'Timestamped', 'Audited', 'Record'] -- Record runs once, not twice.",
+              ["Invoice", "Timestamped", "Audited", "Record", "object"]
+            ),
+            part(
+              "The AttributeError and the fix",
+              "Explains that Invoice.__init__ overrides Record.__init__ and never calls it, so record_id is never set; the fix calls super().__init__(record_id) in Invoice.__init__ before setting amount. Notes that an override replaces the parent method entirely unless it calls super().",
+              "Defining __init__ in Invoice replaces the inherited one; Python does not call the parent's constructor for you. Record.__init__ never runs, so the instance has amount but no record_id: AttributeError: 'Invoice' object has no attribute 'record_id'. Fix:\n\nclass Invoice(Timestamped, Audited):\n    def __init__(self, record_id, amount):\n        super().__init__(record_id)\n        self.amount = amount\n\nNow Invoice(\"INV-8\", 5).record_id is 'INV-8'. Use super() rather than Record.__init__(self, ...) so a mixin that adds its own __init__ later still gets called in MRO order."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "stdlib-for-an-on-call-script",
+      objective: "Useful standard library modules: os, sys, datetime, collections, itertools",
+      kind: "build",
+      title: "Reach for the standard library, not a new package",
+      brief:
+        "The two-person IT team at Kestrel Dental (fictional) wants a small on-call script: read a log folder from the command line, build file paths that work on Windows and Linux, count the most common error code, rotate three names through the week, and say how many days remain until the 2026-12-18 audit, counting from 2026-11-14. A teammate proposes installing four packages from PyPI for it.",
+      safetyNote: GENERAL_SAFETY,
+      sources: [source("https://docs.python.org/3/library/datetime.html", "reference", "2026-11-14"), source("https://docs.python.org/3/library/itertools.html", "reference", "2026-11-14"), source("https://docs.python.org/3/library/os.path.html", "reference", "2026-11-14"), source("https://docs.python.org/3/library/sys.html#sys.argv", "reference", "2026-11-14")],
+      steps: [
+        {
+          text: "",
+          ask: "Match each job to the standard library tool, give the days to the audit, and sketch the script.",
+          parts: [
+            matchPart(
+              "Tool for each job",
+              "Met: all five right -- folder from the command line: sys.argv; portable paths: os.path.join; most common error code: collections.Counter; rotating names: itertools.cycle; days to a date: subtracting datetime.date objects. Three or four right is partly there.",
+              "sys.argv holds the command-line words (argparse when there are options). os.path.join (or pathlib.Path) uses the right separator for the platform. Counter(...).most_common(1) gives the top item and its count. itertools.cycle repeats a sequence forever, so islice(cycle(names), 7) is a week. date - date gives a timedelta whose .days is the gap. random.shuffle and json.loads do none of these jobs.",
+              {
+                leftHeading: "Job",
+                rightHeading: "Standard library tool",
+                left: ["Read the log folder given on the command line", "Build data/2026/log.txt on any OS", "Find the most common error code", "Rotate three names through seven days", "Days from today to the audit"],
+                right: ["sys.argv", "os.path.join", "collections.Counter", "itertools.cycle", "datetime.date subtraction", "random.shuffle", "json.loads"],
+                pairs: [0, 1, 2, 3, 4],
+              }
+            ),
+            numericPart("Days to the audit", "Met: 34 exactly.", "(date(2026, 12, 18) - date(2026, 11, 14)).days is 34: 16 days left in November after the 14th, plus 18 in December.", { answer: 34, tolerance: 0, unit: "days" }),
+            part(
+              "Script sketch",
+              "Uses only the standard library: sys.argv[1] (or argparse) for the folder, os.path.join or pathlib for paths, Counter(...).most_common(1) for the top code, itertools.cycle with islice for the rota, date subtraction for the countdown. Says why no PyPI package is needed (nothing to install or pin, no supply-chain risk for a two-person team).",
+              "import sys, os\nfrom collections import Counter\nfrom datetime import date\nfrom itertools import cycle, islice\n\nfolder = sys.argv[1]\npath = os.path.join(folder, \"2026\", \"log.txt\")\nwith open(path) as f:\n    codes = [line.split()[0] for line in f if line.strip()]\nprint(Counter(codes).most_common(1))\nprint(list(islice(cycle([\"Ana\", \"Ben\", \"Cai\"]), 7)))\nprint((date(2026, 12, 18) - date.today()).days, \"days to the audit\")\n\nThe rota prints ['Ana', 'Ben', 'Cai', 'Ana', 'Ben', 'Cai', 'Ana']. Everything ships with Python, so there is nothing to install, pin or vet."
             ),
           ],
         },
