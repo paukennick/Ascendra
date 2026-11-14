@@ -156,6 +156,15 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTPARAMEDIC", "inferior-stemi-cath-alert"),
   entry("NREMTPARAMEDIC", "infant-respiratory-failure"),
   // ---- end REQ-241 ----
+  // ---- REQ-296 (clinical coverage): more sims on the existing clinical
+  // courses, launch courses first (docs/sims-coverage-clinical.md). Keep
+  // these entries together. ----
+  entry("CNA", "evening-vitals-out-of-range"),
+  entry("PTPREREQ", "cycle-test-falling-pressure"),
+  entry("NCLEXRN", "postpartum-hemorrhage-atony"),
+  entry("CCRNADULT", "status-epilepticus-after-craniotomy"),
+  entry("DPT", "dizziness-central-red-flags"),
+  // ---- end REQ-296 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
@@ -169,7 +178,10 @@ export const EPPP_OBJECTIVES = [
 
 // REQ-232: the DPT treatment-session documents (the PT renderer) and the
 // objective titles they are registered to (active objectives of course DPT).
-export const DPT_TREATMENT_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "DPT");
+// REQ-296: later DPT sims (docs/sims-coverage-clinical.md) are not part of
+// this first set, so the set is named by slug.
+const DPT_FIRST_SET = ["icu-early-mobility", "tka-gait-dvt-red-flag", "stroke-balance-fall-risk"];
+export const DPT_TREATMENT_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "DPT" && DPT_FIRST_SET.includes(e.slug));
 export const DPT_OBJECTIVES = [
   "Selecting and performing interventions for cardiovascular and pulmonary conditions to achieve patient goals",
   "Total knee arthroplasty rehabilitation per the 2026 APTA guideline: range-of-motion work instead of continuous passive motion, progressive strengthening, motor function training, and early daily quadriceps NMES",
