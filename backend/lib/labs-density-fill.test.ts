@@ -40,6 +40,8 @@ export const FILLED: Readonly<Record<string, readonly string[]>> = {
   KCSA: ["compliance-scan-to-evidence"],
   CAPA: ["argo-events-flow-order"],
   CCA: ["clustermesh-benefits-and-prereqs"],
+  MSCS: ["spot-the-broken-heaps", "truth-table-and-equivalences", "choose-a-sort-by-property", "dfs-order-by-hand", "topological-order-of-courses"],
+  MSHI: ["choose-the-observational-data-source"],
 };
 
 export function ruleFor(code: string): number[] {
