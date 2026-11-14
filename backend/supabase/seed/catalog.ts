@@ -34,6 +34,8 @@ import { REDHAT_TRACKS } from "./tracks/redhat-openshift";
 import { EMS_TRACKS } from "./tracks/ems";
 import { EPPP_TRACKS } from "./tracks/eppp";
 import { NBCC_TRACKS } from "./tracks/nbcc";
+// REQ-275..278: nursing specialty and advanced practice certifications.
+import { NURSING_SPECIALTY_TRACKS } from "./tracks/nursing-specialty";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -75,6 +77,8 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...EPPP_TRACKS,
   // REQ-239: NBCC counseling licensure, NCE and NCMHCE (same category).
   ...NBCC_TRACKS,
+  // REQ-275..278: CMSRN, CEN, PCCN and the two FNP exams (AANPCB, ANCC).
+  ...NURSING_SPECIALTY_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the

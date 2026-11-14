@@ -128,6 +128,8 @@ import { APLUS_CORE2_LABS } from "./comptia-aplus-core2";
 import { EPPP_LABS } from "./eppp";
 import { NCE_LABS } from "./nbcc-nce";
 import { NCMHCE_LABS } from "./nbcc-ncmhce";
+// REQ-275..278: nursing specialty and advanced practice courses.
+import { NURSING_SPECIALTY_LAB_SETS } from "./nursing-specialty";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -255,4 +257,5 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   // REQ-239: NBCC counseling exams.
   NCE_LABS,
   NCMHCE_LABS,
+  ...NURSING_SPECIALTY_LAB_SETS,
 ].map(withValueSources);

@@ -30,6 +30,7 @@ import {
   NASEMSO_MODEL_GUIDELINES_V3,
   SCOPE_OF_PRACTICE_2019,
 } from "./ems-sources";
+import { NURSING_SPECIALTY_VALUE_SOURCES } from "./nursing-specialty-sources";
 import { ACOG_PB183, ADA_HYPOGLYCEMIA, CDC_EBP, CDC_HAND_HYGIENE, CDC_TBP, ENDOCRINE_INPATIENT_2022, ISMP_ABBREVIATIONS, NCSBN_ANA_DELEGATION } from "./nursing-sources";
 
 const CHECKED = "2026-11-08";
@@ -914,6 +915,8 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "ncmhce-cultural-humility": [ACA_CODE_2014],
     "ncmhce-alliance-rupture": { none: CONCEPTS_ONLY },
   },
+  // REQ-275..278 (2026-11-14): CMSRN, CEN, PCCN, FNPAANP, FNPANCC.
+  ...NURSING_SPECIALTY_VALUE_SOURCES,
 };
 
 // The set with each lab's value sources (or its reason for none) attached.
