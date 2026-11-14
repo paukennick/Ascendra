@@ -470,8 +470,8 @@ export const ABOUT: LegalDoc = {
 
 export const FAQ: LegalDoc = {
   title: "FAQ",
-  version: "2026-11-13",
-  updated: "November 13, 2026",
+  version: "2026-11-14",
+  updated: "November 14, 2026",
   sections: [
     {
       title: "What is Ascendra?",
@@ -527,6 +527,13 @@ export const FAQ: LegalDoc = {
       body: [
         "Yes. In Settings, under Study, “Lesson order” lets you pick Explain first (what it is and why it matters, then the worked example) or Example first (the worked example, then the explanation). Both cover the same content and the same questions, and the solo check and mastery rules don't change. It's about what feels comfortable, not a learning style.",
         "Ascendra is also trying both orders to learn which one helps people more. If you haven't picked one, we chose one for you at random, once, and it stays the same on every device and in every course until you change it. We keep which order you were given, which you picked and when, and your lessons' first-party milestones note which order you saw (no answer text).",
+      ],
+    },
+    {
+      title: "Are there keyboard shortcuts?",
+      body: [
+        "Yes, on the web (the phone app has none). While you are in a question, press 1 to 9 or A to D to choose an answer, Enter to check it and go on, and ? to see the list. In a timed sprint or mock exam, N goes to the next question, P to the previous one and F flags it; Enter goes on once you have answered. In a simulation, Space pauses the clock and runs it again when focus is on the simulation rather than on a button. Esc closes the list or any open dialog.",
+        "They never act while you are typing in a box, or with Ctrl, Alt or Command held, and Enter and Space still press the button or link you are on. To turn them off, use “Keyboard shortcuts” in Settings, under Study, or “Turn off keyboard shortcuts” in the list.",
       ],
     },
     {

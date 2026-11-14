@@ -230,6 +230,15 @@
   states too, and says when the learner's place is kept. Every step that saves
   a place keeps it when left, optional steps included (FAIL-1641), and a list
   that shows progress counts a saved place as started (FAIL-1642).
+- Key handlers on the web (REQ-290, FAIL-1900): a handler that stops a key
+  (`stopPropagation`) hides it from every bubble-phase listener above it, the
+  idle timer's included, so anything that must see every key (activity, the
+  lock) listens on the window in the capture phase. A single-character
+  shortcut acts only inside one area, never in a text field, never with
+  Ctrl/Alt/Meta, leaves Enter and Space to buttons and links, and has an off
+  switch in Settings (WCAG 2.1.4); the rules live in
+  `mobile/src/lib/studyShortcuts.ts`, not in a screen. A screen whose choice
+  commits at once (a sim decision) gets no key that picks it.
 - Database roles and exposure (REQ-207, FAIL-940..956): a migration that adds
   a table, view, sequence or function, or restates a function with CREATE OR
   REPLACE (which drops its `search_path`), ends with `select
