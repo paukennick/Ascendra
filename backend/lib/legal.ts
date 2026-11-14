@@ -14,9 +14,15 @@ import { isLegacyClient } from "@/lib/client-version";
 //
 // REQ-220 / REQ-260: the legal text moved to US spelling with the
 // 2026-11-13 version and is now covered by lib/us-spelling.test.ts.
+//
+// REQ-261: 2026-11-14 bumps the Privacy Policy alone (website analytics); the
+// Terms stay 2026-11-13. The two documents have had their own version since
+// REQ-093, the newer one is the single string (CURRENT_TERMS_VERSION), and an
+// account that accepted the Terms at 2026-11-13 is asked for the Privacy Policy
+// only (`pending` is ["privacy"]).
 export const LEGAL_VERSIONS = {
   terms: "2026-11-13",
-  privacy: "2026-11-13",
+  privacy: "2026-11-14",
 } as const;
 
 // REQ-175 / REQ-205: the generations of the text that installed builds still
@@ -33,8 +39,8 @@ export const LEGAL_VERSIONS = {
 //   - LEGACY_LEGAL_VERSIONS: builds that send neither header (before
 //     REQ-175; "legacy clients"). Frozen: never change it.
 export const PREVIOUS_LEGAL_VERSIONS = {
-  terms: "2026-11-10",
-  privacy: "2026-11-10",
+  terms: "2026-11-13",
+  privacy: "2026-11-13",
 } as const;
 export const UNDECLARED_LEGAL_VERSIONS = {
   terms: "2026-11-09",
@@ -46,8 +52,11 @@ export const LEGACY_LEGAL_VERSIONS = {
 } as const;
 
 // REQ-219 (FAIL-1108): generations older than PREVIOUS_LEGAL_VERSIONS that
-// installed builds still declare, newest first. Empty until the next bump.
-export const EARLIER_LEGAL_VERSIONS: readonly { terms: string; privacy: string }[] = [];
+// installed builds still declare, newest first. REQ-261: the 2026-11-10 pair,
+// which PREVIOUS_LEGAL_VERSIONS held until the 2026-11-14 Privacy Policy.
+export const EARLIER_LEGAL_VERSIONS: readonly { terms: string; privacy: string }[] = [
+  { terms: "2026-11-10", privacy: "2026-11-10" },
+];
 
 export type LegalDocument = keyof typeof LEGAL_VERSIONS;
 export const LEGAL_DOCUMENTS = Object.keys(LEGAL_VERSIONS) as LegalDocument[];
@@ -279,9 +288,14 @@ export interface TermsState {
 }
 
 export async function termsState(userId: string, ctx: ClientContext = HEADERED): Promise<TermsState> {
+  // REQ-261: the newest acceptance of either document, as the single string
+  // `currentVersion` is (the newer of the two). It read the Terms row alone
+  // while the two always moved together; after the Privacy-only 2026-11-14
+  // bump an account that had agreed to everything would have shown
+  // 2026-11-13 against a current 2026-11-14. The app only asks whether it is set.
   const latest = await queryOne<{ version: string; accepted_at: Date }>(
     `select version, accepted_at from legal_acceptances
-      where user_id = $1 and document = 'terms' order by accepted_at desc, version desc limit 1`,
+      where user_id = $1 order by accepted_at desc, version desc limit 1`,
     [userId]
   );
   const pending = await pendingAcceptance(userId, ctx);

@@ -4,6 +4,7 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { resetWebAnalyticsForTests, startWebAnalytics } from "./webAnalytics.web.ts";
 import { redactEvent } from "./analyticsPrivacy.ts";
 
@@ -120,7 +121,7 @@ describe("where it is wired", () => {
 
   test("no custom events and no identifiers: the loader never calls track or pageview", () => {
     const web = read("./webAnalytics.web.ts").replace(/\/\/.*$/gm, "");
-    assert.ok(!/\btrack\b|\bpageview\(|identify|setUser|userId/.test(web));
+    assert.ok(!/\btrack\b|\bpageview\(|identify|enableCookie|setUser|userId/.test(web));
   });
 
   test("the root layout starts it once, through the platform-resolved module", () => {
@@ -133,6 +134,26 @@ describe("where it is wired", () => {
     const pkg = JSON.parse(read("../../package.json")).dependencies;
     assert.equal(pkg["@vercel/analytics"], "2.0.1");
     assert.equal(pkg["@vercel/speed-insights"], "2.0.0");
+  });
+
+  // The app's CSP allows scripts and connections from its own origin only
+  // (backend/security-headers.js, backend/lib/security-headers.test.ts). That
+  // is enough only while the packages' default (non-development) scripts and
+  // endpoints are same-origin. A version bump that adds a host fails here.
+  test("the installed packages load from this site's own origin by default; other hosts are only the development script", () => {
+    const dir = fileURLToPath(new URL("../../node_modules/@vercel/", import.meta.url));
+    for (const [pkg, src] of [
+      ["analytics", "/_vercel/insights/script.js"],
+      ["speed-insights", "/_vercel/speed-insights/script.js"],
+    ] as const) {
+      const code = readFileSync(`${dir}${pkg}/dist/index.mjs`, "utf8");
+      assert.ok(code.includes(`"${src}"`), `${pkg} default script path`);
+      const hosts = new Set([...code.matchAll(/https?:\/\/([a-z0-9.-]+)/gi)].map((m) => m[1].toLowerCase()));
+      // va.vercel-scripts.com: the debug script (development builds, which the
+      // app pins away from with mode "production") and the `dsn` option (not
+      // used). vercel.com: documentation links in console messages.
+      for (const h of hosts) assert.ok(["va.vercel-scripts.com", "vercel.com"].includes(h), `${pkg} references ${h}`);
+    }
   });
 
   test("the web build script turns it on for production builds only, and lets an explicit value win", () => {

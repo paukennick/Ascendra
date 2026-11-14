@@ -138,16 +138,22 @@ describe("Export my data downloads a JSON file on the web (FAIL-905)", () => {
 describe("the legal version the app shows (FAIL-901)", () => {
   test("the app sends the legal version on every request, and it is the text it carries", () => {
     assert.equal(LEGAL_VERSION_HEADER, "X-Ascendra-Legal");
-    assert.equal(TERMS_VERSION, "2026-11-13");
+    // REQ-261: the newer of the Terms (2026-11-13) and the Privacy Policy (2026-11-14).
+    assert.equal(TERMS_VERSION, "2026-11-14");
     assert.match(read("src", "api", "client.ts"), /\[LEGAL_VERSION_HEADER\]: TERMS_VERSION/);
     const backend = readFileSync(join(root, "..", "backend", "lib", "legal.ts"), "utf8");
     assert.match(backend, new RegExp(`LEGAL_VERSION_HEADER = "${LEGAL_VERSION_HEADER}"`));
   });
-  test("both documents carry the new version and date", () => {
+  test("each document carries its own version and date: the Terms stay 2026-11-13, the Privacy Policy and Cookies are 2026-11-14 (REQ-261)", () => {
     const content = read("src", "content", "legal.ts");
-    for (const n of ["TERMS", "PRIVACY"]) {
+    const expected: Record<string, [string, string]> = {
+      TERMS: ["2026-11-13", "November 13, 2026"],
+      PRIVACY: ["2026-11-14", "November 14, 2026"],
+      COOKIES: ["2026-11-14", "November 14, 2026"],
+    };
+    for (const [n, want] of Object.entries(expected)) {
       const m = content.match(new RegExp(`export const ${n}: LegalDoc = \\{[\\s\\S]*?version: "([^"]+)",\\s*updated: "([^"]+)"`));
-      assert.deepEqual([m?.[1], m?.[2]], ["2026-11-13", "November 13, 2026"], n);
+      assert.deepEqual([m?.[1], m?.[2]], want, n);
     }
   });
   test("REQ-260: the date of birth asked for mental health courses is disclosed, never denied", () => {
@@ -165,5 +171,100 @@ describe("the legal version the app shows (FAIL-901)", () => {
     assert.match(content, /governingLaw: "the State of Washington, USA"/);
     assert.match(content, /minimumAge: "16"/);
     assert.match(content, /AI_COUNTS_MONTHS = 12/);
+  });
+});
+
+// REQ-261: website analytics (Vercel Web Analytics and Speed Insights on the
+// web app, src/lib/webAnalytics.web.ts) are disclosed, and the policy never
+// mentions them without the facts that make them acceptable: cookieless, and
+// off for Global Privacy Control and Do Not Track.
+describe("website analytics in the policy (REQ-261)", () => {
+  // src/content/legal.ts imports a sibling without an extension, which Node
+  // can't load, so the documents are read from the source: each `export const
+  // NAME: LegalDoc`, its `version`, and its sections' titles and paragraphs
+  // (the quoted or template strings on a line of their own).
+  type Doc = { version: string; sections: { title: string; body: string[] }[] };
+  const source = read("src", "content", "legal.ts");
+  const parse = (name: string): Doc => {
+    const start = source.indexOf(`export const ${name}: LegalDoc`);
+    assert.ok(start >= 0, name);
+    const rest = source.slice(start + 10);
+    const end = rest.search(/\nexport const |\n\/\/ Disclaimer sections/);
+    const chunk = source.slice(start, end < 0 ? undefined : start + 10 + end);
+    const parts = chunk.split(/\n\s+title: "/).slice(1);
+    return {
+      version: /version: "([^"]+)"/.exec(chunk)![1],
+      sections: parts.map((part) => ({
+        title: part.slice(0, part.indexOf('"')),
+        body: [...part.matchAll(/^\s+(?:"((?:[^"\\]|\\.)*)"|`((?:[^`\\]|\\.)*)`),$/gm)].map((m) => (m[1] ?? m[2]).replace(/\\"/g, '"')),
+      })),
+    };
+  };
+  const PRIVACY = parse("PRIVACY");
+  const COOKIES = parse("COOKIES");
+  const TERMS = parse("TERMS");
+  const DISCLAIMER = parse("DISCLAIMER");
+  const FAQ = parse("FAQ");
+  const paragraphs = (doc: { sections: { title: string; body: string[] }[] }) =>
+    doc.sections.flatMap((sec) => sec.body.map((text) => ({ section: sec.title, text })));
+  const COOKIELESS = /cookieless|no cookies|sets? no cookies|store nothing on your device|stores nothing on your device/i;
+  const mentions = [...paragraphs(PRIVACY).map((p) => ({ doc: "Privacy", ...p })), ...paragraphs(COOKIES).map((p) => ({ doc: "Cookies", ...p }))].filter((p) => /analytics/i.test(p.text));
+
+  test("every paragraph that says analytics also says cookieless and Global Privacy Control and Do Not Track", () => {
+    assert.ok(mentions.length >= 4, "Privacy 2 and 4, and Cookies twice, mention it");
+    for (const p of mentions) {
+      assert.match(p.text, COOKIELESS, `${p.doc} ${p.section}: cookieless`);
+      assert.match(p.text, /Global Privacy Control/, `${p.doc} ${p.section}: Global Privacy Control`);
+      assert.match(p.text, /Do Not Track/, `${p.doc} ${p.section}: Do Not Track`);
+    }
+  });
+
+  test("it is disclosed in Privacy sections 2, 3, 4 and 6 and in the Cookies page", () => {
+    const at = (n: number) => PRIVACY.sections.find((sec) => sec.title.startsWith(`${n}.`))!.body.join("\n");
+    assert.match(at(2), /Vercel's cookieless website analytics/);
+    assert.match(at(2), /mobile app has no analytics software/);
+    assert.match(at(3), /which pages of the website are used and how fast they load/);
+    assert.match(at(4), /Vercel — runs the website[^\n]*Web Analytics and Speed Insights/);
+    assert.match(at(6), /page-view and speed figures[^\n]*not linked to your account/);
+    assert.ok(COOKIES.sections.some((sec) => /Website analytics store nothing on your device/.test(sec.title)));
+  });
+
+  test("section 4 says what a page view sends, after the redaction, and what the app does not send", () => {
+    const vercel = PRIVACY.sections.find((sec) => sec.title.startsWith("4."))!.body.find((t) => t.startsWith("• Vercel"))!;
+    for (const fact of [
+      /query string and anything after a # removed/,
+      /any part that looks like an ID or a token replaced \(for example \/course\/:id\/lesson\/:id\)/,
+      /the site that sent you \(the referrer\)/,
+      /how fast the page loaded/,
+      /browser, operating system, device type and approximate location/,
+      /sets no cookies and stores nothing on your device/,
+      /hash of the request that it discards after 24 hours/,
+      /cannot identify you or follow you across sites/,
+      /receives no name, email address or account ID from us/,
+    ]) assert.match(vercel, fact);
+  });
+
+  test("the retention and deletion lists say the figures are anonymous and not linked to the account", () => {
+    const six = PRIVACY.sections.find((sec) => sec.title.startsWith("6."))!.body;
+    assert.equal(six.filter((t) => /page-view and speed figures/.test(t) && /not linked to your account|never linked to your account/.test(t)).length, 2);
+  });
+
+  test("the Cookies page keeps its promise: nothing optional is stored without a consent prompt first", () => {
+    const banner = COOKIES.sections.find((sec) => sec.title === "Why there is no consent banner")!.body.join(" ");
+    assert.match(banner, /store nothing on your device/);
+    assert.match(banner, /does store data on your device and isn't strictly necessary, this page and a consent prompt will come first/);
+    assert.doesNotMatch(COOKIES.sections.map((sec) => sec.body.join(" ")).join(" "), /If we ever add anything optional, such as analytics/);
+  });
+
+  test("the old claims are gone, and no other document mentions analytics", () => {
+    const all = JSON.stringify(PRIVACY);
+    assert.doesNotMatch(all, /no analytics trackers/);
+    for (const [name, doc] of Object.entries({ TERMS, DISCLAIMER, FAQ })) assert.doesNotMatch(JSON.stringify(doc), /analytics/i, name);
+  });
+
+  test("only the Privacy Policy and Cookies moved; the Terms are unchanged by this", () => {
+    assert.equal(TERMS.version, "2026-11-13");
+    assert.equal(PRIVACY.version, "2026-11-14");
+    assert.equal(COOKIES.version, "2026-11-14");
   });
 });

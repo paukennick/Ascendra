@@ -142,7 +142,7 @@ describe("the beforeSend both scripts share", () => {
     assert.deepEqual(Object.keys(out).sort(), ["type", "url"]);
   });
 
-  test("an event with an unreadable address is cancelled", () => {
+  test("an event with an unreadable address is dropped", () => {
     assert.equal(redactEvent({ type: "pageview", url: "nonsense" }), null);
     assert.equal(redactEvent(null as never), null);
     assert.equal(redactEvent({ type: "pageview" } as never), null);
