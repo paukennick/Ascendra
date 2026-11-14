@@ -26,13 +26,13 @@ Ascendra runs on iPhone, Android and the web.
 
 ## Who it's for
 
-Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **118 courses**:
+Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **123 courses**:
 
-- **IT and cloud (65):** 18 CompTIA, 15 Kubernetes and CNCF, 11 AWS, 11 Google Cloud and 10 Microsoft Azure certifications
+- **IT and cloud (66):** 18 CompTIA, 15 Kubernetes and CNCF, 11 AWS, 11 Google Cloud and 10 Microsoft Azure certifications, and ITIL 4 Foundation
 - **Physical therapy (14):** NPTE-PT, NPTE-PTA, the DPT pathway, the ABPTS specialist certifications and a PT school prerequisites refresher
-- **Project management (12):** PMI certifications
+- **Project management (15):** PMI certifications, Scrum (Scrum.org PSM I and Scrum Alliance CSM) and the ASQ Six Sigma Green Belt
 - **Nursing and critical care (10):** CNA through BSN, NCLEX-RN and NCLEX-PN, CCRN (adult, pediatric, neonatal) and MS Health Informatics
-- **Fitness (6):** NASM, ACE, ACSM, NSCA (CPT and CSCS) and NCCPT personal trainer certifications
+- **Fitness (7):** NASM, ACE, ACSM, NSCA (CPT and CSCS) and NCCPT personal trainer certifications, and the NASM Certified Nutrition Coach
 - **Emergency medical services (4):** NREMT Emergency Medical Responder, EMT, Advanced EMT and Paramedic
 - **Software development (4):** Python, JavaScript, Computer Science Degree Foundations and MSCS foundations
 - **Mental health (3):** the EPPP (psychology licensure) and the NCE and NCMHCE (counselor licensure), behind a one-time 18+ confirmation

@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, matchPart, orderPart, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, matchPart, orderPart, part, selectPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-280: CSM (Scrum Alliance). Built on the Scrum Foundations and CSM
@@ -150,12 +150,23 @@ export const CSM_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Name what conflicts with the Scrum Guide and propose a structure that fits it, with three benefits.",
+          ask: "Select what conflicts with the Scrum Guide and propose a structure that fits it, with three benefits.",
           parts: [
-            part(
-              "Conflicts",
-              "Names sub-teams and hierarchy (the assigning lead) and the size (14 is above the Guide's typically 10 or fewer).",
-              "Sub-teams and a lead who assigns work conflict with one self-managing team with no sub-teams or hierarchies, and 14 people is larger than the Guide's typical 10 or fewer."
+            selectPart(
+              "What conflicts with the Guide",
+              "Selecting the three conflicting features and nothing else is met; two of them is partly there.",
+              "Sub-teams by skill, a lead who assigns work (a hierarchy inside the team) and a size of 14 (the Guide says typically 10 or fewer) conflict with one cross-functional, self-managing team. One Product Owner and one Product Backlog are fine.",
+              {
+                lines: [
+                  "Separate design, back-end and test sub-teams",
+                  "A team lead who assigns work to each person",
+                  "14 people in the one team",
+                  "One Product Owner for the product",
+                  "One Product Backlog for the product",
+                ],
+                correct: [0, 1, 2],
+                display: "list",
+              }
             ),
             part(
               "New structure",
@@ -300,6 +311,23 @@ export const CSM_LABS: SeedLabSet = {
               "Draft",
               "Lists checkable quality criteria including the organizational standards (accessibility, security review) and testing, integration and deployability.",
               "Code reviewed; automated tests pass; integrated into the main branch; meets WCAG accessibility checks; security review done for anything storing personal data; deployed to a production-like environment; user-facing text proofread."
+            ),
+            selectPart(
+              "Not a Definition of Done item",
+              "Selecting the two lines that are not quality criteria for the Increment and nothing else is met; one of them is partly there.",
+              "A Definition of Done describes the quality an Increment must meet. 'Finished by Friday' is a deadline and 'the Product Owner likes it' is acceptance of value, not a quality standard. The others are checkable quality criteria.",
+              {
+                lines: [
+                  "Automated tests pass",
+                  "Meets the council's WCAG accessibility checks",
+                  "Finished by Friday",
+                  "Security review done for anything storing personal data",
+                  "The Product Owner likes it",
+                  "Deployed to a production-like environment",
+                ],
+                correct: [2, 4],
+                display: "list",
+              }
             ),
             part(
               "How created",
