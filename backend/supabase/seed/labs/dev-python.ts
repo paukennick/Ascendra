@@ -340,7 +340,7 @@ export const PYTHON_LABS: SeedLabSet = {
       brief:
         "Fernhill Hardware (fictional) labels stock on its shelf tags. None means the count has not been taken yet, 0 means sold out, 1-10 is 'in stock' and more than 10 is 'plenty'.\n\ndef stock_label(qty):\n    if not qty:\n        return \"unknown\"\n    elif qty > 0:\n        return \"in stock\"\n    elif qty > 10:\n        return \"plenty\"\n    else:\n        return \"sold out\"\n\nCalled with None, 0, 5 and 40 it returns unknown, unknown, in stock, in stock. Two of the four are wrong.",
       safetyNote: GENERAL_SAFETY,
-      sources: [source("https://docs.python.org/3/library/stdtypes.html#truth-value-testing", "reference", "2026-11-14"), source("https://docs.python.org/3/reference/compound_stmts.html#the-if-statement", "reference", "2026-11-14")],
+      noValueSource: "Every value is the output of the snippet itself, run on CPython 3.13.18 on 2026-11-14; language and library behavior follows the Python documentation cited for the set (read 2026-11-07). No outside value is quoted.",
       steps: [
         {
           text: "",
@@ -373,7 +373,7 @@ export const PYTHON_LABS: SeedLabSet = {
       brief:
         "Brightwater Events (fictional) counts badge scans with a closure:\n\ndef make_counter():\n    count = 0\n    def bump():\n        count += 1\n        return count\n    return bump\n\nscan = make_counter()\nscan()\n\nThe call fails with: UnboundLocalError: cannot access local variable 'count' where it is not associated with a value. A colleague says 'but count is right there in make_counter'.",
       safetyNote: GENERAL_SAFETY,
-      sources: [source("https://docs.python.org/3/reference/executionmodel.html#resolution-of-names", "reference", "2026-11-14"), source("https://docs.python.org/3/reference/simple_stmts.html#the-nonlocal-statement", "reference", "2026-11-14")],
+      noValueSource: "Every value is the output of the snippet itself, run on CPython 3.13.18 on 2026-11-14; language and library behavior follows the Python documentation cited for the set (read 2026-11-07). No outside value is quoted.",
       steps: [
         {
           text: "",
@@ -408,7 +408,7 @@ export const PYTHON_LABS: SeedLabSet = {
       brief:
         "A support analyst at Larkspur Books (fictional) counts words in ticket subjects:\n\nwords = \"the cat and the hat and the bat\".split()\ncounts = {}\nfor w in words:\n    counts[w] += 1\n\nIt stops at once with KeyError: 'the'. The analyst also wants to group words by first letter for a second report.",
       safetyNote: GENERAL_SAFETY,
-      sources: [source("https://docs.python.org/3/library/stdtypes.html#mapping-types-dict", "reference", "2026-11-14"), source("https://docs.python.org/3/library/collections.html", "reference", "2026-11-14")],
+      noValueSource: "Every value is the output of the snippet itself, run on CPython 3.13.18 on 2026-11-14; language and library behavior follows the Python documentation cited for the set (read 2026-11-07). No outside value is quoted.",
       steps: [
         {
           text: "",
@@ -444,7 +444,7 @@ export const PYTHON_LABS: SeedLabSet = {
       brief:
         "Harbor Lane Gifts (fictional) exports stock.csv:\n\nsku,qty,price\nA100,3,4.50\nB200,10,1.25\nC300,2,19.99\n\nA script is meant to write summary.json with the number of rows and the stock value (qty x price, summed):\n\nimport csv, json\nwith open(\"stock.csv\", newline=\"\") as f:\n    rows = list(csv.DictReader(f))\ntotal = sum(r[\"qty\"] * r[\"price\"] for r in rows)\nsummary = {\"items\": len(rows), \"value\": total}\nwith open(\"summary.json\") as f:\n    json.dump(summary, f)\n\nIt crashes before writing anything.",
       safetyNote: GENERAL_SAFETY,
-      sources: [source("https://docs.python.org/3/library/csv.html", "reference", "2026-11-14"), source("https://docs.python.org/3/library/json.html", "reference", "2026-11-14")],
+      noValueSource: "Every value is the output of the snippet itself, run on CPython 3.13.18 on 2026-11-14; language and library behavior follows the Python documentation cited for the set (read 2026-11-07). No outside value is quoted.",
       steps: [
         {
           text: "",
@@ -478,7 +478,7 @@ export const PYTHON_LABS: SeedLabSet = {
       brief:
         "Tidewater Billing (fictional) builds records from mixins:\n\nlog = []\nclass Record:\n    def __init__(self, record_id):\n        self.record_id = record_id\n    def save(self):\n        log.append(\"Record\")\nclass Timestamped(Record):\n    def save(self):\n        log.append(\"Timestamped\")\n        super().save()\nclass Audited(Record):\n    def save(self):\n        log.append(\"Audited\")\n        super().save()\nclass Invoice(Timestamped, Audited):\n    def __init__(self, record_id, amount):\n        self.amount = amount\n    def save(self):\n        log.append(\"Invoice\")\n        super().save()\n\ninv = Invoice(\"INV-7\", 120)\ninv.save()\n\nLater, printing inv.record_id raises AttributeError.",
       safetyNote: GENERAL_SAFETY,
-      sources: [source("https://docs.python.org/3/library/functions.html#super", "reference", "2026-11-14"), source("https://docs.python.org/3/howto/mro.html", "reference", "2026-11-14")],
+      noValueSource: "Every value is the output of the snippet itself, run on CPython 3.13.18 on 2026-11-14; language and library behavior follows the Python documentation cited for the set (read 2026-11-07). No outside value is quoted.",
       steps: [
         {
           text: "",
@@ -507,7 +507,7 @@ export const PYTHON_LABS: SeedLabSet = {
       brief:
         "The two-person IT team at Kestrel Dental (fictional) wants a small on-call script: read a log folder from the command line, build file paths that work on Windows and Linux, count the most common error code, rotate three names through the week, and say how many days remain until the 2026-12-18 audit, counting from 2026-11-14. A teammate proposes installing four packages from PyPI for it.",
       safetyNote: GENERAL_SAFETY,
-      sources: [source("https://docs.python.org/3/library/datetime.html", "reference", "2026-11-14"), source("https://docs.python.org/3/library/itertools.html", "reference", "2026-11-14"), source("https://docs.python.org/3/library/os.path.html", "reference", "2026-11-14"), source("https://docs.python.org/3/library/sys.html#sys.argv", "reference", "2026-11-14")],
+      noValueSource: "Every value is the output of the snippet itself, run on CPython 3.13.18 on 2026-11-14; language and library behavior follows the Python documentation cited for the set (read 2026-11-07). No outside value is quoted.",
       steps: [
         {
           text: "",

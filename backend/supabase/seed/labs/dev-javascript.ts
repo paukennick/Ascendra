@@ -364,7 +364,7 @@ export const JAVASCRIPT_LABS: SeedLabSet = {
       brief:
         "The checkout page at Juniper Kites (fictional) reads quantities from two form fields, which always give strings:\n\nconst cart = [\"2\", \"3\"];\nconst items = cart.reduce((sum, q) => sum + q, 0);\nconsole.log(\"Items:\", items);\n\nIt prints Items: 023. A reviewer also flags several == comparisons elsewhere in the file.",
       safetyNote: GENERAL_SAFETY,
-      sources: [source("https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Equality_comparisons_and_sameness", "reference", "2026-11-14"), source("https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof", "reference", "2026-11-14")],
+      noValueSource: "Every value is the output of the snippet itself, run on Node 22.23.4 on 2026-11-14; language behavior follows MDN and the ECMAScript specification cited for the set (read 2026-11-07). No outside value is quoted.",
       steps: [
         {
           text: "",
@@ -400,7 +400,7 @@ export const JAVASCRIPT_LABS: SeedLabSet = {
       brief:
         "Aldergrove Library's (fictional) web app limits how often two buttons can call the server:\n\nlet used = 0;\nfunction makeRateLimiter(limit) {\n  return function tryCall() {\n    if (used >= limit) return false;\n    used += 1;\n    return true;\n  };\n}\nconst search = makeRateLimiter(2);\nconst upload = makeRateLimiter(2);\n\nAfter two searches, the first upload is refused: search(), search(), upload() print true true false.",
       safetyNote: GENERAL_SAFETY,
-      sources: [source("https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Closures", "reference", "2026-11-14")],
+      noValueSource: "Every value is the output of the snippet itself, run on Node 22.23.4 on 2026-11-14; language behavior follows MDN and the ECMAScript specification cited for the set (read 2026-11-07). No outside value is quoted.",
       steps: [
         {
           text: "",
@@ -433,7 +433,7 @@ export const JAVASCRIPT_LABS: SeedLabSet = {
       brief:
         "In Ridgeback Gym's (fictional) member editor, a draft copy is edited before the user presses Save:\n\nconst original = {\n  name: \"Kit\",\n  tags: [\"new\"],\n  address: { city: \"Tacoma\" },\n  joined: new Date(\"2026-01-02T00:00:00Z\"),\n};\nconst draft = { ...original };\ndraft.name = \"Kit B\";\ndraft.tags.push(\"vip\");\ndraft.address.city = \"Olympia\";\n\nThe user presses Cancel, yet the saved member now shows the tag vip and the city Olympia.",
       safetyNote: GENERAL_SAFETY,
-      sources: [source("https://developer.mozilla.org/en-US/docs/Glossary/Shallow_copy", "reference", "2026-11-14"), source("https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone", "reference", "2026-11-14")],
+      noValueSource: "Every value is the output of the snippet itself, run on Node 22.23.4 on 2026-11-14; language behavior follows MDN and the ECMAScript specification cited for the set (read 2026-11-07). No outside value is quoted.",
       steps: [
         {
           text: "",
@@ -466,7 +466,7 @@ export const JAVASCRIPT_LABS: SeedLabSet = {
       brief:
         "A developer at Saltmarsh Transit (fictional) is puzzled by the order of these logs in Node:\n\nconsole.log(\"A\");\nsetTimeout(() => console.log(\"B timeout\"), 0);\nPromise.resolve().then(() => console.log(\"C microtask\"));\nqueueMicrotask(() => console.log(\"D microtask2\"));\n(async () => {\n  console.log(\"E async start\");\n  await null;\n  console.log(\"F after await\");\n})();\nconsole.log(\"G sync end\");",
       safetyNote: GENERAL_SAFETY,
-      sources: [source("https://developer.mozilla.org/en-US/docs/Web/JavaScript/Event_loop", "reference", "2026-11-14"), source("https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide", "reference", "2026-11-14")],
+      noValueSource: "Every value is the output of the snippet itself, run on Node 22.23.4 on 2026-11-14; language behavior follows MDN and the ECMAScript specification cited for the set (read 2026-11-07). No outside value is quoted.",
       steps: [
         {
           text: "",
@@ -495,7 +495,7 @@ export const JAVASCRIPT_LABS: SeedLabSet = {
       brief:
         "Bramble Podcasts' (fictional) player loads saved settings:\n\nconst settings = {\n  volume: 0,\n  theme: \"\",\n  user: { name: \"Ari\", address: null },\n  notify: undefined,\n};\n\nThe old code used || for every default, so listeners who muted the player (volume 0) find it at 50 again, and a missing address crashes the profile page with TypeError: Cannot read properties of null (reading 'city').",
       safetyNote: GENERAL_SAFETY,
-      sources: [source("https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing", "reference", "2026-11-14"), source("https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining", "reference", "2026-11-14")],
+      noValueSource: "Every value is the output of the snippet itself, run on Node 22.23.4 on 2026-11-14; language behavior follows MDN and the ECMAScript specification cited for the set (read 2026-11-07). No outside value is quoted.",
       steps: [
         {
           text: "",

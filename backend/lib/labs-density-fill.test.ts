@@ -2,7 +2,8 @@
 // fill has reached, each active unit has at least the labs the rule asks for
 // -- one per unit, plus six per course split by exam weight, at most three
 // per unit (and never more than the unit has objectives) -- each on its own
-// objective, and every lab the fill added cites its own dated sources.
+// objective, and every lab the fill added cites its own dated sources (or,
+// when its values are its own code's observed output, says so).
 // docs/labs-coverage.md has the measurement for the whole catalog.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
@@ -44,8 +45,12 @@ describe("lab density fill (REQ-295)", () => {
       for (const slug of added) {
         const lab = set.labs.find((l) => l.slug === slug);
         assert.ok(lab, `${code}/${slug}`);
-        assert.ok((lab!.sources ?? []).length > 0, `${code}/${slug}: dated value sources`);
-        for (const s of lab!.sources!) {
+        // Dated value sources actually read for the lab, or -- for a lab whose
+        // values are the observed output of its own code -- the reason why not.
+        const own = lab!.sources ?? [];
+        assert.ok(own.length > 0 || (lab!.noValueSource ?? "").length > 20, `${code}/${slug}: dated value sources or a reason`);
+        assert.ok(!(own.length > 0 && lab!.noValueSource), `${code}/${slug}: not both`);
+        for (const s of own) {
           assert.ok((SOURCE_KINDS as readonly string[]).includes(s.kind), `${code}/${slug}: ${s.url}`);
           assert.match(s.checkedAt, /^\d{4}-\d{2}-\d{2}$/, `${code}/${slug}: ${s.url}`);
         }
