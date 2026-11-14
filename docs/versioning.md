@@ -283,17 +283,20 @@ For a behavior, endpoint or old-app accommodation that is to go away:
 - Tests: `mobile/src/lib/appVersion.test.ts`, `backend/lib/client-version.test.ts`,
   `backend/lib/release-notes.test.ts`, `backend/lib/ship-notes.test.ts`.
 
-## 11. Decisions for Nick, and what was not verified
+## 11. Decisions (Nick, 2026-11-14) and what is still open
 
-- **Is `expo.version` part of the runtime fingerprint?** Not verified here.
-  The local fingerprint tool could not load the app config in this
-  environment, so it did not include `app.json` at all and its output says
-  nothing about the version string. The EAS update workflow's dry run
-  answers it. If a version bump changes the runtime, every bump is a store
-  build, and the plan in section 6 stands but "OTA bump" does not apply.
-- **30-day notice before raising the minimum** (section 5) is a proposal.
-- **The first tag** (section 8): which commit is `v2.0.0`.
+- **`expo.version` is part of the runtime fingerprint by default.** Read in
+  the installed `@expo/fingerprint` 0.20.15 (`build/sourcer/Expo.js`
+  `normalizeExpoConfig`, `build/Options.js` defaults): `version`,
+  `android.versionCode` and `ios.buildNumber` are hashed unless
+  `SourceSkips.ExpoConfigVersions` is set, and the project set no config. So
+  a bare version bump would change the runtime and strand installed apps'
+  over-the-air updates. `mobile/fingerprint.config.js` skips them (approved);
+  it changes the fingerprint once, so it ships with the next store build.
+  Until then, don't change the version.
+- **30 days in the stores before raising the minimum** (section 5): approved.
+- **First tag:** `v2.0.0` on the production commit f4b9c645 (2026-11-14):
+  approved. The cloud session can't create tags (its GitHub proxy refuses
+  tag writes); create it from GitHub's Releases page or a local clone.
 - **iOS store link.** `IOS_APP_STORE_URL` is not set until the iOS app is in
   the App Store; the iOS update screen has no button until then.
-- Nothing in `app.json`, `eas.json` or the app version was changed by
-  REQ-300; the version is still `2.0.0` and the runtime is unchanged.
