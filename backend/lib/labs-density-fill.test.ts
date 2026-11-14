@@ -17,6 +17,7 @@ export const FILLED: Readonly<Record<string, readonly string[]>> = {
   JAVASCRIPT: ["coercion-cart-total", "closure-rate-limiter", "shallow-copy-leaks-edits", "event-loop-log-order", "nullish-settings-defaults"],
   SECPLUS: ["web-attack-log-triage"],
   CNA: ["cna-sudden-confusion-report"],
+  NASMCPT: ["emergency-on-the-gym-floor"],
 };
 
 export function ruleFor(code: string): number[] {
