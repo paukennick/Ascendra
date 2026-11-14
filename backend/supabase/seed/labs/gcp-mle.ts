@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart, selectPart } from "./types";
 import { source } from "../sources";
 
 // REQ-158: Google Cloud Professional Machine Learning Engineer.
@@ -438,6 +438,42 @@ export const GCPMLE_LABS: SeedLabSet = {
               "Ticket IDs and consistency",
               "Uses a custom regex rule (SH-\\d{6}) on responses for the deterministic, well-defined pattern, and uses Model Armor templates (with organization floor settings) so one policy applies to all three teams.",
               "Ticket IDs are a fixed, known pattern, so a response regex SH-\\d{6} redacting or blocking matches is the right, cheap tool; no model is needed. For consistency, define the filters above in a Model Armor template and apply it in front of every team's calls, with floor settings at the organization level so no team can deploy below the minimum policy."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Automating and Orchestrating ML
+    // Pipelines (18%) gets its second lab. The snippet's behavior was checked
+    // by reasoning about the code shown; no product limit is quoted.
+    {
+      slug: "training-serving-preprocessing-skew",
+      objective: "Ensuring consistent data preprocessing between training and serving",
+      kind: "build",
+      title: "Find why online predictions disagree with offline evaluation",
+      brief:
+        "Lowmoor Energy (fictional) predicts next-day household usage. Offline, the model's error is low; once deployed to an online endpoint, predictions are far off. The training pipeline and the serving code were written by different people:\n\n# training (pipeline step)\nmean = df[\"kwh_7d\"].mean()\nstd = df[\"kwh_7d\"].std()\ndf[\"kwh_7d_z\"] = (df[\"kwh_7d\"] - mean) / std\ndf[\"tariff\"] = df[\"tariff\"].map({\"standard\": 0, \"economy7\": 1, \"ev\": 2})\n\n# serving (endpoint handler)\nz = (x[\"kwh_7d\"] - x[\"kwh_7d\"]) / 1.0\ntariff = {\"standard\": 0, \"ev\": 1, \"economy7\": 2}[x[\"tariff\"]]\nkwh_7d = x[\"kwh_last_7_days_wh\"]",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "The skew is read from the code shown in the brief; no product limit or outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the serving lines that create skew, then describe the pipeline change that prevents it.",
+          parts: [
+            selectPart(
+              "Serving lines that cause skew",
+              "Met: exactly the three serving lines -- the z-score that subtracts the value from itself, the tariff map with economy7 and ev swapped, and reading the 7-day usage in watt-hours instead of kilowatt-hours. (Right picks minus wrong picks) of at least two is partly there.",
+              "Training scaled kwh_7d with the training set's mean and standard deviation; serving computes (x - x) / 1, which is always 0, so the model never sees the real value. The tariff codes for economy7 and ev are swapped at serving, so those households get the other category's effect. And the serving input is in watt-hours, 1,000 times the unit training used. The training lines are the reference, not the problem.",
+              {
+                display: "config",
+                lines: ["mean = df[\"kwh_7d\"].mean()", "std = df[\"kwh_7d\"].std()", "df[\"kwh_7d_z\"] = (df[\"kwh_7d\"] - mean) / std", "df[\"tariff\"] = df[\"tariff\"].map({\"standard\": 0, \"economy7\": 1, \"ev\": 2})", "z = (x[\"kwh_7d\"] - x[\"kwh_7d\"]) / 1.0", "tariff = {\"standard\": 0, \"ev\": 1, \"economy7\": 2}[x[\"tariff\"]]", "kwh_7d = x[\"kwh_last_7_days_wh\"]"],
+                correct: [4, 5, 6],
+              }
+            ),
+            part(
+              "Pipeline change",
+              "One preprocessing definition used by both paths: fit the transform (mean, std, category vocabulary) in the training pipeline, save it as a versioned artifact with the model (e.g. a TensorFlow Transform graph, a saved sklearn Pipeline, or features served from Feature Store), and load that same artifact at serving -- or put the preprocessing inside the model/container. Validate input schema and units at serving; add a pipeline test that runs a few rows through both paths and compares; monitor training-serving skew on the endpoint.",
+              "Make preprocessing one artifact, not two copies of code. Fit it in the training pipeline -- the kwh_7d mean and standard deviation, the tariff vocabulary, the unit conversion -- and save it, versioned, with the model: a scikit-learn Pipeline saved together with the estimator, a TensorFlow Transform graph, or features computed once and served from Feature Store for both training and online lookups. The endpoint loads that artifact (or the container wraps model and preprocessing together), so serving cannot drift from training. Then add guards: a schema check at the endpoint that rejects watt-hours where kilowatt-hours are expected, a pipeline test that pushes the same rows through training and serving preprocessing and compares the outputs, and skew monitoring on the deployed model."
             ),
           ],
         },

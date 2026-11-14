@@ -92,7 +92,7 @@ export function apportion(n: number, weights: (number | null)[]): number[] {
 // length no longer matches the course's units (the density tests then fail,
 // so a reshaped course is noticed).
 export const LAB_PLAN_TOP_UPS: Readonly<Record<string, readonly number[]>> = {
-  DP900: [2, 2, 2, 2],
+  DP900: [3, 2, 2, 3], // REQ-295: raised from [2, 2, 2, 2] to the rule
   ABPTSPWCS: [2, 3, 3],
   // REQ-295 (Nick, 2026-11-14): "build more labs" to the rule as he states
   // it -- one per unit plus six per course by exam weight, at most three per
@@ -107,6 +107,10 @@ export const LAB_PLAN_TOP_UPS: Readonly<Record<string, readonly number[]>> = {
   LINUXPLUS: [3, 2, 2, 2, 2],
   PENTESTPLUS: [2, 2, 2, 3, 2],
   SECAIPLUS: [2, 3, 3, 2],
+  AZ900: [3, 3, 3],
+  AZ305: [3, 2, 2, 3],
+  GCPDBE: [3, 3, 2, 2],
+  GCPMLE: [2, 2, 2, 2, 2, 2],
 };
 
 export function unitPlan(track: PlanTrack, policy: DensityPolicy, opts = POLICY_DEFAULTS): number[] {

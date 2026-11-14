@@ -24,6 +24,11 @@ export const FILLED: Readonly<Record<string, readonly string[]>> = {
   LINUXPLUS: ["firewalld-open-https-permanently"],
   PENTESTPLUS: ["critical-finding-escalation", "read-nmap-service-scan", "password-attack-findings", "session-cookie-weaknesses", "persistence-scoping-and-removal"],
   SECAIPLUS: ["rag-pipeline-data-exposure", "ai-agent-in-cicd-guardrails", "responsible-ai-risk-register"],
+  AZ900: ["sign-in-methods-for-each-need"],
+  AZ305: ["compute-ha-by-failure-scope"],
+  DP900: ["file-format-for-each-dataset", "ingestion-elt-pipeline-plan"],
+  GCPDBE: ["read-replica-lag-and-routing"],
+  GCPMLE: ["training-serving-preprocessing-skew"],
 };
 
 export function ruleFor(code: string): number[] {
