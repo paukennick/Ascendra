@@ -288,7 +288,7 @@ export const LINUXFUND_TRACK: SeedTrack = {
     {
       title: "Software packages",
       rangeLabel: "Week 6",
-      gate: "Install, verify and remove software on both a Debian-family and a Red Hat-family system, and find which package owns a given file.",
+      gate: "Install, verify and remove software on both a Debian-family and a Fedora-family system, and find which package owns a given file.",
       sources: [R.apt, R.dnf, R.dpkg, R.rpm],
       objectives: [
         "Install, update and remove packages with apt on Debian and Ubuntu systems",
