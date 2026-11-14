@@ -35,7 +35,7 @@ describe("path segments that look like ids or tokens", () => {
   });
 
   test("screen names are kept", () => {
-    for (const s of ["", "login", "register", "course", "lesson", "privacy", "forgot-password", "verify-email-pending", "review-coverage", "study-profile", "whats-new", "plan", "sims", "labs", "account"]) {
+    for (const s of ["", "login", "register", "course", "lesson", "privacy", "forgot-password", "verify-email-pending", "review-coverage", "study-profile", "whats-new", "release-notes", "plan", "sims", "labs", "account"]) {
       assert.equal(isSensitiveSegment(s), false, s);
     }
   });
@@ -96,7 +96,7 @@ describe("redacting a page address", () => {
   });
 
   test("screens with no id are unchanged, the root included", () => {
-    for (const p of ["/", "/login", "/settings/mfa", "/course", "/privacy", "/whats-new"]) {
+    for (const p of ["/", "/login", "/settings/mfa", "/course", "/privacy", "/whats-new", "/release-notes"]) {
       assert.equal(redactAnalyticsUrl(`${SITE}${p}`), `${SITE}${p}`, p);
     }
     assert.equal(redactAnalyticsUrl(`${SITE}/?utm_source=x#y`), `${SITE}/`);

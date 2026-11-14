@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForTrack } from "@/lib/auth/requireAcknowledgement";
 import { visibleTrack } from "@/lib/visibility";
 import { validClientAttemptId } from "@/lib/lesson-progress";
-import { createSession, examProfile, listSessions, sessionView } from "@/lib/exam-sessions";
+import { createSession, examProfile, listSessions, mockFormState, sessionView } from "@/lib/exam-sessions";
 import { examError } from "@/lib/exam-route-errors";
 import { requireCourseAccess, requireFeature, withAllowance } from "@/lib/entitlements";
 import { queryOne } from "@/lib/db";
@@ -29,7 +29,8 @@ class ReplayedStart {
 // REQ-109: timed sprints and mock exams.
 //
 // GET  /api/exam/sessions?trackId=...   what the course's exam looks like
-//      (formats, question count, duration) and this learner's recent sessions
+//      (formats, question count, duration), what the bank can fill of a
+//      full-length mock (REQ-298) and this learner's recent sessions
 // POST /api/exam/sessions  { trackId, mode: "sprint" | "mock", timed, clientSessionId? }
 //      builds a session and returns it (questions without keys, in this
 //      learner's shuffle) plus how it was prepared. Starting a new session of
@@ -41,7 +42,9 @@ export async function GET(req: Request) {
     if (!trackId) return badRequest("trackId is required");
     if (!(await visibleTrack(trackId, user.id))) return notFound("Course not found");
     const profile = await examProfile(trackId);
-    return ok({ exam: profile, sessions: await listSessions(user.id, trackId) });
+    // REQ-298: how much of a full-length mock the bank can fill right now, so
+    // the start screen says "short form" before the learner starts one.
+    return ok({ exam: profile, mock: await mockFormState(user.id, trackId, profile), sessions: await listSessions(user.id, trackId) });
   } catch (err) {
     return examError(err);
   }

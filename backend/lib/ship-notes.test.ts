@@ -41,7 +41,10 @@ const SENTINEL = "REQ-228";
 const ENTRY = /^- (?:(REQ-\d+)\b)?/;
 const TAG = /^- (?:REQ-\d+\s*)?\(([^)]*)\)/;
 
-// The bullets of the "## Unreleased" section above the REQ-228 entry.
+// The bullets of the "## Unreleased" section above the REQ-228 entry. REQ-300:
+// when a version is cut (docs/versioning.md), the entries move under a
+// "## 2.1.0 - 2026-11-20" heading below "## Unreleased"; the walk goes on
+// through those sections, so the cut cannot hide an entry from the check.
 export function entriesToCheck(changelog: string): ChangelogEntry[] {
   const lines = changelog.split("\n");
   const start = lines.findIndex((l) => /^## Unreleased\b/.test(l));
@@ -49,7 +52,6 @@ export function entriesToCheck(changelog: string): ChangelogEntry[] {
   const out: ChangelogEntry[] = [];
   for (let i = start + 1; i < lines.length; i++) {
     const l = lines[i];
-    if (/^## /.test(l)) break;
     if (!l.startsWith("- ")) continue;
     const req = ENTRY.exec(l)?.[1] ?? null;
     if (req === SENTINEL) return out;
@@ -111,6 +113,16 @@ describe("ship notes: learner-facing changes reach What's new", () => {
     assert.equal(p.length, 1);
     assert.match(p[0], /no \(learner-facing\) or \(internal\) tag/);
     assert.deepEqual(entriesToCheck(cl()).map((e) => e.req), []);
+  });
+  test("REQ-300: entries under a version heading, cut from Unreleased, are still checked", () => {
+    const text = [
+      "# Changelog", "", "## Unreleased", "", "- REQ-910 (learner-facing): new, uncovered.", "",
+      "## 2.1.0 - 2026-11-20", "", "- REQ-911 (learner-facing): cut, uncovered.", "- REQ-228 (internal): the rule.", "- REQ-1: old.",
+    ].join("\n");
+    const entries = entriesToCheck(text);
+    assert.deepEqual(entries.map((e) => e.req), ["REQ-910", "REQ-911"]);
+    assert.equal(shipNoteProblems(entries, new Set()).length, 2);
+    assert.deepEqual(entriesToCheck(["## Unreleased", "", "## 2.1.0 - 2026-11-20", "- REQ-228 (internal): x."].join("\n")), []);
   });
   test("the tag may share the parentheses with other ids", () => {
     const [e] = entriesToCheck(cl("- REQ-904 (FAIL-2, migration 080; learner-facing): x."));
