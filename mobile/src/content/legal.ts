@@ -553,6 +553,13 @@ export const FAQ: LegalDoc = {
       ],
     },
     {
+      title: "Where can I see what has changed?",
+      body: [
+        "When there's something new, a “What's new” window opens once on Home. Close it, tap “Got it” or press Escape and it won't open again for that note. Every update, newest first and grouped by date with the app version it came with, is under Settings > About > Release notes, and the window has a “See all release notes” button that goes there.",
+        "The app version is shown in the same place, under Settings > About. Most updates reach you by themselves; if a version is too old to keep working, Ascendra says so and, on the web, reloads, or on a phone, gets the update or opens your app store.",
+      ],
+    },
+    {
       title: "Something in a lesson looks wrong",
       body: [
         "Tap “Report a problem with this lesson” on the lesson, or “Report a problem with this question” under a question you've answered. Reports about health content are reviewed first, and a wrong lesson is removed and rewritten. You can follow a lesson report under Support.",
