@@ -706,6 +706,31 @@ blueprints take effect 2027-07-01, so both outlines are rechecked by
 2027-04-01. All 24 are `needs_expert_review` until a licensed professional
 counselor approves them.
 
+### ISC2, ISACA and EC-Council security certifications (REQ-271 to REQ-273)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| ISC2CC | 11 (6 build, 5 case) | 3/2/2/2/2 | [CC exam outline effective 2026-09-01](https://www.isc2.org/certifications/cc/cc-certification-exam-outline) (read 2026-11-14) |
+| CISSP | 14 (7 build, 7 case) | 2/1/2/2/2/2/2/1 | [CISSP exam outline effective 2024-04-15](https://www.isc2.org/certifications/cissp/cissp-certification-exam-outline) (read 2026-11-14) |
+| CISM | 10 (4 build, 6 case) | 2/2/3/3 | [CISM exam content outline](https://www.isaca.org/credentialing/cism/cism-exam-content-outline), exam from 2026-11-03 (read 2026-11-14) |
+| CEH | 15 (7 build, 8 case) | 1/2/2/3/2/1/2/1/1 | [CEH Exam Blueprint v5.0](https://cert.eccouncil.org/wp-content/uploads/2024/04/CEH-Exam-Blueprint-v5.pdf) (read 2026-11-14) |
+
+Files `seed/labs/isc2-cc.ts`, `isc2-cissp.ts`, `isaca-cism.ts` and
+`eccouncil-ceh.ts`, checked by `lib/labs-security-certs.test.ts` (hybrid
+density unit by unit, one lab per objective, the general safety note, both
+kinds, interactive answers in every set, documentation-range addresses, a
+dated outline rechecked by the course's review date). CC's printed weights add
+to 99.9 and CEH's to 101; `apportion()` uses them as printed. The CEH set
+follows the PenTest+ framing: every lab is an authorized engagement or the
+learner's own lab, and teaches recognition, interpretation and the
+countermeasure; the test refuses SQL injection strings, script tags and tool
+invocations. The CISSP risk lab's figures are scenario data on the standard
+SLE/ALE formulas, and the CC ethics lab quotes ISC2's four canons as
+published at isc2.org/ethics (read 2026-11-14, no priority order stated). The
+CISSP set is rechecked by 2027-01-15, before ISC2's 2027-04-15 outline; CEH by
+2027-02-14 (EC-Council releases a version every 12-18 months). All 50 are
+`needs_expert_review`.
+
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as

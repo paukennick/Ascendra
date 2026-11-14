@@ -149,6 +149,9 @@ export const CEH_TRACK: SeedTrack = {
   subcategorySlug: "it-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: CEH_CERT_URL,
+  // Set last (verify-common.md), after every unit was compared with the
+  // outline read on 2026-11-14.
+  sourceVerifiedAt: VERIFIED_AT,
   contentReviewDueAt: REVIEW_DUE_AT,
   credential: {
     providerSlug: "ec-council",

@@ -26,9 +26,9 @@ Ascendra runs on iPhone, Android and the web.
 
 ## Who it's for
 
-Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **118 courses**:
+Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **122 courses**:
 
-- **IT and cloud (65):** 18 CompTIA, 15 Kubernetes and CNCF, 11 AWS, 11 Google Cloud and 10 Microsoft Azure certifications
+- **IT and cloud (69):** 18 CompTIA, 15 Kubernetes and CNCF, 11 AWS, 11 Google Cloud and 10 Microsoft Azure certifications, and 4 security certifications from ISC2 (CC, CISSP), ISACA (CISM) and EC-Council (CEH)
 - **Physical therapy (14):** NPTE-PT, NPTE-PTA, the DPT pathway, the ABPTS specialist certifications and a PT school prerequisites refresher
 - **Project management (12):** PMI certifications
 - **Nursing and critical care (10):** CNA through BSN, NCLEX-RN and NCLEX-PN, CCRN (adult, pediatric, neonatal) and MS Health Informatics

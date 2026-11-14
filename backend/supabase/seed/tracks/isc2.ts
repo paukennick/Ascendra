@@ -204,6 +204,9 @@ export const ISC2CC_TRACK: SeedTrack = {
   subcategorySlug: ISC2.subcategorySlug,
   freshnessModel: "certification_aligned",
   sourceUrl: CC_PAGE_URL,
+  // Set last (verify-common.md), after every unit was compared with the
+  // outline read on 2026-11-14.
+  sourceVerifiedAt: VERIFIED_AT,
   contentReviewDueAt: CC_REVIEW_DUE_AT,
   credential: {
     ...ISC2,
@@ -448,6 +451,9 @@ export const CISSP_TRACK: SeedTrack = {
   subcategorySlug: ISC2.subcategorySlug,
   freshnessModel: "certification_aligned",
   sourceUrl: CISSP_PAGE_URL,
+  // Set last (verify-common.md), after every unit was compared with the
+  // outline read on 2026-11-14.
+  sourceVerifiedAt: VERIFIED_AT,
   contentReviewDueAt: CISSP_REVIEW_DUE_AT,
   credential: {
     ...ISC2,
@@ -456,7 +462,7 @@ export const CISSP_TRACK: SeedTrack = {
     credentialUrl: "https://www.isc2.org/certifications/cissp",
     basis: "vendor_exam_unpublished_code",
     examRevision: "CISSP exam outline effective 2024-04-15 (v9/2024)",
-    objectivesRevision: "Eight domains, headings 1.1-1.12 / 2.1-2.6 / 3.1-3.10 / 4.1-4.3 / 5.1-5.6 / 6.1-6.5 / 7.1-7.15 / 8.1-8.5",
+    objectivesRevision: "Eight domains, numbered headings 1.1-1.12 through 8.1-8.5",
     versionNote:
       "ISC2 publishes no exam code; the outline is identified by its effective date (April 15, 2024) and the PDF footer v9/2024. A new outline takes effect April 15, 2027; this course teaches the current one and is due for review by 2027-01-15.",
     status: "active",
