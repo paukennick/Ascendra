@@ -293,9 +293,21 @@ export const MOCK_EXAM_FACTS: readonly MockExamFacts[] = [
 export interface PracticeOnly {
   code: string;
   reason: string;
+  // What the reason was read from, when it was read (CNA: the federal rule;
+  // the other two follow from what the courses are).
+  source?: ExamFactSource;
 }
 export const PRACTICE_ONLY: readonly PracticeOnly[] = [
-  { code: "CNA", reason: "Nurse aide competency evaluations are set by each state, so there is no single national exam to match." },
+  {
+    code: "CNA",
+    reason: "Nurse aide competency evaluations are set by each state, so there is no single national exam to match.",
+    source: {
+      title: "42 CFR 483.154, Nurse aide competency evaluation (the State runs it; written or oral examination)",
+      url: "https://www.ecfr.gov/current/title-42/section-483.154",
+      readAt: D,
+      via: "page",
+    },
+  },
   { code: "DPT", reason: "A DPT program's exams are set by each school; the licensing exam is the NPTE-PT, which has its own course." },
   { code: "PTPREREQ", reason: "These are prerequisite courses taken at a school; there is no certifying exam." },
 ];

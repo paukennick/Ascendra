@@ -227,7 +227,7 @@ export function profileFrom(opts: {
       notReproduced: facts?.notReproduced ?? null,
       weights: opts.weightsAreBlueprint ? "exam_blueprint" : "study_emphasis",
       pauseRule: MOCK_PAUSE_RULE,
-      sources: (facts?.sources ?? []).map((x) => ({ title: x.title, url: x.url, readAt: x.readAt })),
+      sources: (facts?.sources ?? (practice?.source ? [practice.source] : [])).map((x) => ({ title: x.title, url: x.url, readAt: x.readAt })),
     },
   };
 }

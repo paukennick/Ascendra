@@ -100,6 +100,13 @@ describe("courses with no single exam", () => {
       assert.match(prof.mock.note, /mixed practice test, not a copy of an exam/);
     }
   });
+  test("CNA names the federal rule its claim rests on, with the day it was read", () => {
+    const cna = practiceOnlyFor("CNA")!;
+    assert.match(cna.source?.url ?? "", /^https:\/\/www\.ecfr\.gov\/current\/title-42\/section-483\.154$/);
+    assert.match(cna.source?.readAt ?? "", DATE);
+    const prof = profileFrom({ code: "CNA", blueprint: blueprintOf("CNA"), weightsAreBlueprint: false });
+    assert.equal(prof.mock.sources.length, 1);
+  });
   test("CNA's weights are our emphasis, never presented as the exam's", () => {
     const prof = profileFrom({ code: "CNA", blueprint: blueprintOf("CNA"), weightsAreBlueprint: false });
     assert.equal(prof.mock.weights, "study_emphasis");
