@@ -2,5 +2,6 @@
 // courses, gathered so labs/index.ts takes a single additive line.
 import type { SeedLabSet } from "./types";
 import { PCCN_LABS } from "./pccn";
+import { CEN_LABS } from "./cen";
 
-export const NURSING_SPECIALTY_LAB_SETS: readonly SeedLabSet[] = [PCCN_LABS];
+export const NURSING_SPECIALTY_LAB_SETS: readonly SeedLabSet[] = [PCCN_LABS, CEN_LABS];

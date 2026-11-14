@@ -8,6 +8,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
 import { PCCN_TRACK, PCCN_SIM_OBJECTIVES } from "../supabase/seed/tracks/pccn";
+import { CEN_TRACK, CEN_SIM_OBJECTIVES } from "../supabase/seed/tracks/cen";
 import { courseCategoryOf } from "./billing-config";
 import { clinicalReasoningFrame } from "./prompts";
 import type { SeedTrack } from "../supabase/seed/data";
@@ -43,7 +44,7 @@ export function commonChecks(t: SeedTrack, title: string, subcategory: string, n
       assert.match(s.checkedAt, DATE);
       assert.match(s.url, /^https:\/\//);
     }
-    const headings = new Set(u.sources!.flatMap((s) => s.outline ?? []));
+    const headings = new Set(u.sources!.flatMap((s) => s.outline ?? []).map((h) => h.replace(/^[A-Z0-9]+\. /, "")));
     for (const o of u.objectives) assert.ok(!headings.has(o), `${t.code}: "${o}" copies an outline heading`);
   }
   // Never claims a review by clinicians or experts (lead's instruction, 2026-11-14).
@@ -90,5 +91,45 @@ describe("REQ-277: Prep for the PCCN Exam", () => {
     assert.match(kv("Neurology"), /185\/110/);
     assert.match(kv("Renal"), /0\.3 mg\/dL within 48 hours/);
     assert.match(kv("Hematology/Immunology/Oncology"), /7 g\/dL/);
+  });
+});
+
+describe("REQ-276: Prep for the Certified Emergency Nurse (CEN) Exam", () => {
+  test("in the catalog once, as a gated nursing specialty certification in the clinical plan, BCEN as provider", () => {
+    commonChecks(CEN_TRACK, "Prep for the Certified Emergency Nurse (CEN) Exam", "nursing-specialty-certifications", /not affiliated with or endorsed by the Board of Certification for Emergency Nursing/);
+    assert.equal(CEN_TRACK.credential?.providerSlug, "bcen");
+    assert.equal(CEN_TRACK.credential?.basis, "vendor_exam_unpublished_code");
+  });
+
+  test("units are BCEN's eleven categories (effective July 2026), weighted by item count over 150", () => {
+    const counts = [18, 17, 17, 14, 10, 13, 15, 11, 10, 13, 12];
+    assert.equal(sum(counts), 150);
+    const units = activeUnits(CEN_TRACK);
+    assert.equal(units.length, 11);
+    units.forEach((u, i) => {
+      assert.equal(u.rangeLabel, `${counts[i]} of 150 scored items`);
+      assert.ok(Math.abs(u.weight! - (counts[i] * 100) / 150) < 0.006, u.title);
+    });
+    assert.ok(Math.abs(sum(units.map((u) => u.weight!)) - 100) < 0.001);
+    assert.equal(CEN_TRACK.credential?.publishedWeightsNote, undefined);
+  });
+
+  test("the credential states BCEN's format and passing standard as read 2026-11-14", () => {
+    const c = CEN_TRACK.credential!;
+    assert.equal(c.durationMinutes, 180);
+    assert.match(c.questionFormat!, /175 multiple-choice items/);
+    assert.match(c.questionFormat!, /150 scored and 25 unscored/);
+    assert.match(c.passingScorePolicy!, /99 of the 150 scored items/);
+    assert.match(c.recommendedExperience!, /does not require it/);
+    assert.match(CEN_TRACK.sourceUrl!, /BCEN-CEN-ECO-2025-effective-07-2026/);
+  });
+
+  test("the sim objectives exist with exactly these titles, and triage carries ESI v5 values", () => {
+    const where = (o: string) => CEN_TRACK.units.filter((u) => u.objectives.includes(o)).map((u) => u.title);
+    assert.deepEqual(where(CEN_SIM_OBJECTIVES.triage), ["Professional Issues"]);
+    assert.deepEqual(where(CEN_SIM_OBJECTIVES.sepsis), ["Medical Emergencies"]);
+    const kv = CEN_TRACK.units[10].sources!.flatMap((s) => s.keyValues ?? []).join("\n");
+    assert.match(kv, /SpO2 <92%/);
+    assert.match(kv, /medical screening examination/);
   });
 });

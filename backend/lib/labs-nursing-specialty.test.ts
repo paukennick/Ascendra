@@ -13,7 +13,7 @@ import { VALUE_SOURCES } from "../supabase/seed/labs/value-sources";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
 import { unitPlan, type PlanTrack } from "../scripts/generate-labs-lib";
 
-export const SPECIALTY_CODES = ["PCCN"] as const;
+export const SPECIALTY_CODES = ["PCCN", "CEN"] as const;
 const tracks = new Map(CATALOG_TRACKS.map((t) => [t.code, t]));
 const setOf = (code: string) => LAB_SETS.find((s) => s.trackCode === code)!;
 
