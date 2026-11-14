@@ -9735,7 +9735,7 @@
       "title": "Full-length mock exams: per-course official exam facts, honest short form, review screen, pass-score reporting",
       "description": "Owner 2026-11-14. Mock exam = the course's real exam: question count, time limit, domain weights, item types where supported. Per-course facts config (backend/lib/mock-exam-facts.ts) records each exam's facts with source and the day read; courses without an entry fall back to the seeded question_format text and say so. Assembly from the shared bank weighted by domain (largest remainder, official blueprint weights only when the course has them), no repeat within a mock (same item or same stem), items the learner answered or was just served are last choice. When the bank cannot fill every domain the learner gets an honest short form (count and reason, time scaled) and the start screen and a report script show how many items a full form needs and what pre-generating them costs at 3.5 cents an item (report only; nothing generated). Results report the pass score honestly: a scaled/percent number only where the body publishes one, never converted to the official scale. Exam-day experience: server clock, flag/review screen with filters, free navigation, no pause on a timed mock (leaving keeps the clock running), results by domain feeding readiness through counted attempts, review of every answer with its explanation. Plans: Plus one mock a month, Pro unlimited, billing off (everyone Pro) - already in billing-config; unchanged. Hooks left for the N/P/F keyboard builder.",
       "priority": "high",
-      "status": "pending",
+      "status": "needs_review",
       "minimum_access_scope": [
         "backend/lib/mock-exam-facts.ts",
         "backend/lib/mock-form.ts",
@@ -9779,7 +9779,8 @@
         "Official facts change; each entry carries the day read and the review-due date",
         "Short forms until the bank is pre-generated; generation on mock start stays on (decision for owner)",
         "PBQ and simulation items are not reproduced",
-        "No pause or scheduled break is simulated"
+        "No pause or scheduled break is simulated",
+        "Built 2026-11-14; DB tests run on a throwaway Postgres; device and screen-reader testing of the review screen still needed"
       ]
     }
   ]

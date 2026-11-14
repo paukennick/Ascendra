@@ -17444,8 +17444,8 @@
       "root_cause": "The regular expression takes the first 'N questions|items' phrase that is not described as scored/unscored/pretest. 'with 30-40 video or image items' is a part of a section, and its upper bound (40) was read as the exam's length. Free-text vendor wording cannot be trusted to a pattern.",
       "requirement": "REQ-298",
       "affected": [
-        "backend/lib/exam-formats.ts examQuestionCount",
-        "backend/lib/exam-sessions.ts examProfile"
+        "backend/lib/exam-formats.ts",
+        "backend/lib/exam-sessions.ts"
       ],
       "fix_summary": "examQuestionCount skips a count introduced by 'with', 'including', 'of which' or 'among them'; the count is null for that text and the mock uses the stated default. Courses whose exam was read from the source have a typed entry (lib/mock-exam-facts.ts) that wins over the parse.",
       "fix_commits": [],
