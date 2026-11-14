@@ -162,6 +162,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("LFCS", "lvm-database-volume-full"),
   entry("LFCS", "report-workers-starve-api"),
   entry("LFCS", "clock-skew-blocks-logins"),
+  entry("LFCS", "sale-traffic-third-backend"),
   entry("LINUXFUND", "shared-folder-permission-denied"),
   entry("LINUXFUND", "web-service-fails-after-edit"),
   // ---- end REQ-292 ----

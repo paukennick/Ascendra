@@ -30,6 +30,7 @@ const EXPECTED = [
   "LFCS/lvm-database-volume-full",
   "LFCS/report-workers-starve-api",
   "LFCS/clock-skew-blocks-logins",
+  "LFCS/sale-traffic-third-backend",
   "LINUXFUND/shared-folder-permission-denied",
   "LINUXFUND/web-service-fails-after-edit",
 ];
@@ -242,6 +243,24 @@ describe("REQ-292: LFCS and Linux Fundamentals terminal cases", () => {
     assert.equal(r.value("loginsOk"), true);
     assert.equal(r.value("clockOk"), false);
     assert.equal(r.value("faultsAdded"), 1);
+  });
+
+  test("load balancer: a refused reload keeps nginx serving; a restart on the same file stops it; a pool member bound to localhost adds nothing", () => {
+    const a = driver(docOf("sale-traffic-third-backend"));
+    a.act("addTicket");
+    a.act("reload");
+    assert.equal(a.value("nginxStopped"), false, "slow_start is commercial-only: reload refused, old config kept");
+    a.act("restart");
+    assert.equal(a.value("nginxStopped"), true);
+    const b = driver(docOf("sale-traffic-third-backend"));
+    b.act("addPlain");
+    b.act("nginxT");
+    b.act("reload");
+    assert.equal(b.value("activeHasApp3"), true);
+    assert.equal(b.value("capacityOk"), false, "app3 listens on 127.0.0.1 only");
+    b.act("fixBind");
+    assert.equal(b.value("shopOk"), true);
+    assert.equal(b.value("untestedApplies"), 0);
   });
 
   test("no lint error on any of these documents", () => {
