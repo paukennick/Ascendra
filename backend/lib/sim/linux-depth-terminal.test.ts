@@ -23,7 +23,7 @@ import { LFCS_SIM_OBJECTIVES } from "../../supabase/seed/tracks/linux";
 import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 import { selectionFor } from "./generator/selection.ts";
 
-const LFCS = ALL_DOCUMENTS.filter((e) => e.course === "LFCS" || e.course === "LINUXFUND");
+const LFCS = ALL_DOCUMENTS.filter((e) => e.course === "LFCS" || e.course === "LINUXFUND" || e.course === "PYAUTO");
 // Nick (2026-11-14): sims follow coverage, not a count -- one per objective
 // that fits the selection rule (docs/sims-coverage-depth.md).
 const EXPECTED = [
@@ -36,6 +36,7 @@ const EXPECTED = [
   "LINUXFUND/shared-folder-permission-denied",
   "LINUXFUND/web-service-fails-after-edit",
   "LINUXFUND/nightly-backup-missing",
+  "PYAUTO/debug-log-fills-var",
 ];
 const docOf = (slug: string): ScenarioDoc => loadDocument(LFCS.find((e) => e.slug === slug)!);
 
@@ -310,6 +311,24 @@ describe("REQ-292: LFCS and Linux Fundamentals terminal cases", () => {
     assert.equal(b.value("backupDone"), false, "still copying");
     for (let i = 0; i < 4; i++) b.act("watch");
     assert.equal(b.value("backupDone"), true);
+  });
+
+  test("python log: rm on an open log frees nothing until restart; truncate frees it; backupCount 0 never rolls over", () => {
+    const a = driver(docOf("debug-log-fills-var"));
+    a.act("rmLog");
+    assert.equal(a.value("spaceFreed"), false, "unlink keeps the file while invsync holds it open");
+    a.act("restart");
+    assert.equal(a.value("spaceFreed"), true);
+    const b = driver(docOf("debug-log-fills-var"));
+    b.act("truncate");
+    assert.equal(b.value("spaceFreed"), true);
+    b.act("editZero");
+    b.act("restart");
+    assert.equal(b.value("rotationLive"), false);
+    b.act("editRot");
+    assert.equal(b.value("rotationLive"), false, "not loaded until restart");
+    b.act("restart");
+    assert.equal(b.value("rotationLive"), true);
   });
 
   test("no lint error on any of these documents", () => {

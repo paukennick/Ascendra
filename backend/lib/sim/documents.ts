@@ -167,6 +167,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("LINUXFUND", "shared-folder-permission-denied"),
   entry("LINUXFUND", "web-service-fails-after-edit"),
   entry("LINUXFUND", "nightly-backup-missing"),
+  entry("PYAUTO", "debug-log-fills-var"),
   // ---- end REQ-292 ----
 ];
 
