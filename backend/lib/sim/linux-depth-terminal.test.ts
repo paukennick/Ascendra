@@ -31,6 +31,7 @@ const EXPECTED = [
   "LFCS/report-workers-starve-api",
   "LFCS/clock-skew-blocks-logins",
   "LFCS/sale-traffic-third-backend",
+  "LFCS/service-no-restart-after-update",
   "LINUXFUND/shared-folder-permission-denied",
   "LINUXFUND/web-service-fails-after-edit",
 ];
@@ -261,6 +262,25 @@ describe("REQ-292: LFCS and Linux Fundamentals terminal cases", () => {
     b.act("fixBind");
     assert.equal(b.value("shopOk"), true);
     assert.equal(b.value("untestedApplies"), 0);
+  });
+
+  test("unit: a copied drop-in is not in effect until daemon-reload; systemctl edit reloads itself; the bad PDF crashes every start", () => {
+    const a = driver(docOf("service-no-restart-after-update"));
+    a.act("copyDropin");
+    assert.equal(a.value("policyLoaded"), false);
+    a.act("daemonReload");
+    assert.equal(a.value("durable"), true);
+    a.act("start");
+    assert.equal(a.value("up"), false, "the malformed PDF is still first in the queue");
+    a.act("quarantine");
+    a.act("start");
+    assert.equal(a.value("up"), true);
+    const b = driver(docOf("service-no-restart-after-update"));
+    b.act("edit");
+    assert.equal(b.value("durable"), true);
+    b.act("editVendor");
+    b.act("daemonReload");
+    assert.equal(b.value("durable"), false, "the vendor file is replaced by the next update");
   });
 
   test("no lint error on any of these documents", () => {

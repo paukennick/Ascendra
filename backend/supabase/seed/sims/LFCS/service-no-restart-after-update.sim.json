@@ -1,0 +1,1224 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "service-no-restart-after-update",
+  "title": "Outage: the invoice service crashed overnight and nothing restarted it",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@billing1:~#",
+      "lines": [
+        {
+          "id": "down",
+          "text": "09:20 finance: no invoices rendered since 03:10; the batch goes out at 09:50",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "batch",
+          "text": "09:50 finance: the morning invoice batch went out empty",
+          "when": "not isNull(batchAt)",
+          "at": "timeAt(batchAt)",
+          "error": "true"
+        },
+        {
+          "id": "upLine",
+          "text": "finance: invoices are rendering again",
+          "when": "up",
+          "at": "upSec >= 0 ? upSec : 0"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "svc",
+          "label": "invoicer.service",
+          "spokenLabel": "the invoicer service",
+          "kind": "Service on billing1",
+          "status": "{up ? \"Running\" : \"Failed (core dump)\"}",
+          "tone": "up ? \"up\" : \"down\""
+        },
+        {
+          "id": "policy",
+          "label": "Restart policy",
+          "spokenLabel": "the restart policy",
+          "kind": "systemd configuration",
+          "status": "{policyLoaded ? (policyIn == \"etc\" ? \"on-failure, drop-in in /etc\" : \"on-failure, in the vendor file\") : pendingReload ? \"Changed on disk, not loaded\" : \"no (the default)\"}",
+          "tone": "durable ? \"up\" : policyLoaded ? \"degraded\" : \"down\""
+        },
+        {
+          "id": "queue",
+          "label": "inbox",
+          "spokenLabel": "the invoice queue",
+          "kind": "/srv/invoicer/inbox",
+          "status": "{purged ? \"Deleted\" : badFile ? \"141 files; a malformed PDF at the head\" : \"140 files waiting\"}",
+          "tone": "purged ? \"down\" : badFile ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "q",
+          "from": "svc",
+          "to": "queue",
+          "label": "Renders the queue",
+          "status": "{up ? \"Rendering\" : \"Stopped\"}",
+          "tone": "up ? \"up\" : \"down\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "crashes",
+          "label": "Crashes since 09:20",
+          "value": "{crashes}"
+        }
+      ]
+    }
+  },
+  "objective": "Create and configure systemd service units, including drop-in overrides, and troubleshoot them",
+  "secondaryObjectives": [
+    "Troubleshoot a service that fails to start using systemctl status, journalctl and its unit file",
+    "Manage packages and repositories with apt and dnf: search, install, verify, update, remove and add a repository"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation Certified System Administrator (LFCS): Domains & Competencies, Operations Deployment 25%",
+      "checkedAt": "2026-11-14",
+      "url": "https://training.linuxfoundation.org/certification/linux-foundation-certified-sysadmin-lfcs/",
+      "note": "Relevant text: Operations Deployment, 'Diagnose, identify, manage, and troubleshoot processes and services'. Read as the page's HTML on 2026-11-14 (page last modified 2026-10-30)."
+    },
+    {
+      "cite": "systemd.service(5) (systemd, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man5/systemd.service.5.html",
+      "note": "Relevant text: Restart=, 'If set to no (the default), the service will not be restarted'; 'If set to on-failure, the service will be restarted when the process exits with a non-zero exit code', and on an unclean signal; RestartSec= 'Defaults to 100ms'; 'service restart is subject to unit start rate limiting configured with StartLimitIntervalSec= and StartLimitBurst='. Read through a summarizing fetch 2026-11-14."
+    },
+    {
+      "cite": "systemd.unit(5) and systemctl(1) (systemd, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man5/systemd.unit.5.html",
+      "note": "Relevant text: systemd.unit(5), 'Along with a unit file foo.service, a \"drop-in\" directory foo.service.d/ may exist. All files with the suffix \".conf\" from this directory will be merged'; 'Drop-in files in /etc/ take precedence over those in /run/ which in turn take precedence over those in /usr/lib/'; /usr/lib/systemd/system holds 'System units installed by the distribution package manager'. systemctl(1), edit: 'Otherwise, a drop-in file will be created or edited' (default name override.conf) and 'After the editing is finished, configuration is reloaded, equivalent to systemctl daemon-reload'; daemon-reload 'reload all unit files'; cat may not match 'the system manager's understanding' if files changed without daemon-reload. Read through summarizing fetches 2026-11-14. That a package upgrade replaces its own file under /usr/lib is how package managers treat files that are not configuration files (dpkg(1) conffile handling, read 2026-11-14); the warning text after an unreloaded change is authored in systemd's style."
+    }
+  ],
+  "brief": {
+    "situation": "You look after billing1, a Fedora-family server that runs invoicer, the invoice renderer, for Harlow and Pine Supplies (fictional). It crashed at 03:10 and nothing has rendered since. Last month, after a similar crash, a colleague added Restart=on-failure to the service. Finance sends the morning invoice batch at 09:50.",
+    "handover": [
+      "invoicer comes from the vendor's package; it renders PDFs dropped in /srv/invoicer/inbox and there is a /srv/invoicer/quarantine for files it cannot handle.",
+      "The colleague left a prepared drop-in at /root/override.conf ([Service] Restart=on-failure, RestartSec=5s)."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments are fixed.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, disk or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:20",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "batchDelay": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. Finance sends the batch at 09:50, 30 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "badFile": {
+      "type": "bool",
+      "init": true
+    },
+    "purged": {
+      "type": "bool",
+      "init": false
+    },
+    "quarantined": {
+      "type": "bool",
+      "init": false
+    },
+    "policyIn": {
+      "type": "enum",
+      "values": [
+        "absent",
+        "usr",
+        "etc"
+      ],
+      "init": "absent"
+    },
+    "policyLoaded": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingReload": {
+      "type": "bool",
+      "init": false
+    },
+    "upAt": {
+      "type": "time",
+      "init": null
+    },
+    "crashes": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "batchAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "upgrade",
+        "package",
+        "disk"
+      ],
+      "init": "unset"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "dropin",
+        "vendor",
+        "purge"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "up": {
+      "expr": "not isNull(upAt)"
+    },
+    "upSec": {
+      "expr": "not isNull(upAt) ? timeAt(upAt) : -1"
+    },
+    "durable": {
+      "expr": "policyLoaded and policyIn == \"etc\""
+    },
+    "faultsAdded": {
+      "expr": "purged ? 1 : 0"
+    },
+    "evidenceFirst": {
+      "expr": "not isNull(evidenceAt) and (isNull(firstChangeAt) or timeAt(evidenceAt) <= timeAt(firstChangeAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "status",
+        "journal",
+        "cat",
+        "rpmHist",
+        "showRestart",
+        "quarantine",
+        "purge",
+        "edit",
+        "copyDropin",
+        "editVendor",
+        "daemonReload",
+        "start",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "status": {
+      "label": "systemctl status invoicer",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@billing1:~# systemctl status invoicer\n× invoicer.service - Invoice renderer\n     Loaded: loaded (/usr/lib/systemd/system/invoicer.service; enabled; preset: disabled){policyIn == \"etc\" ? \" Drop-In: /etc/systemd/system/invoicer.service.d\" : \"\"}\n     Active: {up ? \"active (running)\" : \"failed (Result: core-dump) since Sat 2026-11-14 03:10:42\"}{pendingReload ? \" Warning: The unit file, source configuration file or drop-ins of invoicer.service changed on disk. Run 'systemctl daemon-reload' to reload units.\" : \"\"}"
+        },
+        {
+          "finding": "invoicer crashed with a core dump at 03:10 and systemd did not restart it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "journal": {
+      "label": "journalctl -u invoicer --since 03:00 -n 5",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@billing1:~# journalctl -u invoicer --since 03:00 -n 5\ninvoicer[812]: rendering /srv/invoicer/inbox/0310-harlow.pdf\nsystemd[1]: invoicer.service: Main process exited, code=dumped, status=11/SEGV\nsystemd[1]: invoicer.service: Failed with result 'core-dump'."
+        },
+        {
+          "finding": "The crash came while rendering /srv/invoicer/inbox/0310-harlow.pdf: the same file will crash it again at the head of the queue."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "cat": {
+      "label": "systemctl cat invoicer",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@billing1:~# systemctl cat invoicer\n# /usr/lib/systemd/system/invoicer.service\n[Service]\nExecStart=/usr/bin/invoicer --inbox /srv/invoicer/inbox\nUser=invoicer{policyIn == \"usr\" ? \" Restart=on-failure\" : \"\"}{policyIn == \"etc\" ? \" # /etc/systemd/system/invoicer.service.d/override.conf [Service] Restart=on-failure RestartSec=5s\" : \"\"}"
+        },
+        {
+          "finding": "No Restart= line: Tuesday's package update replaced the vendor unit and the local edit made in it last month."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rpmHist": {
+      "label": "dnf history list invoicer | head -3",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@billing1:~# dnf history list invoicer | head -3\nID | Command line          | Date and time    | Action(s)\n41 | upgrade invoicer      | 2026-11-10 22:14 | Upgrade"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "showRestart": {
+      "label": "systemctl show invoicer -p Restart",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@billing1:~# systemctl show invoicer -p Restart\nRestart={policyLoaded ? \"on-failure\" : \"no\"}"
+        },
+        {
+          "if": "durable and up and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "quarantine": {
+      "label": "mv /srv/invoicer/inbox/0310-harlow.pdf /srv/invoicer/quarantine/",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "badFile",
+          "to": "false"
+        },
+        {
+          "set": "quarantined",
+          "to": "true"
+        },
+        {
+          "output": "root@billing1:~# mv /srv/invoicer/inbox/0310-harlow.pdf /srv/invoicer/quarantine/"
+        },
+        {
+          "log": "The malformed PDF is out of the queue and kept for the vendor; 140 other invoices wait.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "purge": {
+      "label": "rm -rf /srv/invoicer/inbox/*",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "badFile",
+          "to": "false"
+        },
+        {
+          "set": "purged",
+          "to": "true"
+        },
+        {
+          "output": "root@billing1:~# rm -rf /srv/invoicer/inbox/*"
+        },
+        {
+          "log": "The whole queue is gone: 141 invoices, not one, must be found and resubmitted.",
+          "kind": "alarm"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "edit": {
+      "label": "systemctl edit invoicer   (adds [Service] Restart=on-failure and RestartSec=5s)",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "policyIn",
+          "to": "\"etc\""
+        },
+        {
+          "set": "policyLoaded",
+          "to": "true"
+        },
+        {
+          "set": "pendingReload",
+          "to": "false"
+        },
+        {
+          "output": "root@billing1:~# systemctl edit invoicer\nSuccessfully installed edited file '/etc/systemd/system/invoicer.service.d/override.conf'."
+        },
+        {
+          "log": "A drop-in in /etc: it survives package updates, and systemctl edit reloaded the manager.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "copyDropin": {
+      "label": "mkdir -p /etc/systemd/system/invoicer.service.d && cp /root/override.conf /etc/systemd/system/invoicer.service.d/override.conf",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "policyIn",
+          "to": "\"etc\""
+        },
+        {
+          "set": "pendingReload",
+          "to": "true"
+        },
+        {
+          "set": "policyLoaded",
+          "to": "false"
+        },
+        {
+          "output": "root@billing1:~# mkdir -p /etc/systemd/system/invoicer.service.d && cp /root/override.conf /etc/systemd/system/invoicer.service.d/override.conf"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "editVendor": {
+      "label": "sed -i '/^ExecStart=/a Restart=on-failure' /usr/lib/systemd/system/invoicer.service",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "policyIn",
+          "to": "\"usr\""
+        },
+        {
+          "set": "pendingReload",
+          "to": "true"
+        },
+        {
+          "set": "policyLoaded",
+          "to": "false"
+        },
+        {
+          "output": "root@billing1:~# sed -i '/^ExecStart=/a Restart=on-failure' /usr/lib/systemd/system/invoicer.service"
+        },
+        {
+          "log": "The same edit as last month, in the package's own file: the next update replaces it again.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "daemonReload": {
+      "label": "systemctl daemon-reload",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "pendingReload",
+          "then": [
+            {
+              "set": "pendingReload",
+              "to": "false"
+            },
+            {
+              "set": "policyLoaded",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "output": "root@billing1:~# systemctl daemon-reload"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "start": {
+      "label": "systemctl start invoicer",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "up",
+          "then": [
+            {
+              "output": "root@billing1:~# systemctl start invoicer"
+            }
+          ],
+          "else": [
+            {
+              "if": "badFile",
+              "then": [
+                {
+                  "add": "crashes",
+                  "by": "1"
+                },
+                {
+                  "output": "root@billing1:~# systemctl start invoicer\nroot@billing1:~# (a minute later) invoicer.service: Main process exited, code=dumped, status=11/SEGV"
+                },
+                {
+                  "if": "policyLoaded",
+                  "then": [
+                    {
+                      "log": "It crashed on the same PDF; Restart=on-failure now restarts it into the same crash every 5 seconds.",
+                      "kind": "bad"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "It crashed again on the same PDF.",
+                      "kind": "bad"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "set": "upAt",
+                  "to": "t"
+                },
+                {
+                  "output": "root@billing1:~# systemctl start invoicer"
+                },
+                {
+                  "log": "invoicer is running and working through the queue.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 300",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@billing1:~# sleep 300"
+        },
+        {
+          "log": "You wait 5 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "upgrade",
+                  "label": "A malformed PDF crashed invoicer, and Tuesday's package update had replaced the vendor unit and the Restart= line edited into it"
+                },
+                {
+                  "value": "package",
+                  "label": "A bug in the new invoicer package"
+                },
+                {
+                  "value": "disk",
+                  "label": "The inbox disk was full"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Fix",
+              "options": [
+                {
+                  "value": "dropin",
+                  "label": "Quarantined the PDF, added Restart= in a drop-in under /etc, loaded it, started the service and checked the setting"
+                },
+                {
+                  "value": "vendor",
+                  "label": "Put Restart= back in the vendor unit file"
+                },
+                {
+                  "value": "purge",
+                  "label": "Cleared the inbox and started the service"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "log": "Recorded: cause {cause}, fix {fix}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "batch",
+      "when": "t >= batchDelay and phase == \"incident\" and not up",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "batchAt",
+          "to": "t"
+        },
+        {
+          "log": "09:50: the invoice batch went out empty.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: why invoicer stayed down, why last month's fix did not hold, and why yours will.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "Names the malformed PDF that crashed it, and the restart policy lost because it was edited into the vendor file under /usr/lib that Tuesday's update replaced.",
+          "modelAnswer": "invoicer took SIGSEGV on 0310-harlow.pdf; Restart= defaults to no, and last month's Restart=on-failure lived in /usr/lib/systemd/system/invoicer.service, which the 10 November upgrade replaced."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "Uses systemctl status, journalctl -u and systemctl cat (or show -p Restart) before changing anything.",
+          "modelAnswer": "status: failed, core-dump at 03:10; journal: the PDF it was rendering; systemctl cat: no Restart= and no drop-in; dnf history: upgraded Tuesday."
+        },
+        {
+          "label": "Fix",
+          "criteria": "Quarantines only the bad file (never clears the queue), puts Restart= in a drop-in under /etc with systemctl edit or with daemon-reload, starts the service and checks the loaded value.",
+          "modelAnswer": "Moved the PDF to quarantine, systemctl edit invoicer with Restart=on-failure and RestartSec=5s (edit reloads the manager), started it, and systemctl show -p Restart said on-failure."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 20 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Rendering again with time to spare before the 09:50 batch; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No damage left behind: the invoice queue deleted."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not up",
+      "class": "harm",
+      "rationale": "Closing while the renderer is down leaves invoices unsent; it is never a safe outcome.",
+      "source": {
+        "cite": "systemd.service(5) (systemd, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man5/systemd.service.5.html",
+        "note": "Relevant text: Restart=, 'If set to no (the default), the service will not be restarted'; 'If set to on-failure, the service will be restarted when the process exits with a non-zero exit code', and on an unclean signal; RestartSec= 'Defaults to 100ms'; 'service restart is subject to unit start rate limiting configured with StartLimitIntervalSec= and StartLimitBurst='. Read through a summarizing fetch 2026-11-14."
+      }
+    }
+  },
+  "endings": {
+    "queuePurged": {
+      "label": "Running, with the queue deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and purged",
+      "narrative": "invoicer runs because there is nothing left to render: 141 invoices were deleted to get rid of one bad file."
+    },
+    "stillDown": {
+      "label": "Closed with the service down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not up",
+      "narrative": "The incident was closed while invoicer was still crashing or stopped."
+    },
+    "fixed": {
+      "label": "Running, and it will restart",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and up and durable and upSec >= 0 and upSec <= restoreWindow and faultsAdded <= newFaults and evidenceFirst",
+      "narrative": "The bad PDF is quarantined, invoicer is rendering, and Restart=on-failure lives in a drop-in that package updates do not touch."
+    },
+    "fixedGaps": {
+      "label": "Running, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "invoicer is running, but the restart policy is missing, unloaded or back in the vendor file, or the fix was late."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "queuePurged",
+    "stillDown",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Read status, the journal or the unit before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked."
+          }
+        ]
+      },
+      {
+        "id": "keptQueue",
+        "label": "Removed only the bad file",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "purged",
+            "score": "missed",
+            "why": "The whole queue was deleted."
+          },
+          {
+            "when": "quarantined",
+            "score": "met",
+            "why": "One file quarantined; the rest kept."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The bad file is still at the head of the queue."
+          }
+        ]
+      },
+      {
+        "id": "durable",
+        "label": "Restart policy in a loaded drop-in under /etc",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "durable",
+            "score": "met",
+            "why": "Restart=on-failure from /etc, loaded."
+          },
+          {
+            "when": "policyLoaded",
+            "score": "partial",
+            "why": "Loaded, but in the vendor file the next update replaces."
+          },
+          {
+            "when": "policyIn != \"absent\"",
+            "score": "partial",
+            "why": "Written but never loaded: run daemon-reload."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Restart= is still the default, no."
+          }
+        ]
+      },
+      {
+        "id": "fast",
+        "label": "Rendering again within 20 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "upSec >= 0 and upSec <= restoreWindow",
+            "score": "met",
+            "why": "Running {upSec / 60|0dp} min in."
+          },
+          {
+            "when": "up",
+            "score": "partial",
+            "why": "Running, but {upSec / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "invoicer is not running."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Checked the loaded Restart= value",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "systemctl show said on-failure."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked what systemd actually loaded."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the fix accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"upgrade\" and fixDoc == \"dropin\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"upgrade\"",
+            "score": "partial",
+            "why": "The cause is right; the fix recorded is not the one that should stand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, evidence and fix",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minUp",
+        "label": "Minutes until invoices rendered",
+        "value": "upSec >= 0 ? upSec / 60 : -1",
+        "format": "number",
+        "expert": "7 or less"
+      },
+      {
+        "id": "crashK",
+        "label": "Crashes after 09:20",
+        "value": "crashes",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "systemctl status (core dump at 03:10) and journalctl -u invoicer: it died rendering 0310-harlow.pdf."
+      },
+      {
+        "at": "2-3 min",
+        "text": "systemctl cat invoicer: no Restart= and no drop-in; the update replaced the vendor file."
+      },
+      {
+        "at": "3-5 min",
+        "text": "Quarantine the one PDF; systemctl edit invoicer with Restart=on-failure, RestartSec=5s."
+      },
+      {
+        "at": "5-7 min",
+        "text": "systemctl start invoicer, systemctl show -p Restart (on-failure); send the PDF to the vendor."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: running, and it will restart",
+        "body": "You found the crash and the lost setting, kept 140 invoices, and put the policy where package updates cannot reach it."
+      },
+      "fixedGaps": {
+        "headline": "Running, with gaps",
+        "body": "invoicer is running. The criteria show the gap: a policy in /usr/lib is replaced by the next update, and one written but not reloaded is not in effect."
+      },
+      "queuePurged": {
+        "headline": "The queue is gone",
+        "body": "One file crashed the renderer. Moving that file to quarantine keeps the other 140 invoices."
+      },
+      "stillDown": {
+        "headline": "Closed too soon",
+        "body": "Starting it with the bad PDF still first in the queue crashes it again; a restart policy only turns that into a loop."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Restart= defaults to no, so one crash leaves the service down. Last month's Restart= was edited into /usr/lib, which the package owns and its update replaced. Quarantine the PDF that crashed it (not the whole queue), put Restart= in a drop-in under /etc (systemctl edit reloads for you; a copied file needs daemon-reload), start it, and read the loaded value with systemctl show."
+  }
+}
