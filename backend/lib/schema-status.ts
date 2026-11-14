@@ -498,6 +498,20 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and exists(select 1 from pg_constraint where conrelid = 'learner_teach_order'::regclass and contype = 'c') as ok`,
   },
   {
+    // REQ-262: the lesson and grade routes resolve a lesson through
+    // lib/lesson-variant.ts, which reads the switch and the table; the grade
+    // route writes attempts.lesson_variant.
+    migration: "083_lesson_variants.sql",
+    what: "lesson_content_variants (beginner lesson versions, switched off), subject_tracks.beginner_variants (default false) and attempts.lesson_variant (which version an answer was given to)",
+    sql: `select to_regclass('public.lesson_content_variants') is not null
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'subject_tracks' and column_name = 'beginner_variants')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'attempts' and column_name = 'lesson_variant')
+             and exists(select 1 from pg_constraint where conname = 'item_holdbacks_item_kind_067'
+                         and pg_get_constraintdef(oid) like '%''lesson_variant''%') as ok`,
+  },
+  {
     // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
     migration: "074_independent_confirmation.sql",
     what: "the 074 mastery_detail() (Independent needs a second unassisted correct answer 24 h after the first)",

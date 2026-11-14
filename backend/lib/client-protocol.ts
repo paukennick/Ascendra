@@ -13,6 +13,11 @@
 //                          Below 2 the lab view writes their options into
 //                          the step text, and a written answer to one is
 //                          graded by the model (lib/lab-interactive.ts).
+//   3                   -- also shows a lesson's Teach in small steps with a quick
+//                          check after each (REQ-262, beginner lesson versions)
+//                          and says which version of a lesson an answer was
+//                          given to. Below 3 the lesson route never serves a
+//                          beginner version.
 //
 // The header is not trusted for anything that matters to integrity: a caller
 // that leaves it off gets the Solo choices in the lesson AND the hint reveal
@@ -38,4 +43,12 @@ export function rendersInteractiveLabs(req: Request): boolean {
 
 export function isHintAwareClient(req: Request): boolean {
   return clientProtocol(req) >= HINT_AWARE_PROTOCOL;
+}
+
+// Protocol number from which the app shows beginner lesson versions (Teach in
+// small steps, REQ-262).
+export const LESSON_VARIANT_PROTOCOL = 3;
+
+export function showsLessonVariants(req: Request): boolean {
+  return clientProtocol(req) >= LESSON_VARIANT_PROTOCOL;
 }

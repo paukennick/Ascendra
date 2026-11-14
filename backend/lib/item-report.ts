@@ -1,5 +1,6 @@
 import { queryOne } from "@/lib/db";
 import { lessonCheckFor } from "@/lib/grading-service";
+import { versionOfWire } from "@/lib/lesson-variant";
 import { requireAcknowledgementForObjective, requireAcknowledgementForTrack } from "@/lib/auth/requireAcknowledgement";
 import { isUuid, taughtObjective, visibleTrack } from "@/lib/visibility";
 import { visibleLab } from "@/lib/labs";
@@ -55,7 +56,11 @@ export async function resolveReport(userId: string, body: Record<string, unknown
       const o = await taughtObjective(b.objectiveId, userId);
       if (!o) throw notFound();
       await requireAcknowledgementForObjective(o.id, userId);
-      const found = await lessonCheckFor(userId, o.id, b.stage);
+      // REQ-262: a beginner version's Guided item is its own item (its own
+      // question, so its own pull key); the app says which version it showed.
+      const version = versionOfWire(b.lessonVariant);
+      if (version === null) throw new ReportError(400, "lessonVariant must be 'new' when sent");
+      const found = await lessonCheckFor(userId, o.id, b.stage, version);
       if (found.status !== "ok") throw notFound();
       ref = { kind: "lesson", itemId: lessonItemId(o.id, b.stage, found.check.question), objectiveId: o.id, question: found.check.question };
       break;
