@@ -127,6 +127,30 @@ const compTia = (code: string, examCode: string, o: {
 });
 const scaled900 = (passing: number): PassReport => ({ kind: "scaled", passing, scaleMin: 100, scaleMax: 900 });
 
+const gcp = (code: string, o: {
+  title: string;
+  questions: number; // the upper end of the range Google prints
+  minutes: number;
+  page: string;
+  formats?: ExamFormat[];
+  seedDiffers?: string;
+  note?: string;
+}): MockExamFacts => ({
+  code,
+  body: "Google Cloud",
+  examCode: null, // Google publishes no exam code
+  questions: o.questions,
+  questionsAreMaximum: true,
+  scored: null, // Google does not say how many are unscored
+  minutes: o.minutes,
+  pass: { kind: "cut_unpublished" },
+  formats: o.formats,
+  seedDiffers: o.seedDiffers,
+  sources: [{ title: `Google Cloud certification page (${o.title}): length and exam format`, url: o.page, readAt: D, via: "page" }],
+  reviewDue: "2027-05-14",
+});
+const GCP_MC_ONLY = "The Google Cloud page lists multiple choice questions only; the seed text also lists multiple select.";
+
 export const MOCK_EXAM_FACTS: readonly MockExamFacts[] = [
   // ---- AWS ---------------------------------------------------------------
   aws("AWSCLF", "CLF-C02", {
@@ -227,6 +251,21 @@ export const MOCK_EXAM_FACTS: readonly MockExamFacts[] = [
     notReproduced: undefined,
   },
   compTia("CLOUDNETX", "CNX-001", { minutes: 165, pass: { kind: "pass_fail_only" }, page: "https://www.comptia.org/certifications/cloudnetx" }),
+
+  // ---- Google Cloud ------------------------------------------------------
+  // Google prints a range ("50-60 questions"); the mock uses the top of it.
+  // The pages publish no passing score, so none is claimed.
+  gcp("GCPCDL", { title: "Cloud Digital Leader", questions: 60, minutes: 90, page: "https://cloud.google.com/learn/certification/cloud-digital-leader" }),
+  gcp("GCPACE", { title: "Associate Cloud Engineer", questions: 60, minutes: 120, page: "https://cloud.google.com/learn/certification/cloud-engineer" }),
+  gcp("GCPPCA", { title: "Professional Cloud Architect", questions: 60, minutes: 120, page: "https://cloud.google.com/learn/certification/cloud-architect" }),
+  gcp("GCPPDE", { title: "Professional Data Engineer", questions: 50, minutes: 120, page: "https://cloud.google.com/learn/certification/data-engineer" }),
+  gcp("GCPDEVOPS", { title: "Professional Cloud DevOps Engineer", questions: 60, minutes: 120, formats: ["multiple_choice"], page: "https://cloud.google.com/learn/certification/cloud-devops-engineer" }),
+  gcp("GCPSEC", { title: "Professional Cloud Security Engineer", questions: 60, minutes: 120, formats: ["multiple_choice"], seedDiffers: GCP_MC_ONLY, page: "https://cloud.google.com/learn/certification/cloud-security-engineer" }),
+  gcp("GCPNET", { title: "Professional Cloud Network Engineer", questions: 60, minutes: 120, formats: ["multiple_choice"], seedDiffers: GCP_MC_ONLY, page: "https://cloud.google.com/learn/certification/cloud-network-engineer" }),
+  gcp("GCPDBE", { title: "Professional Cloud Database Engineer", questions: 60, minutes: 120, formats: ["multiple_choice"], seedDiffers: GCP_MC_ONLY, page: "https://cloud.google.com/learn/certification/cloud-database-engineer" }),
+  gcp("GCPDEV", { title: "Professional Cloud Developer", questions: 60, minutes: 120, formats: ["multiple_choice"], seedDiffers: GCP_MC_ONLY, page: "https://cloud.google.com/learn/certification/cloud-developer" }),
+  gcp("GCPMLE", { title: "Professional Machine Learning Engineer", questions: 60, minutes: 120, formats: ["multiple_choice"], seedDiffers: GCP_MC_ONLY, page: "https://cloud.google.com/learn/certification/machine-learning-engineer" }),
+  gcp("GCPGAIL", { title: "Generative AI Leader", questions: 60, minutes: 90, formats: ["multiple_choice"], page: "https://cloud.google.com/learn/certification/generative-ai-leader" }),
 
   // ---- AACN --------------------------------------------------------------
   {
