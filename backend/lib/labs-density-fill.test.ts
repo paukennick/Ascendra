@@ -21,6 +21,7 @@ export const FILLED: Readonly<Record<string, readonly string[]>> = {
   NASMCPT: ["emergency-on-the-gym-floor"],
   APLUS_CORE1: ["aplus1-cloud-model-by-scenario"],
   NETWORKPLUS: ["route-selection-default-and-pat"],
+  LINUXPLUS: ["firewalld-open-https-permanently"],
 };
 
 export function ruleFor(code: string): number[] {

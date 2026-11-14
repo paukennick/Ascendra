@@ -104,6 +104,7 @@ export const LAB_PLAN_TOP_UPS: Readonly<Record<string, readonly number[]>> = {
   NASMCPT: [2, 2, 2, 2, 2, 2],
   APLUS_CORE1: [2, 2, 2, 2, 3],
   NETWORKPLUS: [2, 2, 2, 2, 3],
+  LINUXPLUS: [3, 2, 2, 2, 2],
 };
 
 export function unitPlan(track: PlanTrack, policy: DensityPolicy, opts = POLICY_DEFAULTS): number[] {
