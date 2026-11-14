@@ -17379,6 +17379,34 @@
       ],
       "prevention_notes": "A migration that widens an earlier migration's named check restates it under the SAME name (FAIL-1720, FAIL-1793) and a DB test replays the earlier migration after it.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1794",
+      "date": "2026-11-13",
+      "title": "termsState read every document in legal_acceptances after a one-document bump change",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/study-notice.dbtest.ts 'does not count as accepting the Terms or Privacy Policy' failed: termsState().acceptedVersion was '2026-11-09' (the study notice row), expected null. Found by the full npm run test:db, not by the subset first run.",
+      "how_detected": "npm run test:db on a local Postgres (study-notice.dbtest.ts)",
+      "root_cause": "To keep acceptedVersion level with currentVersion after the Privacy-only 2026-11-14 bump, the query that read the latest acceptance dropped its document = 'terms' filter. legal_acceptances also holds the study notice, so a notice acceptance counted as agreeing to the Terms. Only a subset of the DB tests had been run before committing.",
+      "requirement": "REQ-261",
+      "affected": [
+        "backend/lib/legal.ts termsState",
+        "backend/lib/legal.ts"
+      ],
+      "fix_summary": "The query reads only the two legal documents (document = any(LEGAL_DOCUMENTS)).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/study-notice.dbtest.ts",
+        "backend/lib/legacy-terms.dbtest.ts",
+        "backend/lib/product-basics.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion already requires npm run test:db for stateful changes and a grep of a changed query's other readers; a change to a shared table's filter runs the whole suite, not the nearest tests.",
+      "recurrence_of": ""
     }
   ]
 }

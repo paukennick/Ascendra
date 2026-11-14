@@ -288,15 +288,17 @@ export interface TermsState {
 }
 
 export async function termsState(userId: string, ctx: ClientContext = HEADERED): Promise<TermsState> {
-  // REQ-261: the newest acceptance of either document, as the single string
-  // `currentVersion` is (the newer of the two). It read the Terms row alone
-  // while the two always moved together; after the Privacy-only 2026-11-14
-  // bump an account that had agreed to everything would have shown
-  // 2026-11-13 against a current 2026-11-14. The app only asks whether it is set.
+  // REQ-261: the newest acceptance of the Terms or the Privacy Policy, as the
+  // single string `currentVersion` is (the newer of the two). It read the Terms
+  // row alone while the two always moved together; after the Privacy-only
+  // 2026-11-14 bump an account that had agreed to everything would have shown
+  // 2026-11-13 against a current 2026-11-14. The app only asks whether it is
+  // set. The table holds other documents too (the study notice), which are
+  // not these two: lib/study-notice.dbtest.ts.
   const latest = await queryOne<{ version: string; accepted_at: Date }>(
     `select version, accepted_at from legal_acceptances
-      where user_id = $1 order by accepted_at desc, version desc limit 1`,
-    [userId]
+      where user_id = $1 and document = any($2::text[]) order by accepted_at desc, version desc limit 1`,
+    [userId, LEGAL_DOCUMENTS]
   );
   const pending = await pendingAcceptance(userId, ctx);
   return {
