@@ -34,6 +34,9 @@ import { REDHAT_TRACKS } from "./tracks/redhat-openshift";
 import { EMS_TRACKS } from "./tracks/ems";
 import { EPPP_TRACKS } from "./tracks/eppp";
 import { NBCC_TRACKS } from "./tracks/nbcc";
+import { PYTHON_INSTITUTE_TRACKS } from "./tracks/python-institute";
+import { DEV_LANGUAGE_TRACKS } from "./tracks/dev-languages";
+import { MICROSOFT_2026_TRACKS } from "./tracks/microsoft-2026";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -75,6 +78,12 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...EPPP_TRACKS,
   // REQ-239: NBCC counseling licensure, NCE and NCMHCE (same category).
   ...NBCC_TRACKS,
+  // REQ-264..268 (2026-11-14): PCEP and PCAP, SQL and TypeScript & Node.js,
+  // PL-300, and SC-500 / AI-200 (the replacements of the retired AZ-500 and
+  // AZ-204).
+  ...PYTHON_INSTITUTE_TRACKS,
+  ...DEV_LANGUAGE_TRACKS,
+  ...MICROSOFT_2026_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the
