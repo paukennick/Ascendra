@@ -7,7 +7,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { pendingIdFor, type PendingId } from "@/lib/pendingId";
 import { api, ApiError } from "@/api/client";
 import { ReportProblem } from "@/components/ReportProblem";
-import type { ExamItem, ExamProfile, ExamResponse, ExamSessionSummary, ExamSessionView } from "@/types/exam";
+import type { ExamItem, ExamMockState, ExamProfile, ExamResponse, ExamSessionSummary, ExamSessionView } from "@/types/exam";
 import {
   Body,
   Button,
@@ -24,18 +24,26 @@ import {
   SectionHeader,
 } from "@/components/ui";
 import { ExamConfidence, ExamQuestion, FlagButton } from "@/components/ExamQuestion";
+import { ExamReview } from "@/components/ExamReview";
+import { ExamStartFacts } from "@/components/ExamStartFacts";
+import { StudyShortcutArea } from "@/components/StudyShortcuts";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import { whenLabel } from "@/lib/time";
 import {
+  examChoiceAnnouncement,
+  examChoiceResponse,
   examLeaveGuard,
   FORMAT_LABEL,
   formatClock,
   isAnswered,
+  mockStartSummary,
   navCounts,
   navLabel,
   remainingSeconds,
   submitWarning,
   timeAnnouncement,
+  timerState,
+  type ExamNavActions,
 } from "@/lib/examPractice";
 import { createExamSaveQueue, unsavedMessage, type ExamSaveQueue } from "@/lib/examSaveQueue";
 import { friendlyError } from "@/lib/errorMessage";
@@ -54,6 +62,7 @@ import { t } from "@/lib/i18n";
 export default function ExamScreen() {
   const { trackId, trackTitle } = useLocalSearchParams<{ trackId: string; trackTitle?: string }>();
   const [profile, setProfile] = useState<ExamProfile | null>(null);
+  const [mockState, setMockState] = useState<ExamMockState | null>(null);
   const [history, setHistory] = useState<ExamSessionSummary[] | null>(null);
   const [view, setView] = useState<ExamSessionView | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,9 +72,10 @@ export default function ExamScreen() {
 
   const loadStart = useCallback(() => {
     api
-      .get<{ exam: ExamProfile; sessions: ExamSessionSummary[] }>(`/api/exam/sessions?trackId=${trackId}`)
+      .get<{ exam: ExamProfile; mock?: ExamMockState | null; sessions: ExamSessionSummary[] }>(`/api/exam/sessions?trackId=${trackId}`)
       .then((res) => {
         setProfile(res.exam);
+        setMockState(res.mock ?? null);
         setHistory(res.sessions);
       })
       .catch((err) => setError(friendlyError(err)));
@@ -124,6 +134,7 @@ export default function ExamScreen() {
         <StartView
           trackTitle={trackTitle}
           profile={profile}
+          mockState={mockState}
           history={history}
           busy={busy}
           sprintTimed={sprintTimed}
@@ -163,6 +174,7 @@ export default function ExamScreen() {
 function StartView(props: {
   trackTitle?: string;
   profile: ExamProfile | null;
+  mockState: ExamMockState | null;
   history: ExamSessionSummary[] | null;
   busy: boolean;
   sprintTimed: boolean;
@@ -176,8 +188,8 @@ function StartView(props: {
   if (!p) return <Loading label="Loading exam details..." />;
   const open = (props.history ?? []).filter((h) => h.status === "in_progress");
   const done = (props.history ?? []).filter((h) => h.status === "submitted");
-  const minutes = p.durationMinutes;
   const pace = p.secondsPerQuestion;
+  const summary = mockStartSummary(p, props.mockState);
   return (
     <>
       <H1>{p.examCode ? `${p.examCode} practice` : "Practice exam"}</H1>
@@ -204,19 +216,20 @@ function StartView(props: {
 
       <Card>
         <H2>Mock exam</H2>
-        <Body>
-          {p.mockQuestions} questions, weighted by the exam's domains
-          {p.questionCount ? "" : " (the exam's question count isn't published, so this uses 50)"}.
-          {minutes ? ` ${minutes} minutes, like the real exam.` : " The exam's time limit isn't published, so a timed mock allows 90 seconds a question."}
-        </Body>
-        <Muted>Flag questions to come back to, then submit for a breakdown by domain and pace.</Muted>
+        <ExamStartFacts summary={summary} mock={p.mock} />
+        <Muted>Flag questions to come back to, review them before you finish, then submit for a breakdown by domain and pace.</Muted>
         <TimedToggle
           value={props.mockTimed}
           onChange={props.setMockTimed}
           label="Timed"
           hint="Turn off for an untimed mock, for example if you get extra time on the real exam or are building up."
         />
-        <Button label="Start mock exam" icon="clock" onPress={() => props.onStart("mock")} loading={props.busy} />
+        <Button
+          label={summary.short ? "Start short-form mock" : "Start mock exam"}
+          icon="clock"
+          onPress={() => props.onStart("mock")}
+          loading={props.busy}
+        />
         {props.busy ? <Muted>Preparing questions; the first mock on a course can take a little while.</Muted> : null}
       </Card>
 
@@ -298,14 +311,15 @@ const ExamClock = React.memo(function ExamClock({
     }
   }, [remaining]);
 
+  const state = timerState(remaining);
   if (remaining == null) return <Muted>{t("exam.untimed")}</Muted>;
   return (
     <View
-      style={[styles.timer, remaining <= 60 && { borderColor: colors.warn }]}
+      style={[styles.timer, state !== "running" && { borderColor: colors.warn }]}
       accessible
       accessibilityLabel={t("exam.timeLeft", { clock: formatClock(remaining) })}
     >
-      <Feather name="clock" size={14} color={remaining <= 60 ? colors.warn : colors.muted} />
+      <Feather name="clock" size={14} color={state !== "running" ? colors.warn : colors.muted} />
       <Body style={{ fontFamily: fonts.monoMedium }}>{formatClock(remaining)}</Body>
     </View>
   );
@@ -325,6 +339,8 @@ function RunView({
   const [items, setItems] = useState<ExamItem[]>(view.items);
   const [index, setIndex] = useState(() => Math.max(0, view.items.findIndex((i) => !i.answered)));
   const [confirm, setConfirm] = useState(false);
+  // REQ-298: the review screen (every question, filters, jump, submit).
+  const [reviewing, setReviewing] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [failedSaves, setFailedSaves] = useState<number[]>([]);
@@ -386,10 +402,30 @@ function RunView({
   }, [items, index, q]);
 
   function go(to: number) {
-    if (to < 0 || to >= items.length || to === index) return;
+    if (to < 0 || to >= items.length) return;
+    setReviewing(false);
+    if (to === index) return;
     leaveQuestion();
     setIndex(to);
   }
+
+  // REQ-298: the one place the practice screen's moves live. A keyboard layer
+  // (the N / P / F shortcuts) drives THESE and nothing else, so saving the
+  // question you leave, the review screen and the clock stay in one place.
+  // Rebuilt every render, so a handler always sees the current question.
+  const actions: ExamNavActions = {
+    previous: () => go(index - 1),
+    next: () => go(index + 1),
+    toggleFlag: () => {
+      if (item && !reviewing) update({ flagged: !item.flagged }, { flagged: !item.flagged });
+    },
+    openReview: () => {
+      leaveQuestion();
+      setReviewing(true);
+    },
+    closeReview: () => setReviewing(false),
+    submit: () => setConfirm(true),
+  };
 
   function update(patch: Partial<ExamItem>, server: Record<string, unknown>) {
     setError(null);
@@ -484,20 +520,71 @@ function RunView({
       {failedSaves.length ? (
         <ErrorBanner message={t("exam.saveFailed")} onRetry={() => q.retryFailed()} retryLabel={t("exam.saveRetry")} />
       ) : null}
-      {view.preparation && view.preparation.built < view.preparation.requested && index === 0 ? (
+      {view.preparation && view.preparation.built < view.preparation.requested && index === 0 && !reviewing ? (
         <Muted>
-          {view.preparation.built} of {view.preparation.requested} questions could be prepared right now, so this one is shorter
-          {s.timeLimitSeconds ? " and its time is scaled to match" : ""}.
+          {view.preparation.shortReason ??
+            `${view.preparation.built} of ${view.preparation.requested} questions could be prepared right now, so this one is shorter${
+              s.timeLimitSeconds ? " and its time is scaled to match" : ""
+            }.`}
         </Muted>
       ) : null}
 
+      {reviewing ? (
+        <ExamReview
+          items={items}
+          currentIndex={index}
+          timed={!!s.deadlineAt}
+          submitting={submitting}
+          onGo={go}
+          onBack={actions.closeReview}
+          onSubmit={actions.submit}
+        />
+      ) : (
+      <>
       <Card>
-        <Muted style={{ fontSize: 12 }}>
-          {item.unitTitle} · {FORMAT_LABEL[item.format]}
-        </Muted>
-        <ExamQuestion item={item} response={item.response} onChange={answer} />
-        <ExamConfidence value={item.confidence} onChange={(n) => update({ confidence: n }, { confidence: n })} />
-        <FlagButton flagged={item.flagged} onPress={() => update({ flagged: !item.flagged }, { flagged: !item.flagged })} />
+        {/* REQ-290: 1-9 or A-D choose, Enter goes on once answered, N and P move, F flags (web). */}
+        <StudyShortcutArea
+          surface="exam"
+          style={{ gap: spacing.sm }}
+          choices={item.format === "multiple_choice" || item.format === "multiple_response" ? item.choices?.length ?? 0 : 0}
+          onChoose={(i) => {
+            const r = examChoiceResponse(item, item.response, i);
+            if (!r) return false;
+            answer(r);
+            return examChoiceAnnouncement(item, item.response, r, i);
+          }}
+          onEnter={() => {
+            if (submitting || !item.answered) return false;
+            if (index < items.length - 1) {
+              actions.next();
+              return `Question ${index + 2} of ${items.length}.`;
+            }
+            // Last question: open the review screen (REQ-298); never submits.
+            actions.openReview();
+            return "Review your answers before you submit.";
+          }}
+          onNext={() => {
+            if (submitting || index >= items.length - 1) return false;
+            actions.next();
+            return `Question ${index + 2} of ${items.length}.`;
+          }}
+          onPrevious={() => {
+            if (submitting || index === 0) return false;
+            actions.previous();
+            return `Question ${index} of ${items.length}.`;
+          }}
+          onFlag={() => {
+            actions.toggleFlag();
+            return item.flagged ? "Flag removed." : "Flagged for review.";
+          }}
+        >
+          <Muted style={{ fontSize: 12 }}>
+            {item.unitTitle} · {FORMAT_LABEL[item.format]}
+          </Muted>
+          <ExamQuestion item={item} response={item.response} onChange={answer} />
+          <ExamConfidence value={item.confidence} onChange={(n) => update({ confidence: n }, { confidence: n })} />
+          <FlagButton flagged={item.flagged} onPress={() => update({ flagged: !item.flagged }, { flagged: !item.flagged })} />
+        </StudyShortcutArea>
       </Card>
 
       <View style={{ flexDirection: "row", gap: spacing.sm }}>
@@ -508,7 +595,7 @@ function RunView({
           {index < items.length - 1 ? (
             <Button label="Next" icon="chevron-right" onPress={() => go(index + 1)} />
           ) : (
-            <Button label="Review and submit" icon="check" onPress={() => setConfirm(true)} />
+            <Button label="Review and submit" icon="check" onPress={actions.openReview} />
           )}
         </View>
       </View>
@@ -518,7 +605,10 @@ function RunView({
         {counts.answered} answered · {counts.flagged} flagged
       </Muted>
       <QuestionGrid items={items} index={index} onGo={go} />
-      <Button label="Submit" variant="ghost" icon="send" onPress={() => setConfirm(true)} loading={submitting} />
+      <Button label="Review all questions" variant="ghost" icon="list" onPress={actions.openReview} />
+      <Button label="Submit" variant="ghost" icon="send" onPress={actions.submit} loading={submitting} />
+      </>
+      )}
       <Button label="Leave and finish later" variant="link" onPress={leave} />
       <ChoiceSheet
         visible={confirm}
@@ -596,7 +686,20 @@ function ResultsView({ view, onDone }: { view: ExamSessionView; onDone: () => vo
           </Muted>
         ) : null}
         <Muted>{r.evidence.line}</Muted>
+        {r.form?.short ? (
+          <Muted>
+            This was a short form: {r.form.questions} of the exam's {r.form.examQuestions} questions, so the score says less than a full-length mock would.
+          </Muted>
+        ) : null}
       </Card>
+
+      {r.pass ? (
+        <Card>
+          <H3>How the real exam reports a result</H3>
+          <Body>{r.pass.line}</Body>
+          {!r.pass.confirmed ? <Muted>We haven't confirmed this exam's scoring against its official site yet.</Muted> : null}
+        </Card>
+      ) : null}
 
       {r.readiness ? (
         <Card>

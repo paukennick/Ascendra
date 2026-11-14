@@ -17455,6 +17455,85 @@
       "prevention_rules": [],
       "prevention_notes": "A retirement note in a seed header names the replacement the vendor announces, or says the vendor names none with the page read; the regression test pins the corrected header and the replacement courses",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2020",
+      "date": "2026-11-14",
+      "title": "Mock length for NSCA-CSCS read as 40 questions: a sub-count taken as the exam length",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "examQuestionCount(NSCA-CSCS question_format) returned 40, so a mock for that course would have had 40 questions in 240 minutes; the real exam has two sections of 95 and 125 items.",
+      "how_detected": "Dumping the parsed question count for every seeded course while building REQ-298 and comparing with the seeded text.",
+      "root_cause": "The regular expression takes the first 'N questions|items' phrase that is not described as scored/unscored/pretest. 'with 30-40 video or image items' is a part of a section, and its upper bound (40) was read as the exam's length. Free-text vendor wording cannot be trusted to a pattern.",
+      "requirement": "REQ-298",
+      "affected": [
+        "backend/lib/exam-formats.ts",
+        "backend/lib/exam-sessions.ts"
+      ],
+      "fix_summary": "examQuestionCount skips a count introduced by 'with', 'including', 'of which' or 'among them'; the count is null for that text and the mock uses the stated default. Courses whose exam was read from the source have a typed entry (lib/mock-exam-facts.ts) that wins over the parse.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/exam-formats.test.ts",
+        "backend/lib/mock-exam-facts.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A course's mock length comes from lib/mock-exam-facts.ts when it has an entry; the test requires an entry to agree with the seed or say why it differs, so a parse error shows up as a test failure for every covered course.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2040",
+      "date": "2026-11-14",
+      "title": "Settings > About showed a version from a different source than the one the app sends",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Settings > About read Constants.expoConfig?.version with a \"1.0.0\" fallback while every request sent APP_VERSION (src/lib/appVersion.ts): a build where the native config was missing or older would show a version the server never saw, and support could not match a report to a version.",
+      "how_detected": "Reading the code for the REQ-300 versioning policy",
+      "root_cause": "Two sources for one fact. REQ-175 added APP_VERSION for the X-Ascendra-App header and a test that it equals app.json, but the older Settings row kept reading expo-constants; nothing checked the screen used the same constant, and package.json and the lockfile were not compared either.",
+      "requirement": "REQ-300",
+      "affected": [
+        "mobile/app/(app)/settings.tsx",
+        "mobile/src/lib/appVersion.ts"
+      ],
+      "fix_summary": "Settings shows APP_VERSION; one test pins APP_VERSION, app.json, package.json and package-lock.json together.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/appVersion.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "docs/versioning.md says the version is set in four places that a test compares, and that a screen shows APP_VERSION, never a second source.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1900",
+      "date": "2026-11-14",
+      "title": "The web idle timer never saw a key that a handler stopped, so keyboard-only study could lock the app mid-question",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "AuthContext counted web activity with window keydown listeners in the bubble phase. React Native Web's Pressable already calls stopPropagation on Enter, and the study shortcuts stop every key they handle, so those keys never reached the window and never reset the idle clock. A learner answering with 1-9, A-D, N and Enter, and no mouse or Tab, would be locked after the lock timer (and signed out at 30 minutes) in the middle of an exam.",
+      "how_detected": "review of the REQ-290 design against the AuthContext idle code",
+      "root_cause": "The listeners were added without capture, so any handler between the target and the window that stops propagation hides the event from them. It was latent while the only keys stopped were Enter on a button, which a Tab press nearly always preceded. The shortcut design (REQ-290) stops handled keys on purpose, so it would have made it routine. Found in design review of REQ-290 before shipping, not reported by a learner.",
+      "requirement": "REQ-290",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib/studyShortcutsDom.ts"
+      ],
+      "fix_summary": "The five activity listeners are registered on the window with { passive: true, capture: true } and removed with { capture: true }, so nothing below them can hide a key from the idle timer.",
+      "fix_commits": [
+        "3f356825"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/studyShortcutsWiring.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist item 'Key handlers on the web' (REQ-290): anything that must see every key listens on the window in the capture phase. A static test pins capture-phase registration and removal.",
+      "recurrence_of": ""
     }
   ]
 }

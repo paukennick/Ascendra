@@ -12,7 +12,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { colors, fonts, spacing } from "@/lib/theme";
 import { homeReviewCard } from "@/lib/homeReview";
 import { HOME_EMPTY } from "@/lib/emptyStates";
-import { WhatsNewSheet, useWhatsNewOnFocus } from "@/components/WhatsNew";
+import { WhatsNewDialog, useWhatsNewOnFocus } from "@/components/WhatsNew";
 
 function byLastStudied(a: Track, b: Track): number {
   const aTime = a.last_studied_at ? new Date(a.last_studied_at).getTime() : 0;
@@ -100,7 +100,7 @@ export default function Home() {
         }}
       />
       <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} tracks={tracks} />
-      <WhatsNewSheet entry={sidebarOpen ? null : whatsNew.entry} onDismiss={whatsNew.dismiss} />
+      <WhatsNewDialog entry={sidebarOpen ? null : whatsNew.entry} onDismiss={whatsNew.dismiss} />
       <FlatList
         data={favorites}
         keyExtractor={(item) => item.id}

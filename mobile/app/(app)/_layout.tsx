@@ -40,7 +40,9 @@ export default function AppLayout() {
       <Stack.Screen name="settings/reminders" options={{ title: "Study reminders" }} />
       <Stack.Screen name="settings/emails" options={{ title: "Email" }} />
       <Stack.Screen name="settings/study-profile" options={{ title: "Study profile" }} />
-      <Stack.Screen name="whats-new" options={{ title: "What's new" }} />
+      <Stack.Screen name="release-notes" options={{ title: "Release notes" }} />
+      {/* REQ-299: redirects to release-notes (older links). */}
+      <Stack.Screen name="whats-new" options={{ title: "Release notes" }} />
       {/* REQ-119: one-tap Terms prompt and the first-run flow (no back: each finishes by moving on). */}
       <Stack.Screen name="agree" options={{ title: "Before you continue", headerBackVisible: false, gestureEnabled: false }} />
       {/* REQ-165: the one study notice (content disclaimer + AI data disclosure). */}
