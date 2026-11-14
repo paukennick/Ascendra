@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-155: Microsoft Certified: Azure Solutions Architect Expert (AZ-305).
@@ -460,6 +460,44 @@ export const AZ305_LABS: SeedLabSet = {
               "Waves",
               "Plans migration in waves using dependency groups: pilot a low-risk application first, then move each dependency group together (so chatty servers are never split across the WAN), using Azure Migrate's replication (Site Recovery-based) with test migrations before each cutover, and leaving the most complex or most critical groups until the process is proven.",
               "Migrate by dependency group, not by server list: start with a low-risk internal app as the pilot, run a test migration in an isolated Azure network, then cut it over and learn. Each later wave moves a whole dependency group together so tightly coupled servers never end up either side of the WAN. Azure Migrate's server migration replicates continuously, so cutover windows are short and can be rehearsed with test migrations; the core policy systems go last, once the runbook is proven."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Design Business Continuity
+    // Solutions (17.5%) gets its second lab. Concepts from the AZ-305 skills
+    // outline the set cites; no SLA percentage or price is quoted.
+    {
+      slug: "compute-ha-by-failure-scope",
+      objective: "Recommending a high availability solution for compute",
+      kind: "build",
+      title: "Match each compute workload to the HA design for its failure scope",
+      brief:
+        "Kingsmere Freight (fictional) runs four workloads in one Azure region that has availability zones. The architecture board wants each protected against the failure it fears most, at the least cost and change:\n\nA. A stateless order API on virtual machines that must survive the loss of a whole datacenter in the region.\nB. A legacy two-VM application that cannot be spread across zones (it needs very low latency between the VMs) but must survive host maintenance and a rack failure.\nC. A customer web app on Azure App Service that must keep serving if one zone fails.\nD. A file-transfer server that must come back in a second region if the whole primary region is lost.\n\nThe board also asks what 'high availability' does not give them.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Applies Azure HA and DR concepts from the AZ-305 outline the set cites; quotes no SLA percentage, limit or price.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each workload to its design, then explain the gap the board asked about.",
+          parts: [
+            matchPart(
+              "Design for each workload",
+              "Met: all four right -- A: a virtual machine scale set spread across availability zones behind a zone-redundant load balancer; B: an availability set (fault and update domains); C: zone redundancy on the App Service plan; D: Azure Site Recovery replication to a second region. Three right is partly there.",
+              "Zones are separate datacenters with their own power, cooling and networking, so spreading A's scale set across zones survives a datacenter loss. B cannot cross zones, so an availability set spreads its two VMs across fault domains (racks) and update domains (maintenance batches) inside one datacenter. App Service plans can be made zone redundant (C). Only another region protects against a regional outage, which is disaster recovery: Site Recovery replicates D's VM there. A single VM with premium disks protects none of these scopes.",
+              {
+                leftHeading: "Workload",
+                rightHeading: "Design",
+                left: ["A: stateless API, survive a datacenter loss", "B: two VMs that cannot cross zones, survive a rack or host maintenance", "C: App Service web app, survive one zone failing", "D: return in a second region after a regional outage"],
+                right: ["Scale set across availability zones behind a zone-redundant load balancer", "Availability set (fault and update domains)", "Zone-redundant App Service plan", "Azure Site Recovery to a second region", "One VM on premium SSD disks"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            part(
+              "What HA does not give them",
+              "Explains: HA keeps a service running through component, rack or zone failures inside a region; it does not protect against a regional outage (that is DR with recovery objectives), nor against data corruption, accidental deletion or ransomware, which replicate to every copy -- those need backups (point-in-time, ideally immutable or soft-deleted) and tested restores. Also: the design must be tested (failover drills) and the app must tolerate an instance disappearing (stateless or with replicated state).",
+              "High availability keeps the service up when parts of one region fail -- a host, a rack, a datacenter. It is not disaster recovery: a regional outage needs a second region and stated RTO/RPO, which is why D uses Site Recovery. And it is not backup: if someone deletes a table or ransomware encrypts the files, every synchronized copy receives the damage at once, so they still need point-in-time backups, protected from deletion, and restores that are actually rehearsed. Finally, HA only works if the application can lose an instance mid-request -- A works because it is stateless; B's state must be handled by the app."
             ),
           ],
         },

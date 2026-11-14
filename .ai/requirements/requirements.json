@@ -10790,6 +10790,41 @@
       "risk_notes": [
         "the NCMHCE and EPPP suicide sessions share moves: the duplicate gate does not compare across objectives"
       ]
+    },
+    {
+      "id": "REQ-295",
+      "category": "content",
+      "title": "Lab density fill for existing courses",
+      "description": "Nick (2026-11-14): build more labs. Measure every visible catalog course against the density rule as he states it (one lab per unit, plus six per course split by exam weight, at most three per unit, never more than the unit has objectives; docs/labs-coverage.md), then fill the gaps in his order: pre-generated and level-aware courses first, then the mixed-round courses, then the rest by category. New labs prefer the rule-graded interactive answer types, keep a written part in clinical judgement labs, and cite their own dated sources. Filled courses get a LAB_PLAN_TOP_UPS entry so the existing density tests follow the rule, and lib/labs-density-fill.test.ts checks each filled course.",
+      "priority": "medium",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/*.ts",
+        "backend/scripts/generate-labs-lib.ts",
+        "backend/lib/labs-density-fill.test.ts",
+        "docs/labs-coverage.md",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "docs/labs-coverage.md lists every visible course with labs per unit vs the rule",
+        "every filled course meets the rule unit by unit",
+        "each added lab has at least one rule-graded part and dated sources",
+        "npm test passes"
+      ],
+      "validation_required": [
+        "typecheck",
+        "test"
+      ],
+      "documentation_required": [
+        "changelog",
+        "docs/labs-coverage.md"
+      ],
+      "risk_notes": [
+        "Labs are needs_expert_review until a reviewer approves them",
+        "The fill uses the rule as Nick stated it",
+        "above the generator's performance-verb plan; the plan is raised per course by LAB_PLAN_TOP_UPS rather than changing the default for all courses"
+      ]
     }
   ]
 }

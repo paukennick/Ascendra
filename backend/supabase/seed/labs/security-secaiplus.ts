@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet, matchPart } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart, selectPart, orderPart } from "./types";
 import { source } from "../sources";
 
 // REQ-159: CompTIA SecAI+ CY0-001 (V1) -- verifiable labs beside the
@@ -315,6 +315,120 @@ export const SECAIPLUS_LABS: SeedLabSet = {
               "Data sovereignty",
               "Addresses data sovereignty / cross-border data: EU applicant data handling and residency obligations, and keeping training/inference data within the right jurisdiction or using valid transfer mechanisms.",
               "Handle data sovereignty: EU applicants' personal data carries residency and transfer obligations, so keep it in-region or use a valid transfer mechanism, and be clear where training and inference data live. Governance must cover where the data is, not just how the model works."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill to 2 / 3 / 3 / 2. Concepts and
+    // classifications from the SecAI+ objectives the set cites; no outside
+    // value is quoted.
+    {
+      slug: "rag-pipeline-data-exposure",
+      objective:
+        "The importance of data security in relation to AI: data processing and lineage, data types, watermarking, and retrieval-augmented generation (vector storage, embeddings)",
+      kind: "build",
+      title: "Find the data exposures in a RAG assistant's design",
+      brief:
+        "Ostrander Legal (fictional) is piloting an internal assistant that answers staff questions with retrieval-augmented generation (RAG). The design note lists how it works:\n\n1. Every file on the shared drive is split into chunks and embedded nightly.\n2. Embeddings and the chunk text go into one vector index shared by all staff.\n3. At query time the top 8 chunks by similarity are added to the prompt.\n4. The vector database is reachable only from the app's private subnet.\n5. Retrieval does not check the asking user's permissions on the source file.\n6. Prompts and answers are logged in full, including retrieved chunks, kept indefinitely.\n7. Each chunk keeps a link to its source file and the date it was indexed.\n\nThe shared drive includes HR investigation files and client matters behind ethical walls.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "The design and its data are the fictional firm's, given in the brief; the lab applies data-security concepts and quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the design lines that expose data, match each control to the risk it reduces, and write the corrected design.",
+          parts: [
+            selectPart(
+              "Design lines that expose data",
+              "Met: exactly lines 1 (indexing everything, including HR and walled matters), 2 (one shared index), 5 (no permission check at retrieval) and 6 (full logs kept forever). (Right picks minus wrong picks) of at least two is partly there.",
+              "Indexing every file pulls HR investigations and walled client matters into the assistant; putting them in one shared index and skipping the permission check means any staff member's question can retrieve them -- the model will happily quote whatever retrieval hands it. Logging full prompts with retrieved chunks forever creates a second copy of that data with no retention limit. A private-subnet database and source links with index dates (lineage) are good practice.",
+              {
+                display: "list",
+                lines: ["1. Every file on the shared drive is chunked and embedded nightly", "2. Embeddings and chunk text go into one index shared by all staff", "3. The top 8 chunks by similarity are added to the prompt", "4. The vector database is reachable only from the app's private subnet", "5. Retrieval does not check the user's permission on the source file", "6. Prompts, answers and retrieved chunks are logged in full, kept indefinitely", "7. Each chunk keeps a link to its source file and its index date"],
+                correct: [0, 1, 4, 5],
+              }
+            ),
+            matchPart(
+              "Control for each risk",
+              "Met: all four right -- staff seeing files they could not open: permission-aware retrieval filtered by the user's access; HR and walled matters in the index at all: classify and exclude them before indexing (data minimization); logs becoming a second copy of sensitive text: redact and set a retention limit; not knowing which document an answer came from: lineage metadata and citations. Three right is partly there.",
+              "Permission checks at retrieval enforce the source system's access on every query. Classification and minimization keep data that should never be retrievable out of the index. Redaction and retention keep logs from becoming a shadow archive. Lineage (source and date per chunk) lets answers cite their source and lets a removed file be purged from the index.",
+              {
+                leftHeading: "Risk",
+                rightHeading: "Control",
+                left: ["Staff retrieve text from files they cannot open", "HR and walled client matters are in the index at all", "Logs become a permanent copy of sensitive text", "No one can tell which document an answer came from"],
+                right: ["Permission-aware retrieval filtered by the user's access", "Classify and exclude before indexing (data minimization)", "Redact logs and set a retention limit", "Lineage metadata and citations per chunk", "A larger embedding model"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            part(
+              "Corrected design",
+              "Indexes only approved, classified sources and excludes HR and walled matters (or gives them separate, access-controlled indexes); stores each chunk with its source ACL and lineage and filters retrieval by the asking user's current permissions (re-synced when access changes, and purged when a file is deleted); encrypts the index at rest and keeps it on the private subnet; logs with redaction and a defined retention, access-controlled; tests the result by querying as users who should NOT see restricted files.",
+              "1. Index only approved repositories; classify first and exclude HR investigations and walled matters, or put them in separate indexes only their teams can query.\n2. Store with every chunk its source link, index date and the source file's access list; at query time retrieve only chunks the asking user can open now, re-syncing permissions nightly and deleting chunks when a file is removed.\n3. Keep the vector database on the private subnet and encrypt it at rest; embeddings can leak their source text, so treat them as sensitive as the text.\n4. Log metadata by default; where full prompts are kept, redact them and set a retention period, with access limited to the owning team.\n5. Prove it: before launch, ask questions as a paralegal outside the wall and as a non-HR employee and confirm nothing restricted comes back."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "ai-agent-in-cicd-guardrails",
+      objective: "Using AI to automate security tasks: low-code/no-code scripting, AI-assisted change management, AI agents, and CI/CD security scanning",
+      kind: "build",
+      title: "Put an AI fixing agent into the pipeline without giving it the keys",
+      brief:
+        "Halyard Payments (fictional) wants an AI agent that reads security-scan findings in its CI/CD pipeline, writes fix pull requests and 'merges the low-risk ones automatically'. Today the pipeline is: commit, build, deploy to production, and a weekly scan of production. The agent would run with the same token the deploy job uses, which can push to main and deploy.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Pipeline stages and roles are the fictional company's, given in the brief; the lab applies secure-pipeline concepts and quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Order the pipeline with its security checks, then write the guardrails for the agent.",
+          parts: [
+            orderPart(
+              "Pipeline with security checks",
+              "Met: exactly -- commit with secret scanning; static analysis and dependency scan on the pull request; human review and approval of the pull request; build and sign the artifact; deploy to staging and run a dynamic scan; promote to production. One item out of place is partly there.",
+              "Cheap, early checks run first: secrets are caught at commit, code and dependency flaws on the pull request, before any human spends review time. Approval comes before the build that will ship. A signed artifact proves what was built is what gets deployed. Dynamic scanning needs a running app, so it happens in staging, and only then does the same artifact go to production -- instead of finding problems in production once a week.",
+              ["Commit, with secret scanning", "Static analysis and dependency scan on the pull request", "Human review and approval of the pull request", "Build and sign the artifact", "Deploy to staging and run a dynamic scan", "Promote the same artifact to production"]
+            ),
+            part(
+              "Guardrails for the agent",
+              "Gives the agent its own least-privilege identity (can open branches and pull requests, cannot push to main, merge, deploy or read production secrets); every agent pull request goes through the same scans and a required human approval (branch protection), so 'auto-merge low-risk' is dropped or limited to a narrow, pre-approved class with tests passing; agent actions logged and attributable; inputs (scan findings, code comments) treated as untrusted because they can carry prompt injection; a kill switch and rate limits; outcomes reviewed. Explains why the deploy token is wrong (one prompt injection or bad fix ships straight to production).",
+              "1. Its own identity with least privilege: create branches and open pull requests; no push to main, no merge, no deploy, no production secrets. Never the deploy token -- with it, one bad fix or one prompt-injected instruction hidden in a code comment or finding goes straight to production.\n2. Branch protection applies to it like anyone else: all scans pass and a named human approves before merge. Drop 'auto-merge low-risk'; if the team insists, limit it to a narrow pre-approved class (for example a patch-level dependency bump with tests green), still behind the same checks.\n3. Treat everything it reads -- findings, issue text, code comments -- as untrusted input, and keep its tools to the repository it works on.\n4. Log every action under the agent's identity, cap how many pull requests it opens per day, and keep a switch that disables it at once.\n5. Review a sample of its fixes each sprint: an AI fix that silences a scanner is not a fix."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "responsible-ai-risk-register",
+      objective:
+        "Principles and risks of responsible AI use: transparency, explainability, accountability, and risks such as bias introduction, accidental data leakage, IP exposure, and shadow AI",
+      kind: "build",
+      title: "Name the responsible-AI risk in four incidents and set the policy",
+      brief:
+        "The new AI governance lead at Copperline Retail (fictional) has four incident reports from one month:\n\nA. A store manager pasted a spreadsheet of customer names and loyalty numbers into a free public chatbot to 'tidy the columns'.\nB. Marketing used an image generator for a campaign; a stock agency says one image closely copies a photo it licenses.\nC. A resume-screening model trained on ten years of past hires ranks applicants from two community colleges consistently lower.\nD. A loan-style store-credit tool declines applicants, and staff can't say why when customers ask.\n\nShe also learns that 40 staff use AI browser extensions the company never approved.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "The incidents are the fictional company's, given in the brief; the lab classifies risks and quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each incident to its main risk, then write the policy points that address them.",
+          parts: [
+            matchPart(
+              "Main risk in each incident",
+              "Met: all five right -- A: accidental data leakage; B: intellectual property exposure; C: bias introduced through training data; D: lack of explainability and accountability; the unapproved extensions: shadow AI. Three or four right is partly there.",
+              "A sent customer personal data to a service outside the company's control (leakage). B risks infringing someone else's copyright (IP exposure). C learned the pattern in past hiring decisions and repeats it (bias from data). D makes decisions no one can explain or answer for (explainability and accountability). The extensions are AI tools in use outside governance (shadow AI), which is how A happened.",
+              {
+                leftHeading: "Incident",
+                rightHeading: "Main risk",
+                left: ["A: customer data pasted into a public chatbot", "B: generated image copies a licensed photo", "C: screening model ranks two colleges lower", "D: credit tool declines and no one can say why", "40 staff using unapproved AI browser extensions"],
+                right: ["Accidental data leakage", "Intellectual property exposure", "Bias introduced through training data", "Lack of explainability and accountability", "Shadow AI", "Model theft"],
+                pairs: [0, 1, 2, 3, 4],
+              }
+            ),
+            part(
+              "Policy points",
+              "An acceptable-use policy with an approved-tools list and a simple request path (to pull shadow AI into the open rather than only banning it); data rules (no personal, customer or confidential data in unapproved tools; enterprise tools with no-training terms; DLP where possible); IP review of generated content before publishing and vendor indemnity terms; bias testing before and during use of models that affect people, with a human reviewer; explainability and a named accountable owner for any automated decision, with a way for customers to get a reason and a human review; transparency to customers when AI is used; training and an inventory of AI use.",
+              "1. Approved tools and a fast request path: publish what staff may use, and make it easy to ask for more -- banning alone drives shadow AI underground. Inventory and remove the 40 extensions.\n2. Data rules: no customer, employee or confidential data in any tool not on the list; approved tools under contract terms that exclude training on our data; DLP on the browser where possible.\n3. IP: generated marketing content gets a provenance and similarity check before use, and vendor terms covering indemnity.\n4. Fairness: any model that affects people (hiring, credit) is tested for disparate outcomes before launch and on a schedule, with a human making the final call.\n5. Explainability and accountability: every automated decision has a named owner, records the main factors behind each outcome, and gives customers a reason and a route to human review; tell people when AI is part of the decision.\n6. Training for staff on all of the above, with incidents like A used as the example."
             ),
           ],
         },

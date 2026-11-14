@@ -371,6 +371,16 @@ stay.
 
 ## Density: how many labs per unit
 
+**REQ-295 (Nick, 2026-11-14): the rule as stated, without the verb cap.** Nick
+restated the rule as one lab per unit, plus six per course split by exam
+weight, at most three per unit. `unitPlan` also caps each unit by the number
+of objectives its verb heuristic calls hands-on, which held 40 visible courses
+below that. Rather than change the default for every course (and every
+parallel builder's density tests), each course brought up to the rule gets a
+`LAB_PLAN_TOP_UPS` entry, and `lib/labs-density-fill.test.ts` checks it unit
+by unit (`ruleFor`). The per-course measurement, before and after, is in
+docs/labs-coverage.md.
+
 **Decision (Nick, 2026-11-07): option (d), hybrid, is adopted** as the
 generator's default plan (`DEFAULT_LAB_POLICY` in
 `scripts/generate-labs-lib.ts`). The later path for NCLEX and CCRN, whose
