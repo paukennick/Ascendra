@@ -19,6 +19,7 @@ export const FILLED: Readonly<Record<string, readonly string[]>> = {
   SECPLUS: ["web-attack-log-triage"],
   CNA: ["cna-sudden-confusion-report"],
   NASMCPT: ["emergency-on-the-gym-floor"],
+  APLUS_CORE1: ["aplus1-cloud-model-by-scenario"],
 };
 
 export function ruleFor(code: string): number[] {

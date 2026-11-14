@@ -555,5 +555,42 @@ export const APLUS_CORE1_LABS: SeedLabSet = {
         },
       ],
     },
+    // REQ-295 (2026-11-14): density fill, Virtualization and Cloud Computing
+    // (11%) gets its second lab. The terms are the 220-1201 objectives' own
+    // (the set's outline); no outside value is quoted.
+    {
+      slug: "aplus1-cloud-model-by-scenario",
+      objective: "Cloud service models -- IaaS, PaaS, and SaaS -- and matching a scenario to the right one",
+      kind: "build",
+      title: "Match five requests to a cloud model",
+      brief:
+        "You are the help-desk lead at the fictional Cedar Point Credit Union. This week five requests reached you, and the IT manager wants each one tagged with the cloud model that fits before the vendor meeting:\n\nA. Staff want shared email, calendars and documents in a browser, with the vendor running everything.\nB. A developer wants to upload web-app code and have the provider run the runtime, patching and scaling; she never wants to log in to a server.\nC. The network admin wants cloud virtual machines whose operating system, patches and installed software he controls himself.\nD. Compliance requires member account records to stay on hardware used only by the credit union, in its own data center.\nE. The marketing site should run in a public provider while the member database stays in the credit union's own data center, the two linked.\n\nThe manager also asks whether a teller workstation that must run one old Windows app beside Windows 11 needs a type 1 or a type 2 hypervisor.",
+      safetyNote: GENERAL_SAFETY,
+      steps: [
+        {
+          text: "",
+          ask: "Match each request to its model, then answer the hypervisor question and say what the credit union still manages under the SaaS choice.",
+          parts: [
+            matchPart(
+              "Model for each request",
+              "Met: all five right -- A SaaS; B PaaS; C IaaS; D private cloud; E hybrid cloud. Three or four right is partly there.",
+              "A is software the vendor runs end to end (SaaS). B hands over the platform -- runtime, patching, scaling -- while the customer supplies code (PaaS). C rents virtual machines whose OS and software the customer manages (IaaS). D is infrastructure dedicated to one organization (private cloud). E joins a public cloud and the credit union's private environment (hybrid). Community cloud -- shared by organizations with common concerns -- fits none of them.",
+              {
+                leftHeading: "Request",
+                rightHeading: "Cloud model",
+                left: ["A: browser email, calendars and documents, vendor runs it all", "B: upload code; provider runs runtime, patching and scaling", "C: cloud VMs whose OS and software the admin controls", "D: records on hardware used only by the credit union", "E: public-cloud website linked to an on-site member database"],
+                right: ["SaaS", "PaaS", "IaaS", "Private cloud", "Hybrid cloud", "Community cloud"],
+                pairs: [0, 1, 2, 3, 4],
+              }
+            ),
+            part(
+              "Hypervisor, and what SaaS still leaves to the customer",
+              "Type 2 for the teller workstation: a hosted hypervisor installed as an application on Windows 11, running the old app's Windows in a VM beside the host OS (type 1 runs on bare metal and would replace the desktop OS, the server-room choice). Notes the CPU's virtualization extension must be on in the firmware and the VM needs its own licensed OS. Under SaaS the credit union still manages its users and access (accounts, MFA, permissions), its data and how it is shared, and its devices.",
+              "Type 2. A hosted hypervisor installs on top of Windows 11 like any application and runs the old Windows version in a VM next to the teller's normal desktop. A type 1 hypervisor runs directly on the hardware with no host OS, which suits servers, not a workstation someone uses all day. Check that hardware virtualization is enabled in the firmware, and license the guest OS.\n\nSaaS hands the vendor the application, servers and patching, but not everything: the credit union still owns who has accounts and what they can see (and turning on MFA), the data people put in and share, and the PCs and phones they sign in from."
+            ),
+          ],
+        },
+      ],
+    },
   ],
 };

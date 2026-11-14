@@ -763,6 +763,8 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "aplus1-random-shutdowns-psu": [INTEL_ATX3_PSU],
     "aplus1-degraded-raid-clicking": { none: CONCEPTS_ONLY },
     "aplus1-wifi-drops-voip": [MERAKI_CHANNELS],
+    // REQ-295 (2026-11-14): density fill.
+    "aplus1-cloud-model-by-scenario": { none: CONCEPTS_ONLY },
   },
   APLUS_CORE2: {
     "aplus2-windows-commands": [MS_GPUPDATE, MS_GPRESULT, MS_SFC],
