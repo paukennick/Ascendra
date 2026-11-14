@@ -5,6 +5,7 @@ import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/
 import { lessonCheckFor, recordHintReveal } from "@/lib/grading-service";
 import { presentationOrder, presentationSeed, shuffleForPresentation } from "@/lib/choice-order";
 import { requireCourseAccessForObjective } from "@/lib/entitlements";
+import { versionOfWire } from "@/lib/lesson-variant";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const stage = body?.stage ?? "solo";
     if (stage !== "solo") return badRequest("stage must be 'solo'");
 
-    const found = await lessonCheckFor(user.id, id, stage);
+    // REQ-262: the Solo check is the same in every version of a lesson, so the
+    // choices and the reveal are the same either way; the version the app
+    // showed is still read so a beginner version that is gone says so (409).
+    const version = versionOfWire(body?.lessonVariant);
+    if (version === null) return badRequest("lessonVariant must be 'new' when sent");
+    const found = await lessonCheckFor(user.id, id, stage, version);
     if (found.status === "no-lesson") return notFound("No lesson for this objective yet");
     if (found.status !== "ok") return badRequest("This lesson's practice questions are still being generated -- try again in a moment.");
     const { check } = found;

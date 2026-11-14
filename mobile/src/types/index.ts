@@ -130,6 +130,11 @@ export interface LessonContent {
   // REQ-106: Teach as 3-4 short cards plus one self-explanation prompt.
   // Absent for lessons cached before cards; `teach` is then shown as before.
   teachCards?: TeachCards;
+  // REQ-262: "beginner" when the server served the beginner version (Teach in
+  // small steps with a quick check each); absent for the standard lesson.
+  // Switched off on the server for every course.
+  version?: "beginner";
+  teachSteps?: unknown;
   // Absent while the practice half is still generating in the background --
   // see `practicePending` on the lesson GET/POST response. Always present
   // once that flag is false.

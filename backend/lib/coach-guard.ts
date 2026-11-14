@@ -87,6 +87,11 @@ async function lessonItems(userId: string, trackId: string): Promise<OpenItem[]>
        select objective_id, title, updated_at, 'fade' as stage, fade_q as question, fade_c ->> fade_i as answer_key, fade_c as choices from lp
        union all
        select objective_id, title, updated_at, 'solo', solo_q, solo_c ->> solo_i, solo_c from lp
+       union all
+       -- REQ-262: a beginner version's own Guided item may be the one on this
+       -- learner's screen; the coach must not give it away either (FAIL-244).
+       select lp.objective_id, lp.title, lp.updated_at, 'fade', v.fade_problem, v.fade_choices ->> v.fade_correct_index, v.fade_choices
+         from lp join lesson_content_variants v on v.objective_id = lp.objective_id
      )
      select case when exists (select 1 from attempts a where a.user_id = $1 and a.objective_id = i.objective_id
                                 and a.stage = i.stage and a.question = i.question)

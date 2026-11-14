@@ -14,6 +14,19 @@ import { useDiscounts } from "@/billing/useDiscounts";
 import { settingsRowValue } from "@/lib/discounts";
 import { reminderRowValue, type ReminderPrefs } from "@/lib/reminders";
 import { loadReminderPrefs, remindersSupported } from "@/lib/reminderScheduler";
+import { api } from "@/api/client";
+import {
+  parseTeachOrder,
+  TEACH_ORDER_LABELS,
+  TEACH_ORDER_MEANING,
+  TEACH_ORDER_ROW_LABEL,
+  TEACH_ORDER_SHEET_TITLE,
+  teachOrderRowValue,
+  teachOrderSheetMessage,
+  TEACH_ORDERS,
+  type TeachOrder,
+  type TeachOrderState,
+} from "@/lib/teachOrder";
 
 export default function Settings() {
   const router = useRouter();
@@ -39,6 +52,32 @@ export default function Settings() {
       };
     }, [userId])
   );
+
+  // REQ-262: the lesson order, a comfort setting (and a test, which the sheet
+  // says). A choice is saved to the account and recorded as the learner's own.
+  const [teachOrder, setTeachOrder] = useState<TeachOrderState | null>(null);
+  const [orderSheet, setOrderSheet] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) return;
+      let live = true;
+      api
+        .get<unknown>("/api/account/teach-order")
+        .then((res) => live && setTeachOrder(parseTeachOrder(res)))
+        .catch(() => undefined);
+      return () => {
+        live = false;
+      };
+    }, [userId])
+  );
+  async function chooseOrder(order: TeachOrder) {
+    try {
+      const res = await api.put<unknown>("/api/account/teach-order", { order });
+      setTeachOrder(parseTeachOrder(res));
+    } catch {
+      Alert.alert("Couldn't save that", "Your lesson order is unchanged. Check your connection and try again.");
+    }
+  }
 
   async function toggleBiometric(next: boolean) {
     setBiometricBusy(true);
@@ -115,6 +154,8 @@ export default function Settings() {
       <SectionHeader label="Study" />
       <Card style={{ gap: 0 }}>
         <ListRow icon="target" label="Study profile" value="Your goal, exams and study time" onPress={() => router.push("/settings/study-profile")} />
+        <Divider />
+        <ListRow icon="layers" label={TEACH_ORDER_ROW_LABEL} value={teachOrderRowValue(teachOrder)} onPress={() => setOrderSheet(true)} />
       </Card>
 
       {/* REQ-243 (Nick, 2026-11-11): every kind of notification lives in one
@@ -163,6 +204,19 @@ export default function Settings() {
           </>
         ) : null}
       </Card>
+
+      <ChoiceSheet
+        visible={orderSheet}
+        title={TEACH_ORDER_SHEET_TITLE}
+        message={teachOrderSheetMessage(teachOrder?.testOn ?? true)}
+        options={TEACH_ORDERS.map((o) => ({
+          label: `${TEACH_ORDER_LABELS[o]}: ${TEACH_ORDER_MEANING[o]}`,
+          variant: teachOrder?.order === o ? "primary" : "ghost",
+          selected: teachOrder?.order === o,
+          onPress: () => void chooseOrder(o),
+        }))}
+        onCancel={() => setOrderSheet(false)}
+      />
 
       <ChoiceSheet
         visible={lockSheet}

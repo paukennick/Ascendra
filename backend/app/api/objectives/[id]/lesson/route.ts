@@ -28,7 +28,8 @@ import {
 import { learnerHistoryFor } from "@/lib/lesson-experience";
 import { tryItFields, tryItLab } from "@/lib/lab-attempts";
 import { SHARED } from "@/lib/lesson-store";
-import { isHintAwareClient } from "@/lib/client-protocol";
+import { isHintAwareClient, showsLessonVariants } from "@/lib/client-protocol";
+import { beginnerFields, resolveLesson } from "@/lib/lesson-variant";
 import { consumeAllowance, requireAiAllowance, requireCourseAccessForObjective, requireFeature } from "@/lib/entitlements";
 
 // REQ-202: seconds this route may run (two sequential Sonnet halves plus fact-check and a retry). Never above 300, the Hobby
@@ -101,7 +102,23 @@ export async function GET(
     // Their own regenerated lesson if they have one, else the shared one.
     // (Waits first if their regenerate is running on another instance.)
     const existing = await readLessonForUser(user.id, id);
-    if (existing) return ok({ lesson: await lessonForClient(existing.row, viewer, hintAware), cached: true, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
+    if (existing) {
+      // REQ-262: the one place that decides standard or beginner version
+      // (lib/lesson-variant.ts); switched off for every course, so the answer
+      // is the lesson read above.
+      const resolved = (await resolveLesson(user.id, id, { serve: { variantAware: showsLessonVariants(req) } }, existing)) ?? {
+        row: existing.row,
+        source: existing.source,
+        version: "standard" as const,
+        teachSteps: null,
+      };
+      return ok({
+        lesson: { ...(await lessonForClient(resolved.row, viewer, hintAware)), ...beginnerFields(resolved) },
+        cached: true,
+        learnerHistory: await historyRead,
+        ...tryItFields(await tryIt),
+      });
+    }
 
     // Shared first generation already running in this process (a prefetch,
     // or another learner's first visit): wait for that same one.

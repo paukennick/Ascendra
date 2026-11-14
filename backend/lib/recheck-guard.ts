@@ -26,7 +26,7 @@ export interface RolePrivileges {
   canStage: boolean;
 }
 
-const MUST_NOT_WRITE = ["item_status", "attempts", "lesson_content", "lesson_content_overrides", "review_items", "exam_items", "coach_quiz_items", "mastery"];
+const MUST_NOT_WRITE = ["item_status", "attempts", "lesson_content", "lesson_content_overrides", "lesson_content_variants", "review_items", "exam_items", "coach_quiz_items", "mastery"];
 
 // Account tables the jobs never read.
 const MUST_NOT_READ = ["app_users", "refresh_tokens", "auth_events"];
