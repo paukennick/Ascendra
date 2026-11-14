@@ -824,6 +824,31 @@ coach's scope (referral for diagnosed conditions, disordered eating and
 medication questions) and take their values from the DGA 2025-2030, the
 National Academies DRI tables and FDA's supplement Q&A (`value-sources.ts`,
 read 2026-11-14). All 58 are `needs_expert_review`.
+### ASWB social work exams and the Washington psychology jurisprudence exam (REQ-286, REQ-287)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| ASWBCLINICAL | 9 (3 build, 6 case) | 3/3/3 | [ASWB Examination Guidebook, August 2026](https://www.aswb.org/wp-content/uploads/2026/05/2026-Social-Work-Licensing-Exam-Guidebook-5.4.2026.pdf) (read 2026-11-14) |
+| ASWBMASTERS | 9 (4 build, 5 case) | 3/3/3 | same guidebook (read 2026-11-14) |
+| WAPSYCHJP | 9 (5 build, 4 case) | 1/1/3/2/1/1 | [DOH Jurisprudence Exam RCW and WAC References](https://doh.wa.gov/licenses-permits-and-certificates/professions-new-renew-or-update/psychologist/jurisprudence-exam-rcw-and-wac-references) (read 2026-11-14) |
+
+Files `seed/labs/aswb-clinical.ts`, `aswb-masters.ts` and
+`wa-psych-jurisprudence.ts`, checked by `lib/labs-aswb-wajp.test.ts` (hybrid
+density unit by unit, one lab per objective, interactive parts, fictional
+people, a value source or a reason on every lab, and every quoted NASW
+standard, 988, RCW or WAC section cited). The ASWB labs use the clinical
+safety note; the jurisprudence labs use `LEGAL_SAFETY` (same framing plus
+"not legal advice"), and each of their numeric answers (60 CE hours, 2 years
+for a key party, 8 years' retention for a 15-year-old, 48 hours to report) is
+pinned to the rule it comes from. The jurisprudence course has no published
+blueprint, so its weights are a study emphasis (REQ-220) and the plan is
+apportioned on them; units with only knowledge objectives get one lab. Values
+(NASW Code of Ethics 2021 standards 1-3, read in full; SAMHSA 988; Washington
+RCW 71.05.120, 26.44.030, 74.34, 70.02, 18.83, 18.130 and WAC 246-924) are in
+`value-sources.ts`, read 2026-11-14. NASW votes on Code amendments on
+2026-11-18, so the NASW source is rechecked by 2026-12-15. All 27 are
+`needs_expert_review` until a licensed clinical social worker (ASWB) or a
+Washington psychologist (jurisprudence) approves them.
 
 ## Expert review before launch
 

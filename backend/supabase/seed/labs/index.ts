@@ -148,6 +148,10 @@ import { CISM_LABS } from "./isaca-cism";
 import { CEH_LABS } from "./eccouncil-ceh";
 // REQ-275..278: nursing specialty and advanced practice courses.
 import { NURSING_SPECIALTY_LAB_SETS } from "./nursing-specialty";
+// REQ-286: ASWB Clinical and Masters. REQ-287: Washington psychology jurisprudence.
+import { ASWB_CLINICAL_LABS } from "./aswb-clinical";
+import { ASWB_MASTERS_LABS } from "./aswb-masters";
+import { WAPSYCHJP_LABS } from "./wa-psych-jurisprudence";
 import { withValueSources } from "./value-sources";
 import { PSMI_LABS } from "./scrum-psmi";
 import { CSM_LABS } from "./scrum-csm";
@@ -305,4 +309,8 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   ITIL4FND_LABS,
   CSSGB_LABS,
   NASMCNC_LABS,
+  // REQ-286, REQ-287.
+  ASWB_CLINICAL_LABS,
+  ASWB_MASTERS_LABS,
+  WAPSYCHJP_LABS,
 ].map(withValueSources);

@@ -215,6 +215,14 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NASMCNC", "cnc-crash-diet-request"),
   entry("NASMCNC", "cnc-greens-powder-warfarin"),
   // ---- end REQ-282 ----
+  // ---- REQ-288: ASWB client sessions, courses ASWBCLINICAL and ASWBMASTERS
+  // (session renderer, clinical-session profile; ASWB_SESSION_DOCUMENTS
+  // below). Keep these entries together. ----
+  entry("ASWBCLINICAL", "aswbc-suicide-violence-risk"),
+  entry("ASWBCLINICAL", "aswbc-threat-identifiable-person"),
+  entry("ASWBMASTERS", "aswbm-involuntary-engagement"),
+  entry("ASWBMASTERS", "aswbm-child-abuse-report"),
+  // ---- end REQ-288 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
@@ -315,4 +323,13 @@ export const CNC_OBJECTIVES: Readonly<Record<string, string>> = {
   "cnc-crash-diet-request":
     "Recognizing when to refer to a registered dietitian nutritionist or physician: a diagnosed condition, a suspected eating disorder, pregnancy or breastfeeding needs beyond general guidance, or medications affected by diet",
   "cnc-greens-powder-warfarin": "Evaluating a supplement: how it is regulated, third-party testing, and when it is a question for a clinician",
+// REQ-288: the ASWB client-session documents and the objective titles they are
+// registered to (active objectives of their course; seed/tracks/aswb.ts exports
+// the same titles as ASWB_CLINICAL_SIM_OBJECTIVES and ASWB_MASTERS_SIM_OBJECTIVES).
+export const ASWB_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "ASWBCLINICAL" || e.course === "ASWBMASTERS");
+export const ASWB_OBJECTIVES: Readonly<Record<string, string>> = {
+  "aswbc-suicide-violence-risk": "Assess suicide and violence risk in a clinical social work session",
+  "aswbc-threat-identifiable-person": "Respond to a client's threat against an identifiable person under the NASW Code and state law",
+  "aswbm-involuntary-engagement": "Engage an involuntary client and contract for goals",
+  "aswbm-child-abuse-report": "Make a mandated child abuse report and keep the family engaged",
 };

@@ -10677,6 +10677,119 @@
         "Not run in the app's renderer or a browser; the session renderer is unchanged and the engine tests replay the golden paths.",
         "Client models (rapport, distress, readiness) are teaching simplifications, as in the NBCC sessions."
       ]
+    },
+    {
+      "id": "REQ-286",
+      "category": "content",
+      "title": "ASWB Clinical and Masters exam prep courses and labs",
+      "description": "Nick 2026-11-10 and 2026-11-14 (mental health wave; Clinical first then Masters; Bachelors later). Prep for the ASWB Clinical Exam (ASWBCLINICAL) and Prep for the ASWB Masters Exam (ASWBMASTERS) under Mental Health > social-work-licensure (migration 077) so the per-course 18+ acknowledgment with date of birth (REQ-259) and the study notice apply through the category with no code change. Units are ASWB's three 2026-blueprint content areas (in use from 2026-08-03; 2024 practice analysis) at the published weights: Clinical 36/32/32 and Masters 35/33/32 (ASWB Examination Guidebook August 2026 read in full 2026-11-14; the Clinical page prints no % beside II and the guidebook text gives 32). Every applied knowledge statement (Clinical 116 and Masters 109) is carried as the units' outline with its competency code; objectives are our own words; format 122 questions in two sections of 61 (110 scored) in four hours with pass/fail scoring and a 90-day retake wait. NASW Code of Ethics 2021 standards 1-3 read in full; amendments go to the Delegate Assembly vote on 2026-11-18 so the NASW source is rechecked by 2026-12-15. Washington WAC 246-809-340 (advanced or clinical exam). Review due 2027-05-14. Nine labs each by the hybrid plan sourced in value-sources.ts. Four sim-ready objective titles; sims not built (candidates in REQ-288). No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aswb.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/aswb-clinical.ts",
+        "backend/supabase/seed/labs/aswb-masters.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/aswb-wajp-course.test.ts",
+        "backend/lib/labs-aswb-wajp.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "both courses in social-work-licensure behind the 18+ gate",
+        "units at 36/32/32 and 35/33/32 with every applied knowledge statement and dated sources",
+        "format and scoring as read in the August 2026 guidebook",
+        "9 labs each by the hybrid plan with a value source or reason on every lab",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "NASW Code amendments voted 2026-11-18: recheck by 2026-12-15",
+        "ASWB guidebook may change quarterly",
+        "WAC 246-809-340 does not name the Masters exam",
+        "DSM-5-TR not read",
+        "labs need review by a licensed clinical social worker",
+        "sims not built"
+      ]
+    },
+    {
+      "id": "REQ-287",
+      "category": "content",
+      "title": "Washington psychology jurisprudence exam prep course and labs",
+      "description": "Nick 2026-11-10 and 2026-11-14. Prep for the Washington Psychology Jurisprudence Exam (WAPSYCHJP) modeled on the closest course (the EPPP): Mental Health > psychology-licensure (named for it in migration 077) so the per-course 18+ acknowledgment applies; trackType certification; basis regulatory_licensure; credentialType jurisprudence_exam. Since WSR 25-15-068 (effective 2025-08-14) WAC 246-924-230(1)(d) requires passing the exam within the first CE cycle after initial licensure (one CE hour; optional after). DOH publishes no outline/format/passing score: its Jurisprudence Exam RCW and WAC References page is the outline on every unit; weights are study_emphasis (REQ-220) and no format or cut score is invented. Six units built from chapter 18.83 RCW and chapter 246-924 WAC (read in full) and RCW 26.44.030 / 74.34 / 70.02 / 18.130 / 71.05.120(3) and WAC 246-12 / 246-15 / 246-16 (sections read on 2026-11-14) with key values. Review due 2027-05-15 (2027 session; RCW 70.02.230 changes 2027-06-30). Nine labs by the hybrid plan with a legal safety note and numeric answers backed by cited rules.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/wa-psych-jurisprudence.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/wa-psych-jurisprudence.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/aswb-wajp-course.test.ts",
+        "backend/lib/labs-aswb-wajp.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "course in psychology-licensure behind the 18+ gate",
+        "study_emphasis weights and no invented format or passing score",
+        "DOH reference list as outline on every unit with dated Washington sources",
+        "9 labs by the hybrid plan with cited rules",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "WAC 246-924-493(3)(b) cross-references 246-924-070 which no longer mentions the jurisprudence exam",
+        "DOH publishes no exam format or content outline",
+        "not legal advice: labs need review by a Washington psychologist",
+        "Washington law changes each session"
+      ]
+    },
+    {
+      "id": "REQ-288",
+      "category": "content",
+      "title": "Client-session sims for the ASWB Clinical and Masters courses",
+      "description": "Four flagship client-session sims (screen.session; mirror REQ-239 22.12) attached by exact title to the objectives REQ-286 seeded: Clinical - Assess suicide and violence risk in a clinical social work session; Respond to a client's threat against an identifiable person under the NASW Code and state law. Masters - Engage an involuntary client and contract for goals; Make a mandated child abuse report and keep the family engaged. Not built in REQ-286 (time); each needs endingOrder (engine 1.2) and goldens.",
+      "priority": "medium",
+      "status": "proposed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/ASWBCLINICAL",
+        "backend/supabase/seed/sims/ASWBMASTERS",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "two sessions per course with endings in all three classes and 3-4 critical criteria and goldens and endingOrder"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test"
+      ],
+      "documentation_required": [
+        "docs/sims.md"
+      ],
+      "risk_notes": [
+        "the NCMHCE and EPPP suicide sessions share moves: the duplicate gate does not compare across objectives"
+      ]
     }
   ]
 }
