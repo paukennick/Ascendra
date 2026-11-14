@@ -259,7 +259,7 @@ Every setting the server code reads, by name and purpose. Values live only in Ve
 | `SANDBOX_NODE_IMAGE`, `SANDBOX_PYTHON_IMAGE`, `DOCKER_HOST` | Container images and Docker host for the fact-check code sandbox (GitHub Actions) |
 | `NODE_ENV`, `VERCEL_ENV`, `VERCEL_GIT_COMMIT_SHA` | Set by the platform; the commit is shown by `/api/health` and `/api/version` |
 
-**App build (`mobile/`, public by design):** `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID`, `EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS`, `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`, `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, `EXPO_PUBLIC_WEB_BUILD_ID`.
+**App build (`mobile/`, public by design):** `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID`, `EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS`, `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`, `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, `EXPO_PUBLIC_WEB_BUILD_ID`, `EXPO_PUBLIC_WEB_ANALYTICS` (web build only; `on` or `off`; set by `backend/scripts/build-webapp.sh`, see `docs/web-analytics.md`).
 
 **GitHub workflow secrets** (in the `production-database` or `production-backup` environment): `PROD_DATABASE_URL` (session pooler, port 5432), `ANTHROPIC_PREGEN_API_KEY` (pre-generation only) and `BACKUP_AGE_RECIPIENT` (the public key the backups are encrypted to; a variable or a secret).
 

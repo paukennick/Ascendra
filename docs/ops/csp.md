@@ -22,6 +22,20 @@ HSTS is left without `includeSubDomains` and `preload` on purpose: both are
 hard to undo and nobody has checked every subdomain. Add them later as a
 separate decision.
 
+## Website analytics (REQ-261)
+
+The web app loads Vercel Web Analytics and Speed Insights. They need no change
+here: both scripts load from this site's own origin (`/_vercel/insights/script.js`,
+`/_vercel/speed-insights/script.js`, which Vercel serves) and post to
+`/_vercel/insights/view` and `/_vercel/speed-insights/vitals` on the same origin,
+so `script-src 'self'` and `connect-src 'self'` cover them. Observed on
+2026-11-13: the built web app, served with this policy and Vercel's real scripts
+at those paths, loaded both, sent page views and vitals, and raised no
+violation. `lib/security-headers.test.ts` keeps the policy same-origin, and
+`mobile/src/lib/analyticsWiring.test.ts` fails if an upgrade of either package
+adds another host. The server-rendered pages (the second row above) do not load
+them.
+
 ## Report-only switch
 
 Set `CSP_REPORT_ONLY=true` in Vercel and redeploy to send the same policy as

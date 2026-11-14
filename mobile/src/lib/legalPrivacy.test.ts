@@ -235,7 +235,7 @@ describe("website analytics in the policy (REQ-261)", () => {
       /query string and anything after a # removed/,
       /any part that looks like an ID or a token replaced \(for example \/course\/:id\/lesson\/:id\)/,
       /the site that sent you \(the referrer\)/,
-      /how fast the page loaded/,
+      /how fast the page loaded and which element of the page was slowest/,
       /browser, operating system, device type and approximate location/,
       /sets no cookies and stores nothing on your device/,
       /hash of the request that it discards after 24 hours/,
