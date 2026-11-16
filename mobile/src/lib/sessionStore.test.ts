@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   launchStateFor,
+  unlockToken,
   logoutCalls,
   planRefresh,
   refreshTokenToKeep,
@@ -125,5 +126,39 @@ describe("the lock is drawn above sheets (FAIL-691)", () => {
     assert.match(src, /visible=\{visible && !locked\}/);
     const ctx = read("../auth/AuthContext.tsx");
     assert.match(ctx, /return !!ctx && ctx\.status === "signedIn" && ctx\.appLocked;/);
+  });
+});
+
+// REQ-305 (FAIL-2100): biometric sign-in failed after an over-the-air update or
+// an app close on Android: the sealed copy was a spent token.
+describe("REQ-305: unlock sends the newest token once the OS prompt has passed", () => {
+  test("the newest rotated token wins over a sealed copy that is behind", () => {
+    assert.equal(unlockToken("sealed-old", "latest-new"), "latest-new");
+  });
+  test("with no newer token the sealed copy is used, as before", () => {
+    assert.equal(unlockToken("sealed", null), "sealed");
+    assert.equal(unlockToken("sealed", ""), "sealed");
+  });
+  test("a plain copy alone never unlocks: no sealed session, no token", () => {
+    assert.equal(unlockToken(null, "latest"), null);
+  });
+
+  const src = readFileSync(new URL("../auth/AuthContext.tsx", import.meta.url), "utf8");
+  test("a silent rotation with biometric on writes the latest key, not only memory", () => {
+    assert.match(src, /sealDirtyRef\.current = true;[\s\S]{0,200}setItem\(REFRESH_TOKEN_LATEST_KEY, keep\)/);
+  });
+  test("unlock reads the sealed key (the OS prompt) before the latest key", () => {
+    const unlock = src.slice(src.indexOf("const unlockWithBiometric"));
+    assert.ok(unlock.indexOf("REFRESH_TOKEN_SECURE_KEY") < unlock.indexOf("REFRESH_TOKEN_LATEST_KEY"));
+    assert.match(unlock, /unlockToken\(token, latest\)/);
+  });
+  test("every place that drops the sealed key drops the latest copy too", () => {
+    const sealedDeletes = src.match(/deleteItem\(REFRESH_TOKEN_SECURE_KEY\)/g)?.length ?? 0;
+    const latestDeletesAfter = src.match(/deleteItem\(REFRESH_TOKEN_SECURE_KEY\)[^\n]*\n\s*await secureStorage\.deleteItem\(REFRESH_TOKEN_LATEST_KEY\)/g)?.length ?? 0;
+    assert.ok(sealedDeletes > 0);
+    assert.equal(latestDeletesAfter, sealedDeletes);
+  });
+  test("a successful seal clears the latest copy", () => {
+    assert.match(src, /setItem\(REFRESH_TOKEN_SECURE_KEY, token, SEAL_OPTIONS\);[\s\S]{0,200}deleteItem\(REFRESH_TOKEN_LATEST_KEY\)/);
   });
 });

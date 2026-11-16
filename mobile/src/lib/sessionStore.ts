@@ -169,6 +169,20 @@ export function rotationWrite(input: { biometricOn: boolean; sealSuspended: bool
   return input.biometricOn && !input.sealSuspended ? "mark-dirty" : "plain";
 }
 
+// REQ-305 (FAIL-2100, Nick 2026-11-16: biometric sign-in failed after an update
+// or an app close on Android). A silent refresh rotates the token while the
+// sealed copy is only rewritten when the app goes to the background. An
+// over-the-air update (Updates.reloadAsync), a crash or the OS ending the app
+// in the foreground skips that, so the next unlock replayed a spent token, the
+// server read it as theft (10 s grace) and ended the session. Now each rotated
+// token is also kept on a plain secure-store key ("latest"). Unlock still reads
+// the sealed key first, so the OS fingerprint prompt is still the gate; once
+// it passes, the newest token is the one sent.
+export function unlockToken(sealed: string | null, latest: string | null): string | null {
+  if (!sealed) return null; // no sealed session: the gate decides, never the plain copy alone
+  return latest || sealed;
+}
+
 // REQ-217 (FAIL-1063): biometric unlock seals the refresh token behind the OS
 // prompt (expo-secure-store requireAuthentication), which on Android needs a
 // STRONG biometric (class 3). A phone with only a weak one (some face unlocks)
