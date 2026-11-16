@@ -1,0 +1,1420 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sql-flash-sale-oversold",
+  "title": "Flash sale: more signed copies sold than were printed",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "orders=#",
+      "lines": [
+        {
+          "id": "ticket",
+          "text": "10:12 warehouse: 537 orders for the signed edition of 'Harbor Lights' (book 4711), and only 500 copies were printed; the stock column still says 41",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "sale",
+          "text": "10:12 shopd: signed edition on sale since 10:00, about 6 orders a minute",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "paused",
+          "text": "shopd: book 4711 is off sale; buyers see 'temporarily unavailable'",
+          "when": "not onSale",
+          "at": "timeAt(pausedAt)"
+        },
+        {
+          "id": "serial",
+          "text": "shopd: ERROR could not serialize access due to concurrent update; checkout failed and was not retried",
+          "when": "fixMode == \"rr\" and onSale",
+          "at": "timeAt(fixAt)",
+          "error": "true"
+        },
+        {
+          "id": "slowco",
+          "text": "shopd: WARN checkout p95 4.2 s; every checkout waits on LOCK TABLE books",
+          "when": "fixMode == \"tableLock\" and onSale",
+          "at": "timeAt(fixAt)",
+          "error": "true"
+        },
+        {
+          "id": "deleted",
+          "text": "shopd: ERROR 37 paid orders no longer exist; customers' payment confirmations point at missing rows",
+          "when": "ordersDeleted",
+          "at": "timeAt(deletedAt)",
+          "error": "true"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "shopd",
+          "label": "shopd checkout",
+          "spokenLabel": "shopd, the checkout service",
+          "kind": "Application service",
+          "status": "{fixMode == \"none\" ? \"Reads stock, then writes a new value (no lock)\" : fixMode == \"atomic\" ? \"Atomic conditional UPDATE\" : fixMode == \"forUpdate\" ? \"SELECT ... FOR UPDATE in a transaction\" : fixMode == \"rr\" ? \"Repeatable Read, no retry\" : \"LOCK TABLE books per checkout\"}",
+          "tone": "fixMode == \"none\" ? \"degraded\" : fixMode == \"atomic\" or fixMode == \"forUpdate\" ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "book",
+          "label": "books row 4711",
+          "spokenLabel": "the stock row for book 4711",
+          "kind": "Table row",
+          "status": "{onSale ? \"On sale\" : \"Off sale\"}; stock column {stockShown|0dp}",
+          "tone": "leaking ? \"down\" : \"up\""
+        },
+        {
+          "id": "orders",
+          "label": "order_lines",
+          "spokenLabel": "the order lines table",
+          "kind": "Table",
+          "status": "{500 + oversold|0dp} signed copies sold",
+          "tone": "oversold > 0 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "wh",
+          "label": "warehouse",
+          "spokenLabel": "the warehouse",
+          "kind": "Fulfillment",
+          "status": "{oversold|0dp} orders it cannot fill",
+          "tone": "oversold >= harmOversold ? \"down\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "co",
+          "from": "shopd",
+          "to": "book",
+          "label": "Stock decrement",
+          "status": "{leaking ? \"Losing concurrent updates\" : onSale ? \"Safe\" : \"Paused\"}",
+          "tone": "leaking ? \"down\" : \"up\""
+        },
+        {
+          "id": "ol",
+          "from": "shopd",
+          "to": "orders",
+          "label": "Order insert",
+          "status": "Writing",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "over",
+          "label": "Orders beyond the 500 printed",
+          "value": "{oversold|0dp}"
+        },
+        {
+          "id": "rate",
+          "label": "Oversold per minute now",
+          "value": "{leaking ? \"about 3\" : \"0\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Prevent a lost update with SELECT ... FOR UPDATE or a single atomic UPDATE, and compare isolation levels",
+  "secondaryObjectives": [
+    "Group statements into a transaction with BEGIN, COMMIT, ROLLBACK and SAVEPOINT, and explain atomicity"
+  ],
+  "sources": [
+    {
+      "cite": "PostgreSQL 18 Documentation, 13.2 Transaction Isolation",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.postgresql.org/docs/current/transaction-iso.html",
+      "note": "Relevant text (Read Committed): an UPDATE that finds its target row already changed by a concurrent transaction 'will wait for the first updating transaction to commit or roll back' and then 'the WHERE clause is re-evaluated to see if the updated version of the row still matches'; the example 'UPDATE accounts SET balance = balance + 100.00 WHERE acctnum = 12345' is safe because 'each command is affecting only a predetermined row'. (Repeatable Read): if a concurrent updater commits, the transaction 'will be rolled back with the message ERROR: could not serialize access due to concurrent update', and the application should 'abort the current transaction and retry the whole transaction from the beginning'. Read through a summarizing fetch of the PostgreSQL 18.7 page on 2026-11-14."
+    },
+    {
+      "cite": "PostgreSQL 18 Documentation, 13.3 Explicit Locking (row-level locks)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "note": "Relevant text: 'FOR UPDATE causes the rows retrieved by the SELECT statement to be locked as though for update. This prevents them from being locked, modified or deleted by other transactions until the current transaction ends.' Read through a summarizing fetch on 2026-11-14. Why a read-then-write inside one transaction with FOR UPDATE does not lose updates."
+    },
+    {
+      "cite": "PostgreSQL 18 Documentation, 3.4 Transactions",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+      "note": "Relevant text: BEGIN starts a transaction block, COMMIT makes its changes visible together and ROLLBACK discards them. Read in full as raw HTML on 2026-11-14 for the course (REQ-265); the course's key value is used here."
+    }
+  ],
+  "brief": {
+    "situation": "You are the database engineer at Fernhill Books, a fictional online bookshop. At 10:00 the signed edition of 'Harbor Lights' (book 4711, 500 copies printed) went on sale. At 10:12 the warehouse reports 537 orders for it, while the stock column still says 41 copies are left, and orders keep coming at about six a minute. Stop the overselling, find why concurrent checkouts lose stock updates, get a correct fix deployed, prove it under concurrency, and put the book back on sale.",
+    "handover": [
+      "The checkout developer is standing by to deploy whichever change you choose (about 6 minutes each). The database is PostgreSQL 18 at its default isolation level.",
+      "A staging copy has a race test that sends 50 concurrent buyers at 10 remaining copies.",
+      "Customer service, not you, handles the customers who were oversold. Paid orders must not be deleted."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The incident keeps developing on the same clock.",
+      "The map shows each host, service or job and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:12",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "leakRate": {
+      "value": 3,
+      "unit": "orders/min",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. About three oversold orders a minute while concurrent checkouts lose updates is the author's figure."
+      }
+    },
+    "harmOversold": {
+      "value": 100,
+      "unit": "orders",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. One hundred oversold orders, a fifth of the print run, is the author's line for a promise the shop cannot keep."
+      }
+    },
+    "containWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. Taking the book off sale is one command; ten minutes leaves time to look first."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "stockAt": {
+      "type": "time",
+      "init": null
+    },
+    "soldAt": {
+      "type": "time",
+      "init": null
+    },
+    "stmtAt": {
+      "type": "time",
+      "init": null
+    },
+    "isoAt": {
+      "type": "time",
+      "init": null
+    },
+    "onSale": {
+      "type": "bool",
+      "init": true
+    },
+    "pausedAt": {
+      "type": "time",
+      "init": null
+    },
+    "reopenedAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixMode": {
+      "type": "enum",
+      "values": [
+        "none",
+        "atomic",
+        "forUpdate",
+        "rr",
+        "tableLock"
+      ],
+      "init": "none"
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "testedAt": {
+      "type": "time",
+      "init": null
+    },
+    "testedMode": {
+      "type": "enum",
+      "values": [
+        "none",
+        "atomic",
+        "forUpdate",
+        "rr",
+        "tableLock"
+      ],
+      "init": "none"
+    },
+    "oversold": {
+      "type": "number",
+      "init": 37,
+      "min": 0,
+      "max": 100000,
+      "unit": "orders"
+    },
+    "stockShown": {
+      "type": "number",
+      "init": 41,
+      "min": -1000,
+      "max": 1000
+    },
+    "ordersDeleted": {
+      "type": "bool",
+      "init": false
+    },
+    "deletedAt": {
+      "type": "time",
+      "init": null
+    },
+    "stockReset": {
+      "type": "bool",
+      "init": false
+    },
+    "resetAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkAdded": {
+      "type": "bool",
+      "init": false
+    },
+    "faultsAdded": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "lostUpdate",
+        "negative",
+        "replica"
+      ],
+      "init": "none"
+    },
+    "preventDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "atomicTest",
+        "isolation",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "leaking": {
+      "expr": "onSale and fixMode == \"none\""
+    },
+    "safeFix": {
+      "expr": "fixMode == \"atomic\" or fixMode == \"forUpdate\""
+    },
+    "contained": {
+      "expr": "not leaking"
+    },
+    "containedAt": {
+      "expr": "isNull(pausedAt) ? (isNull(fixAt) ? -1 : timeAt(fixAt)) : (isNull(fixAt) ? timeAt(pausedAt) : min(timeAt(pausedAt), timeAt(fixAt)))"
+    }
+  },
+  "processes": [
+    {
+      "id": "overselling",
+      "when": "phase == \"incident\" and leaking",
+      "update": {
+        "oversold": "oversold + leakRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "stock",
+        "sold",
+        "statements",
+        "isolation",
+        "pause",
+        "deployAtomic",
+        "deployForUpdate",
+        "deployRR",
+        "deployTableLock",
+        "addCheck",
+        "resetStock",
+        "deleteOrders",
+        "raceTest",
+        "reopen",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "stock": {
+      "label": "SELECT id, title, stock, on_sale FROM books WHERE id = 4711;",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(stockAt)",
+          "then": [
+            {
+              "set": "stockAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "orders=# SELECT id, title, stock, on_sale FROM books WHERE id = 4711;\n  id  |     title      | stock | on_sale\n------+----------------+-------+---------\n 4711 | Harbor Lights  |  {stockShown|0dp}  | {onSale ? \"t\" : \"f\"}\n(1 row)"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sold": {
+      "label": "SELECT sum(qty) AS sold FROM order_lines WHERE book_id = 4711;",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(soldAt)",
+          "then": [
+            {
+              "set": "soldAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "orders=# SELECT sum(qty) AS sold FROM order_lines WHERE book_id = 4711;\n sold\n------\n {500 + oversold|0dp}\n(1 row)"
+        },
+        {
+          "finding": "500 printed, {500 + oversold|0dp} sold, and the stock column still shows {stockShown|0dp}: some sales never reduced the stock."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "statements": {
+      "label": "SELECT query FROM pg_stat_statements WHERE query LIKE '%books%stock%' ORDER BY calls DESC;",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(stmtAt)",
+          "then": [
+            {
+              "set": "stmtAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "orders=# SELECT query FROM pg_stat_statements WHERE query LIKE '%books%stock%' ORDER BY calls DESC;\n                         query\n--------------------------------------------------------\n SELECT stock FROM books WHERE id = $1\n UPDATE books SET stock = $1 WHERE id = $2\n(2 rows)"
+        },
+        {
+          "finding": "Checkout reads the stock, works out the new number in the application, then writes that number back. Two buyers who read 41 at the same moment both write 40: one sale is never subtracted (a lost update)."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "isolation": {
+      "label": "SHOW default_transaction_isolation;",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(isoAt)",
+          "then": [
+            {
+              "set": "isoAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "orders=# SHOW default_transaction_isolation;\n default_transaction_isolation\n-------------------------------\n read committed\n(1 row)"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "pause": {
+      "label": "UPDATE books SET on_sale = false WHERE id = 4711;",
+      "group": "Contain",
+      "available": "not busy and onSale",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "onSale",
+          "to": "false"
+        },
+        {
+          "if": "isNull(pausedAt)",
+          "then": [
+            {
+              "set": "pausedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Book 4711 is off sale. No more orders for it while you fix checkout; other books keep selling.",
+          "kind": "act"
+        },
+        {
+          "output": "orders=# UPDATE books SET on_sale = false WHERE id = 4711;\nUPDATE 1"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "deployAtomic": {
+      "label": "-- deploy: UPDATE books SET stock = stock - $1 WHERE id = $2 AND stock >= $1 RETURNING stock",
+      "group": "Fix",
+      "available": "not busy and fixMode == \"none\"",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "fixMode",
+          "to": "\"atomic\""
+        },
+        {
+          "if": "isNull(fixAt)",
+          "then": [
+            {
+              "set": "fixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Checkout now subtracts in one statement with the condition stock >= qty; a buyer whose row no longer has enough stock gets 0 rows back and is told it sold out.",
+          "kind": "good"
+        },
+        {
+          "output": "orders=# -- deploy: UPDATE books SET stock = stock - $1 WHERE id = $2 AND stock >= $1 RETURNING stock"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "deployForUpdate": {
+      "label": "-- deploy: BEGIN; SELECT stock FROM books WHERE id = $1 FOR UPDATE; ... UPDATE ...; COMMIT;",
+      "group": "Fix",
+      "available": "not busy and fixMode == \"none\"",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "fixMode",
+          "to": "\"forUpdate\""
+        },
+        {
+          "if": "isNull(fixAt)",
+          "then": [
+            {
+              "set": "fixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Checkout now reads the row with FOR UPDATE inside a transaction, so a second buyer waits until the first commits and then sees the new stock.",
+          "kind": "good"
+        },
+        {
+          "output": "orders=# -- deploy: BEGIN; SELECT stock FROM books WHERE id = $1 FOR UPDATE; ... UPDATE ...; COMMIT;"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "deployRR": {
+      "label": "-- deploy: ALTER DATABASE orders SET default_transaction_isolation = 'repeatable read'",
+      "group": "Fix",
+      "available": "not busy and fixMode == \"none\"",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "fixMode",
+          "to": "\"rr\""
+        },
+        {
+          "if": "isNull(fixAt)",
+          "then": [
+            {
+              "set": "fixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "faultsAdded",
+          "by": "1"
+        },
+        {
+          "log": "Every transaction on the database is now Repeatable Read. Concurrent buyers of the same row get 'could not serialize access', and checkout has no retry, so those buyers just see an error.",
+          "kind": "bad"
+        },
+        {
+          "output": "orders=# -- deploy: ALTER DATABASE orders SET default_transaction_isolation = 'repeatable read'"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "deployTableLock": {
+      "label": "-- deploy: LOCK TABLE books IN EXCLUSIVE MODE at the start of every checkout",
+      "group": "Fix",
+      "available": "not busy and fixMode == \"none\"",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "fixMode",
+          "to": "\"tableLock\""
+        },
+        {
+          "if": "isNull(fixAt)",
+          "then": [
+            {
+              "set": "fixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "faultsAdded",
+          "by": "1"
+        },
+        {
+          "log": "No more overselling, but every checkout of every book now queues behind one table lock.",
+          "kind": "bad"
+        },
+        {
+          "output": "orders=# -- deploy: LOCK TABLE books IN EXCLUSIVE MODE at the start of every checkout"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "addCheck": {
+      "label": "ALTER TABLE books ADD CONSTRAINT stock_not_negative CHECK (stock >= 0);",
+      "group": "Fix",
+      "available": "not busy and not checkAdded",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "checkAdded",
+          "to": "true"
+        },
+        {
+          "log": "The constraint is in place, but checkout writes a number it computed from a stale read, never a negative one: the lost updates go on.",
+          "kind": "act"
+        },
+        {
+          "output": "orders=# ALTER TABLE books ADD CONSTRAINT stock_not_negative CHECK (stock >= 0);\nALTER TABLE"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "resetStock": {
+      "label": "UPDATE books SET stock = 500 WHERE id = 4711;",
+      "group": "Fix",
+      "available": "not busy and not stockReset",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "stockReset",
+          "to": "true"
+        },
+        {
+          "if": "isNull(resetAt)",
+          "then": [
+            {
+              "set": "resetAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "stockShown",
+          "to": "500"
+        },
+        {
+          "add": "faultsAdded",
+          "by": "1"
+        },
+        {
+          "log": "The stock column now says 500 copies are available, all of which are already sold.",
+          "kind": "alarm"
+        },
+        {
+          "output": "orders=# UPDATE books SET stock = 500 WHERE id = 4711;\nUPDATE 1"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "deleteOrders": {
+      "label": "DELETE FROM order_lines WHERE book_id = 4711 AND id > (SELECT max(id) - 37 FROM order_lines);",
+      "group": "Fix",
+      "available": "not busy and not ordersDeleted",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "ordersDeleted",
+          "to": "true"
+        },
+        {
+          "if": "isNull(deletedAt)",
+          "then": [
+            {
+              "set": "deletedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "faultsAdded",
+          "by": "1"
+        },
+        {
+          "log": "37 paid order lines are deleted. The customers were charged and their orders no longer exist.",
+          "kind": "alarm"
+        },
+        {
+          "output": "orders=# DELETE FROM order_lines WHERE book_id = 4711 AND id > (SELECT max(id) - 37 FROM order_lines);\nDELETE 37"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "raceTest": {
+      "label": "SELECT * FROM staging.race_test(book_id => 4711, buyers => 50, copies => 10);",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(testedAt)",
+          "then": [
+            {
+              "set": "testedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "testedMode",
+          "to": "fixMode"
+        },
+        {
+          "cases": [
+            {
+              "when": "fixMode == \"none\"",
+              "then": [
+                {
+                  "output": "orders=# SELECT * FROM staging.race_test(book_id => 4711, buyers => 50, copies => 10);\n accepted | refused | errors | final_stock\n----------+---------+--------+-------------\n       31 |      19 |      0 |           2\n(1 row)"
+                },
+                {
+                  "finding": "Staging reproduces it: 31 buyers were accepted for 10 copies and stock still shows 2."
+                }
+              ]
+            },
+            {
+              "when": "safeFix",
+              "then": [
+                {
+                  "output": "orders=# SELECT * FROM staging.race_test(book_id => 4711, buyers => 50, copies => 10);\n accepted | refused | errors | final_stock\n----------+---------+--------+-------------\n       10 |      40 |      0 |           0\n(1 row)"
+                }
+              ]
+            },
+            {
+              "when": "fixMode == \"rr\"",
+              "then": [
+                {
+                  "output": "orders=# SELECT * FROM staging.race_test(book_id => 4711, buyers => 50, copies => 10);\n accepted | refused | errors | final_stock\n----------+---------+--------+-------------\n       10 |      23 |     17 |           0\n(1 row)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "orders=# SELECT * FROM staging.race_test(book_id => 4711, buyers => 50, copies => 10);\n accepted | refused | errors | final_stock | p95_ms\n----------+---------+--------+-------------+--------\n       10 |      40 |      0 |           0 |   4180\n(1 row)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "reopen": {
+      "label": "UPDATE books SET on_sale = true WHERE id = 4711;",
+      "group": "Fix",
+      "available": "not busy and not onSale",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "onSale",
+          "to": "true"
+        },
+        {
+          "if": "isNull(reopenedAt)",
+          "then": [
+            {
+              "set": "reopenedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixMode == \"none\"",
+          "then": [
+            {
+              "log": "Book 4711 is back on sale with checkout unchanged: concurrent buyers lose stock updates again.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "Book 4711 is back on sale.",
+              "kind": "act"
+            }
+          ]
+        },
+        {
+          "output": "orders=# UPDATE books SET on_sale = true WHERE id = 4711;\nUPDATE 1"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "SELECT pg_sleep(600);",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "orders=# SELECT pg_sleep(600);"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare it fixed and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "lostUpdate",
+                  "label": "Read-then-write checkout lost concurrent stock updates (a lost update) at Read Committed"
+                },
+                {
+                  "value": "negative",
+                  "label": "Stock was allowed to go negative"
+                },
+                {
+                  "value": "replica",
+                  "label": "Checkout read stock from a lagging replica"
+                }
+              ]
+            },
+            {
+              "id": "prevent",
+              "label": "Prevention",
+              "options": [
+                {
+                  "value": "atomicTest",
+                  "label": "Decrement in one conditional UPDATE (or SELECT ... FOR UPDATE) and keep the race test in the release checks"
+                },
+                {
+                  "value": "isolation",
+                  "label": "Run the whole database at Repeatable Read"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing needed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "preventDoc",
+          "to": "prevent"
+        },
+        {
+          "log": "Recorded: cause {cause}, prevention {prevent}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "badLine",
+      "when": "oversold >= harmOversold and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "100 signed copies oversold: a fifth of the print run has been promised to buyers who will not get one.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: why concurrent checkouts sold more copies than existed, what you did first, which fix you chose over the alternatives and how you proved it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The cause",
+          "criteria": "Names a lost update: two transactions read the same stock, each computes a new value and the second write overwrites the first; Read Committed does not prevent it for a read-then-write.",
+          "modelAnswer": "Checkout ran SELECT stock, computed stock - qty in the application and wrote the number back. Two buyers reading 41 at once both wrote 40, so one sale was never subtracted. At Read Committed nothing stops that."
+        },
+        {
+          "label": "Containment and the fix",
+          "criteria": "Took the book off sale first; chose a single conditional UPDATE (stock = stock - qty WHERE stock >= qty) or SELECT ... FOR UPDATE in a transaction; explains why Repeatable Read without retries, a table lock, a CHECK constraint, resetting stock or deleting orders are wrong here.",
+          "modelAnswer": "I took 4711 off sale, then had checkout use UPDATE books SET stock = stock - $1 WHERE id = $2 AND stock >= $1: the row update re-checks the condition on the latest version, so a buyer gets 0 rows when it has sold out. Repeatable Read would turn races into errors unless the app retries; a table lock serializes every checkout; the CHECK never fires because the app never writes a negative."
+        },
+        {
+          "label": "Proof",
+          "criteria": "Ran a concurrency test (the race test) after the fix and only then reopened the sale.",
+          "modelAnswer": "The staging race test accepted exactly 10 of 50 buyers for 10 copies with stock ending at 0; then I put the book back on sale."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2400,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), set to 40 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Fixed, tested and back on sale within 40 minutes of the report; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No fault introduced by the fix itself (failed checkouts, a serialized checkout, wrong stock or deleted orders)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and leaking",
+      "class": "harm",
+      "rationale": "Closing while checkout still loses concurrent stock updates and the book is on sale keeps overselling; it is never a safe outcome.",
+      "source": {
+        "cite": "PostgreSQL 18 Documentation, 13.2 Transaction Isolation",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.postgresql.org/docs/current/transaction-iso.html",
+        "note": "Relevant text (Read Committed): an UPDATE that finds its target row already changed by a concurrent transaction 'will wait for the first updating transaction to commit or roll back' and then 'the WHERE clause is re-evaluated to see if the updated version of the row still matches'; the example 'UPDATE accounts SET balance = balance + 100.00 WHERE acctnum = 12345' is safe because 'each command is affecting only a predetermined row'. (Repeatable Read): if a concurrent updater commits, the transaction 'will be rolled back with the message ERROR: could not serialize access due to concurrent update', and the application should 'abort the current transaction and retry the whole transaction from the beginning'. Read through a summarizing fetch of the PostgreSQL 18.7 page on 2026-11-14."
+      }
+    }
+  },
+  "endings": {
+    "ordersDeleted": {
+      "label": "Paid orders deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and ordersDeleted",
+      "narrative": "37 paid orders were deleted to make the numbers add up. The customers were charged for orders that no longer exist."
+    },
+    "stockReset": {
+      "label": "Stock reset to 500",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and stockReset",
+      "narrative": "The stock column was set back to 500, telling checkout that 500 more copies exist when none do."
+    },
+    "oversoldBadly": {
+      "label": "A fifth of the print run oversold",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and oversold >= harmOversold",
+      "narrative": "{oversold|0dp} buyers were promised a signed copy that does not exist before the selling stopped."
+    },
+    "stillLeaking": {
+      "label": "Closed while still losing updates",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and leaking",
+      "narrative": "The incident was closed with checkout unchanged and the book on sale."
+    },
+    "fixed": {
+      "label": "Fixed and proven",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and safeFix and timeAt(fixAt) <= restoreWindow and faultsAdded <= newFaults and containedAt >= 0 and containedAt <= containWindow and not isNull(testedAt) and testedMode == fixMode and onSale",
+      "narrative": "Selling stopped within minutes, checkout now decrements stock safely, the race test proved it, and the book is back on sale."
+    },
+    "fixedGaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "No more overselling, but containment came late, the fix trades the race for errors or a queue, it was never tested, or the book is still off sale."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "ordersDeleted",
+    "stockReset",
+    "oversoldBadly",
+    "stillLeaking",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "containFast",
+        "label": "Stopped the overselling within 10 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "containedAt >= 0 and containedAt <= containWindow",
+            "score": "met",
+            "why": "Overselling stopped {containedAt / 60|0dp} min after the report."
+          },
+          {
+            "when": "containedAt >= 0",
+            "score": "partial",
+            "why": "Stopped, but {containedAt / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The overselling never stopped."
+          }
+        ]
+      },
+      {
+        "id": "rightFix",
+        "label": "Chose a fix that removes the lost update without new failures",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "safeFix",
+            "score": "met",
+            "why": "Checkout decrements atomically or under a row lock."
+          },
+          {
+            "when": "fixMode == \"rr\" or fixMode == \"tableLock\"",
+            "score": "partial",
+            "why": "Overselling stopped, but at the cost of failed checkouts or a queue behind one lock."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Checkout still reads and writes back with no protection."
+          }
+        ]
+      },
+      {
+        "id": "noDamage",
+        "label": "Kept orders and stock honest",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ordersDeleted or stockReset",
+            "score": "missed",
+            "why": "Paid orders were deleted or the stock column was set to copies that do not exist."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No order was deleted and no stock was invented."
+          }
+        ]
+      },
+      {
+        "id": "foundCause",
+        "label": "Found the read-then-write pattern before choosing a fix",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(stmtAt) and (isNull(fixAt) or timeAt(stmtAt) <= timeAt(fixAt))",
+            "score": "met",
+            "why": "pg_stat_statements showed SELECT stock then UPDATE ... SET stock = $1."
+          },
+          {
+            "when": "not isNull(stmtAt)",
+            "score": "partial",
+            "why": "The statements were read only after a fix was chosen."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The checkout's statements were never looked at."
+          }
+        ]
+      },
+      {
+        "id": "tested",
+        "label": "Proved the fix under concurrency before reopening",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(testedAt) and testedMode == fixMode and fixMode != \"none\" and (isNull(reopenedAt) or timeAt(testedAt) <= timeAt(reopenedAt))",
+            "score": "met",
+            "why": "The race test passed before the book went back on sale."
+          },
+          {
+            "when": "not isNull(testedAt) and testedMode == fixMode and fixMode != \"none\"",
+            "score": "partial",
+            "why": "Tested, but only after reopening."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The deployed fix was never tested under concurrency."
+          }
+        ]
+      },
+      {
+        "id": "reopened",
+        "label": "Put the book back on sale once safe",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "onSale and fixMode != \"none\"",
+            "score": "met",
+            "why": "The signed edition is selling again."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The book was left off sale, or reopened unfixed."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the prevention accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"lostUpdate\" and preventDoc == \"atomicTest\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"lostUpdate\"",
+            "score": "partial",
+            "why": "The cause is right; the prevention is not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, fix and proof",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "oversoldK",
+        "label": "Copies oversold in total",
+        "value": "oversold",
+        "format": "number",
+        "expert": "40 or fewer"
+      },
+      {
+        "id": "minToContain",
+        "label": "Minutes until overselling stopped",
+        "value": "containedAt >= 0 ? containedAt / 60 : -1",
+        "format": "number",
+        "expert": "2 or less"
+      },
+      {
+        "id": "faultsK",
+        "label": "Faults the fix introduced",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "Take book 4711 off sale: one statement stops the bleeding while you investigate."
+      },
+      {
+        "at": "2-5 min",
+        "text": "Count what was sold against the 500 printed; pg_stat_statements shows SELECT stock then UPDATE ... SET stock = $1: a read-then-write at Read Committed, a lost update."
+      },
+      {
+        "at": "5-11 min",
+        "text": "Deploy a single conditional UPDATE (stock = stock - qty WHERE stock >= qty, 0 rows means sold out), or SELECT ... FOR UPDATE inside the transaction."
+      },
+      {
+        "at": "11-15 min",
+        "text": "Race test on staging: exactly 10 of 50 accepted. Reopen the sale. Leave the oversold customers to customer service with an accurate count; delete nothing."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: stopped, fixed and proven",
+        "body": "You stopped the selling first, named the lost update, made the decrement atomic and proved it with concurrent buyers before reopening."
+      },
+      "fixedGaps": {
+        "headline": "Fixed, with gaps",
+        "body": "The overselling stopped. The criteria show the cost: late containment, a fix that fails or queues checkouts, no concurrency test, or the book left off sale."
+      },
+      "ordersDeleted": {
+        "headline": "Paid orders deleted",
+        "body": "The orders are real purchases. Count them accurately for customer service; never delete them to make stock add up."
+      },
+      "stockReset": {
+        "headline": "Stock invented",
+        "body": "Setting stock to 500 tells checkout to sell 500 copies that do not exist. Stock should come from what was printed minus what was sold."
+      },
+      "oversoldBadly": {
+        "headline": "Too many promises",
+        "body": "Taking the book off sale is one statement and stops the bleeding while you work out the fix."
+      },
+      "stillLeaking": {
+        "headline": "Closed too soon",
+        "body": "Checkout still read and wrote back stock with the book on sale."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Checkout read stock, subtracted in the application and wrote the number back. Two concurrent buyers read the same value and the second write erased the first: a lost update, which Read Committed allows. Stop the selling first, then decrement in one statement with a condition (UPDATE ... SET stock = stock - qty WHERE id = ... AND stock >= qty), whose row update re-checks the condition on the newest row version, or lock the row with SELECT ... FOR UPDATE inside the transaction. Repeatable Read also stops it only if the application retries serialization failures; a table lock queues every checkout. Prove it with concurrent buyers, then reopen."
+  }
+}

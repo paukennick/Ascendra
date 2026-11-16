@@ -1,0 +1,1263 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sc500-illicit-consent-grant",
+  "title": "Incident: finance staff consented to 'Invoice Sync Pro'",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "consentA",
+          "severity": "high",
+          "title": "Users granted Mail.Read, Files.Read.All and offline_access to 'Invoice Sync Pro' (unverified publisher)",
+          "detail": "Three finance users consented between 08:41 and 09:02 after an email asking them to 'enable invoice sync'.",
+          "when": "true",
+          "at": "0",
+          "status": "{attackerActive ? (isNull(auditAt) ? \"New\" : \"Investigating\") : \"Contained\"}",
+          "open": "attackerActive"
+        },
+        {
+          "id": "readA",
+          "severity": "medium",
+          "title": "Invoice Sync Pro is reading mailboxes and OneDrive files from 203.0.113.40",
+          "when": "true",
+          "at": "0",
+          "status": "{attackerActive ? \"Active\" : \"Stopped\"}",
+          "open": "attackerActive"
+        },
+        {
+          "id": "spreadA",
+          "severity": "high",
+          "title": "More users consented to Invoice Sync Pro",
+          "when": "not isNull(firstSpreadAt)",
+          "at": "timeAt(firstSpreadAt)",
+          "status": "{consentOpen ? \"Still possible\" : \"Consent restricted\"}",
+          "open": "consentOpen"
+        },
+        {
+          "id": "returnA",
+          "severity": "high",
+          "title": "Invoice Sync Pro is back: a new consent recreated the deleted app",
+          "when": "not isNull(returnedAt)",
+          "at": "timeAt(returnedAt)",
+          "status": "{isNull(disabledAt) ? \"Active\" : \"Disabled\"}",
+          "open": "isNull(disabledAt)"
+        },
+        {
+          "id": "fraudA",
+          "severity": "critical",
+          "title": "Mail from a look-alike supplier domain asks accounts payable to change bank details, quoting a real invoice",
+          "when": "not isNull(fraudAt)",
+          "at": "timeAt(fraudAt)",
+          "status": "{apWarned ? \"Held by accounts payable\" : \"Payment change processed\"}",
+          "open": "not apWarned"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Mail",
+          "text": "08:30 phishing email 'Enable invoice sync' delivered to 40 finance and procurement users",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "Audit",
+          "text": "Consent to application: Invoice Sync Pro, by a.lin, j.osei, m.ruiz; IsAdminContent False (entries from 08:41 to 09:02)",
+          "when": "not isNull(auditAt)",
+          "at": "timeAt(auditAt)"
+        },
+        {
+          "id": "e3",
+          "source": "Entra ID",
+          "text": "Enterprise app Invoice Sync Pro, Permissions: {consents|0dp} users with delegated Mail.Read, Files.Read.All, offline_access",
+          "when": "not isNull(permsAt)",
+          "at": "timeAt(permsAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Sign-in logs",
+          "text": "Service principal sign-ins for Invoice Sync Pro from 203.0.113.40 every few minutes",
+          "when": "not isNull(permsAt)",
+          "at": "timeAt(permsAt)"
+        },
+        {
+          "id": "e5",
+          "source": "Entra ID",
+          "text": "User consent settings: {consentOpen ? \"users may consent to any app\" : \"verified publishers and low-impact permissions only; admin consent requests on\"}",
+          "when": "not isNull(permsAt) or not isNull(restrictedAt)",
+          "at": "isNull(restrictedAt) ? timeAt(permsAt) : timeAt(restrictedAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "app",
+          "label": "Invoice Sync Pro",
+          "spokenLabel": "Enterprise app Invoice Sync Pro",
+          "kind": "Multitenant app, unverified publisher",
+          "status": "{not isNull(disabledAt) ? \"Sign-in disabled\" : not isNull(deletedAt) and isNull(returnedAt) ? \"Deleted\" : \"Enabled; holding user grants\"}",
+          "tone": "attackerActive ? \"bad\" : \"held\""
+        },
+        {
+          "id": "grants",
+          "label": "Delegated grants",
+          "spokenLabel": "The app's delegated permission grants",
+          "kind": "OAuth2 permission grants",
+          "status": "{isNull(grantsRemovedAt) ? \"Held\" : floor(consents) > consentsAtRemoval ? \"Removed, then granted again\" : \"Removed\"}; {consents|0dp} users consented",
+          "tone": "isNull(grantsRemovedAt) or floor(consents) > consentsAtRemoval ? \"bad\" : \"held\""
+        },
+        {
+          "id": "users",
+          "label": "Consenting users",
+          "spokenLabel": "The users who consented",
+          "kind": "Finance staff",
+          "status": "{isNull(revokedAt) ? \"Refresh tokens valid\" : \"Sessions revoked\"}",
+          "tone": "isNull(revokedAt) ? \"watch\" : \"held\""
+        },
+        {
+          "id": "ap",
+          "label": "Accounts payable",
+          "spokenLabel": "Accounts payable",
+          "kind": "Payments team",
+          "status": "{apWarned ? \"Holding any bank-detail change for call-back\" : \"Not warned\"}",
+          "tone": "apWarned ? \"ok\" : not isNull(fraudAt) ? \"bad\" : \"watch\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "itemsM",
+          "label": "Mail and files read by the app",
+          "value": "{itemsRead|0dp}"
+        },
+        {
+          "id": "caseM",
+          "label": "Case folder",
+          "value": "{isNull(evidenceAt) ? \"empty\" : \"audit records, sign-in logs and grant list exported\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Securing app registrations and enterprise applications, including OAuth consent and permission grants",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, 'App consent grant investigation' (incident response playbook), last updated 2025-03-12",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/security/operations/incident-response-playbook-app-consent",
+      "note": "Relevant text: search the audit log for the activity 'Consent to application' and 'Check whether IsAdminContent is set to True'; audit entries take 'from 30 minutes up to 24 hours' to appear; 'immediately disable the application'; 'Once an application is disabled in Microsoft Entra, it can't obtain new tokens to access data, and other users can't sign in or grant consent to the app'; 'it's better to disable it than to delete it. If you only delete the application, it might return later if another user grants consent'; 'review the audit log to determine the full scope of the breach'; prevention: admin approval of consents, and user consent only for 'verified publishers' and permissions 'classified as low impact'. Read through a summarizing fetch on 2026-11-14."
+    },
+    {
+      "cite": "Microsoft Learn, 'Disable user sign-in for an application', last updated 2026-10-15",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/disable-user-sign-in-portal",
+      "note": "Relevant text: disabling user sign-in 'prevents all tokens from being issued for that application', by setting the service principal's accountEnabled to false. Read through a summarizing fetch on 2026-11-14."
+    },
+    {
+      "cite": "Microsoft Learn, 'Review permissions granted to enterprise applications' (page footer 2025-03-06)",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/manage-application-permissions",
+      "note": "Relevant text: delegated permissions (oAuth2PermissionGrants) and application permissions (app role assignments) are reviewed and removed separately (Remove-MgOauth2PermissionGrant); 'Revoking the current granted permission doesn't stop users from re-consenting to the application's requested permissions.' Read through a summarizing fetch on 2026-11-14."
+    },
+    {
+      "cite": "Microsoft Graph v1.0, user: revokeSignInSessions (last updated 2025-07-23)",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/graph/api/user-revokesigninsessions?view=graph-rest-1.0",
+      "note": "Relevant text: 'Invalidates all the refresh tokens issued to applications for a user (and session cookies in a user's browser)'; 'there might be a small delay of a few minutes before tokens are revoked.' Read through a summarizing fetch on 2026-11-14."
+    }
+  ],
+  "brief": {
+    "situation": "You are the cloud security engineer at Fernhill Analytics, a fictional company whose staff use Microsoft Entra ID and Microsoft 365. At 09:05 an alert says three finance users consented to 'Invoice Sync Pro', an app from an unverified publisher, after a phishing email went to 40 finance and procurement staff. The app is already reading their mail and files. Users can still consent to any app. Investigate, contain, keep the evidence, and report.",
+    "handover": [
+      "No administrator has approved this app; the grants are user consents.",
+      "Accounts payable pays supplier invoices that arrive by email."
+    ],
+    "howItWorks": [
+      "Each task takes analyst time: choose it, then let the work finish, which moves the clock by the minutes that task takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you declare the incident contained, you notify, write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:05",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "consentRate": {
+      "value": 0.17,
+      "unit": "users/min",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. About one more phished user consenting every six minutes while consent is open and the app can be granted is the author's figure."
+      }
+    },
+    "readRate": {
+      "value": 40,
+      "unit": "items/min",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. Forty mail items and files a minute while the app holds working grants is the author's figure."
+      }
+    },
+    "fraudDelay": {
+      "value": 2100,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. The attacker uses a harvested invoice for a bank-detail change request at 09:40."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "auditAt": {
+      "type": "time",
+      "init": null
+    },
+    "permsAt": {
+      "type": "time",
+      "init": null
+    },
+    "disabledAt": {
+      "type": "time",
+      "init": null
+    },
+    "deletedAt": {
+      "type": "time",
+      "init": null
+    },
+    "returnedAt": {
+      "type": "time",
+      "init": null
+    },
+    "grantsRemovedAt": {
+      "type": "time",
+      "init": null
+    },
+    "consentsAtRemoval": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 40
+    },
+    "revokedAt": {
+      "type": "time",
+      "init": null
+    },
+    "restrictedAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "allOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "consents": {
+      "type": "number",
+      "init": 3,
+      "min": 0,
+      "max": 40,
+      "unit": "users"
+    },
+    "firstSpreadAt": {
+      "type": "time",
+      "init": null
+    },
+    "itemsRead": {
+      "type": "number",
+      "init": 1200,
+      "min": 0,
+      "max": 1000000,
+      "unit": "items"
+    },
+    "fraudAt": {
+      "type": "time",
+      "init": null
+    },
+    "apWarned": {
+      "type": "bool",
+      "init": false
+    },
+    "apWarnedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "internal",
+        "nobody"
+      ],
+      "init": "none"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "consentPhish",
+        "password",
+        "malware"
+      ],
+      "init": "none"
+    },
+    "preventDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "consentPolicy",
+        "mfa",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "appLive": {
+      "expr": "isNull(disabledAt) and ((isNull(deletedAt) and (isNull(grantsRemovedAt) or floor(consents) > consentsAtRemoval)) or not isNull(returnedAt))"
+    },
+    "attackerActive": {
+      "expr": "appLive"
+    },
+    "consentOpen": {
+      "expr": "isNull(restrictedAt) and isNull(disabledAt)"
+    },
+    "spread": {
+      "expr": "floor(consents) - 3"
+    }
+  },
+  "processes": [
+    {
+      "id": "phished",
+      "when": "phase == \"incident\" and consentOpen",
+      "update": {
+        "consents": "consents + consentRate * dt / 60"
+      }
+    },
+    {
+      "id": "reading",
+      "when": "phase == \"incident\" and attackerActive",
+      "update": {
+        "itemsRead": "itemsRead + readRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "audit",
+        "perms",
+        "preserve",
+        "disableApp",
+        "deleteApp",
+        "removeGrants",
+        "revokeSessions",
+        "restrictConsent",
+        "warnAp",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "audit": {
+      "label": "Search the audit log for 'Consent to application'",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "if": "isNull(auditAt)",
+          "then": [
+            {
+              "set": "auditAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Audit search: three consents to Invoice Sync Pro, all user consents (IsAdminContent False). Entries can take 30 minutes or more to appear, so later consents may not show yet.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "perms": {
+      "label": "Open the enterprise app: permissions, users and sign-ins",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "if": "isNull(permsAt)",
+          "then": [
+            {
+              "set": "permsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Invoice Sync Pro: {consents|0dp} users have granted Mail.Read, Files.Read.All and offline_access; its sign-ins come from 203.0.113.40. Unlike the audit search, this list is current.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "preserve": {
+      "label": "Export the audit records, app sign-in logs and grant list to the case folder",
+      "group": "Evidence",
+      "available": "not busy and isNull(evidenceAt)",
+      "why": "Already exported.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Audit records, the app's sign-in logs and the list of grants are exported to the case folder with hashes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "disableApp": {
+      "label": "Disable user sign-in for Invoice Sync Pro",
+      "group": "Contain",
+      "available": "not busy and isNull(disabledAt)",
+      "why": "Already disabled.",
+      "effects": [
+        {
+          "if": "isNull(disabledAt)",
+          "then": [
+            {
+              "set": "disabledAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Sign-in disabled for the app: it can get no new tokens, and no one can sign in to it or consent to it.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "deleteApp": {
+      "label": "Delete the Invoice Sync Pro enterprise application",
+      "group": "Contain",
+      "available": "not busy and isNull(deletedAt)",
+      "why": "Already deleted.",
+      "effects": [
+        {
+          "if": "isNull(deletedAt)",
+          "then": [
+            {
+              "set": "deletedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The enterprise application is deleted. Nothing stops the next phished user from consenting to it again.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "removeGrants": {
+      "label": "Remove the app's delegated permission grants",
+      "group": "Contain",
+      "available": "not busy and isNull(grantsRemovedAt)",
+      "why": "Already removed.",
+      "effects": [
+        {
+          "if": "isNull(grantsRemovedAt)",
+          "then": [
+            {
+              "set": "grantsRemovedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "consentsAtRemoval",
+          "to": "floor(consents)"
+        },
+        {
+          "log": "All of Invoice Sync Pro's delegated grants are removed. Removing a grant does not stop users consenting again.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "revokeSessions": {
+      "label": "Revoke sign-in sessions for the consenting users",
+      "group": "Contain",
+      "available": "not busy and isNull(revokedAt)",
+      "why": "Already revoked.",
+      "effects": [
+        {
+          "if": "isNull(revokedAt)",
+          "then": [
+            {
+              "set": "revokedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Refresh tokens and browser sessions for the {consents|0dp} users are revoked; it can take a few minutes to apply.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "restrictConsent": {
+      "label": "Restrict user consent to verified publishers and low-impact permissions, with admin consent requests",
+      "group": "Contain",
+      "available": "not busy and isNull(restrictedAt)",
+      "why": "Already restricted.",
+      "effects": [
+        {
+          "if": "isNull(restrictedAt)",
+          "then": [
+            {
+              "set": "restrictedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "User consent is restricted; anything else now needs an administrator's approval.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "warnAp": {
+      "label": "Warn accounts payable to hold any bank-detail change and confirm by phone",
+      "group": "Contain",
+      "available": "not busy and not apWarned",
+      "why": "Already warned.",
+      "effects": [
+        {
+          "set": "apWarned",
+          "to": "true"
+        },
+        {
+          "if": "isNull(apWarnedAt)",
+          "then": [
+            {
+              "set": "apWarnedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Accounts payable will hold any change to supplier bank details until confirmed by a call to a known number.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Watch the console for 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Declare the incident contained and write the report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident phase and start the report.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "full",
+              "label": "Incident lead, the data owners, legal and privacy (mail and files were read)"
+            },
+            {
+              "value": "internal",
+              "label": "IT only"
+            },
+            {
+              "value": "nobody",
+              "label": "No one"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"full\" ? \"incident lead, data owners, legal and privacy\" : who == \"internal\" ? \"IT only\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "consentPhish",
+                  "label": "A consent phishing email got users to grant an unverified app delegated access"
+                },
+                {
+                  "value": "password",
+                  "label": "Stolen passwords"
+                },
+                {
+                  "value": "malware",
+                  "label": "Malware on finance laptops"
+                }
+              ]
+            },
+            {
+              "id": "prevent",
+              "label": "Prevention",
+              "options": [
+                {
+                  "value": "consentPolicy",
+                  "label": "Restrict user consent to verified publishers and low-impact permissions, admin consent workflow, regular review of consented apps"
+                },
+                {
+                  "value": "mfa",
+                  "label": "Require MFA for finance users"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing needed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "preventDoc",
+          "to": "prevent"
+        },
+        {
+          "log": "Recorded: cause {cause}, prevention {prevent}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "not attackerActive and isNull(allOffAt)",
+          "then": [
+            {
+              "set": "allOffAt",
+              "to": "t"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "spread1",
+      "when": "spread > 0 and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "firstSpreadAt",
+          "to": "t"
+        },
+        {
+          "log": "Another finance user consented to Invoice Sync Pro.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "returns",
+      "when": "phase == \"incident\" and not isNull(deletedAt) and consentOpen and t >= timeAt(deletedAt) + 360",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "returnedAt",
+          "to": "t"
+        },
+        {
+          "log": "A phished user consented to Invoice Sync Pro again: the app is back in the tenant with a fresh grant.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "when": "t >= fraudDelay and phase == \"incident\" and attackerActive",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "fraudAt",
+          "to": "t"
+        },
+        {
+          "if": "apWarned",
+          "then": [
+            {
+              "log": "A look-alike supplier asks accounts payable to change its bank details, quoting a real invoice. AP holds it and calls the supplier: fraud stopped.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "A look-alike supplier asks accounts payable to change its bank details, quoting a real invoice; AP processes the change.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident report: how the attacker got access without a password, how you scoped it, what you did to cut it off and in what order, and what stops the next consent phish.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "How access was gained and scoped",
+          "criteria": "Explains that users granted delegated permissions (Mail.Read, Files.Read.All, offline_access) to an unverified app by consent, so no password was stolen; scopes from the consent audit entries (user consents, IsAdminContent False) and the app's current permissions list, noting the audit search lags.",
+          "modelAnswer": "Phished users clicked an OAuth consent prompt and granted the app delegated read access to mail and files with offline_access. The audit log showed user consents (IsAdminContent False); because audit entries can lag by 30 minutes or more, I took the current user list from the app's Permissions page."
+        },
+        {
+          "label": "Containment",
+          "criteria": "Disables the app (not deletes it), removes its grants, revokes the users' sessions, restricts user consent, and warns accounts payable because harvested invoices enable payment fraud.",
+          "modelAnswer": "I disabled sign-in for the app so it gets no new tokens and no one can consent again, removed its delegated grants, revoked the users' refresh tokens, restricted user consent, and warned accounts payable to hold bank-detail changes. Deleting would have let the next consent bring it back."
+        },
+        {
+          "label": "Prevention",
+          "criteria": "User consent limited to verified publishers and low-impact permissions with an admin consent workflow, plus periodic review of consented apps.",
+          "modelAnswer": "User consent is now limited to verified publishers and low-impact permissions, everything else goes through admin consent requests, and consented apps are reviewed on a schedule."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1500,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 25 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Contained before the 09:40 fraud attempt with time to spare; the scenario's own timing."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "No further user consents to the app after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and attackerActive",
+      "class": "harm",
+      "rationale": "Closing while the app still holds working grants leaves the users' mail and files readable; it is never a safe outcome.",
+      "source": {
+        "cite": "Microsoft Learn, 'App consent grant investigation' (incident response playbook), last updated 2025-03-12",
+        "checkedAt": "2026-11-14",
+        "url": "https://learn.microsoft.com/en-us/security/operations/incident-response-playbook-app-consent",
+        "note": "Relevant text: search the audit log for the activity 'Consent to application' and 'Check whether IsAdminContent is set to True'; audit entries take 'from 30 minutes up to 24 hours' to appear; 'immediately disable the application'; 'Once an application is disabled in Microsoft Entra, it can't obtain new tokens to access data, and other users can't sign in or grant consent to the app'; 'it's better to disable it than to delete it. If you only delete the application, it might return later if another user grants consent'; 'review the audit log to determine the full scope of the breach'; prevention: admin approval of consents, and user consent only for 'verified publishers' and permissions 'classified as low impact'. Read through a summarizing fetch on 2026-11-14."
+      }
+    }
+  },
+  "endings": {
+    "fraudPaid": {
+      "label": "A fraudulent bank change went through",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(fraudAt) and not apWarned",
+      "narrative": "The app was still reading mail at 09:40, and accounts payable changed a supplier's bank details on a request quoting a stolen invoice."
+    },
+    "stillIn": {
+      "label": "Closed with the app still active",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and attackerActive",
+      "narrative": "The incident was closed while Invoice Sync Pro still held working grants to {consents|0dp} users' mail and files."
+    },
+    "contained": {
+      "label": "Contained before it spread",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not isNull(allOffAt) and timeAt(allOffAt) <= containWindow and spread <= containSpread and not isNull(disabledAt) and not isNull(revokedAt) and not isNull(restrictedAt) and not isNull(evidenceAt) and isNull(fraudAt) and not isNull(permsAt)",
+      "narrative": "The app was disabled within minutes, its grants and the users' sessions cut, consent locked down, and the evidence kept, before any more users were caught or any fraud attempted."
+    },
+    "containedLate": {
+      "label": "Contained, late or with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The app is cut off, but more users were caught, a fraud attempt was made, the app came back after deletion, or a step was missed."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "fraudPaid",
+    "stillIn",
+    "contained",
+    "containedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "containFast",
+        "label": "Cut the app off within 25 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(allOffAt) and timeAt(allOffAt) <= containWindow",
+            "score": "met",
+            "why": "The app lost its access {timeAt(allOffAt) / 60|0dp} min after the alert."
+          },
+          {
+            "when": "not isNull(allOffAt)",
+            "score": "partial",
+            "why": "Cut off, but {timeAt(allOffAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The app was never cut off."
+          }
+        ]
+      },
+      {
+        "id": "disableNotDelete",
+        "label": "Disabled the app rather than deleting it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(disabledAt) and isNull(deletedAt)",
+            "score": "met",
+            "why": "Disabled: no new tokens, no new consents, and the object kept for the investigation."
+          },
+          {
+            "when": "not isNull(disabledAt)",
+            "score": "partial",
+            "why": "Disabled in the end, after a delete that let it come back."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(deletedAt) ? \"The app was never disabled.\" : \"Deleted only: the next consent can bring it back.\"}"
+          }
+        ]
+      },
+      {
+        "id": "scope",
+        "label": "Scoped from the current permissions, not only the lagging audit log",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(permsAt)",
+            "score": "met",
+            "why": "The app's Permissions page gave the current list of users."
+          },
+          {
+            "when": "not isNull(auditAt)",
+            "score": "partial",
+            "why": "Only the audit search, which can lag behind recent consents."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Who had consented was never checked."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Exported the evidence",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "met",
+            "why": "Audit records, sign-ins and grants are in the case folder."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing was exported."
+          }
+        ]
+      },
+      {
+        "id": "lockConsent",
+        "label": "Restricted user consent and revoked the users' sessions",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(restrictedAt) and not isNull(revokedAt)",
+            "score": "met",
+            "why": "Consent is restricted and the sessions revoked."
+          },
+          {
+            "when": "not isNull(restrictedAt) or not isNull(revokedAt)",
+            "score": "partial",
+            "why": "Only one of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither: users can consent again and their tokens still work."
+          }
+        ]
+      },
+      {
+        "id": "apWarnedC",
+        "label": "Warned accounts payable about payment fraud",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "apWarned and (isNull(fraudAt) or timeAt(apWarnedAt) <= timeAt(fraudAt))",
+            "score": "met",
+            "why": "AP was warned before any fraud attempt."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "AP was not warned in time."
+          }
+        ]
+      },
+      {
+        "id": "notifiedCrit",
+        "label": "Notified the right people",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified == \"full\"",
+            "score": "met",
+            "why": "Incident lead, data owners, legal and privacy."
+          },
+          {
+            "when": "notified == \"internal\"",
+            "score": "partial",
+            "why": "IT only; legal and privacy need to assess the data read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No one was notified."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the prevention accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"consentPhish\" and preventDoc == \"consentPolicy\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"consentPhish\"",
+            "score": "partial",
+            "why": "The cause is right; the prevention is not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written access path, containment and prevention",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToContain",
+        "label": "Minutes until the app was cut off",
+        "value": "isNull(allOffAt) ? -1 : timeAt(allOffAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "consentsK",
+        "label": "Users who consented in total",
+        "value": "floor(consents)",
+        "format": "number",
+        "expert": "3"
+      },
+      {
+        "id": "itemsK",
+        "label": "Mail items and files read",
+        "value": "itemsRead",
+        "format": "number",
+        "expert": "1,600 or fewer"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-3 min",
+        "text": "Open the enterprise app's permissions and sign-ins: the current list of users who consented, the delegated scopes, the source address."
+      },
+      {
+        "at": "3-5 min",
+        "text": "Disable user sign-in for the app: no new tokens, no new consents. Do not delete it."
+      },
+      {
+        "at": "5-14 min",
+        "text": "Remove its grants, revoke the users' sessions, restrict user consent, and warn accounts payable to hold bank-detail changes."
+      },
+      {
+        "at": "14-25 min",
+        "text": "Export audit records, sign-ins and grants; then the audit search to confirm scope as entries arrive."
+      }
+    ],
+    "debrief": {
+      "contained": {
+        "headline": "Good: contained before it spread",
+        "body": "Consent phishing needs no password. You disabled the app, cut its grants and the users' sessions, closed consent, warned payments and kept the evidence."
+      },
+      "containedLate": {
+        "headline": "Contained, with gaps",
+        "body": "The app is cut off. The criteria show what slipped: time, more consents, a deleted app that came back, or a step missed."
+      },
+      "fraudPaid": {
+        "headline": "Payment fraud",
+        "body": "Mail access is a means to an end: invoices in the mailbox make convincing bank-change requests. Disable the app early and warn accounts payable."
+      },
+      "stillIn": {
+        "headline": "Closed too soon",
+        "body": "While the app holds working grants it can read the users' mail. Disable it and remove the grants before closing."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Users granted an unverified app delegated Mail.Read, Files.Read.All and offline_access by consent, so the attacker needs no password. Scope from the app's current permissions (the audit search lags), disable the app's sign-in so it gets no new tokens and no one can consent again (deleting lets the next consent bring it back), remove its grants, revoke the users' sessions, restrict user consent to verified publishers and low-impact permissions, warn accounts payable about bank-detail changes, and export the evidence."
+  }
+}

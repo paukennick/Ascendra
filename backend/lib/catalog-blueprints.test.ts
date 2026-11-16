@@ -15,7 +15,7 @@ describe("catalog exam blueprints", () => {
     assert.deepEqual(missing, []);
   });
 
-  test("credential text fits its columns (migration 007: exam_code and exam_revision varchar(100), credential_type varchar(80))", () => {
+  test("credential text fits its columns (migration 007: exam_code, exam_revision, objectives_revision and standard_revision varchar(100), credential_type varchar(80))", () => {
     // FAIL-595: a 104-character examRevision passed every unit test and only
     // failed at seed time ("value too long for type character varying(100)").
     const long: string[] = [];
@@ -25,6 +25,13 @@ describe("catalog exam blueprints", () => {
       if ((c.examRevision ?? "").length > 100) long.push(`${t.code} examRevision ${c.examRevision!.length}`);
       if ((c.examCode ?? "").length > 100) long.push(`${t.code} examCode`);
       if ((c.credentialType ?? "").length > 80) long.push(`${t.code} credentialType`);
+      // FAIL-1822: objectives_revision and standard_revision are varchar(100)
+      // too; a 104-character CISSP objectivesRevision only failed at seed time.
+      if ((c.objectivesRevision ?? "").length > 100) long.push(`${t.code} objectivesRevision ${c.objectivesRevision!.length}`);
+      if ((c.standardRevision ?? "").length > 100) long.push(`${t.code} standardRevision ${c.standardRevision!.length}`);
+      if ((c.standardName ?? "").length > 255) long.push(`${t.code} standardName`);
+      if (c.providerSlug.length > 100 || c.providerName.length > 180) long.push(`${t.code} provider`);
+      if (c.credentialSlug.length > 160 || c.credentialName.length > 255) long.push(`${t.code} credential`);
     }
     assert.deepEqual(long, []);
   });

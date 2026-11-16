@@ -1,0 +1,976 @@
+{
+  "slug": "cc-leaver-account-still-active",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "HR check and session review, then disable and revoke together by 12 min, key search, logs, handler, leaver process fixed, then the mover's rights",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "checkHr",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reviewSignins",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "disable",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "revoke",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 12,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "searchKeys",
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 16,
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 11,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 22,
+          "seq": 12,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 13,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 24,
+          "seq": 14,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "fixProcess",
+          "seq": 15,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 28,
+          "seq": 16,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "fixMover",
+          "seq": 17,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 33,
+          "seq": 18,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 19,
+          "tick": 33
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 20,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "handler"
+          },
+          "seq": 21,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "leaver",
+            "follow": "process"
+          },
+          "seq": 22,
+          "tick": 33
+        }
+      ],
+      "expect": {
+        "ending": "contained",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "cutFast": "met",
+          "keys": "met",
+          "evidence": "met",
+          "process": "met",
+          "confirmed": "met",
+          "escalated": "met",
+          "mover": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToCut": 10,
+          "uploads": 0,
+          "minToLogs": 16
+        },
+        "stateHash": "5fb3dbe090ffc4bb"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "blockOnly",
+      "title": "Blocks the address and watches: the account reconnects from another address and the files leave at 50 min",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "blockIp",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 12,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 22,
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 22,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 8,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 32,
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 32,
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 42,
+          "seq": 12,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 52,
+          "seq": 14,
+          "tick": 42
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 15,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "nobody"
+          },
+          "seq": 16,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "phish",
+            "follow": "nothing"
+          },
+          "seq": 17,
+          "tick": 50
+        }
+      ],
+      "expect": {
+        "ending": "dataGone",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "cutFast": "missed",
+          "keys": "missed",
+          "evidence": "missed",
+          "process": "missed",
+          "confirmed": "missed",
+          "escalated": "missed",
+          "mover": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToCut": -1,
+          "uploads": 2,
+          "minToLogs": -1
+        },
+        "stateHash": "a004c19204e23bbd"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "deleteFirst",
+      "title": "Confirms with HR, then deletes the account and folder before exporting anything",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "checkHr",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "delete",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "searchKeys",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 11,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "fixProcess",
+          "seq": 9,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 15,
+          "seq": 10,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 11,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "handler"
+          },
+          "seq": 13,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "leaver",
+            "follow": "purge"
+          },
+          "seq": 14,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "evidenceLost",
+        "class": "harm",
+        "rating": "bad",
+        "score": 61,
+        "criteria": {
+          "cutFast": "met",
+          "keys": "met",
+          "evidence": "missed",
+          "process": "met",
+          "confirmed": "met",
+          "escalated": "met",
+          "mover": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToCut": 3,
+          "uploads": 0,
+          "minToLogs": -1
+        },
+        "stateHash": "49484a2ccb7f5e01"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "sharedFirst",
+      "title": "Spends 20 minutes on the shared account first; cuts the account at 32 min after a key was made, never searches for it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "checkHr",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixShared",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 23,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 23,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "reviewSignins",
+          "seq": 6,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 28,
+          "seq": 7,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "disable",
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 30,
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "revoke",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 32,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 12,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 38,
+          "seq": 13,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 14,
+          "tick": 38
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 40,
+          "seq": 15,
+          "tick": 38
+        },
+        {
+          "type": "act",
+          "action": "fixProcess",
+          "seq": 16,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 44,
+          "seq": 17,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "fixMover",
+          "seq": 18,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 49,
+          "seq": 19,
+          "tick": 44
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 20,
+          "tick": 49
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 21,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "handler"
+          },
+          "seq": 22,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "leaver",
+            "follow": "process"
+          },
+          "seq": 23,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "leftOpen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 72,
+        "criteria": {
+          "cutFast": "missed",
+          "keys": "missed",
+          "evidence": "met",
+          "process": "met",
+          "confirmed": "met",
+          "escalated": "met",
+          "mover": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToCut": -1,
+          "uploads": 1,
+          "minToLogs": 32
+        },
+        "stateHash": "bce61d9ba69a43a4"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "lateButClean",
+      "title": "Shared account first, then disables, revokes and finds the key: everything closed at 36 min, after an upload",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "checkHr",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixShared",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 23,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 23,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "reviewSignins",
+          "seq": 6,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 28,
+          "seq": 7,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "disable",
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 30,
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "revoke",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 32,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "searchKeys",
+          "seq": 12,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 36,
+          "seq": 13,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 14,
+          "tick": 36
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 42,
+          "seq": 15,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 16,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 44,
+          "seq": 17,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "fixProcess",
+          "seq": 18,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 48,
+          "seq": 19,
+          "tick": 44
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 20,
+          "tick": 48
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 21,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "handler"
+          },
+          "seq": 22,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "leaver",
+            "follow": "process"
+          },
+          "seq": 23,
+          "tick": 48
+        }
+      ],
+      "expect": {
+        "ending": "containedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 78,
+        "criteria": {
+          "cutFast": "partial",
+          "keys": "met",
+          "evidence": "met",
+          "process": "met",
+          "confirmed": "met",
+          "escalated": "met",
+          "mover": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minToCut": 32,
+          "uploads": 1,
+          "minToLogs": 36
+        },
+        "stateHash": "433abdd295582d5f"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "disableOnly",
+      "title": "Disables the account without checking HR or revoking sessions, exports the logs and closes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "disable",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "everyone"
+          },
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "leaver",
+            "follow": "nothing"
+          },
+          "seq": 8,
+          "tick": 8
+        }
+      ],
+      "expect": {
+        "ending": "leftOpen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 11,
+        "criteria": {
+          "cutFast": "missed",
+          "keys": "missed",
+          "evidence": "met",
+          "process": "missed",
+          "confirmed": "missed",
+          "escalated": "missed",
+          "mover": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToCut": -1,
+          "uploads": 0,
+          "minToLogs": 2
+        },
+        "stateHash": "f7db2f3e6b8bfc7a"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

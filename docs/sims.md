@@ -5065,3 +5065,116 @@ curriculum (the course seed's wording is used), the SY0-701 objectives PDF.
    analyst's incident on Security+ objectives, and the CKA band a KCNA
    outage on a CKA objective. The decisions taught match the objectives, but
    the level is the base's; a decision for Nick.
+### 22.17 LFCS and Linux Fundamentals cases on the terminal screen (REQ-292)
+
+Two cases each for the Linux Foundation LFCS course and Linux Fundamentals on
+the terminal screen (22.10), authored without a prototype; golden paths by
+`npm run sim:golden -- steps lfcs-fstab`, `lfcs-lvm`, `linuxfund-perms` and
+`linuxfund-nginx`; checked by `lib/sim/linux-depth-terminal.test.ts` to the
+same bar as the Linux+ and CKA cases.
+
+| Course / slug | Objective (catalog title) | Critical criteria | Steps name |
+|---|---|---|---|
+| LFCS/fstab-uuid-typo-emergency | Troubleshoot and recover a system that will not boot because of a bad fstab entry, a damaged filesystem or a failing service, using the emergency and rescue targets | journal or fstab-against-blkid before any change; UUID corrected (not commented out, no xfs_repair -L); mount -a proved before continuing the boot; booted with the data disk within 30 min | lfcs-fstab |
+| LFCS/lvm-database-volume-full | Create and extend LVM physical volumes, volume groups and logical volumes, growing the filesystem with them | vgs and lsblk before any change; the in-use disk left alone (no pvcreate -ff); filesystem grown within 20 min | lfcs-lvm |
+| LINUXFUND/shared-folder-permission-denied | Configure a shared directory with group ownership, the setgid bit and the sticky bit | nora's session groups (ps supgrp) and the files' groups read first; no 777 and no usermod -G without -a; team sharing within 30 min (target also needs setgid) | linuxfund-perms |
+| LINUXFUND/web-service-fails-after-edit | Troubleshoot a service that fails to start from its status and journal | journal or nginx -t first; the line fixed, not the site removed; shop back within 30 min; nginx enabled for the night's reboot | linuxfund-nginx |
+
+What each case teaches: in emergency mode root is read-only until
+remounted; after an fstab edit, `systemctl daemon-reload` is what makes
+systemd regenerate the mount unit (systemd-fstab-generator(8)), so a boot
+continued without it fails the same way; commenting the line out boots the
+host with uploads landing on `/`. An LV cannot grow while its VG has no free
+extents; `lvextend` without `-r` leaves the XFS filesystem at its old size;
+`resize2fs` is not the XFS tool. `id nora` reads the group database while her
+running shell keeps the groups it started with (ps `supgrp`), and only setgid
+keeps new files in the folder's group; `usermod -G` without `-a` replaces a
+user's groups. nginx names the file and line of a syntax error; a reinstall
+keeps an edited conffile (dpkg(1)); starting a unit does not enable it.
+
+**Sources** carry `checkedAt` 2026-11-14 and were read in full on man7.org
+(systemd.special(7), systemd.mount(5), systemd-fstab-generator(8), fstab(5),
+blkid(8), mount(8), xfs_repair(8), vgextend(8), pvcreate(8), lvextend(8),
+xfs_growfs(8), inode(7), usermod(8), ps(1), newgrp(1), chmod(1),
+systemctl(1), journalctl(1), dpkg(1)), on nginx.org (Beginner's Guide,
+Command-line parameters) and on the LFCS exam page. Marked `FLAG` in the documents:
+local-fs.target's OnFailure= wiring to emergency.target and systemd's
+90-second default device timeout (both standard behavior, not quoted from a
+page read), and resize2fs's exact error text. Command output layouts are
+authored in each tool's style.
+
+Candidates not built (listed for a later wave): Python for Automation (a cron
+job that works by hand but not from cron: PATH, the venv's interpreter and an
+unescaped `%`; a script that hangs on a subprocess with no timeout) and Python
+for Data Analysis (no screen fits a notebook today).
+### 22.18 Clinical coverage: more sims for the existing clinical courses (REQ-296)
+
+Nick, 2026-11-14: "Build more sims, no need to limit number, build what
+covers the material." `docs/sims-coverage-clinical.md` maps every existing
+clinical course (nursing, EMS, physical therapy, mental health) against his
+selection rule of 2026-11-10 (a sim fits a sub-objective when time matters,
+there are cues to read, choices have consequences, or priorities compete),
+using the generator's keyword screen (12.2) as the first pass, with the
+recall-only titles it passes screened out by hand for PTPREREQ and DPT. It
+shows, per course, which fitting objectives a sim names as its objective
+(mastery evidence) or as a secondary objective (analytics only, 9.4), before
+and after this work. The screen reads titles only, so the counts are a
+shortlist, not a judgement.
+
+Six documents on the existing bedside and treatment-session screens and
+engine 1.2; no engine, renderer, schema or migration change. Each declares
+engine minor 2 and `endingOrder`, has endings in all three outcome classes,
+three or four critical criteria inside its `target` condition, KPIs, an
+expert path, a debrief per ending, one reasoning moment, two sourced
+teaching prompts in jsonb key order (FAIL-1362), a chapter, and five to seven
+golden paths built by `npm run sim:golden -- steps <name>`. All run in one
+`running` phase, so study pace (3x) is the default; none has a focused start.
+Every objective is a catalog title the selection screen passes; each document
+names the other fitting objectives it exercises as secondary objectives.
+
+| Course / slug | Objective (abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| CNA/evening-vitals-out-of-range | Recognizing a measurement that falls outside the expected range | small adult cuff and a full-minute count of the irregular pulse; findings (not a guess) to the nurse within 10 min of the first out-of-range reading; a woozy resident kept off her feet | cna-vitals |
+| PTPREREQ/cycle-test-falling-pressure | Calculate pulse pressure and MAP ... interpret a narrow pulse pressure as low stroke volume | screened, resting BP and the instructor told of the donation; stopped at the systolic fall or within 1 min of dizziness; unloaded cool-down | ptprereq-gxt |
+| NCLEXRN/postpartum-hemorrhage-atony | Recognize postpartum hemorrhage ... measure blood loss quantitatively, and activate the hemorrhage team | weighed loss within 10 min; escalation with numbers within 10 min of 500 mL; massage, bladder and oxytocin; no methylergonovine with hypertension | rn-pph |
+| CCRNADULT/status-epilepticus-after-craniotomy | Treat a seizure lasting 5 minutes or more as status epilepticus ... | lorazepam 4 mg within 10 min of onset, one repeat only; airway without restraint or a bite block; second-line load by 20 min | ccrn-se |
+| DPT/dizziness-central-red-flags | Coordination and gait examination: Romberg ... cerebellar ataxia | central signs screened; 911 within 10 min of the first; no gaze stabilization or Dix-Hallpike | dpt-central |
+| NCLEXPN/first-dose-anaphylaxis | Recognizing an allergic reaction and responding to it | epinephrine IM first, within 5 min; 911 within 5 min; never stood or walked | pn-anaph |
+
+- **Harm endings** are outcomes (a fall, collapse, shock, hypoxia, refractory
+  status) except where a guideline names the action: standing or walking a
+  person in anaphylaxis (RCUK 2021, "avoid sudden changes in posture"). The
+  methylergonovine trap in the hemorrhage case is a critical criterion, not a
+  harm ending: the contraindication was read in StatPearls and one hospital
+  protocol, and ACOG Practice Bulletin 183 could not be opened (a decision
+  for Nick if he wants it to end the run).
+- **Scope.** The aide, PN and RN cases stay in scope through standing orders
+  named in the brief (vital signs and reporting; the PN's epinephrine
+  auto-injector order; the RN's oxytocin and hemorrhage protocol); the PT
+  cases refer rather than treat when the findings are not PT's.
+- **Sources** carry `checkedAt` 2026-11-14 where read that day, and say how:
+  in primary text or a summarizing fetch with quotes (ENLS status epilepticus
+  protocol v6.0 2024, Open RN Nursing Assistant 7.4, MSD Manual GI bleeding,
+  Mayo Clinic fainting first aid, OpenStax A&P 2e 20.2, the ASNC exercise-test
+  practice point, Luttrell and Halliwill 2015, Vitalant on donation and
+  exercise, StatPearls postpartum hemorrhage, the UIHC hemorrhage protocol,
+  the FIGO/ICM tranexamic acid statement, the RCUK 2021 anaphylaxis guideline
+  in a CEM Scotland copy, the APTA vestibular hypofunction CPG, the ILAE 2015
+  definition abstract); through summaries only (GRACE-3, the AES 2016 status
+  epilepticus guideline); relayed from earlier cases with their dates (the
+  NCLEX test plans, the CCRN handbook, 42 CFR 483.152, the NNAAP outline,
+  AHRQ falls, the APTA vital sign guide, CAPTE, NASEMSO v3.0). Authored
+  teaching-model numbers say so, and those standing in for a number no source
+  gives carry `FLAG`.
+- **Findings while authoring** (FAIL-1980, FAIL-1981, FAIL-1983):
+  `sim:golden` built goldens for a document the schema refuses (teaching
+  choice ids starting with a digit; only `sims:lint` checks the schema); a
+  relayed source's URL was first written from memory instead of copied; and
+  `DPT_TREATMENT_DOCUMENTS` was every DPT entry, so any new DPT sim broke the
+  REQ-232 tests (it now names the three slugs). `lib/sim/clinical-coverage.test.ts`
+  pins each: the schema parse, source notes that start with how they were
+  read, the DPT first set, plus each document's screen, running phase,
+  `endingOrder`, teaching key order and golden coverage. FAIL-1500's
+  availability warning was worked around in the CNA goldens as 22.13 says.
+- **`time_up`** is reached by no golden path in any of the six (every slow
+  path ends earlier), so the linter's warning remains.

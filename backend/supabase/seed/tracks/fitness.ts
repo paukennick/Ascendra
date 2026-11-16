@@ -40,7 +40,8 @@
 // Objectives are written in our own words from each outline's domains and
 // task statements -- deliberately not copied.
 
-import type { SeedTrack } from "../data";
+import type { SeedTrack, UnitSource } from "../data";
+import { source } from "../sources";
 
 const VERIFIED_AT = "2026-10-08T00:00:00Z";
 const SUB = "fitness";
@@ -644,6 +645,215 @@ export const ISSA_NCCPT_CPT_TRACK: SeedTrack = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// NASM Certified Nutrition Coach (REQ-281, Nick 2026-11-14)
+//
+// What was read, and when (all 2026-11-14):
+//   - NASM's CNC course page (nasm.org/products/single-complex/
+//     nasm-certified-nutrition-coach/CNC301K): an online, open-book exam of
+//     100 multiple-choice questions, 90 minutes, 70% to pass, up to three
+//     attempts, within one year of purchase; no prerequisites; renew every
+//     two years with 1.9 NASM CEUs. Four course sections, each with NASM's
+//     own one-paragraph description (quoted below as outline headings only):
+//     Professional Practice; Nutrition Science; Behavior Change Strategies;
+//     Practical Nutrition Coaching. The FAQ draws the scope line: a coach
+//     helps clients apply evidence-based nutrition to everyday habits,
+//     "within a coaching scope of practice", and refers to a registered
+//     dietitian nutritionist (RDN) for medical nutrition assessment or
+//     treatment; an RDN is licensed to provide medical nutrition therapy.
+//     NASM publishes no exam content outline, weights or candidate handbook
+//     for the CNC and the page names no accrediting body, so the unit
+//     weights are our study emphasis (domainWeights "study_emphasis") and the
+//     credential is not described as accredited. A chapter list exists only
+//     on third-party sites and was not used.
+//   - Dietary Guidelines for Americans, 2025-2030 (released 2026-01-07; the
+//     PDF at cdn.realfood.gov/DGA.pdf): protein 1.2-1.6 g per kg of body
+//     weight per day; saturated fat not over 10% of daily calories; sodium
+//     under 2,300 mg a day from age 14; no amount of added sugars is
+//     recommended, and one meal should hold no more than 10 g; consume less
+//     alcohol.
+//   - National Academies DRI summary tables (NCBI Bookshelf NBK56068, linked
+//     from NIH ODS): AMDR carbohydrate 45-65%, fat 20-35%, protein 10-35% of
+//     energy; protein RDA 0.8 g/kg (56 g men, 46 g women, 19-30); fiber AI 38 g
+//     men, 25 g women (19-30); total water AI 3.7 L men, 2.7 L women.
+//   - FDA, Questions and Answers on Dietary Supplements (updated 2026-08-27):
+//     FDA does not approve supplements before they are marketed; structure/
+//     function claims are allowed with the "not evaluated by the FDA ... not
+//     intended to diagnose, treat, cure, or prevent any disease" disclaimer;
+//     a disease claim makes the product a drug.
+//   - Washington, RCW 18.138.020: no one may represent themselves as a
+//     certified dietitian or certified nutritionist (or C.D., C.N.) unless
+//     certified. Title protection only was read; whether other states
+//     restrict practice is not covered and the course says to check locally.
+// ---------------------------------------------------------------------------
+const CNC_CHECKED = "2026-11-14";
+const CNC_VERIFIED_AT = "2026-11-14T00:00:00Z";
+const CNC_URL = "https://www.nasm.org/products/single-complex/nasm-certified-nutrition-coach/CNC301K";
+const cncSrc = (title: string, url: string, kind: UnitSource["kind"], extra: Partial<UnitSource> = {}): UnitSource => ({
+  title,
+  ...source(url, kind, CNC_CHECKED),
+  ...extra,
+});
+const cncSection = (heading: string, description: string): UnitSource =>
+  cncSrc("NASM Certified Nutrition Coach course sections", CNC_URL, "exam_outline", { outline: [heading, description] });
+
+export const CNC_SOURCES = {
+  format: cncSrc("NASM Certified Nutrition Coach: exam and scope (course page and FAQ)", CNC_URL, "exam_outline", {
+    keyValues: [
+      "online, open-book exam: 100 multiple-choice questions, 90 minutes, 70% to pass, up to three attempts, within one year of purchase",
+      "no prerequisites; renew every two years with 1.9 NASM CEUs",
+      "a nutrition coach works within a coaching scope of practice and refers to a registered dietitian nutritionist (RDN) for medical nutrition assessment or treatment; medical nutrition therapy is the RDN's",
+    ],
+  }),
+  dga: cncSrc("Dietary Guidelines for Americans, 2025-2030 (HHS and USDA, released 2026-01-07)", "https://cdn.realfood.gov/DGA.pdf", "reference", {
+    keyValues: [
+      "protein: 1.2-1.6 g per kg of body weight per day (the DRI RDA of 0.8 g/kg is the minimum to meet needs; the two are different measures)",
+      "saturated fat: not over 10% of total daily calories",
+      "sodium: under 2,300 mg a day from age 14; highly active people may need more to offset sweat losses",
+      "added sugars: none is recommended; one meal should contain no more than 10 g",
+      "alcohol: consume less for better health; some people should not drink at all",
+    ],
+  }),
+  dri: cncSrc("National Academies Dietary Reference Intakes, summary tables (NCBI Bookshelf NBK56068)", "https://www.ncbi.nlm.nih.gov/books/NBK56068/table/summarytables.t5/?report=objectonly", "reference", {
+    keyValues: [
+      "AMDR for adults: carbohydrate 45-65%, fat 20-35%, protein 10-35% of energy",
+      "protein RDA 0.8 g/kg (56 g a day for men and 46 g for women aged 19-30)",
+      "fiber AI (19-30): 38 g a day for men, 25 g for women; carbohydrate RDA 130 g a day",
+      "total water AI (19-30): 3.7 L a day for men, 2.7 L for women, from all beverages and foods",
+      "energy: 4 kcal per gram of carbohydrate and of protein, 9 of fat, 7 of alcohol (Atwater factors)",
+    ],
+  }),
+  fda: cncSrc("FDA, Questions and Answers on Dietary Supplements (updated 2026-08-27)", "https://www.fda.gov/food/information-consumers-using-dietary-supplements/questions-and-answers-dietary-supplements", "reference", {
+    keyValues: [
+      "FDA does not approve dietary supplements before they are marketed; the manufacturer is responsible for safety and labeling",
+      "structure/function claims are allowed with the disclaimer that FDA has not evaluated the statement and the product is not intended to diagnose, treat, cure or prevent any disease",
+      "a product promoted to treat, prevent or cure a disease is regulated as a drug",
+    ],
+  }),
+  wa: cncSrc("Washington RCW 18.138.020: certification required for the titles certified dietitian and certified nutritionist", "https://app.leg.wa.gov/rcw/default.aspx?cite=18.138.020", "reference", {
+    keyValues: ["in Washington only certified people may call themselves a certified dietitian or certified nutritionist (or C.D., C.N.); rules differ by state, so check where you coach"],
+  }),
+} as const;
+
+// REQ-282: the objectives the two coaching-session sims are registered to
+// (lib/sim/documents.ts CNC_OBJECTIVES names the same titles; a test compares).
+export const NASMCNC_SIM_OBJECTIVES = {
+  referral:
+    "Recognizing when to refer to a registered dietitian nutritionist or physician: a diagnosed condition, a suspected eating disorder, pregnancy or breastfeeding needs beyond general guidance, or medications affected by diet",
+  supplement: "Evaluating a supplement: how it is regulated, third-party testing, and when it is a question for a clinician",
+} as const;
+
+export const NASM_CNC_TRACK: SeedTrack = {
+  ...COMMON,
+  code: "NASMCNC",
+  title: "Prep for the NASM Nutrition Coaching Certification (NASM-CNC) Exam",
+  description:
+    "Preparation for NASM's Certified Nutrition Coach exam across its four course sections -- professional practice, nutrition science, behavior change strategies and practical nutrition coaching -- with the current Dietary Guidelines and Dietary Reference Intakes. Stays inside a coach's scope: general, evidence-based guidance and habit coaching, with referral to a registered dietitian nutritionist or physician for medical nutrition therapy, diagnosed conditions and suspected eating disorders. NASM publishes no exam weights, so the unit weights are our study emphasis. Independently developed exam prep; not affiliated with or endorsed by NASM.",
+  sourceUrl: CNC_URL,
+  sourceVerifiedAt: CNC_VERIFIED_AT,
+  contentReviewDueAt: "2027-11-14T00:00:00Z",
+  credential: {
+    domainWeights: "study_emphasis", // REQ-220: NASM publishes no CNC exam outline or weights
+    providerSlug: "nasm",
+    providerName: "National Academy of Sports Medicine",
+    providerUrl: "https://www.nasm.org/",
+    subcategorySlug: SUB,
+    credentialSlug: "nasm-cnc",
+    credentialName: "NASM Certified Nutrition Coach (NASM-CNC)",
+    credentialType: "certification",
+    credentialUrl: CNC_URL,
+    basis: "vendor_exam_unpublished_code",
+    examRevision: "NASM-CNC course exam (four course sections), read 2026-11-14",
+    versionNote:
+      "NASM prints no version, exam outline or weights for the CNC; the course's four sections were read on NASM's product page on 2026-11-14.",
+    status: "active",
+    officialObjectivesUrl: CNC_URL,
+    lastVendorVerifiedAt: CNC_VERIFIED_AT,
+    recommendedExperience: "None required. Recertify every two years with 1.9 NASM CEUs.",
+    durationMinutes: 90,
+    questionFormat: "100 multiple-choice questions, online and open book, 90 minutes; up to three attempts within one year of purchase.",
+    passingScorePolicy: "70% or higher.",
+  },
+  units: [
+    {
+      title: "Professional Practice and Scope",
+      weight: 20,
+      gate: "Given a client's request, say whether it is coaching or medical nutrition therapy, what you can do, and when and how you refer -- and judge whether a nutrition claim is backed by good evidence.",
+      sources: [
+        cncSection("Section 1: Professional Practice", "Build the foundation for ethical, evidence-based nutrition coaching. Understand the role and scope of a Nutrition Coach, apply credible research, and follow professional standards that build client trust."),
+        CNC_SOURCES.format,
+        CNC_SOURCES.wa,
+      ],
+      objectives: [
+        "Defining a nutrition coach's scope: habit coaching and general, evidence-based guidance, never diagnosing or providing medical nutrition therapy",
+        "Recognizing when to refer to a registered dietitian nutritionist or physician: a diagnosed condition, a suspected eating disorder, pregnancy or breastfeeding needs beyond general guidance, or medications affected by diet",
+        "Checking the title and practice rules where you coach, such as Washington's protected titles certified dietitian and certified nutritionist",
+        "Evaluating nutrition research: study designs, the strength of evidence and red flags in a headline claim",
+        "Following professional standards: confidentiality, honest marketing and records",
+        "Explaining how culture, preference, budget and access shape what a client eats",
+      ],
+    },
+    {
+      title: "Nutrition Science",
+      weight: 35,
+      gate: "Given a client's day of eating, estimate its energy and macronutrients, compare them with the current reference values, and explain the science in words the client can use.",
+      sources: [
+        cncSection("Section 2: Nutrition Science", "Build a strong foundation in the science of nutrition. Explore macronutrients, micronutrients, hydration, energy balance, metabolism, nutrient timing, and supplementation, then learn to translate the science into guidance clients can use."),
+        CNC_SOURCES.dri,
+        CNC_SOURCES.dga,
+        CNC_SOURCES.fda,
+      ],
+      objectives: [
+        "Explaining energy balance and the parts of total daily energy expenditure, and why intake estimates are approximate",
+        "Calculating calories from macronutrient grams with 4, 4, 9 and 7 kcal per gram",
+        "Explaining protein quality and needs, from the 0.8 g/kg RDA to the higher targets for active adults",
+        "Explaining carbohydrates -- sugars, starch and fiber -- and how much fiber adults need",
+        "Explaining dietary fats: saturated, unsaturated and trans fats and the essential fatty acids",
+        "Explaining alcohol's energy and its effects on recovery and body composition",
+        "Explaining vitamins and minerals, deficiency, excess and upper limits",
+        "Planning hydration from total water needs, sweat losses and sodium",
+        "Explaining nutrient timing around training and what the evidence does and does not support",
+        "Evaluating a supplement: how it is regulated, third-party testing, and when it is a question for a clinician",
+      ],
+    },
+    {
+      title: "Behavior Change Strategies",
+      weight: 20,
+      gate: "Given a client who keeps stalling, find the barrier, use motivational interviewing to draw out their own reasons, and set one small behavior goal they can track.",
+      sources: [
+        cncSection("Section 3: Behavior Change Strategies", "Learn how to turn nutrition knowledge into lasting behavior change. Identify client barriers, use motivational interviewing, set meaningful goals, track progress, and personalize strategies that help clients build sustainable habits."),
+      ],
+      objectives: [
+        "Identifying a client's barriers and readiness to change with the stages-of-change model",
+        "Using motivational interviewing: open questions, affirmations, reflections and summaries",
+        "Setting SMART goals and choosing behavior goals over outcome goals",
+        "Tracking progress with measures beyond the scale",
+        "Building habits with cues, small steps and changes to the environment, and planning for lapses",
+        "Personalizing strategies to a client's preferences and daily life",
+      ],
+    },
+    {
+      title: "Practical Nutrition Coaching",
+      weight: 25,
+      gate: "Given a client's goal and food record, read the labels that matter, compare eating patterns that could fit, and build a food-first plan inside the coaching scope.",
+      sources: [
+        cncSection("Section 4: Practical Nutrition Coaching", "Put nutrition science into action with real-world coaching skills. Assess dietary intake, interpret food and supplement labels, navigate popular diets and everyday eating situations, and build personalized nutrition recommendations."),
+        CNC_SOURCES.dga,
+        CNC_SOURCES.fda,
+      ],
+      objectives: [
+        "Assessing dietary intake with food records, 24-hour recalls and food frequency questionnaires, and knowing their limits",
+        "Reading a Nutrition Facts label: serving size, percent Daily Value and added sugars",
+        "Reading a Supplement Facts label and spotting claims a supplement may not lawfully make",
+        "Comparing popular eating patterns -- Mediterranean, plant-based, low-carbohydrate and time-restricted eating -- against a client's goals and preferences",
+        "Coaching everyday eating situations: eating out, travel, social events and a tight budget",
+        "Building a personalized, food-first nutrition plan within the coaching scope",
+        "Coaching weight management with a modest energy deficit, and recognizing when weight change is a referral question",
+      ],
+    },
+  ],
+};
+
 export const FITNESS_TRACKS: SeedTrack[] = [
   NASM_CPT_TRACK,
   ACE_CPT_TRACK,
@@ -651,4 +861,6 @@ export const FITNESS_TRACKS: SeedTrack[] = [
   NSCA_CSCS_TRACK,
   NSCA_CPT_TRACK,
   ISSA_NCCPT_CPT_TRACK,
+  // REQ-281: NASM Certified Nutrition Coach.
+  NASM_CNC_TRACK,
 ];
