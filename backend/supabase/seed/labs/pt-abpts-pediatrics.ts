@@ -1,4 +1,4 @@
-import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { CLINICAL_SAFETY, part, selectPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-152: ABPTS Pediatric Clinical Specialist (ABPTSPCS), authored labs.
@@ -475,6 +475,75 @@ export const ABPTSPCS_LABS: SeedLabSet = {
               "Participation",
               "Chooses a family-centered participation or goal measure (for example the COPM scored by the parents for the two goals, or a participation questionnaire such as the CAPE/PAC) and names the COPM change of 2 or more points on performance or satisfaction as clinically meaningful; involves Sofia in rating where feasible.",
               "The COPM with her parents, rating performance and satisfaction from 1 to 10 for 'keeping up on the playground' and 'climbing the home stairs unaided'; a change of 2 or more points is the clinically meaningful threshold. Sofia rates the playground goal in her own words too, and we repeat both at 12 weeks."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Outcomes gets its second lab.
+    // Read 2026-11-14 on Cornell LII (the regulation text): 34 CFR 300.320
+    // (IEP content): (a)(1) present levels of academic achievement and
+    // functional performance; (a)(2) measurable annual goals, academic and
+    // functional; (a)(3) how progress toward the goals will be measured and
+    // when periodic reports will be provided (such as quarterly, concurrent
+    // with report cards); (a)(4) special education, related services and
+    // supplementary aids and services. 34 CFR 303.344 (IFSP content): (a)
+    // present levels of physical, cognitive, communication, social or
+    // emotional and adaptive development; (b) with the family's agreement,
+    // the family's resources, priorities and concerns; (c) measurable results
+    // or outcomes for the child and family, with criteria, procedures and
+    // timelines; (d)(1) services in the natural environment to the maximum
+    // extent appropriate, or a justification. 303.342 (review timing) was not
+    // on the page read, so the lab names no review interval.
+    {
+      slug: "pcs-iep-ifsp-goal-writing",
+      objective: "Using outcomes to set goals in IEPs and individualized family service plans",
+      kind: "case",
+      title: "One child, two plans",
+      brief:
+        "You are a fictional pediatric physical therapist. You see two fictional children this week: Ava, 22 months, in early intervention (Part C), whose family wants her to walk at the playground with her siblings; and Theo, 8, in second grade with spastic diplegic cerebral palsy, who uses a posterior walker and is late to class because he can't keep up in the hallway between classes. You have outcome data on both.",
+      safetyNote: CLINICAL_SAFETY,
+      sources: [
+        source("https://www.law.cornell.edu/cfr/text/34/300.320", "reference", "2026-11-14"),
+        source("https://www.law.cornell.edu/cfr/text/34/303.344", "reference", "2026-11-14"),
+      ],
+      steps: [
+        {
+          text: "The early intervention team is drafting Ava's IFSP.",
+          ask: "Tap what the regulation says Ava's IFSP must contain (not what belongs to a school IEP), then write one measurable outcome for her.",
+          parts: [
+            selectPart(
+              "What Ava's IFSP must contain",
+              "Met: exactly the four IFSP elements -- present levels of physical (and other) development, the family's resources, priorities and concerns with their agreement, measurable results or outcomes for the child and family with criteria and timelines, and services in natural environments (or why not). (Right picks minus wrong picks) of at least two is partly there.",
+              "Part C's IFSP is built around the family: the child's present levels of development, the family's own resources, priorities and concerns (with the family's agreement), measurable outcomes for the child and family with criteria, procedures and timelines, and services in the child's natural environments to the maximum extent appropriate. Academic achievement, annual goals tied to the general curriculum and progress reports with report cards are IEP language from Part B.",
+              {
+                display: "list",
+                lines: [
+                  "Present levels of her physical, cognitive, communication, social or emotional and adaptive development",
+                  "Present levels of academic achievement and progress in the general education curriculum",
+                  "With the family's agreement, the family's resources, priorities and concerns",
+                  "Measurable results or outcomes for Ava and her family, with criteria, procedures and timelines",
+                  "Progress reports issued along with school report cards",
+                  "Services provided in her natural environments as far as appropriate, or a reason why not",
+                ],
+                correct: [0, 2, 3, 5],
+              }
+            ),
+            part(
+              "One measurable IFSP outcome",
+              "Written as a family-centered, functional outcome in an everyday routine and place (the playground with her siblings), measurable (distance, surface, level of help, how often), with a timeline and how progress will be checked; names who helps in the routine; avoids clinic-only impairment targets (e.g., degrees of motion) as the outcome.",
+              "\"Within 6 months, Ava will walk across the playground from the gate to the swings (about 15 m, on grass and wood chips) holding one hand of a family member, on 4 of 5 visits, so she can play with her brothers. Her parents will record it on the visit log each week, and the team will review it at the periodic review.\" The therapy happens in that routine -- at the playground or at home -- not as a clinic-only exercise."
+            ),
+          ],
+        },
+        {
+          text: "Theo's IEP meeting is next week. His 10-meter walk test, timed hallway walk and the teacher's report all show he takes about twice as long as classmates to reach the next classroom.",
+          ask: "Write one measurable annual IEP goal for Theo and say how and when progress will be reported.",
+          parts: [
+            part(
+              "Annual goal and progress reporting",
+              "A measurable annual goal tied to school function and participation (getting between classes, in the hallway, with his walker), with a measurable criterion (time or arrival before the bell, number of trials), a condition, and a baseline from present levels; says how progress is measured (timed hallway walk, teacher log) and when reports go to the parents (periodic, such as quarterly with report cards); distinguishes the goal from services (PT minutes are a related service, not the goal).",
+              "Present level: Theo takes about 4 minutes to walk from his classroom to the art room (about 60 m) with his posterior walker; classmates take about 2. Goal: \"By the annual review, Theo will walk from his classroom to the art room with his posterior walker in 3 minutes or less, arriving before the bell, on 4 of 5 school days, as recorded on a timed hallway walk and the teacher's log.\" Progress is reported to his parents each quarter with his report card. Physical therapy minutes go in the services section as a related service; they are how he gets there, not the goal."
             ),
           ],
         },

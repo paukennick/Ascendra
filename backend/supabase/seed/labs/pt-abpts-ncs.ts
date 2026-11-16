@@ -1,4 +1,4 @@
-import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { CLINICAL_SAFETY, part, selectPart, matchPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-151: ABPTS Neurologic Clinical Specialist labs.
@@ -392,6 +392,86 @@ export const ABPTSNCS_LABS: SeedLabSet = {
               "Recommendation and plan",
               "Makes a defensible recommendation either way with mitigation: for example discharge home with intensive outpatient or home-based therapy only if daytime supervision or a safe routine can be arranged (equipment, home assessment, husband trained, emergency plan), or a short, goal-specific extension (independence in household ambulation, FGA above the fall-risk cut-off) with continued measurement; names the measures to carry into the next setting.",
               "Recommend a short, goal-specific extension of up to 2 weeks with explicit targets -- independent household walking with the cane, FGA of 22 or more, ABC trending up -- and a home visit to set up equipment and a daytime safety routine, then home with outpatient therapy. If the payer declines, discharge home is defensible only with a trained husband, a morning carer or neighbor check, a bedside commode and no stairs alone. Either way, carry the same core measures (10 m walk, 6MWT, Berg, FGA, ABC, 5xSTS) into the next setting so progress is measured against today."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Clinical reasoning,
+    // professionalism, communication (25%) gets its second lab. Read
+    // 2026-11-14: NIDCD "Aphasia" (last updated April 16, 2025): Broca's
+    // (nonfluent) -- short phrases produced with great effort, usually aware
+    // of their difficulty and easily frustrated; Wernicke's (fluent) -- long,
+    // complete sentences with little meaning, often unaware of their
+    // mistakes; global -- severe difficulty producing and comprehending
+    // language. Tips: short, uncomplicated sentences; repeat or write down key
+    // words; a natural conversational manner appropriate for an adult;
+    // minimize distractions such as loud radio or TV; include the person in
+    // conversations; ask for and value their opinion; encourage any type of
+    // communication (speech, gesture, pointing, drawing); avoid correcting
+    // the person's speech; allow plenty of time to talk. ASHA Practice Portal
+    // "Aphasia" (no date on the page): conversational coaching with drawing,
+    // gesturing, cueing, confirming and summarizing; teaching communication
+    // partners; written or visual choices; reducing background noise.
+    // Conduction aphasia is not described in either page read today, so this
+    // lab does not test it.
+    {
+      slug: "ncs-aphasia-home-program-talk",
+      objective:
+        "Communicate with people who have aphasia, an acquired language disorder that can affect expression, comprehension or both (such as Broca, Wernicke and conduction types)",
+      kind: "build",
+      title: "Explaining a home program to a man with aphasia",
+      brief:
+        "You are a fictional neurologic physical therapist in an outpatient clinic. Mr. Lindqvist, a fictional 71-year-old retired engineer, is six weeks after a left-hemisphere stroke with right hemiparesis and aphasia. His daughter comes to sessions. Today you are giving him a balance home program. The speech-language pathologist's note is not in the chart yet. You think about the patterns you might meet. Mr. Lindqvist speaks in short, effortful phrases ('Walk... dog... yes') and follows simple spoken instructions. A student who is shadowing you writes a plan for explaining the home program.",
+      safetyNote: CLINICAL_SAFETY,
+      sources: [
+        source("https://www.nidcd.nih.gov/health/aphasia", "reference", "2026-11-14"),
+        source("https://www.asha.org/practice-portal/clinical-topics/aphasia/", "clinical_guideline", "2026-11-14"),
+      ],
+      steps: [
+        {
+          text: "",
+          ask: "Match each description to the type of aphasia it fits. Then: tap the lines in the student's plan that work against good communication, then write how you would explain the first exercise.",
+          parts: [
+            matchPart(
+              "Type of aphasia",
+              "Met: all three matched. Partly there: two of three.",
+              "Broca's is nonfluent: short, effortful phrases, and the person usually knows it and can get frustrated. Wernicke's is fluent: long, complete sentences that carry little meaning, often without the person noticing the errors. Global aphasia is severe difficulty both producing and understanding language.",
+              {
+                left: [
+                  "Speaks in short phrases with great effort and is clearly frustrated by it",
+                  "Speaks easily in long sentences that carry little meaning and seems unaware of the errors",
+                  "Can produce and understand very little language at all",
+                ],
+                right: ["Broca's (nonfluent)", "Wernicke's (fluent)", "Global"],
+                pairs: [0, 1, 2],
+                leftHeading: "What you observe",
+                rightHeading: "Type",
+              }
+            ),
+            selectPart(
+              "Lines that work against communication",
+              "Met: exactly the four problems -- explaining to the daughter instead of him, correcting his words, leaving the TV on, and speaking to him as you would to a child. (Right picks minus wrong picks) of at least two is partly there.",
+              "He should be included and asked his own view, not talked about while he sits there; correcting his speech is something to avoid; distractions like a TV make it harder; and an adult should be spoken to in a natural adult manner. Short sentences, written key words, encouraging gestures or pointing, and giving him time are all recommended.",
+              {
+                display: "list",
+                lines: [
+                  "Explain the program to his daughter, since she will understand it better",
+                  "Use short, simple sentences, one step at a time",
+                  "Write the key words for each exercise on the sheet",
+                  "Correct his words when he says one wrong so he learns",
+                  "Leave the waiting-room TV on so he stays relaxed",
+                  "Encourage him to point, gesture or show you if words don't come",
+                  "Use a sing-song voice and simple praise like you would with a child",
+                  "Give him plenty of time to answer",
+                ],
+                correct: [0, 3, 4, 6],
+              }
+            ),
+            part(
+              "How you explain the first exercise",
+              "Faces and speaks to him (not the daughter), in a quiet space; short sentences, one step at a time; demonstrates and has him show it back rather than relying on a spoken yes; writes key words or uses a picture on the sheet; checks understanding with simple choices or yes/no and gestures; gives him time and doesn't finish or correct his words; asks his opinion (what's realistic at home); involves the daughter as a partner after he has been addressed. Any safety point (e.g., stand at a counter) is shown, written and demonstrated back.",
+              "Turn off the TV, sit facing him and speak to him. \"This is for balance.\" Show it: stand at the kitchen counter, both hands on it, feet together, 30 seconds. Write \"COUNTER -- FEET TOGETHER -- 30 SEC\" on the sheet next to a simple drawing. Ask him to show you; don't rely on a nod. Give him time, let him point or gesture, and don't correct his words. Ask him where in his house he'd do it. Then bring his daughter in as a helper -- after him, not instead of him."
             ),
           ],
         },

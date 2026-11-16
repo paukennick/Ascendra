@@ -1,4 +1,4 @@
-import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
+import { FITNESS_SAFETY, part, selectPart, matchPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-149: ACE Certified Personal Trainer (ACECPT), authored to the depth of
@@ -471,6 +471,87 @@ export const ACECPT_LABS: SeedLabSet = {
               "The rest of the group and afterwards",
               "Ends the session for everyone, documents the incident, and changes future plans for heat (for example cooler times, shorter work, more rest and water, canceling in high heat).",
               "End the session; write an incident report; in future, move sessions earlier, shorten the work, add water breaks, and cancel on very hot, humid days."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Risk management, professional
+    // conduct and ethical business practices gets its second lab. Read
+    // 2026-11-14: ACE Code of Ethics (acefitness.org; no date on the page),
+    // nine principles: 1 provide safe and effective instruction; 2 provide
+    // equal and fair treatment to all clients; 3 stay up to date on research
+    // and its practical application; 4 maintain current CPR and AED
+    // certificates and knowledge of first aid; 5 comply with all applicable
+    // business, employment and intellectual property laws; 6 uphold and
+    // enhance public appreciation and trust for the industry; 7 maintain the
+    // confidentiality of all client information; 8 refer clients to more
+    // qualified health or medical professionals when appropriate; 9
+    // establish and maintain clear professional boundaries. The lab quotes
+    // no legal figure; it matches conduct to those principles.
+    {
+      slug: "ace-business-practices-ethics-audit",
+      objective: "Ethical business practices: contracts, pricing, marketing, confidentiality and professional boundaries",
+      kind: "build",
+      title: "Auditing a new trainer's launch plan",
+      brief:
+        "You are a fictional ACE Certified Personal Trainer and a mentor at Riverbend Fitness (fictional). Dani, a fictional newly certified trainer, shows you her launch plan for her own client list and asks what to fix before she starts next month, and which ACE principle each problem breaks so she can explain it to her manager. Her plan's lines are below.",
+      safetyNote: FITNESS_SAFETY,
+      sources: [source("https://www.acefitness.org/fitness-certifications/certified-code-of-ethics/", "reference", "2026-11-14")],
+      steps: [
+        {
+          text: "",
+          ask: "Tap the lines that conflict with the ACE Code of Ethics. Then: match each problem to the ACE principle it breaks, then rewrite the before-and-after post plan so it is ethical.",
+          parts: [
+            selectPart(
+              "Lines that conflict with the Code",
+              "Met: exactly the five conflicts -- the named before-and-after post without permission, the paid program built from another company's videos without a license, the 'cure your diabetes' supplement plan, the lapsed CPR/AED card, and dating a current client. (Right picks minus wrong picks) of at least three is partly there.",
+              "Posting a client's photos and name without permission breaks confidentiality (principle 7). Reselling another company's videos without a license breaks intellectual property law (5). Promising to treat a medical condition with supplements is unsafe instruction outside a trainer's role and should be a referral (1, 8). Training with an expired CPR/AED card breaks principle 4. Dating a current client crosses a professional boundary (9). A written cancellation policy, published prices, a dietitian referral and locked records are all sound practice.",
+              {
+                display: "list",
+                lines: [
+                  "Post Maria's before-and-after photos with her full name to launch my page (she won't mind)",
+                  "A written agreement with my 24-hour cancellation policy that every client signs",
+                  "Sell a paid online program built from another company's workout videos (I haven't got a license)",
+                  "Prices for single sessions and packages listed on my website",
+                  "A 'cure your diabetes' supplement plan for clients who have diabetes",
+                  "Refer clients who want meal plans for a medical condition to a registered dietitian",
+                  "My CPR/AED card expired in June; I'll renew it when things calm down",
+                  "Keep intake forms in a locked cabinet and a password-protected folder",
+                  "Go on dates with Sam, one of my current clients, but keep training him",
+                ],
+                correct: [0, 2, 4, 6, 8],
+              }
+            ),
+            matchPart(
+              "Problem and principle",
+              "Met: all five matched. Partly there: four of five.",
+              "Photos with a name and no permission: confidentiality (7). Unlicensed videos: business and intellectual property law (5). Supplement 'cure': refer to more qualified professionals (8). Expired card: current CPR and AED (4). Dating a client: professional boundaries (9).",
+              {
+                left: [
+                  "Before-and-after photos posted with a name, no permission",
+                  "Paid program built from unlicensed videos",
+                  "Supplement plan to 'cure' diabetes",
+                  "Expired CPR/AED card",
+                  "Dating a current client",
+                ],
+                right: [
+                  "Maintain the confidentiality of all client information",
+                  "Comply with business, employment and intellectual property laws",
+                  "Refer clients to more qualified health or medical professionals when appropriate",
+                  "Maintain current CPR and AED certificates",
+                  "Establish and maintain clear professional boundaries",
+                  "Provide equal and fair treatment to all clients",
+                ],
+                pairs: [0, 1, 2, 3, 4],
+                leftHeading: "Problem",
+                rightHeading: "ACE principle",
+              }
+            ),
+            part(
+              "An ethical before-and-after plan",
+              "Gets the client's written permission that says exactly what will be shared, where and for how long, and that she can withdraw it; shares only what she agreed to (e.g., no name or face if she prefers); makes no health claims beyond what happened and no promise of typical results; keeps the signed permission with her records; never pressures clients or ties discounts to consent.",
+              "Ask Maria first, in writing: which photos, whether her name or face appears, where it will be posted and for how long, and that she can withdraw at any time. Post only what she signed for, with no claims about health or 'guaranteed' results. Keep the signed form with her file. If she says no, that's the end of it -- no discount for saying yes, no pressure."
             ),
           ],
         },

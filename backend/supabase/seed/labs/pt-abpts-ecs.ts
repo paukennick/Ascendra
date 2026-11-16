@@ -1,4 +1,4 @@
-import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { CLINICAL_SAFETY, part, numericPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-173: ABPTS Clinical Electrophysiologic Specialist (ECS) labs.
@@ -480,6 +480,47 @@ export const ABPTSECS_LABS: SeedLabSet = {
               "Why it matters and further tests",
               "Explains that preganglionic (avulsion) injuries do not recover spontaneously and can't be grafted from the root, so early surgical referral is needed, while postganglionic injuries may recover or be repaired; suggests somatosensory evoked potentials (and imaging by the physician) to test central sensory continuity at the root.",
               "Avulsions don't regenerate and can't be repaired from the root, so Rider A needs early referral for nerve transfer planning; Rider B may recover or be grafted. Somatosensory evoked potentials can test whether the central sensory pathway from the root is intact, alongside the physician's imaging."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Clinical sciences, critical
+    // inquiry and professional roles gets its second lab. Its source is in
+    // value-sources.ts (TREVETHAN_2017, read 2026-11-14): sensitivity is the
+    // proportion of people with the condition the test correctly identifies;
+    // specificity the proportion without it correctly identified; PPV and NPV
+    // depend on cells a/b and c/d. The 2x2 counts are the fictional study's
+    // own; the reference limit is the fictional laboratory's own.
+    {
+      slug: "ecs-sensitivity-specificity-cts",
+      objective: "Critical inquiry: reference values, sensitivity and specificity of electrodiagnostic tests",
+      kind: "build",
+      title: "How good is the median sensory test?",
+      brief:
+        "You are a fictional clinical electrophysiologic specialist reviewing a fictional validation study from your own laboratory. 200 hands were tested with your median-ulnar sensory comparison; a reference standard (clinical diagnosis by a panel, blind to the test) classed 120 hands as carpal tunnel syndrome (CTS) and 80 as not. The test called 102 of the 120 CTS hands abnormal, and 76 of the 80 non-CTS hands normal. The abnormal cut-off is your laboratory's own reference limit. Fill in the 2x2 table: true positives 102, false negatives 18, true negatives 76, false positives 4. A referring physician writes: 'Your study was normal, so she doesn't have carpal tunnel -- I'll stop looking.' The patient, a fictional 52-year-old, has classic nocturnal numbness in the thumb, index and middle fingers.",
+      safetyNote: CLINICAL_SAFETY,
+      steps: [
+        {
+          text: "",
+          ask: "Work out the sensitivity and the specificity. Then: say what a normal result does and does not tell this physician, and what you would write back.",
+          parts: [
+            numericPart(
+              "Sensitivity (%)",
+              "Met: 85% within 0.5. Partly there within 3 (a slip in which cells were used).",
+              "Sensitivity is the share of hands that have CTS that the test calls abnormal: true positives / (true positives + false negatives) = 102 / 120 = 85%.",
+              { answer: 85, tolerance: 0.5, partialTolerance: 3, unit: "%" }
+            ),
+            numericPart(
+              "Specificity (%)",
+              "Met: 95% within 0.5. Partly there within 3.",
+              "Specificity is the share of hands without CTS that the test calls normal: true negatives / (true negatives + false positives) = 76 / 80 = 95%.",
+              { answer: 95, tolerance: 0.5, partialTolerance: 3, unit: "%" }
+            ),
+            part(
+              "What a normal result means here",
+              "Uses the numbers: with 85% sensitivity, about 15 of every 100 hands with CTS test normal (18 of 120 here), so a normal study does not rule CTS out, especially with a classic history; specificity 95% means an abnormal result is rarely a false alarm in this sample; notes that the results depend on the laboratory's own reference limits and on the study sample (the counts depend on the cut-off and on how common CTS is in the sample), so they may not transfer to another setting; recommends correlating with the clinical picture and considering further testing or follow-up rather than closing the question.",
+              "\"A normal median sensory comparison makes CTS less likely, but in our own validation it missed about 15 in 100 hands that had it (18 of 120). With her classic symptoms, a normal study doesn't rule it out. The figures come from our laboratory's own reference limit and our sample, so they may not hold elsewhere. I'd suggest treating this as clinically possible CTS, and I'm happy to discuss further testing or a repeat study if symptoms persist.\""
             ),
           ],
         },

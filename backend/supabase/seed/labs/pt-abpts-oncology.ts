@@ -1,4 +1,4 @@
-import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { CLINICAL_SAFETY, part, matchPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-152: ABPTS Oncologic Clinical Specialist (ABPTSONC), authored labs.
@@ -442,6 +442,137 @@ export const ABPTSONC_LABS: SeedLabSet = {
               "Lymphedema and quality of life",
               "For patient 1 tracks limb volume by the same method every time (circumferential volume or bioimpedance against baseline) and reports change in excess volume or ISL severity band; for quality of life uses a cancer-specific measure such as the EORTC QLQ-C30 or FACT family for both.",
               "Patient 1: arm volume by the identical circumferential method at every visit, reported as excess volume and percentage (minimal under 20%, moderate 20-40%, severe over 40%), and bioimpedance only if a baseline exists. Quality of life for both: the EORTC QLQ-C30 (it doubles as the fatigue screen) or the FACT questionnaire matched to the cancer, repeated at discharge."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, two labs. Read 2026-11-14:
+    // StatPearls "Lymphedema" (Nimmana et al., updated 2025-10-18), on
+    // statpearls.com point-of-care 24565: primary lymphedema arises from
+    // developmental malformations (hypoplasia, aplasia, hyperplasia), rare;
+    // by onset -- congenital (birth or infancy), praecox (puberty to early
+    // adulthood, e.g. Meige disease; about 94% of primary cases), tarda
+    // (after age 35); secondary results from acquired lymphatic injury,
+    // obstruction or overload -- lymphatic filariasis leads in tropical and
+    // subtropical regions, cancer-therapy-related lymphedema predominates in
+    // developed countries (node dissection, radiation, tumor infiltration);
+    // other causes include trauma, chronic venous insufficiency,
+    // inflammatory skin disease and obesity. Davies C et al., Interventions
+    // for Breast Cancer-Related Lymphedema, CPG of the Academy of Oncologic
+    // PT of APTA, Phys Ther 2020;100(7):1163-1179 (Table 2, ISL stages):
+    // 0 subclinical, swelling not visible but transport impaired; I early,
+    // visible swelling that subsides with elevation, pitting may be present;
+    // II moderate, consistent volume change with pitting, elevation rarely
+    // reduces it, progressive fibrosis; III late, skin changes (thickening,
+    // hyperpigmentation, increased folds, fat deposits, warty overgrowths),
+    // very fibrotic, pitting absent. Recommendations: stage 0 -- compression
+    // garments, education and self-massage may be used (Grade C); stage I --
+    // individually fitted compression garment, exercise program and
+    // education as first line (A), CDT if that fails (B); stages II and III
+    // -- CDT to reduce limb volume (B), with compression bandaging and
+    // exercise as key components (A).
+    {
+      slug: "onc-primary-or-secondary-lymphedema",
+      objective:
+        "Separate primary lymphedema (congenital or genetic) from secondary lymphedema (surgery, radiation, infection, trauma, malignancy); cancer treatment is the main cause in developed countries",
+      kind: "build",
+      title: "Five swollen limbs, five stories",
+      brief:
+        "You are a fictional oncologic physical therapist who also runs the lymphedema clinic at a fictional hospital. This week's new referrals are five fictional people with limb swelling. The referral notes give the history. Another referral: Mr. Okafor, a fictional 66-year-old treated for prostate cancer with surgery and pelvic node dissection three years ago, with a new swelling of his left leg over the last month. His oncologist's last note was eight months ago.",
+      safetyNote: CLINICAL_SAFETY,
+      sources: [source("https://www.statpearls.com/point-of-care/24565", "clinical_guideline", "2026-11-14")],
+      steps: [
+        {
+          text: "",
+          ask: "Match each person to the type of lymphedema their history fits. Then: say why the cause matters before you start treatment, and what you do first.",
+          parts: [
+            matchPart(
+              "Type of lymphedema",
+              "Met: all five matched. Partly there: four of five.",
+              "Primary lymphedema is developmental and is grouped by when it shows: at birth or in infancy (congenital), from puberty to early adulthood (praecox, the most common primary form), or after 35 (tarda). Secondary lymphedema follows acquired damage: in developed countries most often cancer treatment such as node dissection and radiation; worldwide, filariasis leads in tropical regions.",
+              {
+                left: [
+                  "A newborn with swelling of both feet since birth; no injury",
+                  "A 16-year-old whose left leg began to swell in puberty; no surgery, injury or infection",
+                  "A 44-year-old with new swelling of one leg, no surgery, injury, infection or cancer, and a normal venous study",
+                  "A 58-year-old with arm swelling a year after axillary node dissection and radiation for breast cancer",
+                  "A 35-year-old who grew up in a tropical region where lymphatic filariasis is common, with long-standing leg swelling",
+                ],
+                right: [
+                  "Primary, congenital",
+                  "Primary, praecox",
+                  "Primary, tarda",
+                  "Secondary, cancer treatment",
+                  "Secondary, filariasis",
+                ],
+                pairs: [0, 1, 2, 3, 4],
+                leftHeading: "Person",
+                rightHeading: "Type",
+              }
+            ),
+            part(
+              "Why the cause matters and what you do first",
+              "Recognizes this as most likely secondary lymphedema after cancer treatment, but that new swelling in a cancer survivor can also come from tumor infiltration (recurrence) or from other causes such as venous problems, so it is not assumed to be treatment-related; screens history and signs (onset, pain, skin, other symptoms), communicates with the oncologist promptly to rule out recurrence or other causes before starting decongestive treatment, documents baseline measures, and explains to the patient why that step comes first.",
+              "Node dissection makes treatment-related lymphedema the likely cause, but a new swelling in someone treated for cancer can also be tumor in or near the nodes, or something else, such as a venous problem. So before starting decongestive treatment, take a careful history and baseline measurements, and contact his oncologist now to rule out recurrence and other causes. Tell Mr. Okafor plainly why: the treatment is the same once the cause is clear, but the cause has to be clear first."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "onc-isl-stage-and-plan",
+      objective:
+        "Stage breast-cancer lymphedema with the International Society of Lymphology model, from at risk and subclinical stage 0 (impaired transport, no visible swelling) through stages I to III",
+      kind: "build",
+      title: "Stage it, then match the plan",
+      brief:
+        "You are a fictional oncologic physical therapist in a fictional breast cancer survivorship clinic. You are reviewing four fictional women who were treated for breast cancer with axillary surgery. Your examination findings for each woman. You write each woman's first plan using the Academy of Oncologic Physical Therapy's guideline.",
+      safetyNote: CLINICAL_SAFETY,
+      sources: [source("https://pmc.ncbi.nlm.nih.gov/articles/PMC7412854/", "clinical_guideline", "2026-11-14")],
+      steps: [
+        {
+          text: "",
+          ask: "Match each woman to her International Society of Lymphology (ISL) stage. Then: match each stage to the first-line plan the guideline gives, then say what you do if the stage I plan isn't working.",
+          parts: [
+            matchPart(
+              "ISL stage",
+              "Met: all four matched. Partly there: three of four.",
+              "Stage 0: no visible swelling, but impaired lymphatic transport on measures and sometimes symptoms. Stage I: visible swelling that goes down with elevation; pitting may be present. Stage II: a consistent volume change with pitting that elevation rarely reduces, and fibrosis developing. Stage III: very fibrotic tissue without pitting, and skin changes such as thickening, deeper folds and warty overgrowths.",
+              {
+                left: [
+                  "Arm feels heavy; no visible swelling; impaired lymphatic transport on measures",
+                  "Visible swelling of the forearm that is gone after a night with the arm raised",
+                  "Swelling that stays despite elevation, pits on pressure, tissue becoming firmer",
+                  "Thickened, very firm skin with deep folds and warty overgrowths; no pitting",
+                ],
+                right: ["Stage 0 (subclinical)", "Stage I (early)", "Stage II (moderate)", "Stage III (late)"],
+                pairs: [0, 1, 2, 3],
+                leftHeading: "Findings",
+                rightHeading: "ISL stage",
+              }
+            ),
+            matchPart(
+              "First-line plan by stage",
+              "Met: all three matched. Partly there: two of three.",
+              "Stage 0: compression garments, education and self-massage may be used (Grade C). Stage I: an individually fitted compression garment, an exercise program and education as first line (Grade A). Stages II and III: complete decongestive therapy (CDT) to reduce limb volume (Grade B), with compression bandaging and exercise as key components (Grade A). Elevation alone, with no compression, is not a plan the guideline gives for any stage.",
+              {
+                left: ["Stage 0 (subclinical)", "Stage I (early)", "Stages II and III (moderate and late)"],
+                right: [
+                  "Compression garment, education and self-massage may be used",
+                  "Individually fitted compression garment, exercise program and education",
+                  "CDT to reduce volume, including compression bandaging and exercise",
+                  "Elevation alone, no compression",
+                ],
+                pairs: [0, 1, 2],
+                leftHeading: "Stage",
+                rightHeading: "Plan",
+              }
+            ),
+            part(
+              "If the stage I plan isn't working",
+              "Re-measures and compares with baseline using the same method; checks garment fit and wear and how the exercise program is going; if first-line treatment hasn't worked, moves to CDT (Grade B), tailoring compression to the stage and her impairments in consultation with her; rechecks for other causes of increasing swelling and tells the oncology team if anything suggests one; documents and sets a re-measurement date.",
+              "Measure again the same way as at baseline. Check the garment -- fit, how many hours she wears it -- and how the exercise program is going. If the first-line plan has not worked, the guideline supports moving to complete decongestive therapy, with compression chosen with her for her stage and her arm. Keep an eye out for anything that suggests another cause of worsening swelling and tell her oncology team if so. Record it and set the next re-measurement."
             ),
           ],
         },
