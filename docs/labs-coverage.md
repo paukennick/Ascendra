@@ -1,12 +1,12 @@
 # Lab coverage against the density rule (REQ-295)
 
-Measured 2026-11-14 on branch feature/build-labs, for every course in the seeded catalog that is not hidden (`hiddenAt` unset), counting labs on active objectives of active units only.
+Measured 2026-11-14 on branch feature/build-labs and re-measured 2026-11-16 after merging master (checkpoint #193, which added new courses with their own labs), for every course in the seeded catalog that is not hidden (`hiddenAt` unset), counting labs on active objectives of active units only.
 
 **The rule (Nick, 2026-11-14):** one lab per unit, plus six per course split across units by exam weight (equal split, earliest units first, when a course has no weights), at most three per unit, and never more labs in a unit than it has objectives. The generator's own plan (`unitPlan`, policy hybrid, docs/labs.md "Density") also caps each unit by how many objectives its verb heuristic counts as hands-on, which planned fewer labs than this rule in 40 visible courses; a course brought up to the rule gets a `LAB_PLAN_TOP_UPS` entry so the plan and the density tests follow the rule.
 
-**Totals for visible courses:** 1287 labs before the fill, 1349 after, 1364 required by the rule. Hidden courses not measured: DCA, EX188, EX280.
+**Totals for visible courses (2026-11-16, 146 courses):** 1703 labs now, 1707 required by the rule. On 2026-11-14 the 118 courses then visible had 1287 labs before the fill; this fill added 77. Hidden courses not measured: DCA, EX188, EX280.
 
-Group: 1 = pre-generated and level-aware lessons, 2 = mixed-round courses, 3 = the rest (Nick's fill order). Per unit shows labs now / rule, in unit order.
+Group: 1 = pre-generated and level-aware lessons, 2 = mixed-round courses, 3 = the rest (Nick's fill order); 3* = a course added by #193 after the first measurement (its "labs before" is its count at merge). Per unit shows labs now / rule, in unit order.
 
 | Course | Group | Units | Labs before | Rule | Gap before | Labs now | Gap now | Per unit (now/rule) |
 |---|---|---|---|---|---|---|---|---|
@@ -57,7 +57,7 @@ Group: 1 = pre-generated and level-aware lessons, 2 = mixed-round courses, 3 = t
 | CNA | 1 | 7 | 12 | 13 | 1 | 13 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 1/1 |
 | LPNVN | 3 | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
 | ADNRN | 3 | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
-| BSNRN | 3 | 10 | 15 | 16 | 1 | 15 | 1 | 2/2 2/2 2/2 2/2 2/2 1/2 1/1 1/1 1/1 1/1 |
+| BSNRN | 3 | 10 | 15 | 16 | 1 | 16 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 1/1 1/1 1/1 1/1 |
 | APLUS_CORE1 | 2 | 5 | 10 | 11 | 1 | 11 | 0 | 2/2 2/2 2/2 2/2 3/3 |
 | APLUS_CORE2 | 2 | 4 | 10 | 10 | 0 | 10 | 0 | 3/3 3/3 2/2 2/2 |
 | NETWORKPLUS | 2 | 5 | 10 | 11 | 1 | 11 | 0 | 2/2 2/2 2/2 2/2 3/3 |
@@ -83,25 +83,26 @@ Group: 1 = pre-generated and level-aware lessons, 2 = mixed-round courses, 3 = t
 | PMICPMAI | 3 | 5 | 11 | 11 | 0 | 11 | 0 | 2/2 3/3 2/2 2/2 2/2 |
 | CSPP | 3 | 5 | 10 | 11 | 1 | 11 | 0 | 2/2 2/2 3/3 2/2 2/2 |
 | NPTEPT | 2 | 14 | 20 | 20 | 0 | 20 | 0 | 3/3 3/3 2/2 2/2 1/1 1/1 1/1 1/1 1/1 1/1 1/1 1/1 1/1 1/1 |
-| NPTEPTA | 3 | 14 | 19 | 20 | 1 | 19 | 1 | 3/3 3/3 2/2 1/2 1/1 1/1 1/1 1/1 1/1 1/1 1/1 1/1 1/1 1/1 |
+| NPTEPTA | 3 | 14 | 19 | 20 | 1 | 20 | 0 | 3/3 3/3 2/2 2/2 1/1 1/1 1/1 1/1 1/1 1/1 1/1 1/1 1/1 1/1 |
 | DPT | 1 | 8 | 14 | 14 | 0 | 14 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 1/1 1/1 |
 | ABPTSOCS | 3 | 5 | 11 | 11 | 0 | 11 | 0 | 3/3 1/1 3/3 2/2 2/2 |
 | ABPTSGCS | 3 | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 3/3 2/2 2/2 1/1 |
-| ABPTSNCS | 3 | 4 | 9 | 10 | 1 | 9 | 1 | 2/2 1/2 3/3 3/3 |
+| ABPTSNCS | 3 | 4 | 9 | 10 | 1 | 10 | 0 | 2/2 2/2 3/3 3/3 |
 | ABPTSCCS | 3 | 8 | 14 | 14 | 0 | 14 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 1/1 1/1 |
-| ABPTSPCS | 3 | 6 | 11 | 12 | 1 | 11 | 1 | 2/2 2/2 2/2 2/2 2/2 1/2 |
-| ABPTSSCS | 3 | 5 | 10 | 11 | 1 | 10 | 1 | 2/2 1/1 3/3 3/3 1/2 |
-| ABPTSONC | 3 | 6 | 10 | 12 | 2 | 10 | 2 | 1/2 2/2 2/2 1/2 3/3 1/1 |
-| ABPTSECS | 3 | 5 | 10 | 11 | 1 | 10 | 1 | 2/2 1/2 2/2 3/3 2/2 |
+| ABPTSPCS | 3 | 6 | 11 | 12 | 1 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
+| ABPTSSCS | 3 | 5 | 10 | 11 | 1 | 11 | 0 | 2/2 1/1 3/3 3/3 2/2 |
+| ABPTSONC | 3 | 6 | 10 | 12 | 2 | 12 | 0 | 2/2 2/2 2/2 2/2 3/3 1/1 |
+| ABPTSECS | 3 | 5 | 10 | 11 | 1 | 11 | 0 | 2/2 2/2 2/2 3/3 2/2 |
 | ABPTSPWCS | 3 | 3 | 8 | 8 | 0 | 8 | 0 | 2/2 3/3 3/3 |
-| ABPTSWMS | 3 | 7 | 12 | 13 | 1 | 12 | 1 | 1/2 1/1 2/2 2/2 2/2 2/2 2/2 |
+| ABPTSWMS | 3 | 7 | 12 | 13 | 1 | 13 | 0 | 2/2 1/1 2/2 2/2 2/2 2/2 2/2 |
 | PTPREREQ | 1 | 11 | 17 | 17 | 0 | 17 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 1/1 1/1 1/1 1/1 1/1 |
 | NASMCPT | 2 | 6 | 11 | 12 | 1 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
-| ACECPT | 3 | 4 | 9 | 10 | 1 | 9 | 1 | 2/2 3/3 3/3 1/2 |
-| ACSMCPT | 3 | 4 | 7 | 9 | 2 | 7 | 2 | 1/2 3/3 2/2 1/2 |
-| NSCACSCS | 3 | 7 | 12 | 13 | 1 | 12 | 1 | 3/3 1/2 1/1 2/2 2/2 2/2 1/1 |
+| ACECPT | 3 | 4 | 9 | 10 | 1 | 10 | 0 | 2/2 3/3 3/3 2/2 |
+| ACSMCPT | 3 | 4 | 7 | 9 | 2 | 9 | 0 | 2/2 3/3 2/2 2/2 |
+| NSCACSCS | 3 | 7 | 12 | 13 | 1 | 13 | 0 | 3/3 2/2 1/1 2/2 2/2 2/2 1/1 |
 | NSCACPT | 3 | 4 | 10 | 10 | 0 | 10 | 0 | 2/2 3/3 3/3 2/2 |
-| NCCPTCPT | 3 | 6 | 10 | 12 | 2 | 10 | 2 | 1/2 2/2 2/2 2/2 2/2 1/2 |
+| NCCPTCPT | 3 | 6 | 10 | 12 | 2 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
+| NASMCNC | 3* | 4 | 10 | 10 | 0 | 10 | 0 | 2/2 3/3 2/2 3/3 |
 | CCRNADULT | 1 | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
 | CCRNPEDS | 3 | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
 | CCRNNEO | 3 | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
@@ -128,23 +129,40 @@ Group: 1 = pre-generated and level-aware lessons, 2 = mixed-round courses, 3 = t
 | EPPP | 3 | 8 | 14 | 14 | 0 | 14 | 0 | 1/1 2/2 2/2 2/2 2/2 2/2 1/1 2/2 |
 | NCE | 2 | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 3/3 1/1 3/3 1/1 |
 | NCMHCE | 2 | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
+| PYAUTO | 3* | 10 | 16 | 16 | 0 | 16 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 1/1 1/1 1/1 1/1 |
+| PYDATA | 3* | 9 | 14 | 15 | 1 | 14 | 1 | 2/2 2/2 2/2 2/2 2/2 1/2 1/1 1/1 1/1 |
+| LINUXFUND | 3* | 10 | 16 | 16 | 0 | 16 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 1/1 1/1 1/1 1/1 |
+| LFCS | 3* | 5 | 11 | 11 | 0 | 11 | 0 | 3/3 2/2 2/2 2/2 2/2 |
+| PCEP | 3* | 5 | 11 | 11 | 0 | 11 | 0 | 2/2 2/2 3/3 2/2 2/2 |
+| PCAP | 3* | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 1/1 3/3 2/2 2/2 |
+| SQL | 3* | 8 | 14 | 14 | 0 | 14 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 1/1 1/1 |
+| TSNODE | 3* | 7 | 13 | 13 | 0 | 13 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 1/1 |
+| PL300 | 3* | 4 | 10 | 10 | 0 | 10 | 0 | 3/3 3/3 2/2 2/2 |
+| SC500 | 3* | 4 | 10 | 10 | 0 | 10 | 0 | 3/3 3/3 2/2 2/2 |
+| AI200 | 3* | 4 | 10 | 10 | 0 | 10 | 0 | 3/3 3/3 2/2 2/2 |
+| ISC2CC | 3* | 5 | 11 | 11 | 0 | 11 | 0 | 3/3 2/2 2/2 2/2 2/2 |
+| CISSP | 3* | 8 | 14 | 14 | 0 | 14 | 0 | 2/2 1/1 2/2 2/2 2/2 2/2 2/2 1/1 |
+| CISM | 3* | 4 | 10 | 10 | 0 | 10 | 0 | 2/2 2/2 3/3 3/3 |
+| CEH | 3* | 9 | 15 | 15 | 0 | 15 | 0 | 1/1 2/2 2/2 3/3 2/2 1/1 2/2 1/1 1/1 |
+| CMSRN | 3* | 5 | 11 | 11 | 0 | 11 | 0 | 3/3 2/2 2/2 2/2 2/2 |
+| CEN | 3* | 11 | 17 | 17 | 0 | 17 | 0 | 2/2 2/2 2/2 2/2 1/1 2/2 2/2 1/1 1/1 1/1 1/1 |
+| PCCN | 3* | 12 | 18 | 18 | 0 | 18 | 0 | 2/2 2/2 1/1 1/1 2/2 1/1 1/1 1/1 2/2 1/1 2/2 2/2 |
+| FNPAANP | 3* | 4 | 10 | 10 | 0 | 10 | 0 | 3/3 3/3 2/2 2/2 |
+| FNPANCC | 3* | 5 | 11 | 11 | 0 | 11 | 0 | 2/2 2/2 2/2 3/3 2/2 |
+| PSMI | 3* | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
+| CSM | 3* | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 3/3 2/2 1/1 2/2 |
+| ITIL4FND | 3* | 7 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 1/1 1/1 1/1 2/2 3/3 |
+| CSSGB | 3* | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
+| ASWBCLINICAL | 3* | 3 | 9 | 9 | 0 | 9 | 0 | 3/3 3/3 3/3 |
+| ASWBMASTERS | 3* | 3 | 9 | 9 | 0 | 9 | 0 | 3/3 3/3 3/3 |
+| WAPSYCHJP | 3* | 6 | 9 | 12 | 3 | 9 | 3 | 1/2 1/2 3/3 2/2 1/2 1/1 |
 
 ## Courses still short of the rule
 
-- BSNRN: 1 lab short (unit 6).
-- NPTEPTA: 1 lab short (unit 4).
-- ABPTSNCS: 1 lab short (unit 2).
-- ABPTSPCS: 1 lab short (unit 6).
-- ABPTSSCS: 1 lab short (unit 5).
-- ABPTSONC: 2 labs short (unit 1, unit 4).
-- ABPTSECS: 1 lab short (unit 2).
-- ABPTSWMS: 1 lab short (unit 1).
-- ACECPT: 1 lab short (unit 4).
-- ACSMCPT: 2 labs short (unit 1, unit 4).
-- NSCACSCS: 1 lab short (unit 2).
-- NCCPTCPT: 2 labs short (unit 1, unit 6).
+- PYDATA: 1 lab short (unit 6).
+- WAPSYCHJP: 3 labs short (units 1, 2 and 5).
 
-These are clinical, physical therapy and fitness courses. Each new lab there needs its values checked against current guidelines read on the day, and this fill could not reach most guideline publishers' sites on 2026-11-14, so they were left for a follow-up rather than written from memory.
+Both arrived with checkpoint #193 on 2026-11-16, after this fill was measured, and are being built by other builders, so this fill left them to their owners rather than edit their lab files at the same time. The twelve clinical, physical therapy and fitness courses listed here on 2026-11-14 (BSN-RN, NPTE-PTA, six ABPTS specialist courses, ACE, ACSM, NSCA-CSCS and NCCPT) were filled on 2026-11-14 to 2026-11-16 once their sources could be read.
 
 ## How to re-measure
 

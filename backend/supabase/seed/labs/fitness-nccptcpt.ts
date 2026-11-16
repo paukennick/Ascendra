@@ -1,4 +1,4 @@
-import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
+import { FITNESS_SAFETY, part, selectPart, numericPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-149: ISSA / NCCPT Certified Personal Trainer (NCCPTCPT), authored to
@@ -460,6 +460,99 @@ export const NCCPTCPT_LABS: SeedLabSet = {
               "Incident report and follow-up",
               "Completes a factual incident report promptly (time, what happened, actions, witnesses), informs the employer or insurer per policy, follows up with the client, and requires clearance before resuming lower-body work.",
               "Write an objective incident report that day, notify my insurer or employer as required, check on June the next day, and resume leg work only after she's been cleared."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, two labs. Read 2026-11-14: Mifflin
+    // MD, St Jeor ST et al., "A new predictive equation for resting energy
+    // expenditure in healthy individuals", Am J Clin Nutr 1990 (abstract,
+    // PMID 2305711, via Europe PMC): REE (males) = 10 x weight (kg) + 6.25 x
+    // height (cm) - 5 x age (y) + 5; REE (females) = the same - 161. The
+    // contracts lab is graded against the fictional studio's own written
+    // policy and quotes no legal rule.
+    {
+      slug: "nccpt-ree-versus-tdee",
+      objective: "Energy systems, fuel use, BMR versus TDEE, and aerobic versus anaerobic training",
+      kind: "build",
+      title: "Resting burn versus the whole day",
+      brief:
+        "You are a fictional NCCPT Certified Personal Trainer. Your client, Ms. Ruiz, a fictional healthy 34-year-old woman (65 kg, 168 cm), read online that she 'burns 1,400 calories a day' and plans to eat 1,200 a day to lose weight while training with you four days a week. You use the Mifflin-St Jeor equation to estimate her resting energy expenditure (REE). She asks: 'So 1,200 a day is fine, right? It's just under what I burn.'",
+      safetyNote: FITNESS_SAFETY,
+      sources: [source("https://pubmed.ncbi.nlm.nih.gov/2305711/", "reference", "2026-11-14")],
+      steps: [
+        {
+          text: "",
+          ask: "Work out her estimated REE. Then: tap the statements that are true, then explain the difference to her and what you do.",
+          parts: [
+            numericPart(
+              "Estimated REE (kcal/day)",
+              "Met: 1,369 within 10. Partly there within 30 (a slip in one term).",
+              "For women: 10 x 65 + 6.25 x 168 - 5 x 34 - 161 = 650 + 1,050 - 170 - 161 = 1,369 kcal a day. That is roughly what she would burn at rest -- close to the figure she read.",
+              { answer: 1369, tolerance: 10, partialTolerance: 30, unit: "kcal/day" }
+            ),
+            selectPart(
+              "True statements",
+              "Met: exactly the three true statements. (Right picks minus wrong picks) of at least two is partly there.",
+              "The 1,369 kcal estimate is a resting figure; total daily energy expenditure (TDEE) adds the energy of all daily activity, including her training, and of digesting food, so it is higher than her resting burn. Any prediction equation is an estimate for an individual. So 1,200 is not 'just under' what she burns in a day, and a trainer doesn't set a medical diet.",
+              {
+                display: "list",
+                lines: [
+                  "The 1,369 kcal figure is an estimate of what she burns at rest",
+                  "Her total daily energy expenditure equals her resting figure",
+                  "Daily activity and training add to what she burns beyond the resting figure",
+                  "A prediction equation gives an estimate, not a measurement, for any one person",
+                  "Eating 1,200 kcal a day is just under her total daily burn",
+                ],
+                correct: [0, 2, 3],
+              }
+            ),
+            part(
+              "What you tell her and do",
+              "Explains BMR/REE (energy at rest) versus TDEE (rest plus activity, training and the thermic effect of food), so her daily burn is above 1,369 and 1,200 would be a much larger deficit than she thinks; notes equations are estimates; stays in scope -- general, evidence-based guidance on healthy eating is fine, but an individual calorie prescription or meal plan for weight loss goes to a registered dietitian (or her physician), especially with four training days; watches for fatigue or poor recovery; supports her goal with the training plan.",
+              "\"That 1,369 is what your body uses lying still. Your whole day -- moving around, our four sessions, even digesting food -- adds a good deal on top, so your real daily burn is higher. Eating 1,200 would be a much bigger gap than you think, and it could leave you too tired to train well. These equations are estimates, too.\" Then stay in your lane: share general healthy-eating guidance, and refer her to a registered dietitian for a calorie target and meal plan. Keep an eye on her energy and recovery in sessions."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "nccpt-agreement-and-cancellation-review",
+      objective: "Liability insurance, contracts and cancellation policies",
+      kind: "build",
+      title: "Checking a client agreement against the studio's policy",
+      brief:
+        "You are a fictional NCCPT Certified Personal Trainer starting at Northgate Studio (fictional). The studio's written policy says every client agreement must: state the session price and package terms; state a cancellation notice period of 24 hours and what happens to a late cancellation; include the client's signature and date; name the trainer's current professional liability insurance and its expiry date; and say how a client can end the agreement and what is refunded. Before your first client signs, you review your draft agreement against that policy.",
+      safetyNote: FITNESS_SAFETY,
+      noValueSource:
+        "Graded against the fictional studio's own written policy given in the brief; it quotes no legal rule, insurance amount or other figure as a standard.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the lines in your draft that do not meet the studio's policy, then rewrite them.",
+          parts: [
+            selectPart(
+              "Lines that do not meet the policy",
+              "Met: exactly the four lines that fall short -- the 12-hour notice, the insurance that has expired, 'no refunds for any reason', and the unsigned signature line. (Right picks minus wrong picks) of at least two is partly there.",
+              "The policy asks for 24 hours' notice (the draft says 12), current insurance (the draft names a policy that expired before today), a stated way to end the agreement and what is refunded ('no refunds for any reason' gives neither), and the client's signature and date (left blank 'to be added later'). The price, package terms and late-cancellation rule meet it.",
+              {
+                display: "list",
+                lines: [
+                  "Single session $70; 10-session package $630, valid 6 months from purchase",
+                  "Cancellations need 12 hours' notice",
+                  "A late cancellation or no-show counts as a used session",
+                  "Trainer's professional liability insurance: policy PL-20931, expired June 30, 2026",
+                  "No refunds for any reason",
+                  "Client signature and date: to be added later",
+                ],
+                correct: [1, 3, 4, 5],
+              }
+            ),
+            part(
+              "Your rewritten lines",
+              "Notice period changed to 24 hours; current insurance named with its expiry date (renewed before any client trains; no sessions while uninsured); a clear way to end the agreement (e.g., written notice) and what is refunded (e.g., unused sessions, any stated fee) per the studio policy; signature and date taken at signing, before the first session, with a copy to the client; suggests the studio's legal adviser review the template, since contract and refund rules vary by location.",
+              "\"Cancellations need 24 hours' notice.\" \"Trainer's professional liability insurance: policy [current number], valid to [date]\" -- renew it before anyone trains with you. \"Either party may end this agreement in writing; unused sessions are refunded [per studio policy, less any stated fee].\" Get the client's signature and date at signing, before the first session, and give them a copy. Ask the studio's legal adviser to look over the template, because contract and refund rules differ by state."
             ),
           ],
         },

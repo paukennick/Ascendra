@@ -1,4 +1,4 @@
-import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { CLINICAL_SAFETY, part, numericPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-152: ABPTS Sports Clinical Specialist (ABPTSSCS), authored labs.
@@ -410,6 +410,64 @@ export const ABPTSSCS_LABS: SeedLabSet = {
               "Reading change",
               "States the rule: use each measure's published minimal clinically important difference or minimal detectable change where one exists, otherwise the athlete's own goal threshold; re-administer at fixed points with the same instrument; and interpret performance symmetry with caution because the uninvolved limb can detrain.",
               "Each questionnaire is re-done at fixed points with the identical version, and change is read against that measure's published minimal clinically important difference or minimal detectable change -- looked up for the exact instrument and version -- and, where none exists, against the athlete's own goal (a pain-free 10 km; full matches). Symmetry scores are read knowing the other limb may have weakened too, so absolute strength is tracked alongside."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Patient outcomes gets its second
+    // lab. Read 2026-11-14: Brophy RH, Lowry KJ, AAOS CPG summary,
+    // Management of ACL Injuries, J Am Acad Orthop Surg 2023;31(11):531-537 --
+    // "functional evaluation, such as the hop test, may be considered as one
+    // factor to determine return to sport" after reconstruction, strength
+    // Limited; no specific time criterion; patient preference plays a
+    // substantial role. Unverzagt C et al., ACL Return to Sport Testing: It's
+    // Time to Step up Our Game, IJSPT 2021;16(4):1169-1177 -- most authors
+    // call an LSI of 85-90% satisfactory and "clinical practice guidelines
+    // recommend a minimum of 90% LSI"; using LSI for hop testing "has the
+    // potential to overestimate knee function", partly because the
+    // uninvolved limb also detrains. The 90% figure in this lab is the
+    // fictional clinic's own protocol, not a standard the lab asserts; LSI
+    // is computed as involved / uninvolved x 100 from the fictional values.
+    {
+      slug: "scs-hop-lsi-baseline-check",
+      objective:
+        "Use functional testing, such as hop tests, as one factor in return-to-sport decisions after ACL reconstruction; AAOS rates the evidence for this as limited",
+      kind: "build",
+      title: "A passing hop test that isn't",
+      brief:
+        "You are a fictional sports physical therapist. Jonah, a fictional 19-year-old soccer player, is 9 months after a left ACL reconstruction. Your clinic's (fictional) return-to-sport protocol uses a limb symmetry index (LSI) of at least 90% on hop tests as one of several criteria. Before surgery, the clinic tested his right (uninvolved) leg's single-leg hop for distance: 1.85 m. Today's single-leg hop for distance (best of three): left 1.52 m, right 1.62 m. Jonah and his coach want him cleared for full training this week because 'he passed the hop test.'",
+      safetyNote: CLINICAL_SAFETY,
+      sources: [
+        source("https://doi.org/10.5435/JAAOS-D-22-01020", "clinical_guideline", "2026-11-14"),
+        source("https://ijspt.scholasticahq.com/article/25463-acl-return-to-sport-testing-it-s-time-to-step-up-our-game", "reference", "2026-11-14"),
+      ],
+      steps: [
+        {
+          text: "",
+          ask: "Work out the LSI against today's right leg, then against the right leg's pre-surgery distance. Then: say how you weigh the hop result, then what you tell Jonah and the coach.",
+          parts: [
+            numericPart(
+              "LSI against today's right leg (%)",
+              "Met: 93.8% within 0.5. Partly there within 2 (a rounding slip).",
+              "LSI = involved / uninvolved x 100 = 1.52 / 1.62 x 100 = 93.8%. On its face that clears the clinic's 90%.",
+              { answer: 93.8, tolerance: 0.5, partialTolerance: 2, unit: "%" }
+            ),
+            numericPart(
+              "LSI against the right leg's pre-surgery distance (%)",
+              "Met: 82.2% within 0.5. Partly there within 2.",
+              "1.52 / 1.85 x 100 = 82.2%. His right leg has dropped from 1.85 m to 1.62 m since surgery, so the usual LSI flatters the left knee: measured against what the right leg could do before, the left is well short of 90%.",
+              { answer: 82.2, tolerance: 0.5, partialTolerance: 2, unit: "%" }
+            ),
+            part(
+              "How you weigh it",
+              "States that LSI can overestimate knee function when the uninvolved limb has also detrained, so the pre-injury baseline is the more honest comparison here; that the AAOS guideline treats hop testing as one factor only, with limited evidence, and sets no fixed time criterion; so the decision rests on the whole picture (strength testing, the other criteria in the protocol, how he moves, his own readiness and preferences) and on the surgeon and team, not on one passing number.",
+              "The 93.8% looks like a pass, but his right leg has detrained, which inflates the index; against his own pre-surgery right leg he is at 82.2%. And a hop test is only one factor -- the AAOS guideline rates that evidence as limited and sets no fixed time to return. I'd weigh his strength testing, the other criteria in our protocol, how he lands and cuts, and how ready he feels, and make the call with the surgeon and the team."
+            ),
+            part(
+              "What you tell them",
+              "Explains the two numbers in plain language without blame; says he is not cleared yet on this result alone and what is next (targeted strength and hop training for both legs, retest date, which criteria remain); involves Jonah's own goals and preferences; offers a graded plan with the coach (e.g., non-contact drills within the team's plan) rather than an open-ended 'no'; documents and shares the results with the surgeon and team physician so the clearance is a team decision.",
+              "\"Your left leg hopped 94% as far as your right today -- but your right leg has lost ground too. Compared with what your right leg did before surgery, your left is at about 82%. That's one test among several, and it tells me we're close but not there.\" Then give the plan: strength and hop work for both legs, a retest in a few weeks, and the other criteria still to meet; agree what training he can do with the team meanwhile; ask Jonah what matters most to him; and send the results to the surgeon and team physician so clearance is decided together."
             ),
           ],
         },
