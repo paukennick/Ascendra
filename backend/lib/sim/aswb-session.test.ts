@@ -12,6 +12,7 @@ import { ASWB_OBJECTIVES, ASWB_SESSION_DOCUMENTS, WAJP_OBJECTIVES, WAJP_SESSION_
 import { applyCommand, createRun, readValue, validateScenario, waits } from "./engine/v1/index.ts";
 import type { Command, GoldenFile, ScenarioDoc } from "./engine/v1/index.ts";
 import { pacingEligible } from "./server-run.ts";
+import { scenarioSchema } from "./schema.ts";
 import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
 import { ASWB_CLINICAL_SIM_OBJECTIVES, ASWB_MASTERS_SIM_OBJECTIVES } from "../../supabase/seed/tracks/aswb";
 
@@ -106,6 +107,16 @@ describe("REQ-288: ASWB client sessions", () => {
 });
 
 describe("REQ-289: coverage sessions and bands", () => {
+  // FAIL-1884: sim:golden built goldens for documents the schema refuses (an
+  // action label over 200 characters, a source cite over 500); only sims:lint
+  // parses the schema. Every ASWB and jurisprudence document is parsed here.
+  test("every ASWB and jurisprudence session, bands compiled, parses against the scenario schema", () => {
+    for (const e of [...ASWB_SESSION_DOCUMENTS, ...WAJP_SESSION_DOCUMENTS]) {
+      const parsed = scenarioSchema.safeParse(loadDocument(e));
+      assert.ok(parsed.success, `${e.slug}: ${parsed.success ? "" : parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
+    }
+  });
+
   test("the shared ASWB objectives reuse one session per pair through a band, and each band is on its own course's objective", () => {
     const bands = ASWB_SESSION_DOCUMENTS.filter((e) => e.kind === "band").map((e) => e.slug).sort();
     assert.deepEqual(bands, ["aswbc-boundaries-small-town", "aswbm-suicide-violence-risk", "aswbm-termination-nonpayment"]);
