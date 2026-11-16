@@ -3,6 +3,7 @@ import { colors, fonts } from "@/lib/theme";
 import { BillingProvider } from "@/billing/BillingContext";
 import { useAuth } from "@/auth/AuthContext";
 import { Loading } from "@/components/ui";
+import { webColumnLayout } from "@/components/WebColumn";
 
 export default function AppLayout() {
   const { status } = useAuth();
@@ -17,6 +18,8 @@ export default function AppLayout() {
   return (
     <BillingProvider>
     <Stack
+      // Desktop web: a centered column on wide windows (src/lib/webColumn.ts).
+      screenLayout={webColumnLayout}
       screenOptions={{
         headerStyle: { backgroundColor: colors.bgAlt },
         headerTintColor: colors.accent,

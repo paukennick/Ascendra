@@ -1,9 +1,12 @@
 import { Stack } from "expo-router";
 import { colors, fonts } from "@/lib/theme";
+import { webColumnLayout } from "@/components/WebColumn";
 
 export default function LegalLayout() {
   return (
     <Stack
+      // Desktop web: a centered column on wide windows (src/lib/webColumn.ts).
+      screenLayout={webColumnLayout}
       screenOptions={{
         headerStyle: { backgroundColor: colors.bgAlt },
         headerTintColor: colors.accent,
