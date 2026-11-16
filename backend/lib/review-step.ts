@@ -3,6 +3,7 @@
 // grader can use it for exam answers (lib/grading-service.ts) without an
 // import cycle; review-store re-uses it unchanged.
 import type { TxClient } from "@/lib/db";
+import { recordShadowPrediction } from "@/lib/decay-shadow";
 import { isDueAt, schedulerFor, type ScheduleState } from "@/lib/review-scheduler";
 
 export async function stepSchedule(
@@ -51,10 +52,11 @@ export async function stepSchedule(
       where user_id = $1 and objective_id = $2`,
     [userId, objectiveId, r.next.step, r.next.dueOn, r.next.reps, r.next.lapses, r.next.lastReviewedAt, scheduler.name]
   );
-  await tx.query(
+  const logged = await tx.queryOne<{ id: string }>(
     `insert into review_log (user_id, objective_id, attempt_id, reviewed_at, verdict, assisted, was_due, elapsed_days,
                              scheduled_days, scheduler, step_before, step_after, due_before, due_after)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::date, $14::date)`,
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::date, $14::date)
+     returning id`,
     [
       userId,
       objectiveId,
@@ -72,6 +74,18 @@ export async function stepSchedule(
       r.next.dueOn,
     ]
   );
+  // REQ-301 (shadow mode): store what the proposed memory model predicted for
+  // this review beside its outcome. Nothing reads it to decide anything, and
+  // it never fails the review (savepoint inside; see lib/decay-shadow.ts).
+  if (logged) {
+    await recordShadowPrediction(tx, {
+      logId: logged.id,
+      userId,
+      objectiveId,
+      enrolledAt: new Date(row.enrolled_at),
+      at: now,
+    });
+  }
   return { wasDue: r.wasDue, advanced: r.advanced, nextDueOn: r.next.dueOn };
 }
 

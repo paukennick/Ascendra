@@ -1,0 +1,414 @@
+{
+  "slug": "first-dose-anaphylaxis",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: look and listen, epinephrine, 911, RN, semi-sitting with legs up, oxygen, vital signs, allergy history, record and report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "epiQ",
+          "choice": "five",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "call911",
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "emsQ",
+          "choice": "bedpan",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "callRn",
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "position",
+          "params": {
+            "pos": "semi"
+          },
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "allergy",
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "seq": 13,
+          "tick": 5
+        }
+      ],
+      "expect": {
+        "ending": "handedOver",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "epiFirst": "met",
+          "help": "met",
+          "posture": "met",
+          "repeat": "met",
+          "data": "met",
+          "report": "met"
+        },
+        "kpis": {
+          "toEpi": 5,
+          "to911": 5,
+          "doses": 1
+        },
+        "stateHash": "d7799cfa7e2b89d9"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateEpi",
+      "title": "Vital signs and allergy history first, epinephrine at 7 minutes and a second dose, 911 late",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "allergy",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "callRn",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "position",
+          "params": {
+            "pos": "flat"
+          },
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 7,
+          "tick": 420
+        },
+        {
+          "type": "teach",
+          "prompt": "epiQ",
+          "choice": "five",
+          "seq": 8,
+          "tick": 420
+        },
+        {
+          "type": "act",
+          "action": "call911",
+          "seq": 9,
+          "tick": 420
+        },
+        {
+          "type": "teach",
+          "prompt": "emsQ",
+          "choice": "bedpan",
+          "seq": 10,
+          "tick": 420
+        },
+        {
+          "type": "chapter",
+          "chapter": "epi",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 760
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 12,
+          "tick": 760
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "seq": 13,
+          "tick": 760
+        }
+      ],
+      "expect": {
+        "ending": "handedOverLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "epiFirst": "partial",
+          "help": "partial",
+          "posture": "met",
+          "repeat": "met",
+          "data": "met",
+          "report": "met"
+        },
+        "kpis": {
+          "toEpi": 420,
+          "to911": 420,
+          "doses": 2
+        },
+        "stateHash": "e91781a818220132"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "antihistFirst",
+      "title": "Diphenhydramine first, then epinephrine at 3 minutes and 911; left sitting in the chair",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "antihist",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 4,
+          "tick": 180
+        },
+        {
+          "type": "teach",
+          "prompt": "epiQ",
+          "choice": "five",
+          "seq": 5,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "call911",
+          "seq": 6,
+          "tick": 180
+        },
+        {
+          "type": "teach",
+          "prompt": "emsQ",
+          "choice": "bedpan",
+          "seq": 7,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 8,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "handedOverLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "epiFirst": "partial",
+          "help": "met",
+          "posture": "partial",
+          "repeat": "met",
+          "data": "partial",
+          "report": "missed"
+        },
+        "kpis": {
+          "toEpi": 180,
+          "to911": 180,
+          "doses": 1
+        },
+        "stateHash": "59bc5014d5f80fc5"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "walked",
+      "title": "Failure: walks her to the bathroom before anything else",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "bathroom",
+          "seq": 3,
+          "tick": 30
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "epiFirst": "missed",
+          "help": "missed",
+          "posture": "missed",
+          "repeat": "missed",
+          "data": "missed",
+          "report": "missed"
+        },
+        "kpis": {
+          "toEpi": -1,
+          "to911": -1,
+          "doses": 0
+        },
+        "stateHash": "1e8de69dc1f1ebde"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "waitedOut",
+      "title": "Failure: antihistamine and a call to the RN only; she collapses",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "antihist",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "callRn",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "epiFirst": "missed",
+          "help": "missed",
+          "posture": "partial",
+          "repeat": "missed",
+          "data": "missed",
+          "report": "partial"
+        },
+        "kpis": {
+          "toEpi": -1,
+          "to911": -1,
+          "doses": 0
+        },
+        "stateHash": "58ac2b76afaeeb46"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

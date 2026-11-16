@@ -1,0 +1,1175 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "clock-skew-blocks-logins",
+  "title": "Outage: the file server's clock is ten minutes slow and logins fail",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "[root@files2 ~]#",
+      "lines": [
+        {
+          "id": "fail",
+          "text": "10:01 help desk: finance cannot open //files2/finance (Kerberos: clock skew too great)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "payroll",
+          "text": "10:31 payroll: the 10:30 run could not read the finance share",
+          "when": "not isNull(payrollAt)",
+          "at": "timeAt(payrollAt)",
+          "error": "true"
+        },
+        {
+          "id": "okLine",
+          "text": "help desk: finance can open the share again",
+          "when": "clockOk",
+          "at": "okAt >= 0 ? okAt : 0"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "chrony",
+          "label": "chronyd",
+          "spokenLabel": "the chrony time service",
+          "kind": "Service on files2",
+          "status": "{synced ? (confFixed ? \"Synced to ntp1 (in chrony.conf)\" : \"Synced to ntp1 (added at run time only)\") : \"No usable source\"}",
+          "tone": "synced ? (confFixed ? \"up\" : \"degraded\") : \"down\""
+        },
+        {
+          "id": "clock",
+          "label": "System clock",
+          "spokenLabel": "the system clock",
+          "kind": "files2",
+          "status": "{clockOk ? \"Correct\" : synced ? \"580 s slow, slewing\" : \"580 s slow\"}",
+          "tone": "clockOk ? \"up\" : \"down\""
+        },
+        {
+          "id": "share",
+          "label": "finance share",
+          "spokenLabel": "the finance share",
+          "kind": "SMB share, Kerberos logins",
+          "status": "{loginsOk ? (skewWidened ? \"Open, with a 60-minute skew limit\" : \"Open\") : \"Logins rejected\"}",
+          "tone": "loginsOk ? (skewWidened ? \"degraded\" : \"up\") : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "ntp",
+          "from": "chrony",
+          "to": "clock",
+          "label": "chronyd disciplines the clock",
+          "status": "{synced ? \"Disciplining\" : \"Not synchronised\"}",
+          "tone": "synced ? \"up\" : \"down\""
+        }
+      ],
+      "meters": []
+    }
+  },
+  "objective": "Configure time synchronization with chrony or systemd-timesyncd and check it with chronyc or timedatectl",
+  "secondaryObjectives": [
+    "Troubleshoot networking with ip, ss, ping, tracepath, dig and the journal"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation Certified System Administrator (LFCS): Domains & Competencies, Networking 25%",
+      "checkedAt": "2026-11-14",
+      "url": "https://training.linuxfoundation.org/certification/linux-foundation-certified-sysadmin-lfcs/",
+      "note": "Relevant text: Networking, 'Configure time synchronization service'. Read as the page's HTML on 2026-11-14 (page last modified 2026-10-30)."
+    },
+    {
+      "cite": "chrony.conf(5), chrony 4.6 (chrony-project.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://chrony-project.org/doc/4.6/chrony.conf.html",
+      "note": "Relevant text: makestep 'forces chronyd to step the system clock if the adjustment is larger than a threshold value, but only if there were no more clock updates since chronyd was started than the specified limit' ('makestep 0.1 3' steps 'only in the first three clock updates'); 'By default, the maximum slew rate is set to 83333.333 ppm (one twelfth)'; iburst starts 'with a burst of 4-8 requests in order to make the first update of the clock sooner'. Read through a summarizing fetch 2026-11-14. At one twelfth, slewing out a 580 s error takes about 6,960 s: arithmetic from that default."
+    },
+    {
+      "cite": "chronyc(1), chrony 4.6 (chrony-project.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://chrony-project.org/doc/4.6/chronyc.html",
+      "note": "Relevant text: sources, '^ means a server'; '* indicates the best source which is currently selected for synchronisation'; '? indicates a source which is not considered to be selectable'; Reach '377 indicates that a valid reply was received for all from the last eight transmissions'. makestep (no arguments) 'tells chronyd to cancel any remaining correction that was being slewed and jump the system clock by the equivalent amount'. 'The add server command allows a new NTP server to be added whilst chronyd is running.' Read through summarizing fetches 2026-11-14. That a source added at run time is not written to chrony.conf, so a restart loses it, is inferred from chronyd reading its sources from the file at start."
+    },
+    {
+      "cite": "krb5.conf, MIT Kerberos documentation (web.mit.edu)",
+      "checkedAt": "2026-11-14",
+      "url": "https://web.mit.edu/kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html",
+      "note": "Relevant text: clockskew 'Sets the maximum allowable amount of clockskew in seconds that the library will tolerate before assuming that a Kerberos message is invalid. The default value is 300 seconds, or five minutes.' Read through a summarizing fetch 2026-11-14. The smbclient error text is authored."
+    }
+  ],
+  "brief": {
+    "situation": "You look after files2, a Fedora-family file server that shares finance folders to domain users with Kerberos logins, for Alder Bay Credit Union (fictional). It was restored from last night's snapshot at 08:40 after a failed update. Since about 09:50 finance staff cannot open their share. Payroll reads the share at 10:30.",
+    "handover": [
+      "The old time server, ntp-old.corp.example, was retired last month; the current ones are ntp1.corp.example and ntp2.corp.example.",
+      "chronyd on files2 has been running for 41 days on this image."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments are fixed.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, disk or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:01",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "payrollDelay": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. Payroll reads the share at 10:30, about 30 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "confFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "runtimeAdded": {
+      "type": "bool",
+      "init": false
+    },
+    "persistSyncAt": {
+      "type": "time",
+      "init": null
+    },
+    "steppedAt": {
+      "type": "time",
+      "init": null
+    },
+    "manualSet": {
+      "type": "bool",
+      "init": false
+    },
+    "skewWidened": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "payrollAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "source",
+        "kerberos",
+        "network"
+      ],
+      "init": "unset"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "chrony",
+        "manual",
+        "skew"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "synced": {
+      "expr": "not isNull(persistSyncAt) or runtimeAdded"
+    },
+    "clockOk": {
+      "expr": "not isNull(steppedAt) or manualSet"
+    },
+    "loginsOk": {
+      "expr": "clockOk or skewWidened"
+    },
+    "okAt": {
+      "expr": "not isNull(steppedAt) ? timeAt(steppedAt) : -1"
+    },
+    "faultsAdded": {
+      "expr": "skewWidened ? 1 : 0"
+    },
+    "evidenceFirst": {
+      "expr": "not isNull(evidenceAt) and (isNull(firstChangeAt) or timeAt(evidenceAt) <= timeAt(firstChangeAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "timedatectl",
+        "sources",
+        "tracking",
+        "showConf",
+        "smbLog",
+        "editConf",
+        "restart",
+        "addRuntime",
+        "makestep",
+        "dateSet",
+        "widenSkew",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "timedatectl": {
+      "label": "timedatectl",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "[root@files2 ~]# timedatectl\n               Local time: {clockOk ? \"Sat 2026-11-14 10:0x\" : \"Sat 2026-11-14 09:5x (9 min 40 s slow)\"}\nSystem clock synchronized: {synced and clockOk ? \"yes\" : \"no\"}\n              NTP service: active"
+        },
+        {
+          "finding": "chronyd is running but the clock is not synchronized."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sources": {
+      "label": "chronyc sources",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "synced",
+          "then": [
+            {
+              "output": "[root@files2 ~]# chronyc sources\nMS Name/IP address         Stratum Poll Reach LastRx Last sample\n^* ntp1.corp.example              2   6   377    12   +{clockOk ? \"0.2ms\" : \"580s\"}\n^+ ntp2.corp.example              2   6   377    11   +{clockOk ? \"0.4ms\" : \"580s\"}"
+            }
+          ],
+          "else": [
+            {
+              "output": "[root@files2 ~]# chronyc sources\nMS Name/IP address         Stratum Poll Reach LastRx Last sample\n^? ntp-old.corp.example           0  10     0     -     +0ns[   +0ns] +/-    0ns"
+            }
+          ]
+        },
+        {
+          "finding": "The only source is ntp-old.corp.example: '?' and Reach 0, so chronyd has had no reply from it at all."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "tracking": {
+      "label": "chronyc tracking",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "[root@files2 ~]# chronyc tracking\nReference ID    : {synced ? \"0A00000B (ntp1.corp.example)\" : \"00000000 ()\"}\nSystem time     : {clockOk ? \"0.000041 seconds fast of NTP time\" : synced ? \"580.1 seconds slow of NTP time (slewing)\" : \"0.000000000 seconds slow of NTP time\"}\nLeap status     : {synced ? \"Normal\" : \"Not synchronised\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "showConf": {
+      "label": "grep -E '^(server|pool|makestep)' /etc/chrony.conf",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "[root@files2 ~]# grep -E '^(server|pool|makestep)' /etc/chrony.conf\n{confFixed ? \"server ntp1.corp.example iburst\" : \"server ntp-old.corp.example iburst\"}\nmakestep 1 3"
+        },
+        {
+          "finding": "chrony.conf still names the time server retired last month."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "smbLog": {
+      "label": "journalctl -u smb --since -15min | tail -3",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "[root@files2 ~]# journalctl -u smb --since -15min | tail -3\nsmbd[3114]: Kerberos: ticket from pat@CORP.EXAMPLE rejected: Clock skew too great\nsmbd[3114]: Kerberos: ticket from lee@CORP.EXAMPLE rejected: Clock skew too great"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "editConf": {
+      "label": "sed -i 's/ntp-old/ntp1/' /etc/chrony.conf && echo 'server ntp2.corp.example iburst' >> /etc/chrony.conf",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "confFixed",
+          "to": "true"
+        },
+        {
+          "output": "[root@files2 ~]# sed -i 's/ntp-old/ntp1/' /etc/chrony.conf && echo 'server ntp2.corp.example iburst' >> /etc/chrony.conf"
+        },
+        {
+          "log": "chrony.conf names the two current time servers. chronyd reads it when it starts.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "systemctl restart chronyd",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "[root@files2 ~]# systemctl restart chronyd"
+        },
+        {
+          "if": "confFixed",
+          "then": [
+            {
+              "if": "isNull(persistSyncAt)",
+              "then": [
+                {
+                  "set": "persistSyncAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "if": "isNull(steppedAt)",
+              "then": [
+                {
+                  "set": "steppedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "chronyd started, reached ntp1 with iburst, and makestep 1 3 stepped the clock 580 s on its first update.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "set": "runtimeAdded",
+              "to": "false"
+            },
+            {
+              "log": "chronyd restarted with the same retired server: still nothing to sync to.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "addRuntime": {
+      "label": "chronyc add server ntp1.corp.example iburst",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(persistSyncAt)",
+          "then": [
+            {
+              "set": "runtimeAdded",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "output": "[root@files2 ~]# chronyc add server ntp1.corp.example iburst\n200 OK"
+        },
+        {
+          "log": "chronyd has a reachable source, but it has been up for 41 days, so makestep 1 3 no longer applies: it slews the 580 s at most one twelfth, about two hours.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "makestep": {
+      "label": "chronyc makestep",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "[root@files2 ~]# chronyc makestep\n200 OK"
+        },
+        {
+          "if": "synced and isNull(steppedAt)",
+          "then": [
+            {
+              "set": "steppedAt",
+              "to": "t"
+            },
+            {
+              "log": "chronyd jumped the clock by the correction it was slewing: the clock is right.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "if": "not synced",
+              "then": [
+                {
+                  "log": "Nothing to step: chronyd has no selected source, so it has no correction to apply.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "dateSet": {
+      "label": "date -s \"$(ssh admin1 date)\"",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "manualSet",
+          "to": "true"
+        },
+        {
+          "output": "[root@files2 ~]# date -s \"$(ssh admin1 date)\"\nSat Nov 14 10:0x:xx AM PST 2026"
+        },
+        {
+          "log": "The clock was set by hand from another server; chronyd still has no source, so it drifts again and the next snapshot restore repeats this.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "widenSkew": {
+      "label": "sed -i '/libdefaults/a clockskew = 3600' /etc/krb5.conf",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "skewWidened",
+          "to": "true"
+        },
+        {
+          "output": "[root@files2 ~]# sed -i '/libdefaults/a clockskew = 3600' /etc/krb5.conf"
+        },
+        {
+          "log": "Kerberos on files2 now accepts messages up to an hour old: logins work, and the replay protection the five-minute limit gives is gone.",
+          "kind": "alarm"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "smbclient -k //files2/finance -c ls",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "loginsOk",
+          "then": [
+            {
+              "output": "[root@files2 ~]# smbclient -k //files2/finance -c ls\n  payroll-2026-11.xlsx    A   184320  Fri Nov 13 17:02:11 2026"
+            }
+          ],
+          "else": [
+            {
+              "output": "[root@files2 ~]# smbclient -k //files2/finance -c ls\nsession setup failed: Clock skew too great"
+            }
+          ]
+        },
+        {
+          "if": "clockOk and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 300",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "[root@files2 ~]# sleep 300"
+        },
+        {
+          "log": "You wait 5 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "source",
+                  "label": "After the snapshot restore the clock was 580 s slow, and chrony's only source was the retired ntp-old server"
+                },
+                {
+                  "value": "kerberos",
+                  "label": "Kerberos is set too strictly on files2"
+                },
+                {
+                  "value": "network",
+                  "label": "A network fault between files2 and the domain controllers"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Fix",
+              "options": [
+                {
+                  "value": "chrony",
+                  "label": "Pointed chrony.conf at ntp1 and ntp2, restarted chronyd so makestep stepped the clock, checked sources and logins"
+                },
+                {
+                  "value": "manual",
+                  "label": "Set the clock by hand"
+                },
+                {
+                  "value": "skew",
+                  "label": "Raised the Kerberos clock skew limit"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "log": "Recorded: cause {cause}, fix {fix}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "payroll",
+      "when": "t >= payrollDelay and phase == \"incident\" and not loginsOk",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "payrollAt",
+          "to": "t"
+        },
+        {
+          "log": "10:31: payroll could not read the finance share.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: why logins failed, what you found in chrony, and why your fix will hold after the next restore or reboot.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "Names the clock about 580 s slow after the snapshot restore, past Kerberos's 300 s default limit, and chrony unable to correct it because its only source is the retired server.",
+          "modelAnswer": "The restore put the clock back almost ten minutes; Kerberos rejects anything over five minutes; chronyc sources showed only ntp-old with '?' and Reach 0."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "Uses timedatectl, chronyc sources or tracking and the chrony.conf server lines before changing anything.",
+          "modelAnswer": "timedatectl said not synchronized; chronyc sources showed ^? ntp-old, Reach 0; chrony.conf still named ntp-old."
+        },
+        {
+          "label": "Fix",
+          "criteria": "Puts the current servers in chrony.conf and restarts chronyd (makestep 1 3 steps at start), or adds them and runs chronyc makestep, with the file fixed; never widens the Kerberos skew or sets the clock by hand as the fix; checks sources and a login.",
+          "modelAnswer": "Replaced the server line with ntp1 and ntp2, restarted chronyd so its first update stepped the clock under makestep 1 3; chronyc sources showed ^* ntp1, Reach 377; smbclient -k listed the share."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 20 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Logins back well before payroll at 10:30; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No control weakened: the Kerberos clock skew limit widened."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not loginsOk",
+      "class": "harm",
+      "rationale": "Closing while logins fail leaves finance and payroll without the share; it is never a safe outcome.",
+      "source": {
+        "cite": "krb5.conf, MIT Kerberos documentation (web.mit.edu)",
+        "checkedAt": "2026-11-14",
+        "url": "https://web.mit.edu/kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html",
+        "note": "Relevant text: clockskew 'Sets the maximum allowable amount of clockskew in seconds that the library will tolerate before assuming that a Kerberos message is invalid. The default value is 300 seconds, or five minutes.' Read through a summarizing fetch 2026-11-14. The smbclient error text is authored."
+      }
+    }
+  },
+  "endings": {
+    "skewWidened": {
+      "label": "Logins back, a control weakened",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and skewWidened",
+      "narrative": "Logins work because Kerberos on files2 now accepts messages an hour old, which removes the replay protection the five-minute limit gives."
+    },
+    "stillFailing": {
+      "label": "Closed with logins failing",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not loginsOk",
+      "narrative": "The incident was closed while the clock was still wrong and logins still failed."
+    },
+    "fixed": {
+      "label": "Synced and stepped",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and clockOk and confFixed and not isNull(persistSyncAt) and okAt >= 0 and okAt <= restoreWindow and faultsAdded <= newFaults and evidenceFirst and not manualSet",
+      "narrative": "chrony.conf names the current servers, chronyd is synced and the clock was stepped; logins work and will keep working after the next restore."
+    },
+    "fixedGaps": {
+      "label": "Logins back, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Logins work, but the clock was set by hand or the source added only at run time, or the fix was late or came before any evidence."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "skewWidened",
+    "stillFailing",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Read chrony's state before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked at chrony or the clock."
+          }
+        ]
+      },
+      {
+        "id": "persistent",
+        "label": "Fixed the source in chrony.conf, not by hand",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "confFixed and not isNull(persistSyncAt) and not manualSet",
+            "score": "met",
+            "why": "chrony.conf names the current servers and chronyd uses them."
+          },
+          {
+            "when": "runtimeAdded or confFixed",
+            "score": "partial",
+            "why": "Half done: the source is in the file or the running daemon, not both."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "chrony still has no usable source."
+          }
+        ]
+      },
+      {
+        "id": "fast",
+        "label": "Clock right within 20 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "okAt >= 0 and okAt <= restoreWindow",
+            "score": "met",
+            "why": "Stepped {okAt / 60|0dp} min in."
+          },
+          {
+            "when": "clockOk",
+            "score": "partial",
+            "why": "Right, but late or by hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The clock is still wrong."
+          }
+        ]
+      },
+      {
+        "id": "noWeaken",
+        "label": "Left the Kerberos skew limit alone",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not skewWidened",
+            "score": "met",
+            "why": "krb5.conf unchanged."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "clockskew was raised to an hour."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Checked a Kerberos login after the fix",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "smbclient -k listed the share."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never tried a login with the clock right."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the fix accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"source\" and fixDoc == \"chrony\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"source\"",
+            "score": "partial",
+            "why": "The cause is right; the fix recorded is not the one that should stand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, evidence and fix",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minOk",
+        "label": "Minutes until the clock was right",
+        "value": "okAt >= 0 ? okAt / 60 : -1",
+        "format": "number",
+        "expert": "6 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "timedatectl: not synchronized. chronyc sources: only ^? ntp-old, Reach 0."
+      },
+      {
+        "at": "2-3 min",
+        "text": "grep the server lines in /etc/chrony.conf: it still names the retired server; makestep 1 3 is set."
+      },
+      {
+        "at": "3-5 min",
+        "text": "Replace it with ntp1 and ntp2, systemctl restart chronyd: the first update steps the clock."
+      },
+      {
+        "at": "5-6 min",
+        "text": "chronyc sources (^* ntp1, 377) and smbclient -k; record it, and suggest checking chrony after every snapshot restore."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: synced and stepped",
+        "body": "You read chrony's own view, fixed the source where chronyd reads it, and used makestep's start-up step instead of waiting hours for a slew."
+      },
+      "fixedGaps": {
+        "headline": "Logins back, with gaps",
+        "body": "Logins work. The criteria show the gap: a clock set by hand drifts again, and a source added with chronyc add is gone at the next restart."
+      },
+      "skewWidened": {
+        "headline": "A control weakened",
+        "body": "The five-minute Kerberos limit is replay protection. The clock was wrong; fix the clock."
+      },
+      "stillFailing": {
+        "headline": "Closed too soon",
+        "body": "chronyc makestep has nothing to step until chronyd has a source it can reach. Check chronyc sources for a '*'."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Kerberos rejects a clock more than 300 s off; the restore left files2 580 s slow. chronyc sources shows why chrony never corrected it: its only server is retired (?, Reach 0). Fix chrony.conf and restart chronyd: makestep 1 3 steps on the first updates after start. A chronyc add without the file, a date -s, or a wider clockskew each leaves a problem behind."
+  }
+}

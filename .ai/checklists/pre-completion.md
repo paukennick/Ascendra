@@ -309,6 +309,15 @@
   is added to the documents' declared minor; an app still on the older minor is
   told to update, so say so in the change notes. Maps the engine still reads
   in key order (`teaching`, FAIL-1250) are listed in docs/sims.md 22.6.
+- Best-effort side writes (REQ-301, FAIL-2060, FAIL-2061): a write that must
+  never fail the request it rides on (the shadow-mode prediction in
+  lib/decay-shadow.ts) runs in a savepoint, puts back any `SET LOCAL` it made
+  BEFORE `RELEASE` (a release keeps it, a rollback undoes it), and on any error
+  rolls back to the savepoint and logs one masked line. Its test injects a
+  failure (a trigger) and reads the setting back. A threshold on a computed
+  float carries a tolerance and a test at the exact boundary. A parameter
+  change that moves a stored prediction needs a new `MEMORY_MODEL_VERSION`
+  (lib/decay-shadow.test.ts pins them together).
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

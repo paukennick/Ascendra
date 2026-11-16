@@ -1,0 +1,1307 @@
+{
+ "schemaVersion": 1,
+ "engine": {
+  "major": 1,
+  "minor": 2
+ },
+ "slug": "status-epilepticus-after-craniotomy",
+ "title": "A seizure that does not stop",
+ "screen": {
+  "type": "bedside",
+  "level": 3,
+  "bedside": {
+   "tiles": [
+    {
+     "id": "sz",
+     "label": "Seizure",
+     "spokenLabel": "Seizure duration",
+     "value": "szMin",
+     "unit": "min",
+     "sub": "{seizing ? \"convulsing\" : (isNull(stopAt) ? \"no seizure\" : \"stopped\")}",
+     "alarm": {
+      "high": 5
+     },
+     "announce": {
+      "bands": [
+       5,
+       20,
+       30
+      ]
+     },
+     "colour": "neutral",
+     "hiddenUntil": "not isNull(onsetAt)"
+    },
+    {
+     "id": "spo2",
+     "label": "SpO2",
+     "spokenLabel": "Oxygen saturation",
+     "value": "spo2",
+     "unit": "%",
+     "alarm": {
+      "low": 90
+     },
+     "announce": {
+      "bands": [
+       94,
+       90,
+       85
+      ]
+     },
+     "colour": "spo2"
+    },
+    {
+     "id": "hr",
+     "label": "HR",
+     "spokenLabel": "Heart rate",
+     "value": "hr",
+     "unit": "/min",
+     "alarm": {
+      "high": 120
+     },
+     "announce": {
+      "bands": [
+       100,
+       120,
+       140
+      ]
+     },
+     "colour": "ecg"
+    },
+    {
+     "id": "bp",
+     "label": "ABP",
+     "spokenLabel": "Arterial blood pressure",
+     "value": [
+      "sbp",
+      "dbp"
+     ],
+     "unit": "mmHg",
+     "alarm": {
+      "high": 180
+     },
+     "announce": {
+      "bands": [
+       160,
+       180
+      ]
+     },
+     "colour": "art"
+    },
+    {
+     "id": "rr",
+     "label": "RR",
+     "spokenLabel": "Respiratory rate",
+     "value": "rr",
+     "unit": "/min",
+     "alarm": {
+      "low": 8
+     },
+     "announce": {
+      "bands": [
+       10,
+       8
+      ]
+     },
+     "colour": "neutral"
+    }
+   ],
+   "infusions": "Lorazepam doses: {lzDoses} ({lzMg} mg). Levetiracetam load: {isNull(levAt) ? \"not started\" : \"running\"}. O2: {o2On ? \"non-rebreather\" : \"2 L cannula\"}.",
+   "banner": [
+    {
+     "when": "providerHere",
+     "text": "The neurocritical care provider is at the bedside."
+    }
+   ]
+  }
+ },
+ "objective": "Treat a seizure lasting 5 minutes or more as status epilepticus: support the airway, check glucose, give a benzodiazepine first, then escalate",
+ "secondaryObjectives": [
+  "Seizure disorders, seizure precautions and continuous EEG monitoring",
+  "Recognizing emergencies, initiating interventions and seeking assistance"
+ ],
+ "sources": [
+  {
+   "cite": "AACN Certification Corporation. CCRN (Adult) Exam Handbook and Adult CCRN Test Plan, effective 2025-11-12",
+   "checkedAt": "2026-11-10",
+   "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+   "note": "Relayed from the REQ-222 CCRN cases, not re-read: the objective titles are the course's own, built from this test plan (backend/supabase/seed/tracks/ccrn.ts)."
+  },
+  {
+   "cite": "Ascendra CCRN Adult course catalog (backend/supabase/seed/tracks/ccrn.ts)",
+   "checkedAt": "2026-11-14",
+   "note": "The objective and secondary objectives are the course's own titles."
+  },
+  {
+   "cite": "Neurocritical Care Society. Emergency Neurological Life Support: Status Epilepticus Protocol, version 6.0 (updated July 2024)",
+   "checkedAt": "2026-11-14",
+   "url": "https://www.neurocriticalcare.org/Portals/0/ENLS%205.0/ENLS%206.0/Protocol%20V6_0%20Status%20Epilepticus.pdf",
+   "note": "Read 2026-11-14 (summarizing fetch with quotes): status epilepticus is 5 minutes or more of convulsions, or two or more without return to baseline; adults with IV access get lorazepam 0.1 mg/kg IV up to 4 mg, repeated once after 3-5 minutes if not effective; check glucose without delaying treatment; urgent control with levetiracetam 60 mg/kg IV (maximum 4,500 mg), fosphenytoin 20 mg/kg (maximum 1,500 mg) or valproate 40 mg/kg (maximum 3,000 mg) if seizures continue after adequate benzodiazepines; refractory status needs intubation and an anesthetic infusion; start continuous EEG; respiratory decompensation is more common in untreated status than with benzodiazepines."
+  },
+  {
+   "cite": "Glauser T, Shinnar S, et al. Evidence-based guideline: treatment of convulsive status epilepticus in children and adults. Epilepsy Curr. 2016;16(1):48-61. doi:10.5698/1535-7597-16.1.48",
+   "checkedAt": "2026-11-14",
+   "url": "https://aesnet.org/clinical-care/clinical-guidance/guideline-prolonged-seizures",
+   "note": "Read 2026-11-14 through the AES summary page (the full article and its chart were not read): stabilization 0-5 min; initial benzodiazepine 5-20 min (IM midazolam, IV lorazepam or IV diazepam); second therapy 20-40 min (fosphenytoin, valproate or levetiracetam, none clearly better); third therapy from 40 min with continuous EEG."
+  }
+ ],
+ "brief": {
+  "situation": "08:00 in the neuro ICU. Mr. Hale, 56, 80 kg, is one day after a craniotomy for a left frontal meningioma. He is on levetiracetam 500 mg twice daily; the 06:00 dose is charted as held while he was nil by mouth. He is awake and talking.",
+  "handover": [
+   "Unit status epilepticus protocol (standing order): for a convulsion of 5 minutes or more, lorazepam 0.1 mg/kg IV, maximum 4 mg a dose, repeated once after 5 minutes if still seizing; point-of-care glucose; notify the provider. Further antiseizure loading needs the provider's order.",
+   "Arterial line in. 2 L oxygen by cannula. Suction at the bedside."
+  ],
+  "howItWorks": [
+   "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+   "Some steps take a minute or more, and the seizure goes on while you work.",
+   "Partway through you are asked to write what is happening and what comes next. A debrief scores what you did."
+  ]
+ },
+ "clock": {
+  "start": "08:00",
+  "tick": "1s",
+  "maxDuration": "75min",
+  "calendar": "clock"
+ },
+ "params": {
+  "onsetT": {
+   "value": 60,
+   "unit": "s",
+   "source": {
+    "cite": "Neuro ICU practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The seizure begins at 08:01."
+   }
+  },
+  "seWindow": {
+   "value": 300,
+   "unit": "s",
+   "source": {
+    "cite": "Neurocritical Care Society. Emergency Neurological Life Support: Status Epilepticus Protocol, version 6.0 (updated July 2024)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.neurocriticalcare.org/Portals/0/ENLS%205.0/ENLS%206.0/Protocol%20V6_0%20Status%20Epilepticus.pdf",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): status epilepticus is 5 minutes or more of convulsions, or two or more without return to baseline; adults with IV access get lorazepam 0.1 mg/kg IV up to 4 mg, repeated once after 3-5 minutes if not effective; check glucose without delaying treatment; urgent control with levetiracetam 60 mg/kg IV (maximum 4,500 mg), fosphenytoin 20 mg/kg (maximum 1,500 mg) or valproate 40 mg/kg (maximum 3,000 mg) if seizures continue after adequate benzodiazepines; refractory status needs intubation and an anesthetic infusion; start continuous EEG; respiratory decompensation is more common in untreated status than with benzodiazepines."
+   }
+  },
+  "benzoWindow": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "Glauser T, Shinnar S, et al. Evidence-based guideline: treatment of convulsive status epilepticus in children and adults. Epilepsy Curr. 2016;16(1):48-61. doi:10.5698/1535-7597-16.1.48",
+    "checkedAt": "2026-11-14",
+    "url": "https://aesnet.org/clinical-care/clinical-guidance/guideline-prolonged-seizures",
+    "note": "Read 2026-11-14 through the AES summary page (the full article and its chart were not read): stabilization 0-5 min; initial benzodiazepine 5-20 min (IM midazolam, IV lorazepam or IV diazepam); second therapy 20-40 min (fosphenytoin, valproate or levetiracetam, none clearly better); third therapy from 40 min with continuous EEG. Authored target: the first benzodiazepine within 10 min of onset (5 min after it becomes status), inside the guideline's 5-20 min phase."
+   }
+  },
+  "secondWindow": {
+   "value": 1200,
+   "unit": "s",
+   "source": {
+    "cite": "Glauser T, Shinnar S, et al. Evidence-based guideline: treatment of convulsive status epilepticus in children and adults. Epilepsy Curr. 2016;16(1):48-61. doi:10.5698/1535-7597-16.1.48",
+    "checkedAt": "2026-11-14",
+    "url": "https://aesnet.org/clinical-care/clinical-guidance/guideline-prolonged-seizures",
+    "note": "Read 2026-11-14 through the AES summary page (the full article and its chart were not read): stabilization 0-5 min; initial benzodiazepine 5-20 min (IM midazolam, IV lorazepam or IV diazepam); second therapy 20-40 min (fosphenytoin, valproate or levetiracetam, none clearly better); third therapy from 40 min with continuous EEG. Second therapy started by 20 min after onset."
+   }
+  },
+  "stopTarget": {
+   "value": 1800,
+   "unit": "s",
+   "source": {
+    "cite": "Trinka E, Cock H, Hesdorffer D, et al. A definition and classification of status epilepticus: Report of the ILAE Task Force on Classification of Status Epilepticus. Epilepsia. 2015;56(10):1515-1523. doi:10.1111/epi.13121",
+    "checkedAt": "2026-11-14",
+    "url": "https://einstein.elsevierpure.com/en/publications/a-definition-and-classification-of-status-epilepticus-report-of-t",
+    "note": "Read 2026-11-14 (abstract): for convulsive status epilepticus t1 is 5 min (continuous seizure activity) and t2 is 30 min (after which there is a risk of long-term consequences); the authors call these the best estimates available."
+   }
+  },
+  "refractoryT": {
+   "value": 2400,
+   "unit": "s",
+   "source": {
+    "cite": "Glauser T, Shinnar S, et al. Evidence-based guideline: treatment of convulsive status epilepticus in children and adults. Epilepsy Curr. 2016;16(1):48-61. doi:10.5698/1535-7597-16.1.48",
+    "checkedAt": "2026-11-14",
+    "url": "https://aesnet.org/clinical-care/clinical-guidance/guideline-prolonged-seizures",
+    "note": "Read 2026-11-14 through the AES summary page (the full article and its chart were not read): stabilization 0-5 min; initial benzodiazepine 5-20 min (IM midazolam, IV lorazepam or IV diazepam); second therapy 20-40 min (fosphenytoin, valproate or levetiracetam, none clearly better); third therapy from 40 min with continuous EEG."
+   }
+  },
+  "desatRate": {
+   "value": 1.0,
+   "unit": "%/min",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "SpO2 falls about 1 point a minute while he convulses without positioning and high-flow oxygen; floor 91% with both. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "hypoxiaSpo2": {
+   "value": 75,
+   "unit": "%",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Below this he needs emergency intubation (harm in this case). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "levInfusion": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Levetiracetam 60 mg/kg (4,500 mg maximum, ENLS) infused over about 10 minutes; the seizure stops near the end of the load in this case. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "providerWalk": {
+   "value": 300,
+   "unit": "s",
+   "source": {
+    "cite": "Neuro ICU practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The provider reaches the bedside about 5 min after a call."
+   }
+  },
+  "lzRepeat": {
+   "value": 300,
+   "unit": "s",
+   "source": {
+    "cite": "Neurocritical Care Society. Emergency Neurological Life Support: Status Epilepticus Protocol, version 6.0 (updated July 2024)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.neurocriticalcare.org/Portals/0/ENLS%205.0/ENLS%206.0/Protocol%20V6_0%20Status%20Epilepticus.pdf",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): status epilepticus is 5 minutes or more of convulsions, or two or more without return to baseline; adults with IV access get lorazepam 0.1 mg/kg IV up to 4 mg, repeated once after 3-5 minutes if not effective; check glucose without delaying treatment; urgent control with levetiracetam 60 mg/kg IV (maximum 4,500 mg), fosphenytoin 20 mg/kg (maximum 1,500 mg) or valproate 40 mg/kg (maximum 3,000 mg) if seizures continue after adequate benzodiazepines; refractory status needs intubation and an anesthetic infusion; start continuous EEG; respiratory decompensation is more common in untreated status than with benzodiazepines."
+   }
+  },
+  "glucoseTime": {
+   "value": 60,
+   "unit": "s",
+   "source": {
+    "cite": "Neuro ICU practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Point-of-care glucose: about 1 min."
+   }
+  },
+  "observeAfter": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "Neuro ICU practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The case ends 10 minutes after the convulsion stops."
+   }
+  },
+  "patientKg": {
+   "value": 80,
+   "unit": "kg",
+   "source": {
+    "cite": "Neuro ICU practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Weight from the chart."
+   }
+  }
+ },
+ "state": {
+  "onsetAt": {
+   "type": "time",
+   "init": null
+  },
+  "seizing": {
+   "type": "bool",
+   "init": false
+  },
+  "stopAt": {
+   "type": "time",
+   "init": null
+  },
+  "desat": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 40,
+   "unit": "%"
+  },
+  "timedAt": {
+   "type": "time",
+   "init": null
+  },
+  "sideAt": {
+   "type": "time",
+   "init": null
+  },
+  "o2On": {
+   "type": "bool",
+   "init": false
+  },
+  "suctioned": {
+   "type": "bool",
+   "init": false
+  },
+  "restrained": {
+   "type": "bool",
+   "init": false
+  },
+  "mouthObject": {
+   "type": "bool",
+   "init": false
+  },
+  "gluPending": {
+   "type": "bool",
+   "init": false
+  },
+  "gluAt": {
+   "type": "time",
+   "init": null
+  },
+  "lzDoses": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 10
+  },
+  "lzMg": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 40,
+   "unit": "mg"
+  },
+  "lzFirstAt": {
+   "type": "time",
+   "init": null
+  },
+  "lzLastAt": {
+   "type": "time",
+   "init": null
+  },
+  "lzUnder": {
+   "type": "bool",
+   "init": false
+  },
+  "calledAt": {
+   "type": "time",
+   "init": null
+  },
+  "providerHere": {
+   "type": "bool",
+   "init": false
+  },
+  "levOrdered": {
+   "type": "bool",
+   "init": false
+  },
+  "levAt": {
+   "type": "time",
+   "init": null
+  },
+  "eegAt": {
+   "type": "time",
+   "init": null
+  },
+  "airwayTeam": {
+   "type": "bool",
+   "init": false
+  }
+ },
+ "derived": {
+  "szMin": {
+   "expr": "isNull(onsetAt) ? 0 : (seizing ? floor((t - timeAt(onsetAt)) / 60) : floor((timeAt(stopAt) - timeAt(onsetAt)) / 60))",
+   "unit": "min",
+   "precision": 0
+  },
+  "szSec": {
+   "expr": "isNull(onsetAt) ? 0 : (seizing ? t - timeAt(onsetAt) : timeAt(stopAt) - timeAt(onsetAt))",
+   "unit": "s",
+   "precision": 0
+  },
+  "protected": {
+   "expr": "not isNull(sideAt) and o2On"
+  },
+  "spo2": {
+   "expr": "round(clamp(97 - desat - (lzMg >= 12 ? 4 : 0), 60, 100))",
+   "unit": "%",
+   "precision": 0
+  },
+  "hr": {
+   "expr": "round(clamp(seizing ? 128 + 2 * sin(t / 7) : (isNull(stopAt) ? 82 : 104), 40, 180))",
+   "unit": "/min",
+   "precision": 0
+  },
+  "sbp": {
+   "expr": "seizing ? 176 : (isNull(stopAt) ? 132 : 146)",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "dbp": {
+   "expr": "seizing ? 98 : (isNull(stopAt) ? 76 : 84)",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "rr": {
+   "expr": "seizing ? 8 : (lzMg >= 12 ? 7 : (isNull(stopAt) ? 16 : 12))",
+   "unit": "/min",
+   "precision": 0
+  }
+ },
+ "processes": [
+  {
+   "id": "hypoxia",
+   "when": "seizing",
+   "update": {
+    "desat": "protected ? max(6, desat - 2 * dt / 60) : desat + desatRate * dt / 60"
+   }
+  },
+  {
+   "id": "recover",
+   "when": "not seizing and not isNull(stopAt)",
+   "update": {
+    "desat": "max(0, desat - 3 * dt / 60)"
+   }
+  }
+ ],
+ "phases": {
+  "live": {
+   "label": "At the bedside",
+   "clock": "running",
+   "actions": [
+    "time",
+    "side",
+    "oxygen",
+    "suction",
+    "restrain",
+    "biteBlock",
+    "glucose",
+    "lorazepam",
+    "call",
+    "levetiracetam",
+    "airway",
+    "eeg"
+   ]
+  }
+ },
+ "initialPhase": "live",
+ "actions": {
+  "time": {
+   "label": "Note the time and watch the seizure",
+   "group": "Assess",
+   "available": "seizing",
+   "why": "No seizure now.",
+   "effects": [
+    {
+     "if": "isNull(timedAt)",
+     "then": [
+      {
+       "set": "timedAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "log": "Generalized tonic-clonic convulsion since {timeAt(onsetAt)|clock}: eyes deviated right, jaw clenched, frothy saliva, no response to voice.",
+     "kind": "find"
+    }
+   ]
+  },
+  "side": {
+   "label": "Turn him on his side, rails padded, nothing near him that could hurt him",
+   "group": "Protect",
+   "available": "isNull(sideAt)",
+   "why": "Already done.",
+   "effects": [
+    {
+     "set": "sideAt",
+     "to": "t"
+    },
+    {
+     "log": "On his side, rails padded, the area cleared.",
+     "kind": "act"
+    }
+   ]
+  },
+  "oxygen": {
+   "label": "Non-rebreather mask at 15 L/min; bag-valve mask ready",
+   "group": "Protect",
+   "available": "not o2On",
+   "why": "Already on.",
+   "effects": [
+    {
+     "set": "o2On",
+     "to": "true"
+    },
+    {
+     "log": "Non-rebreather on; bag-valve mask at the head of the bed.",
+     "kind": "act"
+    }
+   ]
+  },
+  "suction": {
+   "label": "Suction the mouth",
+   "group": "Protect",
+   "effects": [
+    {
+     "set": "suctioned",
+     "to": "true"
+    },
+    {
+     "log": "Frothy secretions suctioned from the side of the mouth."
+    }
+   ]
+  },
+  "restrain": {
+   "label": "Hold his arms and legs down",
+   "group": "Protect",
+   "available": "seizing and not restrained",
+   "why": "No seizure now, or already done.",
+   "effects": [
+    {
+     "set": "restrained",
+     "to": "true"
+    },
+    {
+     "log": "Holding his limbs down does not stop a seizure and can injure him or you.",
+     "kind": "bad"
+    }
+   ]
+  },
+  "biteBlock": {
+   "label": "Put a bite block between his teeth",
+   "group": "Protect",
+   "available": "seizing and not mouthObject",
+   "why": "No seizure now, or already done.",
+   "effects": [
+    {
+     "set": "mouthObject",
+     "to": "true"
+    },
+    {
+     "log": "Forcing something into the mouth of a convulsing person can break teeth and block the airway.",
+     "kind": "bad"
+    }
+   ]
+  },
+  "glucose": {
+   "label": "Point-of-care glucose",
+   "group": "Assess",
+   "available": "not gluPending and isNull(gluAt)",
+   "why": "Already checked or running.",
+   "effects": [
+    {
+     "set": "gluPending",
+     "to": "true"
+    },
+    {
+     "schedule": "gluT",
+     "after": "glucoseTime"
+    },
+    {
+     "log": "Fingerstick glucose (about 1 min)."
+    }
+   ]
+  },
+  "lorazepam": {
+   "label": "Lorazepam IV push (protocol)",
+   "group": "Medications",
+   "available": "seizing",
+   "why": "No seizure now.",
+   "params": [
+    {
+     "id": "mg",
+     "kind": "choice",
+     "label": "Dose",
+     "options": [
+      {
+       "value": "4",
+       "label": "4 mg (0.1 mg/kg, the 4 mg maximum)"
+      },
+      {
+       "value": "2",
+       "label": "2 mg"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "if": "szSec < seWindow and lzDoses == 0",
+     "then": [
+      {
+       "log": "Under 5 minutes so far; the protocol starts at 5 minutes, but treating now is not wrong.",
+       "kind": "sys"
+      }
+     ]
+    },
+    {
+     "add": "lzDoses",
+     "by": "1"
+    },
+    {
+     "add": "lzMg",
+     "by": "num(mg)"
+    },
+    {
+     "if": "isNull(lzFirstAt)",
+     "then": [
+      {
+       "set": "lzFirstAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "set": "lzLastAt",
+     "to": "t"
+    },
+    {
+     "if": "mg == \"2\"",
+     "then": [
+      {
+       "set": "lzUnder",
+       "to": "true"
+      }
+     ]
+    },
+    {
+     "cases": [
+      {
+       "when": "lzDoses >= 3",
+       "then": [
+        {
+         "log": "A third benzodiazepine dose: the protocol allows one repeat. His breathing slows.",
+         "kind": "bad"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "Lorazepam {mg} mg IV pushed. The jerking slows but does not stop.",
+         "kind": "act"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "if": "not isNull(levAt)",
+     "then": [
+      {
+       "schedule": "lzLateT",
+       "after": "120"
+      }
+     ]
+    }
+   ]
+  },
+  "call": {
+   "label": "Call the provider (SBAR)",
+   "group": "Call",
+   "available": "isNull(calledAt)",
+   "why": "Already called.",
+   "params": [
+    {
+     "id": "say",
+     "kind": "choice",
+     "label": "What you say",
+     "options": [
+      {
+       "value": "se",
+       "label": "Status epilepticus: convulsing since 08:01, lorazepam given per protocol, SpO2 and airway status, levetiracetam dose was held; I need a second-line load and you at the bedside"
+      },
+      {
+       "value": "fyi",
+       "label": "He's having a seizure; I'll call back if it doesn't stop"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "if": "say == \"se\"",
+     "then": [
+      {
+       "set": "calledAt",
+       "to": "t"
+      },
+      {
+       "schedule": "providerT",
+       "after": "providerWalk"
+      },
+      {
+       "log": "Provider: \"Levetiracetam 60 mg per kg, 4,500 mg IV over 10 minutes, now. I'm coming.\"",
+       "kind": "good"
+      },
+      {
+       "set": "levOrdered",
+       "to": "true"
+      }
+     ],
+     "else": [
+      {
+       "log": "Provider: \"Follow the protocol and call me back.\"",
+       "kind": "sys"
+      }
+     ]
+    }
+   ]
+  },
+  "levetiracetam": {
+   "label": "Start levetiracetam 4,500 mg IV over 10 minutes (ordered)",
+   "group": "Medications",
+   "available": "levOrdered and isNull(levAt)",
+   "why": "Needs the provider's order (or already running).",
+   "effects": [
+    {
+     "set": "levAt",
+     "to": "t"
+    },
+    {
+     "schedule": "levT",
+     "after": "levInfusion"
+    },
+    {
+     "log": "Levetiracetam load running."
+    }
+   ]
+  },
+  "airway": {
+   "label": "Call anesthesia or respiratory therapy for the airway",
+   "group": "Call",
+   "available": "not airwayTeam",
+   "why": "Already called.",
+   "effects": [
+    {
+     "set": "airwayTeam",
+     "to": "true"
+    },
+    {
+     "log": "Airway team paged; intubation equipment to the bedside.",
+     "kind": "act"
+    }
+   ]
+  },
+  "eeg": {
+   "label": "Ask for continuous EEG",
+   "group": "Call",
+   "available": "isNull(eegAt) and not isNull(onsetAt)",
+   "why": "Already requested.",
+   "effects": [
+    {
+     "set": "eegAt",
+     "to": "t"
+    },
+    {
+     "log": "Continuous EEG requested: he is not back to baseline, and seizures can continue without visible jerking.",
+     "kind": "act"
+    }
+   ]
+  }
+ },
+ "timers": {
+  "gluT": {
+   "label": "glucose",
+   "wait": {
+    "skipLabel": "the glucose result (about 1 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Neuro ICU practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 1 min."
+   },
+   "effects": [
+    {
+     "set": "gluPending",
+     "to": "false"
+    },
+    {
+     "set": "gluAt",
+     "to": "t"
+    },
+    {
+     "log": "Glucose 124 mg/dL: not the cause.",
+     "kind": "find"
+    }
+   ]
+  },
+  "providerT": {
+   "label": "the provider",
+   "wait": {
+    "skipLabel": "the provider arriving (about 5 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Neuro ICU practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 5 min."
+   },
+   "effects": [
+    {
+     "set": "providerHere",
+     "to": "true"
+    },
+    {
+     "log": "The provider is at the bedside.",
+     "kind": "good"
+    }
+   ]
+  },
+  "levT": {
+   "label": "the levetiracetam load",
+   "wait": {
+    "skipLabel": "the end of the levetiracetam load (10 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "10 min. Simplified teaching model written for exam practice; not a validated physiological model."
+   },
+   "effects": [
+    {
+     "if": "seizing and lzDoses >= 1",
+     "then": [
+      {
+       "set": "seizing",
+       "to": "false"
+      },
+      {
+       "set": "stopAt",
+       "to": "t"
+      },
+      {
+       "log": "The convulsion stops. He is unresponsive, breathing, pupils equal.",
+       "kind": "good"
+      }
+     ],
+     "else": [
+      {
+       "if": "seizing",
+       "then": [
+        {
+         "log": "Still convulsing: no benzodiazepine has been given.",
+         "kind": "alarm"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "lzLateT": {
+   "label": "benzodiazepine taken effect",
+   "instances": "one",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A benzodiazepine given after the load is running ends the convulsion within about 2 min. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   },
+   "effects": [
+    {
+     "if": "seizing and not isNull(levAt)",
+     "then": [
+      {
+       "set": "seizing",
+       "to": "false"
+      },
+      {
+       "set": "stopAt",
+       "to": "t"
+      },
+      {
+       "log": "The convulsion stops. He is unresponsive, breathing.",
+       "kind": "good"
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "triggers": [
+  {
+   "id": "onset",
+   "when": "t >= onsetT and isNull(onsetAt)",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "set": "onsetAt",
+     "to": "t"
+    },
+    {
+     "set": "seizing",
+     "to": "true"
+    },
+    {
+     "log": "Mr. Hale stops talking mid-sentence, his head turns to the right, and he begins to convulse.",
+     "kind": "alarm"
+    }
+   ]
+  },
+  {
+   "id": "fiveMin",
+   "when": "seizing and szSec >= seWindow",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "log": "Five minutes of convulsion: status epilepticus.",
+     "kind": "alarm"
+    }
+   ]
+  },
+  {
+   "id": "lowSat",
+   "when": "spo2 < 90",
+   "mode": "edge",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "log": "Alarm: SpO2 {spo2}%.",
+     "kind": "alarm"
+    }
+   ]
+  }
+ ],
+ "reasoning": {
+  "plan": {
+   "trigger": "seizing and szSec >= seWindow + 60",
+   "question": "What is happening, why might it be happening now, and what are your next steps in order, with the times you are working against?",
+   "parts": [
+    {
+     "label": "Recognition and cause",
+     "criteria": "Names convulsive status epilepticus (5 minutes or more); links it to the held levetiracetam dose after craniotomy; notes glucose checked as a reversible cause.",
+     "modelAnswer": "This is convulsive status epilepticus: more than 5 minutes of continuous convulsion. One day after a craniotomy with his levetiracetam dose held, a breakthrough seizure is likely. His glucose is checked and normal."
+    },
+    {
+     "label": "Steps and times",
+     "criteria": "Airway first (side, suction, high-flow oxygen, bag-valve mask ready; nothing in the mouth, no restraint); lorazepam 0.1 mg/kg to 4 mg, one repeat after about 5 minutes; call the provider early for a second-line load (levetiracetam 60 mg/kg to 4,500 mg, or fosphenytoin or valproate) by about 20 minutes; airway team if breathing fails or the seizure is refractory; continuous EEG when he does not wake.",
+     "modelAnswer": "Protect the airway: on his side, suction, non-rebreather, bag-valve mask ready, nothing in his mouth and no holding him down. Lorazepam 4 mg now and once more in 5 minutes if he is still seizing. Call the provider now for a second-line load, levetiracetam 60 mg/kg up to 4,500 mg, aiming to have it running by 20 minutes. If he keeps seizing toward 40 minutes or stops breathing well, the airway team and an anesthetic infusion. Continuous EEG once the jerking stops if he is not waking."
+    }
+   ],
+   "pausesClock": true
+  }
+ },
+ "outcome": {
+  "profile": "clinical",
+  "thresholds": {},
+  "noProgress": {
+   "when": "seizing and szSec >= refractoryT",
+   "class": "harm",
+   "rationale": "A convulsion still going at 40 minutes is refractory status epilepticus with likely long-term harm, so this case calls it harm.",
+   "source": {
+    "cite": "Glauser T, Shinnar S, et al. Evidence-based guideline: treatment of convulsive status epilepticus in children and adults. Epilepsy Curr. 2016;16(1):48-61. doi:10.5698/1535-7597-16.1.48",
+    "checkedAt": "2026-11-14",
+    "url": "https://aesnet.org/clinical-care/clinical-guidance/guideline-prolonged-seizures",
+    "note": "Read 2026-11-14 through the AES summary page (the full article and its chart were not read): stabilization 0-5 min; initial benzodiazepine 5-20 min (IM midazolam, IV lorazepam or IV diazepam); second therapy 20-40 min (fosphenytoin, valproate or levetiracetam, none clearly better); third therapy from 40 min with continuous EEG."
+   }
+  }
+ },
+ "endings": {
+  "hypoxia": {
+   "label": "Hypoxic respiratory failure",
+   "class": "harm",
+   "when": "spo2 <= hypoxiaSpo2",
+   "terminal": true,
+   "narrative": "SpO2 {spo2}% with blue lips. He is intubated emergently in the bed while still seizing."
+  },
+  "refractory": {
+   "label": "Refractory status epilepticus",
+   "class": "harm",
+   "when": "seizing and szSec >= refractoryT",
+   "terminal": true,
+   "narrative": "Forty minutes of convulsion. He is intubated and started on a midazolam infusion with continuous EEG: refractory status epilepticus."
+  },
+  "stoppedEarly": {
+   "label": "Stopped within 30 minutes, airway kept",
+   "class": "target",
+   "when": "not isNull(stopAt) and since(stopAt) >= observeAfter and timeAt(stopAt) - timeAt(onsetAt) <= stopTarget and not isNull(lzFirstAt) and timeAt(lzFirstAt) - timeAt(onsetAt) <= benzoWindow and protected and not restrained and not mouthObject and lzDoses <= 2",
+   "terminal": true,
+   "narrative": "{t|clock}: the convulsion stopped at {timeAt(stopAt)|clock}, {szMin} minutes after it began. He is on his side, oxygenating, and starting to stir."
+  },
+  "stoppedLate": {
+   "label": "Stopped, by a slower or riskier route",
+   "class": "recovered",
+   "when": "not isNull(stopAt) and since(stopAt) >= observeAfter",
+   "terminal": true,
+   "narrative": "{t|clock}: the convulsion stopped after {szMin} minutes, but the route cost time or safety: a late or small benzodiazepine, a late load, an unprotected airway, or something done that can hurt him."
+  },
+  "time_up": {
+   "label": "End of the case",
+   "class": "harm",
+   "terminal": true,
+   "narrative": "09:15 and the seizure is not under control."
+  }
+ },
+ "endingOrder": [
+  "hypoxia",
+  "refractory",
+  "stoppedEarly",
+  "stoppedLate"
+ ],
+ "scoring": {
+  "criteria": [
+   {
+    "id": "benzo",
+    "label": "Benzodiazepine first, full dose, on time",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(lzFirstAt)",
+      "score": "missed",
+      "why": "No benzodiazepine."
+     },
+     {
+      "when": "timeAt(lzFirstAt) - timeAt(onsetAt) <= benzoWindow and not lzUnder and lzDoses <= 2",
+      "score": "met",
+      "why": "Lorazepam 4 mg at {timeAt(lzFirstAt)|clock}{lzDoses == 2 ? \", one repeat\" : \"\"}."
+     },
+     {
+      "when": "lzDoses >= 3",
+      "score": "missed",
+      "why": "{lzDoses} doses: the protocol allows one repeat."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "{lzUnder ? \"A 2 mg dose: under the 0.1 mg/kg dose\" : \"First dose late\"}."
+     }
+    ]
+   },
+   {
+    "id": "airway",
+    "label": "Protected the airway without restraint or a mouth object",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "restrained or mouthObject",
+      "score": "missed",
+      "why": "{restrained ? \"Held his limbs down\" : \"Forced a bite block in\"}."
+     },
+     {
+      "when": "protected and not isNull(sideAt) and timeAt(sideAt) - timeAt(onsetAt) <= 120",
+      "score": "met",
+      "why": "On his side with high-flow oxygen within 2 minutes."
+     },
+     {
+      "when": "protected",
+      "score": "partial",
+      "why": "Protected, but late."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "{isNull(sideAt) ? \"Never turned on his side\" : \"No high-flow oxygen\"}."
+     }
+    ]
+   },
+   {
+    "id": "escalate",
+    "label": "Second-line load running by 20 minutes",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(levAt)",
+      "score": "missed",
+      "why": "{isNull(calledAt) ? \"The provider never heard 'status epilepticus'\" : \"The load was never started\"}."
+     },
+     {
+      "when": "timeAt(levAt) - timeAt(onsetAt) <= secondWindow",
+      "score": "met",
+      "why": "Load running at {timeAt(levAt)|clock}."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Load started at {timeAt(levAt)|clock}, after 20 minutes."
+     }
+    ]
+   },
+   {
+    "id": "glucose",
+    "label": "Checked glucose",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "not isNull(gluAt)",
+      "score": "met",
+      "why": "124 mg/dL."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "Not checked."
+     }
+    ]
+   },
+   {
+    "id": "eeg",
+    "label": "Asked for continuous EEG",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "not isNull(eegAt)",
+      "score": "met",
+      "why": "Requested."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "Not requested."
+     }
+    ]
+   },
+   {
+    "id": "timed",
+    "label": "Timed the seizure from its start",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "not isNull(timedAt) and timeAt(timedAt) - timeAt(onsetAt) <= 60",
+      "score": "met",
+      "why": "Timed from the first minute."
+     },
+     {
+      "when": "not isNull(timedAt)",
+      "score": "partial",
+      "why": "Timed, but late."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "Not timed."
+     }
+    ]
+   }
+  ],
+  "reasoningCriteria": [
+   {
+    "moment": "plan",
+    "label": "Written reasoning: status epilepticus, cause, steps in order and the times",
+    "weight": 1
+   }
+  ],
+  "kpis": [
+   {
+    "id": "toBenzo",
+    "label": "Onset to the first benzodiazepine",
+    "value": "isNull(lzFirstAt) or isNull(onsetAt) ? -1 : timeAt(lzFirstAt) - timeAt(onsetAt)",
+    "format": "duration",
+    "expert": "5 to 6 min"
+   },
+   {
+    "id": "toLoad",
+    "label": "Onset to the second-line load",
+    "value": "isNull(levAt) or isNull(onsetAt) ? -1 : timeAt(levAt) - timeAt(onsetAt)",
+    "format": "duration",
+    "expert": "under 15 min"
+   },
+   {
+    "id": "szLen",
+    "label": "Seizure length",
+    "value": "szSec",
+    "format": "duration",
+    "expert": "under 25 min"
+   }
+  ],
+  "expertPath": [
+   {
+    "at": "08:01",
+    "text": "Note the time. On his side, rails padded, suction, non-rebreather, bag-valve mask ready. Nothing in his mouth; do not hold him down. Fingerstick glucose."
+   },
+   {
+    "at": "08:06",
+    "text": "Five minutes: status epilepticus. Lorazepam 4 mg IV (0.1 mg/kg, maximum 4 mg). Call the provider: status, held levetiracetam, need a second-line load."
+   },
+   {
+    "at": "~08:07",
+    "text": "Start the ordered levetiracetam 4,500 mg over 10 minutes. Repeat lorazepam 4 mg once at about 5 minutes if still seizing."
+   },
+   {
+    "at": "~08:17",
+    "text": "The convulsion stops. Ask for continuous EEG; watch breathing and wake-up."
+   }
+  ],
+  "debrief": {
+   "hypoxia": {
+    "headline": "Hypoxic respiratory failure",
+    "body": "Side-lying, suction and high-flow oxygen keep a convulsing patient oxygenated while the drugs work. Find when those were done."
+   },
+   "refractory": {
+    "headline": "Refractory status epilepticus",
+    "body": "Benzodiazepine at 5 minutes, then a second-line load by about 20 minutes. Find where the time went."
+   },
+   "stoppedEarly": {
+    "headline": "Status epilepticus stopped on time",
+    "body": "You protected the airway without restraint, gave a full benzodiazepine dose on time, escalated early for a second-line load and asked for EEG. That is the expert path."
+   },
+   "stoppedLate": {
+    "headline": "Stopped, by a slower or riskier route",
+    "body": "Check the benzodiazepine's timing and dose, when the load started, how the airway was protected, and whether anything was done that can hurt him."
+   },
+   "time_up": {
+    "headline": "Not under control",
+    "body": "Status epilepticus is treated on a clock: benzodiazepine, then a second-line load, then anesthesia."
+   }
+  },
+  "modelReasoning": "Five minutes or more of convulsion is status epilepticus. Protect the airway first (side-lying, suction, high-flow oxygen, a bag-valve mask ready; nothing in the mouth and no restraint), check glucose without delaying treatment, and give a benzodiazepine at a full dose: lorazepam 0.1 mg/kg IV up to 4 mg, repeated once after 3-5 minutes. Small doses are a common reason seizures continue. Escalate early for a second-line load (levetiracetam 60 mg/kg up to 4,500 mg, fosphenytoin or valproate) so it is running by about 20 minutes; past about 40 minutes the seizure is refractory and needs intubation and an anesthetic infusion with continuous EEG. Here a held levetiracetam dose the day after a craniotomy is the likely trigger."
+ },
+ "chapters": [
+  {
+   "id": "stopped",
+   "label": "The convulsion has stopped",
+   "when": "not isNull(stopAt)"
+  }
+ ],
+ "teaching": {
+  "gluQ": {
+   "during": "gluT",
+   "ask": "While the glucose runs: should the benzodiazepine wait for the result?",
+   "choices": [
+    {
+     "id": "no",
+     "label": "No: check glucose, but do not delay treatment for it"
+    },
+    {
+     "id": "yes",
+     "label": "Yes: treat the glucose first"
+    }
+   ],
+   "expect": "no",
+   "explain": "Check glucose and treat hypoglycemia, but do not delay seizure treatment to get the result.",
+   "source": {
+    "cite": "Neurocritical Care Society. Emergency Neurological Life Support: Status Epilepticus Protocol, version 6.0 (updated July 2024)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.neurocriticalcare.org/Portals/0/ENLS%205.0/ENLS%206.0/Protocol%20V6_0%20Status%20Epilepticus.pdf",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): status epilepticus is 5 minutes or more of convulsions, or two or more without return to baseline; adults with IV access get lorazepam 0.1 mg/kg IV up to 4 mg, repeated once after 3-5 minutes if not effective; check glucose without delaying treatment; urgent control with levetiracetam 60 mg/kg IV (maximum 4,500 mg), fosphenytoin 20 mg/kg (maximum 1,500 mg) or valproate 40 mg/kg (maximum 3,000 mg) if seizures continue after adequate benzodiazepines; refractory status needs intubation and an anesthetic infusion; start continuous EEG; respiratory decompensation is more common in untreated status than with benzodiazepines."
+   }
+  },
+  "levQ": {
+   "during": "levT",
+   "ask": "While the load runs: when should a second-line drug be running if the seizure continues after benzodiazepines?",
+   "choices": [
+    {
+     "id": "by20",
+     "label": "By about 20 minutes from the start"
+    },
+    {
+     "id": "at60",
+     "label": "After an hour, if it is still going"
+    },
+    {
+     "id": "never",
+     "label": "Only after a third benzodiazepine dose"
+    }
+   ],
+   "expect": "by20",
+   "explain": "The AES guideline puts second therapy in the 20-40 minute phase after an initial benzodiazepine in the 5-20 minute phase; ENLS allows one benzodiazepine repeat.",
+   "source": {
+    "cite": "Glauser T, Shinnar S, et al. Evidence-based guideline: treatment of convulsive status epilepticus in children and adults. Epilepsy Curr. 2016;16(1):48-61. doi:10.5698/1535-7597-16.1.48",
+    "checkedAt": "2026-11-14",
+    "url": "https://aesnet.org/clinical-care/clinical-guidance/guideline-prolonged-seizures",
+    "note": "Read 2026-11-14 through the AES summary page (the full article and its chart were not read): stabilization 0-5 min; initial benzodiazepine 5-20 min (IM midazolam, IV lorazepam or IV diazepam); second therapy 20-40 min (fosphenytoin, valproate or levetiracetam, none clearly better); third therapy from 40 min with continuous EEG."
+   }
+  }
+ }
+}

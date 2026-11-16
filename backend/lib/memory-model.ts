@@ -1,9 +1,13 @@
-// REQ-291 (design, not wired in): per-learner predicted recall for the review
-// loop. Pure -- no database, no model calls -- so it can be unit-tested and
-// run in the persona simulation (lib/decay-sim.ts, scripts/decay-sim.ts)
-// before anything in production changes. Nothing imports this outside the
-// simulation and its tests; schedulerFor() (lib/review-scheduler.ts) still
-// returns fixed_v1 for every row. Design: docs/mastery-decay-design.md.
+// REQ-291 (design) and REQ-301 (shadow mode): per-learner predicted recall for
+// the review loop. Pure -- no database, no model calls -- so it can be
+// unit-tested and run in the persona simulation (lib/decay-sim.ts,
+// scripts/decay-sim.ts). Since REQ-301 it is also imported by
+// lib/decay-shadow.ts, which stores its prediction beside every review in
+// review_log for calibration; nothing DECIDES from it yet: schedulerFor()
+// (lib/review-scheduler.ts) still returns fixed_v1 for every row and no
+// learner sees a number. Changing any constant here that moves a prediction
+// needs a new MEMORY_MODEL_VERSION (lib/decay-shadow.ts; a test pins them
+// together). Design: docs/mastery-decay-design.md.
 //
 // The memory model is FSRS-6 (open-spaced-repetition), formulas and default
 // parameters as published on the awesome-fsrs wiki "The Algorithm" page
