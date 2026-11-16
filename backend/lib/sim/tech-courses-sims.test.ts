@@ -1,4 +1,4 @@
-// REQ-269 (docs/sims.md 22.19): sims for the courses built in REQ-264..268
+// REQ-269 (docs/sims.md 22.21): sims for the courses built in REQ-264..268
 // on screens that already exist: SQL Fundamentals and TypeScript & Node.js
 // on the terminal (infrastructure profile), SC-500 on the security console
 // (security profile), AI-200 on the terminal. Each is valid, learner-paced,

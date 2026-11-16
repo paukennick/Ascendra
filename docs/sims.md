@@ -5311,7 +5311,7 @@ timeline, a facilitator's log, roles); a *governance board* for CISM Domains
 stakeholders); a *sandbox report* screen for static and dynamic malware
 analysis.
 
-### 22.19 NASM-CNC coaching sessions and coverage for Scrum, ITIL and CSSGB (REQ-282)
+### 22.20 NASM-CNC coaching sessions and coverage for Scrum, ITIL and CSSGB (REQ-282)
 
 Two cases on the client `session` screen for the NASM Certified Nutrition
 Coach course (`backend/supabase/seed/tracks/fitness.ts`,
@@ -5331,7 +5331,7 @@ Coverage per objective for PSM I, CSM, ITIL 4 Foundation, CSSGB and NASM-CNC,
 and the screens proposed for the families no existing screen fits (project
 dashboard in Sprint mode, a service operations desk, a process and data
 console, the client trainer), are in `docs/sim-coverage-pm-frameworks-cnc.md`.
-### 22.19 Sims for the new technology courses: SQL, TSNODE, SC500, AI200 (REQ-269)
+### 22.21 Sims for the new technology courses: SQL, TSNODE, SC500, AI200 (REQ-269)
 
 Eight authored sims, two per course, on screens that already exist, for the
 courses built in REQ-264..268. Coverage against Nick's selection rule, the
@@ -5388,7 +5388,7 @@ builder: a literal brace in a template is written `{{` / `}}` (parser.ts
 `parseTemplate`), and a `|` inside a slot is read as the format separator, so
 a table row with `|` belongs outside a slot (use `cases` with whole outputs).
 
-### 22.19 ASWB and Washington jurisprudence client sessions (REQ-288, REQ-289)
+### 22.22 ASWB and Washington jurisprudence client sessions (REQ-288, REQ-289)
 
 Nick, 2026-11-10 (sims for the mental health wave, mirroring 22.12) and
 2026-11-14 (coverage, not a count). Nine documents on the client `session`

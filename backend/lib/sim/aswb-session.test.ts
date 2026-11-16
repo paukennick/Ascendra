@@ -1,4 +1,4 @@
-// REQ-288: the ASWB client sessions (docs/sims.md 22.19). Same screen, profile
+// REQ-288: the ASWB client sessions (docs/sims.md 22.22). Same screen, profile
 // and pacing as the NCE/NCMHCE sessions (REQ-239): learner-paced turns, the
 // clinical-session profile, registered by course code and exact objective
 // title. Each case has endings in all three classes, 3-4 critical criteria,
