@@ -71,7 +71,7 @@ shipped); the rest use `infrastructure`.
 | PYDATA/board-orders-by-region | Interpret group results correctly, including count versus size and missing keys | checked the draft's total; sent a table that counts every order (size, dropna=False); asserted against the raw rows | pydata-groupby |
 
 **Sources** carry `checkedAt` 2026-11-14 and were read through summarizing
-fetches before the lead's no-fetch rule of the same afternoon: sched(7),
+fetches on 2026-11-14, before the no-WebFetch rule: sched(7),
 renice(1), kill(1), signal(7), systemd.service(5), systemd.unit(5),
 systemctl(1), systemd-system.conf(5), journalctl(1), mount(8), unlink(2)
 (man7.org); chrony.conf(5) and chronyc(1) for chrony 4.6; MIT krb5.conf
