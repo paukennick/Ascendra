@@ -21,6 +21,9 @@ export const REQ296: readonly { course: string; slug: string; screen: string }[]
   { course: "CCRNADULT", slug: "status-epilepticus-after-craniotomy", screen: "bedside" },
   { course: "DPT", slug: "dizziness-central-red-flags", screen: "treatment-session" },
   { course: "NCLEXPN", slug: "first-dose-anaphylaxis", screen: "bedside" },
+  // Wave 2 (resumed 2026-11-14).
+  { course: "NCLEXRN", slug: "hyperkalemia-critical-value", screen: "bedside" },
+  { course: "NCLEXPN", slug: "postpartum-check-boggy-fundus", screen: "bedside" },
 ];
 
 interface GoldenPath { id: string; expect: { ending: string; rating: string; criteria: Record<string, string> } }
