@@ -202,13 +202,15 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // ---- end REQ-269 ----
   // ---- REQ-274: security-console incidents for the non-CompTIA security
   // courses (ISC2 CC, CISSP, ISACA CISM, EC-Council CEH; coverage table in
-  // docs/sims.md 22.16). Keep these entries together. ----
+  // docs/sims.md 22.19). Keep these entries together. ----
   entry("ISC2CC", "cc-triage-phish-correlation"),
   entry("ISC2CC", "cc-leaver-account-still-active"),
   entry("CISSP", "cissp-web-tier-data-theft"),
   entry("CISSP", "cissp-ransomware-recovery-site"),
   entry("CISM", "cism-payroll-supplier-breach"),
   entry("CISM", "cism-checkout-skimmer-containment"),
+  entry("CEH", "ceh-arp-poisoning-finance-vlan"),
+  entry("CEH", "ceh-blind-sqli-search"),
   // ---- end REQ-274 ----
   // ---- REQ-282: NASM Certified Nutrition Coach client sessions (session
   // renderer, clinical-session profile; CNC_SESSION_DOCUMENTS below) ----

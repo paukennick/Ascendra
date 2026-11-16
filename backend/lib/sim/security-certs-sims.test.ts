@@ -1,4 +1,4 @@
-// REQ-274 (docs/sims.md 22.16): security-console sims for the non-CompTIA
+// REQ-274 (docs/sims.md 22.19): security-console sims for the non-CompTIA
 // security courses (ISC2 CC, CISSP, ISACA CISM, EC-Council CEH), built to the
 // REQ-238 pattern. Each is valid, learner-paced, on its course's own catalog
 // objective (one that meets the generator's selection rule), and names only
@@ -15,8 +15,6 @@ import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
 import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 
 const COURSES = ["ISC2CC", "CISSP", "CISM", "CEH"] as const;
-// Courses whose sims are built so far (commit per course); all four at the end of REQ-274.
-const BUILT: readonly string[] = ["ISC2CC", "CISSP", "CISM"];
 const DOCS = ALL_DOCUMENTS.filter((e) => (COURSES as readonly string[]).includes(e.course));
 const docOf = (slug: string): ScenarioDoc => loadDocument(DOCS.find((e) => e.slug === slug)!);
 
@@ -56,7 +54,7 @@ const DOC_DOMAIN = /(^|\.)example\.(com|net|org)$|\.(test|example|invalid)$/;
 
 describe("REQ-274 security-console sims", () => {
   test("at least two per course, each valid, on the console, learner-paced, security profile, engine 1.2 with endingOrder", () => {
-    for (const c of BUILT) assert.ok(DOCS.filter((e) => e.course === c).length >= 2, c);
+    for (const c of COURSES) assert.ok(DOCS.filter((e) => e.course === c).length >= 2, c);
     for (const e of DOCS) {
       const d = loadDocument(e);
       assert.equal(e.kind, "scenario");
@@ -197,5 +195,34 @@ describe("REQ-274: the attacker moves on the analyst's clock", () => {
     while (b.minutes() < 15) b.task("watch");
     assert.equal(typeof b.value("switchAt"), "number");
     assert.equal(b.value("skimActive"), true);
+  });
+  test("CEH ARP: clearing caches while the device sends changes nothing; shutting its port stops the poisoning", () => {
+    const d = driver(docOf("ceh-arp-poisoning-finance-vlan"));
+    d.task("clearArp");
+    assert.equal(d.value("poisoning"), true);
+    d.task("trace");
+    d.task("shutPort");
+    assert.equal(d.value("poisoning"), false);
+  });
+
+  test("CEH SQLi: the WAF block is evaded after ten minutes; turning the feature off is not", () => {
+    const w = driver(docOf("ceh-blind-sqli-search"));
+    w.task("wafBlock");
+    assert.equal(w.value("injectable"), false);
+    while (w.minutes() < 14) w.task("watch");
+    assert.equal(w.value("injectable"), true);
+    const f = driver(docOf("ceh-blind-sqli-search"));
+    f.task("flagOff");
+    while (f.minutes() < 30) f.task("watch");
+    assert.equal(f.value("injectable"), false);
+    assert.equal(f.value("enumAt"), null);
+  });
+
+  test("CEH SQLi: a least-privilege login keeps the customers table out of reach even while injectable", () => {
+    const d = driver(docOf("ceh-blind-sqli-search"));
+    d.task("leastPriv");
+    while (d.minutes() < 55) d.task("watch");
+    assert.equal(d.value("injectable"), true);
+    assert.equal(d.value("dumpStartAt"), null);
   });
 });
