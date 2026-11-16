@@ -6,6 +6,7 @@ import { isTermsRequired, LEGAL_VERSION_HEADER, TERMS_VERSION } from "../lib/leg
 import { isSignedOutAuthRoute, refreshOutcome, type RefreshResult } from "../lib/sessionStore.ts";
 import { isStudyNoticeRequired, studyNoticeGate } from "../lib/studyNotice.ts";
 import { askMatureConfirmation, hasMatureContentHandler, MatureContentBlockedError, MatureContentDeclinedError, matureRefusalTarget } from "../lib/matureContent.ts";
+import { DEVICE_ID_HEADER, isDeviceId } from "../lib/deviceId.ts";
 import { APP_PLATFORM_HEADER, APP_VERSION, APP_VERSION_HEADER, appHeaders, readUpdateRequired, type AppIdentity, type UpdateRequired } from "../lib/appVersion.ts";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
@@ -104,6 +105,13 @@ let identityHeaders: Record<string, string> = { [APP_VERSION_HEADER]: `${APP_VER
 
 export function setAppIdentity(identity: AppIdentity): void {
   identityHeaders = appHeaders(identity);
+}
+
+// REQ-306: this device's random id (src/updates/deviceIdentity.ts), so a new
+// sign-in on the same device replaces its older session.
+let deviceIdHeader: Record<string, string> = {};
+export function setDeviceId(id: string | null): void {
+  deviceIdHeader = id && isDeviceId(id) ? { [DEVICE_ID_HEADER]: id } : {};
 }
 
 // REQ-192: the web app's refresh token is an httpOnly cookie the server
@@ -221,6 +229,7 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
         "Content-Type": "application/json",
         [CLIENT_PROTOCOL_HEADER]: String(CLIENT_PROTOCOL),
         ...identityHeaders,
+        ...deviceIdHeader,
         [LEGAL_VERSION_HEADER]: TERMS_VERSION,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers ?? {}),

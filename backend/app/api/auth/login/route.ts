@@ -2,11 +2,11 @@ import { queryOne } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { verifyPassword, verifyDummyPassword } from "@/lib/auth/passwords";
 import { consumeRateLimit, refundRateLimit, recordAuthEvent, RateLimitError, LOGIN_IP_EVENT, LOGIN_IP_LIMIT, ipCounterKey } from "@/lib/auth/rateLimit";
-import { getClientIp, getUserAgent } from "@/lib/auth/util";
+import { getClientIp, getDeviceId, getUserAgent } from "@/lib/auth/util";
 import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
 import { mfaStepRequired } from "@/lib/auth/mfaMethodOff";
 import { completeLogin } from "@/lib/auth/session";
-import { sessionResponse } from "@/lib/auth/refreshCookie";
+import { isWebClient, sessionResponse } from "@/lib/auth/refreshCookie";
 import {
   reserveLoginAttempt,
   clearLoginFailures,
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const meta = { deviceLabel: typeof deviceLabel === "string" ? deviceLabel : null, userAgent, ip };
+    const meta = { deviceLabel: typeof deviceLabel === "string" ? deviceLabel : null, userAgent, ip, deviceId: getDeviceId(req), web: isWebClient(req) };
 
     if (mfaStepRequired(user)) {
       await recordAuthEvent("login_mfa_challenge", normalizedEmail, { ip, userId: user.id });
