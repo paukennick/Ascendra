@@ -1,0 +1,1431 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "fstab-uuid-typo-emergency",
+  "title": "Outage: the file server boots to emergency mode",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "files1:~#",
+      "lines": [
+        {
+          "id": "emerg",
+          "text": "07:52 console: You are in emergency mode. Give root password for maintenance",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "crews",
+          "text": "08:30 field crews: survey uploads to files1 fail (connection refused)",
+          "when": "not isNull(crewFailAt)",
+          "at": "timeAt(crewFailAt)",
+          "error": "true"
+        },
+        {
+          "id": "up",
+          "text": "survey-api: listening on :8080",
+          "when": "not isNull(bootedAt)",
+          "at": "timeAt(bootedAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "host",
+          "label": "files1",
+          "spokenLabel": "the file server files1",
+          "kind": "Linux file server",
+          "status": "{booted ? \"Booted to multi-user\" : \"Emergency mode\"}{rootRw ? \"\" : \"; root mounted read-only\"}",
+          "tone": "booted ? \"up\" : \"down\""
+        },
+        {
+          "id": "disk",
+          "label": "/dev/vdb1",
+          "spokenLabel": "the survey data disk",
+          "kind": "XFS data disk",
+          "status": "{repairedLog ? \"Log zeroed by xfs_repair -L\" : \"Healthy\"}{dataOk ? \"; mounted on /srv/survey\" : \"; not mounted\"}",
+          "tone": "repairedLog ? \"degraded\" : dataOk ? \"up\" : \"out\""
+        },
+        {
+          "id": "fstab",
+          "label": "/etc/fstab",
+          "spokenLabel": "the fstab file",
+          "kind": "Boot-time mounts",
+          "status": "{commentedOut ? \"/srv/survey line commented out\" : isNull(uuidFixedAt) ? \"/srv/survey line names UUID ...a91c...\" : \"/srv/survey line names UUID ...a19c...\"}{staleUnits ? \"; systemd not reloaded\" : \"\"}",
+          "tone": "dataLine and not staleUnits ? \"up\" : commentedOut ? \"degraded\" : \"down\""
+        },
+        {
+          "id": "api",
+          "label": "survey-api",
+          "spokenLabel": "the survey upload API",
+          "kind": "Service",
+          "status": "{dataOk ? \"Running, storing on /srv/survey\" : booted ? \"Running, storing on the root filesystem\" : \"Not started\"}",
+          "tone": "dataOk ? \"up\" : booted ? \"degraded\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "mount",
+          "from": "disk",
+          "to": "host",
+          "label": "/srv/survey mount",
+          "status": "{dataOk ? \"Mounted\" : \"Not mounted\"}",
+          "tone": "dataOk ? \"up\" : \"down\""
+        },
+        {
+          "id": "store",
+          "from": "api",
+          "to": "disk",
+          "label": "Uploads stored",
+          "status": "{dataOk ? \"On the survey disk\" : booted ? \"On the root filesystem instead\" : \"No service\"}",
+          "tone": "dataOk ? \"up\" : booted ? \"degraded\" : \"down\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "boots",
+          "label": "Failed boot attempts",
+          "value": "{failedBoots}"
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshoot and recover a system that will not boot because of a bad fstab entry, a damaged filesystem or a failing service, using the emergency and rescue targets",
+  "secondaryObjectives": [
+    "Mount filesystems persistently in /etc/fstab by UUID, and read and set values in the virtual filesystems /proc and /sys",
+    "Create, check and repair ext4 and XFS filesystems and troubleshoot mount failures",
+    "Troubleshoot a service that fails to start using systemctl status, journalctl and its unit file"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation Certified System Administrator (LFCS): Domains & Competencies, Operations Deployment 25%",
+      "checkedAt": "2026-11-14",
+      "url": "https://training.linuxfoundation.org/certification/linux-foundation-certified-sysadmin-lfcs/",
+      "note": "Relevant text: Operations Deployment, 'Recover from hardware, operating system, or filesystem failures'; Storage, 'Create, manage, and troubleshoot filesystems'. Read as the page's HTML on 2026-11-14 (page last modified 2026-10-30)."
+    },
+    {
+      "cite": "systemd.special(7), emergency.target (man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man7/systemd.special.7.html",
+      "note": "Relevant text: emergency.target 'starts an emergency shell on the main console' and 'does not pull in other services or mounts'; it 'allows starting individual units in order to continue the boot process in steps'; 'depending on how emergency.target is reached, the root file system might be mounted read-only or read-write'. Read in full 2026-11-14. That a required mount's failure ends in emergency mode is how this case models local-fs.target failing (FLAG: the OnFailure= wiring itself was not quoted from a page read)."
+    },
+    {
+      "cite": "systemd.mount(5) and systemd-fstab-generator(8) (man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man5/systemd.mount.5.html",
+      "note": "Relevant text: 'With nofail, this mount will be only wanted, not required, by local-fs.target'; x-systemd.device-timeout= sets 'how long systemd should wait for a device to show up before giving up on an entry from /etc/fstab'. systemd-fstab-generator(8): it 'translates /etc/fstab ... into native systemd units early at boot and when configuration of the system manager is reloaded' -- so after editing fstab, systemctl daemon-reload is what makes systemd use the new entry. Read in full 2026-11-14. The 90-second wait shown is systemd's usual device timeout (FLAG: the default value was not read on these pages)."
+    },
+    {
+      "cite": "fstab(5), blkid(8) and mount(8) (man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man5/fstab.5.html",
+      "note": "Relevant text: fstab names a filesystem by UUID=; blkid prints a device's UUID and TYPE; mount -a mounts the fstab entries not yet mounted. Read in full 2026-11-14. Command output layouts are authored in each tool's style."
+    },
+    {
+      "cite": "xfs_repair(8) (man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man8/xfs_repair.8.html",
+      "note": "Relevant text: '-L Force Log Zeroing. Forces xfs_repair to zero the log even if it is dirty (contains metadata changes). When using this option the filesystem will likely appear to be corrupt, and can cause the loss of user files and/or data.' Read in full 2026-11-14."
+    }
+  ],
+  "brief": {
+    "situation": "You administer files1, the file server at Skykomish Survey (fictional). It was rebooted at 07:50 for a kernel update and is sitting in emergency mode on the console. Yesterday a colleague added the new survey data disk to /etc/fstab. At 08:30 the field crews start uploading the day's measurements to the survey-api service on files1. Get the host booted with its data where it belongs, without damaging anything.",
+    "handover": [
+      "The root filesystem is mounted read-only in emergency mode (the kernel command line has ro).",
+      "survey-api stores uploads under /srv/survey, which should be the XFS disk /dev/vdb1."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments are fixed.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, disk or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "07:52",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "crewDelay": {
+      "value": 2280,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. The crews start uploading at 08:30, 38 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "rootRw": {
+      "type": "bool",
+      "init": false
+    },
+    "journalAt": {
+      "type": "time",
+      "init": null
+    },
+    "fstabAt": {
+      "type": "time",
+      "init": null
+    },
+    "blkidAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstEditAt": {
+      "type": "time",
+      "init": null
+    },
+    "uuidFixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "commentedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "staleUnits": {
+      "type": "bool",
+      "init": false
+    },
+    "mountOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "repairedLog": {
+      "type": "bool",
+      "init": false
+    },
+    "bootedAt": {
+      "type": "time",
+      "init": null
+    },
+    "failedBoots": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "crewFailAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "uuid",
+        "disk",
+        "root"
+      ],
+      "init": "none"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "uuid",
+        "comment",
+        "repair"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "dataLine": {
+      "expr": "not isNull(uuidFixedAt) and not commentedOut"
+    },
+    "booted": {
+      "expr": "not isNull(bootedAt)"
+    },
+    "dataOk": {
+      "expr": "not isNull(bootedAt) and not isNull(uuidFixedAt) and not commentedOut"
+    },
+    "faultsAdded": {
+      "expr": "(commentedOut ? 1 : 0) + (repairedLog ? 1 : 0)"
+    },
+    "evidenceFirst": {
+      "expr": "not isNull(evidenceAt) and (isNull(firstEditAt) or timeAt(evidenceAt) <= timeAt(firstEditAt))"
+    },
+    "testedFirst": {
+      "expr": "not isNull(mountOkAt) and not isNull(bootedAt) and timeAt(mountOkAt) <= timeAt(bootedAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "journal",
+        "fstab",
+        "blkid",
+        "lsblk",
+        "remountRw",
+        "fixUuid",
+        "commentOut",
+        "daemonReload",
+        "mountA",
+        "xfsRepairL",
+        "continueBoot",
+        "reboot",
+        "health",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "journal": {
+      "label": "journalctl -xb -p err",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "journalAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "files1:~# journalctl -xb -p err\n[ TIME ] Timed out waiting for device /dev/disk/by-uuid/5e2b9c41-a91c-4f07-b6d2-8c0e3f71d9a4.\nsystemd[1]: Dependency failed for srv-survey.mount - /srv/survey.\nsystemd[1]: Dependency failed for local-fs.target - Local File Systems."
+        },
+        {
+          "finding": "The boot stopped waiting for a disk UUID that no device has, so the /srv/survey mount and local-fs.target failed."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "fstab": {
+      "label": "cat /etc/fstab",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "fstabAt",
+          "to": "t"
+        },
+        {
+          "if": "not isNull(blkidAt)",
+          "then": [
+            {
+              "if": "isNull(evidenceAt)",
+              "then": [
+                {
+                  "set": "evidenceAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "output": "files1:~# cat /etc/fstab\nUUID=0b7a4f2e-61c3-4d0a-9e55-2f8d1c7b3a60  /           xfs   defaults  0 0\nUUID=9c3e1d77-08b2-4a6f-bd41-5a2e6f0c8b19  /boot       xfs   defaults  0 0\n{commentedOut ? \"#\" : \"\"}UUID={isNull(uuidFixedAt) ? \"5e2b9c41-a91c-4f07-b6d2-8c0e3f71d9a4\" : \"5e2b9c41-a19c-4f07-b6d2-8c0e3f71d9a4\"}  /srv/survey  xfs   defaults  0 0"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "blkid": {
+      "label": "blkid /dev/vdb1",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "blkidAt",
+          "to": "t"
+        },
+        {
+          "if": "not isNull(fstabAt)",
+          "then": [
+            {
+              "if": "isNull(evidenceAt)",
+              "then": [
+                {
+                  "set": "evidenceAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "output": "files1:~# blkid /dev/vdb1\n/dev/vdb1: UUID=\"5e2b9c41-a19c-4f07-b6d2-8c0e3f71d9a4\" BLOCK_SIZE=\"4096\" TYPE=\"xfs\" PARTUUID=\"7f0c2d11-01\""
+        },
+        {
+          "if": "not isNull(fstabAt) and isNull(uuidFixedAt)",
+          "then": [
+            {
+              "finding": "fstab says a91c where the disk's UUID says a19c: two characters swapped."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "lsblk": {
+      "label": "lsblk -f",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "files1:~# lsblk -f\nNAME   FSTYPE FSVER LABEL UUID                                 MOUNTPOINTS\nvda\n├─vda1 xfs                0b7a4f2e-61c3-4d0a-9e55-2f8d1c7b3a60 /\n└─vda2 xfs                9c3e1d77-08b2-4a6f-bd41-5a2e6f0c8b19 /boot\nvdb\n└─vdb1 xfs                5e2b9c41-a19c-4f07-b6d2-8c0e3f71d9a4 {dataOk ? \"/srv/survey\" : \"\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "remountRw": {
+      "label": "mount -o remount,rw /",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "rootRw",
+          "to": "true"
+        },
+        {
+          "output": "files1:~# mount -o remount,rw /"
+        },
+        {
+          "log": "The root filesystem is writable, so /etc/fstab can be edited.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fixUuid": {
+      "label": "sed -i 's/5e2b9c41-a91c/5e2b9c41-a19c/' /etc/fstab",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "files1:~# sed -i 's/5e2b9c41-a91c/5e2b9c41-a19c/' /etc/fstab"
+        },
+        {
+          "if": "rootRw",
+          "then": [
+            {
+              "if": "isNull(firstEditAt)",
+              "then": [
+                {
+                  "set": "firstEditAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "set": "staleUnits",
+              "to": "true"
+            },
+            {
+              "if": "isNull(uuidFixedAt)",
+              "then": [
+                {
+                  "set": "uuidFixedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The /srv/survey line now names the disk's real UUID.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "output": "files1:~# sed -i ...\nsed: couldn't open temporary file /etc/sedX4kQ2a: Read-only file system"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "commentOut": {
+      "label": "sed -i 's|^UUID=.* /srv/survey|#&|' /etc/fstab",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "files1:~# sed -i 's|^UUID=.* /srv/survey|#&|' /etc/fstab"
+        },
+        {
+          "if": "rootRw",
+          "then": [
+            {
+              "if": "isNull(firstEditAt)",
+              "then": [
+                {
+                  "set": "firstEditAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "set": "staleUnits",
+              "to": "true"
+            },
+            {
+              "set": "commentedOut",
+              "to": "true"
+            },
+            {
+              "log": "The /srv/survey line is commented out: the boot will no longer wait for it, and nothing will mount it.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "output": "files1:~# sed -i ...\nsed: couldn't open temporary file /etc/sedX4kQ2a: Read-only file system"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "daemonReload": {
+      "label": "systemctl daemon-reload",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "staleUnits",
+          "to": "false"
+        },
+        {
+          "output": "files1:~# systemctl daemon-reload"
+        },
+        {
+          "log": "systemd regenerated its mount units from the current /etc/fstab.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "mountA": {
+      "label": "mount -a",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "dataLine",
+          "then": [
+            {
+              "output": "files1:~# mount -a\nfiles1:~# findmnt /srv/survey\nTARGET      SOURCE    FSTYPE OPTIONS\n/srv/survey /dev/vdb1 xfs    rw,relatime"
+            },
+            {
+              "if": "isNull(mountOkAt)",
+              "then": [
+                {
+                  "set": "mountOkAt",
+                  "to": "t"
+                },
+                {
+                  "log": "/srv/survey mounts from the corrected fstab line.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "if": "commentedOut",
+              "then": [
+                {
+                  "output": "files1:~# mount -a\nfiles1:~# findmnt /srv/survey\nfiles1:~#"
+                }
+              ],
+              "else": [
+                {
+                  "output": "files1:~# mount -a\nmount: /srv/survey: can't find UUID=5e2b9c41-a91c-4f07-b6d2-8c0e3f71d9a4."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "xfsRepairL": {
+      "label": "xfs_repair -L /dev/vdb1",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "repairedLog",
+          "to": "true"
+        },
+        {
+          "if": "isNull(firstEditAt)",
+          "then": [
+            {
+              "set": "firstEditAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "files1:~# xfs_repair -L /dev/vdb1\nPhase 1 - find and verify superblock...\nzeroing log...\nPhase 7 - verify and correct link counts...\ndone"
+        },
+        {
+          "log": "The XFS log on the survey disk was zeroed although the filesystem was never damaged: uploads from the last minutes before the reboot may be lost.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "continueBoot": {
+      "label": "systemctl default",
+      "group": "Fix",
+      "available": "not busy and isNull(bootedAt)",
+      "why": "Wait for the running command to finish, or the host has already booted.",
+      "effects": [
+        {
+          "output": "files1:~# systemctl default"
+        },
+        {
+          "if": "dataLine and not staleUnits",
+          "then": [
+            {
+              "if": "isNull(bootedAt)",
+              "then": [
+                {
+                  "set": "bootedAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "set": "rootRw",
+              "to": "true"
+            },
+            {
+              "output": "[  OK  ] Mounted srv-survey.mount - /srv/survey.\n[  OK  ] Reached target local-fs.target - Local File Systems.\n[  OK  ] Started survey-api.service - Survey upload API.\n[  OK  ] Reached target multi-user.target - Multi-User System."
+            },
+            {
+              "log": "files1 finished booting with /srv/survey mounted; survey-api is running.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "if": "commentedOut and not staleUnits",
+              "then": [
+                {
+                  "if": "isNull(bootedAt)",
+                  "then": [
+                    {
+                      "set": "bootedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "set": "rootRw",
+                  "to": "true"
+                },
+                {
+                  "output": "[  OK  ] Reached target local-fs.target - Local File Systems.\n[  OK  ] Started survey-api.service - Survey upload API.\n[  OK  ] Reached target multi-user.target - Multi-User System."
+                },
+                {
+                  "log": "files1 booted, but /srv/survey is not mounted: survey-api writes uploads into the empty directory on the root filesystem.",
+                  "kind": "bad"
+                }
+              ],
+              "else": [
+                {
+                  "add": "failedBoots",
+                  "by": "1"
+                },
+                {
+                  "set": "rootRw",
+                  "to": "false"
+                },
+                {
+                  "output": "[ TIME ] Timed out waiting for device /dev/disk/by-uuid/5e2b9c41-a91c-4f07-b6d2-8c0e3f71d9a4.\n[DEPEND] Dependency failed for srv-survey.mount - /srv/survey.\n[DEPEND] Dependency failed for local-fs.target - Local File Systems.\nYou are in emergency mode. Give root password for maintenance"
+                },
+                {
+                  "if": "staleUnits",
+                  "then": [
+                    {
+                      "log": "systemd still used the mount unit it generated from the old fstab: the generator reruns at boot or on systemctl daemon-reload.",
+                      "kind": "bad"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "reboot": {
+      "label": "systemctl reboot",
+      "group": "Fix",
+      "available": "not busy and isNull(bootedAt)",
+      "why": "Wait for the running command to finish, or the host has already booted.",
+      "effects": [
+        {
+          "output": "files1:~# systemctl reboot"
+        },
+        {
+          "if": "dataLine and not staleUnits",
+          "then": [
+            {
+              "if": "isNull(bootedAt)",
+              "then": [
+                {
+                  "set": "bootedAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "set": "rootRw",
+              "to": "true"
+            },
+            {
+              "output": "[  OK  ] Mounted srv-survey.mount - /srv/survey.\n[  OK  ] Reached target local-fs.target - Local File Systems.\n[  OK  ] Started survey-api.service - Survey upload API.\n[  OK  ] Reached target multi-user.target - Multi-User System."
+            },
+            {
+              "log": "files1 finished booting with /srv/survey mounted; survey-api is running.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "if": "commentedOut and not staleUnits",
+              "then": [
+                {
+                  "if": "isNull(bootedAt)",
+                  "then": [
+                    {
+                      "set": "bootedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "set": "rootRw",
+                  "to": "true"
+                },
+                {
+                  "output": "[  OK  ] Reached target local-fs.target - Local File Systems.\n[  OK  ] Started survey-api.service - Survey upload API.\n[  OK  ] Reached target multi-user.target - Multi-User System."
+                },
+                {
+                  "log": "files1 booted, but /srv/survey is not mounted: survey-api writes uploads into the empty directory on the root filesystem.",
+                  "kind": "bad"
+                }
+              ],
+              "else": [
+                {
+                  "add": "failedBoots",
+                  "by": "1"
+                },
+                {
+                  "set": "rootRw",
+                  "to": "false"
+                },
+                {
+                  "output": "[ TIME ] Timed out waiting for device /dev/disk/by-uuid/5e2b9c41-a91c-4f07-b6d2-8c0e3f71d9a4.\n[DEPEND] Dependency failed for srv-survey.mount - /srv/survey.\n[DEPEND] Dependency failed for local-fs.target - Local File Systems.\nYou are in emergency mode. Give root password for maintenance"
+                },
+                {
+                  "if": "staleUnits",
+                  "then": [
+                    {
+                      "log": "systemd still used the mount unit it generated from the old fstab: the generator reruns at boot or on systemctl daemon-reload.",
+                      "kind": "bad"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "health": {
+      "label": "curl -s localhost:8080/health",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "files1:~# curl -s localhost:8080/health\n{booted ? (dataOk ? \"status ok; storage /dev/vdb1 on /srv/survey\" : \"status ok; storage /dev/vda1 on / (not the survey disk)\") : \"curl: (7) Failed to connect to localhost port 8080: Connection refused\"}"
+        },
+        {
+          "if": "dataOk and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 300",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "files1:~# sleep 300"
+        },
+        {
+          "log": "You wait 5 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "uuid",
+                  "label": "A mistyped UUID in the new /etc/fstab line for /srv/survey"
+                },
+                {
+                  "value": "disk",
+                  "label": "The survey disk failed"
+                },
+                {
+                  "value": "root",
+                  "label": "The root filesystem was corrupted"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Fix",
+              "options": [
+                {
+                  "value": "uuid",
+                  "label": "Corrected the UUID, reloaded systemd, tested with mount -a, continued the boot"
+                },
+                {
+                  "value": "comment",
+                  "label": "Commented the line out so the host boots"
+                },
+                {
+                  "value": "repair",
+                  "label": "Repaired the XFS filesystem"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "log": "Recorded: cause {cause}, fix {fix}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "crews",
+      "when": "t >= crewDelay and phase == \"incident\" and not dataOk",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "crewFailAt",
+          "to": "t"
+        },
+        {
+          "log": "08:30: the field crews' uploads to files1 are failing or landing in the wrong place.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: why files1 stopped in emergency mode, how you proved it, and why your fix is safe to leave in place.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "Names the mistyped UUID on the /srv/survey fstab line: systemd waited for a device that does not exist, the required mount failed and local-fs.target failed, so the boot stopped in emergency mode.",
+          "modelAnswer": "The new /srv/survey line named UUID ...a91c..., but the disk's UUID is ...a19c.... systemd waited for that device, gave up, failed the mount and local-fs.target, and the boot ended in emergency mode."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "Uses the boot journal, or compares fstab with blkid, before changing anything; does not assume a failed disk or a corrupt filesystem.",
+          "modelAnswer": "journalctl -xb -p err showed the timeout for a UUID no device has; blkid /dev/vdb1 showed the real UUID differing from the fstab line by two swapped characters."
+        },
+        {
+          "label": "Fix",
+          "criteria": "Remounts root read-write, corrects the UUID (does not comment the line out or run xfs_repair -L on a healthy disk), runs systemctl daemon-reload, tests with mount -a and findmnt, then continues the boot and checks the service stores on /srv/survey.",
+          "modelAnswer": "mount -o remount,rw /, fix the UUID, systemctl daemon-reload so the generated mount unit matches, mount -a and findmnt to prove the line works, then systemctl default and a health check showing /dev/vdb1 on /srv/survey. Commenting the line out boots the host with uploads landing on /; xfs_repair -L destroys log data on a disk that was never damaged."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Booted with the data mounted well before the 08:30 uploads; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No damage left behind: the data line commented out, or the XFS log zeroed."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not dataOk",
+      "class": "harm",
+      "rationale": "Closing with the survey disk unmounted leaves uploads failing or landing on the root filesystem; it is never a safe outcome.",
+      "source": {
+        "cite": "systemd.special(7), emergency.target (man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man7/systemd.special.7.html",
+        "note": "Relevant text: emergency.target 'starts an emergency shell on the main console' and 'does not pull in other services or mounts'; it 'allows starting individual units in order to continue the boot process in steps'; 'depending on how emergency.target is reached, the root file system might be mounted read-only or read-write'. Read in full 2026-11-14. That a required mount's failure ends in emergency mode is how this case models local-fs.target failing (FLAG: the OnFailure= wiring itself was not quoted from a page read)."
+      }
+    }
+  },
+  "endings": {
+    "dataLost": {
+      "label": "Zeroed the log of a healthy disk",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and repairedLog",
+      "narrative": "xfs_repair -L zeroed the survey disk's log although the filesystem was never damaged; recent metadata changes may be gone."
+    },
+    "rootFilling": {
+      "label": "Booted without the data disk",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and commentedOut and booted",
+      "narrative": "files1 is up, but /srv/survey is just a directory on the root filesystem: today's uploads land there, out of the disk's backups, until root fills."
+    },
+    "crewsFailed": {
+      "label": "The crews' uploads failed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(crewFailAt)",
+      "narrative": "At 08:30 the field crews could not upload to files1."
+    },
+    "stillDown": {
+      "label": "Closed with the host still down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not dataOk",
+      "narrative": "The outage was closed while files1 was not serving uploads from its data disk."
+    },
+    "fixed": {
+      "label": "Fixed at the fstab line",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and dataOk and timeAt(bootedAt) <= restoreWindow and faultsAdded <= newFaults and evidenceFirst and testedFirst and not isNull(verifiedAt)",
+      "narrative": "The UUID is corrected, systemd reloaded, the mount proven before the boot, and survey-api stores on /srv/survey."
+    },
+    "fixedGaps": {
+      "label": "Working, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "files1 serves uploads from its data disk, but the fix was late, guessed, untested before the boot, or unverified."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "dataLost",
+    "rootFilling",
+    "crewsFailed",
+    "stillDown",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Found the bad fstab line (journal, or fstab against blkid) before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceFirst",
+            "score": "met",
+            "why": "The evidence was read first."
+          },
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "partial",
+            "why": "The evidence was read only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither the boot journal nor the UUIDs were compared."
+          }
+        ]
+      },
+      {
+        "id": "rightFix",
+        "label": "Corrected the UUID without commenting the line out or zeroing the log",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "repairedLog",
+            "score": "missed",
+            "why": "xfs_repair -L was run on a healthy disk."
+          },
+          {
+            "when": "commentedOut",
+            "score": "missed",
+            "why": "The /srv/survey line was commented out."
+          },
+          {
+            "when": "not isNull(uuidFixedAt)",
+            "score": "met",
+            "why": "The UUID was corrected."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The fstab line was never fixed."
+          }
+        ]
+      },
+      {
+        "id": "tested",
+        "label": "Proved the mount with mount -a before continuing the boot",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "testedFirst",
+            "score": "met",
+            "why": "mount -a and findmnt worked before the boot."
+          },
+          {
+            "when": "not isNull(mountOkAt)",
+            "score": "partial",
+            "why": "Tested only after the boot."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The fstab line was never tested."
+          }
+        ]
+      },
+      {
+        "id": "fast",
+        "label": "Booted with the data mounted within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dataOk and timeAt(bootedAt) <= restoreWindow",
+            "score": "met",
+            "why": "Booted {timeAt(bootedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "dataOk",
+            "score": "partial",
+            "why": "Booted, but {timeAt(bootedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never booted with the data disk mounted."
+          }
+        ]
+      },
+      {
+        "id": "noBlindBoots",
+        "label": "No boot attempts that could not succeed",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "failedBoots == 0",
+            "score": "met",
+            "why": "Every boot attempt succeeded."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{failedBoots} boot attempt(s) ran into the same timeout."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Checked the service stores on the data disk",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The health check showed /dev/vdb1 on /srv/survey."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked where uploads are stored."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the fix accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"uuid\" and fixDoc == \"uuid\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"uuid\"",
+            "score": "partial",
+            "why": "The cause is right; the fix recorded is not the one that should stand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, evidence and fix",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToBoot",
+        "label": "Minutes until booted with the data disk",
+        "value": "dataOk ? timeAt(bootedAt) / 60 : -1",
+        "format": "number",
+        "expert": "12 or less"
+      },
+      {
+        "id": "failedK",
+        "label": "Failed boot attempts",
+        "value": "failedBoots",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "faultsK",
+        "label": "Damage left at close",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-3 min",
+        "text": "journalctl -xb -p err: the boot timed out waiting for one UUID, and the /srv/survey mount failed."
+      },
+      {
+        "at": "3-5 min",
+        "text": "cat /etc/fstab and blkid /dev/vdb1: a91c against a19c."
+      },
+      {
+        "at": "5-9 min",
+        "text": "mount -o remount,rw /, correct the UUID, systemctl daemon-reload, mount -a and findmnt /srv/survey."
+      },
+      {
+        "at": "9-12 min",
+        "text": "systemctl default, then a health check that shows storage on /dev/vdb1."
+      },
+      {
+        "at": "After",
+        "text": "Record the typo; suggest testing fstab changes with mount -a (and findmnt --verify) before any reboot."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: fixed at the fstab line",
+        "body": "You read why the boot stopped, fixed the one wrong value, made systemd see it, proved it with mount -a, and only then continued the boot."
+      },
+      "fixedGaps": {
+        "headline": "Working, with gaps",
+        "body": "files1 serves uploads from its disk. The criteria show what it cost: time, a guess before the evidence, a boot that had to fail first, or no check afterward."
+      },
+      "dataLost": {
+        "headline": "Data put at risk",
+        "body": "The disk was fine; only the fstab line was wrong. xfs_repair -L is a last resort for a damaged log, and it discards metadata changes."
+      },
+      "rootFilling": {
+        "headline": "Booted without the data disk",
+        "body": "Commenting the line out gets a login prompt, but the service writes into an empty directory on /. Fix the line instead."
+      },
+      "crewsFailed": {
+        "headline": "The crews' uploads failed",
+        "body": "The boot journal names the missing UUID in seconds; comparing it with blkid finds the typo well before 08:30."
+      },
+      "stillDown": {
+        "headline": "Closed too soon",
+        "body": "Close only after the host has booted with /srv/survey mounted and the service is answering."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Emergency mode right after a reboot that followed an fstab change points at that change. The journal shows the boot waiting for a UUID no device has; blkid shows the disk's real UUID. Remount root read-write, correct the UUID, run systemctl daemon-reload so systemd regenerates the mount unit, prove the line with mount -a and findmnt, then continue the boot and check the service stores on /srv/survey."
+  }
+}

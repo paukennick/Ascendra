@@ -1,0 +1,1391 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cissp-ransomware-recovery-site",
+  "title": "02:10: ransomware in the primary data center",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "enc",
+          "severity": "critical",
+          "title": "EDR: mass file encryption on the primary VM cluster since 02:00 (svc-admin2, a domain administrator)",
+          "when": "true",
+          "at": "0",
+          "status": "{isNull(primIsoAt) ? \"Spreading\" : \"Primary isolated\"}",
+          "open": "isNull(primIsoAt)"
+        },
+        {
+          "id": "repl",
+          "severity": "high",
+          "title": "Warm site: replication of the Claims servers is running (5 minutes behind)",
+          "when": "true",
+          "at": "0",
+          "status": "{not isNull(replicaEncryptedAt) ? \"Replica now holds encrypted data\" : not isNull(replPausedAt) ? \"Paused at the 01:55 point\" : \"Running\"}",
+          "open": "isNull(replPausedAt) and isNull(replicaEncryptedAt)"
+        },
+        {
+          "id": "bkp",
+          "severity": "high",
+          "title": "Backup server BKP01: svc-admin2 signed in",
+          "when": "true",
+          "at": "0",
+          "status": "{not isNull(backupGoneAt) ? \"Backups deleted\" : not isNull(backupIsoAt) ? \"Disconnected from the domain\" : \"Exposed\"}",
+          "open": "isNull(backupIsoAt) and isNull(backupGoneAt)"
+        },
+        {
+          "id": "fs",
+          "severity": "high",
+          "title": "EDR: encryption reached the file-server cluster",
+          "when": "not isNull(fileSrvAt)",
+          "at": "timeAt(fileSrvAt)",
+          "status": "Encrypted",
+          "open": "false"
+        },
+        {
+          "id": "reinf",
+          "severity": "critical",
+          "title": "Warm site: svc-admin2 signed in and encryption started on the failed-over Claims servers",
+          "when": "not isNull(reinfectAt)",
+          "at": "timeAt(reinfectAt)",
+          "status": "Active",
+          "open": "true"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "EDR",
+          "text": "02:00 svc-admin2 pushed a scheduled task to 140 virtual machines on the primary cluster",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "VPN log",
+          "text": "01:41 svc-admin2 connected from 198.51.100.200",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e3",
+          "source": "BIA register",
+          "text": "Claims Tier 1 (RTO 4 h, RPO 15 min); Website Tier 2 (RTO 24 h); Payroll Tier 3 (RTO 72 h)",
+          "when": "not isNull(assessAt)",
+          "at": "timeAt(assessAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Warm site",
+          "text": "{isNull(replicaEncryptedAt) ? \"Replica check: last write 01:55, no encrypted files, no svc-admin2 activity\" : \"Replica check: the replica holds encrypted files from 02:00 onward\"}",
+          "when": "not isNull(replicaCheckedAt)",
+          "at": "timeAt(replicaCheckedAt)"
+        },
+        {
+          "id": "e5",
+          "source": "Directory",
+          "text": "Privileged accounts reset; krbtgt reset twice; VPN access for service accounts removed",
+          "when": "not isNull(identityAt)",
+          "at": "timeAt(identityAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Backup server",
+          "text": "svc-admin2 deleted every backup set on BKP01",
+          "when": "not isNull(backupGoneAt)",
+          "at": "timeAt(backupGoneAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "prim",
+          "label": "Primary data center",
+          "spokenLabel": "Primary data center",
+          "kind": "VM cluster and file servers",
+          "status": "{isNull(primIsoAt) ? \"Encryption spreading\" : \"Isolated at the core switches\"}",
+          "tone": "isNull(primIsoAt) ? \"bad\" : \"held\""
+        },
+        {
+          "id": "warm",
+          "label": "Warm site",
+          "spokenLabel": "Warm recovery site",
+          "kind": "Claims replica",
+          "status": "{not isNull(reinfectAt) ? \"Encrypted after failover\" : claimsViaReplica ? \"Claims running here\" : not isNull(replicaEncryptedAt) ? \"Replica encrypted\" : not isNull(replPausedAt) ? \"Clean, paused at 01:55\" : \"Replicating\"}",
+          "tone": "not isNull(reinfectAt) or not isNull(replicaEncryptedAt) ? \"bad\" : claimsViaReplica ? \"ok\" : not isNull(replPausedAt) ? \"held\" : \"watch\""
+        },
+        {
+          "id": "bkp01",
+          "label": "BKP01",
+          "spokenLabel": "Backup server",
+          "kind": "Domain-joined backups (23:00)",
+          "status": "{not isNull(backupGoneAt) ? \"Deleted\" : not isNull(backupIsoAt) ? \"Disconnected; intact\" : \"Online, exposed\"}",
+          "tone": "not isNull(backupGoneAt) ? \"bad\" : not isNull(backupIsoAt) ? \"held\" : \"watch\""
+        },
+        {
+          "id": "imm",
+          "label": "Immutable copy",
+          "spokenLabel": "Immutable cloud copy",
+          "kind": "Object-locked backups (23:00)",
+          "status": "Intact; cannot be deleted before its lock expires",
+          "tone": "\"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "claims",
+          "label": "Claims",
+          "value": "{claimsBack ? \"back in service\" : isNull(failoverAt) and isNull(immAt) and isNull(onlineAt) ? \"down\" : \"recovery in progress\"}"
+        },
+        {
+          "id": "plan",
+          "label": "DR plan",
+          "value": "{isNull(declaredAt) ? \"no disaster declared\" : \"disaster declared; plan invoked\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Implement recovery strategies: backup storage, hot, warm and cold recovery sites, multiple processing sites, high availability and fault tolerance",
+  "secondaryObjectives": [
+    "Implement disaster recovery processes and test the plan with read-throughs, walkthroughs, simulations, parallel tests and full interruption tests",
+    "Prioritize business continuity requirements from a business impact analysis, including external dependencies"
+  ],
+  "sources": [
+    {
+      "cite": "ISC2, CISSP Certification Exam Outline (effective 2024-04-15), Domains 7 and 1",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.isc2.org/certifications/cissp/cissp-certification-exam-outline",
+      "note": "Headings read in the English PDF (footer v9/2024) on 2026-11-14 for REQ-271: '7.10 Implement recovery strategies: backup storage strategies; recovery site strategies; multiple processing sites; system resilience, high availability, QoS, and fault tolerance'; '7.11 Implement disaster recovery (DR) processes: response; personnel; communications; assessment; restoration; training and awareness; lessons learned'; '1.7 Identify, analyze, assess, prioritize, and implement Business Continuity (BC) requirements: business impact analysis (BIA); external dependencies'. The course's objective numbering is its own."
+    },
+    {
+      "cite": "CISA and MS-ISAC, #StopRansomware Guide (September 2023)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.cisa.gov/stopransomware/ransomware-guide",
+      "note": "Read 2026-11-14 through a summarizing fetch. Relevant text: 'Maintain offline, encrypted backups of critical data, and regularly test the availability and integrity of backups'; 'Some cloud vendors offer immutable storage solutions that can protect stored data'; 'Determine which systems were impacted, and immediately isolate them'; 'If several systems or subnets appear impacted, take the network offline at the switch level.'"
+    },
+    {
+      "cite": "NIST SP 800-34 Rev. 1, Contingency Planning Guide for Federal Information Systems (May 2010, updated November 11, 2010)",
+      "checkedAt": "2026-11-14",
+      "url": "https://csrc.nist.gov/pubs/sp/800/34/r1/upd1/final",
+      "note": "Read 2026-11-14 through a summarizing fetch of the CSRC page: final, not withdrawn. Its abstract says it helps 'determine contingency planning requirements and priorities'; the BIA, RTO, RPO and alternate-site terms used here are the guide's and the CISSP outline's vocabulary and were not re-read in the PDF. The tier table is the author's."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-14",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "Final, April 3, 2025; supersedes Rev. 2 (2012). The CSRC page was read 2026-11-14 through a summarizing fetch (title, date, status, abstract). The RS.MA, RS.MI, RS.AN and RS.CO outcome text used here was read in the PDF on 2026-11-11 for REQ-238 (docs/sims.md 22.11) and not re-read."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security manager on call at Pellham Mutual, a fictional insurer. At 02:00 ransomware began encrypting the primary data center's virtual machines using a stolen domain administrator account. Protect what you can recover from, bring the most important service back within its objectives, and write it up.",
+    "handover": [
+      "BIA tiers: Claims is Tier 1 (RTO 4 hours, RPO 15 minutes); the public website is Tier 2 (RTO 24 hours); Payroll is Tier 3 (RTO 72 hours; next pay run in 5 days).",
+      "Recovery options: a warm site with continuous replication of Claims (latest point only, about 5 minutes behind); a domain-joined backup server with last night's 23:00 backups (restore about 60 minutes); an immutable cloud copy of the same 23:00 backups (restore about 180 minutes).",
+      "A failover needs a declared disaster; the executive on call declares it on your recommendation."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you close the incident you notify, record it and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "02:10",
+    "tick": "1min",
+    "maxDuration": "300min",
+    "calendar": "clock"
+  },
+  "params": {
+    "spreadDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Fifteen minutes until the encryption reaches the file servers is the author's figure."
+      }
+    },
+    "replDelay": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Twenty minutes until replication carries encrypted data to the warm site is the author's figure (replication runs about 5 minutes behind)."
+      }
+    },
+    "backupDelay": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Thirty minutes until the attacker deletes the domain-joined backups is the author's figure."
+      }
+    },
+    "reinfectDelay": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Twenty-five minutes until a stolen administrator account still trusted at the warm site is used again is the author's figure."
+      }
+    },
+    "failoverDur": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Forty minutes to fail Claims over to the warm site is the author's figure."
+      }
+    },
+    "onlineDur": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Sixty minutes to restore Claims from the backup server is the author's figure."
+      }
+    },
+    "immDur": {
+      "value": 10800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "One hundred eighty minutes to restore Claims from the immutable copy is the author's figure."
+      }
+    },
+    "rtoClaims": {
+      "value": 14400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Claims' RTO of 4 hours is the fictional insurer's BIA figure."
+      }
+    },
+    "declareWindow": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Declaring within 30 minutes is the author's teaching figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "assessAt": {
+      "type": "time",
+      "init": null
+    },
+    "replPausedAt": {
+      "type": "time",
+      "init": null
+    },
+    "backupIsoAt": {
+      "type": "time",
+      "init": null
+    },
+    "primIsoAt": {
+      "type": "time",
+      "init": null
+    },
+    "declaredAt": {
+      "type": "time",
+      "init": null
+    },
+    "replicaCheckedAt": {
+      "type": "time",
+      "init": null
+    },
+    "identityAt": {
+      "type": "time",
+      "init": null
+    },
+    "failoverAt": {
+      "type": "time",
+      "init": null
+    },
+    "immAt": {
+      "type": "time",
+      "init": null
+    },
+    "onlineAt": {
+      "type": "time",
+      "init": null
+    },
+    "payrollAt": {
+      "type": "time",
+      "init": null
+    },
+    "commsAt": {
+      "type": "time",
+      "init": null
+    },
+    "fileSrvAt": {
+      "type": "time",
+      "init": null
+    },
+    "replicaEncryptedAt": {
+      "type": "time",
+      "init": null
+    },
+    "backupGoneAt": {
+      "type": "time",
+      "init": null
+    },
+    "reinfectAt": {
+      "type": "time",
+      "init": null
+    },
+    "offAt": {
+      "type": "time",
+      "init": null
+    },
+    "strategyDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "warmTier1",
+        "payrollFirst",
+        "rebuildAll"
+      ],
+      "init": "unset"
+    },
+    "testDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "simulation",
+        "none",
+        "fullNow"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "plan",
+        "all",
+        "nobody"
+      ],
+      "init": "unset"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "attackerActive": {
+      "expr": "isNull(primIsoAt) or isNull(identityAt) or not isNull(reinfectAt)"
+    },
+    "spread": {
+      "expr": "isNull(fileSrvAt) ? 0 : 1"
+    },
+    "claimsViaReplica": {
+      "expr": "not isNull(failoverAt) and isNull(reinfectAt)"
+    },
+    "claimsBack": {
+      "expr": "(claimsViaReplica and t >= timeAt(failoverAt) + failoverDur) or (not isNull(immAt) and t >= timeAt(immAt) + immDur) or (not isNull(onlineAt) and t >= timeAt(onlineAt) + onlineDur)"
+    },
+    "rtoMet": {
+      "expr": "(claimsViaReplica and timeAt(failoverAt) + failoverDur <= rtoClaims) or (not isNull(immAt) and timeAt(immAt) + immDur <= rtoClaims) or (not isNull(onlineAt) and timeAt(onlineAt) + onlineDur <= rtoClaims)"
+    },
+    "pointsSafe": {
+      "expr": "not isNull(replPausedAt) and isNull(replicaEncryptedAt) and isNull(backupGoneAt)"
+    },
+    "trustFirst": {
+      "expr": "not isNull(failoverAt) and not isNull(identityAt) and timeAt(identityAt) <= timeAt(failoverAt) and isNull(reinfectAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "assess",
+        "pauseRepl",
+        "isolateBackup",
+        "isolatePrimary",
+        "declare",
+        "checkReplica",
+        "identity",
+        "failover",
+        "restoreOnline",
+        "restoreImmutable",
+        "payroll",
+        "comms",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "assess": {
+      "label": "Assess: what is hit, and which BIA tier each system is",
+      "group": "Investigate",
+      "available": "not busy and isNull(assessAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "assessAt",
+          "to": "t"
+        },
+        {
+          "log": "You map what is encrypted against the BIA register.",
+          "kind": "act"
+        },
+        {
+          "finding": "Claims (Tier 1) is down. Its RPO of 15 minutes rules out last night's 23:00 backups; only the warm-site replica, paused before encrypted data reaches it, meets it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "pauseRepl": {
+      "label": "Pause replication to the warm site",
+      "group": "Contain",
+      "available": "not busy and isNull(replPausedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "replPausedAt",
+          "to": "t"
+        },
+        {
+          "log": "Replication stops. {isNull(replicaEncryptedAt) ? \"The replica holds the 01:55 point, before the encryption.\" : \"Too late: encrypted data has already replicated.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "isolateBackup": {
+      "label": "Disconnect backup server BKP01 from the domain network",
+      "group": "Contain",
+      "available": "not busy and isNull(backupIsoAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "backupIsoAt",
+          "to": "t"
+        },
+        {
+          "log": "{isNull(backupGoneAt) ? \"BKP01 is off the network with last night's backups intact.\" : \"BKP01 is off the network, but its backups are already gone.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "isolatePrimary": {
+      "label": "Isolate the primary data center at the core switches",
+      "group": "Contain",
+      "available": "not busy and isNull(primIsoAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "primIsoAt",
+          "to": "t"
+        },
+        {
+          "log": "The primary site is cut off at the switch level; encryption cannot reach anything else from there.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "declare": {
+      "label": "Recommend a disaster declaration; the executive on call invokes the DR plan",
+      "group": "Communicate",
+      "available": "not busy and isNull(declaredAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "declaredAt",
+          "to": "t"
+        },
+        {
+          "log": "The executive on call declares a disaster and invokes the DR plan; the recovery team is called in.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "checkReplica": {
+      "label": "Verify the warm-site replica is clean before using it",
+      "group": "Recover",
+      "available": "not busy and isNull(replicaCheckedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "replicaCheckedAt",
+          "to": "t"
+        },
+        {
+          "log": "You check the replica's last write time, files and sign-ins.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "identity": {
+      "label": "Rebuild trust: reset privileged accounts, reset krbtgt twice, remove service-account VPN access (30 min)",
+      "group": "Recover",
+      "available": "not busy and isNull(identityAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "identityAt",
+          "to": "t"
+        },
+        {
+          "log": "Every privileged password and the Kerberos key are reset, and svc-admin2's way in is closed. The stolen account no longer works anywhere.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "failover": {
+      "label": "Fail Claims over to the warm site (40 min)",
+      "group": "Recover",
+      "available": "not busy and isNull(failoverAt) and (not isNull(declaredAt) and isNull(replicaEncryptedAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "failoverAt",
+          "to": "t"
+        },
+        {
+          "log": "Claims starts on the warm site from the 01:55 point. {isNull(identityAt) ? \"The directory there still trusts svc-admin2.\" : \"The directory there no longer trusts the stolen account.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "40min"
+        }
+      ]
+    },
+    "restoreOnline": {
+      "label": "Restore Claims from BKP01 at a clean rebuilt host (60 min; data back to 23:00)",
+      "group": "Recover",
+      "available": "not busy and isNull(onlineAt) and (isNull(backupGoneAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "onlineAt",
+          "to": "t"
+        },
+        {
+          "log": "Claims is restoring from last night's backup; about three hours of claims will be re-keyed.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "60min"
+        }
+      ]
+    },
+    "restoreImmutable": {
+      "label": "Restore Claims from the immutable copy (180 min; data back to 23:00)",
+      "group": "Recover",
+      "available": "not busy and isNull(immAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "immAt",
+          "to": "t"
+        },
+        {
+          "log": "Claims is restoring from the immutable copy; about three hours of claims will be re-keyed.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "180min"
+        }
+      ]
+    },
+    "payroll": {
+      "label": "Start the Payroll restore first (60 min)",
+      "group": "Recover",
+      "available": "not busy and isNull(payrollAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "payrollAt",
+          "to": "t"
+        },
+        {
+          "log": "Payroll (Tier 3, next run in five days) is restored ahead of Claims.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "60min"
+        }
+      ]
+    },
+    "comms": {
+      "label": "Tell the claims call center and partner garages about the outage and the expected recovery time",
+      "group": "Communicate",
+      "available": "not busy and isNull(commsAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "commsAt",
+          "to": "t"
+        },
+        {
+          "log": "The call center and partners know Claims is down and when to expect it back.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "End the night shift and write the DR report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You hand over and write the DR report.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"unset\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "plan",
+              "label": "The executive on call, the BC coordinator, and counsel, through the DR plan's call tree"
+            },
+            {
+              "value": "all",
+              "label": "Every employee and customer at once, before the facts are known"
+            },
+            {
+              "value": "nobody",
+              "label": "No one until morning"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"plan\" ? \"the executive, the BC coordinator and counsel\" : who == \"all\" ? \"everyone at once\" : \"no one yet\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "strategy",
+              "label": "Recovery strategy used",
+              "options": [
+                {
+                  "value": "warmTier1",
+                  "label": "Tier 1 first, from the clean warm-site replica, after trust was rebuilt"
+                },
+                {
+                  "value": "payrollFirst",
+                  "label": "Payroll first, then the rest"
+                },
+                {
+                  "value": "rebuildAll",
+                  "label": "Rebuild everything at the primary site at once"
+                }
+              ]
+            },
+            {
+              "id": "test",
+              "label": "DR test follow-up",
+              "options": [
+                {
+                  "value": "simulation",
+                  "label": "Add a ransomware scenario (replication and backups under attack) to the next DR simulation"
+                },
+                {
+                  "value": "none",
+                  "label": "No test change"
+                },
+                {
+                  "value": "fullNow",
+                  "label": "Run a full interruption test next week"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "strategyDoc",
+          "to": "strategy"
+        },
+        {
+          "set": "testDoc",
+          "to": "test"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: {strategy}, {test}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "spread",
+      "when": "isNull(fileSrvAt) and (t >= spreadDelay and isNull(primIsoAt)) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "fileSrvAt",
+          "to": "t"
+        },
+        {
+          "log": "EDR: encryption has reached the file-server cluster.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "replicate",
+      "when": "isNull(replicaEncryptedAt) and (t >= replDelay and isNull(replPausedAt)) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "replicaEncryptedAt",
+          "to": "t"
+        },
+        {
+          "log": "Warm site: replication has carried encrypted Claims data to the replica. It no longer holds a clean point.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "deleteBackups",
+      "when": "isNull(backupGoneAt) and (t >= backupDelay and isNull(backupIsoAt) and isNull(identityAt)) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "backupGoneAt",
+          "to": "t"
+        },
+        {
+          "log": "BKP01: svc-admin2 deleted every backup set on the server.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "reinfect",
+      "when": "isNull(reinfectAt) and (not isNull(failoverAt) and (isNull(identityAt) or timeAt(identityAt) > timeAt(failoverAt)) and t >= timeAt(failoverAt) + reinfectDelay) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "reinfectAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Warm site: svc-admin2 signed in and started encrypting the failed-over Claims servers. Stop and write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "allOff",
+      "when": "isNull(offAt) and not attackerActive",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "offAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the DR report: what you protected first, which recovery option you used and why, and what changes in the plan and its tests.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Recovery points",
+          "criteria": "Pauses replication before it carries encrypted data, takes the domain-joined backups off the network before the attacker reaches them, and isolates the primary at the switch level.",
+          "modelAnswer": "I paused replication so the warm site kept the 01:55 point, disconnected BKP01 and isolated the primary at the core switches in the first 15 minutes."
+        },
+        {
+          "label": "Strategy against the BIA",
+          "criteria": "Recovers Tier 1 first, from the only option that meets its RPO (the clean replica) within its RTO; rebuilds trust in the directory before failover so the attacker cannot follow.",
+          "modelAnswer": "Claims' 15-minute RPO ruled out the 23:00 backups; I verified the replica, reset privileged accounts and krbtgt, then failed over well inside the 4-hour RTO. Payroll waits; its RTO is 72 hours."
+        },
+        {
+          "label": "Plan and tests",
+          "criteria": "Names the plan gaps (replication carries corruption; backups on the domain) and a test that would have exposed them, such as a ransomware DR simulation.",
+          "modelAnswer": "Continuous replication copies corruption and BKP01 sat on the domain. The next DR simulation should run a ransomware scenario against both."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "Profile default of 60 minutes: rebuilding trust in the directory takes 30 minutes of it."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "No new cluster encrypted after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(failoverAt) and isNull(immAt) and isNull(onlineAt)",
+      "class": "harm",
+      "rationale": "Ending the night with Tier 1 down and no recovery started breaches its RTO; it is never a safe outcome.",
+      "source": {
+        "cite": "NIST SP 800-34 Rev. 1, Contingency Planning Guide for Federal Information Systems (May 2010, updated November 11, 2010)",
+        "checkedAt": "2026-11-14",
+        "url": "https://csrc.nist.gov/pubs/sp/800/34/r1/upd1/final",
+        "note": "Read 2026-11-14 through a summarizing fetch of the CSRC page: final, not withdrawn. Its abstract says it helps 'determine contingency planning requirements and priorities'; the BIA, RTO, RPO and alternate-site terms used here are the guide's and the CISSP outline's vocabulary and were not re-read in the PDF. The tier table is the author's."
+      }
+    }
+  },
+  "endings": {
+    "reinfected": {
+      "label": "Encrypted again at the warm site",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(reinfectAt)",
+      "narrative": "Claims failed over to a site whose directory still trusted the stolen account, and the attacker followed it there."
+    },
+    "pointsDestroyed": {
+      "label": "Recovery points destroyed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(replicaEncryptedAt) and not isNull(backupGoneAt)",
+      "narrative": "The replica took the encrypted data and the backup server was wiped; only the slow immutable copy, three hours behind, was left."
+    },
+    "leftOpen": {
+      "label": "Attacker still trusted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and attackerActive",
+      "narrative": "{isNull(primIsoAt) ? \"The primary site was never isolated.\" : \"The stolen administrator account still works.\"} The night ended with the attacker able to strike again."
+    },
+    "recovered": {
+      "label": "Tier 1 back within its objectives",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not attackerActive and not isNull(offAt) and timeAt(offAt) <= containWindow and spread <= containSpread and pointsSafe and trustFirst and rtoMet and claimsBack",
+      "narrative": "You protected the recovery points, rebuilt trust and brought Claims back from a clean replica inside its RTO and RPO."
+    },
+    "recoveredLate": {
+      "label": "Recovered, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The attacker is out, but Claims came back past its RTO, from a backup past its RPO, after spread, or not yet."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no DR report."
+    }
+  },
+  "endingOrder": [
+    "reinfected",
+    "pointsDestroyed",
+    "leftOpen",
+    "recovered",
+    "recoveredLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "points",
+        "label": "Replica paused and backups disconnected before the attacker reached them",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "pointsSafe",
+            "score": "met",
+            "why": "The 01:55 replica and last night's backups both survived."
+          },
+          {
+            "when": "isNull(replicaEncryptedAt) or isNull(backupGoneAt)",
+            "score": "partial",
+            "why": "One recovery point was lost."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Both were lost."
+          }
+        ]
+      },
+      {
+        "id": "isolated",
+        "label": "Primary isolated at the switches before the file servers were hit",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(primIsoAt) and isNull(fileSrvAt)",
+            "score": "met",
+            "why": "Isolated {timeAt(primIsoAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(primIsoAt)",
+            "score": "partial",
+            "why": "Isolated after the file servers were encrypted."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never isolated."
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "label": "Claims back within its 4-hour RTO and 15-minute RPO",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rtoMet and claimsViaReplica",
+            "score": "met",
+            "why": "From the clean replica, inside the RTO."
+          },
+          {
+            "when": "rtoMet",
+            "score": "partial",
+            "why": "Inside the RTO, but from 23:00 backups: about three hours of claims lost."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(failoverAt) and isNull(immAt) and isNull(onlineAt) ? \"No recovery started.\" : \"Past the RTO.\"}"
+          }
+        ]
+      },
+      {
+        "id": "trust",
+        "label": "Rebuilt trust in the directory before failing over",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "trustFirst",
+            "score": "met",
+            "why": "The stolen account was dead before Claims moved."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(failoverAt) ? \"No failover.\" : \"The warm site still trusted svc-admin2.\"}"
+          }
+        ]
+      },
+      {
+        "id": "declared",
+        "label": "Disaster declared within 30 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(declaredAt) and timeAt(declaredAt) <= declareWindow",
+            "score": "met",
+            "why": "Declared {timeAt(declaredAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(declaredAt)",
+            "score": "partial",
+            "why": "Declared late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The plan was never invoked."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Verified the replica was clean before using it",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(replicaCheckedAt) and (isNull(failoverAt) or timeAt(replicaCheckedAt) <= timeAt(failoverAt))",
+            "score": "met",
+            "why": "Checked first."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Used, or abandoned, without checking."
+          }
+        ]
+      },
+      {
+        "id": "priority",
+        "label": "Worked Tier 1 before Tier 3",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(payrollAt) or (not isNull(failoverAt) and timeAt(failoverAt) < timeAt(payrollAt)) or (not isNull(immAt) and timeAt(immAt) < timeAt(payrollAt)) or (not isNull(onlineAt) and timeAt(onlineAt) < timeAt(payrollAt))",
+            "score": "met",
+            "why": "BIA order."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Payroll (RTO 72 h) went ahead of Claims (RTO 4 h)."
+          }
+        ]
+      },
+      {
+        "id": "comms",
+        "label": "Told the call center and partners",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(commsAt)",
+            "score": "met",
+            "why": "Customers get a straight answer."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No outage message."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the strategy and a DR test change, through the call tree",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "strategyDoc == \"warmTier1\" and testDoc == \"simulation\" and notified == \"plan\"",
+            "score": "met",
+            "why": "Accurate, with a test that would catch it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record or the notification does not fit what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written recovery points, strategy and tests",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "claimsHours",
+        "label": "Minutes until Claims was back",
+        "value": "claimsViaReplica ? timeAt(failoverAt) / 60 + 40 : not isNull(onlineAt) ? timeAt(onlineAt) / 60 + 60 : not isNull(immAt) ? timeAt(immAt) / 60 + 180 : -1",
+        "format": "number",
+        "expert": "about 100 (RTO 240)"
+      },
+      {
+        "id": "dataLoss",
+        "label": "Minutes of Claims data lost",
+        "value": "claimsViaReplica ? 5 : not isNull(onlineAt) or not isNull(immAt) ? 180 : -1",
+        "format": "number",
+        "expert": "5 (RPO 15)"
+      },
+      {
+        "id": "points",
+        "label": "Recovery points that survived (of 3)",
+        "value": "1 + (isNull(replicaEncryptedAt) ? 1 : 0) + (isNull(backupGoneAt) ? 1 : 0)",
+        "format": "number",
+        "expert": "3"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-15 min",
+        "text": "Map the damage to the BIA tiers. Pause replication, take BKP01 off the domain, isolate the primary at the switches."
+      },
+      {
+        "at": "15-60 min",
+        "text": "Have the disaster declared; verify the replica (01:55, clean); reset privileged accounts and krbtgt twice."
+      },
+      {
+        "at": "60-100 min",
+        "text": "Fail Claims over to the warm site; tell the call center and partners."
+      },
+      {
+        "at": "After",
+        "text": "Payroll and the website follow by tier. Report through the call tree; add a ransomware scenario to the next DR simulation."
+      }
+    ],
+    "debrief": {
+      "recovered": {
+        "headline": "Good: the strategy matched the BIA",
+        "body": "Only a clean replica met Claims' RPO, so protecting it came first; rebuilding trust came before failover so the attacker could not follow."
+      },
+      "recoveredLate": {
+        "headline": "Recovered, at a cost",
+        "body": "The criteria show what cost you: spread at the primary, a recovery past the RTO or RPO, or Tier 3 ahead of Tier 1."
+      },
+      "reinfected": {
+        "headline": "The attacker followed the failover",
+        "body": "A recovery site that trusts the same stolen account is not a recovery. Reset privileged accounts and the Kerberos key first."
+      },
+      "pointsDestroyed": {
+        "headline": "Recovery points destroyed",
+        "body": "Continuous replication copies corruption, and domain-joined backups are a target. Pause and disconnect them before anything else."
+      },
+      "leftOpen": {
+        "headline": "The attacker can strike again",
+        "body": "Isolate the primary and kill the stolen account before you call the night done."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No DR report was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Protect the recovery points first: pause replication before it carries encrypted data, take the domain-joined backup server off the network, and isolate the primary at the switches. The BIA puts Claims first (RTO 4 h, RPO 15 min), and only the warm-site replica at 01:55 meets that RPO; last night's backups lose about three hours. Get the disaster declared, verify the replica, rebuild trust (privileged resets, krbtgt twice, the VPN path closed) so the attacker cannot follow, then fail over. Payroll (RTO 72 h) waits. Afterwards, add a ransomware scenario to the DR simulation tests."
+  }
+}

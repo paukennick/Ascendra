@@ -1,4 +1,5 @@
-import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { CLINICAL_SAFETY, part, selectPart, matchPart, type SeedLabSet } from "./types";
+import { source } from "../sources";
 import { AHA_BLS_2025, CDC_EBP, CDC_HAND_HYGIENE, CDC_PPE_SEQUENCE, CDC_TBP, CFR_483_12, CFR_483_152 } from "./nursing-sources";
 
 // REQ-148: Certified Nursing Assistant (nurse aide), built on the federal
@@ -537,6 +538,81 @@ export const CNA_LABS: SeedLabSet = {
               "Document and cooperate",
               "Writes down exactly what they saw and heard, with time and place, as policy directs, cooperates with the investigation, and knows they are protected from retaliation for reporting in good faith.",
               "Write down exactly what I saw and heard, and when, give it to the investigator, and answer their questions honestly. The facility can't punish me for reporting in good faith."
+            ),
+          ],
+        },
+      ],
+    },
+    // ---- REQ-295 (2026-11-14): density fill, Care of cognitively impaired
+    // residents gets its second lab. NICE CG103 (delirium; first published
+    // 2010, amendments dated 2023) read in full on 2026-11-14: risk factors
+    // include age 65 or older and dementia; recent (hours or days) changes or
+    // fluctuations in cognition, perception, physical function or social
+    // behavior should prompt assessment; hypoactive delirium (withdrawal,
+    // slowed responses, less movement or appetite) is often missed; residents
+    // in long-term care are observed for these changes at least daily; when
+    // delirium and dementia are hard to tell apart, the delirium is managed
+    // first. The aide's part is to notice the change and tell the nurse at
+    // once in objective words; assessing it is the nurse's.
+    {
+      slug: "cna-sudden-confusion-report",
+      objective:
+        "Tell delirium from dementia: delirium starts suddenly, over hours to days, comes and goes, and may signal a dangerous illness, so a sudden change in confusion must be reported at once",
+      kind: "case",
+      title: "More confused than usual, since this morning",
+      brief:
+        "You are a nurse aide on the day shift in a fictional nursing home. Mrs. Okafor, a fictional 86-year-old resident, has moderate dementia. Her care plan says: knows the aides' faces but not their names; sometimes asks for her late husband in the evening; walks to meals with her walker; eats most of each meal; sleeps through the night.",
+      safetyNote: CLINICAL_SAFETY,
+      sources: [source("https://www.nice.org.uk/guidance/cg103/chapter/Recommendations", "clinical_guideline", "2026-11-14")],
+      steps: [
+        {
+          text: "At 08:30 you read your notes from the last two shifts and your own from this morning before telling anyone anything.",
+          ask: "Tap the notes that are a change from Mrs. Okafor's usual, then say what you do and what you tell the nurse.",
+          parts: [
+            selectPart(
+              "Changes from her usual",
+              "Met: exactly the four new findings -- dozing and hard to wake at breakfast then restless, picking at the air and saying there are bugs on the blanket, ate two spoonfuls, and needed two staff to stand when she usually walks with her walker. (Right picks minus wrong picks) of at least two is partly there.",
+              "Not knowing your name and asking for her husband in the evening are in her care plan: they are her usual dementia. The four new notes all started since yesterday and swing between sleepy and restless -- a sudden, fluctuating change in thinking, perception, eating and moving. That pattern is what delirium looks like, and the quiet, sleepy kind is the one most often missed.",
+              {
+                display: "list",
+                lines: [
+                  "Yesterday 19:40: asked for her husband, settled with a photo album",
+                  "Today 07:15: called you 'dear', did not know your name",
+                  "Today 07:30: dozing, hard to wake for breakfast, then restless and pulling at her blanket",
+                  "Today 07:45: picking at the air, said there are bugs on the blanket",
+                  "Today 08:00: ate two spoonfuls of breakfast, pushed the tray away",
+                  "Today 08:15: needed two staff to stand; usually walks to meals with her walker",
+                ],
+                correct: [2, 3, 4, 5],
+              }
+            ),
+            part(
+              "What you do and say",
+              "Tells the nurse now, in person, not at the end of the shift, and does not write it off as 'her dementia'. Reports what was seen, with times, compared with her usual (e.g. 'since 07:30 she has been hard to wake then restless, picking at the air and saying there are bugs, ate two spoonfuls, and needed two of us to stand -- yesterday she walked to meals with her walker'). Keeps her safe meanwhile (call light in reach, bed low, stays with her or checks often). Does not label it delirium or infection, give anything by mouth beyond the plan, or restrain her.",
+              "Go to the nurse now. 'Mrs. Okafor is different from yesterday. Since about 07:30 she's been hard to wake, then restless and pulling at her blanket. She's picking at the air and says there are bugs on the blanket. She ate two spoonfuls of breakfast, and it took two of us to stand her -- she usually walks to meals with her walker. Her asking for her husband last night was her usual.' That is what you saw and when, beside what is normal for her; deciding what it means is the nurse's job. Until the nurse comes: bed low, call light in her hand, check on her often, and no restraint."
+            ),
+          ],
+        },
+        {
+          text: "The nurse thanks you and says it may be delirium, which needs to be looked at today. She asks you to take Mrs. Okafor's vital signs, note anything about her urine at the next toileting, and keep a record of what she drinks. At 09:10 you find her temperature 37.9 C (her usual is about 36.6 C), pulse 104, respirations 22, blood pressure 128/74. Her urine is dark and strong-smelling, the pad was dry from 05:00 to 09:00, and she has taken 120 mL since breakfast.",
+          ask: "Match each vague phrase to the objective report, then say what you do with these findings and for the rest of the shift.",
+          parts: [
+            matchPart(
+              "Objective wording",
+              "Met: all four right -- 'running a bit warm' is 'temperature 37.9 C at 09:10; usual about 36.6 C'; 'not drinking much' is 'took 120 mL since breakfast'; 'peeing less' is 'pad dry from 05:00 to 09:00, urine dark and strong-smelling'; 'out of it' is 'hard to wake at 07:30, then restless and picking at the air'. Two or three right is partly there.",
+              "Each objective version says what was measured or seen, with a number or a time, so the nurse can compare it with the next one. 'Seems to have an infection' is a conclusion, not an observation, so it matches none of the vague phrases and is not something an aide reports as fact.",
+              {
+                leftHeading: "Vague phrase",
+                rightHeading: "Objective report",
+                left: ["'Running a bit warm'", "'Not drinking much'", "'Peeing less'", "'Out of it'"],
+                right: ["Temperature 37.9 C at 09:10; usual about 36.6 C", "Took 120 mL since breakfast", "Pad dry 05:00 to 09:00, urine dark and strong-smelling", "Hard to wake at 07:30, then restless, picking at the air", "Seems to have a urine infection"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            part(
+              "What you do next",
+              "Reports the measured values and urine findings to the nurse straight away (not only in the chart), records them, and keeps the intake record going. Offers fluids only as the care plan and the nurse allow. Keeps up safety and calm: frequent checks, call light and walker in reach, bed low, glasses and hearing aid on, daylight and a calm voice, simple orientation without arguing. Reports any further change (harder to wake, a fall, new breathing trouble) at once. Does not decide it is a UTI or give anything not ordered.",
+              "Tell the nurse the numbers now: temperature 37.9 C (her usual is about 36.6), pulse 104, respirations 22, BP 128/74, pad dry 05:00 to 09:00, urine dark and strong-smelling. Chart them, then keep the intake record and offer the drinks her plan allows. For the rest of the shift: check her often, keep the bed low with the call light and walker in reach, glasses and hearing aid on, curtains open for daylight, one calm step at a time, gentle reassurance rather than correcting her. Tell the nurse at once if she becomes harder to wake, falls, or her breathing changes. What it is and how to treat it are for the nurse and the provider."
             ),
           ],
         },

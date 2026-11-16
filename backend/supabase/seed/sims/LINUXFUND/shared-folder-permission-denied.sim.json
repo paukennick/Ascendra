@@ -1,0 +1,1220 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "shared-folder-permission-denied",
+  "title": "Ticket: the print team's shared folder says Permission denied",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "admin@print1:~$",
+      "lines": [
+        {
+          "id": "ticket",
+          "text": "10:20 ticket: nora cannot save to /srv/jobs (Permission denied); nobody can edit omar's and jin's files",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "runFail",
+          "text": "11:00 print run: the day's jobs were not ready in /srv/jobs",
+          "when": "not isNull(runFailAt)",
+          "at": "timeAt(runFailAt)",
+          "error": "true"
+        },
+        {
+          "id": "okLine",
+          "text": "nora: saved and edited jobs in /srv/jobs",
+          "when": "not isNull(teamOkAt)",
+          "at": "timeAt(teamOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "folder",
+          "label": "/srv/jobs",
+          "spokenLabel": "the shared jobs folder",
+          "kind": "Shared folder, group print",
+          "status": "{world777 ? \"Open to everyone (777)\" : setgid ? \"Group print, setgid\" : \"Group print, no setgid\"}{sticky ? \", sticky\" : \"\"}",
+          "tone": "world777 ? \"degraded\" : setgid ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "nora",
+          "label": "nora",
+          "spokenLabel": "nora's login session",
+          "kind": "Print team member",
+          "status": "{relogged ? \"New session\" : \"Session from before she joined print\"}{groupsReplaced ? \"; removed from design\" : \"\"}",
+          "tone": "groupsReplaced ? \"degraded\" : relogged ? \"up\" : \"down\""
+        },
+        {
+          "id": "files",
+          "label": "Existing jobs",
+          "spokenLabel": "the existing print jobs",
+          "kind": "Files in /srv/jobs",
+          "status": "{world777 ? \"World-writable\" : chgrpDone and groupWrite ? \"Group print, group-writable\" : chgrpDone ? \"Group print, read-only for the group\" : \"Each author's own group, 644\"}",
+          "tone": "world777 ? \"degraded\" : chgrpDone and groupWrite ? \"up\" : \"down\""
+        },
+        {
+          "id": "run",
+          "label": "Print run 11:00",
+          "spokenLabel": "the 11:00 print run",
+          "kind": "Deadline",
+          "status": "{not isNull(runFailAt) ? \"Missed\" : teamOk ? \"Jobs can be ready\" : \"Needs nora's files by 11:00\"}",
+          "tone": "not isNull(runFailAt) ? \"down\" : teamOk ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "write",
+          "from": "nora",
+          "to": "folder",
+          "label": "nora writes to the folder",
+          "status": "{relogged or world777 ? \"Allowed\" : \"Permission denied\"}",
+          "tone": "relogged or world777 ? \"up\" : \"down\""
+        },
+        {
+          "id": "edit",
+          "from": "nora",
+          "to": "files",
+          "label": "nora edits others' jobs",
+          "status": "{teamOk ? \"Allowed\" : \"Permission denied\"}",
+          "tone": "teamOk ? \"up\" : \"down\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mode",
+          "label": "/srv/jobs mode",
+          "value": "{world777 ? \"0777\" : setgid ? (sticky ? \"3775\" : \"2775\") : \"0775\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Configure a shared directory with group ownership, the setgid bit and the sticky bit",
+  "secondaryObjectives": [
+    "Create and manage users and groups with useradd, usermod, groupadd and passwd",
+    "Read and set permissions with chmod in symbolic and octal form, and ownership with chown"
+  ],
+  "sources": [
+    {
+      "cite": "inode(7), file mode bits: set-group-ID and sticky bit (man7.org, man-pages 6.19)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man7/inode.7.html",
+      "note": "Relevant text: 'For newly created files, the file group ID is either the group ID of the parent directory or the effective group ID of the creating process, depending on whether or not the set-group-ID bit is set on the parent directory'; 'The sticky bit (S_ISVTX) on a directory means that a file in that directory can be renamed or deleted only by the owner of the file, by the owner of the directory, and by a privileged process.' Read in full 2026-11-14."
+    },
+    {
+      "cite": "usermod(8) (shadow-utils, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man8/usermod.8.html",
+      "note": "Relevant text: -G, --groups: 'If the user is currently a member of a group which is not listed, the user will be removed from the group. This behaviour can be changed via the -a option, which appends the user to the current supplementary group list.' Read in full 2026-11-14."
+    },
+    {
+      "cite": "ps(1) supgrp and newgrp(1) (man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man1/ps.1.html",
+      "note": "Relevant text: ps format specifier supgrp, 'group names of supplementary groups, if any'; newgrp(1): 'The newgrp command is used to change the current group ID during a login session.' A running process keeps the supplementary groups it started with, so a group added with usermod reaches a user at the next login (the standard credentials model; credentials(7) read 2026-11-14). Read in full 2026-11-14."
+    },
+    {
+      "cite": "chmod(1) and chgrp (GNU coreutils, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man1/chmod.1.html",
+      "note": "Relevant text: octal modes, the setgid and sticky bits, and 'For directories chmod preserves set-user-ID and set-group-ID bits unless you explicitly specify otherwise.' Read in full 2026-11-14. Command output layouts are authored in each tool's style."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Linux admin at Puyallup Print Co-op (fictional). Yesterday nora joined the print team and was added to the group print with usermod -aG print nora. Today she cannot save into the team folder /srv/jobs, and nobody can edit the jobs omar and jin dropped there this morning. The 11:00 print run needs everyone's files in place. Fix it so the team can share the folder properly, without opening it to everyone.",
+    "handover": [
+      "/srv/jobs is owned by root, group print, mode 0775.",
+      "nora has been logged in since before she was added to print."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments are fixed.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, disk or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:20",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "runDelay": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. The print run starts at 11:00, 40 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "psAt": {
+      "type": "time",
+      "init": null
+    },
+    "lsdAt": {
+      "type": "time",
+      "init": null
+    },
+    "lslAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "relogged": {
+      "type": "bool",
+      "init": false
+    },
+    "chgrpDone": {
+      "type": "bool",
+      "init": false
+    },
+    "groupWrite": {
+      "type": "bool",
+      "init": false
+    },
+    "setgid": {
+      "type": "bool",
+      "init": false
+    },
+    "sticky": {
+      "type": "bool",
+      "init": false
+    },
+    "world777": {
+      "type": "bool",
+      "init": false
+    },
+    "groupsReplaced": {
+      "type": "bool",
+      "init": false
+    },
+    "teamOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "runFailAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "groups",
+        "disk",
+        "selinux"
+      ],
+      "init": "none"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "group",
+        "open",
+        "reinstall"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "teamOk": {
+      "expr": "(relogged and chgrpDone and groupWrite) or world777"
+    },
+    "faultsAdded": {
+      "expr": "(world777 ? 1 : 0) + (groupsReplaced ? 1 : 0)"
+    },
+    "evidenceFirst": {
+      "expr": "not isNull(evidenceAt) and (isNull(firstChangeAt) or timeAt(evidenceAt) <= timeAt(firstChangeAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Ticket open",
+      "clock": "turns",
+      "actions": [
+        "idNora",
+        "psNora",
+        "lsd",
+        "lsl",
+        "chgrp",
+        "groupWrite",
+        "setgid",
+        "sticky",
+        "relog",
+        "open777",
+        "replaceGroups",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "idNora": {
+      "label": "id nora",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "admin@print1:~$ id nora\nuid=1012(nora) gid=1012(nora) groups=1012(nora),{groupsReplaced ? \"\" : \"1020(design),\"}1030(print)"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "psNora": {
+      "label": "ps -o pid,user,supgrp,cmd -u nora",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "psAt",
+          "to": "t"
+        },
+        {
+          "if": "not isNull(lslAt)",
+          "then": [
+            {
+              "if": "isNull(evidenceAt)",
+              "then": [
+                {
+                  "set": "evidenceAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "output": "admin@print1:~$ ps -o pid,user,supgrp,cmd -u nora\n    PID USER     SUPGRP                          CMD\n   4180 nora     {relogged ? (groupsReplaced ? \"nora,print     \" : \"nora,design,print\") : \"nora,design      \"}             -bash"
+        },
+        {
+          "if": "not relogged",
+          "then": [
+            {
+              "finding": "nora's login shell started before she was added to print, so it does not carry the group yet."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "lsd": {
+      "label": "ls -ld /srv/jobs",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "lsdAt",
+          "to": "t"
+        },
+        {
+          "output": "admin@print1:~$ ls -ld /srv/jobs\n{world777 ? \"drwxrwxrwx\" : setgid ? (sticky ? \"drwxrwsr-t\" : \"drwxrwsr-x\") : \"drwxrwxr-x\"} 2 root print 4096 Nov 14 10:02 /srv/jobs"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "lsl": {
+      "label": "ls -l /srv/jobs",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "lslAt",
+          "to": "t"
+        },
+        {
+          "if": "not isNull(psAt)",
+          "then": [
+            {
+              "if": "isNull(evidenceAt)",
+              "then": [
+                {
+                  "set": "evidenceAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "output": "admin@print1:~$ ls -l /srv/jobs\n{world777 ? \"-rwxrwxrwx\" : groupWrite ? \"-rw-rw-r--\" : \"-rw-r--r--\"} 1 omar {chgrpDone ? \"print\" : \"omar \"} 88213 Nov 14 09:40 brochure.pdf\n{world777 ? \"-rwxrwxrwx\" : groupWrite ? \"-rw-rw-r--\" : \"-rw-r--r--\"} 1 jin  {chgrpDone ? \"print\" : \"jin  \"} 41022 Nov 14 09:55 menu-cards.pdf"
+        },
+        {
+          "if": "not chgrpDone",
+          "then": [
+            {
+              "finding": "The existing jobs belong to each author's own group and are 644, so other print members cannot edit them."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "chgrp": {
+      "label": "sudo chgrp -R print /srv/jobs",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "chgrpDone",
+          "to": "true"
+        },
+        {
+          "output": "admin@print1:~$ sudo chgrp -R print /srv/jobs"
+        },
+        {
+          "if": "isNull(teamOkAt) and ((relogged and chgrpDone and groupWrite) or world777)",
+          "then": [
+            {
+              "set": "teamOkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "groupWrite": {
+      "label": "sudo chmod -R g+w /srv/jobs",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "groupWrite",
+          "to": "true"
+        },
+        {
+          "output": "admin@print1:~$ sudo chmod -R g+w /srv/jobs"
+        },
+        {
+          "if": "isNull(teamOkAt) and ((relogged and chgrpDone and groupWrite) or world777)",
+          "then": [
+            {
+              "set": "teamOkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "setgid": {
+      "label": "sudo chmod g+s /srv/jobs",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "setgid",
+          "to": "true"
+        },
+        {
+          "output": "admin@print1:~$ sudo chmod g+s /srv/jobs"
+        },
+        {
+          "log": "New files in /srv/jobs will belong to the print group.",
+          "kind": "good"
+        },
+        {
+          "if": "isNull(teamOkAt) and ((relogged and chgrpDone and groupWrite) or world777)",
+          "then": [
+            {
+              "set": "teamOkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sticky": {
+      "label": "sudo chmod +t /srv/jobs",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "sticky",
+          "to": "true"
+        },
+        {
+          "output": "admin@print1:~$ sudo chmod +t /srv/jobs"
+        },
+        {
+          "log": "Only a file's owner can now delete or rename it in /srv/jobs.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "relog": {
+      "label": "Ask nora to log out and back in",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "relogged",
+          "to": "true"
+        },
+        {
+          "output": "admin@print1:~$ # nora logs out and back in"
+        },
+        {
+          "log": "nora's new login session carries her current groups.",
+          "kind": "good"
+        },
+        {
+          "if": "isNull(teamOkAt) and ((relogged and chgrpDone and groupWrite) or world777)",
+          "then": [
+            {
+              "set": "teamOkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "open777": {
+      "label": "sudo chmod -R 777 /srv/jobs",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "world777",
+          "to": "true"
+        },
+        {
+          "output": "admin@print1:~$ sudo chmod -R 777 /srv/jobs"
+        },
+        {
+          "log": "Every account on print1, and every service running there, can now change or delete the print jobs.",
+          "kind": "bad"
+        },
+        {
+          "if": "isNull(teamOkAt) and ((relogged and chgrpDone and groupWrite) or world777)",
+          "then": [
+            {
+              "set": "teamOkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "replaceGroups": {
+      "label": "sudo usermod -G print nora",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "groupsReplaced",
+          "to": "true"
+        },
+        {
+          "output": "admin@print1:~$ sudo usermod -G print nora"
+        },
+        {
+          "log": "usermod -G without -a replaced nora's supplementary groups: she is no longer in design.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "sudo -u nora touch /srv/jobs/check && ls -l /srv/jobs/check",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "admin@print1:~$ sudo -u nora touch /srv/jobs/check && ls -l /srv/jobs/check\n-rw-r--r-- 1 nora {setgid ? \"print\" : \"nora \"} 0 Nov 14 10:31 /srv/jobs/check"
+        },
+        {
+          "if": "teamOk and setgid and not world777 and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 300",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "admin@print1:~$ sleep 300"
+        },
+        {
+          "log": "You wait 5 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "groups",
+                  "label": "nora's session predated her print membership, and the shared folder kept each author's group without setgid"
+                },
+                {
+                  "value": "disk",
+                  "label": "The folder's filesystem was mounted read-only"
+                },
+                {
+                  "value": "selinux",
+                  "label": "SELinux blocked the folder"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Fix",
+              "options": [
+                {
+                  "value": "group",
+                  "label": "New login for nora; files to group print with group write; setgid (and sticky) on the folder"
+                },
+                {
+                  "value": "open",
+                  "label": "Opened the folder's permissions to everyone"
+                },
+                {
+                  "value": "reinstall",
+                  "label": "Recreated nora's account"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "log": "Recorded: cause {cause}, fix {fix}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "run",
+      "when": "t >= runDelay and phase == \"incident\" and not teamOk",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "runFailAt",
+          "to": "t"
+        },
+        {
+          "log": "11:00: the print run started without nora's and the team's edited jobs.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the ticket: why nora was denied although id showed her in print, why nobody could edit the morning's jobs, and why your settings will keep working for the next new file.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "Two causes: her login session started before she joined print (a process keeps the groups it started with; id nora reads the group database, not her session), and the existing files carried each author's own group with 644, because the folder had no setgid.",
+          "modelAnswer": "id nora reads /etc/group, which already listed print, but her shell started before the change, and ps showed its groups without print. Separately, omar's and jin's files were group omar and jin, mode 644, because without setgid a new file takes its creator's group."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "Uses ps supgrp (or the session's id) and ls -l before changing anything; does not assume a disk or SELinux problem.",
+          "modelAnswer": "ps -o supgrp -u nora showed nora,design; ls -l showed the files' groups and 644."
+        },
+        {
+          "label": "Fix",
+          "criteria": "New login for nora (or newgrp), chgrp -R print and g+w on the existing files, g+s on the folder so new files inherit print (sticky optional, to stop deleting others' files); never 777 and never usermod -G without -a.",
+          "modelAnswer": "nora logged in again; chgrp -R print and chmod -R g+w fixed the existing jobs; chmod g+s makes every new file group print, and +t stops members deleting each other's files. 777 would let every account change the jobs; usermod -G without -a removes her other groups."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Shared properly with time to spare before the 11:00 run; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No weakening left behind: a world-writable folder, or a user's groups replaced."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not teamOk",
+      "class": "harm",
+      "rationale": "Closing while the team still cannot share the folder leaves the print run without its jobs; it is never a safe outcome.",
+      "source": {
+        "cite": "inode(7), file mode bits: set-group-ID and sticky bit (man7.org, man-pages 6.19)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man7/inode.7.html",
+        "note": "Relevant text: 'For newly created files, the file group ID is either the group ID of the parent directory or the effective group ID of the creating process, depending on whether or not the set-group-ID bit is set on the parent directory'; 'The sticky bit (S_ISVTX) on a directory means that a file in that directory can be renamed or deleted only by the owner of the file, by the owner of the directory, and by a privileged process.' Read in full 2026-11-14."
+      }
+    }
+  },
+  "endings": {
+    "openedUp": {
+      "label": "Opened the folder to everyone",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and world777",
+      "narrative": "The team can work, but so can every other account and service on print1: anything can change or delete the jobs."
+    },
+    "lockedOut": {
+      "label": "Removed nora from her other group",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and groupsReplaced",
+      "narrative": "usermod -G without -a took nora out of design; her next login loses access there."
+    },
+    "runMissed": {
+      "label": "The 11:00 print run went without the jobs",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(runFailAt)",
+      "narrative": "The print run started at 11:00 without nora's and the edited jobs."
+    },
+    "stillBroken": {
+      "label": "Closed with the team still blocked",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not teamOk",
+      "narrative": "The ticket was closed while the team still could not save or edit jobs."
+    },
+    "fixed": {
+      "label": "Shared properly",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and teamOk and setgid and not world777 and timeAt(teamOkAt) <= restoreWindow and faultsAdded <= newFaults and evidenceFirst and not isNull(verifiedAt)",
+      "narrative": "nora has a session with her new group, the jobs belong to print with group write, and setgid keeps new files in the group."
+    },
+    "fixedGaps": {
+      "label": "Working, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The team can share the folder, but the fix was late, guessed, left new files without setgid, or was never checked with a new file."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no ticket record."
+    }
+  },
+  "endingOrder": [
+    "openedUp",
+    "lockedOut",
+    "runMissed",
+    "stillBroken",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Checked nora's session groups and the files' groups before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceFirst",
+            "score": "met",
+            "why": "ps and ls -l were read first."
+          },
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "partial",
+            "why": "Read only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never compared nora's session with the files."
+          }
+        ]
+      },
+      {
+        "id": "noWeakening",
+        "label": "No 777 and no usermod -G without -a",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "faultsAdded > 0",
+            "score": "missed",
+            "why": "{world777 ? \"The folder is world-writable\" : \"nora lost her design group\"}."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Nothing was opened up or removed."
+          }
+        ]
+      },
+      {
+        "id": "fast",
+        "label": "Team sharing the folder within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(teamOkAt) and not world777 and timeAt(teamOkAt) <= restoreWindow",
+            "score": "met",
+            "why": "Working {timeAt(teamOkAt) / 60|0dp} min in."
+          },
+          {
+            "when": "teamOk and not world777",
+            "score": "partial",
+            "why": "Working, but {timeAt(teamOkAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The team cannot share the folder properly."
+          }
+        ]
+      },
+      {
+        "id": "inherit",
+        "label": "Set setgid so new files stay in the group",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "setgid",
+            "score": "met",
+            "why": "New files will belong to print."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The next new file will take its author's group again."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Checked with a new file as nora",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "nora's test file was created with group print."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked with a new file."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the fix accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"groups\" and fixDoc == \"group\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"groups\"",
+            "score": "partial",
+            "why": "The cause is right; the fix recorded is not the one that should stand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, evidence and fix",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToShare",
+        "label": "Minutes until the team could share",
+        "value": "isNull(teamOkAt) ? -1 : timeAt(teamOkAt) / 60",
+        "format": "number",
+        "expert": "12 or less"
+      },
+      {
+        "id": "faultsK",
+        "label": "Weakenings left at close",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-3 min",
+        "text": "ps -o supgrp -u nora: her shell has no print; id nora (the database) does. ls -l: files in omar and jin's groups, 644."
+      },
+      {
+        "at": "3-8 min",
+        "text": "nora logs in again; chgrp -R print and chmod -R g+w /srv/jobs."
+      },
+      {
+        "at": "8-11 min",
+        "text": "chmod g+s (and +t) /srv/jobs; a test file as nora comes out group print."
+      },
+      {
+        "at": "After",
+        "text": "Record both causes; tell users a new group needs a new login."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: shared properly",
+        "body": "You saw that a session keeps the groups it started with and that the folder lacked setgid, fixed both, and proved it with a new file."
+      },
+      "fixedGaps": {
+        "headline": "Working, with gaps",
+        "body": "The team can share. The criteria show what it cost: time, a change before the evidence, no setgid for the next file, or no check."
+      },
+      "openedUp": {
+        "headline": "Opened to everyone",
+        "body": "777 makes the symptom go away for every account on the host, not only the team. Group ownership, group write and setgid do the job."
+      },
+      "lockedOut": {
+        "headline": "Groups replaced",
+        "body": "usermod -G sets the whole supplementary list; -aG appends. nora was already in print; she only needed a new login."
+      },
+      "runMissed": {
+        "headline": "The print run went without the jobs",
+        "body": "ps and ls -l show both causes in two minutes; the fix is a login and three commands."
+      },
+      "stillBroken": {
+        "headline": "Closed too soon",
+        "body": "Check with a new file as nora before closing."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "id nora reads the group database, but a running session keeps the groups it started with, so nora needs a new login (or newgrp). The existing files took their authors' groups because /srv/jobs had no setgid: chgrp -R print and chmod -R g+w fix them, chmod g+s keeps new files in print, and +t stops members deleting each other's work. Never 777, never usermod -G without -a."
+  }
+}

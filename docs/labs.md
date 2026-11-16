@@ -371,6 +371,16 @@ stay.
 
 ## Density: how many labs per unit
 
+**REQ-295 (Nick, 2026-11-14): the rule as stated, without the verb cap.** Nick
+restated the rule as one lab per unit, plus six per course split by exam
+weight, at most three per unit. `unitPlan` also caps each unit by the number
+of objectives its verb heuristic calls hands-on, which held 40 visible courses
+below that. Rather than change the default for every course (and every
+parallel builder's density tests), each course brought up to the rule gets a
+`LAB_PLAN_TOP_UPS` entry, and `lib/labs-density-fill.test.ts` checks it unit
+by unit (`ruleFor`). The per-course measurement, before and after, is in
+docs/labs-coverage.md.
+
 **Decision (Nick, 2026-11-07): option (d), hybrid, is adopted** as the
 generator's default plan (`DEFAULT_LAB_POLICY` in
 `scripts/generate-labs-lib.ts`). The later path for NCLEX and CCRN, whose
@@ -706,6 +716,30 @@ blueprints take effect 2027-07-01, so both outlines are rechecked by
 2027-04-01. All 24 are `needs_expert_review` until a licensed professional
 counselor approves them.
 
+
+### Python and Linux depth courses (REQ-292)
+
+Nick (2026-11-14): "go deeper in Python and Linux". Four sets, all
+`needs_expert_review`, at the hybrid density unit by unit
+(`lib/depth-courses.test.ts`), one lab per objective, both kinds in every set:
+
+| Course | Labs | Per unit | Built on |
+|---|---|---|---|
+| Python for Automation and Scripting (PYAUTO) | 16 | 2/2/2/2/2/2/1/1/1/1 | Python 3.15 docs, pytest 9.2 |
+| Python for Data Analysis (PYDATA) | 14 | 2/2/2/2/2/1/1/1/1 | pandas 3.1, NumPy 2.5, Matplotlib 3.11 |
+| Linux Fundamentals (LINUXFUND) | 16 | 2/2/2/2/2/2/1/1/1/1 | man-pages 6.19, FHS 3.0, apt(8), DNF reference |
+| Prep for the LFCS (LFCS) | 11 | 3/2/2/2/2 | [LFCS Domains & Competencies](https://training.linuxfoundation.org/certification/linux-foundation-certified-sysadmin-lfcs/) |
+
+The courses without an exam have equal unit weights, so the six extras go to
+the earliest units with room (PYDATA's unit 6 has no objective the
+performance heuristic counts, so its extra is dropped). Linux and LFCS labs
+use `command` parts where one command is the answer (a leading `sudo` is a
+separate accepted form); the LFCS labs leave the two sim objectives (boot
+recovery, LVM) to the terminal sims. Python and pandas behaviors quoted in
+model answers were run on CPython 3.13.18 with pandas 3.0.5, NumPy 2.5.3 and
+Matplotlib 3.11.2 on 2026-11-14 (nothing depends on a 3.14/3.15-only
+feature); command options were checked against their man pages the same day.
+A Python or Linux practitioner must read each before it is approved.
 ### New technology courses (REQ-264 to REQ-268)
 
 | Course | Labs | Per unit (d) | Outline or reference |
@@ -732,6 +766,99 @@ pgvector SQL and Azure configuration were not executed; each uses only
 functions, operators and settings whose Microsoft Learn pages were read that
 day. SC-500 and AI-200 replace AZ-500 and AZ-204, which Microsoft retired on
 2026-08-31 and 2026-07-31. All 80 are `needs_expert_review`.
+### ISC2, ISACA and EC-Council security certifications (REQ-271 to REQ-273)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| ISC2CC | 11 (6 build, 5 case) | 3/2/2/2/2 | [CC exam outline effective 2026-09-01](https://www.isc2.org/certifications/cc/cc-certification-exam-outline) (read 2026-11-14) |
+| CISSP | 14 (7 build, 7 case) | 2/1/2/2/2/2/2/1 | [CISSP exam outline effective 2024-04-15](https://www.isc2.org/certifications/cissp/cissp-certification-exam-outline) (read 2026-11-14) |
+| CISM | 10 (4 build, 6 case) | 2/2/3/3 | [CISM exam content outline](https://www.isaca.org/credentialing/cism/cism-exam-content-outline), exam from 2026-11-03 (read 2026-11-14) |
+| CEH | 15 (7 build, 8 case) | 1/2/2/3/2/1/2/1/1 | [CEH Exam Blueprint v5.0](https://cert.eccouncil.org/wp-content/uploads/2024/04/CEH-Exam-Blueprint-v5.pdf) (read 2026-11-14) |
+
+Files `seed/labs/isc2-cc.ts`, `isc2-cissp.ts`, `isaca-cism.ts` and
+`eccouncil-ceh.ts`, checked by `lib/labs-security-certs.test.ts` (hybrid
+density unit by unit, one lab per objective, the general safety note, both
+kinds, interactive answers in every set, documentation-range addresses, a
+dated outline rechecked by the course's review date). CC's printed weights add
+to 99.9 and CEH's to 101; `apportion()` uses them as printed. The CEH set
+follows the PenTest+ framing: every lab is an authorized engagement or the
+learner's own lab, and teaches recognition, interpretation and the
+countermeasure; the test refuses SQL injection strings, script tags and tool
+invocations. The CISSP risk lab's figures are scenario data on the standard
+SLE/ALE formulas, and the CC ethics lab quotes ISC2's four canons as
+published at isc2.org/ethics (read 2026-11-14, no priority order stated). The
+CISSP set is rechecked by 2027-01-15, before ISC2's 2027-04-15 outline; CEH by
+2027-02-14 (EC-Council releases a version every 12-18 months). All 50 are
+`needs_expert_review`.
+### Nursing specialty and advanced practice: CMSRN, CEN, PCCN and FNP (REQ-275 to REQ-278)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| CMSRN | 11 | 3/2/2/2/2 | [MSNCB 2023 CMSRN Exam Blueprint](https://www.msncb.org/Portals/1/CMSRN%20Materials/2023%20CMSRN%20Exam%20Blueprint.pdf) (read 2026-11-14) |
+| CEN | 17 | 2/2/2/2/1/2/2/1/1/1/1 | [BCEN CEN content outline, effective July 2026](https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf) (read 2026-11-14) |
+| PCCN | 18 | 2/2/1/1/2/1/1/1/2/1/2/2 | [AACN PCCN Exam Handbook, July 2026](https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/pccnexamhandbook.pdf?la=en) (read 2026-11-14) |
+| AANPCB FNP | 10 | 3/3/2/2 | [AANPCB 2024 FNP blueprint](https://candidateportal.aanpcert.org/certs/fnp) (read 2026-11-14) |
+| ANCC FNP-BC | 11 | 2/2/2/3/2 | [ANCC FNP-BC test content outline, effective 2026-10-30](https://www.nursingworld.org/globalassets/study-aids/family-nurse-practitioner-tco_04062026.pdf) (read 2026-11-14) |
+
+Files `seed/labs/cmsrn.ts`, `cen.ts`, `pccn.ts` and `fnp.ts`, gathered in
+`seed/labs/nursing-specialty.ts`, with their value sources in
+`seed/labs/nursing-specialty-sources.ts` (merged into `VALUE_SOURCES`).
+`lib/labs-nursing-specialty.test.ts` checks the hybrid density unit by unit,
+one lab per objective, the clinical safety note, fictional people, a written
+part in every lab (clinical judgment is never only a control), and a value
+source or a reason on every lab. CEN weights are BCEN's item counts over 150
+to two decimals. No lab teaches a drug dose except the anaphylaxis
+epinephrine calculation, which follows the 2020 practice parameter as
+summarized in CCJM (2022); thresholds a source was not read for (heart
+failure weight gain, chronic cough, sinusitis day counts) are left to "the
+patient's team" or described without a number.
+### Scrum, ITIL, Six Sigma and nutrition coaching (REQ-280, REQ-281)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| PSMI | 12 (7 build, 5 case) | 2/2/2/2/2/2 | [Scrum.org PSM I focus areas](https://www.scrum.org/assessments/professional-scrum-master-i-certification) and the [2020 Scrum Guide](https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf) (read 2026-11-14) |
+| CSM | 12 (7 build, 5 case) | 2/2/3/2/1/2 | [CSM learning objectives (January 2022)](https://www.scrumalliance.org/media/certifications/los/csm_learning_objectives_2022.pdf) and Scrum Foundations (read 2026-11-14) |
+| ITIL4FND | 12 (9 build, 3 case) | 2/2/1/1/1/2/3 | ITIL 4 Foundation syllabus v1.4, read in a training organization's copy; [PeopleCert exam page](https://www.peoplecert.org/browse-certifications/it-governance-and-service-management/ITIL-1/itil-4-foundation-2565) (read 2026-11-14) |
+| CSSGB | 12 (10 build, 2 case) | 2/2/2/2/2/2 | [ASQ CSSGB Body of Knowledge (2022)](https://www.asq.org/cert/resource/pdf/certification/cssgb-cert-insert.pdf) (read 2026-11-14) |
+| NASMCNC | 10 (7 build, 3 case) | 2/3/2/3 | [NASM CNC course sections](https://www.nasm.org/products/single-complex/nasm-certified-nutrition-coach/CNC301K) (read 2026-11-14) |
+
+Files `seed/labs/scrum-psmi.ts`, `scrum-csm.ts`, `itil4-foundation.ts`,
+`asq-cssgb.ts` and `fitness-nasmcnc.ts`, checked by
+`lib/labs-pm-frameworks.test.ts` (hybrid density unit by unit, one lab per
+objective, both kinds, at least five labs per course with an interactive
+part, fictional organizations and people, the right safety note). PSM I, CSM
+and the CNC publish no weights, so their plans use our study-emphasis
+weights. The CSSGB numbers are computed from each lab's own data with the
+standard formulas and quote no outside threshold. The CNC labs keep to a
+coach's scope (referral for diagnosed conditions, disordered eating and
+medication questions) and take their values from the DGA 2025-2030, the
+National Academies DRI tables and FDA's supplement Q&A (`value-sources.ts`,
+read 2026-11-14). All 58 are `needs_expert_review`.
+### ASWB social work exams and the Washington psychology jurisprudence exam (REQ-286, REQ-287)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| ASWBCLINICAL | 9 (3 build, 6 case) | 3/3/3 | [ASWB Examination Guidebook, August 2026](https://www.aswb.org/wp-content/uploads/2026/05/2026-Social-Work-Licensing-Exam-Guidebook-5.4.2026.pdf) (read 2026-11-14) |
+| ASWBMASTERS | 9 (4 build, 5 case) | 3/3/3 | same guidebook (read 2026-11-14) |
+| WAPSYCHJP | 9 (5 build, 4 case) | 1/1/3/2/1/1 | [DOH Jurisprudence Exam RCW and WAC References](https://doh.wa.gov/licenses-permits-and-certificates/professions-new-renew-or-update/psychologist/jurisprudence-exam-rcw-and-wac-references) (read 2026-11-14) |
+
+Files `seed/labs/aswb-clinical.ts`, `aswb-masters.ts` and
+`wa-psych-jurisprudence.ts`, checked by `lib/labs-aswb-wajp.test.ts` (hybrid
+density unit by unit, one lab per objective, interactive parts, fictional
+people, a value source or a reason on every lab, and every quoted NASW
+standard, 988, RCW or WAC section cited). The ASWB labs use the clinical
+safety note; the jurisprudence labs use `LEGAL_SAFETY` (same framing plus
+"not legal advice"), and each of their numeric answers (60 CE hours, 2 years
+for a key party, 8 years' retention for a 15-year-old, 48 hours to report) is
+pinned to the rule it comes from. The jurisprudence course has no published
+blueprint, so its weights are a study emphasis (REQ-220) and the plan is
+apportioned on them; units with only knowledge objectives get one lab. Values
+(NASW Code of Ethics 2021 standards 1-3, read in full; SAMHSA 988; Washington
+RCW 71.05.120, 26.44.030, 74.34, 70.02, 18.83, 18.130 and WAC 246-924) are in
+`value-sources.ts`, read 2026-11-14. NASW votes on Code amendments on
+2026-11-18, so the NASW source is rechecked by 2026-12-15. All 27 are
+`needs_expert_review` until a licensed clinical social worker (ASWB) or a
+Washington psychologist (jurisprudence) approves them.
 
 ## Expert review before launch
 

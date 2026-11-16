@@ -1,0 +1,1147 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "bigquery-dashboard-bill",
+  "title": "Cost: a new dashboard has the analytics bill at 160% of budget on day 4",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "billing",
+          "label": "Billing account (Finance)",
+          "spokenLabel": "the billing account",
+          "items": [
+            {
+              "label": "Monthly budget $3,000, alerts-only, emails Finance at 50%, 90% and 100%",
+              "when": "true"
+            },
+            {
+              "label": "Budget on mkt-analytics, alerts to the project owner and Finance",
+              "when": "ownerBudget"
+            },
+            {
+              "label": "Required labels team and owner on every project (policy agreed)",
+              "when": "labelsPolicy"
+            },
+            {
+              "label": "Monthly cost review: Finance, platform and each project owner",
+              "when": "reviewSet"
+            }
+          ]
+        },
+        {
+          "id": "proj",
+          "label": "Project mkt-analytics",
+          "spokenLabel": "project mkt-analytics",
+          "items": [
+            {
+              "label": "Billing: {billingOff ? \"DISABLED: services stopped\" : \"enabled\"}",
+              "when": "true"
+            },
+            {
+              "label": "Table events (40 TiB, {dashFixed ? \"partitioned by day\" : \"not partitioned\"})",
+              "when": "true"
+            },
+            {
+              "label": "Sales dashboard: {dashRevoked ? (dashFixed ? \"restored on the fixed query\" : \"stopped: its service account cannot run queries\") : dashFixed ? \"hourly, last 7 days only (0.1 TiB per refresh)\" : \"every 15 minutes, full table (2 TiB per refresh)\"}",
+              "when": "true"
+            },
+            {
+              "label": "Lead-scoring pipeline (runs nightly)",
+              "when": "true"
+            },
+            {
+              "label": "Custom quota: Query usage per day 50 TiB",
+              "when": "quotaSet"
+            }
+          ]
+        },
+        {
+          "id": "people",
+          "label": "People",
+          "spokenLabel": "the people involved",
+          "items": [
+            {
+              "label": "Marketing analytics lead (project owner): {isNull(ownerEngagedAt) ? (isNull(ownerFoundAt) ? \"not yet identified\" : \"identified, not yet contacted\") : \"engaged and owns the fix\"}",
+              "when": "true"
+            },
+            {
+              "label": "Sales: quarterly review on the dashboard at 14:00",
+              "when": "true"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "spendM",
+          "label": "Spend this month",
+          "value": "{spend|usd}"
+        },
+        {
+          "id": "rateM",
+          "label": "Dashboard spend per hour now",
+          "value": "{(billingOff or (dashRevoked and not dashFixed)) ? 0 : (dashFixed ? fixedPerHour : runawayPerHour)|usd}"
+        },
+        {
+          "id": "budgetM",
+          "label": "Monthly budget",
+          "value": "{budget|usd}"
+        }
+      ]
+    }
+  },
+  "objective": "Google-recommended practices for cloud financial governance, including who owns cost management",
+  "secondaryObjectives": [
+    "Controlling cloud consumption: resource quota policies, budget threshold rules, Cloud Billing reports, Dynamic Workload Scheduler, Spot VMs",
+    "The role people, process, and technology each play in controlling cloud cost"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Cloud Digital Leader certification exam guide: Section 6 Scaling with Google Cloud Operations (~17%), 6.1 Financial governance and managing cloud costs",
+      "checkedAt": "2026-11-14",
+      "url": "https://cloud.google.com/learn/certification/guides/cloud-digital-leader",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: 'Discuss how using cloud financial governance best practices provides predictability and control for cloud resources'; 'Describe the benefit of controlling cloud consumption using resource quota policies and budget threshold rules'; 'Discuss how organizations can visualize their cost data by using Cloud Billing Reports.' Six sections at about 16-17% each."
+    },
+    {
+      "cite": "Google Cloud, BigQuery pricing: on-demand compute (analysis) pricing",
+      "checkedAt": "2026-11-14",
+      "url": "https://cloud.google.com/bigquery/pricing",
+      "note": "Read through a summarizing fetch on 2026-11-14 (no last-updated date on the page). Relevant text: '1 tebibyte and above: $6.25 / 1 tebibyte, per 1 month / account'; 'The first 1 TiB per month is free.' Re-check every six months (12.1)."
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud Billing: Create, edit, or delete budgets and budget alerts (last updated 2026-11-10)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.cloud.google.com/billing/docs/how-to/budgets",
+      "note": "Read through summarizing fetches on 2026-11-14. Relevant text: 'Setting an alerts-only budget doesn't automatically cap Google Cloud or Google Maps Platform usage or spending'; 'the default alert thresholds are set at 50%, 90%, and 100% of the budget amount'. The page also describes spend cap budgets 'if supported for your service'; which services support them was not read, so the scenario does not offer one."
+    },
+    {
+      "cite": "Google Cloud documentation, BigQuery: Create custom query quotas (last updated 2026-11-10)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.cloud.google.com/bigquery/docs/custom-quotas",
+      "note": "Read through summarizing fetches on 2026-11-14. Relevant text: 'Project-level custom quotas limit the aggregate usage of all users in that project'; over the quota BigQuery returns 'Custom quota exceeded: Your usage exceeded the custom quota for QueryUsagePerDay'; 'Daily quotas are reset at midnight Pacific Time'; a lower quota 'takes effect within a few minutes'."
+    },
+    {
+      "cite": "Google Cloud documentation, BigQuery: Introduction to partitioned tables (last updated 2026-11-10)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.cloud.google.com/bigquery/docs/partitioned-tables",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: partitioning can 'improve query performance and control costs by reducing the number of bytes that a query reads'; with a filter on the partitioning column 'BigQuery can scan the partitions that match the filter and skip the rest'."
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud Billing: Enable, disable, or change billing for a project (last updated 2026-11-10)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.cloud.google.com/billing/docs/how-to/modify-project",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: when billing is disabled 'all of your Google Cloud and Google Maps Platform services are stopped' and 'some of your Google Cloud resources might be removed and become non-recoverable'; 'We recommend backing up any data that you have in the project.'"
+    }
+  ],
+  "brief": {
+    "situation": "You lead the cloud platform team at Harbor & Pine, a fictional retailer. On the 4th of the month Finance forwards a budget alert: the billing account has spent $4,800 against a $3,000 monthly budget. Nobody knows why. Sales runs its quarterly review at 14:00 on a dashboard the marketing analytics team published last week. It is 09:00.",
+    "handover": [
+      "Each team owns its own projects; your team runs the billing account, the organization policies and the guardrails. Finance sees the bill but not the workloads.",
+      "Project mkt-analytics also runs the nightly lead-scoring pipeline."
+    ],
+    "howItWorks": [
+      "The board shows the billing account, the project and the people, with what is set up in each; meters show spend.",
+      "Each task takes your time: start it, then let the work finish, which moves the clock by the minutes it takes. Spend keeps accruing on the same clock.",
+      "When you close the case, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "budget": {
+      "value": 3000,
+      "unit": "$",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-14",
+        "note": "The company's monthly budget."
+      }
+    },
+    "runawayPerHour": {
+      "value": 50,
+      "unit": "$",
+      "source": {
+        "cite": "Google Cloud, BigQuery pricing: on-demand compute (analysis) pricing",
+        "checkedAt": "2026-11-14",
+        "url": "https://cloud.google.com/bigquery/pricing",
+        "note": "Scenario data priced at the published rate: the dashboard scans 2 TiB every 15 minutes, 8 TiB an hour, at $6.25 per TiB = $50 an hour (the free first TiB is long used)."
+      }
+    },
+    "fixedPerHour": {
+      "value": 0.625,
+      "unit": "$",
+      "source": {
+        "cite": "Google Cloud, BigQuery pricing: on-demand compute (analysis) pricing",
+        "checkedAt": "2026-11-14",
+        "url": "https://cloud.google.com/bigquery/pricing",
+        "note": "Scenario data priced at the published rate: hourly refresh over the last 7 days' partitions scans 0.1 TiB, at $6.25 per TiB = $0.625 an hour."
+      }
+    },
+    "fixDur": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. The owner's team takes an hour to partition the table, filter the dashboard to 7 days and set an hourly refresh."
+      }
+    },
+    "reviewAt": {
+      "value": 18000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. Sales' review is at 14:00, five hours after the start."
+      }
+    },
+    "fixWindow": {
+      "value": 10800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. The fix should land by noon, three hours in, so the review is safe and a morning's spend is the cost."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "reportAt": {
+      "type": "time",
+      "init": null
+    },
+    "jobsAt": {
+      "type": "time",
+      "init": null
+    },
+    "ownerFoundAt": {
+      "type": "time",
+      "init": null
+    },
+    "ownerEngagedAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "dashFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "fixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixedBy": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "owner",
+        "platform"
+      ],
+      "init": "unset"
+    },
+    "dashRevoked": {
+      "type": "bool",
+      "init": false
+    },
+    "billingOff": {
+      "type": "bool",
+      "init": false
+    },
+    "quotaSet": {
+      "type": "bool",
+      "init": false
+    },
+    "ownerBudget": {
+      "type": "bool",
+      "init": false
+    },
+    "labelsPolicy": {
+      "type": "bool",
+      "init": false
+    },
+    "reviewSet": {
+      "type": "bool",
+      "init": false
+    },
+    "spend": {
+      "type": "number",
+      "init": 4800,
+      "unit": "$",
+      "min": 0,
+      "max": 1000000
+    },
+    "reviewFailedAt": {
+      "type": "time",
+      "init": null
+    },
+    "reviewOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "ownerDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "shared",
+        "finance",
+        "platform"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "dashOk": {
+      "expr": "not dashRevoked or dashFixed and not billingOff"
+    }
+  },
+  "processes": [
+    {
+      "id": "spendP",
+      "when": "phase == \"incident\" and not billingOff and not (dashRevoked and not dashFixed)",
+      "update": {
+        "spend": "spend + dt / 3600 * (dashFixed ? fixedPerHour : runawayPerHour)"
+      }
+    }
+  ],
+  "phases": {
+    "incident": {
+      "label": "Investigate and act",
+      "clock": "turns",
+      "actions": [
+        "billingReport",
+        "jobsHistory",
+        "findOwner",
+        "meetOwner",
+        "ownerFix",
+        "platformFix",
+        "revokeDash",
+        "disableBilling",
+        "setQuota",
+        "ownerBudgetA",
+        "labelsA",
+        "costReview",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "billingReport": {
+      "label": "Open Cloud Billing reports: group by project, service and SKU",
+      "group": "Investigate",
+      "available": "not busy and (isNull(reportAt))",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(reportAt)",
+          "then": [
+            {
+              "set": "reportAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Billing report: project mkt-analytics is 92% of the increase, all of it BigQuery Analysis, starting last Tuesday.",
+          "kind": "act"
+        },
+        {
+          "finding": "One project and one service: BigQuery queries in mkt-analytics since last Tuesday."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "jobsHistory": {
+      "label": "Read the project's BigQuery job history (bytes billed by job and user)",
+      "group": "Investigate",
+      "available": "not busy and (isNull(jobsAt))",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(jobsAt)",
+          "then": [
+            {
+              "set": "jobsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Job history: the sales dashboard's service account runs the same query every 15 minutes; each scans the whole 40 TiB events table's needed columns, about 2 TiB, because the table is not partitioned.",
+          "kind": "act"
+        },
+        {
+          "finding": "The dashboard scans 2 TiB every 15 minutes: about $50 an hour, around the clock."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "findOwner": {
+      "label": "Find the project's owner from its labels and IAM",
+      "group": "Investigate",
+      "available": "not busy and (isNull(ownerFoundAt))",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(ownerFoundAt)",
+          "then": [
+            {
+              "set": "ownerFoundAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "mkt-analytics is labeled team=marketing-analytics; its owner is the marketing analytics lead.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "meetOwner": {
+      "label": "Call the marketing analytics lead: show the cost, agree who fixes what",
+      "group": "Communicate",
+      "available": "not busy and (not isNull(ownerFoundAt) and isNull(ownerEngagedAt))",
+      "why": "Find the owner first, or it is done.",
+      "effects": [
+        {
+          "if": "isNull(ownerEngagedAt)",
+          "then": [
+            {
+              "set": "ownerEngagedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The lead had no idea what the dashboard cost. Their team will fix the query today; you will add guardrails.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "ownerFix": {
+      "label": "Owner's team: partition the table by day, filter the dashboard to 7 days, refresh hourly",
+      "group": "Act",
+      "available": "not busy and (not isNull(ownerEngagedAt) and isNull(fixStartAt))",
+      "why": "The owner has to agree first, or it has started.",
+      "effects": [
+        {
+          "set": "fixStartAt",
+          "to": "t"
+        },
+        {
+          "set": "fixedBy",
+          "to": "\"owner\""
+        },
+        {
+          "log": "The owner's team starts the change (about an hour).",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "platformFix": {
+      "label": "Change the dashboard and table yourself, without the owner",
+      "group": "Act",
+      "available": "not busy and (isNull(fixStartAt))",
+      "why": "A fix is already under way.",
+      "effects": [
+        {
+          "set": "fixStartAt",
+          "to": "t"
+        },
+        {
+          "set": "fixedBy",
+          "to": "\"platform\""
+        },
+        {
+          "log": "You start changing another team's table and dashboard (about an hour); nobody on that team knows.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "revokeDash": {
+      "label": "Remove the dashboard service account's permission to run queries",
+      "group": "Act",
+      "available": "not busy and (not dashRevoked)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "dashRevoked",
+          "to": "true"
+        },
+        {
+          "log": "The dashboard stops querying: spend stops, and so does the dashboard until a fixed query is in place.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "disableBilling": {
+      "label": "Disable billing on mkt-analytics",
+      "group": "Act",
+      "available": "not busy and (not billingOff)",
+      "why": "Already disabled.",
+      "effects": [
+        {
+          "set": "billingOff",
+          "to": "true"
+        },
+        {
+          "log": "Billing disabled: every service in mkt-analytics stopped, including the lead-scoring pipeline, and some resources may be removed for good.",
+          "kind": "alarm"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "setQuota": {
+      "label": "Set a custom quota on mkt-analytics: Query usage per day, 50 TiB",
+      "group": "Guardrail",
+      "available": "not busy and (not quotaSet)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "quotaSet",
+          "to": "true"
+        },
+        {
+          "log": "Quota set: a repeat of this runaway (192 TiB a day) would now stop at 50 TiB with a 'Custom quota exceeded' error instead of a bill.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "ownerBudgetA": {
+      "label": "Create a budget on mkt-analytics with alerts to its owner and Finance",
+      "group": "Guardrail",
+      "available": "not busy and (not ownerBudget)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "ownerBudget",
+          "to": "true"
+        },
+        {
+          "log": "The owner now hears about this project's spend at 50%, 90% and 100%, not just Finance.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "labelsA": {
+      "label": "Require team and owner labels on every project (organization policy and review)",
+      "group": "Guardrail",
+      "available": "not busy and (not labelsPolicy)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "labelsPolicy",
+          "to": "true"
+        },
+        {
+          "log": "Every project's cost can be traced to a team and an owner.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "costReview": {
+      "label": "Set up a monthly cost review with Finance and each project owner",
+      "group": "Guardrail",
+      "available": "not busy and (not reviewSet)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "reviewSet",
+          "to": "true"
+        },
+        {
+          "log": "Cost becomes a shared monthly conversation, not a surprise.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (30 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 30 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the case and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the case.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "owner",
+              "label": "Who owns cost management for this project",
+              "options": [
+                {
+                  "value": "shared",
+                  "label": "Shared: the project owner is accountable for its spend; Finance and the platform team give visibility and guardrails"
+                },
+                {
+                  "value": "finance",
+                  "label": "Finance, because it pays the bill"
+                },
+                {
+                  "value": "platform",
+                  "label": "The platform team, because it runs the billing account"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "ownerDoc",
+          "to": "owner"
+        },
+        {
+          "log": "Recorded: {owner}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "fixDone",
+      "when": "not isNull(fixStartAt) and t >= timeAt(fixStartAt) + fixDur and not dashFixed and not billingOff",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "dashFixed",
+          "to": "true"
+        },
+        {
+          "set": "fixedAt",
+          "to": "t"
+        },
+        {
+          "log": "The table is partitioned and the dashboard reads 7 days hourly: about $0.63 an hour.",
+          "kind": "good"
+        }
+      ]
+    },
+    {
+      "id": "review",
+      "when": "t >= reviewAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "dashOk",
+          "then": [
+            {
+              "set": "reviewOkAt",
+              "to": "t"
+            },
+            {
+              "log": "14:00: Sales runs its quarterly review on the dashboard.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "reviewFailedAt",
+              "to": "t"
+            },
+            {
+              "log": "14:00: Sales opens the dashboard for its quarterly review and it shows nothing.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: how you found where the money went, who owns fixing it and why, and what stops the next surprise.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Where it went",
+          "criteria": "Uses Cloud Billing reports (by project, service, SKU) and the job history to trace the increase to one dashboard's full-table queries.",
+          "modelAnswer": "Billing reports put 92% of the increase in mkt-analytics, BigQuery Analysis, since last Tuesday. The job history showed the new sales dashboard scanning about 2 TiB every 15 minutes because the table is not partitioned."
+        },
+        {
+          "label": "Who owns it",
+          "criteria": "The project owner is accountable for the workload's cost and fixes it; Finance and the platform team provide visibility and guardrails; blunt shutdowns are avoided.",
+          "modelAnswer": "Cost is shared: the marketing analytics lead owns the workload and its spend, so their team fixed the query; Finance watches the bill and the platform team sets guardrails. Disabling billing would have stopped the lead-scoring pipeline too and could remove resources."
+        },
+        {
+          "label": "No more surprises",
+          "criteria": "Explains that an alerts-only budget does not stop spending, and adds a quota, a project budget alerting the owner, required labels and a regular review.",
+          "modelAnswer": "The existing budget only emailed Finance; it never capped anything. Now a 50 TiB daily query quota stops a runaway, the owner gets the project's budget alerts, every project carries team and owner labels, and spend is reviewed monthly with each owner."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "costRecoveredPct": {
+        "value": 110,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Kept at the default; this case judges how the runaway was stopped, not the month already spent."
+        }
+      },
+      "fixWindowS": {
+        "value": 10800,
+        "source": {
+          "cite": "Author's scenario timing (REQ-297)",
+          "checkedAt": "2026-11-14",
+          "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. The runaway query fixed by noon."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not dashFixed and not dashRevoked and not billingOff",
+      "class": "harm",
+      "rationale": "Closing with the dashboard still scanning the whole table leaves about $1,200 a day running against a $3,000 budget, and the budget only sends emails.",
+      "source": {
+        "cite": "Google Cloud documentation, Cloud Billing: Create, edit, or delete budgets and budget alerts (last updated 2026-11-10)",
+        "checkedAt": "2026-11-14",
+        "url": "https://docs.cloud.google.com/billing/docs/how-to/budgets",
+        "note": "Read through summarizing fetches on 2026-11-14. Relevant text: 'Setting an alerts-only budget doesn't automatically cap Google Cloud or Google Maps Platform usage or spending'; 'the default alert thresholds are set at 50%, 90%, and 100% of the budget amount'. The page also describes spend cap budgets 'if supported for your service'; which services support them was not read, so the scenario does not offer one."
+      }
+    }
+  },
+  "endings": {
+    "billingOff": {
+      "label": "Billing was disabled on the project",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and billingOff",
+      "narrative": "Disabling billing stopped every service in mkt-analytics, the lead-scoring pipeline included, and risked removing resources for good."
+    },
+    "reviewFailed": {
+      "label": "The sales review had no dashboard",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(reviewFailedAt)",
+      "narrative": "The dashboard was stopped with no fixed query in place when Sales opened it at 14:00."
+    },
+    "stillBurning": {
+      "label": "Closed with the runaway still running",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not dashFixed and not dashRevoked",
+      "narrative": "The dashboard still scans the whole table every 15 minutes, about $1,200 a day."
+    },
+    "governed": {
+      "label": "Fixed by its owner, with guardrails",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and dashFixed and fixedBy == \"owner\" and timeAt(fixedAt) <= fixWindowS and quotaSet and ownerBudget and labelsPolicy and reviewSet and isNull(reviewFailedAt) and ownerDoc == \"shared\" and not isNull(reportAt) and timeAt(reportAt) <= timeAt(fixStartAt)",
+      "narrative": "The cost was traced, its owner fixed the query by noon, the review went ahead, and quotas, owner alerts, labels and a monthly review now stand guard."
+    },
+    "governedGaps": {
+      "label": "Stopped, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The runaway is stopped, but it was late, done around its owner, or left without guardrails."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "billingOff",
+    "reviewFailed",
+    "stillBurning",
+    "governed",
+    "governedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "traced",
+        "label": "Traced the cost with billing reports before acting",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(reportAt) and (isNull(fixStartAt) or timeAt(reportAt) <= timeAt(fixStartAt)) and not billingOff and not dashRevoked",
+            "score": "met",
+            "why": "Billing reports pointed at the project and the service first."
+          },
+          {
+            "when": "not isNull(reportAt)",
+            "score": "partial",
+            "why": "The reports were read only after acting."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody looked at where the money went."
+          }
+        ]
+      },
+      {
+        "id": "ownerOwns",
+        "label": "The project's owner was engaged and fixed it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(ownerEngagedAt) and fixedBy == \"owner\" and dashFixed",
+            "score": "met",
+            "why": "The owner's team fixed its own workload."
+          },
+          {
+            "when": "dashFixed or not isNull(ownerEngagedAt)",
+            "score": "partial",
+            "why": "{dashFixed ? \"Fixed around the owner: nobody on that team learned what it cost.\" : \"The owner was engaged, but nothing was fixed.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The owner was never involved and nothing was fixed."
+          }
+        ]
+      },
+      {
+        "id": "fixedByNoon",
+        "label": "Runaway query fixed by noon without stopping the business",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dashFixed and timeAt(fixedAt) <= fixWindowS and not billingOff and isNull(reviewFailedAt)",
+            "score": "met",
+            "why": "Fixed {timeAt(fixedAt) / 60|0dp} min in; the review went ahead."
+          },
+          {
+            "when": "dashFixed and not billingOff",
+            "score": "partial",
+            "why": "Fixed, but late or after the review failed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{billingOff ? \"The whole project was stopped.\" : \"The query was never fixed.\"}"
+          }
+        ]
+      },
+      {
+        "id": "guardrails",
+        "label": "Guardrails: quota, owner's budget alerts, labels, monthly review",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "quotaSet and ownerBudget and labelsPolicy and reviewSet",
+            "score": "met",
+            "why": "All four guardrails are in place."
+          },
+          {
+            "when": "quotaSet or ownerBudget or labelsPolicy or reviewSet",
+            "score": "partial",
+            "why": "Some guardrails are missing."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing stops the next surprise."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded cost ownership as shared, with the owner accountable",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "ownerDoc == \"shared\"",
+            "score": "met",
+            "why": "The record matches the governance model."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record puts cost on a team that cannot control the workload."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written trace, ownership and guardrails",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "spendK",
+        "label": "Spend this month at close",
+        "value": "round(spend)",
+        "format": "usd",
+        "expert": "about $4,920"
+      },
+      {
+        "id": "fixK",
+        "label": "Minutes until the query was fixed",
+        "value": "isNull(fixedAt) ? -1 : timeAt(fixedAt) / 60",
+        "format": "number",
+        "expert": "under 180"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00-09:40",
+        "text": "Billing reports by project, service and SKU; the job history: the sales dashboard scans 2 TiB every 15 minutes."
+      },
+      {
+        "at": "09:40-10:20",
+        "text": "Find the owner from the project's labels and call them: they own the workload and its cost."
+      },
+      {
+        "at": "10:20-11:35",
+        "text": "The owner's team partitions the table and refreshes hourly over 7 days; meanwhile set a 50 TiB daily query quota and a project budget alerting the owner."
+      },
+      {
+        "at": "11:35-12:30",
+        "text": "Required labels on every project and a monthly cost review; the 14:00 review runs on the fixed dashboard."
+      }
+    ],
+    "debrief": {
+      "governed": {
+        "headline": "Good: owned, fixed, guarded",
+        "body": "You traced the money before acting, put the fix with the team that owns the workload, kept Sales' review safe, and left guardrails that stop the next runaway rather than just email about it."
+      },
+      "governedGaps": {
+        "headline": "Stopped, with gaps",
+        "body": "The runaway is stopped. The criteria show what was late, done around the owner, or left unguarded."
+      },
+      "billingOff": {
+        "headline": "Too blunt",
+        "body": "Disabling billing stops every service in the project and can remove resources. A quota, a permission change or the owner's fix stops one query."
+      },
+      "reviewFailed": {
+        "headline": "The review had nothing to show",
+        "body": "Cutting the dashboard off stopped the spend but also the business it served. Get the owner's fix in before the deadline, or don't cut it."
+      },
+      "stillBurning": {
+        "headline": "Still burning",
+        "body": "A budget alert only sends email. Until the query changes or a quota stops it, the dashboard spends about $1,200 a day."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Start with Cloud Billing reports grouped by project, service and SKU: the increase is BigQuery Analysis in mkt-analytics since last Tuesday. The job history shows the new sales dashboard scanning about 2 TiB every 15 minutes because the table is not partitioned, about $50 an hour at $6.25 per TiB. The project's labels name its owner; cost management is shared, with the owner accountable for the workload, so their team partitions the table and refreshes hourly over 7 days, well before Sales' 14:00 review. The existing budget was alerts-only and never capped spending, so add a 50 TiB daily query quota, a project budget that alerts the owner, required team and owner labels, and a monthly cost review. Disabling billing would stop every service in the project."
+  }
+}

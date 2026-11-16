@@ -1,0 +1,858 @@
+{
+  "slug": "service-no-restart-after-update",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "status, journal (the PDF it died on) and systemctl cat (no Restart=); quarantine the PDF, systemctl edit, start, show -p Restart",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "cat",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "quarantine",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "edit",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "showRestart",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 7,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 15,
+          "tick": 7
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "upgrade",
+            "fix": "dropin"
+          },
+          "seq": 17,
+          "tick": 7
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "evidence": "met",
+          "keptQueue": "met",
+          "durable": "met",
+          "fast": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minUp": 5,
+          "crashK": 0
+        },
+        "stateHash": "af8aabab964cf33f"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "vendorEdit",
+      "title": "Puts Restart= back in the vendor file under /usr/lib and reloads; quarantines the PDF and starts",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "cat",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "editVendor",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "daemonReload",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "quarantine",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "showRestart",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 7,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 15,
+          "tick": 7
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "upgrade",
+            "fix": "vendor"
+          },
+          "seq": 17,
+          "tick": 7
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "evidence": "met",
+          "keptQueue": "met",
+          "durable": "partial",
+          "fast": "met",
+          "verified": "missed",
+          "record": "partial"
+        },
+        "kpis": {
+          "minUp": 5,
+          "crashK": 0
+        },
+        "stateHash": "67f1544e3de363a4"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "noReload",
+      "title": "Copies the prepared drop-in but never runs daemon-reload; show -p Restart still says no",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "quarantine",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "copyDropin",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "showRestart",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "upgrade",
+            "fix": "dropin"
+          },
+          "seq": 13,
+          "tick": 5
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "evidence": "met",
+          "keptQueue": "met",
+          "durable": "partial",
+          "fast": "met",
+          "verified": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minUp": 3,
+          "crashK": 0
+        },
+        "stateHash": "d8b51a37e549d2b2"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "purge",
+      "title": "Clears the whole inbox to get past the crash, then adds the drop-in and starts",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "purge",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "edit",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "showRestart",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "package",
+            "fix": "purge"
+          },
+          "seq": 13,
+          "tick": 5
+        }
+      ],
+      "expect": {
+        "ending": "queuePurged",
+        "class": "harm",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "evidence": "met",
+          "keptQueue": "missed",
+          "durable": "met",
+          "fast": "met",
+          "verified": "met",
+          "record": "missed"
+        },
+        "kpis": {
+          "minUp": 3,
+          "crashK": 0
+        },
+        "stateHash": "d9b7ddfe8f58c124"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "startTwice",
+      "title": "Starts it twice without looking; it crashes on the same PDF each time",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "package",
+            "fix": "vendor"
+          },
+          "seq": 7,
+          "tick": 2
+        }
+      ],
+      "expect": {
+        "ending": "stillDown",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "evidence": "missed",
+          "keptQueue": "missed",
+          "durable": "missed",
+          "fast": "missed",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minUp": -1,
+          "crashK": 2
+        },
+        "stateHash": "65033c3cc9e5b7ad"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "late",
+      "title": "Starts it blind, waits past the batch, then reads the journal and does the rest right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 16,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 21,
+          "seq": 10,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 26,
+          "seq": 12,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 31,
+          "seq": 14,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 31,
+          "seq": 15,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 16,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 32,
+          "seq": 17,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "quarantine",
+          "seq": 18,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 33,
+          "seq": 19,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "edit",
+          "seq": 20,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 34,
+          "seq": 21,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 22,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 35,
+          "seq": 23,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "showRestart",
+          "seq": 24,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 36,
+          "seq": 25,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 26,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 27,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "upgrade",
+            "fix": "dropin"
+          },
+          "seq": 28,
+          "tick": 36
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "evidence": "partial",
+          "keptQueue": "met",
+          "durable": "met",
+          "fast": "partial",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minUp": 34,
+          "crashK": 1
+        },
+        "stateHash": "0e34369b0b5bea12"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

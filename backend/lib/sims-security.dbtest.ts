@@ -40,7 +40,10 @@ let simIds: Record<string, string> = {};
 const CAPS = "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1,security-console@1";
 const NO_CONSOLE = "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1";
 
-const SOURCES = ALL_DOCUMENTS.filter((e) => e.course === "SECPLUS" || e.course === "SECPLUSV8");
+// The three original incidents and their V8 bands. Later Security+ sims (REQ-297
+// bands and firewall-change-backout) are covered by lib/sim/it-wave3.test.ts.
+const ORIGINAL = new Set(["phish-to-account-takeover", "ransomware-file-server", "cloud-iam-backdoor"]);
+const SOURCES = ALL_DOCUMENTS.filter((e) => (e.course === "SECPLUS" || e.course === "SECPLUSV8") && ORIGINAL.has(e.slug.replace(/-v8$/, "")));
 const entries = (): DocumentEntry[] => SOURCES.map((e) => ({ ...e, course: e.course === "SECPLUS" ? V7 : V8 }));
 const entryOf = (slug: string) => SOURCES.find((e) => e.slug === slug)!;
 const docOf = (slug: string): ScenarioDoc => loadDocument(entryOf(slug));

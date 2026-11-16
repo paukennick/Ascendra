@@ -22,7 +22,10 @@ import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
 import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 
 const COURSES = ["LINUXPLUS", "NETWORKPLUS", "CKA"];
-const TERMINAL = ALL_DOCUMENTS.filter((e) => COURSES.includes(e.course));
+// REQ-237's six outages. Later waves add sims to these courses (REQ-297,
+// lib/sim/it-wave3.test.ts), which carry their own checks.
+const REQ237 = ["full-var-stops-database", "selinux-denies-moved-site", "vlan-missing-from-trunk", "branch-dns-route-typo", "crashloop-bad-configmap", "node-notready-swap-drain"];
+const TERMINAL = ALL_DOCUMENTS.filter((e) => COURSES.includes(e.course) && REQ237.includes(e.slug));
 const docOf = (slug: string): ScenarioDoc => loadDocument(TERMINAL.find((e) => e.slug === slug)!);
 const clone = (d: ScenarioDoc): ScenarioDoc => JSON.parse(JSON.stringify(d)) as ScenarioDoc;
 const errors = (d: ScenarioDoc): string[] => validateScenario(d).map(String);

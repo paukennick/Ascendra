@@ -59,4 +59,61 @@ export const STUDY_PATHS: readonly SeedStudyPath[] = [
       },
     ],
   },
+  // REQ-292 (Nick, 2026-11-14): the Python and Linux depth courses.
+  {
+    slug: "python-automation",
+    title: "Python for automating your work",
+    audience: "Writing scripts to automate tasks",
+    steps: [
+      {
+        trackCode: "PYTHON",
+        when: "First, if you are new to Python",
+        why: "Teaches the language itself: syntax, functions, data structures, files, classes and testing.",
+      },
+      {
+        trackCode: "PYAUTO",
+        when: "Once you can write and run a small Python program",
+        why: "Turns that into scripts people can run and schedule: command lines, files, logging, subprocess, APIs, packaging and tests.",
+      },
+    ],
+  },
+  {
+    slug: "python-data",
+    title: "Python for working with data",
+    audience: "Analyzing data with Python",
+    steps: [
+      {
+        trackCode: "PYTHON",
+        when: "First, if you are new to Python",
+        why: "Teaches the language the data tools are built on.",
+      },
+      {
+        trackCode: "PYDATA",
+        when: "Once you can write and run a small Python program",
+        why: "Teaches NumPy, pandas and matplotlib in notebooks, from loading and cleaning data to charts someone else can rerun.",
+      },
+    ],
+  },
+  {
+    slug: "linux-admin",
+    title: "Linux, from first commands to certified sysadmin",
+    audience: "Learning Linux administration",
+    steps: [
+      {
+        trackCode: "LINUXFUND",
+        when: "First, if you are new to the Linux command line",
+        why: "Covers the shell, files, permissions, processes, packages, services, storage, networking and scripts on any distribution.",
+      },
+      {
+        trackCode: "LFCS",
+        when: "After the fundamentals, with some hands-on practice",
+        why: "Prepares you for the Linux Foundation's hands-on sysadmin exam, solved at a live command line.",
+      },
+      {
+        trackCode: "CKA",
+        when: "If you go on to run Kubernetes",
+        why: "Builds on the same Linux skills for the hands-on Kubernetes administrator exam.",
+      },
+    ],
+  },
 ];
