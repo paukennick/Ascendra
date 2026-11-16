@@ -4994,12 +4994,12 @@ word for word (the leak test in `lib/sim/documents.test.ts` caught it). `time_up
 slow path ends earlier), so the linter's warning remains, as in the CCRN
 cases.
 
-### 22.16 IT sims wave 3: A+, KCNA and CKA, Google Cloud ACE and Digital Leader, Security+ bands (REQ-297)
+### 22.16 IT sims wave 3: A+, KCNA and CKA, Google Cloud ACE and Digital Leader, AWS SAA and SOA, Linux+, Security+ (REQ-297)
 
 Nick, 2026-11-14: "Build more sims, no need to limit number, build what covers
 the material." The coverage map for every non-clinical course, before and
-after, is docs/sims-coverage-it.md. Five new documents and three bands on the
-existing terminal, security console and board screens and engine 1.2; no
+after, is docs/sims-coverage-it.md. Eleven new documents and three bands on
+the existing terminal, security console and board screens and engine 1.2; no
 engine, renderer, schema or migration change. Each follows the pattern of
 22.7 and 22.10: learner-paced `turns` phases where every task costs minutes
 through one `work` wait, the problem's next step is an `interruptsSkip`
@@ -5021,6 +5021,12 @@ case).
 | GCPCDL/bigquery-dashboard-bill | board, cloud | A dashboard scans 2 TiB every 15 min ($50 an hour at $6.25 per TiB) on an unpartitioned table: billing reports and job history, the project owner's team fixes it by noon, Sales' review at 14:00 needs the dashboard, guardrails (50 TiB daily query quota, owner budget alerts, required labels, monthly review); disabling billing stops the whole project | gcpcdl-bill |
 | SECPLUS/vuln-prioritization-kev-edge-secplus (band) | as CYSAPLUS | The CySA+ KEV-versus-CVSS case on SY0-701 "Vulnerability management: scanning, CVSS scoring, and remediation prioritization" | secplus-vuln |
 | SECPLUS/alert-triage-lolbin-hunt-secplus (band) | as CYSAPLUS | The CySA+ alert triage case on SY0-701 "Security alerting and monitoring: ... alert response and remediation/validation" | secplus-triage |
+| AWSSAA/waf-login-flood-sqli | board, security | A layer 7 login flood and SQL injection probes an hour before an on-sale: metrics and logs separate them; a web ACL on CloudFront with the managed SQL database rule group, a rate-based rule on /login at 300 per 5 min per IP (10 blocks a university's shared address, 2,000 blocks nothing), then the ALB locked to the CloudFront origin-facing prefix list, or the botnet goes around the web ACL 15 min later. Shield Standard covers network and transport layer only; security groups cannot deny; scaling out feeds the flood; injection reaches the data at 45 min | saa-waf |
+| AWSSOA/rds-update-without-where-pitr | board, cloud | An UPDATE without WHERE cancels 180,000 open orders at 13:52: pause the refund worker (500 refunds every 10 min), take 13:52:10 from the job log (LatestRestorableTime is after it, the 04:00 snapshot ten hours older), restore to 13:51 as a new instance with the production security group (the default one blocks the repair host), copy only the status column back (RPO 5 min), before the 15:30 pickup (RTO), then delete the copy (cost). Switching the app to the copy loses every order since | soa-pitr |
+| GCPACE/cloud-run-bad-revision-rollback | board, cloud | Revision r42 fails 8% of checkouts against a 99.9% day: errors by revision, `update-traffic --to-revisions r41=100` (immediate) rather than a 15-min rebuild or more instances; the fix with `--no-traffic --tag`, a test order on the tag URL catches a second config error (sandbox payments), then 10% for ten minutes and 100% | gcpace-run |
+| LINUXPLUS/systemd-dropin-breaks-export | terminal, infrastructure | exportd fails 45 min before a bank pickup: `journalctl -u` (EXPORT_DIR missing) and `systemctl cat` (yesterday's override.conf); `systemctl edit` fixes and reloads, a hand `rm` needs `daemon-reload`, the vendor unit file is overridden anyway, `mkdir` of the wrong directory writes where the bank never looks, and the unit must be enabled again (enable does not start) | linux-systemd |
+| CKA/apiserver-static-pod-bad-flag | terminal, infrastructure | kubectl refused: `crictl ps` and `crictl logs` on the node show kube-apiserver dialing etcd on 2397 (etcd listens on 2379); back the manifest up outside /etc/kubernetes/manifests (a copy inside becomes a second static pod), fix the flag in place; `kubectl delete`, a kubelet restart and `kubeadm reset` do not help; the 09:15 scale-out needs the API | cka-apiserver |
+| SECPLUS/firewall-change-backout | security console, security | Mid-window, a firewall change opens RDP on the payroll server: the change record against the version control diff, the approved backout plan (its planned service restart), PAY01's logons, stakeholders, an emergency change for the corrected rule, implemented and tested by the vendor before 23:30, diagram and records updated; a live hand edit works but is unapproved; guessing succeeds at 35 min | secplus-change |
 
 **Sources** carry `checkedAt` 2026-11-14 and say how each was read. Primary
 text: the CompTIA A+ 220-1201 (Version 1.2) and 220-1202 (Version 4.0)
@@ -5035,6 +5041,23 @@ access prevention, Cloud Audit Logs, uniform bucket-level access, signed URLs,
 Object Lifecycle Management, BigQuery pricing, budgets, custom query quotas,
 partitioned tables and disabling billing pages. Not re-read: the KCNA
 curriculum (the course seed's wording is used), the SY0-701 objectives PDF.
+
+The six later cases (added after the work resumed, same day) read, through
+summarizing fetches on 2026-11-14: the AWS SAA-C03 exam guide, the SOA-C03
+Domain 2 page, AWS WAF rate-based rule settings and the SQL database managed
+rule group, Shield Standard and Advanced overviews, the VPC security group and
+network ACL comparison, the CloudFront managed prefix list (primary text), the
+RDS point-in-time restore page, Cloud Run rollbacks and traffic migration, the
+systemd.unit, systemctl and systemd.service manuals, the Kubernetes static Pod
+and cluster troubleshooting pages (raw Markdown), the CompTIA Linux+ and
+Security+ pages, and the SY0-701 objectives Version 5.0 (a copy hosted by a
+training provider; CompTIA's own link refused automated reading). Web reading
+was then narrowed to search results (lead, 2026-11-14), so two sources are
+marked "to verify" with the URL search returned: the Google Cloud ACE exam
+guide PDF and the Kubernetes Ports and Protocols page. Database coverage for
+all fourteen is `lib/sims-it-wave3.dbtest.ts` (seeding by title, renderer
+negotiation, pacing refused, the expert and a Bad golden path of each through
+the routes).
 
 **Findings** (recorded, not worked around; none needed a code fix):
 
@@ -5060,11 +5083,20 @@ curriculum (the course seed's wording is used), the SY0-701 objectives PDF.
    ("two per course") and `security-console.test.ts` (three SECPLUS
    scenarios) filtered by course code, so any later sim in CKA or SECPLUS
    broke them. They now check their own requirement's slugs; later waves
-   carry their own test file.
-5. **Bands across certification levels.** The Security+ bands put a CySA+
+   carry their own test file. The same held for `sims-security.dbtest.ts`
+   and `sims-terminal.dbtest.ts`, which the later Security+, Linux+ and CKA
+   cases broke (FAIL-2002; the lead pinned them on master). Wave 3 selects
+   its documents by slug from `lib/sim/it-wave3.ts` in both its unit and DB
+   tests.
+5. **Shield Advanced was not offered.** Its overview describes automatic
+   application layer mitigation, but its price and commitment were not
+   read, so the WAF case teaches the web ACL rules a learner configures
+   and does not offer a subscription.
+6. **Bands across certification levels.** The Security+ bands put a CySA+
    analyst's incident on Security+ objectives, and the CKA band a KCNA
    outage on a CKA objective. The decisions taught match the objectives, but
    the level is the base's; a decision for Nick.
+
 ### 22.17 LFCS and Linux Fundamentals cases on the terminal screen (REQ-292)
 
 Two cases each for the Linux Foundation LFCS course and Linux Fundamentals on
